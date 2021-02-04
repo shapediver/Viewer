@@ -1,4 +1,4 @@
 {
-  "scope": "test",
-  "initialized": false
+  "scope": "viewer",
+  "initialized": true
 }

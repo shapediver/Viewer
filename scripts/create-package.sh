@@ -1,14 +1,11 @@
 #!/bin/bash
-SCOPE=$(json -f 'scope.json' scope)
-NAME=$SCOPE.$1
-PACKAGE_PATH='./packages/'$NAME'/'
-echo 'Trying to create package "'$NAME'" at "'$PACKAGE_PATH'"...'
+echo 'Package name:'
+read NAME
+echo 'Scope name:'
+read SCOPE
 
-if [ $PACKAGE_PATH = './packages//' ]
-then
-    echo 'Please provide a name for the package.'
-    exit 1
-fi
+PACKAGE_PATH='./'$SCOPE'/'$NAME'/'
+echo 'Trying to create package "'$NAME'" at "'$PACKAGE_PATH'"...'
 
 if [ -d $PACKAGE_PATH ]
 then
@@ -16,7 +13,13 @@ then
     exit 1
 fi
 
-lerna create $NAME 'packages' --description "" --yes
+SCOPES=$(json -f 'lerna.json' packages)
+if [[ $SCOPES != *"\""$SCOPE"/*\""* ]]
+then
+    json -q -I -f 'lerna.json' -e 'this.packages[this.packages.length]="'$SCOPE'/*"'
+fi
+
+lerna create $NAME $SCOPE --description "" --yes
 
 # add an empty index.ts
 mkdir -p $PACKAGE_PATH'/src/'
@@ -38,7 +41,7 @@ cp './scripts/utils/tsconfig.json' $PACKAGE_PATH
 cp './scripts/utils/index.html' $PACKAGE_PATH
 
 # adjust package.json
-json -q -I -f $PACKAGE_PATH'package.json' -e 'this.name="@shapediver/'$NAME'"'
+json -q -I -f $PACKAGE_PATH'package.json' -e 'this.name="@shapediver/viewer.'$SCOPE.$NAME'"'
 json -q -I -f $PACKAGE_PATH'package.json' -e 'this.description=""'
 json -q -I -f $PACKAGE_PATH'package.json' -e 'this.main="dist/index.js"'
 json -q -I -f $PACKAGE_PATH'package.json' -e 'this.typings="dist/index.d.ts"'
