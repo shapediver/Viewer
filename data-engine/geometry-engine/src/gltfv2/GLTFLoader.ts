@@ -6,14 +6,12 @@ import { container } from 'tsyringe';
 import { IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
-import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { ImageLoader } from '@shapediver/viewer.utils.image-loader';
 
 export class GLTFLoader {
     // #region Properties (6)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _materialEngine: MaterialEngine;
 
     private _baseUri!: string;
     private _body!: ArrayBuffer;
@@ -26,7 +24,6 @@ export class GLTFLoader {
 
     constructor() {
         this._imageLoader = container.resolve(ImageLoader);
-        this._materialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     }
 
     // #endregion Constructors (1)
