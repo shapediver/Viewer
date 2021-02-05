@@ -7,7 +7,9 @@
     "visualization-engine/*",
     "visualization-egnine/*",
     "sdtf/*",
-    "data-engine/*"
+    "data-engine/*",
+    "session-engine/*",
+    "api/*"
   ],
   "version": "independent"
 }
