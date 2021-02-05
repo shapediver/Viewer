@@ -5,11 +5,11 @@
     "node-tree/*",
     "shared/*",
     "visualization-engine/*",
-    "visualization-egnine/*",
     "sdtf/*",
     "data-engine/*",
     "session-engine/*",
-    "api/*"
+    "api/*",
+    "examples/*"
   ],
   "version": "independent"
 }
