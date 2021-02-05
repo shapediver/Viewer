@@ -6,7 +6,8 @@
     "shared/*",
     "visualization-engine/*",
     "visualization-egnine/*",
-    "sdtf/*"
+    "sdtf/*",
+    "data-engine/*"
   ],
   "version": "independent"
 }
