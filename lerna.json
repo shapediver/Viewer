@@ -1,5 +1,11 @@
 {
   "packages": [
+    "monitoring/*",
+    "utils/*",
+    "node-tree/*",
+    "shared/*",
+    "visualization-engine/*",
+    "visualization-egnine/*"
   ],
   "version": "independent"
 }
