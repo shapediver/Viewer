@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.utils.http-client",
+  "name": "@shapediver/viewer.sdtf.parser",
   "version": "0.0.5",
   "description": "",
   "keywords": [],
@@ -45,7 +45,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@shapediver/viewer.monitoring.error-handler": "^0.0.3",
-    "axios": "^0.19.2"
+    "@shapediver/viewer.sdtf.shared": "^0.0.5",
+    "@shapediver/viewer.utils.http-client": "^0.0.5"
   }
 }

@@ -5,7 +5,8 @@
     "node-tree/*",
     "shared/*",
     "visualization-engine/*",
-    "visualization-egnine/*"
+    "visualization-egnine/*",
+    "sdtf/*"
   ],
   "version": "independent"
 }
