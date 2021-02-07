@@ -3,7 +3,7 @@ import httpClient from '@shapediver/viewer.utils.http-client';
 import uuid from '@shapediver/viewer.utils.uuid';
 import { container } from 'tsyringe';
 
-import { IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
+import { ACCESSOR_COMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSOR_TYPE_V2 as ACCESSOR_TYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { ImageLoader } from '@shapediver/viewer.utils.image-loader';

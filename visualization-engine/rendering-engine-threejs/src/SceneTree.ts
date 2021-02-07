@@ -8,7 +8,6 @@ import { SDObject } from './SDObject';
 import { SDObjectHelper } from './SDObjectHelper';
 import { ThreejsData } from './ThreejsData';
 import { AbstractSceneTree } from '@shapediver/viewer.visualization-engine.rendering-engine';
-import { StencilFunc } from 'three';
 
 export class SceneTree extends AbstractSceneTree<SDObject> {
     // #region Properties (2)
@@ -227,7 +226,10 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
             } 
 
             material.bumpScale = materialProperties.bumpScale;
-            material.color = new THREE.Color(materialProperties.color[0], materialProperties.color[1], materialProperties.color[2]);
+
+            material.color = new THREE.Color(   materialProperties.color[0] > 1 ? materialProperties.color[0]/255 : materialProperties.color[0], 
+                                                materialProperties.color[1] > 1 ? materialProperties.color[1]/255 : materialProperties.color[1], 
+                                                materialProperties.color[2] > 1 ? materialProperties.color[2]/255 : materialProperties.color[2]);
             //, materialProperties.color[3]);
 
             // displacementMap

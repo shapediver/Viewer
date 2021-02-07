@@ -2,9 +2,9 @@ import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
 import httpClient from '@shapediver/viewer.utils.http-client';
 import uuid from '@shapediver/viewer.utils.uuid';
 
+import { ACCESSOR_COMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSOR_TYPE_V1 as ACCESSOR_TYPE, IGLTF_v1 } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, PrimitiveData } from '@shapediver/viewer.shared.types';
-import { IGLTF_v1 } from '@shapediver/viewer.data-engine.shared-types';
 
 export class GLTFLoader {
     // #region Properties (3)
