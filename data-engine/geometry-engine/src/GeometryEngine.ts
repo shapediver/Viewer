@@ -22,8 +22,6 @@ export class GeometryEngine {
      * @returns the scene graph node 
      */
     public async loadContent(content: SessionOutputContent): Promise<TreeNode> {
-        console.log('GeometryEngine.loadContent')
-        // TODO other formats
         const node = new TreeNode('geometry');
         if(content.format === 'glb') {
             node.addChild(await new GLTF_v1Loader().load(content.href));

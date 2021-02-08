@@ -14,19 +14,19 @@ import { ISDObject } from '.';
 //   // #endregion Properties (5)
 // }
 
-  // lightReflectivity: number,
-  // line?: LineMaterialDefinition,
+// lightReflectivity: number,
+// line?: LineMaterialDefinition,
 
-  // shadowOpacity: number,
-  // threeDNoiseDistanceFade: number,
-  // threeDNoiseID: number,
-  // threeDNoiseOpacity: number,
-  // threeDNoiseScale: number,
+// shadowOpacity: number,
+// threeDNoiseDistanceFade: number,
+// threeDNoiseID: number,
+// threeDNoiseOpacity: number,
+// threeDNoiseScale: number,
 
-  // additionalMaps = [],
-  // mapPropertyColor = [],
-  // mapPropertyType = [],
-  // uvTransformAddMap = [],
+// additionalMaps = [],
+// mapPropertyColor = [],
+// mapPropertyType = [],
+// uvTransformAddMap = [],
 
 export enum MATERIAL_SIDE {
   DOUBLE = 'double',
@@ -34,9 +34,18 @@ export enum MATERIAL_SIDE {
   BACK = 'back'
 }
 export enum TEXTURE_WRAPPING {
-  REPEAT = 'repeat',
-  CLAMP = 'clamp',
-  MIRRORED = 'mirrored'
+  REPEAT = 10497,
+  CLAMP_TO_EDGE = 33071,
+  MIRRORED_REPEAT = 33648
+}
+export enum TEXTURE_FILTERING {
+  NONE = 0,
+  NEAREST = 9728,
+  LINEAR = 9729,
+  NEAREST_MIPMAP_NEAREST = 9984,
+  LINEAR_MIPMAP_NEAREST = 9985,
+  NEAREST_MIPMAP_LINEAR = 9986,
+  LINEAR_MIPMAP_LINEAR = 9987,
 }
 export enum MATERIAL_ALPHA {
   OPAQUE = 'opaque',
@@ -53,18 +62,20 @@ export class MapData {
 
   constructor(
     private readonly _image: HTMLImageElement,
+    private readonly _wrapS: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT,
+    private readonly _wrapT: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT,
+    private readonly _minFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE,
+    private readonly _magFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE,
     private readonly _center: vec2 = vec2.fromValues(0, 0),
     private readonly _color: vec4 = vec4.fromValues(1, 1, 1, 1),
     private readonly _offset: vec2 = vec2.fromValues(0, 0),
     private readonly _repeat: vec2 = vec2.fromValues(1, 1),
     private readonly _rotation: number = 0,
-    private readonly _wrapS: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT,
-    private readonly _wrapT: TEXTURE_WRAPPING = TEXTURE_WRAPPING.REPEAT,
   ) { }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (8)
+  // #region Public Accessors (10)
 
   /**
    * Getter center
@@ -88,6 +99,22 @@ export class MapData {
    */
   public get image(): HTMLImageElement {
     return this._image;
+  }
+
+  /**
+   * Getter magFilter
+   * @return {TEXTURE_FILTERING}
+   */
+  public get magFilter(): TEXTURE_FILTERING {
+    return this._magFilter;
+  }
+
+  /**
+   * Getter minFilter
+   * @return {TEXTURE_FILTERING}
+   */
+  public get minFilter(): TEXTURE_FILTERING {
+    return this._minFilter;
   }
 
   /**
@@ -130,7 +157,7 @@ export class MapData {
     return this._wrapT;
   }
 
-  // #endregion Public Accessors (8)
+  // #endregion Public Accessors (10)
 }
 
 export class MaterialData extends AbstractTreeNodeData {
@@ -150,7 +177,7 @@ export class MaterialData extends AbstractTreeNodeData {
     private _bumpScale: number = 1.0,
     private _color: vec4 = vec4.fromValues(1.0, 1.0, 1.0, 1.0),
     private _emissiveMap?: MapData,
-    private _emissiveness: vec3 = vec3.fromValues(0,0,0),
+    private _emissiveness: vec3 = vec3.fromValues(0, 0, 0),
     private _shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH,
     private _map?: MapData,
     private _metalness = 1.0,

@@ -145,19 +145,26 @@ export class GLTFLoader {
 
         const texture = this._content.textures[index];
         const image = this._content.images[texture.source];
+        const sampler = this._content.samplers[texture.source];
 
         const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
         const HTTPS_URI_REGEX = /^https:\/\//;
 
         if(image.bufferView !== undefined) {
-            console.log('image is data view')
-            const bufferView = this.loadBufferView(image.bufferView);
-            mapData = new MapData(new HTMLImageElement());
+            const bufferView = await this.loadBufferView(image.bufferView);
+            const dataView = new DataView(bufferView);
+            const array: Array<number> = [];
+            for (let i = 0; i < dataView.byteLength; i += 1)
+                array[i] = dataView.getUint8(i);
+
+            const blob = new Blob([new Uint8Array(array)], { type: image.mimeType});
+            const dataUri = window.URL.createObjectURL(blob);
+            window.open(dataUri);
+            mapData = new MapData(await this._imageLoader.load(dataUri!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter);
         } else {
             const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
-            mapData = new MapData(await this._imageLoader.load(url!));
+            mapData = new MapData(await this._imageLoader.load(url!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter);
         }
-        const sampler = this._content.samplers[texture.source];
         return mapData;
     }
 
@@ -174,6 +181,7 @@ export class GLTFLoader {
                     material.pbrMetallicRoughness.baseColorFactor[3]);
             }
             if(material.pbrMetallicRoughness.baseColorTexture !== undefined) {
+                console.log(material.pbrMetallicRoughness.baseColorTexture)
                 materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index);
             }
             if(material.pbrMetallicRoughness.metallicFactor !== undefined) {

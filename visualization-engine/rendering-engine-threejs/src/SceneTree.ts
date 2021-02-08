@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { SD_RENDERINGTYPE, GeometryData, MaterialData } from '@shapediver/viewer.shared.types';
+import { SD_RENDERINGTYPE, GeometryData, MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData } from '@shapediver/viewer.shared.types';
 import { ITreeNodeData } from '@shapediver/viewer.node-tree.tree-node-data';
 
 import { PrimitiveLoader } from './PrimitiveLoader';
@@ -38,20 +38,15 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
     // #region Public Methods (3)
 
     public convertData(data: ITreeNodeData, obj: SDObject): void {
-        console.log('convertData', data)
         let dataChild = this.helper.getChildren(obj).find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
-        console.log('A')
 
         if(!dataChild) 
             dataChild = this.helper.create(data.id, data.version);
-        console.log('B')
 
         this.helper.add(dataChild, obj);
-        console.log('C')
 
         switch(true) {
             case data instanceof GeometryData:
-                console.log('D')
                 this.createGeometryObject(<GeometryData>data, dataChild);
                 break;
             case data instanceof ThreejsData:
@@ -63,8 +58,6 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
                 break;
             default:
                 // if there is no valid conversion here, call the convertData of the implementation
-                console.log('E')
-
                 break;
         }
     }
@@ -122,13 +115,76 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
             this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS] = objNew;
         
         } else {
-            console.log(geometry)
             const obj = this.helper.create(geometry.id, geometry.version);
             obj.add(new THREE.Mesh(this._primitiveLoader.load(geometry.primitive), this.createMaterial(geometry.primitive.material!)));
             this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS] = obj;
             geometry.convertedObjects.push(obj)
             this.helper.add(obj, parent);
         }
+    }
+
+    private createTexture(map: MapData): THREE.Texture {
+        const texture = new THREE.Texture(map.image);
+        texture.format = THREE.RGBFormat;
+        texture.minFilter = (() => {
+            switch(map.minFilter) {
+                case TEXTURE_FILTERING.NEAREST:
+                    return THREE.NearestFilter;
+                case TEXTURE_FILTERING.NEAREST_MIPMAP_NEAREST:
+                    return THREE.NearestMipMapNearestFilter;
+                case TEXTURE_FILTERING.LINEAR_MIPMAP_NEAREST:
+                    return THREE.LinearMipMapNearestFilter;
+                case TEXTURE_FILTERING.NEAREST_MIPMAP_LINEAR:
+                    return THREE.NearestMipMapLinearFilter;
+                case TEXTURE_FILTERING.LINEAR:
+                    return THREE.LinearFilter
+                case TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR:
+                default:
+                    return THREE.LinearMipMapLinearFilter;
+            }
+        })();
+        texture.magFilter = (() => {
+            switch(map.magFilter) {
+                case TEXTURE_FILTERING.NEAREST:
+                    return THREE.NearestFilter;
+                case TEXTURE_FILTERING.LINEAR:
+                default:
+                    return THREE.LinearFilter
+            }
+        })();
+        texture.wrapS = (() => {
+            switch(map.wrapS) {
+                case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
+                    return THREE.ClampToEdgeWrapping;
+                case TEXTURE_WRAPPING.MIRRORED_REPEAT:
+                    return THREE.MirroredRepeatWrapping;
+                case TEXTURE_WRAPPING.REPEAT:
+                default:
+                    return THREE.RepeatWrapping
+            }
+        })();
+        texture.wrapT = (() => {
+            switch(map.wrapT) {
+                case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
+                    return THREE.ClampToEdgeWrapping;
+                case TEXTURE_WRAPPING.MIRRORED_REPEAT:
+                    return THREE.MirroredRepeatWrapping;
+                case TEXTURE_WRAPPING.REPEAT:
+                default:
+                    return THREE.RepeatWrapping
+            }
+        })();
+
+        texture.center = new THREE.Vector2(map.center[0], map.center[1]);
+        // TODO color
+        // texture.color = new THREE.Color(map.color[0], map.color[1], map.color[2]);
+        texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
+        texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
+        texture.rotation = map.rotation;
+        
+        texture.flipY = false;
+        texture.needsUpdate = true;
+        return texture;
     }
 
     public createMaterial(materialProperties?: MaterialData): THREE.Material {
@@ -205,25 +261,15 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
 
             // visible
 
-
-            
-
-
-            if(materialProperties.alphaMap !== undefined) {
-                material.alphaMap = new THREE.Texture(materialProperties.alphaMap.image);
-                material.alphaMap.format = THREE.RGBFormat;
-                material.alphaMap.needsUpdate = true;
-            }
+            if(materialProperties.alphaMap !== undefined)
+                material.alphaMap = this.createTexture(materialProperties.alphaMap);
 
             // aoMap
 
             // aoMapIntensity
 
-            if (materialProperties.bumpMap) {
-                material.bumpMap = new THREE.Texture(materialProperties.bumpMap.image);
-                material.bumpMap.format = THREE.RGBFormat;
-                material.bumpMap.needsUpdate = true;
-            } 
+            if(materialProperties.bumpMap !== undefined)
+                material.bumpMap = this.createTexture(materialProperties.bumpMap);
 
             material.bumpScale = materialProperties.bumpScale;
 
@@ -240,11 +286,8 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
 
             material.emissive = new THREE.Color(materialProperties.emissiveness[0], materialProperties.emissiveness[1], materialProperties.emissiveness[2]); 
 
-            if (materialProperties.emissiveMap) {
-                material.emissiveMap = new THREE.Texture(materialProperties.emissiveMap.image);
-                material.emissiveMap.format = THREE.RGBFormat;
-                material.emissiveMap.needsUpdate = true;
-            } 
+            if(materialProperties.emissiveMap !== undefined)
+                material.emissiveMap = this.createTexture(materialProperties.emissiveMap);
 
             // emissiveIntensity
 
@@ -256,29 +299,29 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
 
             // lightMapIntensity
 
-            if (materialProperties.map) {
-                material.map = new THREE.Texture(materialProperties.map.image);
-                material.map.format = THREE.RGBFormat;
-                material.map.needsUpdate = true;
-            } 
+            if(materialProperties.map !== undefined)
+                material.map = this.createTexture(materialProperties.map);
 
             material.metalness = materialProperties.metalness;
 
-            if (materialProperties.metalnessMap) {
-                material.metalnessMap = new THREE.Texture(materialProperties.metalnessMap.image);
-                material.metalnessMap.format = THREE.RGBFormat;
-                material.metalnessMap.needsUpdate = true;
-            } 
+            material.roughness = materialProperties.roughness;
+
+            if(materialProperties.metalnessRoughnessMap !== undefined) {
+                material.metalnessMap = this.createTexture(materialProperties.metalnessRoughnessMap);
+                material.roughnessMap = material.metalnessMap;
+            } else {
+                if(materialProperties.metalnessMap !== undefined)
+                    material.metalnessMap = this.createTexture(materialProperties.metalnessMap);
+                if(materialProperties.roughnessMap !== undefined)
+                    material.roughnessMap = this.createTexture(materialProperties.roughnessMap);
+            }
 
             // morphNormals
 
             // morphTargets
 
-            if (materialProperties.normalMap) {
-                material.normalMap = new THREE.Texture(materialProperties.normalMap.image);
-                material.normalMap.format = THREE.RGBFormat;
-                material.normalMap.needsUpdate = true;
-            } 
+            if(materialProperties.normalMap !== undefined)
+                material.normalMap = this.createTexture(materialProperties.normalMap);
 
             // normalMapType
 
@@ -286,13 +329,6 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
 
             // refractionRatio
 
-            material.roughness = materialProperties.roughness;
-
-            if (materialProperties.roughnessMap) {
-                material.roughnessMap = new THREE.Texture(materialProperties.roughnessMap.image);
-                material.roughnessMap.format = THREE.RGBFormat;
-                material.roughnessMap.needsUpdate = true;
-            } 
 
             // skinning
 

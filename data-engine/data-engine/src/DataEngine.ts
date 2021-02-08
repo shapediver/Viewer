@@ -16,18 +16,13 @@ export class DataEngine {
     }
 
     public async loadContent(content: SessionOutputContent): Promise<TreeNode> {
-        console.log('DataEngine.loadContent', content)
         if (content.format === 'glb' || content.format === 'gltf') {
-            console.log('A')
             return await this._geometryEngine.loadContent(content);
         } else if (content.format === 'material') {
-            console.log('B')
             return await this._materialEngine.loadContent(content);
         } else if (content.format === 'sdtf') {
-            console.log('C')
             return new TreeNodeConverter().convertToTreeNode(await new Reader().readFromUri(content.href!));
         } else {
-            console.log('D')
             const customNode = new TreeNode('custom');
             customNode.data.push(new CustomData({ ...content }));
             return customNode;

@@ -11,7 +11,7 @@ import { SessionOutputData } from "./SessionOutputData";
 
 import { CustomData } from "./CustomData";
 import { AttributeData, GeometryData, PrimitiveData } from "./GeometryData";
-import { MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE, TEXTURE_WRAPPING } from "./MaterialData";
+import { MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE, TEXTURE_FILTERING, TEXTURE_WRAPPING } from "./MaterialData";
 
 export {
   ISDObject, SD_RENDERINGTYPE
@@ -37,7 +37,7 @@ export {
   SessionData, SessionOutputData
 }
 export {
-    MaterialData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING
+    MaterialData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
 }
 
 export {

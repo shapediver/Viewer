@@ -54,7 +54,6 @@ export class RenderingEngine extends AbstractRenderingEngine {
             position: vec3.fromValues(0, -100, 0),
             target: vec3.fromValues(0, 0, 0)
         });
-        console.log('RENDERING')
 
         const animate = (time: number) => {
             requestAnimationFrame(animate);
