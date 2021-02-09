@@ -196,7 +196,16 @@ export class TreeNode {
     return this._children[index];
   }
 
-  
+  /**
+   * Getter child
+   * @return {TreeNode}
+   */
+  public getChild(id: string): TreeNode {
+    for(let i = 0; i < this._children.length; i++)
+      if(this._children[i].id === id)
+        return this._children[i]
+    throw new Error();
+  }
 
   /**
    * Get Number of children

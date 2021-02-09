@@ -9,7 +9,8 @@
     "data-engine/*",
     "session-engine/*",
     "api/*",
-    "examples/*"
+    "examples/*",
+    "rendering-engine/*"
   ],
   "version": "independent"
 }

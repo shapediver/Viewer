@@ -1,11 +1,16 @@
 import { vec3 } from "gl-matrix";
 import { ILight, LIGHT_TYPE } from "../interface/ILight";
 import uuid from '@shapediver/viewer.utils.uuid'
+import { AbstractTreeNodeData, ITreeNodeData } from "@shapediver/viewer.node-tree.tree-node-data";
 
+export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
+    // #region Properties (1)
 
-export abstract class AbstractLight implements ILight {
-    
-    private readonly _id: string;
+    private readonly _lightId: string;
+
+    // #endregion Properties (1)
+
+    // #region Constructors (1)
 
     constructor(
         private _color: vec3,
@@ -13,13 +18,14 @@ export abstract class AbstractLight implements ILight {
         private _type: LIGHT_TYPE,
         private _name?: string
     ) {
-        this._id = uuid.create();
+        super();
+        this._lightId = uuid.create();
     }
 
-    public get id(): string {
-        return this._id;
-    }
-    
+    // #endregion Constructors (1)
+
+    // #region Public Accessors (9)
+
     public get color(): vec3 {
         return this._color;
     }
@@ -27,7 +33,7 @@ export abstract class AbstractLight implements ILight {
     public set color(value: vec3) {
         this._color = value;
     }
-    
+
     public get intensity(): number {
         return this._intensity;
     }
@@ -35,15 +41,11 @@ export abstract class AbstractLight implements ILight {
     public set intensity(value: number) {
         this._intensity = value;
     }
-    
-    public get type(): LIGHT_TYPE {
-        return this._type;
+
+    public get lightId(): string {
+        return this._lightId;
     }
 
-    public set type(value: LIGHT_TYPE) {
-        this._type = value;
-    }
-    
     public get name(): string | undefined {
         return this._name;
     }
@@ -51,4 +53,14 @@ export abstract class AbstractLight implements ILight {
     public set name(value: string | undefined) {
         this._name = value;
     }
+
+    public get type(): LIGHT_TYPE {
+        return this._type;
+    }
+
+    public set type(value: LIGHT_TYPE) {
+        this._type = value;
+    }
+
+    // #endregion Public Accessors (9)
 }

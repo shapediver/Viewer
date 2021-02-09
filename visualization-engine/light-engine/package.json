@@ -45,6 +45,8 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
+    "@shapediver/viewer.node-tree.tree-node": "^0.0.7",
+    "@shapediver/viewer.node-tree.tree-node-data": "^0.0.7",
     "@shapediver/viewer.utils.uuid": "^0.0.2"
   }
 }

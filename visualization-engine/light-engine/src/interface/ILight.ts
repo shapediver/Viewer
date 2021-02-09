@@ -5,15 +5,18 @@ export enum LIGHT_TYPE {
   DIRECTIONAL = 'directional',
   HEMISPHERE = 'hemisphere',
   POINT = 'point',
-  RECTAREA = 'rectarea',
-  SPOT = 'spot',
-  FLASH = 'flash',
+  RECTANGLE = 'rectangle',
+  SPOT = 'spot'
 }
 
 export interface ILight {
-    color: vec3,
-    intensity: number,
-    id: string,
-    type: LIGHT_TYPE,
-    name?: string
+  // #region Properties (5)
+
+  color: vec3,
+  intensity: number,
+  lightId: string,
+  name?: string
+  type: LIGHT_TYPE,
+
+  // #endregion Properties (5)
 }
