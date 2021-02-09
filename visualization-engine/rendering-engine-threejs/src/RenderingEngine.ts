@@ -1,20 +1,23 @@
 import { vec3 } from 'gl-matrix';
 import * as THREE from 'three';
+import {container} from 'tsyringe'
 
 import { CameraEngine, ICameraEngine } from '@shapediver/viewer.visualization-engine.camera-engine';
-import { Canvas } from '@shapediver/viewer.visualization-engine.canvas-engine';
+import { Canvas, CanvasEngine } from '@shapediver/viewer.visualization-engine.canvas-engine';
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
 
 import { SceneTree } from './SceneTree';
 import { AbstractRenderingEngine } from '@shapediver/viewer.visualization-engine.rendering-engine';
 
 export class RenderingEngine extends AbstractRenderingEngine {
+    private readonly _canvasEngine: CanvasEngine;
 
     // #region Constructors (1)
 
-    constructor(_canvas: Canvas) {
+    constructor(name: string, canvasDefinition?: string | HTMLCanvasElement) {
         super();
-        this._canvas = _canvas;
+        this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
+        this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
 
         // TODO put in abstract class
         this._sceneTree = new SceneTree();

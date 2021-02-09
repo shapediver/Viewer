@@ -1,5 +1,4 @@
 import { Tree } from "@shapediver/viewer.node-tree.tree";
-import { RendererType } from "@shapediver/viewer.visualization-engine.rendering-engine-management";
 import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.visualization-engine.rendering-engine";
 import { container, singleton } from "tsyringe";
 import { Session } from "./session/implementation/Session";
@@ -7,7 +6,7 @@ import { IExport } from "./session/interfaces/IExport";
 import { IParameter } from "./session/interfaces/IParameter";
 import { ISession } from "./session/interfaces/ISession";
 import { Viewer } from "./viewer/implementation/Viewer";
-import { IViewer } from "./viewer/interfaces/IViewer";
+import { IViewer, RendererType } from "./viewer/interfaces/IViewer";
 
 @singleton()
 class Api {

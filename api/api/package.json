@@ -50,6 +50,6 @@
     "@shapediver/viewer.session-engine.session-engine": "^0.0.5",
     "@shapediver/viewer.shared.types": "^0.0.6",
     "@shapediver/viewer.visualization-engine.rendering-engine": "^0.0.49",
-    "@shapediver/viewer.visualization-engine.rendering-engine-management": "^0.0.49"
+    "@shapediver/viewer.visualization-engine.rendering-engine-threejs": "^0.0.49"
   }
 }
