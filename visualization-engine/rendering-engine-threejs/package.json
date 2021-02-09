@@ -48,6 +48,7 @@
     "@shapediver/viewer.node-tree.tree-node": "^0.0.7",
     "@shapediver/viewer.node-tree.tree-node-data": "^0.0.7",
     "@shapediver/viewer.shared.types": "^0.0.6",
+    "@shapediver/viewer.shared.settings-engine": "^0.0.2",
     "@shapediver/viewer.visualization-engine.camera-engine": "^0.0.49",
     "@shapediver/viewer.visualization-engine.canvas-engine": "^0.0.49",
     "@shapediver/viewer.visualization-engine.light-engine": "^0.0.49",

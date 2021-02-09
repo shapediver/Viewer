@@ -7,15 +7,22 @@ import { Canvas, CanvasEngine } from '@shapediver/viewer.visualization-engine.ca
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
 
 import { SceneTree } from './SceneTree';
-import { AbstractRenderingEngine } from '@shapediver/viewer.visualization-engine.rendering-engine';
+import { ILightEngine } from '@shapediver/viewer.visualization-engine.light-engine';
+import { Settings } from '@shapediver/viewer.shared.settings-engine';
 
-export class RenderingEngine extends AbstractRenderingEngine {
+export class RenderingEngine {
     private readonly _canvasEngine: CanvasEngine;
+    
+    protected _cameraEngine!: ICameraEngine;
+    protected _canvas!: Canvas;
+    protected _lightEngine!: ILightEngine;
+    protected _settings: Settings;
+    protected _sceneTree!: SceneTree;
 
     // #region Constructors (1)
 
     constructor(name: string, canvasDefinition?: string | HTMLCanvasElement) {
-        super();
+        this._settings = <Settings>container.resolve(Settings);
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
         this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
 
@@ -77,7 +84,14 @@ export class RenderingEngine extends AbstractRenderingEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (1)
+    
+    /**
+     * Getter cameraEngine
+     * @return {ICameraEngine}
+     */
+    public get cameraEngine(): ICameraEngine {
+		return this._cameraEngine;
+	}
 
     /**
      * Getter canvas
@@ -86,6 +100,16 @@ export class RenderingEngine extends AbstractRenderingEngine {
     public get canvas(): Canvas {
 		return this._canvas;
 	}
+
+    /**
+     * Getter lightEngine
+     * @return {ILightEngine}
+     */
+    public get lightEngine(): ILightEngine {
+		return this._lightEngine;
+	}
+
+    // #region Public Accessors (1)
 
     // #endregion Public Accessors (1)
 

@@ -7,22 +7,26 @@ import { PrimitiveLoader } from './PrimitiveLoader';
 import { SDObject } from './SDObject';
 import { SDObjectHelper } from './SDObjectHelper';
 import { ThreejsData } from './ThreejsData';
-import { AbstractSceneTree } from '@shapediver/viewer.visualization-engine.rendering-engine';
+import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
 
-export class SceneTree extends AbstractSceneTree<SDObject> {
+export class SceneTree {
     // #region Properties (2)
 
     private readonly _primitiveLoader: PrimitiveLoader = new PrimitiveLoader();
     private readonly _scene: THREE.Scene;
-
+    private _helper: SDObjectHelper;
+    private _mainNode!: SDObject;
+    protected _geometryCache: {
+        [key: string]: SDObject
+    } = {};
     // #endregion Properties (2)
 
     // #region Constructors (1)
 
     constructor() {
-        super(new SDObjectHelper());
+        this._helper = new SDObjectHelper();
         this._scene = new THREE.Scene();
-        (<SDObjectHelper>this.helper).scene = this.scene;
+        this._helper.scene = this.scene;
     }
 
     // #endregion Constructors (1)
@@ -37,24 +41,30 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
 
     // #region Public Methods (3)
 
+    /**
+     * Convert the data of the scene graph node into the format of the implementation.
+     * 
+     * @param data the data element
+     * @param obj the corresponding type node
+     */
     public convertData(data: ITreeNodeData, obj: SDObject): void {
-        let dataChild = this.helper.getChildren(obj).find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
+        let dataChild = this._helper.getChildren(obj).find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
 
         if(!dataChild) 
-            dataChild = this.helper.create(data.id, data.version);
+            dataChild = this._helper.create(data.id, data.version);
 
-        this.helper.add(dataChild, obj);
+        this._helper.add(dataChild, obj);
 
         switch(true) {
             case data instanceof GeometryData:
                 this.createGeometryObject(<GeometryData>data, dataChild);
                 break;
             case data instanceof ThreejsData:
-                this.helper.add(<SDObject>(<ThreejsData>data).obj, dataChild);
+                this._helper.add(<SDObject>(<ThreejsData>data).obj, dataChild);
                 break;
             case data instanceof MaterialData:
                 // we only store it here to retrieve it for material assignment later on
-                // this.helper.addData(this.createMaterial(<SceneGraphMaterialData>data), dataChild);
+                // this._helper.addData(this.createMaterial(<SceneGraphMaterialData>data), dataChild);
                 break;
             default:
                 // if there is no valid conversion here, call the convertData of the implementation
@@ -62,6 +72,12 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
         }
     }
 
+    /**
+     * Create a geometry object with the provided geometry data.
+     * 
+     * @param geometry the geometry data
+     * @returns the geometry object
+     */
     public createGeometryObject(geometry: GeometryData, parent: SDObject): void {
         if(this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS]) {
             // if already in geo cache
@@ -106,20 +122,20 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
 
             instancedMesh.instanceMatrix.needsUpdate = true;
                 
-            const objNew = this.helper.create(geometry.id, geometry.version);
+            const objNew = this._helper.create(geometry.id, geometry.version);
             objNew.add(instancedMesh);
-            this.helper.add(objNew, parent);
+            this._helper.add(objNew, parent);
 
             geometry.convertedObjects.push(<any>instancedMesh);
 
             this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS] = objNew;
         
         } else {
-            const obj = this.helper.create(geometry.id, geometry.version);
+            const obj = this._helper.create(geometry.id, geometry.version);
             obj.add(new THREE.Mesh(this._primitiveLoader.load(geometry.primitive), this.createMaterial(geometry.primitive.material!)));
             this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS] = obj;
             geometry.convertedObjects.push(obj)
-            this.helper.add(obj, parent);
+            this._helper.add(obj, parent);
         }
     }
 
@@ -186,7 +202,13 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
         texture.needsUpdate = true;
         return texture;
     }
-
+  
+    /**
+     * Create a material object with the provided material data.
+     * 
+     * @param material the material data
+     * @returns the material object
+     */
     public createMaterial(materialProperties?: MaterialData): THREE.Material {
         if (materialProperties) {
             const material = new THREE.MeshStandardMaterial();
@@ -349,6 +371,57 @@ export class SceneTree extends AbstractSceneTree<SDObject> {
             const material = new THREE.MeshStandardMaterial();
             material.side = THREE.DoubleSide;
             return material;
+        }
+    }
+
+    public updateSceneTree(root: TreeNode): void {
+        this._geometryCache = {};
+        if(!this._mainNode) {
+            this._mainNode = this._helper.create(root.id, root.version);
+            this._helper.addToScene(this._mainNode);
+        }
+        this.updateNode(root, this._mainNode);
+    }
+
+    
+    /**
+     * Update the current node via the scene graph node.
+     * Convert the data if needed.
+     * 
+     * @param node the scene graph node
+     * @param obj the current type object
+     */
+    private updateNode(node: TreeNode, obj: SDObject) {
+        obj.applyTransformation(node.nodeMatrix);
+
+        for(let i = 0, len = node.data.length; i < len; i++) {
+            this.convertData(node.data[i], obj);
+        }
+
+        const nodeIds: string[] = []
+        for(let i = 0; i < node.getNumberOfChildren(); i++) {
+            nodeIds.push(node.getChildAt(i).id)
+        }
+        const dataIds = node.data.map(d => d.id);
+        const dataVersions = node.data.map(d => d.version);
+        const childrenToRemove = this._helper.getChildren(obj).filter(oc => (!nodeIds.includes((<SDObject>oc).SDid)) && !(dataIds.includes((<SDObject>oc).SDid) && dataVersions.includes((<SDObject>oc).SDversion)));
+        
+        // remove children that are not anymore in there
+        for(const objChild of childrenToRemove)
+             this._helper.remove(objChild, obj);
+
+        // add new children and update the ones that have a different version
+        for(let i = 0, len = node.getNumberOfChildren(); i < len; i++) {
+            const nodeChild = node.getChildAt(i);
+            const objChild = this._helper.getChildren(obj).find(oc => (<SDObject>oc).SDid === nodeChild.id);
+
+            if(!objChild) {
+                const newChild = this._helper.create(nodeChild.id, nodeChild.version);
+                this._helper.add(newChild, obj);
+                this.updateNode(nodeChild, newChild);
+            } else if(objChild.SDversion !== nodeChild.version){
+                this.updateNode(nodeChild, objChild);
+            }
         }
     }
 

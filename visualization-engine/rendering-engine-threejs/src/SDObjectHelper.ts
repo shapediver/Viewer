@@ -1,10 +1,8 @@
 import * as THREE from 'three';
 
-import { AbstractObjectHelper } from '@shapediver/viewer.visualization-engine.rendering-engine';
-
 import { SDObject } from './SDObject';
 
-export class SDObjectHelper extends AbstractObjectHelper<SDObject> {
+export class SDObjectHelper {
     // #region Properties (1)
 
     private _scene!: THREE.Scene;
