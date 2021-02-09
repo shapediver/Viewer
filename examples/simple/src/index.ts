@@ -15,7 +15,7 @@ const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById(
 
 const init = async () => {
     await api.createSession(ticket, modelViewUrl, 'mySession');
-    await api.createViewer(RendererType.THREE, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
+    await api.createViewer(RendererType.THREEJS, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
 }
 init();
 
