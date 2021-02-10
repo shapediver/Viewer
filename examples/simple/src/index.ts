@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import { container } from "tsyringe";
 import { api } from "@shapediver/viewer.api"
-import { RendererType } from "@shapediver/viewer.api";
+import { RENDERERTYPE } from "@shapediver/viewer.api";
 import { mat4 } from "gl-matrix";
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
 
@@ -15,7 +15,7 @@ const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById(
 
 const init = async () => {
     await api.createSession(ticket, modelViewUrl, 'mySession');
-    await api.createViewer(RendererType.THREEJS, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
+    await api.createViewer(RENDERERTYPE.THREEJS, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
 }
 init();
 

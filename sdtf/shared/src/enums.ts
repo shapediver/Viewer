@@ -1,4 +1,4 @@
-export enum CONTENT_TYPE {
+export enum CONTENTTYPE {
   IMAGE_JPEG = 'image/jpeg',
   IMAGE_PNG = 'image/png',
   IMAGE_TIF = 'image/tif',
@@ -15,7 +15,7 @@ export enum CONTENT_ENCODING {
   BR = 'br'
 }
 
-export enum PRIMITIVE_TYPEHINT {
+export enum PRIMITIVETYPEHINT {
   DOUBLE = 'double',
   STRING = 'string',
   BOOL = 'bool',
@@ -25,7 +25,7 @@ export enum PRIMITIVE_TYPEHINT {
   INT = 'int',
 }
 
-export enum GEOMETRY_TYPEHINT {
+export enum GEOMETRYTYPEHINT {
   COMPLEX = 'geometry.complex',
   INTERVAL2 = 'geometry.interval2',
   PATH = 'grasshopper.path',
@@ -58,6 +58,6 @@ export enum GEOMETRY_TYPEHINT {
 }
 
 // TODO
-export enum RHINO_TYPEHINT {
+export enum RHINOTYPEHINT {
   TEMP = 'temp'
 }

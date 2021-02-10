@@ -1,4 +1,4 @@
-export enum RendererType {
+export enum RENDERERTYPE {
     THREEJS = 'threejs'
 }
 

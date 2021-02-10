@@ -1,12 +1,12 @@
 import { Tree } from "@shapediver/viewer.node-tree.tree";
-import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.visualization-engine.rendering-engine";
+import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { container, singleton } from "tsyringe";
 import { Session } from "./session/implementation/Session";
 import { IExport } from "./session/interfaces/IExport";
 import { IParameter } from "./session/interfaces/IParameter";
 import { ISession } from "./session/interfaces/ISession";
 import { Viewer } from "./viewer/implementation/Viewer";
-import { IViewer, RendererType } from "./viewer/interfaces/IViewer";
+import { IViewer, RENDERERTYPE } from "./viewer/interfaces/IViewer";
 
 @singleton()
 class Api {
@@ -45,7 +45,7 @@ class Api {
         return this._sessions[name];
     }
 
-    public async createViewer(type: RendererType, canvas: HTMLCanvasElement, name: string): Promise<IViewer> {
+    public async createViewer(type: RENDERERTYPE, canvas: HTMLCanvasElement, name: string): Promise<IViewer> {
         if( this._viewers[name]) 
             throw new Error('Viewer with name ' + name + ' already exists.');
         const viewer = new Viewer(type, name, canvas);
@@ -83,5 +83,5 @@ export {
 }
 
 export {
-    RendererType
+    RENDERERTYPE
 }

@@ -1,5 +1,5 @@
 import { SdtfFile, SdtfTypeHint, SdtfBuffer, SdtfBufferView, SdtfAccessor, SdtfAttributes, SdtfData, SdtfNode, SdtfChunk, SdtfDataFactory } from "@shapediver/viewer.sdtf.shared";
-import { PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, RHINO_TYPEHINT, CONTENT_TYPE, CONTENT_ENCODING } from "@shapediver/viewer.sdtf.shared";
+import { PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, RHINOTYPEHINT, CONTENTTYPE, CONTENT_ENCODING } from "@shapediver/viewer.sdtf.shared";
 import { JsonSdtf } from "@shapediver/viewer.sdtf.shared";
 import { JsonAttribute } from "@shapediver/viewer.sdtf.shared";
 
@@ -36,7 +36,7 @@ export class SdtfFactory {
     private createTypeHints(json: JsonSdtf): SdtfTypeHint[] {
         const array: SdtfTypeHint[] = [];
         for (let i = 0; i < json.typeHints.length; i++) {
-            array.push(new SdtfTypeHint(json.typeHints[i].name as (PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | RHINO_TYPEHINT)));
+            array.push(new SdtfTypeHint(json.typeHints[i].name as (PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | RHINOTYPEHINT)));
         }
         return array;
     }
@@ -77,7 +77,7 @@ export class SdtfFactory {
                     buffers[json.bufferViews[i].buffer],
                     json.bufferViews[i].byteLength,
                     json.bufferViews[i].byteOffset,
-                    json.bufferViews[i].contentType as CONTENT_TYPE,
+                    json.bufferViews[i].contentType as CONTENTTYPE,
                     json.bufferViews[i].contentEncoding as CONTENT_ENCODING,
                     json.bufferViews[i].name
                 )

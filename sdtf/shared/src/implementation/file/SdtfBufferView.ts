@@ -1,4 +1,4 @@
-import { CONTENT_TYPE, CONTENT_ENCODING } from "../../enums";
+import { CONTENTTYPE, CONTENT_ENCODING } from "../../enums";
 import { SdtfBuffer } from "./SdtfBuffer";
 
 export class SdtfBufferView {
@@ -14,7 +14,7 @@ export class SdtfBufferView {
     private readonly _buffer: SdtfBuffer,
     private readonly _byteLength: number,
     private readonly _byteOffset: number,
-    private readonly _contentType: CONTENT_TYPE,
+    private readonly _contentType: CONTENTTYPE,
     private readonly _contentEncoding?: CONTENT_ENCODING,
     private readonly _name?: string,
   ) { }
@@ -57,9 +57,9 @@ export class SdtfBufferView {
 
   /**
    * Getter contentType
-   * @return {CONTENT_TYPE}
+   * @return {CONTENTTYPE}
    */
-  public get contentType(): CONTENT_TYPE {
+  public get contentType(): CONTENTTYPE {
     return this._contentType;
   }
 
@@ -81,7 +81,7 @@ export class SdtfBufferView {
     const byteOffset = this.byteOffset || 0;
     const arrayBuffer = (await this.buffer.load()).slice(byteOffset, byteOffset + byteLength);
 
-    if (Object.values(CONTENT_TYPE).includes(this.contentType) && this.contentType !== CONTENT_TYPE.MODEL_VND_3DM) {
+    if (Object.values(CONTENTTYPE).includes(this.contentType) && this.contentType !== CONTENTTYPE.MODEL_VND_3DM) {
       const reader = new FileReader();
       reader.readAsDataURL(new Blob([new Uint8Array(arrayBuffer).buffer], { type: this.contentType }));
       this._data = new Image();

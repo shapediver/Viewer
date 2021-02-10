@@ -13,7 +13,7 @@ import { SdtfAccessor } from "./implementation/file/SdtfAccessor";
 import { SdtfAttributes } from "./implementation/file/data/attributes/SdtfAttributes";
 import { SdtfBuffer } from "./implementation/file/SdtfBuffer";
 import { SdtfBufferView } from "./implementation/file/SdtfBufferView";
-import { PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, RHINO_TYPEHINT, CONTENT_ENCODING, CONTENT_TYPE } from "./enums";
+import { PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, RHINOTYPEHINT, CONTENT_ENCODING, CONTENTTYPE } from "./enums";
 import { JsonAttribute } from "./implementation/json/JsonAttribute";
 
 export {
@@ -29,5 +29,5 @@ export {
 }
 
 export {
-  PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, RHINO_TYPEHINT, CONTENT_TYPE, CONTENT_ENCODING
+  PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, RHINOTYPEHINT, CONTENTTYPE, CONTENT_ENCODING
 }

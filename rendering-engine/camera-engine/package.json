@@ -1,6 +1,6 @@
 {
-  "name": "@shapediver/viewer.api",
-  "version": "0.0.6",
+  "name": "@shapediver/viewer.rendering-engine.camera-engine",
+  "version": "0.0.0",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -45,11 +45,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@shapediver/viewer.node-tree.tree": "^0.0.7",
-    "@shapediver/viewer.node-tree.tree-node": "^0.0.7",
-    "@shapediver/viewer.session-engine.session-engine": "^0.0.5",
-    "@shapediver/viewer.shared.types": "^0.0.6",
-    "@shapediver/viewer.rendering-engine.rendering-engine": "^0.0.0",
-    "@shapediver/viewer.rendering-engine-threejs.rendering-engine": "^0.0.0"
+    "@shapediver/viewer.shared.settings-engine": "^0.0.2",
+    "three": "^0.123.0"
   }
 }

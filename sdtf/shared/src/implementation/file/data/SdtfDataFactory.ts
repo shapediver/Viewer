@@ -1,5 +1,5 @@
 import { SdtfAccessor } from "../SdtfAccessor";
-import { PRIMITIVE_TYPEHINT } from "../../../enums";
+import { PRIMITIVETYPEHINT } from "../../../enums";
 import { AbstractSdtfData } from "./AbstractSdtfData";
 import { SdtfCustomItem } from "./items/SdtfCustomItem";
 import { SdtfPrimitiveItem } from "./items/SdtfPrimitiveItem";
@@ -27,14 +27,14 @@ export class SdtfDataFactory {
     attributes?: SdtfAttributes
   ): AbstractSdtfData<any> {
     switch (true) {
-      case typeHint.name === PRIMITIVE_TYPEHINT.BOOL:
+      case typeHint.name === PRIMITIVETYPEHINT.BOOL:
         return new SdtfPrimitiveItem<boolean>(typeHint, accessor, value, attributes);
-      case typeHint.name === PRIMITIVE_TYPEHINT.DOUBLE ||
-        typeHint.name === PRIMITIVE_TYPEHINT.FLOAT ||
-        typeHint.name === PRIMITIVE_TYPEHINT.DECIMAL ||
-        typeHint.name === PRIMITIVE_TYPEHINT.INT:
+      case typeHint.name === PRIMITIVETYPEHINT.DOUBLE ||
+        typeHint.name === PRIMITIVETYPEHINT.FLOAT ||
+        typeHint.name === PRIMITIVETYPEHINT.DECIMAL ||
+        typeHint.name === PRIMITIVETYPEHINT.INT:
         return new SdtfPrimitiveItem<number>(typeHint, accessor, value, attributes);
-      case typeHint.name === PRIMITIVE_TYPEHINT.STRING:
+      case typeHint.name === PRIMITIVETYPEHINT.STRING:
         return new SdtfPrimitiveItem<string>(typeHint, accessor, value, attributes);
       default:
         return new SdtfCustomItem(typeHint, accessor, value, attributes);

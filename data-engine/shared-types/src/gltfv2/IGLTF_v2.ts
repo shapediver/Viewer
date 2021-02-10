@@ -8,7 +8,7 @@ export const ACCESSOR_COMPONENTTYPE = {
     5126: Float32Array
 }
 
-export const ACCESSOR_TYPE = {
+export const ACCESSORTYPE = {
     SCALAR: 1,
     VEC2: 2,
     VEC3: 3,

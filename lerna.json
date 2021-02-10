@@ -4,13 +4,13 @@
     "utils/*",
     "node-tree/*",
     "shared/*",
-    "visualization-engine/*",
     "sdtf/*",
     "data-engine/*",
     "session-engine/*",
     "api/*",
     "examples/*",
-    "rendering-engine/*"
+    "rendering-engine/*",
+    "rendering-engine-threejs/*"
   ],
   "version": "independent"
 }

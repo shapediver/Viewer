@@ -1,15 +1,15 @@
-import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT, RHINO_TYPEHINT } from "../../enums";
+import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, RHINOTYPEHINT } from "../../enums";
 
 export class SdtfTypeHint {
   // #region Constructors (1)
 
-  constructor(private readonly _name: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | RHINO_TYPEHINT) {}
+  constructor(private readonly _name: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | RHINOTYPEHINT) {}
 
   // #endregion Constructors (1)
 
   // #region Public Accessors (1)
 
-  public get name(): PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | RHINO_TYPEHINT {
+  public get name(): PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | RHINOTYPEHINT {
     return this._name;
   }
 
