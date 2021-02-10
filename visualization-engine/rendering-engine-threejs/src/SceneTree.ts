@@ -114,7 +114,7 @@ export class SceneTree {
             objNew.add(instancedMesh);
             parent.add(objNew);
 
-            geometry.convertedObjects.push(<any>instancedMesh);
+            geometry.convertedObjects.push(objNew);
 
             this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS] = objNew;
         
