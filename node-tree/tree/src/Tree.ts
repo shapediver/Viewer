@@ -1,5 +1,7 @@
+import { singleton } from 'tsyringe'
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
 
+@singleton()
 export class Tree {
   // #region Properties (1)
 

@@ -19,7 +19,7 @@ export interface IRenderingEngine {
      * 
      * @param root the root node 
      */
-    updateSceneTree(root: TreeNode): void;
+    updateSceneTree(): void;
 
     // #endregion Public Methods (1)
 }

@@ -5,12 +5,14 @@ import {container} from 'tsyringe'
 import { CameraEngine, ICameraEngine } from '@shapediver/viewer.visualization-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.visualization-engine.canvas-engine';
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
+import { Tree } from '@shapediver/viewer.node-tree.tree';
 
 import { SceneTree } from './SceneTree';
 import { ILightEngine } from '@shapediver/viewer.visualization-engine.light-engine';
 import { Settings } from '@shapediver/viewer.shared.settings-engine';
+import { IRenderingEngine } from '../../rendering-engine/dist';
 
-export class RenderingEngine {
+export class RenderingEngine implements IRenderingEngine {
     private readonly _canvasEngine: CanvasEngine;
     
     protected _cameraEngine!: ICameraEngine;
@@ -18,10 +20,12 @@ export class RenderingEngine {
     protected _lightEngine!: ILightEngine;
     protected _settings: Settings;
     protected _sceneTree!: SceneTree;
+    protected _tree!: Tree;
 
     // #region Constructors (1)
 
     constructor(name: string, canvasDefinition?: string | HTMLCanvasElement) {
+        this._tree = <Tree>container.resolve(Tree);
         this._settings = <Settings>container.resolve(Settings);
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
         this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
@@ -115,8 +119,8 @@ export class RenderingEngine {
 
     // #region Public Methods (1)
 
-    public updateSceneTree(root: TreeNode): void {
-        this._sceneTree.updateSceneTree(root);
+    public updateSceneTree(): void {
+        this._sceneTree.updateSceneTree(this._tree.root);
     }
 
     // #endregion Public Methods (1)

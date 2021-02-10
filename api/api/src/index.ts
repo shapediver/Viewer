@@ -13,7 +13,7 @@ class Api {
     // #region Properties (4)
 
     private _renderingEngines: RenderingEngine[] = [];
-    private _sceneTree = new Tree();
+    private _sceneTree = container.resolve(Tree);
     private _sessions: { [key: string]: ISession } = {};
     private _viewers: { [key: string]: IViewer } = {};
 
@@ -35,7 +35,7 @@ class Api {
         const session =  new Session(
             this._sceneTree, 
             () => {
-                this._renderingEngines.forEach((e) => e.updateSceneTree(this._sceneTree.root));
+                this._renderingEngines.forEach((e) => e.updateSceneTree());
             }, 
             ticket, 
             modelViewUrl
@@ -50,7 +50,7 @@ class Api {
             throw new Error('Viewer with name ' + name + ' already exists.');
         const viewer = new Viewer(type, name, canvas);
         this._renderingEngines.push(viewer.renderingEngine)
-        this._renderingEngines.forEach((e) => e.updateSceneTree(this._sceneTree.root));
+        this._renderingEngines.forEach((e) => e.updateSceneTree());
         this._viewers[name] = viewer;
         return  this._viewers[name];
     }
@@ -64,7 +64,7 @@ class Api {
     }
 
     public onUpdate(): void {
-        this._renderingEngines.forEach((e) => e.updateSceneTree(this._sceneTree.root));
+        this._renderingEngines.forEach((e) => e.updateSceneTree());
     }
 
     // #endregion Public Methods (5)
