@@ -1,18 +1,23 @@
-export enum EVENTTYPE {
-    CAMERA = "camera",
+export enum CAMERA {
     CAMERA_START = "camera.start",
     CAMERA_MOVE = "camera.move",
     CAMERA_END = "camera.end",
-    EXPORT = "export",
+}
+
+export enum EXPORT {
     // EXPORT_AVAILABLE = "export.available",
     // EXPORT_REGISTERED = "export.registered",
     // EXPORT_REGISTEREDBATCH = "export.registeredbatch",
     // EXPORT_UPDATE = "export.update",
     // EXPORT_STATUS = "export.status",
-    HTML = "html",
+}
+
+export enum HTML {
     // HTML_ANCHORADD = "html.anchoradd",
     // HTML_ANCHORREMOVE = "html.anchorremove",
-    INTERACTION = 'interaction',
+}
+
+export enum INTERACTION {
     // INTERACTION_DRAGSTART = 'interaction.dragstart',
     // INTERACTION_DRAGMOVE = 'interaction.dragmove',
     // INTERACTION_DRAGEND = 'interaction.dragend',
@@ -21,23 +26,50 @@ export enum EVENTTYPE {
     // INTERACTION_HOVEROFF = 'interaction.hoveroff',
     // INTERACTION_SELECTON = 'interaction.selecton',
     // INTERACTION_SELECTOFF = 'interaction.selectoff',
+}
+
+export enum LIGHT {
     LIGHT_ADDED = "light.added",
     LIGHT_REMOVED = "light.removed",
     LIGHT_CHANGED = "light.changed",
     LIGHT_SCENE_ADDED = "light.scene.added",
     LIGHT_SCENE_REMOVED = "light.scene.removed",
     LIGHT_SCENE_CHANGED = "light.scene.changed",
-    PARAMETER = "parameter",
+}
+
+export enum PARAMETER {
     // PARAMETER_REGISTERED = "parameter.registered",
     // PARAMETER_REGISTEREDBATCH = "parameter.registeredbatch",
     // PARAMETER_UPDATE = "parameter.update",
     // PARAMETER_VALUEUPDATE = "parameter.valueupdate",
-    RENDERING = "rendering",
+}
+
+export enum RENDERING {
     //RENDERING_FRAMERATE = "rendering.framerate",
-    SCENE = "scene",
+}
+
+export enum SCENE {
     // SCENE_VISIBLE = "scene.visible",
     // SCENE_HIDDEN = "scene.hidden",
-    SETTINGS = "settings",
-    // SETTINGS_REGISTERED = "settings.registered",
-    // SETTINGS_UPDATE = "settings.update",
 }
+
+export enum SETTING {
+    // SETTING_REGISTERED = "setting.registered",
+    // SETTING_UPDATE = "setting.update",
+}
+
+
+export const EVENTTYPE = { 
+    CAMERA, 
+    EXPORT, 
+    HTML, 
+    INTERACTION, 
+    LIGHT, 
+    PARAMETER, 
+    RENDERING, 
+    SCENE, 
+    SETTING
+};
+export type EVENTTYPE = typeof EVENTTYPE;
+
+export type MAIN_EVENTTYPE = typeof CAMERA | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SETTING;

@@ -89,7 +89,7 @@ export class RenderingEngine implements IRenderingEngine {
         };
         animate(0);
 
-        //this._eventEngine.addListener(EVENTTYPE.LIGHT_ADDED)
+        this._eventEngine.addListener(EVENTTYPE.LIGHT, () => {})
     }
 
     // #endregion Constructors (1)

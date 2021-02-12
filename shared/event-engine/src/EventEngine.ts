@@ -1,5 +1,5 @@
-import { container, singleton } from "tsyringe";
-import { EVENTTYPE } from "./EventTypes";
+import { singleton } from "tsyringe";
+import { EVENTTYPE, MAIN_EVENTTYPE } from "./EventTypes";
 import { IListener } from "./interfaces/IListener";
 import { ICallback } from "./interfaces/ICallback";
 import { IEvent } from "./interfaces/IEvent";
@@ -21,11 +21,29 @@ export class EventEngine {
     constructor() {
         this._eventListeners = {};
         for (const type in EVENTTYPE) {
-            this._eventListeners[EVENTTYPE[type as keyof typeof EVENTTYPE]] = [];
+            const subEventType = EVENTTYPE[type as keyof EVENTTYPE];
+            this._eventListeners[type.toLowerCase()] = [];
+            for (const subtype in subEventType) {
+                this._eventListeners[subEventType[subtype as keyof typeof subEventType]] = [];
+            }
         }
     }
 
     // #endregion Constructors (1)
+
+    private convertTypeToString(type: string | MAIN_EVENTTYPE): string {
+        let typeString: string = '';
+        if(typeof type === 'string') typeString = type;
+
+        for (const mainType in EVENTTYPE)
+            if(type === EVENTTYPE[mainType as keyof EVENTTYPE])
+                typeString = mainType.toLowerCase();
+        
+        if(!typeString || !this._eventListeners[typeString])
+            throw new Error('No valid type provided.');
+        
+        return typeString;
+    }
 
     // #region Public Methods (3)
 
@@ -36,10 +54,10 @@ export class EventEngine {
      * @param cb the callback that should be called
      * @returns an unique token to be able to remove the listener
      */
-    public addListener(type: EVENTTYPE, cb: ICallback): string {
-        if (!Object.values(EVENTTYPE).includes(type)) throw new Error('No valid type provided.');
+    public addListener(type: string | MAIN_EVENTTYPE, cb: ICallback): string {
+        const typeString: string = this.convertTypeToString(type);
         const token = uuid.create();
-        this._eventListeners[type]?.push({ token, cb });
+        this._eventListeners[typeString]?.push({ token, cb });
         return token;
     }
 
@@ -49,16 +67,15 @@ export class EventEngine {
      * @param type the type of the event
      * @param event the event to emit
      */
-    public emitEvent(type: EVENTTYPE, event: IEvent): void {
-        if (Object.values(EVENTTYPE).includes(type) && this._eventListeners[type]?.length !== 0) {
-            for (let i = 0; i < this._eventListeners[type]!.length; i++){
-                this._eventListeners[type]![i].cb(event);
-            }
-        }
+    public emitEvent(type: string | MAIN_EVENTTYPE, event: IEvent): void {
+        const typeString: string = this.convertTypeToString(type);
 
-        if(type.includes('.')) {
-            this.emitEvent(<EVENTTYPE>type.substr(0, type.indexOf('.')), event);
-        }
+        if (this._eventListeners[typeString]?.length !== 0) 
+            for (let i = 0; i < this._eventListeners[typeString]!.length; i++)
+                this._eventListeners[typeString]![i].cb(event);
+
+        if(typeString.includes('.')) 
+            this.emitEvent(typeString.substr(0, typeString.indexOf('.')), event);
     }
 
     /**
@@ -69,10 +86,20 @@ export class EventEngine {
      */
     public removeListener(token: string): boolean {
         for (const type in EVENTTYPE) {
-            for (let i = 0; i < this._eventListeners[EVENTTYPE[type as keyof typeof EVENTTYPE]]!.length; i++) {
-                if (this._eventListeners[EVENTTYPE[type as keyof typeof EVENTTYPE]]![i].token === token) {
-                    this._eventListeners[EVENTTYPE[type as keyof typeof EVENTTYPE]]!.splice(i, 1);
+            const subEventType = EVENTTYPE[type as keyof EVENTTYPE];
+            const typeLowerCase = type.toLowerCase();
+            for (let i = 0; i < this._eventListeners[typeLowerCase]!.length; i++) {
+                if (this._eventListeners[typeLowerCase]![i].token === token) {
+                    this._eventListeners[typeLowerCase]!.splice(i, 1);
                     return true;
+                }
+            }
+            for (const subtype in subEventType) {
+                for (let i = 0; i < this._eventListeners[subEventType[subtype as keyof typeof subEventType]]!.length; i++) {
+                    if (this._eventListeners[subEventType[subtype as keyof typeof subEventType]]![i].token === token) {
+                        this._eventListeners[subEventType[subtype as keyof typeof subEventType]]!.splice(i, 1);
+                        return true;
+                    }
                 }
             }
         }

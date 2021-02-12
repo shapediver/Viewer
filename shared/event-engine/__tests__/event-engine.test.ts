@@ -142,13 +142,13 @@ describe('test', () => {
         const token1 = instance.addListener(EVENTTYPE.CAMERA, (event: IEvent) => {
             count++;
         })
-        const token2 = instance.addListener(EVENTTYPE.CAMERA_START, (event: IEvent) => {
+        const token2 = instance.addListener(EVENTTYPE.CAMERA.CAMERA_START, (event: IEvent) => {
             count++;
         })
-        const token3 = instance.addListener(EVENTTYPE.CAMERA_MOVE, (event: IEvent) => {
+        const token3 = instance.addListener(EVENTTYPE.CAMERA.CAMERA_MOVE, (event: IEvent) => {
             count++;
         })
-        const token4 = instance.addListener(EVENTTYPE.CAMERA_END, (event: IEvent) => {
+        const token4 = instance.addListener(EVENTTYPE.CAMERA.CAMERA_END, (event: IEvent) => {
             count++;
         })
 
@@ -156,21 +156,21 @@ describe('test', () => {
 
         expect(count).toBe(1);
 
-        instance.emitEvent(EVENTTYPE.CAMERA_START, {});
+        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, {});
 
         expect(count).toBe(3);
 
-        instance.emitEvent(EVENTTYPE.CAMERA_MOVE, {});
+        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, {});
 
         expect(count).toBe(5);
         
-        instance.emitEvent(EVENTTYPE.CAMERA_END, {});
+        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, {});
 
         expect(count).toBe(7);
 
         instance.removeListener(token1);
 
-        instance.emitEvent(EVENTTYPE.CAMERA_START, {});
+        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, {});
 
         expect(count).toBe(8);
     });
