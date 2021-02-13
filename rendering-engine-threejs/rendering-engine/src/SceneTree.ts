@@ -8,6 +8,7 @@ import { SDObject } from './SDObject';
 import { ThreejsData } from './ThreejsData';
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
 import { Box } from '@shapediver/viewer.math.box';
+import { AbstractLight, AmbientLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
 
 export class SceneTree {
     // #region Properties (2)
@@ -15,9 +16,11 @@ export class SceneTree {
     private readonly _primitiveLoader: PrimitiveLoader = new PrimitiveLoader();
     private readonly _scene: THREE.Scene = new THREE.Scene();
     private _mainNode!: SDObject;
+    private _boundingBox: Box = new Box();
     protected _geometryCache: {
         [key: string]: SDObject
     } = {};
+
     // #endregion Properties (2)
 
     // #region Public Accessors (1)
@@ -30,6 +33,27 @@ export class SceneTree {
 
     // #region Public Methods (3)
 
+    private createLight(light: AbstractLight, parent: SDObject) {
+        let converted = null;
+        for (let k = 0; k < light.convertedObjects.length; k++)
+            if (light.convertedObjects[k] instanceof SDObject)
+                converted = <SDObject>light.convertedObjects[k];
+
+        if (!converted) {
+            converted = new SDObject(light.id, light.version);
+            if (light instanceof AmbientLight) {
+                const l = new THREE.AmbientLight(new THREE.Color(light.color[0], light.color[1], light.color[2]), light.intensity);
+                converted.add(l);
+            }
+        } else {
+            if (light instanceof AmbientLight) {
+                (<THREE.AmbientLight>converted.children[0]).color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+                (<THREE.AmbientLight>converted.children[0]).intensity = light.intensity;
+            }
+        }
+        parent.add(converted);
+    }
+
     /**
      * Convert the data of the scene graph node into the format of the implementation.
      * 
@@ -39,12 +63,12 @@ export class SceneTree {
     public convertData(data: ITreeNodeData, obj: SDObject): void {
         let dataChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
 
-        if(!dataChild) 
+        if (!dataChild)
             dataChild = new SDObject(data.id, data.version);
 
         obj.add(dataChild);
 
-        switch(true) {
+        switch (true) {
             case data instanceof GeometryData:
                 this.createGeometryObject(<GeometryData>data, dataChild);
                 break;
@@ -52,6 +76,11 @@ export class SceneTree {
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);
                 break;
             case data instanceof MaterialData:
+                // we only store it here to retrieve it for material assignment later on
+                // this._helper.addData(this.createMaterial(<SceneGraphMaterialData>data), dataChild);
+                break;
+            case data instanceof AbstractLight:
+                this.createLight(<AbstractLight>data, dataChild);
                 // we only store it here to retrieve it for material assignment later on
                 // this._helper.addData(this.createMaterial(<SceneGraphMaterialData>data), dataChild);
                 break;
@@ -68,10 +97,11 @@ export class SceneTree {
      * @returns the geometry object
      */
     public createGeometryObject(geometry: GeometryData, parent: SDObject): void {
-        if(this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS]) {
+        this._boundingBox.union(geometry.boundingBox);
+        if (this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS]) {
             // if already in geo cache
 
-            const obj = <SDObject>this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS];
+            const obj = <SDObject>this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS];
             let mesh = (<SDObject>obj).children.pop(); // careful, at some point there might be more
 
             let instancedMesh: THREE.InstancedMesh;
@@ -80,7 +110,7 @@ export class SceneTree {
             // reverse transform of first parents;
             const initialMatrix = parent.matrixWorld.clone().invert();
 
-            if(mesh instanceof THREE.InstancedMesh) {
+            if (mesh instanceof THREE.InstancedMesh) {
                 const oldInstancedMesh = <THREE.InstancedMesh>mesh;
                 const count = oldInstancedMesh.count + 1;
 
@@ -90,17 +120,17 @@ export class SceneTree {
                 // update the matrix to our mesh
                 instancedMesh.setMatrixAt(0, parent.matrixWorld.clone());
 
-                for(let i = 0; i < oldInstancedMesh.count; i++) {
+                for (let i = 0; i < oldInstancedMesh.count; i++) {
                     const matrix = new THREE.Matrix4();
                     oldInstancedMesh.getMatrixAt(i, matrix);
-                    instancedMesh.setMatrixAt(i+1, matrix);
+                    instancedMesh.setMatrixAt(i + 1, matrix);
                 }
             } else {
                 const count = 2;
 
                 instancedMesh = new THREE.InstancedMesh((<THREE.Mesh>mesh).geometry, (<THREE.Mesh>mesh).material, count);
                 instancedMesh.applyMatrix4(initialMatrix)
-                
+
                 // update the matrix to our mesh
                 instancedMesh.setMatrixAt(0, parent.matrixWorld.clone());
 
@@ -110,19 +140,19 @@ export class SceneTree {
             }
 
             instancedMesh.instanceMatrix.needsUpdate = true;
-                
+
             const objNew = new SDObject(geometry.id, geometry.version);
             objNew.add(instancedMesh);
             parent.add(objNew);
 
             geometry.convertedObjects.push(objNew);
 
-            this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS] = objNew;
-        
+            this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = objNew;
+
         } else {
             const obj = new SDObject(geometry.id, geometry.version);
             obj.add(new THREE.Mesh(this._primitiveLoader.load(geometry.primitive), this.createMaterial(geometry.primitive.material!)));
-            this._geometryCache[geometry.id+'_'+SD_RENDERINGTYPE.THREEJS] = obj;
+            this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = obj;
             geometry.convertedObjects.push(obj)
             parent.add(obj);
         }
@@ -132,7 +162,7 @@ export class SceneTree {
         const texture = new THREE.Texture(map.image);
         texture.format = THREE.RGBFormat;
         texture.minFilter = (() => {
-            switch(map.minFilter) {
+            switch (map.minFilter) {
                 case TEXTURE_FILTERING.NEAREST:
                     return THREE.NearestFilter;
                 case TEXTURE_FILTERING.NEAREST_MIPMAP_NEAREST:
@@ -149,7 +179,7 @@ export class SceneTree {
             }
         })();
         texture.magFilter = (() => {
-            switch(map.magFilter) {
+            switch (map.magFilter) {
                 case TEXTURE_FILTERING.NEAREST:
                     return THREE.NearestFilter;
                 case TEXTURE_FILTERING.LINEAR:
@@ -158,7 +188,7 @@ export class SceneTree {
             }
         })();
         texture.wrapS = (() => {
-            switch(map.wrapS) {
+            switch (map.wrapS) {
                 case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
                     return THREE.ClampToEdgeWrapping;
                 case TEXTURE_WRAPPING.MIRRORED_REPEAT:
@@ -169,7 +199,7 @@ export class SceneTree {
             }
         })();
         texture.wrapT = (() => {
-            switch(map.wrapT) {
+            switch (map.wrapT) {
                 case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
                     return THREE.ClampToEdgeWrapping;
                 case TEXTURE_WRAPPING.MIRRORED_REPEAT:
@@ -186,12 +216,12 @@ export class SceneTree {
         texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
         texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
         texture.rotation = map.rotation;
-        
+
         texture.flipY = false;
         texture.needsUpdate = true;
         return texture;
     }
-  
+
     /**
      * Create a material object with the provided material data.
      * 
@@ -272,21 +302,21 @@ export class SceneTree {
 
             // visible
 
-            if(materialProperties.alphaMap !== undefined)
+            if (materialProperties.alphaMap !== undefined)
                 material.alphaMap = this.createTexture(materialProperties.alphaMap);
 
             // aoMap
 
             // aoMapIntensity
 
-            if(materialProperties.bumpMap !== undefined)
+            if (materialProperties.bumpMap !== undefined)
                 material.bumpMap = this.createTexture(materialProperties.bumpMap);
 
             material.bumpScale = materialProperties.bumpScale;
 
-            material.color = new THREE.Color(   materialProperties.color[0] > 1 ? materialProperties.color[0]/255 : materialProperties.color[0], 
-                                                materialProperties.color[1] > 1 ? materialProperties.color[1]/255 : materialProperties.color[1], 
-                                                materialProperties.color[2] > 1 ? materialProperties.color[2]/255 : materialProperties.color[2]);
+            material.color = new THREE.Color(materialProperties.color[0] > 1 ? materialProperties.color[0] / 255 : materialProperties.color[0],
+                materialProperties.color[1] > 1 ? materialProperties.color[1] / 255 : materialProperties.color[1],
+                materialProperties.color[2] > 1 ? materialProperties.color[2] / 255 : materialProperties.color[2]);
             //, materialProperties.color[3]);
 
             // displacementMap
@@ -295,9 +325,9 @@ export class SceneTree {
 
             // displacementBias
 
-            material.emissive = new THREE.Color(materialProperties.emissiveness[0], materialProperties.emissiveness[1], materialProperties.emissiveness[2]); 
+            material.emissive = new THREE.Color(materialProperties.emissiveness[0], materialProperties.emissiveness[1], materialProperties.emissiveness[2]);
 
-            if(materialProperties.emissiveMap !== undefined)
+            if (materialProperties.emissiveMap !== undefined)
                 material.emissiveMap = this.createTexture(materialProperties.emissiveMap);
 
             // emissiveIntensity
@@ -310,20 +340,20 @@ export class SceneTree {
 
             // lightMapIntensity
 
-            if(materialProperties.map !== undefined)
+            if (materialProperties.map !== undefined)
                 material.map = this.createTexture(materialProperties.map);
 
             material.metalness = materialProperties.metalness;
 
             material.roughness = materialProperties.roughness;
 
-            if(materialProperties.metalnessRoughnessMap !== undefined) {
+            if (materialProperties.metalnessRoughnessMap !== undefined) {
                 material.metalnessMap = this.createTexture(materialProperties.metalnessRoughnessMap);
                 material.roughnessMap = material.metalnessMap;
             } else {
-                if(materialProperties.metalnessMap !== undefined)
+                if (materialProperties.metalnessMap !== undefined)
                     material.metalnessMap = this.createTexture(materialProperties.metalnessMap);
-                if(materialProperties.roughnessMap !== undefined)
+                if (materialProperties.roughnessMap !== undefined)
                     material.roughnessMap = this.createTexture(materialProperties.roughnessMap);
             }
 
@@ -331,7 +361,7 @@ export class SceneTree {
 
             // morphTargets
 
-            if(materialProperties.normalMap !== undefined)
+            if (materialProperties.normalMap !== undefined)
                 material.normalMap = this.createTexture(materialProperties.normalMap);
 
             // normalMapType
@@ -363,37 +393,35 @@ export class SceneTree {
         }
     }
 
-    private calculateBoundingBox(node: TreeNode): Box {
-        let box: Box = new Box();
-        for(let i = 0, len = node.data.length; i < len; i++) {
-            if(node.data[i] instanceof GeometryData) {
-                box.union((node.data[i] as GeometryData).boundingBox);
-            }
-        }
-
-        for(let i = 0; i < node.getNumberOfChildren(); i++)
-            box.union(this.calculateBoundingBox(node.getChildAt(i)))
-
-        return box;
-    }
-
-    public updateSceneTree(root: TreeNode): void {
-        const box: Box = this.calculateBoundingBox(root);
-        console.log(box)
+    public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
+        this._boundingBox = new Box();
 
         this._geometryCache = {};
-        if(!this._mainNode) {
+        if (!this._mainNode) {
             this._mainNode = new SDObject(root.id, root.version);
             this._scene.add(this._mainNode);
         }
+
         this.updateNode(root, this._mainNode);
+
+        const lightScene = lightEngine.getLightScene(lightEngine.getCurrentLightScene());
+        const lightSceneChildren = <SDObject[]>this._mainNode.children.filter(oc => lightScene.node.id === (<SDObject>oc).SDid);
+        if (lightSceneChildren.length > 1) {
+            this.updateNode(lightScene.node, lightSceneChildren[0]);
+        } else {
+            const lightSceneChild = new SDObject(lightScene.node.id, lightScene.node.version);
+            this._mainNode.add(lightSceneChild)
+            this.updateNode(lightScene.node, lightSceneChild);
+        }
+
+
 
         const threeBox = new THREE.Box3();
         threeBox.setFromObject(this._mainNode);
-        console.log(threeBox)
+        console.log(this._boundingBox, threeBox)
     }
 
-    
+
     /**
      * Update the current node via the scene graph node.
      * Convert the data if needed.
@@ -404,35 +432,39 @@ export class SceneTree {
     private updateNode(node: TreeNode, obj: SDObject) {
         obj.applyTransformation(node.nodeMatrix);
 
-        for(let i = 0, len = node.data.length; i < len; i++) {
+        for (let i = 0, len = node.data.length; i < len; i++) {
             this.convertData(node.data[i], obj);
         }
 
         const nodeIds: string[] = []
-        for(let i = 0; i < node.getNumberOfChildren(); i++) {
+        for (let i = 0; i < node.getNumberOfChildren(); i++) {
             nodeIds.push(node.getChildAt(i).id)
         }
         const dataIds = node.data.map(d => d.id);
         const dataVersions = node.data.map(d => d.version);
         const childrenToRemove = obj.children.filter(oc => (!nodeIds.includes((<SDObject>oc).SDid)) && !(dataIds.includes((<SDObject>oc).SDid) && dataVersions.includes((<SDObject>oc).SDversion)));
-        
+
         // remove children that are not anymore in there
-        for(const objChild of childrenToRemove)
+        for (const objChild of childrenToRemove)
             obj.remove(objChild);
 
         // add new children and update the ones that have a different version
-        for(let i = 0, len = node.getNumberOfChildren(); i < len; i++) {
+        for (let i = 0, len = node.getNumberOfChildren(); i < len; i++) {
             const nodeChild = node.getChildAt(i);
             const objChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === nodeChild.id);
 
-            if(!objChild) {
+            if (!objChild) {
                 const newChild = new SDObject(nodeChild.id, nodeChild.version);
                 obj.add(newChild);
                 this.updateNode(nodeChild, newChild);
-            } else if(objChild.SDversion !== nodeChild.version){
+            } else if (objChild.SDversion !== nodeChild.version) {
                 this.updateNode(nodeChild, objChild);
             }
         }
+    }
+
+    public get boundingBox(): Box {
+        return this._boundingBox;
     }
 
     // #endregion Public Methods (3)

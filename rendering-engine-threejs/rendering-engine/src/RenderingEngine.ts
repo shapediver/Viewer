@@ -12,6 +12,7 @@ import { Settings } from '@shapediver/viewer.shared.settings-engine';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.event-engine';
 
+
 export class RenderingEngine implements IRenderingEngine {
     private readonly _canvasEngine: CanvasEngine;
     
@@ -40,24 +41,7 @@ export class RenderingEngine implements IRenderingEngine {
         THREE.Object3D.DefaultUp = new THREE.Vector3(0,0,1);
 
         const camera = new THREE.PerspectiveCamera(75, this._canvas.canvasElement.width / this.canvas.canvasElement.height, 0.1, 100000);
-        camera.lookAt(0,0,0)
-
-        var light = new THREE.AmbientLight(0xffffff, 0.5);
-        (<SceneTree> this._sceneTree).scene.add(light)
-
-        var light2 = new THREE.DirectionalLight(0xffffff, .75);
-        (<SceneTree> this._sceneTree).scene.add(light2)
-        light2.position.z = 150;
-        light2.position.y = -150;
-        light2.position.x = 150;
-        light2.lookAt(0, 0, 0)
-        
-        var light3 = new THREE.DirectionalLight(0xffffff, .35);
-        (<SceneTree> this._sceneTree).scene.add(light3)
-        light3.position.z = 150;
-        light3.position.y = -150;
-        light3.position.x = -150 *.25;
-        light3.lookAt(0,0,0);
+        camera.lookAt(0,0,0);
 
         (<SceneTree> this._sceneTree).scene.background = new THREE.Color(0xffffff)
         
@@ -126,7 +110,7 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Public Methods (1)
 
     public updateSceneTree(): void {
-        this._sceneTree.updateSceneTree(this._tree.root);
+        this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     }
 
     // #endregion Public Methods (1)

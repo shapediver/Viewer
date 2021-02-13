@@ -2,12 +2,14 @@ import { vec3 } from "gl-matrix";
 import { ILight, LIGHTTYPE } from "../interface/ILight";
 import uuid from '@shapediver/viewer.utils.uuid'
 import { AbstractTreeNodeData, ITreeNodeData } from "@shapediver/viewer.node-tree.tree-node-data";
+import { ISDObject } from "@shapediver/viewer.shared.types";
 
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
     // #region Properties (1)
 
     private readonly _lightId: string;
-
+    private _convertedObjects: ISDObject[] = [];
+    
     // #endregion Properties (1)
 
     // #region Constructors (1)
@@ -60,6 +62,24 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     public set type(value: LIGHTTYPE) {
         this._type = value;
+    }
+
+
+
+    /**
+     * Getter convertedObjects
+     * @return {ISDObject[]}
+     */
+    public get convertedObjects(): ISDObject[] {
+        return this._convertedObjects;
+    }
+
+    /**
+     * Setter convertedObjects
+     * @param {ISDObject[]} value
+     */
+    public set convertedObjects(value: ISDObject[]) {
+        this._convertedObjects = value;
     }
 
     // #endregion Public Accessors (9)

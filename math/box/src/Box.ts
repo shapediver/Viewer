@@ -68,9 +68,9 @@ export class Box {
         if ( box.min[1] < this.min[1] ) this.min[1] = box.min[1];
         if ( box.min[2] < this.min[2] ) this.min[2] = box.min[2];
 
-        if ( box.max[0] < this.max[0] ) this.max[0] = box.max[0];
-        if ( box.max[1] < this.max[1] ) this.max[1] = box.max[1];
-        if ( box.max[2] < this.max[2] ) this.max[2] = box.max[2];
+        if ( box.max[0] > this.max[0] ) this.max[0] = box.max[0];
+        if ( box.max[1] > this.max[1] ) this.max[1] = box.max[1];
+        if ( box.max[2] > this.max[2] ) this.max[2] = box.max[2];
     }
 
     // #endregion Public Methods (4)
