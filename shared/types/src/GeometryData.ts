@@ -3,6 +3,7 @@ import { mat4 } from 'gl-matrix';
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.node-tree.tree-node-data';
 import { MaterialData } from './MaterialData';
 import { ISDObject } from '.';
+import { Box } from '@shapediver/viewer.math.box';
 
 export class AttributeData {
   // #region Constructors (1)
@@ -102,6 +103,12 @@ export class AttributeData {
 }
 
 export class PrimitiveData {
+  // #region Properties (1)
+
+  private _boundingBox: Box = new Box();
+
+  // #endregion Properties (1)
+
   // #region Constructors (1)
 
   /**
@@ -117,11 +124,14 @@ export class PrimitiveData {
     private readonly _mode: number = 4,
     private _indices: AttributeData | null = null,
     private _material: MaterialData | null = null,
-  ) { }
+  ) { 
+    if(this._attributes['POSITION'])
+      this._boundingBox.setFromAttributeArray(this._attributes['POSITION'].array);
+  }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (6)
+  // #region Public Accessors (7)
 
   /**
    * Getter attributes
@@ -131,6 +141,14 @@ export class PrimitiveData {
     [key: string]: AttributeData
   } {
     return this._attributes;
+  }
+
+  /**
+   * Getter boundingBox
+   * @param {Box} value
+   */
+  public get boundingBox(): Box {
+    return this._boundingBox;
   }
 
   /**
@@ -173,7 +191,7 @@ export class PrimitiveData {
     return this._mode;
   }
 
-  // #endregion Public Accessors (6)
+  // #endregion Public Accessors (7)
 
   // #region Public Methods (1)
 
@@ -193,6 +211,12 @@ export class PrimitiveData {
 }
 
 export class GeometryData extends AbstractTreeNodeData {
+  // #region Properties (1)
+
+  private _boundingBox: Box = new Box();
+
+  // #endregion Properties (1)
+
   // #region Constructors (1)
 
   /**
@@ -209,11 +233,21 @@ export class GeometryData extends AbstractTreeNodeData {
     id?: string
   ) {
     super(id);
+    this._boundingBox = this.primitive.boundingBox.clone();
+    this._boundingBox.applyMatrix(this.matrix);
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (4)
+  // #region Public Accessors (5)
+
+  /**
+   * Getter boundingBox
+   * @param {Box} value
+   */
+  public get boundingBox(): Box {
+    return this._boundingBox;
+  }
 
   /**
    * Getter convertedObjects
@@ -247,7 +281,7 @@ export class GeometryData extends AbstractTreeNodeData {
     return this._primitive;
   }
 
-  // #endregion Public Accessors (4)
+  // #endregion Public Accessors (5)
 
   // #region Public Methods (1)
 

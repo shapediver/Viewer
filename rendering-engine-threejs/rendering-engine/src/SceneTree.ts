@@ -7,6 +7,7 @@ import { PrimitiveLoader } from './PrimitiveLoader';
 import { SDObject } from './SDObject';
 import { ThreejsData } from './ThreejsData';
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
+import { Box } from '@shapediver/viewer.math.box';
 
 export class SceneTree {
     // #region Properties (2)
@@ -362,13 +363,34 @@ export class SceneTree {
         }
     }
 
+    private calculateBoundingBox(node: TreeNode): Box {
+        let box: Box = new Box();
+        for(let i = 0, len = node.data.length; i < len; i++) {
+            if(node.data[i] instanceof GeometryData) {
+                box.union((node.data[i] as GeometryData).boundingBox);
+            }
+        }
+
+        for(let i = 0; i < node.getNumberOfChildren(); i++)
+            box.union(this.calculateBoundingBox(node.getChildAt(i)))
+
+        return box;
+    }
+
     public updateSceneTree(root: TreeNode): void {
+        const box: Box = this.calculateBoundingBox(root);
+        console.log(box)
+
         this._geometryCache = {};
         if(!this._mainNode) {
             this._mainNode = new SDObject(root.id, root.version);
             this._scene.add(this._mainNode);
         }
         this.updateNode(root, this._mainNode);
+
+        const threeBox = new THREE.Box3();
+        threeBox.setFromObject(this._mainNode);
+        console.log(threeBox)
     }
 
     
