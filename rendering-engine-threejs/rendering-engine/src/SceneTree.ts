@@ -76,6 +76,9 @@ export class SceneTree {
                 threeLight.shadow.radius = 2;
                 threeLight.shadow.bias = -0.00175;
                 threeLight.shadow.camera.updateProjectionMatrix();
+                console.log(this._boundingBox, bs)
+                const cameraHelper = new THREE.CameraHelper(threeLight.shadow.camera);
+                this._scene.add(cameraHelper);
               }
         }
 
@@ -176,6 +179,8 @@ export class SceneTree {
                 const count = oldInstancedMesh.count + 1;
 
                 instancedMesh = new THREE.InstancedMesh(oldInstancedMesh.geometry, oldInstancedMesh.material, count);
+                instancedMesh.castShadow = true;
+                instancedMesh.receiveShadow = true;
                 instancedMesh.applyMatrix4(initialMatrix)
 
                 // update the matrix to our mesh
@@ -190,6 +195,8 @@ export class SceneTree {
                 const count = 2;
 
                 instancedMesh = new THREE.InstancedMesh((<THREE.Mesh>mesh).geometry, (<THREE.Mesh>mesh).material, count);
+                instancedMesh.castShadow = true;
+                instancedMesh.receiveShadow = true;
                 instancedMesh.applyMatrix4(initialMatrix)
 
                 // update the matrix to our mesh
@@ -212,7 +219,10 @@ export class SceneTree {
 
         } else {
             const obj = new SDObject(geometry.id, geometry.version);
-            obj.add(new THREE.Mesh(this._primitiveLoader.load(geometry.primitive), this.createMaterial(geometry.primitive.material!)));
+            const mesh: THREE.Mesh = new THREE.Mesh(this._primitiveLoader.load(geometry.primitive), this.createMaterial(geometry.primitive.material!));
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            obj.add(mesh);
             this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = obj;
             geometry.convertedObjects.push(obj)
             parent.add(obj);

@@ -49,6 +49,8 @@ export class RenderingEngine implements IRenderingEngine {
             canvas: this.canvas.canvasElement,
             antialias: true,
         });
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
         renderer.setClearColor(new THREE.Color(0xffffff))
 
