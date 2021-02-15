@@ -1,6 +1,16 @@
 import { mat4, vec3 } from 'gl-matrix'
+import { Sphere } from './Sphere';
 
 export class Box {
+    // #region Properties (2)
+
+    private _boundingSphere: Sphere = new Sphere();
+    private _boundingSphereState: { min: vec3, max: vec3 } = {
+        min: vec3.create(), max: vec3.create()
+    }
+
+    // #endregion Properties (2)
+
     // #region Constructors (1)
 
     constructor(
@@ -10,7 +20,18 @@ export class Box {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (4)
+    // #region Public Accessors (5)
+
+    public get boundingSphere(): Sphere {
+        if(!(vec3.equals(this._boundingSphereState.min, this.min) && vec3.equals(this._boundingSphereState.max, this.max))) {
+            this._boundingSphere.setFromBox(this);
+            this._boundingSphereState = {
+                min: vec3.clone(this.min),
+                max: vec3.clone(this.max)
+            };        
+        }
+        return this._boundingSphere;
+    }
 
     public get max(): vec3 {
         return this._max;
@@ -28,9 +49,9 @@ export class Box {
         this._min = value;
     }
 
-    // #endregion Public Accessors (4)
+    // #endregion Public Accessors (5)
 
-    // #region Public Methods (4)
+    // #region Public Methods (5)
 
     public applyMatrix(matrix: mat4): void {
         vec3.transformMat4(this.min, this.min, matrix);
@@ -73,5 +94,5 @@ export class Box {
         if ( box.max[2] > this.max[2] ) this.max[2] = box.max[2];
     }
 
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (5)
 }

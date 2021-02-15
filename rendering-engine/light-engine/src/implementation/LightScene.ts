@@ -42,6 +42,7 @@ export class LightScene implements ILightScene {
         node.data.push(light);
         this._node.addChild(node)
         this._lights[light.lightId] = light;
+
     }
 
     public getLight(id: string): AbstractLight {

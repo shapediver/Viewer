@@ -46,6 +46,6 @@
   },
   "dependencies": {
     "@shapediver/viewer.node-tree.tree-node-data": "^0.0.7",
-    "@shapediver/viewer.math.box": "^0.0.0"
+    "@shapediver/viewer.math.objects": "^0.0.0"
   }
 }

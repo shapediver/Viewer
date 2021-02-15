@@ -7,8 +7,8 @@ import { PrimitiveLoader } from './PrimitiveLoader';
 import { SDObject } from './SDObject';
 import { ThreejsData } from './ThreejsData';
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
-import { Box } from '@shapediver/viewer.math.box';
-import { AbstractLight, AmbientLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
+import { Box, Sphere } from '@shapediver/viewer.math.objects';
+import { AbstractLight, AmbientLight, DirectionalLight, HemisphereLight, LightEngine, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine';
 
 export class SceneTree {
     // #region Properties (2)
@@ -33,24 +33,85 @@ export class SceneTree {
 
     // #region Public Methods (3)
 
+
     private createLight(light: AbstractLight, parent: SDObject) {
         let converted = null;
         for (let k = 0; k < light.convertedObjects.length; k++)
             if (light.convertedObjects[k] instanceof SDObject)
                 converted = <SDObject>light.convertedObjects[k];
 
-        if (!converted) {
+        if (!converted) 
             converted = new SDObject(light.id, light.version);
-            if (light instanceof AmbientLight) {
-                const l = new THREE.AmbientLight(new THREE.Color(light.color[0], light.color[1], light.color[2]), light.intensity);
-                converted.add(l);
-            }
-        } else {
-            if (light instanceof AmbientLight) {
-                (<THREE.AmbientLight>converted.children[0]).color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
-                (<THREE.AmbientLight>converted.children[0]).intensity = light.intensity;
-            }
+
+        if (light instanceof AmbientLight) {
+            const threeLight: THREE.AmbientLight = converted.children[0] instanceof THREE.AmbientLight ? (<THREE.AmbientLight>converted.children[0]) : new THREE.AmbientLight();
+            if (converted.children.length === 0) converted.add(threeLight);
+            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.intensity = light.intensity;
         }
+        
+        if (light instanceof DirectionalLight) {
+            const threeLight: THREE.DirectionalLight = converted.children[0] instanceof THREE.DirectionalLight ? (<THREE.DirectionalLight>converted.children[0]) : new THREE.DirectionalLight();
+            if (converted.children.length === 0) converted.add(threeLight);
+            this._scene.add(threeLight.target);
+
+            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.intensity = light.intensity;
+
+            const bs: Sphere = this._boundingBox.boundingSphere;
+
+            threeLight.position.set(bs.center[0] + light.direction[0] * bs.radius * 2.35, bs.center[1] + light.direction[1] * bs.radius * 2.35, bs.center[2] + light.direction[2] * bs.radius * 2.35);
+            threeLight.target.position.set(bs.center[0], bs.center[1], bs.center[2]);
+
+            if (light.castShadow) {
+                threeLight.castShadow = true;
+                threeLight.shadow.camera.up.set(0, 0, 1);
+                threeLight.shadow.camera.far = 8 * bs.radius;
+                threeLight.shadow.camera.right = 1.5 * bs.radius;
+                threeLight.shadow.camera.left = -1.5 * bs.radius;
+                threeLight.shadow.camera.top = 1.5 * bs.radius;
+                threeLight.shadow.camera.bottom = -1.5 * bs.radius;
+                threeLight.shadow.mapSize.width = 2048;
+                threeLight.shadow.mapSize.height = 2048;
+                threeLight.shadow.radius = 2;
+                threeLight.shadow.bias = -0.00175;
+                threeLight.shadow.camera.updateProjectionMatrix();
+              }
+        }
+
+        
+        if (light instanceof HemisphereLight) {
+            const threeLight: THREE.HemisphereLight = converted.children[0] instanceof THREE.HemisphereLight ? (<THREE.HemisphereLight>converted.children[0]) : new THREE.HemisphereLight();
+            if (converted.children.length === 0) converted.add(threeLight);
+            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.intensity = light.intensity;
+            threeLight.groundColor = new THREE.Color(light.groundColor[0], light.groundColor[1], light.groundColor[2]);
+        }
+        
+        if (light instanceof PointLight) {
+            const threeLight: THREE.PointLight = converted.children[0] instanceof THREE.PointLight ? (<THREE.PointLight>converted.children[0]) : new THREE.PointLight();
+            if (converted.children.length === 0) converted.add(threeLight);
+            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.intensity = light.intensity;
+            threeLight.distance = light.distance;
+            threeLight.decay = light.decay;
+            threeLight.position.set(light.position[0], light.position[1], light.position[2]);
+        }
+        
+        if (light instanceof SpotLight) {
+            const threeLight: THREE.SpotLight = converted.children[0] instanceof THREE.SpotLight ? (<THREE.SpotLight>converted.children[0]) : new THREE.SpotLight();
+            if (converted.children.length === 0) converted.add(threeLight);
+            this._scene.add(threeLight.target);
+            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.intensity = light.intensity;
+            threeLight.distance = light.distance;
+            threeLight.angle = light.angle;
+            threeLight.penumbra = light.penumbra;
+            threeLight.decay = light.decay;
+            threeLight.position.set(light.position[0], light.position[1], light.position[2]);
+            threeLight.target.position.set(light.target[0], light.target[1], light.target[2]);
+        }
+
         parent.add(converted);
     }
 

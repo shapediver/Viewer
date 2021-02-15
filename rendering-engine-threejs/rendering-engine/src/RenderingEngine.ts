@@ -74,6 +74,9 @@ export class RenderingEngine implements IRenderingEngine {
         animate(0);
 
         this._eventEngine.addListener(EVENTTYPE.LIGHT, () => {})
+        this.lightEngine.addAmbientLight(vec3.fromValues(1, 1, 1), 0.5);
+        this.lightEngine.addDirectionalLight(vec3.fromValues(1, 1, 1), 0.75, vec3.fromValues(.5774, -.5774, .5774), true);
+        this.lightEngine.addDirectionalLight(vec3.fromValues(1, 1, 1), 0.35, vec3.fromValues(-.25, -1, 1), false);
     }
 
     // #endregion Constructors (1)
