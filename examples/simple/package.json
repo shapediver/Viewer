@@ -34,8 +34,10 @@
   "homepage": "https://github.com/shapediver/Viewer#readme",
   "typings": "dist/index.d.ts",
   "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
+    "preset": "jest-puppeteer",
+    "transform": {
+      "^.+\\.ts?$": "ts-jest"
+    }
   },
   "devDependencies": {
     "jest": "^26.6.3",
