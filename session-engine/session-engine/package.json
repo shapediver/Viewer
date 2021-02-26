@@ -51,7 +51,6 @@
     "@shapediver/viewer.shared.settings-engine": "^0.0.2",
     "@shapediver/viewer.shared.system-info": "^0.0.0",
     "@shapediver/viewer.shared.types": "^0.0.6",
-    "@shapediver/viewer.utils.http-client": "^0.0.5",
-    "@shapediver/viewer.utils.uuid": "^0.0.2"
+    "@shapediver/viewer.shared.utils": "^0.0.0"
   }
 }

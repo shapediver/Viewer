@@ -1,4 +1,6 @@
-import uuid from '@shapediver/viewer.utils.uuid';
+import { container } from 'tsyringe'
+
+import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { ITreeNodeData } from './interfaces/ITreeNodeData';
 
 export abstract class AbstractTreeNodeData implements ITreeNodeData {
@@ -7,6 +9,7 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
   private _version: string;
 
   protected readonly _id: string;
+  protected readonly _uuidGenerator = container.resolve(UuidGenerator);
 
   // #endregion Properties (3)
 
@@ -18,8 +21,8 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
    * @param id Id of this data object
    */
   constructor(id?: string) {
-    this._id = id || uuid.create();
-    this._version = uuid.create();
+    this._id = id || this._uuidGenerator.create();
+    this._version = this._uuidGenerator.create();
   }
 
   // #endregion Constructors (1)
@@ -50,7 +53,7 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
    * Update the version
    */
   public updateVersion(): void {
-    this._version = uuid.create();
+    this._version = this._uuidGenerator.create();
   }
 
   // #endregion Public Methods (1)

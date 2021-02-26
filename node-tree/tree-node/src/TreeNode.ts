@@ -1,7 +1,8 @@
 import { mat4 } from 'gl-matrix';
+import { container } from 'tsyringe'
 
 import { ITreeNodeData } from '@shapediver/viewer.node-tree.tree-node-data';
-import uuid from '@shapediver/viewer.utils.uuid';
+import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 
 export interface ITransformation {
   // #region Properties (3)
@@ -17,6 +18,7 @@ export class TreeNode {
   // #region Properties (3)
 
   protected readonly _children: TreeNode[] = [];
+  protected readonly _uuidGenerator = container.resolve(UuidGenerator);
 
   protected _id: string;
   protected _version: string;
@@ -39,8 +41,8 @@ export class TreeNode {
     protected readonly _data: ITreeNodeData[] = [],
     protected _transformations: ITransformation[] = []
   ) {
-    this._id = uuid.create();
-    this._version = uuid.create();
+    this._id = this._uuidGenerator.create();
+    this._version = this._uuidGenerator.create();
     this._parent?.addChild(this);
   }
 
@@ -254,7 +256,7 @@ export class TreeNode {
    * Only updates the version of this node.
    */
   public updateVersionAtomic(): void {
-    this._version = uuid.create();
+    this._version = this._uuidGenerator.create();
   }
 
   /**
@@ -273,7 +275,7 @@ export class TreeNode {
     for(let i = 0; i < this._children.length; i++)
       this._children[i].updateVersion();
 
-    this._version = uuid.create();
+    this._version = this._uuidGenerator.create();
   }
 
   // #endregion Public Methods (8)

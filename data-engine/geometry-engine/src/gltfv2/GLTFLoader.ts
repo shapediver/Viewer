@@ -1,38 +1,30 @@
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
-import httpClient from '@shapediver/viewer.utils.http-client';
-import uuid from '@shapediver/viewer.utils.uuid';
+import { HttpClient, ImageLoader, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
 
 import { ACCESSOR_COMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
-import { ImageLoader } from '@shapediver/viewer.utils.image-loader';
 
 export class GLTFLoader {
     // #region Properties (6)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
+    private readonly _httpClient = container.resolve(HttpClient);
+    private readonly _imageLoader = container.resolve(ImageLoader);
+    private readonly _uuidGenerator = container.resolve(UuidGenerator);
 
     private _baseUri!: string;
     private _body!: ArrayBuffer;
     private _content!: IGLTF_v2;
-    private _imageLoader: ImageLoader;
 
     // #endregion Properties (6)
-
-    // #region Constructors (1)
-
-    constructor() {
-        this._imageLoader = container.resolve(ImageLoader);
-    }
-
-    // #endregion Constructors (1)
 
     // #region Public Methods (1)
 
     public async load(url?: string | undefined): Promise<TreeNode> {
         console.log('init')
-        const axiosResponse = await httpClient.get(url!, {
+        const axiosResponse = await this._httpClient.get(url!, {
             responseType: 'arraybuffer'
         });
 
@@ -124,7 +116,7 @@ export class GLTFLoader {
         if (!buffer.uri && bufferId === 0)
             return this._body;
 
-            let result = await httpClient.get(this._baseUri + '/' + buffer.uri!, {
+            let result = await this._httpClient.get(this._baseUri + '/' + buffer.uri!, {
                 responseType: 'arraybuffer'
             })
 
@@ -240,7 +232,7 @@ export class GLTFLoader {
 
         if (node.matrix) {
             nodeDef.transformations.push({
-                id: uuid.create(),
+                id: this._uuidGenerator.create(),
                 name: 'glTFNode_' + nodeId,
                 matrix: mat4.fromValues(    node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
                                                             node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
@@ -253,7 +245,7 @@ export class GLTFLoader {
             const matR = node.rotation ? mat4.fromQuat(mat4.create(), vec4.fromValues(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3])) : mat4.create();
             const matrix = mat4.mul(mat4.create(), mat4.mul(mat4.create(), matT, matS), matR);
             nodeDef.transformations.push({
-                id: uuid.create(),
+                id: this._uuidGenerator.create(),
                 name: 'glTFNode_' + nodeId,
                 matrix: matrix
             });

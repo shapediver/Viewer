@@ -1,9 +1,11 @@
-import httpClient from "@shapediver/viewer.utils.http-client"
+import { HttpClient } from '@shapediver/viewer.shared.utils';
+import { container } from 'tsyringe';
 
 export class SdtfBuffer {
   // #region Properties (1)
 
   private _arrayBuffer?: ArrayBuffer;
+  private readonly _httpClient = container.resolve(HttpClient);
 
   // #endregion Properties (1)
 
@@ -45,7 +47,7 @@ export class SdtfBuffer {
   public async load(): Promise<ArrayBuffer> {
     if (this._arrayBuffer) return this._arrayBuffer;
 
-    let result = await httpClient.get(/**this._baseUri + '/' + **/this.uri!, {
+    let result = await this._httpClient.get(/**this._baseUri + '/' + **/this.uri!, {
       responseType: 'arraybuffer'
     })
     this._arrayBuffer = <ArrayBuffer>result.data;

@@ -1,25 +1,27 @@
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
-import httpClient from '@shapediver/viewer.utils.http-client';
-import uuid from '@shapediver/viewer.utils.uuid';
+import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 
 import { ACCESSOR_COMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as ACCESSORTYPE, IGLTF_v1 } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, PrimitiveData } from '@shapediver/viewer.shared.types';
+import { container } from 'tsyringe';
 
 export class GLTFLoader {
-    // #region Properties (3)
+    // #region Properties (5)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
+    private readonly _httpClient = container.resolve(HttpClient);
+    private readonly _uuidGenerator = container.resolve(UuidGenerator);
 
     private _body!: ArrayBuffer;
     private _content!: IGLTF_v1;
 
-    // #endregion Properties (3)
+    // #endregion Properties (5)
 
     // #region Public Methods (1)
 
     public async load(url?: string | undefined): Promise<TreeNode> {
-        const binaryGeometry: ArrayBuffer = (await httpClient.get(url!, {
+        const binaryGeometry: ArrayBuffer = (await this._httpClient.get(url!, {
             responseType: 'arraybuffer'
         })).data;
 
@@ -79,7 +81,7 @@ export class GLTFLoader {
             return this._body;
 
         if (buffer.type === 'arraybuffer') {
-            const binaryGeometry: ArrayBuffer = (await httpClient.get(buffer.uri!, {
+            const binaryGeometry: ArrayBuffer = (await this._httpClient.get(buffer.uri!, {
                 responseType: 'arraybuffer'
             })).data;
             return binaryGeometry;
@@ -100,7 +102,6 @@ export class GLTFLoader {
         if (!this._content.meshes![meshName]) console.error('Mesh not available')
         const mesh = this._content.meshes![meshName];
         const meshNode = new TreeNode(meshName);
-
 
         for (let i = 0, len = mesh.primitives!.length; i < len; i++) {
             const primitiveNode = new TreeNode('primitive_' + i);
@@ -127,7 +128,7 @@ export class GLTFLoader {
 
         if (node.matrix) {
             nodeDef.transformations.push({
-                id: uuid.create(),
+                id: this._uuidGenerator.create(),
                 name: 'glTFNode_' + nodeName,
                 matrix: mat4.fromValues(node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
                 node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
@@ -140,7 +141,7 @@ export class GLTFLoader {
             const matR = node.rotation ? mat4.fromQuat(mat4.create(), vec4.fromValues(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3])) : mat4.create();
             const matrix = mat4.mul(mat4.create(), mat4.mul(mat4.create(), matT, matS), matR);
             nodeDef.transformations.push({
-                id: uuid.create(),
+                id: this._uuidGenerator.create(),
                 name: 'glTFNode_' + nodeName,
                 matrix: matrix
             });

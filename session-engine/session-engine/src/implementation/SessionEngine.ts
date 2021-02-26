@@ -5,9 +5,8 @@ import { OutputDelayException } from './OutputDelayException';
 import { OutputLoader } from './OutputLoader';
 import { SessionTreeNode } from './SessionTreeNode';
 
-import httpClient from '@shapediver/viewer.utils.http-client'
+import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import systemInfo from '@shapediver/viewer.shared.system-info'
-import uuid from '@shapediver/viewer.utils.uuid'
 import { container } from 'tsyringe';
 import { Settings } from '@shapediver/viewer.shared.settings-engine';
 
@@ -15,9 +14,12 @@ export class SessionEngine implements ISessionEngine {
     // #region Properties (2)
 
     private readonly _outputLoader: OutputLoader;
+    private readonly _httpClient = container.resolve(HttpClient);
+    private readonly _uuidGenerator = container.resolve(UuidGenerator);
+
 
     private _session: Session = new Session();
-    private readonly _sessionEngineId = uuid.create();
+    private readonly _sessionEngineId = this._uuidGenerator.create();
 
     private _headers = {
         "X-ShapeDiver-Origin": systemInfo.origin(),
@@ -82,7 +84,7 @@ export class SessionEngine implements ISessionEngine {
         try {
             const headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
             console.log(headers)
-            const responseCustomize = <SessionJson>(await httpClient.post( this._session.actions['customize'].href!, null, { data: parameters, headers } )).data;
+            const responseCustomize = <SessionJson>(await this._httpClient.post( this._session.actions['customize'].href!, null, { data: parameters, headers } )).data;
             this._session.adaptSession(responseCustomize);
             return this.loadOutputs(parameters, this._session.outputs);
         } catch (e) {
@@ -97,7 +99,7 @@ export class SessionEngine implements ISessionEngine {
      */
     public async init(): Promise<SessionTreeNode> {
         try {
-            const sessionResponse = <SessionJson>(await httpClient.post( this.modelViewUrl + "/ticket/" + this.ticket, null, { headers: this._headers } )).data;
+            const sessionResponse = <SessionJson>(await this._httpClient.post( this.modelViewUrl + "/ticket/" + this.ticket, null, { headers: this._headers } )).data;
             (<Settings>container.resolve(Settings)).fromJson(sessionResponse.config);
             this._session.adaptSession(sessionResponse);
                 

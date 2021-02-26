@@ -6,7 +6,7 @@ import { DirectionalLight } from "./types/DirectionalLight";
 import { HemisphereLight } from "./types/HemisphereLight";
 import { PointLight } from "./types/PointLight";
 import { SpotLight } from "./types/SpotLight";
-import uuid from "@shapediver/viewer.utils.uuid"
+import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { Settings } from "@shapediver/viewer.shared.settings-engine"
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.event-engine"
 import { StateEngine } from "@shapediver/viewer.shared.state-engine"
@@ -17,6 +17,8 @@ import { AbstractLight } from "./AbstractLight";
 @singleton()
 export class LightEngine implements ILightEngine {
     // #region Properties (2)
+
+    protected readonly _uuidGenerator = container.resolve(UuidGenerator);
 
     private _currentLightScene!: LightScene;
     private _lightScenes: { [key: string]: LightScene; } = {};
@@ -71,7 +73,7 @@ export class LightEngine implements ILightEngine {
     }
 
     public createLightScene(id?: string, standard?: boolean): string {
-        if (!id || this._lightScenes[id]) id = uuid.create();
+        if (!id || this._lightScenes[id]) id = this._uuidGenerator.create();
         const lightScene = new LightScene(id);
         if (standard === true) {
             lightScene.addLight(new AmbientLight(vec3.fromValues(1,1,1), 0.5, 'ambient0'));

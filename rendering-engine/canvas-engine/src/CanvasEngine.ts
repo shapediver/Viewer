@@ -1,8 +1,8 @@
-import { singleton } from 'tsyringe';
+import { container, singleton } from 'tsyringe';
 
 import { Canvas } from './Canvas';
 
-import uuid from '@shapediver/viewer.utils.uuid'
+import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 
 @singleton()
 export class CanvasEngine {
@@ -11,6 +11,7 @@ export class CanvasEngine {
     private readonly _canvasDictionary: {
         [key: string]: Canvas
     } = {};
+    protected readonly _uuidGenerator = container.resolve(UuidGenerator);
 
     // #endregion Properties (2)
 
@@ -33,7 +34,7 @@ export class CanvasEngine {
             // a canvas was provided
             const canvasElement = (<HTMLCanvasElement>canvasDefinition);
             if (!canvasElement.id)
-                canvasElement.id = uuid.create();
+                canvasElement.id = this._uuidGenerator.create();
             this._canvasDictionary[canvasElement.id] = new Canvas(canvasElement.id, canvasElement);
             return this._canvasDictionary[canvasElement.id];
         }
@@ -56,7 +57,7 @@ export class CanvasEngine {
             }
         }
 
-        const id = uuid.create();
+        const id = this._uuidGenerator.create();
         this._canvasDictionary[id] = new Canvas(id);
         return this._canvasDictionary[id];
     }

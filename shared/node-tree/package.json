@@ -1,6 +1,6 @@
 {
-  "name": "@shapediver/viewer.shared.event-engine",
-  "version": "0.0.3",
+  "name": "@shapediver/viewer.shared.node-tree",
+  "version": "0.0.0",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -43,8 +43,5 @@
     "webpack": "^5.6.0",
     "webpack-cli": "^4.2.0",
     "webpack-dev-server": "^3.11.0"
-  },
-  "dependencies": {
-    "@shapediver/viewer.shared.utils": "^0.0.0"
   }
 }

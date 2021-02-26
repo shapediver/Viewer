@@ -1,13 +1,15 @@
 import { vec3 } from "gl-matrix";
 import { ILight, LIGHTTYPE } from "../interface/ILight";
-import uuid from '@shapediver/viewer.utils.uuid'
+import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { AbstractTreeNodeData, ITreeNodeData } from "@shapediver/viewer.node-tree.tree-node-data";
 import { ISDObject } from "@shapediver/viewer.shared.types";
+import { container } from "tsyringe";
 
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
     // #region Properties (1)
 
     private readonly _lightId: string;
+    protected readonly _uuidGenerator = container.resolve(UuidGenerator);
     private _convertedObjects: ISDObject[] = [];
     
     // #endregion Properties (1)
@@ -21,7 +23,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
         private _name?: string
     ) {
         super();
-        this._lightId = uuid.create();
+        this._lightId = this._uuidGenerator.create();
     }
 
     // #endregion Constructors (1)

@@ -1,6 +1,7 @@
-import httpClient from '@shapediver/viewer.utils.http-client'
+import { HttpClient } from '@shapediver/viewer.shared.utils';
 import { JsonSdtf } from '@shapediver/viewer.sdtf.shared'
 import { EncodingError } from './EncodingError';
+import { container } from 'tsyringe';
 
 /**
  * Encoder that can encode from uri to json with various steps.
@@ -10,6 +11,7 @@ import { EncodingError } from './EncodingError';
  */
 export class Encoder {
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
+    private readonly _httpClient = container.resolve(HttpClient);
 
     /**
      * Encoding from uri to array buffer
@@ -22,7 +24,7 @@ export class Encoder {
 
         let axiosResponse;
         try {
-            axiosResponse = await httpClient.get(uri, {
+            axiosResponse = await this._httpClient.get(uri, {
                 responseType: 'arraybuffer'
             });
         } catch (e) {

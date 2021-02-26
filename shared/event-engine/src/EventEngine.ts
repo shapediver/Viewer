@@ -1,15 +1,16 @@
-import { singleton } from "tsyringe";
+import { container, singleton } from "tsyringe";
 import { EVENTTYPE, MAIN_EVENTTYPE } from "./EventTypes";
 import { IListener } from "./interfaces/IListener";
 import { ICallback } from "./interfaces/ICallback";
 import { IEvent } from "./interfaces/IEvent";
 
-import uuid from '@shapediver/viewer.utils.uuid'
+import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 
 @singleton()
 export class EventEngine {
     // #region Properties (2)
 
+    protected readonly _uuidGenerator = container.resolve(UuidGenerator);
     private _eventListeners: {
         [key: string]: IListener[]
     };
@@ -56,7 +57,7 @@ export class EventEngine {
      */
     public addListener(type: string | MAIN_EVENTTYPE, cb: ICallback): string {
         const typeString: string = this.convertTypeToString(type);
-        const token = uuid.create();
+        const token = this._uuidGenerator.create();
         this._eventListeners[typeString]?.push({ token, cb });
         return token;
     }

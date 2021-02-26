@@ -1,8 +1,7 @@
 import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
 
 import { container, singleton } from 'tsyringe';
-import httpClient from '@shapediver/viewer.utils.http-client';
-import { ImageLoader } from '@shapediver/viewer.utils.image-loader';
+import { HttpClient, ImageLoader } from '@shapediver/viewer.shared.utils';
 import { MapData, MaterialData, SessionOutputContent, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
 import { vec2, vec3, vec4 } from 'gl-matrix';
 
@@ -47,16 +46,15 @@ export class MaterialEngine {
     // #region Properties (2)
 
     private _dataBase: any;
-    private _imageLoader: ImageLoader;
+    private readonly _httpClient = container.resolve(HttpClient);
+    private readonly _imageLoader = container.resolve(ImageLoader);
 
     // #endregion Properties (2)
 
     // #region Constructors (1)
 
     constructor() {
-        this._imageLoader = container.resolve(ImageLoader);
-
-        httpClient.get('https://viewer.shapediver.com/v2/materials/db.json').then((res) => { this._dataBase = res.data; });
+        this._httpClient.get('https://viewer.shapediver.com/v2/materials/db.json').then((res) => { this._dataBase = res.data; });
     }
 
     // #endregion Constructors (1)
