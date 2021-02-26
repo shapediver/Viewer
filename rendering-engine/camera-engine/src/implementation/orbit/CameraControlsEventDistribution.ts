@@ -1,6 +1,6 @@
 import { container } from 'tsyringe';
 
-import { Settings } from '@shapediver/viewer.shared.settings-engine';
+import { SettingsEngine } from '@shapediver/viewer.shared.services';
 
 import { CameraControlsLogic } from './CameraControlsLogic';
 
@@ -12,7 +12,7 @@ export class CameraControlsEventDistribution {
     zoom: false,
     pan: false
   };
-  private _settings = (<Settings>container.resolve(Settings)).cameraOrbitControls;
+  private _settings = (<SettingsEngine>container.resolve(SettingsEngine)).cameraOrbitControls;
 
   // #endregion Properties (2)
 

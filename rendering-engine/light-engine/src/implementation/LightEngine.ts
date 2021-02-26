@@ -7,9 +7,7 @@ import { HemisphereLight } from "./types/HemisphereLight";
 import { PointLight } from "./types/PointLight";
 import { SpotLight } from "./types/SpotLight";
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { Settings } from "@shapediver/viewer.shared.settings-engine"
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.event-engine"
-import { StateEngine } from "@shapediver/viewer.shared.state-engine"
+import { EventEngine, EVENTTYPE, StateEngine, SettingsEngine } from "@shapediver/viewer.shared.services"
 import { LightScene } from "./LightScene";
 import { ILightScene } from "../interface/ILightScene";
 import { AbstractLight } from "./AbstractLight";
@@ -24,7 +22,7 @@ export class LightEngine implements ILightEngine {
     private _lightScenes: { [key: string]: LightScene; } = {};
     private _eventEngine: EventEngine = container.resolve(EventEngine);
     private _stateEngine: StateEngine = container.resolve(StateEngine);
-    private _settings = container.resolve(Settings).lights;
+    private _settings = container.resolve(SettingsEngine).lights;
 
     // #endregion Properties (2)
 

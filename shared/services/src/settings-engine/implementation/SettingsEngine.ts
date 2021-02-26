@@ -1,5 +1,5 @@
 import { container, singleton } from 'tsyringe';
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.event-engine';
+import { EventEngine, EVENTTYPE } from '../../index';
 import { DefaultSettings } from './DefaultSettings';
 
 type GeneralSettings = typeof DefaultSettings.viewer;
@@ -12,7 +12,7 @@ type MaterialSettings = typeof DefaultSettings.viewer.scene.material;
 type RenderingSettings = typeof DefaultSettings.viewer.scene.render;
 
 @singleton()
-export class Settings {
+export class SettingsEngine {
     // #region Properties (1)
 
     private readonly _settings = DefaultSettings;

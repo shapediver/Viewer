@@ -1,5 +1,5 @@
 import { container, singleton } from 'tsyringe'
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.event-engine';
+import { EventEngine, EVENTTYPE } from '../index';
 
 @singleton()
 export class StateEngine {

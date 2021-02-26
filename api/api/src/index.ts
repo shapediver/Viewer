@@ -7,7 +7,7 @@ import { IParameter } from "./session/interfaces/IParameter";
 import { ISession } from "./session/interfaces/ISession";
 import { Viewer } from "./viewer/implementation/Viewer";
 import { IViewer, RENDERERTYPE } from "./viewer/interfaces/IViewer";
-import { StateEngine } from '@shapediver/viewer.shared.state-engine';
+import { StateEngine } from '@shapediver/viewer.shared.services';
 
 @singleton()
 class Api {

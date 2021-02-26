@@ -48,8 +48,8 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@shapediver/viewer.api": "^0.0.6",
-    "@shapediver/viewer.data-engine.data-engine": "^0.0.7",
+    "@shapediver/viewer": "^0.0.0",
+    "@shapediver/viewer.data-engine.data-engine": "^0.0.0",
     "reflect-metadata": "^0.1.13"
   }
 }

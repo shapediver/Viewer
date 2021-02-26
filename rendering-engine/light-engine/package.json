@@ -46,10 +46,8 @@
   },
   "dependencies": {
     "@shapediver/viewer.shared.node-tree": "^0.0.0",
-    "@shapediver/viewer.shared.event-engine": "^0.0.3",
-    "@shapediver/viewer.shared.settings-engine": "^0.0.2",
-    "@shapediver/viewer.shared.state-engine": "^0.0.0",
-    "@shapediver/viewer.shared.types": "^0.0.6",
+    "@shapediver/viewer.shared.services": "^0.0.0",
+    "@shapediver/viewer.shared.types": "^0.0.0",
     "@shapediver/viewer.shared.utils": "^0.0.0"
   }
 }

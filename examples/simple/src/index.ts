@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import { container } from "tsyringe";
-import { api } from "@shapediver/viewer.api"
-import { RENDERERTYPE } from "@shapediver/viewer.api";
+import { api } from "@shapediver/viewer"
+import { RENDERERTYPE } from "@shapediver/viewer";
 import { mat4 } from "gl-matrix";
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
 

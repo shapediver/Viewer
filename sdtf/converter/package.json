@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.sdtf.converter",
-  "version": "0.0.5",
+  "version": "0.0.0",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@shapediver/viewer.shared.node-tree": "^0.0.0",
-    "@shapediver/viewer.sdtf.parser": "^0.0.5",
-    "@shapediver/viewer.sdtf.shared": "^0.0.5"
+    "@shapediver/viewer.sdtf.parser": "^0.0.0",
+    "@shapediver/viewer.sdtf.shared": "^0.0.0"
   }
 }

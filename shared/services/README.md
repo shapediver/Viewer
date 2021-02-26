@@ -1,11 +1,10 @@
-# `services`
+# `viewer.shared.services`
 
-> TODO: description
+> This package manages different services for the viewer.
 
-## Usage
-
+## Install
 ```
-const services = require('services');
-
-// TODO: DEMONSTRATE API
+npm install @shapediver/viewer.shared.services
 ```
+
+Please see the explanation in the [template repository](https://github.com/shapediver/ShapeDiverMonorepoTemplate) for permissions.

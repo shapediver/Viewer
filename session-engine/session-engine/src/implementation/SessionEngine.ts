@@ -6,9 +6,8 @@ import { OutputLoader } from './OutputLoader';
 import { SessionTreeNode } from './SessionTreeNode';
 
 import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
-import systemInfo from '@shapediver/viewer.shared.system-info'
 import { container } from 'tsyringe';
-import { Settings } from '@shapediver/viewer.shared.settings-engine';
+import { SettingsEngine, SystemInfo } from '@shapediver/viewer.shared.services';
 
 export class SessionEngine implements ISessionEngine {
     // #region Properties (2)
@@ -22,7 +21,7 @@ export class SessionEngine implements ISessionEngine {
     private readonly _sessionEngineId = this._uuidGenerator.create();
 
     private _headers = {
-        "X-ShapeDiver-Origin": systemInfo.origin(),
+        "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
         "X-ShapeDiver-ViewerId": '125295ae-3955-46f1-8b41-c2ce046111ec', // TODO
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
         "X-ShapeDiver-BuildVersion": '3.0.0.0', // TODO
@@ -100,7 +99,7 @@ export class SessionEngine implements ISessionEngine {
     public async init(): Promise<SessionTreeNode> {
         try {
             const sessionResponse = <SessionJson>(await this._httpClient.post( this.modelViewUrl + "/ticket/" + this.ticket, null, { headers: this._headers } )).data;
-            (<Settings>container.resolve(Settings)).fromJson(sessionResponse.config);
+            (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
             this._session.adaptSession(sessionResponse);
                 
             const parameters: { [key: string]: string } = {};

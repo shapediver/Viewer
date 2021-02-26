@@ -2,7 +2,7 @@ import { mat4, vec2, vec3 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe';
 
-import { Settings } from '@shapediver/viewer.shared.settings-engine';
+import { SettingsEngine } from '@shapediver/viewer.shared.services';
 
 import { ICameraControls } from '../../interface/ICameraControls';
 
@@ -17,7 +17,7 @@ export class CameraControlsLogic {
         rotationSpeed: () => this._settings.rotationSpeed.value * this._settingsAdjustements.rotationSpeed,
         zoomSpeed: () => this._settings.zoomSpeed.value * this._settingsAdjustements.zoomSpeed,
     };
-    private _settings = (<Settings>container.resolve(Settings)).cameraOrbitControls;
+    private _settings = (<SettingsEngine>container.resolve(SettingsEngine)).cameraOrbitControls;
     private _damping: any = {
         rotation: {
             time: 0,

@@ -8,10 +8,8 @@ import { Tree } from '@shapediver/viewer.shared.node-tree';
 
 import { SceneTree } from './SceneTree';
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
-import { Settings } from '@shapediver/viewer.shared.settings-engine';
-import { StateEngine } from '@shapediver/viewer.shared.state-engine';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.event-engine';
+import { EventEngine, EVENTTYPE, StateEngine, SettingsEngine } from '@shapediver/viewer.shared.services';
 
 
 export class RenderingEngine implements IRenderingEngine {
@@ -20,7 +18,7 @@ export class RenderingEngine implements IRenderingEngine {
     protected _cameraEngine!: ICameraEngine;
     protected _canvas!: Canvas;
     protected _lightEngine = <LightEngine>container.resolve(LightEngine);
-    protected _settings = <Settings>container.resolve(Settings);
+    protected _settings = <SettingsEngine>container.resolve(SettingsEngine);
     protected _stateEngine = <StateEngine>container.resolve(StateEngine);
     protected _sceneTree!: SceneTree;
     protected _eventEngine= <EventEngine>container.resolve(EventEngine);
