@@ -3,7 +3,7 @@ import { mat4 } from 'gl-matrix';
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { MaterialData } from './MaterialData';
 import { ISDObject } from '.';
-import { Box } from '@shapediver/viewer.math.objects';
+import { Box } from '@shapediver/viewer.shared.math';
 
 export class AttributeData {
   // #region Constructors (1)

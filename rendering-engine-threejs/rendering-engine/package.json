@@ -45,7 +45,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@shapediver/viewer.math.objects": "^0.0.0",
+    "@shapediver/viewer.shared.math": "^0.0.0",
     "@shapediver/viewer.shared.node-tree": "^0.0.0",
     "@shapediver/viewer.shared.event-engine": "^0.0.3",
     "@shapediver/viewer.shared.types": "^0.0.6",
