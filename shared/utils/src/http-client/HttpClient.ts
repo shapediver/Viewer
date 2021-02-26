@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ErrorHandler } from '@shapediver/viewer.monitoring.error-handler'
+import { ErrorHandler } from '@shapediver/viewer.shared.monitoring'
 import { container, singleton } from 'tsyringe';
 
 

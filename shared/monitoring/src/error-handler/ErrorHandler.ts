@@ -1,5 +1,5 @@
 import { container, singleton } from "tsyringe";
-import { Logger } from "@shapediver/viewer.monitoring.logger";
+import { Logger } from "../logger/Logger";
 
 @singleton()
 export class ErrorHandler {
