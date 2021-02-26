@@ -1,4 +1,4 @@
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.node-tree.tree-node-data';
+import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 
 export class CustomData extends AbstractTreeNodeData {
     // #region Constructors (1)

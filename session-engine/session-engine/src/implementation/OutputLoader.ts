@@ -7,7 +7,7 @@ import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 
 import { OutputDelayException } from './OutputDelayException';
 import { SessionTreeNode } from './SessionTreeNode';
-import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 export class OutputLoader {
     // #region Properties (2)

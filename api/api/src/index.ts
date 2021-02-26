@@ -1,4 +1,4 @@
-import { Tree } from "@shapediver/viewer.node-tree.tree";
+import { Tree } from "@shapediver/viewer.shared.node-tree";
 import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { container, singleton } from "tsyringe";
 import { Session } from "./session/implementation/Session";

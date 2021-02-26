@@ -1,4 +1,4 @@
-import { ITreeNodeData } from "@shapediver/viewer.node-tree.tree-node-data";
+import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { vec3 } from "gl-matrix";
 import { LIGHTTYPE } from "../../interface/ILight";
 import { AbstractLight } from "../AbstractLight";

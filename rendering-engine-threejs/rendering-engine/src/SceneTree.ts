@@ -1,12 +1,11 @@
 import * as THREE from 'three';
 
 import { SD_RENDERINGTYPE, GeometryData, MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData } from '@shapediver/viewer.shared.types';
-import { ITreeNodeData } from '@shapediver/viewer.node-tree.tree-node-data';
+import { ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { PrimitiveLoader } from './PrimitiveLoader';
 import { SDObject } from './SDObject';
 import { ThreejsData } from './ThreejsData';
-import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
 import { Box, Sphere } from '@shapediver/viewer.math.objects';
 import { AbstractLight, AmbientLight, DirectionalLight, HemisphereLight, LightEngine, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine';
 

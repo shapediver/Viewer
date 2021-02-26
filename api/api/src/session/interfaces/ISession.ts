@@ -1,6 +1,6 @@
 import { IExport } from "./IExport";
 import { IParameter } from "./IParameter";
-import { TreeNode } from "@shapediver/viewer.node-tree.tree-node";
+import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { IOutput } from "./IOutput";
 
 /**

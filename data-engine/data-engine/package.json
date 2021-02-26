@@ -47,7 +47,7 @@
   "dependencies": {
     "@shapediver/viewer.data-engine.geometry-engine": "^0.0.7",
     "@shapediver/viewer.data-engine.material-engine": "^0.0.7",
-    "@shapediver/viewer.node-tree.tree-node": "^0.0.7",
+    "@shapediver/viewer.shared.node-tree": "^0.0.0",
     "@shapediver/viewer.sdtf.converter": "^0.0.5",
     "@shapediver/viewer.shared.types": "^0.0.6"
   }

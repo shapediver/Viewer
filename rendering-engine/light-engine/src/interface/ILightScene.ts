@@ -1,4 +1,4 @@
-import { TreeNode } from "@shapediver/viewer.node-tree.tree-node";
+import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ILight } from "./ILight";
 
 export interface ILightScene {

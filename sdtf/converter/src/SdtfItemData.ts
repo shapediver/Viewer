@@ -1,4 +1,4 @@
-import { AbstractTreeNodeData, ITreeNodeData } from "@shapediver/viewer.node-tree.tree-node-data";
+import { AbstractTreeNodeData, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { SdtfData as SdtfFileData } from "@shapediver/viewer.sdtf.shared"
 import { SdtfAttributeData } from "./SdtfAttributeData";
 

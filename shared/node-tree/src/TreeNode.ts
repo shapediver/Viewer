@@ -1,8 +1,8 @@
 import { mat4 } from 'gl-matrix';
 import { container } from 'tsyringe'
 
-import { ITreeNodeData } from '@shapediver/viewer.node-tree.tree-node-data';
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
+import { ITreeNodeData } from './interfaces/ITreeNodeData';
 
 export interface ITransformation {
   // #region Properties (3)

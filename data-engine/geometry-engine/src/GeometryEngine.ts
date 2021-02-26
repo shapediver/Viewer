@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { GLTFLoader as GLTF_v1Loader } from './gltfv1/GLTFLoader';
 import { GLTFLoader as GLTF_v2Loader } from './gltfv2/GLTFLoader';

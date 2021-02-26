@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { HttpClient, ImageLoader, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
 

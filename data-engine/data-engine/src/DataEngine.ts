@@ -2,7 +2,7 @@ import { container, singleton } from 'tsyringe';
 import { CustomData, SessionOutputContent } from '@shapediver/viewer.shared.types';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
-import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Reader, TreeNodeConverter } from '@shapediver/viewer.sdtf.converter';
 
 @singleton()

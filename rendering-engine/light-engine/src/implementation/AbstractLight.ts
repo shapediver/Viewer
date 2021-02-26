@@ -1,7 +1,7 @@
 import { vec3 } from "gl-matrix";
 import { ILight, LIGHTTYPE } from "../interface/ILight";
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { AbstractTreeNodeData, ITreeNodeData } from "@shapediver/viewer.node-tree.tree-node-data";
+import { AbstractTreeNodeData, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { ISDObject } from "@shapediver/viewer.shared.types";
 import { container } from "tsyringe";
 

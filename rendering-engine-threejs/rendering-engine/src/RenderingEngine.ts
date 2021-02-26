@@ -4,7 +4,7 @@ import {container} from 'tsyringe'
 
 import { CameraEngine, ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
-import { Tree } from '@shapediver/viewer.node-tree.tree';
+import { Tree } from '@shapediver/viewer.shared.node-tree';
 
 import { SceneTree } from './SceneTree';
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';

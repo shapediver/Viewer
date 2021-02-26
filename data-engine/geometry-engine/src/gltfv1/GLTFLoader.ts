@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 
 import { ACCESSOR_COMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as ACCESSORTYPE, IGLTF_v1 } from '@shapediver/viewer.data-engine.shared-types';

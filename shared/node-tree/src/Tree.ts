@@ -1,5 +1,5 @@
 import { singleton } from 'tsyringe'
-import { TreeNode } from '@shapediver/viewer.node-tree.tree-node';
+import { TreeNode } from './TreeNode';
 
 @singleton()
 export class Tree {

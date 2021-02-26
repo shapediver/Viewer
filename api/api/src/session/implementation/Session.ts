@@ -1,5 +1,4 @@
-import { Tree } from "@shapediver/viewer.node-tree.tree";
-import { TreeNode } from "@shapediver/viewer.node-tree.tree-node";
+import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { IExport } from "../interfaces/IExport";
 import { IOutput } from "../interfaces/IOutput";
