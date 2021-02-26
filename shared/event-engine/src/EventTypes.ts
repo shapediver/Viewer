@@ -53,9 +53,9 @@ export enum SCENE {
     // SCENE_HIDDEN = "scene.hidden",
 }
 
-export enum SETTING {
-    // SETTING_REGISTERED = "setting.registered",
-    // SETTING_UPDATE = "setting.update",
+export enum SETTINGS {
+    SETTINGS_REGISTERED = "settings.registered",
+    SETTINGS_UPDATE = "settings.update",
 }
 
 
@@ -68,8 +68,8 @@ export const EVENTTYPE = {
     PARAMETER, 
     RENDERING, 
     SCENE, 
-    SETTING
+    SETTINGS
 };
 export type EVENTTYPE = typeof EVENTTYPE;
 
-export type MAIN_EVENTTYPE = typeof CAMERA | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SETTING;
+export type MAIN_EVENTTYPE = typeof CAMERA | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SETTINGS;

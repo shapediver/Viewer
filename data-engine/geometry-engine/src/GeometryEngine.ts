@@ -5,7 +5,7 @@ import { GLTFLoader as GLTF_v2Loader } from './gltfv2/GLTFLoader';
 import { singleton } from 'tsyringe';
 import { SessionOutputContent } from '@shapediver/viewer.shared.types';
 
-singleton()
+@singleton()
 export class GeometryEngine {
     // #region Constructors (1)
 

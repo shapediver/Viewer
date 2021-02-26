@@ -42,7 +42,7 @@ interface ITexture {
     // #endregion Properties (13)
 }
 
-singleton()
+@singleton()
 export class MaterialEngine {
     // #region Properties (2)
 

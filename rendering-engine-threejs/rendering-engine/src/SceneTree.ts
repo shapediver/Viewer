@@ -76,9 +76,6 @@ export class SceneTree {
                 threeLight.shadow.radius = 2;
                 threeLight.shadow.bias = -0.00175;
                 threeLight.shadow.camera.updateProjectionMatrix();
-                console.log(this._boundingBox, bs)
-                const cameraHelper = new THREE.CameraHelper(threeLight.shadow.camera);
-                this._scene.add(cameraHelper);
               }
         }
 

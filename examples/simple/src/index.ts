@@ -53,12 +53,12 @@ glTFv2Button.onclick = async () => {
 // }
 
 
-// (<any>window).changeParameter = async (name: string, value: string) => {
-//     const param = api.getSession('mySession').getParameterByName(name);
-//     for(let i = 0; i < param.length; i++)
-//         param[i].value = value;
-//     await api.getSession('mySession').customize();
-// }
+(<any>window).changeParameter = async (name: string, value: string) => {
+    const param = api.getSession('mySession').getParameterByName(name);
+    for(let i = 0; i < param.length; i++)
+        param[i].value = value;
+    await api.getSession('mySession').customize();
+}
 
 // (<any>window).addSDTFOutput = async (uri: string) => {
 //     const session = api.getSession('mySession');

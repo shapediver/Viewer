@@ -9,6 +9,7 @@ import { Tree } from '@shapediver/viewer.node-tree.tree';
 import { SceneTree } from './SceneTree';
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
 import { Settings } from '@shapediver/viewer.shared.settings-engine';
+import { StateEngine } from '@shapediver/viewer.shared.state-engine';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.event-engine';
 
@@ -18,23 +19,33 @@ export class RenderingEngine implements IRenderingEngine {
     
     protected _cameraEngine!: ICameraEngine;
     protected _canvas!: Canvas;
-    protected _lightEngine!: ILightEngine;
-    protected _settings: Settings;
+    protected _lightEngine = <LightEngine>container.resolve(LightEngine);
+    protected _settings = <Settings>container.resolve(Settings);
+    protected _stateEngine = <StateEngine>container.resolve(StateEngine);
     protected _sceneTree!: SceneTree;
-    protected _eventEngine!: EventEngine;
-    protected _tree!: Tree;
+    protected _eventEngine= <EventEngine>container.resolve(EventEngine);
+    protected _tree: Tree = <Tree>container.resolve(Tree);
 
     // #region Constructors (1)
 
     constructor(name: string, canvasDefinition?: string | HTMLCanvasElement) {
-        this._tree = <Tree>container.resolve(Tree);
-        this._settings = <Settings>container.resolve(Settings);
-        this._eventEngine = <EventEngine>container.resolve(EventEngine);
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
-        this._lightEngine = <LightEngine>container.resolve(LightEngine);
-
         this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
 
+        if(this._stateEngine.settingsRegistered === true) {
+            this.init();
+        } else {
+            console.log('registering')
+            this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => { 
+                console.log('the event')
+                this.init(); 
+            })
+        }
+    }
+
+
+    private init() {
+        
         // TODO put in abstract class
         this._sceneTree = new SceneTree();
 
@@ -54,15 +65,17 @@ export class RenderingEngine implements IRenderingEngine {
         renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
         renderer.setClearColor(new THREE.Color(0xffffff))
 
+        const p: any = this._settings.camera.cameraTypes.perspective.default.value.position;
+        const t: any = this._settings.camera.cameraTypes.perspective.default.value.target;
         this._cameraEngine = new CameraEngine(this.canvas.canvasElement, {
-            position: vec3.fromValues(0, -100, 0),
-            target: vec3.fromValues(0, 0, 0)
+            position: vec3.fromValues(p.x, p.y, p.z),
+            target: vec3.fromValues(t.x, t.y, t.z)
         });
 
         const animate = (time: number) => {
             requestAnimationFrame(animate);
 
-            (<THREE.PerspectiveCamera>camera).fov = this._settings.camera.fov.value;
+            (<THREE.PerspectiveCamera>camera).fov = this._settings.camera.cameraTypes.perspective.fov.value;
             camera.aspect = this.canvas.canvasElement.width / this.canvas.canvasElement.height;
             camera.updateProjectionMatrix();
 
@@ -74,11 +87,6 @@ export class RenderingEngine implements IRenderingEngine {
             renderer.render((<SceneTree> this._sceneTree).scene, camera);
         };
         animate(0);
-
-        this._eventEngine.addListener(EVENTTYPE.LIGHT, () => {})
-        this.lightEngine.addAmbientLight(vec3.fromValues(1, 1, 1), 0.5);
-        this.lightEngine.addDirectionalLight(vec3.fromValues(1, 1, 1), 0.75, vec3.fromValues(.5774, -.5774, .5774), true);
-        this.lightEngine.addDirectionalLight(vec3.fromValues(1, 1, 1), 0.35, vec3.fromValues(-.25, -1, 1), false);
     }
 
     // #endregion Constructors (1)

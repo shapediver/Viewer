@@ -7,11 +7,13 @@ import { IParameter } from "./session/interfaces/IParameter";
 import { ISession } from "./session/interfaces/ISession";
 import { Viewer } from "./viewer/implementation/Viewer";
 import { IViewer, RENDERERTYPE } from "./viewer/interfaces/IViewer";
+import { StateEngine } from '@shapediver/viewer.shared.state-engine';
 
 @singleton()
 class Api {
     // #region Properties (4)
 
+    private _stateEngine = <StateEngine>container.resolve(StateEngine);
     private _renderingEngines: RenderingEngine[] = [];
     private _sceneTree = container.resolve(Tree);
     private _sessions: { [key: string]: ISession } = {};

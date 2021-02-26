@@ -6,6 +6,10 @@ import { OutputLoader } from './OutputLoader';
 import { SessionTreeNode } from './SessionTreeNode';
 
 import httpClient from '@shapediver/viewer.utils.http-client'
+import systemInfo from '@shapediver/viewer.shared.system-info'
+import uuid from '@shapediver/viewer.utils.uuid'
+import { container } from 'tsyringe';
+import { Settings } from '@shapediver/viewer.shared.settings-engine';
 
 export class SessionEngine implements ISessionEngine {
     // #region Properties (2)
@@ -13,6 +17,15 @@ export class SessionEngine implements ISessionEngine {
     private readonly _outputLoader: OutputLoader;
 
     private _session: Session = new Session();
+    private readonly _sessionEngineId = uuid.create();
+
+    private _headers = {
+        "X-ShapeDiver-Origin": systemInfo.origin(),
+        "X-ShapeDiver-ViewerId": '125295ae-3955-46f1-8b41-c2ce046111ec', // TODO
+        "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
+        "X-ShapeDiver-BuildVersion": '3.0.0.0', // TODO
+        "X-ShapeDiver-BuildDate": '2021-02-24T16:30:08.542Z', // TODO
+    }
 
     // #endregion Properties (2)
 
@@ -67,24 +80,15 @@ export class SessionEngine implements ISessionEngine {
 
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
         try {
-            const responseCustomize = <SessionJson>(await httpClient.post(
-                this._session.actions['customize'].href!,
-                null,
-                {
-                    data: parameters,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-ShapeDiver-Origin": "http://127.0.0.1:8080",
-                    }
-                }
-            )).data;
+            const headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
+            console.log(headers)
+            const responseCustomize = <SessionJson>(await httpClient.post( this._session.actions['customize'].href!, null, { data: parameters, headers } )).data;
             this._session.adaptSession(responseCustomize);
             return this.loadOutputs(parameters, this._session.outputs);
         } catch (e) {
             return new SessionTreeNode();
         }
     }
-
 
     /**
      * Initializes the session with the ticket and modelViewUrl.
@@ -93,16 +97,8 @@ export class SessionEngine implements ISessionEngine {
      */
     public async init(): Promise<SessionTreeNode> {
         try {
-            const sessionResponse = <SessionJson>(await httpClient.post(
-                this.modelViewUrl + "/ticket/" + this.ticket,
-                null,
-                {
-                    headers: {
-                        "X-ShapeDiver-Origin": window.location.origin + '',
-                    }
-                }
-            )).data;
-
+            const sessionResponse = <SessionJson>(await httpClient.post( this.modelViewUrl + "/ticket/" + this.ticket, null, { headers: this._headers } )).data;
+            (<Settings>container.resolve(Settings)).fromJson(sessionResponse.config);
             this._session.adaptSession(sessionResponse);
                 
             const parameters: { [key: string]: string } = {};
