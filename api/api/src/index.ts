@@ -36,7 +36,7 @@ class Api {
             throw new Error('Session with name ' + name + ' already exists.');
         const session =  new Session(
             this._sceneTree, 
-            () => {
+            async () => {
                 this._renderingEngines.forEach((e) => e.updateSceneTree());
             }, 
             ticket, 
@@ -66,6 +66,7 @@ class Api {
     }
 
     public onUpdate(): void {
+        console.log('C')
         this._renderingEngines.forEach((e) => e.updateSceneTree());
     }
 

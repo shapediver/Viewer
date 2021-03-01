@@ -7,7 +7,7 @@ import { HemisphereLight } from "./types/HemisphereLight";
 import { PointLight } from "./types/PointLight";
 import { SpotLight } from "./types/SpotLight";
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { EventEngine, EVENTTYPE, StateEngine, SettingsEngine } from "@shapediver/viewer.shared.services"
+import { StateEngine, SettingsEngine } from "@shapediver/viewer.shared.services"
 import { LightScene } from "./LightScene";
 import { ILightScene } from "../interface/ILightScene";
 import { AbstractLight } from "./AbstractLight";
@@ -20,7 +20,6 @@ export class LightEngine implements ILightEngine {
 
     private _currentLightScene!: LightScene;
     private _lightScenes: { [key: string]: LightScene; } = {};
-    private _eventEngine: EventEngine = container.resolve(EventEngine);
     private _stateEngine: StateEngine = container.resolve(StateEngine);
     private _settings = container.resolve(SettingsEngine).lights;
 
@@ -28,14 +27,7 @@ export class LightEngine implements ILightEngine {
 
     constructor() {
         this.createLightScene('main', true);
-
-        if(this._stateEngine.settingsRegistered === true) {
-            this.setFromSettings();
-        } else {
-            this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => {
-                this.setFromSettings();
-            })
-        }
+        this._stateEngine.settingsRegistered.then(() => this.setFromSettings());
     }
 
     // #region Public Methods (11)

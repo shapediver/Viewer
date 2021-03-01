@@ -9,7 +9,7 @@ import { Tree } from '@shapediver/viewer.shared.node-tree';
 import { SceneTree } from './SceneTree';
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { EventEngine, EVENTTYPE, StateEngine, SettingsEngine } from '@shapediver/viewer.shared.services';
+import { StateEngine, SettingsEngine } from '@shapediver/viewer.shared.services';
 
 
 export class RenderingEngine implements IRenderingEngine {
@@ -21,7 +21,6 @@ export class RenderingEngine implements IRenderingEngine {
     protected _settings = <SettingsEngine>container.resolve(SettingsEngine);
     protected _stateEngine = <StateEngine>container.resolve(StateEngine);
     protected _sceneTree!: SceneTree;
-    protected _eventEngine= <EventEngine>container.resolve(EventEngine);
     protected _tree: Tree = <Tree>container.resolve(Tree);
 
     // #region Constructors (1)
@@ -29,22 +28,10 @@ export class RenderingEngine implements IRenderingEngine {
     constructor(name: string, canvasDefinition?: string | HTMLCanvasElement) {
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
         this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
-
-        if(this._stateEngine.settingsRegistered === true) {
-            this.init();
-        } else {
-            console.log('registering')
-            this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => { 
-                console.log('the event')
-                this.init(); 
-            })
-        }
+        this._stateEngine.settingsRegistered.then(() => this.init());
     }
 
-
     private init() {
-        
-        // TODO put in abstract class
         this._sceneTree = new SceneTree();
 
         THREE.Object3D.DefaultUp = new THREE.Vector3(0,0,1);
@@ -121,6 +108,7 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Public Methods (1)
 
     public updateSceneTree(): void {
+        if(this._stateEngine.settingsRegistered.resolved !== true) return;
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     }
 

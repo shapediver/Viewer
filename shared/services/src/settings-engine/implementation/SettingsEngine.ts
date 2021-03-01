@@ -98,9 +98,7 @@ export class SettingsEngine {
     }
 
     public fromJson(json: any) {
-        console.log('from JSON')
         this._fromJson(json, this._settings);
-        console.log('after JSON')
         this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, {});
     }
 

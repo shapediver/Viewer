@@ -1,21 +1,21 @@
 import { container, singleton } from 'tsyringe'
 import { EventEngine, EVENTTYPE } from '../index';
+import { StatePromise } from './StatePromise';
 
 @singleton()
 export class StateEngine {
 
     private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
-    private _settingsRegistered: boolean = false;
+    private readonly _settingsRegistered: StatePromise<boolean>;
 
     constructor() {
-        console.log('registering')
+        this._settingsRegistered = new StatePromise();
         this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => { 
-            this._settingsRegistered = true;
-            console.log('event')
+            this._settingsRegistered.resolve(true);
         })
     }
 
-    public get settingsRegistered(): boolean {
+    public get settingsRegistered(): StatePromise<boolean> {
         return this._settingsRegistered;
     }
 }
