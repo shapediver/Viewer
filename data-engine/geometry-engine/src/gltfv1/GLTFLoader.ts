@@ -5,6 +5,7 @@ import { ACCESSOR_COMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { container } from 'tsyringe';
+import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 export class GLTFLoader {
     // #region Properties (5)
@@ -12,6 +13,7 @@ export class GLTFLoader {
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
     private readonly _httpClient = container.resolve(HttpClient);
     private readonly _uuidGenerator = container.resolve(UuidGenerator);
+    private readonly _logger = container.resolve(Logger);
 
     private _body!: ArrayBuffer;
     private _content!: IGLTF_v1;
@@ -36,7 +38,7 @@ export class GLTFLoader {
             contentLength: headerDataView.getUint32(12, true),
             contentFormat: headerDataView.getUint32(16, true)
         }
-        if (header.magic != 'glTF') console.error('ShapeDiverGLBLoader got invalid data: glTF magic wrong.');
+        if (header.magic != 'glTF') this._logger.error('ShapeDiverGLBLoader got invalid data: glTF magic wrong.');
 
         // create content
         const contentDataView = new DataView(binaryGeometry, this.BINARY_EXTENSION_HEADER_LENGTH, header.contentLength);
@@ -54,7 +56,7 @@ export class GLTFLoader {
     // #region Private Methods (6)
 
     private async loadAccessor(accessorName: string): Promise<AttributeData> {
-        if (!this._content.accessors![accessorName]) console.error('Accessor not available')
+        if (!this._content.accessors![accessorName]) this._logger.error('Accessor not available')
         const accessor = this._content.accessors![accessorName];
         const bufferView = await this.loadBufferView(accessor.bufferView!);
 
@@ -74,7 +76,7 @@ export class GLTFLoader {
     }
 
     private async loadBuffer(bufferName: string): Promise<ArrayBuffer> {
-        if (!this._content.buffers![bufferName]) console.error('Buffer not available')
+        if (!this._content.buffers![bufferName]) this._logger.error('Buffer not available')
         const buffer = this._content.buffers![bufferName];
 
         if (bufferName === 'binary_glTF')
@@ -90,7 +92,7 @@ export class GLTFLoader {
     }
 
     private async loadBufferView(bufferViewName: string): Promise<ArrayBuffer> {
-        if (!this._content.bufferViews![bufferViewName]) console.error('Buffer View not available')
+        if (!this._content.bufferViews![bufferViewName]) this._logger.error('Buffer View not available')
         const bufferView = this._content.bufferViews![bufferViewName];
         const buffer: ArrayBuffer = await this.loadBuffer(bufferView.buffer!);
         const byteLength = bufferView.byteLength !== undefined ? bufferView.byteLength : 0;
@@ -99,7 +101,7 @@ export class GLTFLoader {
     }
 
     private async loadMesh(meshName: string): Promise<TreeNode> {
-        if (!this._content.meshes![meshName]) console.error('Mesh not available')
+        if (!this._content.meshes![meshName]) this._logger.error('Mesh not available')
         const mesh = this._content.meshes![meshName];
         const meshNode = new TreeNode(meshName);
 
@@ -122,7 +124,7 @@ export class GLTFLoader {
     }
 
     private async loadNode(nodeName: string): Promise<TreeNode> {
-        if (!this._content.nodes![nodeName]) console.error('Node not available')
+        if (!this._content.nodes![nodeName]) this._logger.error('Node not available')
         const node = this._content.nodes![nodeName];
         const nodeDef = new TreeNode(nodeName);
 
@@ -163,8 +165,8 @@ export class GLTFLoader {
     }
 
     private async loadScene(): Promise<TreeNode> {
-        if (!this._content.scene) console.error('No scene')
-        if (!this._content.scenes![this._content.scene!]) console.error('Scene not available')
+        if (!this._content.scene) this._logger.error('No scene')
+        if (!this._content.scenes![this._content.scene!]) this._logger.error('Scene not available')
         const scene = this._content.scenes![this._content.scene!];
         const sceneDef = new TreeNode(this._content.scene!);
         for (let i = 0, len = scene.nodes!.length; i < len; i++)

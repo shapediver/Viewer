@@ -96,16 +96,13 @@ export class SdtfBufferView {
       // TODO
       // const bytes = new Uint8Array(this._arrayBuffer);
       // const data = pako.ungzip(bytes);
-      // console.log(data)
       // const blob = new Blob([data], { type: this.contentType });
-      // console.log(blob)
 
       // const reader = new FileReader();
       // reader.readAsDataURL(blob);
       // const link = document.createElement('a');
       // await new Promise<void>((resolve) => {
       //   reader.onload = function () {
-      //     console.log(reader.result)
       //     link.href = <string>reader.result;
       //     resolve();
       //   };

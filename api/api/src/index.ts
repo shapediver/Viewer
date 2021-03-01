@@ -66,7 +66,6 @@ class Api {
     }
 
     public onUpdate(): void {
-        console.log('C')
         this._renderingEngines.forEach((e) => e.updateSceneTree());
     }
 

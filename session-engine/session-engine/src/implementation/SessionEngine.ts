@@ -82,7 +82,6 @@ export class SessionEngine implements ISessionEngine {
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
         try {
             const headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
-            console.log(headers)
             const responseCustomize = <SessionJson>(await this._httpClient.post( this._session.actions['customize'].href!, null, { data: parameters, headers } )).data;
             this._session.adaptSession(responseCustomize);
             return this.loadOutputs(parameters, this._session.outputs);

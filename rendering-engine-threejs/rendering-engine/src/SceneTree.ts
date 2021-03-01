@@ -485,7 +485,6 @@ export class SceneTree {
 
         const threeBox = new THREE.Box3();
         threeBox.setFromObject(this._mainNode);
-        console.log(this._boundingBox, threeBox)
     }
 
 
