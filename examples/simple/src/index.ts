@@ -13,11 +13,10 @@ const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementBy
 const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
 
 
-const init = async () => {
+(async () => {
     await api.createSession(ticket, modelViewUrl, 'mySession');
     await api.createViewer(RENDERERTYPE.THREEJS, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
-}
-init();
+})();
 
 glTFv2Button.onclick = async () => {
     const uri: string = glTFv2Input.value;
