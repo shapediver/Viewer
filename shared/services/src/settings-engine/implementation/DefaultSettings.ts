@@ -43,12 +43,12 @@ export const DefaultSettings = {
 
         // strictMode: <ISetting<boolean>> new BooleanSetting(false),
         showMessages: <ISetting<boolean>> new BooleanSetting(true, 'Show or don\'t show user messages in the viewport'),
-        hasRestoredSettings: <ISetting<boolean>> new BooleanSetting(false, 'True if settings have been restored from a settings object delivered by a CommPlugin'),
+        // hasRestoredSettings: <ISetting<boolean>> new BooleanSetting(false, 'True if settings have been restored from a settings object delivered by a CommPlugin'),
     
         // exposeViewer: <ISetting<boolean>> new BooleanSetting(false),
         commitParameters: <ISetting<boolean>> new BooleanSetting(false, 'Use or don\'t commit mode for parameters'),
         commitSettings: <ISetting<boolean>> new BooleanSetting(false, 'Use or don\'t commit mode for settings'),
-        viewerRuntimeId: <ISetting<string>> new StringSetting('', 'The runtime id of this viewer'),
+        // viewerRuntimeId: <ISetting<string>> new StringSetting('', 'The runtime id of this viewer'),
 
         scene: {
             show: <ISetting<boolean>> new BooleanSetting(false, 'Show / hide the scene'),
@@ -138,12 +138,12 @@ export const DefaultSettings = {
                 clearAlpha: <ISetting<number>> new NumberSetting(1.0, 'Set background alpha value', (value: number) => value >= 0 && value <= 1),
                 pointSize: <ISetting<number>> new NumberSetting(1.0, 'Set size of point objects', (value: number) => value >= 0),
                 shadows: <ISetting<boolean>> new BooleanSetting(true, 'Enable / disable shadows for rendering'),
-                sao: {
-                    samples: <ISetting<number>> new NumberSetting(8, '', (value: number) => value >= 0),
-                    intensity: <ISetting<number>> new NumberSetting(0.1, '', (value: number) => value >= 0),
-                    kernelRadius: <ISetting<number>> new NumberSetting(8, '', (value: number) => value >= 0),
-                    standardDev: <ISetting<number>> new NumberSetting(25, '', (value: number) => value >= 0),
-                },
+                // sao: {
+                //     samples: <ISetting<number>> new NumberSetting(8, '', (value: number) => value >= 0),
+                //     intensity: <ISetting<number>> new NumberSetting(0.1, '', (value: number) => value >= 0),
+                //     kernelRadius: <ISetting<number>> new NumberSetting(8, '', (value: number) => value >= 0),
+                //     standardDev: <ISetting<number>> new NumberSetting(25, '', (value: number) => value >= 0),
+                // },
             },
         }
     },

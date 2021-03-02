@@ -9,7 +9,7 @@ import { Output } from "./Output";
 import { Parameter } from "./Parameter";
 
 export class Session implements ISession {
-    // #region Properties (7)
+    // #region Properties (11)
 
     private readonly _exports: { [key: string]: IExport; } = {};
     private readonly _outputs: { [key: string]: IOutput; } = {};
@@ -17,10 +17,14 @@ export class Session implements ISession {
     private readonly _parameters: { [key: string]: IParameter; } = {};
     private readonly _sessionEngine: SessionEngine;
 
+    private _commitParameters: boolean= false;
     private _initialized: boolean = false;
     private _node: TreeNode;
+    private _parameterControlNames: string[]= [];
+    private _parameterControlOrder: string[]= [];
+    private _parameterHidden: string[]= [];
 
-    // #endregion Properties (7)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -36,7 +40,23 @@ export class Session implements ISession {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (6)
+    // #region Public Accessors (14)
+
+    /**
+     * Getter commitParameters
+     * @return {boolean}
+     */
+    public get commitParameters(): boolean {
+		return this._commitParameters;
+	}
+
+    /**
+     * Setter commitParameters
+     * @param {boolean} value
+     */
+    public set commitParameters(value: boolean) {
+		this._commitParameters = value;
+	}
 
     /**
      * Getter exports
@@ -71,6 +91,54 @@ export class Session implements ISession {
     }
 
     /**
+     * Getter parameterControlNames
+     * @return {string[]}
+     */
+    public get parameterControlNames(): string[] {
+		return this._parameterControlNames;
+	}
+
+    /**
+     * Setter parameterControlNames
+     * @param {string[]} value
+     */
+    public set parameterControlNames(value: string[]) {
+		this._parameterControlNames = value;
+	}
+
+    /**
+     * Getter parameterControlOrder
+     * @return {string[]}
+     */
+    public get parameterControlOrder(): string[] {
+		return this._parameterControlOrder;
+	}
+
+    /**
+     * Setter parameterControlOrder
+     * @param {string[]} value
+     */
+    public set parameterControlOrder(value: string[]) {
+		this._parameterControlOrder = value;
+	}
+
+    /**
+     * Getter parameterHidden
+     * @return {string[]}
+     */
+    public get parameterHidden(): string[] {
+		return this._parameterHidden;
+	}
+
+    /**
+     * Setter parameterHidden
+     * @param {string[]} value
+     */
+    public set parameterHidden(value: string[]) {
+		this._parameterHidden = value;
+	}
+
+    /**
      * Getter parameters
      * @return {{ [key: string]: IParameter; }}
      */
@@ -86,7 +154,7 @@ export class Session implements ISession {
         return this._ticket;
     }
 
-    // #endregion Public Accessors (6)
+    // #endregion Public Accessors (14)
 
     // #region Public Methods (13)
 

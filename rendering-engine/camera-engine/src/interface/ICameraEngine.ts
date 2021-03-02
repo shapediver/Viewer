@@ -9,10 +9,17 @@ export interface ICameraDefinition {
     // #endregion Properties (2)
 }
 
+
+export enum CAMERATYPE {
+    PERSPECTIVE = 'perspective',
+    ORTHOGRAPHIC = 'orthographic'
+}
+
 export interface ICameraEngine {
     // #region Properties (1)
 
     cameraDefinition: ICameraDefinition;
+    readonly type: CAMERATYPE;
 
     // #endregion Properties (1)
 

@@ -1,6 +1,6 @@
 import { CameraEngine } from "./implementation/CameraEngine";
-import { ICameraEngine } from "./interface/ICameraEngine";
+import { CAMERATYPE, ICameraEngine } from "./interface/ICameraEngine";
 
 export {
-  ICameraEngine, CameraEngine
+  ICameraEngine, CameraEngine, CAMERATYPE
 }

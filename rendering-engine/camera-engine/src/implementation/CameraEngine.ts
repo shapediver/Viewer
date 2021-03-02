@@ -1,16 +1,18 @@
 import { ICameraControls } from '../interface/ICameraControls';
 import { ICameraControlsManager } from '../interface/ICameraControlsManager';
-import { ICameraDefinition, ICameraEngine } from '../interface/ICameraEngine';
+import { CAMERATYPE, ICameraDefinition, ICameraEngine } from '../interface/ICameraEngine';
 import { CameraControls } from './CameraControls';
 import { CameraControlsManager } from './orbit/CameraControlsManager';
 
 export class CameraEngine implements ICameraEngine{
-    // #region Properties (2)
+    // #region Properties (3)
+
+    private readonly _type: CAMERATYPE;
 
     private _cameraControls: ICameraControls;
     private _cameraControlsManager: ICameraControlsManager;
 
-    // #endregion Properties (2)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
@@ -18,13 +20,14 @@ export class CameraEngine implements ICameraEngine{
         private readonly _canvas: HTMLCanvasElement,
         private _cameraDefinition: ICameraDefinition
     ) {
+        this._type = CAMERATYPE.PERSPECTIVE;
         this._cameraControls = new CameraControls(_canvas, true, _cameraDefinition.position, _cameraDefinition.target);
         this._cameraControlsManager = new CameraControlsManager(this._cameraControls);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+    // #region Public Accessors (3)
 
     /**
      * Getter cameraDefinition
@@ -42,7 +45,15 @@ export class CameraEngine implements ICameraEngine{
 		this._cameraDefinition = value;
     }
 
-    // #endregion Public Accessors (2)
+    /**
+     * Getter type
+     * @return {CAMERATYPE}
+     */
+    public get type(): CAMERATYPE {
+		return this._type;
+	}
+
+    // #endregion Public Accessors (3)
 
     // #region Public Methods (1)
 
