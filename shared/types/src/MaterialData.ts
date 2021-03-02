@@ -175,7 +175,7 @@ export class MaterialData extends AbstractTreeNodeData {
     private _alphaMode: MATERIAL_ALPHA = MATERIAL_ALPHA.OPAQUE,
     private _bumpMap?: MapData,
     private _bumpScale: number = 1.0,
-    private _color: vec4 = vec4.fromValues(1.0, 1.0, 1.0, 1.0),
+    private _color?: vec4,
     private _emissiveMap?: MapData,
     private _emissiveness: vec3 = vec3.fromValues(0, 0, 0),
     private _shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH,
@@ -283,17 +283,17 @@ export class MaterialData extends AbstractTreeNodeData {
 
   /**
    * Getter color
-   * @return {vec4}
+   * @return {vec4 | undefined}
    */
-  public get color(): vec4 {
+  public get color(): vec4 | undefined {
     return this._color;
   }
 
   /**
    * Setter color
-   * @param {vec4} value
+   * @param {vec4 | undefined} value
    */
-  public set color(value: vec4) {
+  public set color(value: vec4 | undefined) {
     this._color = value;
   }
 

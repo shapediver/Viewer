@@ -9,7 +9,7 @@ import { ThreejsData } from './ThreejsData';
 import { Box, Sphere } from '@shapediver/viewer.shared.math';
 import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services';
 import { AbstractLight, AmbientLight, DirectionalLight, HemisphereLight, LightEngine, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine';
-import { vec3 } from 'gl-matrix';
+import { vec3, vec4 } from 'gl-matrix';
 import { container } from 'tsyringe';
 
 export class SceneTree {
@@ -19,9 +19,10 @@ export class SceneTree {
 
     private readonly _primitiveLoader: PrimitiveLoader = new PrimitiveLoader();
     private readonly _scene: THREE.Scene = new THREE.Scene();
+    private readonly _defaultColor: vec4 = vec4.fromValues(0, 1, 0.9686, 1);
     private _mainNode!: SDObject;
     private _boundingBox: Box = new Box();
-    protected _geometryCache: {
+    private _geometryCache: {
         [key: string]: SDObject
     } = {};
 
@@ -386,10 +387,12 @@ export class SceneTree {
 
             material.bumpScale = materialProperties.bumpScale;
 
-            material.color = new THREE.Color(materialProperties.color[0] > 1 ? materialProperties.color[0] / 255 : materialProperties.color[0],
-                materialProperties.color[1] > 1 ? materialProperties.color[1] / 255 : materialProperties.color[1],
-                materialProperties.color[2] > 1 ? materialProperties.color[2] / 255 : materialProperties.color[2]);
-            //, materialProperties.color[3]);
+            let color = this._defaultColor;
+            if(materialProperties.color)
+                color = materialProperties.color;
+            material.color = new THREE.Color(color[0] > 1 ? color[0] / 255 : color[0],
+                color[1] > 1 ? color[1] / 255 : color[1],
+                color[2] > 1 ? color[2] / 255 : color[2]);
 
             // displacementMap
 
@@ -459,7 +462,7 @@ export class SceneTree {
             material.side = THREE.DoubleSide;
             return material;
         } else {
-            const material = new THREE.MeshStandardMaterial();
+            const material = new THREE.MeshStandardMaterial({color: new THREE.Color(this._defaultColor[0], this._defaultColor[1], this._defaultColor[2])});
             material.side = THREE.DoubleSide;
             return material;
         }
