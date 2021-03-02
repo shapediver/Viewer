@@ -7,10 +7,10 @@ export interface ICameraControls {
     // #region Properties (4)
 
     readonly canvas: HTMLCanvasElement;
-    readonly position: vec3;
-    readonly target: vec3;
 
     enabled: boolean;
+    position: vec3;
+    target: vec3;
 
     // #endregion Properties (4)
 

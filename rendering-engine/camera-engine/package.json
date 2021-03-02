@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@shapediver/viewer.shared.services": "^0.0.0",
+    "@shapediver/viewer.shared.utils": "^0.0.0",
     "three": "^0.123.0"
   }
 }

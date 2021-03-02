@@ -1,8 +1,8 @@
 import { vec3 } from "gl-matrix";
-import { CAMERATYPE } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
 
 export abstract class AbstractCamera {
-  // #region Properties (8)
+  // #region Properties (9)
 
   private _autoAdjust: boolean = false;
   private _cameraMovementDuration: number = 800;
@@ -13,15 +13,15 @@ export abstract class AbstractCamera {
   private _revertAtMouseUpDuration: number = 800;
   private _zoomExtentsFactor: number = 1;
 
-  // #endregion Properties (8)
+  // #endregion Properties (9)
 
   // #region Constructors (1)
 
-  constructor(protected readonly _type: CAMERATYPE) { }
+  constructor(private _id: string, protected readonly _cameraEngine: ICameraEngine, protected readonly _type: CAMERATYPE) { }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (17)
+  // #region Public Accessors (19)
 
   /**
    * Getter autoAdjust
@@ -104,6 +104,22 @@ export abstract class AbstractCamera {
   }
 
   /**
+     * Getter id
+     * @return {string}
+     */
+  public get id(): string {
+    return this._id;
+  }
+
+  /**
+     * Setter id
+     * @param {string} value
+     */
+  public set id(value: string) {
+    this._id = value;
+  }
+
+  /**
    * Getter revertAtMouseUp
    * @return {boolean}
    */
@@ -159,5 +175,5 @@ export abstract class AbstractCamera {
     this._zoomExtentsFactor = value;
   }
 
-  // #endregion Public Accessors (17)
+  // #endregion Public Accessors (19)
 }

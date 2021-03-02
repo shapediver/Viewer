@@ -6,7 +6,7 @@ import { ICameraDefinition } from '../interface/ICameraEngine';
 import { CameraEventManager } from './CameraEventManager';
 
 export class CameraControls implements ICameraControls {
-    // #region Properties (8)
+    // #region Properties (10)
 
     private _cameraControlsManager!: ICameraControlsManager;
     private _cameraEventManager: CameraEventManager;
@@ -22,16 +22,16 @@ export class CameraControls implements ICameraControls {
         position: mat4[],
         target: mat4[],
     };
+    private _position: vec3 = vec3.create();
+    private _target: vec3 = vec3.create();
 
-    // #endregion Properties (8)
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
     constructor(
         private _canvas: HTMLCanvasElement,
         private _enabled: boolean,
-        private _position: vec3,
-        private _target: vec3
     ) {
         this._cameraEventManager = new CameraEventManager(_canvas);
         this._manualInteractionMatrices = { position: [], target: [] };

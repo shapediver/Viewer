@@ -1,6 +1,6 @@
-import { CAMERATYPE } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { AbstractCamera } from "./AbstractCamera";
-import { OrthographicControls } from "./OrthographicControls";
+import { OrthographicControls } from "./controls/OrthographicControls";
 
 export class OrthographicCamera extends AbstractCamera {
     // #region Properties (1)
@@ -9,9 +9,13 @@ export class OrthographicCamera extends AbstractCamera {
 
     // #endregion Properties (1)
 
-    constructor() {
-        super(CAMERATYPE.ORTHOGRAPHIC);
-    }
+    // #region Constructors (1)
+
+    constructor(id: string, cameraEngine: ICameraEngine) {
+        super(id, cameraEngine, CAMERATYPE.ORTHOGRAPHIC);
+      }
+
+    // #endregion Constructors (1)
 
     // #region Public Accessors (1)
 
@@ -20,8 +24,8 @@ export class OrthographicCamera extends AbstractCamera {
      * @return {OrthographicControls}
      */
     public get controls(): OrthographicControls {
-		return this._controls;
-	}
+        return this._controls;
+    }
 
     // #endregion Public Accessors (1)
 }

@@ -2,13 +2,24 @@ import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.renderin
 import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { container } from "tsyringe";
 import { IViewer, RENDERERTYPE } from "../interfaces/IViewer";
-import { AbstractCamera as Camera } from "./AbstractCamera";
-import { PerspectiveCamera } from "./PerspectiveCamera";
+import { AbstractCamera as Camera } from "./camera/AbstractCamera";
+import { PerspectiveCamera } from "./camera/PerspectiveCamera";
+import { CameraEngine, CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { OrthographicCamera } from "./camera/OrthographicCamera";
+import { vec3 } from "gl-matrix";
+import { UuidGenerator } from "../../../../../shared/services/node_modules/@shapediver/viewer.shared.utils/dist";
 
 export class Viewer implements IViewer {
-  // #region Properties (22)
+  // #region Properties (21)
 
   private readonly _renderingEngine: RenderingEngine;
+  private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
+  private readonly _cameras: {
+    [key: string]: {
+      camera: Camera,
+      engine: ICameraEngine
+    } 
+  } = {};
 
   private _ambientOcclusion: boolean = true;
   private _beautyRenderDelay: number = 50;
@@ -31,7 +42,7 @@ export class Viewer implements IViewer {
   private _show: boolean = false;
   private _showSceneTransition: number = 1000;
 
-  // #endregion Properties (22)
+  // #endregion Properties (21)
 
   // #region Constructors (1)
 
@@ -40,13 +51,15 @@ export class Viewer implements IViewer {
     container.registerInstance(name, renderingEngineThreejs);
     this._renderingEngine = renderingEngineThreejs;
 
+    this.createCamera(CAMERATYPE.PERSPECTIVE);
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (43)
+  // #region Public Accessors (41)
 
   /**
    * Getter ambientOcclusion
@@ -372,5 +385,32 @@ export class Viewer implements IViewer {
     this._showSceneTransition = value;
   }
 
-  // #endregion Public Accessors (43)
+  // #endregion Public Accessors (41)
+
+  // #region Public Methods (1)
+
+  public createCamera(type?: CAMERATYPE): Camera {
+    if(CAMERATYPE.ORTHOGRAPHIC === type) {
+      const engine = new CameraEngine(this.renderingEngine.canvas.canvasElement, CAMERATYPE.ORTHOGRAPHIC);
+      const cameraId = this._uuidGenerator.create();
+      const camera = new OrthographicCamera(cameraId, engine);
+      this._cameras[cameraId] = { camera, engine };
+      this.assignCamera(camera);
+      return camera;
+    } else {
+      const engine = new CameraEngine(this.renderingEngine.canvas.canvasElement, CAMERATYPE.PERSPECTIVE);
+      const cameraId = this._uuidGenerator.create();
+      const camera = new PerspectiveCamera(cameraId, engine);
+      this._cameras[cameraId] = { camera, engine };
+      this.assignCamera(camera);
+      return camera;
+    }
+  }
+
+  public assignCamera(camera: Camera): void {
+    const cameraDef = this._cameras[camera.id];
+    this._renderingEngine.cameraEngine = cameraDef.engine;
+  }
+
+  // #endregion Public Methods (1)
 }

@@ -52,6 +52,14 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     /**
+     * Setter cameraEngine
+     * @param {ICameraEngine} value
+     */
+    public set cameraEngine(value: ICameraEngine) {
+        this._cameraEngine = value;
+    }
+
+    /**
      * Getter canvas
      * @return {Canvas}
      */
@@ -99,12 +107,6 @@ export class RenderingEngine implements IRenderingEngine {
         renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
         renderer.setClearColor(new THREE.Color(0xffffff))
 
-        this._cameraEngine = new CameraEngine(this.canvas.canvasElement, {
-            position: this._converter.toVec3(this._settings.camera.cameraTypes.perspective.default.value.position),
-            target: this._converter.toVec3(this._settings.camera.cameraTypes.perspective.default.value.target)
-        });
-
-
         this._stateEngine.boundingBoxCreated.then(() => {
             let bb = this._sceneTree.boundingBox;
             let sceneExtents = vec3.distance(bb.min, bb.max);
@@ -134,9 +136,6 @@ export class RenderingEngine implements IRenderingEngine {
                 gridExtents = parseFloat(gridExtentsS + firstDigit);
                 divisions = firstDigit * 10;
             }
-
-            console.log(bb, sceneExtents, gridExtents, divisions)
-
     
             /**
              * magic end
@@ -171,6 +170,7 @@ export class RenderingEngine implements IRenderingEngine {
 
         const animate = (time: number) => {
             requestAnimationFrame(animate);
+            if(!this.cameraEngine) return;
 
             (<THREE.PerspectiveCamera>camera).fov = this._settings.camera.cameraTypes.perspective.fov.value;
             camera.aspect = this.canvas.canvasElement.width / this.canvas.canvasElement.height;

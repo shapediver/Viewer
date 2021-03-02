@@ -1,5 +1,5 @@
 import { AbstractCamera } from "./AbstractCamera";
-import { OrbitControls } from "./OrbitControls";
+import { OrbitControls } from "./controls/OrbitControls";
 import { CameraEngine, CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
 
 export class PerspectiveCamera extends AbstractCamera {
@@ -11,8 +11,8 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #endregion Properties (2)
 
-  constructor(canvas: HTMLCanvasElement, type: CAMERATYPE) {
-    super(CAMERATYPE.PERSPECTIVE);
+  constructor(id: string, cameraEngine: ICameraEngine) {
+    super(id, cameraEngine, CAMERATYPE.PERSPECTIVE);
   }
 
   // #region Public Accessors (3)
