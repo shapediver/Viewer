@@ -6,7 +6,7 @@ import { DirectionalLight } from "./types/DirectionalLight";
 import { HemisphereLight } from "./types/HemisphereLight";
 import { PointLight } from "./types/PointLight";
 import { SpotLight } from "./types/SpotLight";
-import { UuidGenerator } from '@shapediver/viewer.shared.utils';
+import { UuidGenerator, Converter } from '@shapediver/viewer.shared.utils';
 import { StateEngine, SettingsEngine } from "@shapediver/viewer.shared.services"
 import { LightScene } from "./LightScene";
 import { ILightScene } from "../interface/ILightScene";
@@ -17,6 +17,7 @@ export class LightEngine implements ILightEngine {
     // #region Properties (2)
 
     protected readonly _uuidGenerator = container.resolve(UuidGenerator);
+    protected readonly _converter = container.resolve(Converter);
 
     private _currentLightScene!: LightScene;
     private _lightScenes: { [key: string]: LightScene; } = {};
@@ -103,10 +104,8 @@ export class LightEngine implements ILightEngine {
 
     public setFromSettings(): void {
         const colorDecoder = (color: any): vec3 => {
-            return vec3.fromValues(1,1,1);
-        }
-        const pointDecoder = (p: { x: number, y: number, z: number }): vec3 => {
-            return vec3.fromValues(p.x, p.y, p.z);
+            const c = this._converter.toColor(color);
+            return vec3.fromValues(c[0], c[1], c[2]);
         }
 
         for(let lightScene of this._settings.lightScenes.value) {
@@ -115,16 +114,16 @@ export class LightEngine implements ILightEngine {
                 let l: AbstractLight;
                 switch(light.type) {
                     case 'directional':
-                        l = new DirectionalLight(colorDecoder(light.properties.color), light.properties.intensity, pointDecoder(light.properties.direction), light.properties.castShadow, light.id);
+                        l = new DirectionalLight(colorDecoder(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.direction), light.properties.castShadow, light.id);
                         break;
                     case 'hemisphere':
                         l = new HemisphereLight(colorDecoder(light.properties.skyColor), light.properties.intensity, colorDecoder(light.properties.groundColor), light.id);
                         break;
                     case 'point':
-                        l = new PointLight(colorDecoder(light.properties.color), light.properties.intensity, pointDecoder(light.properties.position), light.properties.distance, light.properties.decay, light.id);
+                        l = new PointLight(colorDecoder(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), light.properties.distance, light.properties.decay, light.id);
                         break;
                     case 'spot':
-                        l = new SpotLight(colorDecoder(light.properties.color), light.properties.intensity, pointDecoder(light.properties.position), pointDecoder(light.properties.target), light.properties.distance, light.properties.decay, light.properties.angle, light.properties.penumbra, light.id);
+                        l = new SpotLight(colorDecoder(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), this._converter.toVec3(light.properties.target), light.properties.distance, light.properties.decay, light.properties.angle, light.properties.penumbra, light.id);
                         break;
                     case 'ambient':
                     default:

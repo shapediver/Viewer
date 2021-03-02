@@ -49,6 +49,7 @@ export enum RENDERING {
 }
 
 export enum SCENE {
+    SCENE_BOUNDING_BOX_CHANGE = "scene.boundingboxchange"
     // SCENE_VISIBLE = "scene.visible",
     // SCENE_HIDDEN = "scene.hidden",
 }

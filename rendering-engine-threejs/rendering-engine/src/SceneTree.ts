@@ -7,10 +7,15 @@ import { PrimitiveLoader } from './PrimitiveLoader';
 import { SDObject } from './SDObject';
 import { ThreejsData } from './ThreejsData';
 import { Box, Sphere } from '@shapediver/viewer.shared.math';
+import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services';
 import { AbstractLight, AmbientLight, DirectionalLight, HemisphereLight, LightEngine, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine';
+import { vec3 } from 'gl-matrix';
+import { container } from 'tsyringe';
 
 export class SceneTree {
     // #region Properties (2)
+    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
+    private readonly _stateEngine: StateEngine = container.resolve(StateEngine);
 
     private readonly _primitiveLoader: PrimitiveLoader = new PrimitiveLoader();
     private readonly _scene: THREE.Scene = new THREE.Scene();
@@ -461,6 +466,7 @@ export class SceneTree {
     }
 
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
+        const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
 
         this._geometryCache = {};
@@ -480,11 +486,13 @@ export class SceneTree {
             this._mainNode.add(lightSceneChild)
             this.updateNode(lightScene.node, lightSceneChild);
         }
+        
+        if (!(vec3.equals(oldBB.min, this._boundingBox.min) && vec3.equals(oldBB.max, this._boundingBox.max))) {
+            if(!this._stateEngine.boundingBoxCreated.resolved)
+                this._stateEngine.boundingBoxCreated.resolve(true);
 
-
-
-        const threeBox = new THREE.Box3();
-        threeBox.setFromObject(this._mainNode);
+            this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, this._boundingBox);
+        }
     }
 
 

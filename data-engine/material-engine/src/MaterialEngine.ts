@@ -105,7 +105,7 @@ export class MaterialEngine {
         if (generalDefinition.hasOwnProperty('alphaThreshold') && !specificDefinition.hasOwnProperty('alphaThreshold')) material.alphaCutoff = generalDefinition.alphaThreshold!;
         if (generalDefinition.bumptexture  && !specificDefinition.bumptexture) material.bumpMap = await this.loadMap(generalDefinition.bumptexture, id.class);
         if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude')) material.bumpScale = generalDefinition.bumpAmplitude!;
-        if (generalDefinition.color  && !specificDefinition.color) material.color = vec4.fromValues(generalDefinition.color[0], generalDefinition.color[1], generalDefinition.color[2], generalDefinition.color[3]);
+        if (generalDefinition.color  && !specificDefinition.color) material.color = vec4.fromValues(generalDefinition.color[0] / 255, generalDefinition.color[1] / 255, generalDefinition.color[2] / 255, generalDefinition.color[3] / 255);
         if (generalDefinition.bitmaptexture  && !specificDefinition.bitmaptexture) material.map = await this.loadMap(generalDefinition.bitmaptexture, id.class);
         if (generalDefinition.hasOwnProperty('metalness') && !specificDefinition.hasOwnProperty('metalness')) material.metalness = generalDefinition.metalness!;
         if (generalDefinition.metalnesstexture  && !specificDefinition.metalnesstexture) material.metalnessMap = await this.loadMap(generalDefinition.metalnesstexture, id.class);
@@ -121,7 +121,7 @@ export class MaterialEngine {
         if (specificDefinition.hasOwnProperty('alphaThreshold')) material.alphaCutoff = specificDefinition.alphaThreshold!;
         if (specificDefinition.bumptexture) material.bumpMap = await this.loadMap(specificDefinition.bumptexture, id.class + '/' + id.specific);
         if (specificDefinition.hasOwnProperty('bumpAmplitude')) material.bumpScale = specificDefinition.bumpAmplitude!;
-        if (specificDefinition.color) material.color = vec4.fromValues(specificDefinition.color[0], specificDefinition.color[1], specificDefinition.color[2], specificDefinition.color[3]);
+        if (specificDefinition.color) material.color = vec4.fromValues(specificDefinition.color[0] / 255, specificDefinition.color[1] / 255, specificDefinition.color[2] / 255, specificDefinition.color[3] / 255);
         if (specificDefinition.bitmaptexture) material.map = await this.loadMap(specificDefinition.bitmaptexture, id.class + '/' + id.specific);
         if (specificDefinition.hasOwnProperty('metalness')) material.metalness = specificDefinition.metalness!;
         if (specificDefinition.metalnesstexture) material.metalnessMap = await this.loadMap(specificDefinition.metalnesstexture, id.class + '/' + id.specific);
@@ -173,7 +173,7 @@ export class MaterialEngine {
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const wrapT = texture.wrapT === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapT === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const center = texture.center ? vec2.fromValues(texture.center[0], texture.center[1]) : vec2.fromValues(0,0);
-        const color = texture.color ? vec4.fromValues(texture.color[0], texture.color[1], texture.color[2], texture.color[3]) : vec4.fromValues(1,1,1,1);
+        const color = texture.color ? vec4.fromValues(texture.color[0] / 255, texture.color[1] / 255, texture.color[2] / 255, texture.color[3] / 255) : vec4.fromValues(1,1,1,1);
         const offset = texture.offset ? vec2.fromValues(texture.offset[0], texture.offset[1]) : vec2.fromValues(0,0);
         const repeat = texture.repeat ? vec2.fromValues(texture.repeat[0], texture.repeat[1]) : vec2.fromValues(1,1);
 
@@ -196,9 +196,9 @@ export class MaterialEngine {
         // ambient is ignored
         
         if(data.color) {
-            material.color = vec4.fromValues(data.color[0], data.color[1], data.color[2], data.color[3]);
+            material.color = vec4.fromValues(data.color[0] / 255, data.color[1] / 255, data.color[2] / 255, data.color[3] / 255);
         } else if(data.diffuse) {
-            material.color = vec4.fromValues(data.diffuse[0], data.diffuse[1], data.diffuse[2], data.diffuse[3]);
+            material.color = vec4.fromValues(data.diffuse[0] / 255, data.diffuse[1] / 255, data.diffuse[2] / 255, data.diffuse[3] / 255);
         }
 
         if(data.emission)
@@ -245,7 +245,7 @@ export class MaterialEngine {
         // ambient is ignored
         
         if(data.color) 
-            material.color = vec4.fromValues(data.color[0], data.color[1], data.color[2], data.color[3]);
+            material.color = vec4.fromValues(data.color[0] / 255, data.color[1] / 255, data.color[2] / 255, data.color[3] / 255);
 
         material.side = data.side === 'front' ? MATERIAL_SIDE.FRONT : data.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
 
@@ -305,7 +305,7 @@ export class MaterialEngine {
         // ambient is ignored
         
         if(data.color) 
-            material.color = vec4.fromValues(data.color[0], data.color[1], data.color[2], data.color[3]);
+            material.color = vec4.fromValues(data.color[0] / 255, data.color[1] / 255, data.color[2] / 255, data.color[3] / 255);
 
         material.side = data.side === 'front' ? MATERIAL_SIDE.FRONT : data.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
 
