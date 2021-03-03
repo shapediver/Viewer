@@ -2,19 +2,15 @@ import { mat4, vec3 } from 'gl-matrix';
 
 import { ICameraControls } from '../interface/ICameraControls';
 import { CAMERATYPE, ICameraDefinition } from '../../engine/interface/ICameraEngine';
-import { CameraControlsEventDistribution as OrbitCameraControlsEventDistribution } from './orbit/CameraControlsEventDistribution';
-import { CameraControlsLogic as OrbitCameraControlsLogic } from './orbit/CameraControlsLogic';
-import { CameraControlsEventDistribution as OrthographicCameraControlsEventDistribution } from './orthographic/CameraControlsEventDistribution';
-import { CameraControlsLogic as OrthographicCameraControlsLogic } from './orthographic/CameraControlsLogic';
 import { CameraInterpolationManager } from './CameraInterpolationManager';
+import { ICameraControlsLogic } from '../interface/ICameraControlsLogic';
+import { ICameraControlsEventDistribution } from '../interface/ICameraControlsEventDistribution';
 
-export class CameraControls implements ICameraControls {
-    // #region Properties (10)
+export class AbstractCameraControls implements ICameraControls {
+    // #region Properties (11)
 
-    private readonly _cameraControlsEventDistribution: OrbitCameraControlsEventDistribution | OrthographicCameraControlsEventDistribution;
     private readonly _cameraInterpolationManager: CameraInterpolationManager = new CameraInterpolationManager(this);
 
-    private _cameraLogic: OrbitCameraControlsLogic | OrthographicCameraControlsLogic;
     private _manualInteraction: boolean = false;
     private _manualInteractionMatrices: {
         position: mat4[],
@@ -30,7 +26,10 @@ export class CameraControls implements ICameraControls {
     private _position: vec3 = vec3.create();
     private _target: vec3 = vec3.create();
 
-    // #endregion Properties (10)
+    protected _cameraControlsEventDistribution!: ICameraControlsEventDistribution;
+    protected _cameraLogic!: ICameraControlsLogic;
+
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -39,13 +38,6 @@ export class CameraControls implements ICameraControls {
         private _enabled: boolean,
         type: CAMERATYPE
     ) {
-        if(type === CAMERATYPE.ORTHOGRAPHIC) {
-            this._cameraLogic = new OrthographicCameraControlsLogic(this);
-            this._cameraControlsEventDistribution = new OrthographicCameraControlsEventDistribution(this._cameraLogic);
-        } else {
-            this._cameraLogic = new OrbitCameraControlsLogic(this);
-            this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this._cameraLogic);
-        }
         this._manualInteractionMatrices = { position: [], target: [] };
         this._nonmanualInteractionMatrices = { position: [], target: [] };
     }
@@ -54,7 +46,7 @@ export class CameraControls implements ICameraControls {
 
     // #region Public Accessors (9)
 
-    public get cameraControlsEventDistribution(): OrbitCameraControlsEventDistribution | OrthographicCameraControlsEventDistribution {
+    public get cameraControlsEventDistribution(): ICameraControlsEventDistribution {
         return this._cameraControlsEventDistribution;
     }
 
@@ -133,7 +125,7 @@ export class CameraControls implements ICameraControls {
 
     // #endregion Public Accessors (9)
 
-    // #region Public Methods (11)
+    // #region Public Methods (10)
 
     public animate(path: ICameraDefinition[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if(options && options.duration === 0) {
@@ -229,7 +221,7 @@ export class CameraControls implements ICameraControls {
         }
     }
 
-    // #endregion Public Methods (11)
+    // #endregion Public Methods (10)
 
     // #region Private Methods (2)
 

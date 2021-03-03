@@ -1,12 +1,9 @@
-import { container } from 'tsyringe';
-
-import { SettingsEngine } from '@shapediver/viewer.shared.services';
-
 import { CameraControlsLogic } from './CameraControlsLogic';
 
-import { IDomEventListener } from '@shapediver/viewer.shared.services'
+import { ICameraControlsEventDistribution } from '../../interface/ICameraControlsEventDistribution';
+import { PerspectiveCameraControls } from '../../..';
 
-export class CameraControlsEventDistribution implements IDomEventListener {
+export class CameraControlsEventDistribution implements ICameraControlsEventDistribution {
   // #region Properties (2)
 
   private _active = {
@@ -14,13 +11,12 @@ export class CameraControlsEventDistribution implements IDomEventListener {
     zoom: false,
     pan: false
   };
-  private _settings = (<SettingsEngine>container.resolve(SettingsEngine)).cameraOrbitControls;
 
   // #endregion Properties (2)
 
   // #region Constructors (1)
 
-  constructor(private readonly _cameraLogic: CameraControlsLogic) { }
+  constructor(private readonly _controls: PerspectiveCameraControls, private readonly _cameraLogic: CameraControlsLogic) { }
 
   // #endregion Constructors (1)
 
@@ -30,25 +26,25 @@ export class CameraControlsEventDistribution implements IDomEventListener {
     let {x,y} = this.convertInput(event);
 
     let input = window.TouchEvent && event instanceof TouchEvent ? (event as TouchEvent).touches.length : (event as MouseEvent).button;
-    let mapping = window.TouchEvent && event instanceof TouchEvent ? this._settings.input.value.touch : this._settings.input.value.mouse;
+    let mapping = window.TouchEvent && event instanceof TouchEvent ? this._controls.input.touch : this._controls.input.mouse;
 
-    if (input === mapping.rotate && this._settings.enableRotation.value) {
+    if (input === mapping.rotate && this._controls.enableRotation) {
       this._cameraLogic.rotate(x, y, this._active.rotation, window.TouchEvent && event instanceof TouchEvent);
       this._active.rotation = true;
       this._active.pan = false;
       this._active.zoom = false;
     }
 
-    if (input === mapping.pan && this._settings.enablePan.value) {
+    if (input === mapping.pan && this._controls.enablePan) {
       this._cameraLogic.pan(x, y, this._active.pan, window.TouchEvent && event instanceof TouchEvent);
       this._active.rotation = false;
       this._active.pan = true;
       this._active.zoom = false;    
     }
 
-    if (input === mapping.zoom && this._settings.enableZoom.value) {
+    if (input === mapping.zoom && this._controls.enableZoom) {
       let x1 = x, y1 = y;
-      if(window.TouchEvent && event instanceof TouchEvent && this._settings.input.value.touch.zoom === 2) {
+      if(window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2) {
         x1 = (event.touches[0].pageX - event.touches[1].pageX)/ window.innerWidth * (window.innerWidth / window.innerHeight);
         y1 = (event.touches[0].pageY - event.touches[1].pageY)/ window.innerHeight;
       }
@@ -60,32 +56,32 @@ export class CameraControlsEventDistribution implements IDomEventListener {
   }
 
   public onKey(event: KeyboardEvent): void {
-    if(!this._settings.enableKeyPan.value) return;
+    if(!this._controls.enableKeyPan) return;
     switch (event.keyCode) {
-      case this._settings.input.value.keys.up:
+      case this._controls.input.keys.up:
         this._cameraLogic.pan(0, 0, false, false);
-        this._cameraLogic.pan(0, this._settings.keyPanSpeed.value * 0.05, true, false);
+        this._cameraLogic.pan(0, this._controls.keyPanSpeed * 0.05, true, false);
         event.preventDefault();
         event.stopPropagation();
         break;
 
-      case this._settings.input.value.keys.down:
+      case this._controls.input.keys.down:
         this._cameraLogic.pan(0, 0, false, false);
-        this._cameraLogic.pan(0, -this._settings.keyPanSpeed.value * 0.05, true, false);
+        this._cameraLogic.pan(0, -this._controls.keyPanSpeed * 0.05, true, false);
         event.preventDefault();
         event.stopPropagation();
         break;
 
-      case this._settings.input.value.keys.left:
+      case this._controls.input.keys.left:
         this._cameraLogic.pan(0, 0, false, false);
-        this._cameraLogic.pan(this._settings.keyPanSpeed.value * 0.05, 0, true, false);
+        this._cameraLogic.pan(this._controls.keyPanSpeed * 0.05, 0, true, false);
         event.preventDefault();
         event.stopPropagation();
         break;
 
-      case this._settings.input.value.keys.right:
+      case this._controls.input.keys.right:
         this._cameraLogic.pan(0, 0, false, false);
-        this._cameraLogic.pan(-this._settings.keyPanSpeed.value * 0.05, 0, true, false);
+        this._cameraLogic.pan(-this._controls.keyPanSpeed * 0.05, 0, true, false);
         event.preventDefault();
         event.stopPropagation();
         break;
@@ -115,15 +111,15 @@ export class CameraControlsEventDistribution implements IDomEventListener {
   public onMove(event: MouseEvent|TouchEvent): void {
     let {x,y} = this.convertInput(event);
 
-    if (this._settings.enableRotation.value && this._active.rotation)
+    if (this._controls.enableRotation && this._active.rotation)
       this._cameraLogic.rotate(x, y, this._active.rotation, window.TouchEvent && event instanceof TouchEvent);
 
-    if (this._settings.enablePan.value && this._active.pan)
+    if (this._controls.enablePan && this._active.pan)
       this._cameraLogic.pan(x, y, this._active.pan, window.TouchEvent && event instanceof TouchEvent);
 
-    if (this._settings.enableZoom.value && this._active.zoom){
+    if (this._controls.enableZoom && this._active.zoom){
       let x1 = x, y1 = y;
-      if(window.TouchEvent && event instanceof TouchEvent && this._settings.input.value.touch.zoom === 2) {
+      if(window.TouchEvent && event instanceof TouchEvent && this._controls.input.touch.zoom === 2) {
         x1 = (event.touches[0].pageX - event.touches[1].pageX)/ window.innerWidth * (window.innerWidth / window.innerHeight);
         y1 = (event.touches[0].pageY - event.touches[1].pageY)/ window.innerHeight;
       }
@@ -150,7 +146,7 @@ export class CameraControlsEventDistribution implements IDomEventListener {
   }
 
   public onWheel(event: WheelEvent): void {
-    if(!this._settings.enableZoom.value) return;
+    if(!this._controls.enableZoom) return;
     let delta = 0;
     if (event.deltaY  !== undefined) {
       // WebKit / Opera / Explorer 9

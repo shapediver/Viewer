@@ -1,3 +1,5 @@
+import { ICameraEngine, OrthographicCameraControls } from "@shapediver/viewer.rendering-engine.camera-engine";
+
 export class OrthographicControls {
   // #region Properties (9)
 
@@ -14,6 +16,12 @@ export class OrthographicControls {
 
   // #endregion Properties (9)
 
+  // #region Constructors (1)
+
+  constructor(private readonly _cameraEngine: ICameraEngine) {}
+
+  // #endregion Constructors (1)
+
   // #region Public Accessors (18)
 
   /**
@@ -29,6 +37,7 @@ export class OrthographicControls {
    * @param {number} value
    */
   public set damping(value: number) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).damping = value;
     this._damping = value;
   }
 
@@ -45,6 +54,7 @@ export class OrthographicControls {
    * @param {boolean} value
    */
   public set enableKeyPan(value: boolean) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).enableKeyPan = value;
     this._enableKeyPan = value;
   }
 
@@ -61,6 +71,7 @@ export class OrthographicControls {
    * @param {boolean} value
    */
   public set enablePan(value: boolean) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).enablePan = value;
     this._enablePan = value;
   }
 
@@ -77,6 +88,7 @@ export class OrthographicControls {
    * @param {boolean} value
    */
   public set enableZoom(value: boolean) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).enableZoom = value;
     this._enableZoom = value;
   }
 
@@ -93,6 +105,7 @@ export class OrthographicControls {
    * @param {{ keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }} value
    */
   public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).input = value;
     this._input = value;
   }
 
@@ -109,6 +122,7 @@ export class OrthographicControls {
    * @param {number} value
    */
   public set keyPanSpeed(value: number) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).keyPanSpeed = value;
     this._keyPanSpeed = value;
   }
 
@@ -125,6 +139,7 @@ export class OrthographicControls {
    * @param {number} value
    */
   public set movementSmoothness(value: number) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).movementSmoothness = value;
     this._movementSmoothness = value;
   }
 
@@ -141,6 +156,7 @@ export class OrthographicControls {
    * @param {number} value
    */
   public set panSpeed(value: number) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).panSpeed = value;
     this._panSpeed = value;
   }
 
@@ -157,6 +173,7 @@ export class OrthographicControls {
    * @param {number} value
    */
   public set zoomSpeed(value: number) {
+    (<OrthographicCameraControls>this._cameraEngine.controls).zoomSpeed = value;
     this._zoomSpeed = value;
   }
 

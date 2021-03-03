@@ -5,7 +5,7 @@ import { OrthographicControls } from "./controls/OrthographicControls";
 export class OrthographicCamera extends AbstractCamera {
     // #region Properties (1)
 
-    private readonly _controls: OrthographicControls = new OrthographicControls();
+    private readonly _controls: OrthographicControls;
 
     // #endregion Properties (1)
 
@@ -13,6 +13,7 @@ export class OrthographicCamera extends AbstractCamera {
 
     constructor(id: string, cameraEngine: ICameraEngine) {
         super(id, cameraEngine, CAMERATYPE.ORTHOGRAPHIC);
+        this._controls = new OrthographicControls(cameraEngine);
       }
 
     // #endregion Constructors (1)

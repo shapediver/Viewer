@@ -2,9 +2,9 @@ import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services"
 import { Converter } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { CAMERATYPE } from "../interface/ICameraEngine";
-import { CameraControls } from "../../controls/implementation/CameraControls";
 import { AbstractCameraEngine } from "./AbstractCameraEngine";
 import { vec3 } from "gl-matrix";
+import { PerspectiveCameraControls } from "../../controls/implementation/PerspectiveCameraControls";
 
 export class PerspectiveCameraEngine extends AbstractCameraEngine {
     // #region Properties (3)
@@ -13,13 +13,15 @@ export class PerspectiveCameraEngine extends AbstractCameraEngine {
     private readonly _settingsEngine: SettingsEngine = container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = container.resolve(StateEngine);
 
+    private _fov: number = 800;
+
     // #endregion Properties (3)
 
     // #region Constructors (1)
 
     constructor(_canvas: HTMLCanvasElement) {
         super(CAMERATYPE.PERSPECTIVE);
-        this._controls = new CameraControls(_canvas, true, CAMERATYPE.PERSPECTIVE);
+        this._controls = new PerspectiveCameraControls(_canvas, true);
         this._stateEngine.settingsRegistered.then(() => {
             let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.position);
             let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target);
@@ -29,6 +31,22 @@ export class PerspectiveCameraEngine extends AbstractCameraEngine {
             }
             this.cameraDefinition = { position, target };
         });
+    }
+
+    /**
+     * Getter fov
+     * @return {number}
+     */
+    public get fov(): number {
+      return this._fov;
+    }
+  
+    /**
+     * Setter fov
+     * @param {number} value
+     */
+    public set fov(value: number) {
+      this._fov = value;
     }
 
     // #endregion Constructors (1)

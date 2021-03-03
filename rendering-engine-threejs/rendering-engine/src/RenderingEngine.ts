@@ -2,7 +2,7 @@ import { vec3, vec4 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe'
 
-import { CAMERATYPE, ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { CAMERATYPE, ICameraEngine, PerspectiveCameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Tree } from '@shapediver/viewer.shared.node-tree';
 
@@ -105,7 +105,7 @@ export class RenderingEngine implements IRenderingEngine {
             camera = this._orthographicCamera;
         } else {
             this._perspectiveCamera.up.set(0, 0, 1);
-            this._perspectiveCamera.fov = 75;
+            this._perspectiveCamera.fov = (<PerspectiveCameraEngine>this._cameraEngine).fov;
             this._perspectiveCamera.aspect = this._canvas.canvasElement.width / this.canvas.canvasElement.height;
             this._perspectiveCamera.near = 0.01;
             this._perspectiveCamera.far = 10000;

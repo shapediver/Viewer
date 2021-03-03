@@ -29,6 +29,7 @@ glTFv2Button.onclick = async () => {
 }
 
 (<any>window).sceneTree = api.sceneTree;
+(<any>window).api = api;
 
 // (<any>window).instances = async (count: number) => {
 //     const session = api.getSession('mySession');

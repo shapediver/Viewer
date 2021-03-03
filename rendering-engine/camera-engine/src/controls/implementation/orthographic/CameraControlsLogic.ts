@@ -1,21 +1,17 @@
-import { mat4, vec2, vec3 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 import * as THREE from 'three';
-import { container } from 'tsyringe';
+import { ICameraControlsLogic } from '../../interface/ICameraControlsLogic';
+import { OrthographicCameraControls } from '../../..';
 
-import { SettingsEngine } from '@shapediver/viewer.shared.services';
-
-import { ICameraControls } from '../../interface/ICameraControls';
-
-export class CameraControlsLogic {
+export class CameraControlsLogic implements ICameraControlsLogic {
     // #region Properties (16)
 
     private _adjustedSettings = {
-        damping: () => this._settings.damping.value * this._settingsAdjustments.damping,
-        movementSmoothness: () => this._settings.movementSmoothness.value * this._settingsAdjustments.movementSmoothness,
-        panSpeed: () => this._settings.panSpeed.value * this._settingsAdjustments.panSpeed,
-        zoomSpeed: () => this._settings.zoomSpeed.value * this._settingsAdjustments.zoomSpeed,
+        damping: () => this._controls.damping * this._settingsAdjustments.damping,
+        movementSmoothness: () => this._controls.movementSmoothness * this._settingsAdjustments.movementSmoothness,
+        panSpeed: () => this._controls.panSpeed * this._settingsAdjustments.panSpeed,
+        zoomSpeed: () => this._controls.zoomSpeed * this._settingsAdjustments.zoomSpeed,
     };
-    private _settings = (<SettingsEngine>container.resolve(SettingsEngine)).cameraOrthographicControls;
     private _damping: any = {
         rotation: {
             time: 0,
@@ -57,7 +53,7 @@ export class CameraControlsLogic {
 
     // #region Constructors (1)
 
-    constructor(private readonly _controls: ICameraControls) {}
+    constructor(private readonly _controls: OrthographicCameraControls) {}
 
     // #endregion Constructors (1)
 

@@ -1,7 +1,11 @@
-import { ICameraEngine, PerspectiveCameraControls } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { vec3 } from "gl-matrix";
+import { CAMERATYPE } from "../..";
+import { AbstractCameraControls } from "./AbstractCameraControls";
 
-export class OrbitControls {
+import { CameraControlsEventDistribution as OrbitCameraControlsEventDistribution } from './orbit/CameraControlsEventDistribution';
+import { CameraControlsLogic as OrbitCameraControlsLogic } from './orbit/CameraControlsLogic';
+
+export class PerspectiveCameraControls extends AbstractCameraControls {
     // #region Properties (19)
 
     private _autoRotationSpeed: number = 0;
@@ -26,7 +30,15 @@ export class OrbitControls {
 
     // #endregion Properties (19)
 
-    constructor(private readonly _cameraEngine: ICameraEngine) {}
+    // #region Constructors (1)
+
+    constructor(canvas: HTMLCanvasElement, enabled: boolean) {
+        super(canvas, enabled, CAMERATYPE.PERSPECTIVE);
+        this._cameraLogic = new OrbitCameraControlsLogic(this);
+        this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
+    }
+
+    // #endregion Constructors (1)
 
     // #region Public Accessors (38)
 
@@ -43,7 +55,6 @@ export class OrbitControls {
      * @param {number} value
      */
     public set autoRotationSpeed(value: number) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).autoRotationSpeed = value;
         this._autoRotationSpeed = value;
     }
 
@@ -60,7 +71,6 @@ export class OrbitControls {
      * @param {{ min: vec3, max: vec3 }} value
      */
     public set cubePositionRestriction(value: { min: vec3, max: vec3 }) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).cubePositionRestriction = value;
         this._cubePositionRestriction = value;
     }
 
@@ -77,7 +87,6 @@ export class OrbitControls {
      * @param {{ min: vec3, max: vec3 }} value
      */
     public set cubeTargetRestriction(value: { min: vec3, max: vec3 }) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).cubeTargetRestriction = value;
         this._cubeTargetRestriction = value;
     }
 
@@ -94,7 +103,6 @@ export class OrbitControls {
      * @param {number} value
      */
     public set damping(value: number) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).damping = value;
         this._damping = value;
     }
 
@@ -111,7 +119,6 @@ export class OrbitControls {
      * @param {boolean} value
      */
     public set enableAutoRotation(value: boolean) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).enableAutoRotation = value;
         this._enableAutoRotation = value;
     }
 
@@ -128,7 +135,6 @@ export class OrbitControls {
      * @param {boolean} value
      */
     public set enableKeyPan(value: boolean) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).enableKeyPan = value;
         this._enableKeyPan = value;
     }
 
@@ -145,7 +151,6 @@ export class OrbitControls {
      * @param {boolean} value
      */
     public set enablePan(value: boolean) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).enablePan = value;
         this._enablePan = value;
     }
 
@@ -162,7 +167,6 @@ export class OrbitControls {
      * @param {boolean} value
      */
     public set enableRotation(value: boolean) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).enableRotation = value;
         this._enableRotation = value;
     }
 
@@ -179,7 +183,6 @@ export class OrbitControls {
      * @param {boolean} value
      */
     public set enableZoom(value: boolean) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).enableZoom = value;
         this._enableZoom = value;
     }
 
@@ -196,7 +199,6 @@ export class OrbitControls {
      * @param {{ keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }} value
      */
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).input = value;
         this._input = value;
     }
 
@@ -213,7 +215,6 @@ export class OrbitControls {
      * @param {number} value
      */
     public set keyPanSpeed(value: number) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).keyPanSpeed = value;
         this._keyPanSpeed = value;
     }
 
@@ -230,7 +231,6 @@ export class OrbitControls {
      * @param {number} value
      */
     public set movementSmoothness(value: number) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).movementSmoothness = value;
         this._movementSmoothness = value;
     }
 
@@ -247,7 +247,6 @@ export class OrbitControls {
      * @param {number} value
      */
     public set panSpeed(value: number) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).panSpeed = value;
         this._panSpeed = value;
     }
 
@@ -264,7 +263,6 @@ export class OrbitControls {
      * @param {{ minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }} value
      */
     public set rotationRestriction(value: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).rotationRestriction = value;
         this._rotationRestriction = value;
     }
 
@@ -281,7 +279,6 @@ export class OrbitControls {
      * @param {number} value
      */
     public set rotationSpeed(value: number) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).rotationSpeed = value;
         this._rotationSpeed = value;
     }
 
@@ -298,7 +295,6 @@ export class OrbitControls {
      * @param {{ center: vec3, radius: number }} value
      */
     public set spherePositionRestriction(value: { center: vec3, radius: number }) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).spherePositionRestriction = value;
         this._spherePositionRestriction = value;
     }
 
@@ -315,7 +311,6 @@ export class OrbitControls {
      * @param {{ center: vec3, radius: number }} value
      */
     public set sphereTargetRestriction(value: { center: vec3, radius: number }) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).sphereTargetRestriction = value;
         this._sphereTargetRestriction = value;
     }
 
@@ -332,7 +327,6 @@ export class OrbitControls {
      * @param {{ minDistance: number, maxDistance: number }} value
      */
     public set zoomRestriction(value: { minDistance: number, maxDistance: number }) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).zoomRestriction = value;
         this._zoomRestriction = value;
     }
 
@@ -349,7 +343,6 @@ export class OrbitControls {
      * @param {number} value
      */
     public set zoomSpeed(value: number) {
-        (<PerspectiveCameraControls>this._cameraEngine.controls).zoomSpeed = value;
         this._zoomSpeed = value;
     }
 

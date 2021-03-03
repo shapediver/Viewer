@@ -54,7 +54,7 @@ export class Viewer implements IViewer {
     this._renderingEngine = renderingEngineThreejs;
 
     this._domEventEngine = new DomEventEngine(canvas);
-    this.createCamera(CAMERATYPE.ORTHOGRAPHIC);
+    this.createCamera(CAMERATYPE.PERSPECTIVE);
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;

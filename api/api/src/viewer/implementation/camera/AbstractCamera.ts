@@ -1,5 +1,5 @@
 import { vec3 } from "gl-matrix";
-import { CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { AbstractCameraEngine, CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
 
 export abstract class AbstractCamera {
   // #region Properties (9)
@@ -36,6 +36,7 @@ export abstract class AbstractCamera {
    * @param {boolean} value
    */
   public set autoAdjust(value: boolean) {
+    (<AbstractCameraEngine>this._cameraEngine).autoAdjust = value;
     this._autoAdjust = value;
   }
 
@@ -52,6 +53,7 @@ export abstract class AbstractCamera {
    * @param {number} value
    */
   public set cameraMovementDuration(value: number) {
+    (<AbstractCameraEngine>this._cameraEngine).cameraMovementDuration = value;
     this._cameraMovementDuration = value;
   }
 
@@ -68,6 +70,7 @@ export abstract class AbstractCamera {
    * @param {vec3} value
    */
   public set defaultPosition(value: vec3) {
+    (<AbstractCameraEngine>this._cameraEngine).defaultPosition = value;
     this._defaultPosition = value;
   }
 
@@ -84,6 +87,7 @@ export abstract class AbstractCamera {
    * @param {vec3} value
    */
   public set defaultTarget(value: vec3) {
+    (<AbstractCameraEngine>this._cameraEngine).defaultTarget = value;
     this._defaultTarget = value;
   }
 
@@ -100,6 +104,7 @@ export abstract class AbstractCamera {
    * @param {boolean} value
    */
   public set enableCameraControls(value: boolean) {
+    (<AbstractCameraEngine>this._cameraEngine).enableCameraControls = value;
     this._enableCameraControls = value;
   }
 
@@ -132,6 +137,7 @@ export abstract class AbstractCamera {
    * @param {boolean} value
    */
   public set revertAtMouseUp(value: boolean) {
+    (<AbstractCameraEngine>this._cameraEngine).revertAtMouseUp = value;
     this._revertAtMouseUp = value;
   }
 
@@ -148,6 +154,7 @@ export abstract class AbstractCamera {
    * @param {number} value
    */
   public set revertAtMouseUpDuration(value: number) {
+    (<AbstractCameraEngine>this._cameraEngine).revertAtMouseUpDuration = value;
     this._revertAtMouseUpDuration = value;
   }
 
@@ -172,6 +179,7 @@ export abstract class AbstractCamera {
    * @param {number} value
    */
   public set zoomExtentsFactor(value: number) {
+    (<AbstractCameraEngine>this._cameraEngine).zoomExtentsFactor = value;
     this._zoomExtentsFactor = value;
   }
 

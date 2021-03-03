@@ -1,23 +1,21 @@
-import { mat4, vec2, vec3 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 import * as THREE from 'three';
-import { container } from 'tsyringe';
-
-import { SettingsEngine } from '@shapediver/viewer.shared.services';
+import { PerspectiveCameraControls } from '../../..';
 
 import { ICameraControls } from '../../interface/ICameraControls';
+import { ICameraControlsLogic } from '../../interface/ICameraControlsLogic';
 
-export class CameraControlsLogic {
+export class CameraControlsLogic implements ICameraControlsLogic {
     // #region Properties (16)
 
     private _adjustedSettings = {
-        autoRotationSpeed: () => this._settings.autoRotationSpeed.value * this._settingsAdjustments.autoRotationSpeed,
-        damping: () => this._settings.damping.value * this._settingsAdjustments.damping,
-        movementSmoothness: () => this._settings.movementSmoothness.value * this._settingsAdjustments.movementSmoothness,
-        panSpeed: () => this._settings.panSpeed.value * this._settingsAdjustments.panSpeed,
-        rotationSpeed: () => this._settings.rotationSpeed.value * this._settingsAdjustments.rotationSpeed,
-        zoomSpeed: () => this._settings.zoomSpeed.value * this._settingsAdjustments.zoomSpeed,
+        autoRotationSpeed: () => this._controls.autoRotationSpeed * this._settingsAdjustments.autoRotationSpeed,
+        damping: () => this._controls.damping * this._settingsAdjustments.damping,
+        movementSmoothness: () => this._controls.movementSmoothness * this._settingsAdjustments.movementSmoothness,
+        panSpeed: () => this._controls.panSpeed * this._settingsAdjustments.panSpeed,
+        rotationSpeed: () => this._controls.rotationSpeed * this._settingsAdjustments.rotationSpeed,
+        zoomSpeed: () => this._controls.zoomSpeed * this._settingsAdjustments.zoomSpeed,
     };
-    private _settings = (<SettingsEngine>container.resolve(SettingsEngine)).cameraOrbitControls;
     private _damping: any = {
         rotation: {
             time: 0,
@@ -55,7 +53,7 @@ export class CameraControlsLogic {
         rotationSpeed: Math.PI,
         zoomSpeed: 0.025,
     };
-    private _touchAdjustements = {
+    private _touchAdjustments = {
         autoRotationSpeed: 1.0,
         damping: 1.0,
         movementSmoothness: 1.0,
@@ -68,7 +66,7 @@ export class CameraControlsLogic {
 
     // #region Constructors (1)
 
-    constructor(private readonly _controls: ICameraControls) {
+    constructor(private readonly _controls: PerspectiveCameraControls) {
         this._quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
         this._quatInverse = this._quat.clone().inverse();
     }
@@ -79,23 +77,23 @@ export class CameraControlsLogic {
 
     public isWithinRestrictions(position: any, target: any): boolean {
         let pCubeSetting = {
-            min: this.convertGlVectorToThreeVector(this._settings.restrictions.position.cube.value.min),
-            max: this.convertGlVectorToThreeVector(this._settings.restrictions.position.cube.value.max),
+            min: this.convertGlVectorToThreeVector(this._controls.cubePositionRestriction.min),
+            max: this.convertGlVectorToThreeVector(this._controls.cubePositionRestriction.max),
         },
         pSphereSetting = {
-            center: this.convertGlVectorToThreeVector(this._settings.restrictions.position.sphere.value.center),
-            radius: this._settings.restrictions.position.sphere.value.radius,
+            center: this.convertGlVectorToThreeVector(this._controls.spherePositionRestriction.center),
+            radius: this._controls.spherePositionRestriction.radius,
         };
         let pBox = new THREE.Box3(new THREE.Vector3(pCubeSetting.min.x, pCubeSetting.min.y, pCubeSetting.min.z), new THREE.Vector3(pCubeSetting.max.x, pCubeSetting.max.y, pCubeSetting.max.z)),
             pSphere = new THREE.Sphere(new THREE.Vector3(pSphereSetting.center.x, pSphereSetting.center.y, pSphereSetting.center.z), pSphereSetting.radius);
 
         let tCubeSetting = {
-            min: this.convertGlVectorToThreeVector(this._settings.restrictions.target.cube.value.min),
-            max: this.convertGlVectorToThreeVector(this._settings.restrictions.target.cube.value.max),
+            min: this.convertGlVectorToThreeVector(this._controls.cubeTargetRestriction.min),
+            max: this.convertGlVectorToThreeVector(this._controls.cubeTargetRestriction.max),
         },
         tSphereSetting = {
-            center: this.convertGlVectorToThreeVector(this._settings.restrictions.target.sphere.value.center),
-            radius: this._settings.restrictions.target.sphere.value.radius,
+            center: this.convertGlVectorToThreeVector(this._controls.sphereTargetRestriction.center),
+            radius: this._controls.sphereTargetRestriction.radius,
         };
         let tBox = new THREE.Box3(new THREE.Vector3(tCubeSetting.min.x, tCubeSetting.min.y, tCubeSetting.min.z), new THREE.Vector3(tCubeSetting.max.x, tCubeSetting.max.y, tCubeSetting.max.z)),
             tSphere = new THREE.Sphere(new THREE.Vector3(tSphereSetting.center.x, tSphereSetting.center.y, tSphereSetting.center.z), tSphereSetting.radius);
@@ -104,12 +102,12 @@ export class CameraControlsLogic {
         if (!(tBox.containsPoint(target) && tSphere.containsPoint(target))) return false;
 
         let currentDistance = position.distanceTo(target);
-        if (currentDistance > this._settings.restrictions.zoom.value.maxDistance || currentDistance < this._settings.restrictions.zoom.value.minDistance) return false;
+        if (currentDistance > this._controls.zoomRestriction.maxDistance || currentDistance < this._controls.zoomRestriction.minDistance) return false;
 
-        let minPolarAngle = this._settings.restrictions.rotation.value.minPolarAngle * (Math.PI / 180),
-            maxPolarAngle = this._settings.restrictions.rotation.value.maxPolarAngle * (Math.PI / 180),
-            minAzimuthAngle = this._settings.restrictions.rotation.value.minAzimuthAngle * (Math.PI / 180),
-            maxAzimuthAngle = this._settings.restrictions.rotation.value.maxAzimuthAngle * (Math.PI / 180);
+        let minPolarAngle = this._controls.rotationRestriction.minPolarAngle * (Math.PI / 180),
+            maxPolarAngle = this._controls.rotationRestriction.maxPolarAngle * (Math.PI / 180),
+            minAzimuthAngle = this._controls.rotationRestriction.minAzimuthAngle * (Math.PI / 180),
+            maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
 
         if (minAzimuthAngle !== -Infinity ||
             maxAzimuthAngle !== Infinity ||
@@ -144,7 +142,7 @@ export class CameraControlsLogic {
             if (this._panDelta.x === 0 && this._panDelta.y === 0) return;
             this._panStart.copy(this._panEnd);
 
-            let offset = this.panDeltaToOffset(this._panDelta.multiplyScalar(this._adjustedSettings.panSpeed() * (touch ? this._touchAdjustements.panSpeed : 1.0)));
+            let offset = this.panDeltaToOffset(this._panDelta.multiplyScalar(this._adjustedSettings.panSpeed() * (touch ? this._touchAdjustments.panSpeed : 1.0)));
 
             if (this._damping.pan.duration > 0) {
                 if (offset.x < 0) {
@@ -217,12 +215,12 @@ export class CameraControlsLogic {
 
         // cube and sphere position restrictions
         let pCubeSetting = {
-            min: this.convertGlVectorToThreeVector(this._settings.restrictions.position.cube.value.min),
-            max: this.convertGlVectorToThreeVector(this._settings.restrictions.position.cube.value.max),
+            min: this.convertGlVectorToThreeVector(this._controls.cubePositionRestriction.min),
+            max: this.convertGlVectorToThreeVector(this._controls.cubePositionRestriction.max),
         },
         pSphereSetting = {
-            center: this.convertGlVectorToThreeVector(this._settings.restrictions.position.sphere.value.center),
-            radius: this._settings.restrictions.position.sphere.value.radius,
+            center: this.convertGlVectorToThreeVector(this._controls.spherePositionRestriction.center),
+            radius: this._controls.spherePositionRestriction.radius,
         };
         let pBox = new THREE.Box3(new THREE.Vector3(pCubeSetting.min.x, pCubeSetting.min.y, pCubeSetting.min.z), new THREE.Vector3(pCubeSetting.max.x, pCubeSetting.max.y, pCubeSetting.max.z)),
             pSphere = new THREE.Sphere(new THREE.Vector3(pSphereSetting.center.x, pSphereSetting.center.y, pSphereSetting.center.z), pSphereSetting.radius);
@@ -235,12 +233,12 @@ export class CameraControlsLogic {
 
         // cube and sphere target restrictions
         let tCubeSetting = {
-            min: this.convertGlVectorToThreeVector(this._settings.restrictions.target.cube.value.min),
-            max: this.convertGlVectorToThreeVector(this._settings.restrictions.target.cube.value.max),
+            min: this.convertGlVectorToThreeVector(this._controls.cubeTargetRestriction.min),
+            max: this.convertGlVectorToThreeVector(this._controls.cubeTargetRestriction.max),
         },
         tSphereSetting = {
-            center: this.convertGlVectorToThreeVector(this._settings.restrictions.target.sphere.value.center),
-            radius: this._settings.restrictions.target.sphere.value.radius,
+            center: this.convertGlVectorToThreeVector(this._controls.sphereTargetRestriction.center),
+            radius: this._controls.sphereTargetRestriction.radius,
         };
         let tBox = new THREE.Box3(new THREE.Vector3(tCubeSetting.min.x, tCubeSetting.min.y, tCubeSetting.min.z), new THREE.Vector3(tCubeSetting.max.x, tCubeSetting.max.y, tCubeSetting.max.z)),
             tSphere = new THREE.Sphere(new THREE.Vector3(tSphereSetting.center.x, tSphereSetting.center.y, tSphereSetting.center.z), tSphereSetting.radius);
@@ -253,18 +251,18 @@ export class CameraControlsLogic {
 
         // zoom restrictions
         let currentDistance = position.distanceTo(target);
-        if (currentDistance > this._settings.restrictions.zoom.value.maxDistance || currentDistance < this._settings.restrictions.zoom.value.minDistance) {
+        if (currentDistance > this._controls.zoomRestriction.maxDistance || currentDistance < this._controls.zoomRestriction.minDistance) {
             let direction = new THREE.Vector3();
             direction.copy(position).sub(target).normalize();
-            let distance = Math.max(this._settings.restrictions.zoom.value.minDistance, Math.min(this._settings.restrictions.zoom.value.maxDistance, currentDistance));
+            let distance = Math.max(this._controls.zoomRestriction.minDistance, Math.min(this._controls.zoomRestriction.maxDistance, currentDistance));
             position = target.clone().add(direction.multiplyScalar(distance));
         }
 
         // angle restrictions
-        let minPolarAngle = this._settings.restrictions.rotation.value.minPolarAngle * (Math.PI / 180),
-            maxPolarAngle = this._settings.restrictions.rotation.value.maxPolarAngle * (Math.PI / 180),
-            minAzimuthAngle = this._settings.restrictions.rotation.value.minAzimuthAngle * (Math.PI / 180),
-            maxAzimuthAngle = this._settings.restrictions.rotation.value.maxAzimuthAngle * (Math.PI / 180);
+        let minPolarAngle = this._controls.rotationRestriction.minPolarAngle * (Math.PI / 180),
+            maxPolarAngle = this._controls.rotationRestriction.maxPolarAngle * (Math.PI / 180),
+            minAzimuthAngle = this._controls.rotationRestriction.minAzimuthAngle * (Math.PI / 180),
+            maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
 
         if (minAzimuthAngle !== -Infinity ||
             maxAzimuthAngle !== Infinity ||
@@ -310,7 +308,7 @@ export class CameraControlsLogic {
             if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return;
 
             let spherical = new THREE.Spherical();
-            let rotationSpeed = this._adjustedSettings.rotationSpeed() * (touch ? this._touchAdjustements.rotationSpeed : 1.0);
+            let rotationSpeed = this._adjustedSettings.rotationSpeed() * (touch ? this._touchAdjustments.rotationSpeed : 1.0);
             spherical.theta -= rotationSpeed * this._rotateDelta.x;
             spherical.phi -= rotationSpeed * this._rotateDelta.y;
 
@@ -399,7 +397,7 @@ export class CameraControlsLogic {
             this._damping.zoom.time = 0;
         }
 
-        if (this._settings.enableAutoRotation.value) {
+        if (this._controls.enableAutoRotation) {
             let spherical = new THREE.Spherical(1.0, 0.0, -this._adjustedSettings.autoRotationSpeed());
             let offset = this.rotationSphericalToOffset(spherical);
             this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)));
@@ -427,7 +425,7 @@ export class CameraControlsLogic {
                 }
             }
 
-            let delta = - this._dollyDelta * this._adjustedSettings.zoomSpeed() * (touch ? this._touchAdjustements.zoomSpeed : 1.0);
+            let delta = - this._dollyDelta * this._adjustedSettings.zoomSpeed() * (touch ? this._touchAdjustments.zoomSpeed : 1.0);
 
             let damping = 1 - Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
             let framesDelta = (Math.log(1 / Math.abs(this._dollyDelta)) - 5 * Math.log(10)) / (Math.log(damping));
@@ -502,8 +500,8 @@ export class CameraControlsLogic {
         spherical.theta += s.theta;
         spherical.phi += s.phi;
 
-        let minAzimuthAngle = this._settings.restrictions.rotation.value.minAzimuthAngle * (Math.PI / 180),
-            maxAzimuthAngle = this._settings.restrictions.rotation.value.maxAzimuthAngle * (Math.PI / 180);
+        let minAzimuthAngle = this._controls.rotationRestriction.minAzimuthAngle * (Math.PI / 180),
+            maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
 
         if (spherical.theta > Math.PI) {
             spherical.theta -= 2 * Math.PI;
