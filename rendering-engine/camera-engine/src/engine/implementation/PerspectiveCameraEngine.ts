@@ -2,7 +2,7 @@ import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services"
 import { Converter } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { CAMERATYPE } from "../interface/ICameraEngine";
-import { PerspectiveCameraControls } from "../../controls/implementation/PerspectiveCameraControls";
+import { CameraControls } from "../../controls/implementation/CameraControls";
 import { AbstractCameraEngine } from "./AbstractCameraEngine";
 
 export class PerspectiveCameraEngine extends AbstractCameraEngine {
@@ -18,7 +18,7 @@ export class PerspectiveCameraEngine extends AbstractCameraEngine {
 
     constructor(_canvas: HTMLCanvasElement) {
         super(CAMERATYPE.PERSPECTIVE);
-        this._controls = new PerspectiveCameraControls(_canvas, true);
+        this._controls = new CameraControls(_canvas, true, CAMERATYPE.PERSPECTIVE);
         this._stateEngine.settingsRegistered.then(() => {
             this.cameraDefinition = {
                 position: this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.position),

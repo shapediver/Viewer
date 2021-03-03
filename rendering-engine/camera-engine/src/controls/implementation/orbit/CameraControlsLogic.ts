@@ -10,12 +10,12 @@ export class CameraControlsLogic {
     // #region Properties (16)
 
     private _adjustedSettings = {
-        autoRotationSpeed: () => this._settings.autoRotationSpeed.value * this._settingsAdjustements.autoRotationSpeed,
-        damping: () => this._settings.damping.value * this._settingsAdjustements.damping,
-        movementSmoothness: () => this._settings.movementSmoothness.value * this._settingsAdjustements.movementSmoothness,
-        panSpeed: () => this._settings.panSpeed.value * this._settingsAdjustements.panSpeed,
-        rotationSpeed: () => this._settings.rotationSpeed.value * this._settingsAdjustements.rotationSpeed,
-        zoomSpeed: () => this._settings.zoomSpeed.value * this._settingsAdjustements.zoomSpeed,
+        autoRotationSpeed: () => this._settings.autoRotationSpeed.value * this._settingsAdjustments.autoRotationSpeed,
+        damping: () => this._settings.damping.value * this._settingsAdjustments.damping,
+        movementSmoothness: () => this._settings.movementSmoothness.value * this._settingsAdjustments.movementSmoothness,
+        panSpeed: () => this._settings.panSpeed.value * this._settingsAdjustments.panSpeed,
+        rotationSpeed: () => this._settings.rotationSpeed.value * this._settingsAdjustments.rotationSpeed,
+        zoomSpeed: () => this._settings.zoomSpeed.value * this._settingsAdjustments.zoomSpeed,
     };
     private _settings = (<SettingsEngine>container.resolve(SettingsEngine)).cameraOrbitControls;
     private _damping: any = {
@@ -47,7 +47,7 @@ export class CameraControlsLogic {
     private _rotateDelta = new THREE.Vector2();
     private _rotateEnd = new THREE.Vector2();
     private _rotateStart = new THREE.Vector2();
-    private _settingsAdjustements = {
+    private _settingsAdjustments = {
         autoRotationSpeed: 2 * Math.PI / 60 / 60,
         damping: 1.0,
         movementSmoothness: 1.0,
@@ -260,7 +260,7 @@ export class CameraControlsLogic {
             position = target.clone().add(direction.multiplyScalar(distance));
         }
 
-        // angle restricitions
+        // angle restrictions
         let minPolarAngle = this._settings.restrictions.rotation.value.minPolarAngle * (Math.PI / 180),
             maxPolarAngle = this._settings.restrictions.rotation.value.maxPolarAngle * (Math.PI / 180),
             minAzimuthAngle = this._settings.restrictions.rotation.value.minAzimuthAngle * (Math.PI / 180),

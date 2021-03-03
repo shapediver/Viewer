@@ -1,8 +1,8 @@
 import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { Converter } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
-import { CAMERATYPE } from "../interface/ICameraEngine";
-import { PerspectiveCameraControls } from "../../controls/implementation/PerspectiveCameraControls";
+import { CAMERATYPE, ICameraDefinition } from "../interface/ICameraEngine";
+import { CameraControls } from "../../controls/implementation/CameraControls";
 import { AbstractCameraEngine } from "./AbstractCameraEngine";
 
 export class OrthographicCameraEngine extends AbstractCameraEngine {
@@ -18,7 +18,7 @@ export class OrthographicCameraEngine extends AbstractCameraEngine {
 
     constructor(_canvas: HTMLCanvasElement) {
         super(CAMERATYPE.ORTHOGRAPHIC);
-        this._controls = new PerspectiveCameraControls(_canvas, true);
+        this._controls = new CameraControls(_canvas, true, CAMERATYPE.ORTHOGRAPHIC);
         this._stateEngine.settingsRegistered.then(() => {
             this.cameraDefinition = {
                 position: this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.position),
@@ -26,6 +26,6 @@ export class OrthographicCameraEngine extends AbstractCameraEngine {
             };
         });
     }
-
+    
     // #endregion Constructors (1)
 }

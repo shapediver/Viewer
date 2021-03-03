@@ -1,13 +1,13 @@
+import { IDomEventListener } from '@shapediver/viewer.shared.services';
 import { mat4, vec3 } from 'gl-matrix';
 
 import { ICameraDefinition } from '../../engine/interface/ICameraEngine';
-import { CameraControlsEventDistribution } from '../implementation/orbit/CameraControlsEventDistribution';
 
 export interface ICameraControls {
     // #region Properties (4)
 
     readonly canvas: HTMLCanvasElement;
-    readonly cameraControlsEventDistribution: CameraControlsEventDistribution;
+    readonly cameraControlsEventDistribution: IDomEventListener;
 
     enabled: boolean;
     position: vec3;

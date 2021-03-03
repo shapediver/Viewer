@@ -2,7 +2,7 @@ import { vec3, vec4 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe'
 
-import { ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { CAMERATYPE, ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Tree } from '@shapediver/viewer.shared.node-tree';
 
@@ -13,6 +13,7 @@ import { StateEngine, SettingsEngine } from '@shapediver/viewer.shared.services'
 import { Converter } from '@shapediver/viewer.shared.utils';
 import { SDObject } from './SDObject';
 import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
+import { CAMERA } from '@shapediver/viewer.shared.services/dist/event-engine/EventTypes';
 
 export class RenderingEngine implements IRenderingEngine {
     // #region Properties (9)
@@ -23,6 +24,9 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _settings = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _tree: Tree = <Tree>container.resolve(Tree);
+
+    private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
+    private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
 
     private _cameraEngine!: ICameraEngine;
     private _canvas!: Canvas;
@@ -84,6 +88,35 @@ export class RenderingEngine implements IRenderingEngine {
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     }
 
+    private adjustCamera(time: number): THREE.Camera {
+        let camera: THREE.Camera;
+        const cameraDefinition = this.cameraEngine.update(time);
+        if(this._cameraEngine.type === CAMERATYPE.ORTHOGRAPHIC) {
+            const aspect = this._canvas.canvasElement.width / this.canvas.canvasElement.height;
+            const distance = vec3.distance(cameraDefinition.position, cameraDefinition.target) / 2;
+            this._orthographicCamera.up.set(0, 0, 1);
+            this._orthographicCamera.left = -distance * aspect;
+            this._orthographicCamera.bottom = -distance;
+            this._orthographicCamera.right = distance * aspect;
+            this._orthographicCamera.top = distance;
+            this._orthographicCamera.near = 0.01 * distance;
+            this._orthographicCamera.far = 10000 * distance;
+            this._orthographicCamera.updateProjectionMatrix();
+            camera = this._orthographicCamera;
+        } else {
+            this._perspectiveCamera.up.set(0, 0, 1);
+            this._perspectiveCamera.fov = 75;
+            this._perspectiveCamera.aspect = this._canvas.canvasElement.width / this.canvas.canvasElement.height;
+            this._perspectiveCamera.near = 0.01;
+            this._perspectiveCamera.far = 10000;
+            this._perspectiveCamera.updateProjectionMatrix();
+            camera = this._perspectiveCamera;
+        }
+        camera.position.set(cameraDefinition.position[0], cameraDefinition.position[1], cameraDefinition.position[2]);
+        camera.lookAt(cameraDefinition.target[0], cameraDefinition.target[1], cameraDefinition.target[2]);
+        return camera;
+    }
+
     // #endregion Public Methods (1)
 
     // #region Private Methods (1)
@@ -93,8 +126,6 @@ export class RenderingEngine implements IRenderingEngine {
 
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-        const camera = new THREE.PerspectiveCamera(75, this._canvas.canvasElement.width / this.canvas.canvasElement.height, 0.1, 100000);
-        camera.lookAt(0, 0, 0);
 
         (<SceneTree>this._sceneTree).scene.background = new THREE.Color(0xffffff)
 
@@ -174,16 +205,8 @@ export class RenderingEngine implements IRenderingEngine {
             deltaTime = deltaTime < 0 ? 0 : deltaTime;
             this._lastTime = time;
             if(!this.cameraEngine) return;
-
-            (<THREE.PerspectiveCamera>camera).fov = this._settings.camera.cameraTypes.perspective.fov.value;
-            camera.aspect = this.canvas.canvasElement.width / this.canvas.canvasElement.height;
-            camera.updateProjectionMatrix();
-
+            const camera = this.adjustCamera(deltaTime);
             renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
-
-            const cameraDefinition = this.cameraEngine.update(deltaTime);
-            camera.position.set(cameraDefinition.position[0], cameraDefinition.position[1], cameraDefinition.position[2]);
-            camera.lookAt(cameraDefinition.target[0], cameraDefinition.target[1], cameraDefinition.target[2])
             renderer.render((<SceneTree>this._sceneTree).scene, camera);
         };
         animate(0);
