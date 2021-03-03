@@ -4,6 +4,7 @@ import { container } from "tsyringe";
 import { CAMERATYPE } from "../interface/ICameraEngine";
 import { CameraControls } from "../../controls/implementation/CameraControls";
 import { AbstractCameraEngine } from "./AbstractCameraEngine";
+import { vec3 } from "gl-matrix";
 
 export class PerspectiveCameraEngine extends AbstractCameraEngine {
     // #region Properties (3)
@@ -20,10 +21,13 @@ export class PerspectiveCameraEngine extends AbstractCameraEngine {
         super(CAMERATYPE.PERSPECTIVE);
         this._controls = new CameraControls(_canvas, true, CAMERATYPE.PERSPECTIVE);
         this._stateEngine.settingsRegistered.then(() => {
-            this.cameraDefinition = {
-                position: this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.position),
-                target: this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target)
-            };
+            let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.position);
+            let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target);
+            if(vec3.equals(position, target)) {
+                position = vec3.fromValues(0, 1, 0);
+                target = vec3.create();
+            }
+            this.cameraDefinition = { position, target };
         });
     }
 
