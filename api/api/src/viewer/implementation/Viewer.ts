@@ -4,15 +4,17 @@ import { container } from "tsyringe";
 import { IViewer, RENDERERTYPE } from "../interfaces/IViewer";
 import { AbstractCamera as Camera } from "./camera/AbstractCamera";
 import { PerspectiveCamera } from "./camera/PerspectiveCamera";
-import { CameraEngine, CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { CAMERATYPE, ICameraEngine, OrthographicCameraEngine, PerspectiveCameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { OrthographicCamera } from "./camera/OrthographicCamera";
 import { vec3 } from "gl-matrix";
-import { UuidGenerator } from "../../../../../shared/services/node_modules/@shapediver/viewer.shared.utils/dist";
+import { UuidGenerator } from "@shapediver/viewer.shared.utils";
+import { DomEventEngine } from "@shapediver/viewer.shared.services";
 
 export class Viewer implements IViewer {
   // #region Properties (21)
 
   private readonly _renderingEngine: RenderingEngine;
+  private readonly _domEventEngine: DomEventEngine;
   private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
   private readonly _cameras: {
     [key: string]: {
@@ -51,6 +53,7 @@ export class Viewer implements IViewer {
     container.registerInstance(name, renderingEngineThreejs);
     this._renderingEngine = renderingEngineThreejs;
 
+    this._domEventEngine = new DomEventEngine(canvas);
     this.createCamera(CAMERATYPE.PERSPECTIVE);
 
     canvas.width = window.innerWidth;
@@ -391,14 +394,16 @@ export class Viewer implements IViewer {
 
   public createCamera(type?: CAMERATYPE): Camera {
     if(CAMERATYPE.ORTHOGRAPHIC === type) {
-      const engine = new CameraEngine(this.renderingEngine.canvas.canvasElement, CAMERATYPE.ORTHOGRAPHIC);
+      const engine = new OrthographicCameraEngine(this.renderingEngine.canvas.canvasElement);
+      this._domEventEngine.addDomEventListener(engine.controls.cameraControlsEventDistribution);
       const cameraId = this._uuidGenerator.create();
       const camera = new OrthographicCamera(cameraId, engine);
       this._cameras[cameraId] = { camera, engine };
       this.assignCamera(camera);
       return camera;
     } else {
-      const engine = new CameraEngine(this.renderingEngine.canvas.canvasElement, CAMERATYPE.PERSPECTIVE);
+      const engine = new PerspectiveCameraEngine(this.renderingEngine.canvas.canvasElement);
+      this._domEventEngine.addDomEventListener(engine.controls.cameraControlsEventDistribution);
       const cameraId = this._uuidGenerator.create();
       const camera = new PerspectiveCamera(cameraId, engine);
       this._cameras[cameraId] = { camera, engine };

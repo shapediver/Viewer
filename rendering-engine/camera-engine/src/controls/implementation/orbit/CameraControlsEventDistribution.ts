@@ -4,7 +4,9 @@ import { SettingsEngine } from '@shapediver/viewer.shared.services';
 
 import { CameraControlsLogic } from './CameraControlsLogic';
 
-export class CameraControlsEventDistribution {
+import { IDomEventListener } from '@shapediver/viewer.shared.services'
+
+export class CameraControlsEventDistribution implements IDomEventListener {
   // #region Properties (2)
 
   private _active = {

@@ -1,6 +1,12 @@
-import { CameraEngine } from "./implementation/CameraEngine";
-import { CAMERATYPE, ICameraEngine } from "./interface/ICameraEngine";
+import { AbstractCameraEngine } from "./engine/implementation/AbstractCameraEngine";
+import { OrthographicCameraEngine } from "./engine/implementation/OrthographicCameraEngine";
+import { PerspectiveCameraEngine } from "./engine/implementation/PerspectiveCameraEngine";
+import { CAMERATYPE, ICameraEngine } from "./engine/interface/ICameraEngine";
 
 export {
-  ICameraEngine, CameraEngine, CAMERATYPE
+  ICameraEngine, AbstractCameraEngine, CAMERATYPE
+}
+
+export { 
+  PerspectiveCameraEngine, OrthographicCameraEngine
 }

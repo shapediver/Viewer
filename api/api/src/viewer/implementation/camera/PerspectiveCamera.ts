@@ -1,6 +1,6 @@
 import { AbstractCamera } from "./AbstractCamera";
 import { OrbitControls } from "./controls/OrbitControls";
-import { CameraEngine, CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { CAMERATYPE, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
 
 export class PerspectiveCamera extends AbstractCamera {
   // #region Properties (2)

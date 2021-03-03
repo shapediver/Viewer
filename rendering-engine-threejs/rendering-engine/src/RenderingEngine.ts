@@ -2,7 +2,7 @@ import { vec3, vec4 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe'
 
-import { CameraEngine, ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Tree } from '@shapediver/viewer.shared.node-tree';
 
@@ -18,16 +18,16 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Properties (9)
 
     private readonly _canvasEngine: CanvasEngine;
+    private readonly _converter = <Converter>container.resolve(Converter);
+    private readonly _lightEngine = <LightEngine>container.resolve(LightEngine);
+    private readonly _settings = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _tree: Tree = <Tree>container.resolve(Tree);
 
-    protected readonly _converter = <Converter>container.resolve(Converter);
-    protected readonly _lightEngine = <LightEngine>container.resolve(LightEngine);
-    protected readonly _settings = <SettingsEngine>container.resolve(SettingsEngine);
-    protected readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
-    protected readonly _tree: Tree = <Tree>container.resolve(Tree);
-
-    protected _cameraEngine!: ICameraEngine;
-    protected _canvas!: Canvas;
-    protected _sceneTree!: SceneTree;
+    private _cameraEngine!: ICameraEngine;
+    private _canvas!: Canvas;
+    private _sceneTree!: SceneTree;
+    private _lastTime: number = 0;
 
     // #endregion Properties (9)
 
@@ -41,7 +41,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (3)
+    // #region Public Accessors (4)
 
     /**
      * Getter cameraEngine
@@ -75,7 +75,7 @@ export class RenderingEngine implements IRenderingEngine {
         return this._lightEngine;
     }
 
-    // #endregion Public Accessors (3)
+    // #endregion Public Accessors (4)
 
     // #region Public Methods (1)
 
@@ -170,6 +170,9 @@ export class RenderingEngine implements IRenderingEngine {
 
         const animate = (time: number) => {
             requestAnimationFrame(animate);
+            let deltaTime = time - this._lastTime;
+            deltaTime = deltaTime < 0 ? 0 : deltaTime;
+            this._lastTime = time;
             if(!this.cameraEngine) return;
 
             (<THREE.PerspectiveCamera>camera).fov = this._settings.camera.cameraTypes.perspective.fov.value;
@@ -178,7 +181,7 @@ export class RenderingEngine implements IRenderingEngine {
 
             renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
 
-            const cameraDefinition = this.cameraEngine.update(time);
+            const cameraDefinition = this.cameraEngine.update(deltaTime);
             camera.position.set(cameraDefinition.position[0], cameraDefinition.position[1], cameraDefinition.position[2]);
             camera.lookAt(cameraDefinition.target[0], cameraDefinition.target[1], cameraDefinition.target[2])
             renderer.render((<SceneTree>this._sceneTree).scene, camera);

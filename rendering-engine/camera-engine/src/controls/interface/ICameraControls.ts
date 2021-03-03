@@ -1,12 +1,13 @@
 import { mat4, vec3 } from 'gl-matrix';
 
-import { ICameraControlsManager } from './ICameraControlsManager';
-import { ICameraDefinition } from './ICameraEngine';
+import { ICameraDefinition } from '../../engine/interface/ICameraEngine';
+import { CameraControlsEventDistribution } from '../implementation/orbit/CameraControlsEventDistribution';
 
 export interface ICameraControls {
     // #region Properties (4)
 
     readonly canvas: HTMLCanvasElement;
+    readonly cameraControlsEventDistribution: CameraControlsEventDistribution;
 
     enabled: boolean;
     position: vec3;
@@ -20,14 +21,11 @@ export interface ICameraControls {
     applyPositionMatrix(matrix: mat4, manualInteraction?: boolean): void;
     applyTargetMatrix(matrix: mat4, manualInteraction?: boolean): void;
     applyUpMatrix(matrix: mat4, manualInteraction?: boolean): void;
-    dispose(): void;
     getPositionWithManualUpdates(): vec3;
     getTargetWithManualUpdates(): vec3;
     isMoving(): boolean;
     isWithinRestrictions(position: vec3, target: vec3): boolean;
-    registerCameraControls(cameraControlsManager: ICameraControlsManager): void;
-    reset(): void;
-    update(time?: number): ICameraDefinition;
+    update(time: number): ICameraDefinition;
 
     // #endregion Public Methods (12)
 }

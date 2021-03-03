@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@shapediver/viewer.shared.node-tree": "^0.0.0",
+    "@shapediver/viewer.shared.utils": "^0.0.0",
     "@shapediver/viewer.rendering-engine.camera-engine": "^0.0.0",
     "@shapediver/viewer.rendering-engine.canvas-engine": "^0.0.0",
     "@shapediver/viewer.rendering-engine.light-engine": "^0.0.0"

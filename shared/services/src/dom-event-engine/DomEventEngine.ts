@@ -1,9 +1,14 @@
-import { ICameraControlsManager } from '../interface/ICameraControlsManager';
+import { container } from 'tsyringe'
+import { UuidGenerator } from "@shapediver/viewer.shared.utils";
+import { IDomEventListener } from "./IDomEventListener";
 
-export class CameraEventManager {
+export class DomEventEngine {
     // #region Properties (3)
 
-    private _cameraControlsManager!: ICameraControlsManager;
+    private readonly _uuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _domEventListeners: {
+        [key: string]: IDomEventListener
+    } = {};
     private _canvas: HTMLCanvasElement;
     private _currentMousePosition: { x: number, y: number } = { x: 0, y: 0 };
 
@@ -20,8 +25,15 @@ export class CameraEventManager {
 
     // #region Public Accessors (1)
 
-    public set cameraControlsManager(cameraControlsManager: ICameraControlsManager) {
-        this._cameraControlsManager = cameraControlsManager;
+    public addDomEventListener(listener: IDomEventListener): string {
+        const id = this._uuidGenerator.create();
+        this._domEventListeners[id] = listener;
+        return id;
+    }
+
+    public removeDomEventListener(id: string): void {
+        if(this._domEventListeners[id])
+            delete this._domEventListeners[id];
     }
 
     // #endregion Public Accessors (1)
@@ -62,7 +74,7 @@ export class CameraEventManager {
 
     private onKeyDown(event: KeyboardEvent): void {
         if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y))
-            this._cameraControlsManager.onKeyDown(event);
+            Object.values(this._domEventListeners).forEach(e => e.onKeyDown(event));
     }
 
     private onKeyDownMousePositionHelper(event: MouseEvent): void {
@@ -71,34 +83,34 @@ export class CameraEventManager {
 
     private onMouseDown(event: MouseEvent): void {
         event.preventDefault();
-        this._cameraControlsManager.onMouseDown(event);
+        Object.values(this._domEventListeners).forEach(e => e.onMouseDown(event));
     }
 
     private onMouseMove(event: MouseEvent): void {
         event.preventDefault();
-        this._cameraControlsManager.onMouseMove(event);
+        Object.values(this._domEventListeners).forEach(e => e.onMouseMove(event));
     }
 
     private onMouseUp(event: MouseEvent): void {
-        this._cameraControlsManager.onMouseUp(event);
+        Object.values(this._domEventListeners).forEach(e => e.onMouseUp(event));
     }
 
     private onMouseWheel(event: Event): void {
         event.preventDefault();
         event.stopPropagation();
-        this._cameraControlsManager.onMouseWheel(<MouseWheelEvent>event);
+        Object.values(this._domEventListeners).forEach(e => e.onMouseWheel(<WheelEvent>event));
     }
 
     private onTouchEnd(event: TouchEvent): void {
-        this._cameraControlsManager.onTouchEnd(event);
+        Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
     }
 
     private onTouchMove(event: TouchEvent): void {
-        this._cameraControlsManager.onTouchMove(event);
+        Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event));
     }
 
     private onTouchStart(event: TouchEvent): void {
-        this._cameraControlsManager.onTouchStart(event);
+        Object.values(this._domEventListeners).forEach(e => e.onTouchStart(event));
     }
 
     private removeEventListeners() {

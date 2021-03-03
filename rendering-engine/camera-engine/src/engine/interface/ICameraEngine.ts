@@ -1,4 +1,5 @@
 import { vec3 } from 'gl-matrix';
+import { ICameraControls } from '../../controls/interface/ICameraControls';
 
 export interface ICameraDefinition {
     // #region Properties (2)
@@ -19,6 +20,7 @@ export interface ICameraEngine {
     // #region Properties (1)
 
     cameraDefinition: ICameraDefinition;
+    readonly controls: ICameraControls;
     readonly type: CAMERATYPE;
 
     // #endregion Properties (1)

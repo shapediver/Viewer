@@ -22,3 +22,10 @@ import { SystemInfo } from "./system-info/SystemInfo";
 export {
     SystemInfo
 }
+
+import { DomEventEngine } from "./dom-event-engine/DomEventEngine";
+import { IDomEventListener } from "./dom-event-engine/IDomEventListener";
+
+export {
+    IDomEventListener, DomEventEngine
+}
