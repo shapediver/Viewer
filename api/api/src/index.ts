@@ -1,22 +1,11 @@
+import { CAMERATYPE } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { container } from "tsyringe";
+import { LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { Api } from "./Api";
-import { IExport } from "./session/interfaces/IExport";
-import { IParameter } from "./session/interfaces/IParameter";
-import { ISession } from "./session/interfaces/ISession";
-import { IViewer, RENDERERTYPE } from "./viewer/interfaces/IViewer";
+import { RENDERERTYPE } from "./viewer/Viewer";
 
 export const api = <Api>container.resolve(Api);
 
 export {
-    ISession as Session, 
-    IParameter as Parameter, 
-    IExport as Export
-}
-
-export {
-    IViewer as Viewer
-}
-
-export {
-    RENDERERTYPE
+    RENDERERTYPE, CAMERATYPE, LIGHTTYPE
 }

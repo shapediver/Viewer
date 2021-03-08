@@ -1,7 +1,6 @@
 import { SessionOutput, SessionOutputContent } from "@shapediver/viewer.shared.types";
-import { IOutput } from "../interfaces/IOutput";
 
-export class Output implements IOutput {
+export class Output {
     // #region Properties (7)
 
     private readonly _bbmax?: number[];

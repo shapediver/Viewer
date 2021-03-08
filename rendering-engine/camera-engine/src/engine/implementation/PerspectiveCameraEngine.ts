@@ -19,8 +19,8 @@ export class PerspectiveCameraEngine extends AbstractCameraEngine {
 
     // #region Constructors (1)
 
-    constructor(_canvas: HTMLCanvasElement) {
-        super(CAMERATYPE.PERSPECTIVE);
+    constructor(id: string, _canvas: HTMLCanvasElement) {
+        super(id, CAMERATYPE.PERSPECTIVE);
         this._controls = new PerspectiveCameraControls(_canvas, true);
         this._stateEngine.settingsRegistered.then(() => {
             let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.position);

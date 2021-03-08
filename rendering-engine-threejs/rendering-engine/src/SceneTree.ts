@@ -45,8 +45,10 @@ export class SceneTree {
             if (light.convertedObjects[k] instanceof SDObject)
                 converted = <SDObject>light.convertedObjects[k];
 
-        if (!converted) 
+        if (!converted) {
             converted = new SDObject(light.id, light.version);
+            light.convertedObjects.push(converted);
+        }
 
         if (light instanceof AmbientLight) {
             const threeLight: THREE.AmbientLight = converted.children[0] instanceof THREE.AmbientLight ? (<THREE.AmbientLight>converted.children[0]) : new THREE.AmbientLight();
@@ -68,7 +70,7 @@ export class SceneTree {
             threeLight.position.set(bs.center[0] + light.direction[0] * bs.radius * 2.35, bs.center[1] + light.direction[1] * bs.radius * 2.35, bs.center[2] + light.direction[2] * bs.radius * 2.35);
             threeLight.target.position.set(bs.center[0], bs.center[1], bs.center[2]);
 
-            if (light.castShadow) {
+            if (light.castShadow === true) {
                 threeLight.castShadow = true;
                 threeLight.shadow.camera.up.set(0, 0, 1);
                 threeLight.shadow.camera.far = 8 * bs.radius;
@@ -81,6 +83,8 @@ export class SceneTree {
                 threeLight.shadow.radius = 2;
                 threeLight.shadow.bias = -0.00175;
                 threeLight.shadow.camera.updateProjectionMatrix();
+              } else {
+                threeLight.castShadow = false;
               }
         }
 
@@ -470,7 +474,6 @@ export class SceneTree {
 
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
-        this._boundingBox = new Box();
 
         this._geometryCache = {};
         if (!this._mainNode) {
@@ -480,7 +483,7 @@ export class SceneTree {
 
         this.updateNode(root, this._mainNode);
 
-        const lightScene = lightEngine.getLightScene(lightEngine.getCurrentLightScene());
+        const lightScene = lightEngine.getLightSceneObject();
         const lightSceneChildren = <SDObject[]>this._mainNode.children.filter(oc => lightScene.node.id === (<SDObject>oc).SDid);
         if (lightSceneChildren.length > 1) {
             this.updateNode(lightScene.node, lightSceneChildren[0]);
@@ -522,8 +525,10 @@ export class SceneTree {
         const childrenToRemove = obj.children.filter(oc => (!nodeIds.includes((<SDObject>oc).SDid)) && !(dataIds.includes((<SDObject>oc).SDid) && dataVersions.includes((<SDObject>oc).SDversion)));
 
         // remove children that are not anymore in there
-        for (const objChild of childrenToRemove)
+        for (const objChild of childrenToRemove) {
+            // TODO BB removal
             obj.remove(objChild);
+        }
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.getNumberOfChildren(); i < len; i++) {

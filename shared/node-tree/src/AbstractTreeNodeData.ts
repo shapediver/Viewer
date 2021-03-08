@@ -2,6 +2,7 @@ import { container } from 'tsyringe'
 
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { ITreeNodeData } from './interfaces/ITreeNodeData';
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 
 export abstract class AbstractTreeNodeData implements ITreeNodeData {
   // #region Properties (3)
@@ -10,6 +11,7 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 
   protected readonly _id: string;
   protected readonly _uuidGenerator = container.resolve(UuidGenerator);
+  protected readonly _eventEngine = container.resolve(EventEngine);
 
   // #endregion Properties (3)
 
@@ -54,6 +56,7 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
    */
   public updateVersion(): void {
     this._version = this._uuidGenerator.create();
+    this._eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
   // #endregion Public Methods (1)

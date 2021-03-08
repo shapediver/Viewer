@@ -14,7 +14,7 @@ export interface ILightScene {
 
     addLight(light: ILight): void;
     getLight(id: string): ILight;
-    removeLight(light: ILight): boolean;
+    removeLight(id: string): boolean;
 
     // #endregion Public Methods (3)
 }

@@ -1,7 +1,6 @@
 import { SessionExport } from "@shapediver/viewer.shared.types";
-import { IExport } from "../interfaces/IExport";
 
-export class Export implements IExport {
+export class Export {
     // #region Properties (2)
 
     private _name?: string;

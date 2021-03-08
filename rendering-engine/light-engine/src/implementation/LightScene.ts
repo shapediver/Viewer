@@ -38,24 +38,31 @@ export class LightScene implements ILightScene {
     // #region Public Methods (3)
 
     public addLight(light: AbstractLight): void {
-        const node = new TreeNode(light.lightId);
+        const node = new TreeNode(light.id);
         node.data.push(light);
         this._node.addChild(node)
-        this._lights[light.lightId] = light;
-
+        this._lights[light.id] = light;
+        
+        this._node.updateVersion();
     }
 
     public getLight(id: string): AbstractLight {
         return <AbstractLight>this._lights[id];
     }
 
-    public removeLight(light: AbstractLight): boolean {
-        if (!this._lights[light.lightId]) return false;
+    public removeLight(id: string): boolean {
+        if (!this._lights[id]) return false;
 
-        const node = this._node.getChild(light.lightId);
-        this._node.removeChild(node);
+        for(let i = 0; i < this._node.getNumberOfChildren(); i++) {
+            const node = this._node.getChildAt(i);
+            if(node.name === id) {
+                this._node.removeChild(node);
+                break;
+            }
+        }
 
-        delete this._lights[light.lightId];
+        delete this._lights[id];
+        this._node.updateVersion();
         return true;
     }
 

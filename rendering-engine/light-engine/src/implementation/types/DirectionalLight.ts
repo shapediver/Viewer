@@ -34,6 +34,7 @@ export class DirectionalLight extends AbstractLight {
      */
     public set castShadow(value: boolean) {
         this._castShadow = value;
+        this.updateVersion();
     }
 
     /**
@@ -50,6 +51,7 @@ export class DirectionalLight extends AbstractLight {
      */
     public set direction(value: vec3) {
         this._direction = value;
+        this.updateVersion();
     }
 
     // #endregion Public Accessors (4)

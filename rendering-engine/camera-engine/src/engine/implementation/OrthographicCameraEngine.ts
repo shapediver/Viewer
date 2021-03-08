@@ -17,8 +17,8 @@ export class OrthographicCameraEngine extends AbstractCameraEngine {
 
     // #region Constructors (1)
 
-    constructor(_canvas: HTMLCanvasElement) {
-        super(CAMERATYPE.ORTHOGRAPHIC);
+    constructor(id: string, _canvas: HTMLCanvasElement) {
+        super(id, CAMERATYPE.ORTHOGRAPHIC);
         this._controls = new OrthographicCameraControls(_canvas, true);
         this._stateEngine.settingsRegistered.then(() => {
             let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.position);

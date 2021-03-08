@@ -14,7 +14,6 @@ export interface ILight {
 
   color: vec3,
   intensity: number,
-  lightId: string,
   name?: string
   type: LIGHTTYPE,
 

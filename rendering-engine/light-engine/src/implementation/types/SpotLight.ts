@@ -38,6 +38,7 @@ export class SpotLight extends AbstractLight {
    */
   public set angle(value: number) {
     this._angle = value;
+    this.updateVersion();
   }
 
   /**
@@ -54,6 +55,7 @@ export class SpotLight extends AbstractLight {
    */
   public set decay(value: number) {
     this._decay = value;
+    this.updateVersion();
   }
 
   /**
@@ -70,6 +72,7 @@ export class SpotLight extends AbstractLight {
    */
   public set distance(value: number) {
     this._distance = value;
+    this.updateVersion();
   }
 
   /**
@@ -86,6 +89,7 @@ export class SpotLight extends AbstractLight {
    */
   public set penumbra(value: number) {
     this._penumbra = value;
+    this.updateVersion();
   }
 
   /**
@@ -102,6 +106,7 @@ export class SpotLight extends AbstractLight {
    */
   public set position(value: vec3) {
     this._position = value;
+    this.updateVersion();
   }
 
   /**
@@ -118,6 +123,7 @@ export class SpotLight extends AbstractLight {
    */
   public set target(value: vec3) {
     this._target = value;
+    this.updateVersion();
   }
 
   // #endregion Public Accessors (12)

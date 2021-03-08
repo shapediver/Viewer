@@ -8,7 +8,6 @@ import { container } from "tsyringe";
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
     // #region Properties (1)
 
-    private readonly _lightId: string;
     protected readonly _uuidGenerator = container.resolve(UuidGenerator);
     private _convertedObjects: ISDObject[] = [];
     
@@ -19,11 +18,10 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     constructor(
         private _color: vec3,
         private _intensity: number,
-        private _type: LIGHTTYPE,
+        private readonly _type: LIGHTTYPE,
         private _name?: string
     ) {
         super();
-        this._lightId = this._uuidGenerator.create();
     }
 
     // #endregion Constructors (1)
@@ -36,6 +34,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     public set color(value: vec3) {
         this._color = value;
+        this.updateVersion();
     }
 
     public get intensity(): number {
@@ -44,10 +43,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     public set intensity(value: number) {
         this._intensity = value;
-    }
-
-    public get lightId(): string {
-        return this._lightId;
+        this.updateVersion();
     }
 
     public get name(): string | undefined {
@@ -56,14 +52,11 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     public set name(value: string | undefined) {
         this._name = value;
+        this.updateVersion();
     }
 
     public get type(): LIGHTTYPE {
         return this._type;
-    }
-
-    public set type(value: LIGHTTYPE) {
-        this._type = value;
     }
 
 

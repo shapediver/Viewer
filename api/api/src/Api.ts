@@ -1,123 +1,143 @@
 import { Tree } from "@shapediver/viewer.shared.node-tree";
 import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { container, singleton } from "tsyringe";
-import { Session } from "./session/implementation/Session";
-import { ISession } from "./session/interfaces/ISession";
-import { Viewer } from "./viewer/implementation/Viewer";
-import { IViewer, RENDERERTYPE } from "./viewer/interfaces/IViewer";
-import { StateEngine } from '@shapediver/viewer.shared.services';
+import { Session } from "./session/Session";
+import { RENDERERTYPE, Viewer } from "./viewer/Viewer";
+import { StateEngine, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
+import { UuidGenerator } from "@shapediver/viewer.shared.utils";
 
 @singleton()
 export class Api {
-    // #region Properties (8)
+  // #region Properties (9)
 
-    private readonly _renderingEngines: RenderingEngine[] = [];
-    private readonly _sceneTree = <Tree>container.resolve(Tree);
-    private readonly _sessions: { [key: string]: ISession } = {};
-    private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
-    private readonly _viewers: { [key: string]: IViewer } = {};
+  private readonly _renderingEngines: RenderingEngine[] = [];
+  private readonly _sceneTree = <Tree>container.resolve(Tree);
+  private readonly _sessions: { [key: string]: Session } = {};
+  private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
+  private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
+  private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
+  private readonly _viewers: { [key: string]: Viewer } = {};
 
-    private _commitSettings: boolean = false;
-    private _loggingLevel: number = -1;
-    private _showMessages: boolean= true;
+  private _commitSettings: boolean = false;
+  private _loggingLevel: number = -1;
+  private _showMessages: boolean = true;
 
-    // #endregion Properties (8)
+  // #endregion Properties (9)
 
-    // #region Public Accessors (7)
+  constructor() {
+    this._eventEngine.addListener(EVENTTYPE.UPDATE.UPDATE_READY, () => { this.onUpdate(); })
+  }
 
-    /**
-     * Getter commitSettings
-     * @return {boolean}
-     */
-    public get commitSettings(): boolean {
-		return this._commitSettings;
-	}
+  // #region Public Accessors (7)
 
-    /**
-     * Setter commitSettings
-     * @param {boolean} value
-     */
-    public set commitSettings(value: boolean) {
-		this._commitSettings = value;
-	}
+  /**
+   * Getter commitSettings
+   * @return {boolean}
+   */
+  public get commitSettings(): boolean {
+    return this._commitSettings;
+  }
 
-    /**
-     * Getter loggingLevel
-     * @return {number}
-     */
-    public get loggingLevel(): number {
-		return this._loggingLevel;
-	}
+  /**
+   * Setter commitSettings
+   * @param {boolean} value
+   */
+  public set commitSettings(value: boolean) {
+    this._commitSettings = value;
+  }
 
-    /**
-     * Setter loggingLevel
-     * @param {number} value
-     */
-    public set loggingLevel(value: number) {
-		this._loggingLevel = value;
-	}
+  /**
+   * Getter loggingLevel
+   * @return {number}
+   */
+  public get loggingLevel(): number {
+    return this._loggingLevel;
+  }
 
-    public get sceneTree(): Tree {
-        return this._sceneTree;
-    }
+  /**
+   * Setter loggingLevel
+   * @param {number} value
+   */
+  public set loggingLevel(value: number) {
+    this._loggingLevel = value;
+  }
 
-    /**
-     * Getter showMessages
-     * @return {boolean}
-     */
-    public get showMessages(): boolean {
-		return this._showMessages;
-	}
+  public get sceneTree(): Tree {
+    return this._sceneTree;
+  }
 
-    /**
-     * Setter showMessages
-     * @param {boolean} value
-     */
-    public set showMessages(value: boolean) {
-		this._showMessages = value;
-	}
+  /**
+   * Getter showMessages
+   * @return {boolean}
+   */
+  public get showMessages(): boolean {
+    return this._showMessages;
+  }
 
-    // #endregion Public Accessors (7)
+  /**
+   * Setter showMessages
+   * @param {boolean} value
+   */
+  public set showMessages(value: boolean) {
+    this._showMessages = value;
+  }
 
-    // #region Public Methods (5)
+  // #endregion Public Accessors (7)
 
-    public async createSession(ticket: string, modelViewUrl: string, name: string): Promise<ISession> {
-        if(this._sessions[name]) 
-            throw new Error('Session with name ' + name + ' already exists.');
-        const session =  new Session(
-            this._sceneTree, 
-            async () => {
-                this._renderingEngines.forEach((e) => e.updateSceneTree());
-            }, 
-            ticket, 
-            modelViewUrl
-        );
-        await session.init()
-        this._sessions[name] = session;
-        return this._sessions[name];
-    }
+  // #region Public Methods (7)
 
-    public async createViewer(type: RENDERERTYPE, canvas: HTMLCanvasElement, name: string): Promise<IViewer> {
-        if( this._viewers[name]) 
-            throw new Error('Viewer with name ' + name + ' already exists.');
-        const viewer = new Viewer(type, name, canvas);
-        this._renderingEngines.push(viewer.renderingEngine)
+  public async createSession(ticket: string, modelViewUrl: string, id?: string): Promise<Session> {
+    const sessionId = id || this._uuidGenerator.create();
+    if(this._sessions[sessionId]) new Error('Session with this id already exists.');
+    const session = new Session(
+      sessionId,
+      this._sceneTree,
+      async () => {
         this._renderingEngines.forEach((e) => e.updateSceneTree());
-        this._viewers[name] = viewer;
-        return  this._viewers[name];
-    }
+      },
+      ticket,
+      modelViewUrl
+    );
+    await session.init()
+    this._sessions[sessionId] = session;
+    return this._sessions[sessionId];
+  }
 
-    public getSession(name: string): ISession {
-        return this._sessions[name];
-    }
+  public async createViewer(type: RENDERERTYPE, canvas: HTMLCanvasElement, id?: string): Promise<Viewer> {
+    const viewerId = id || this._uuidGenerator.create();
+    if(this._viewers[viewerId]) new Error('Viewer with this id already exists.');
+    const viewer = new Viewer(viewerId, type, canvas);
+    this._renderingEngines.push(viewer.renderingEngine)
+    this._renderingEngines.forEach((e) => e.updateSceneTree());
+    this._viewers[viewerId] = viewer;
+    return this._viewers[viewerId];
+  }
 
-    public getViewer(name: string): IViewer {
-        return this._viewers[name];
-    }
+  public getSession(id: string): Session {
+    return this._sessions[id];
+  }
 
-    public onUpdate(): void {
-        this._renderingEngines.forEach((e) => e.updateSceneTree());
-    }
+  public getSessions(): { [key: string]: Session } {
+    const r: { [key: string]: Session } = {};
+    for (let s in this._sessions)
+      r[s] = this._sessions[s];
+    return r;
+  }
 
-    // #endregion Public Methods (5)
+  public getViewer(id: string): Viewer {
+    return this._viewers[id];
+  }
+
+  public getViewers(): { [key: string]: Viewer } {
+    const r: { [key: string]: Viewer } = {};
+    for (let v in this._viewers)
+      r[v] = this._viewers[v];
+    return r;
+  }
+
+  public onUpdate(): void {
+    this._renderingEngines.forEach((e) => e.updateSceneTree());
+  }
+
+  // #endregion Public Methods (7)
 }

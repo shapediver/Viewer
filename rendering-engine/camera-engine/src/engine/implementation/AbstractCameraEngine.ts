@@ -7,8 +7,10 @@ export abstract class AbstractCameraEngine implements ICameraEngine {
 
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
-    private _defaultPosition: vec3 = vec3.create();
-    private _defaultTarget: vec3 = vec3.create();
+    private _default: ICameraDefinition = {
+        position: vec3.create(),
+        target: vec3.create()    
+    };
     private _enableCameraControls: boolean = true;
     private _revertAtMouseUp: boolean = false;
     private _revertAtMouseUpDuration: number = 800;
@@ -24,7 +26,7 @@ export abstract class AbstractCameraEngine implements ICameraEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _type: CAMERATYPE) { }
+    constructor(private readonly _id: string, private readonly _type: CAMERATYPE) { }
 
     // #endregion Constructors (1)
 
@@ -89,35 +91,19 @@ export abstract class AbstractCameraEngine implements ICameraEngine {
     }
 
     /**
-     * Getter defaultPosition
-     * @return {vec3}
+     * Getter default
+     * @return {ICameraDefinition}
      */
-    public get defaultPosition(): vec3 {
-        return this._defaultPosition;
+    public get default(): ICameraDefinition {
+        return this._default;
     }
 
     /**
-     * Setter defaultPosition
-     * @param {vec3} value
+     * Setter default
+     * @param {ICameraDefinition} value
      */
-    public set defaultPosition(value: vec3) {
-        this._defaultPosition = value;
-    }
-
-    /**
-     * Getter defaultTarget
-     * @return {vec3}
-     */
-    public get defaultTarget(): vec3 {
-        return this._defaultTarget;
-    }
-
-    /**
-     * Setter defaultTarget
-     * @param {vec3} value
-     */
-    public set defaultTarget(value: vec3) {
-        this._defaultTarget = value;
+    public set default(value: ICameraDefinition) {
+        this._default = value;
     }
 
     /**
@@ -190,6 +176,14 @@ export abstract class AbstractCameraEngine implements ICameraEngine {
      */
     public set zoomExtentsFactor(value: number) {
         this._zoomExtentsFactor = value;
+    }
+
+    /**
+       * Getter id
+       * @return {string}
+       */
+    public get id(): string {
+        return this._id;
     }
 
     // #endregion Public Accessors (20)

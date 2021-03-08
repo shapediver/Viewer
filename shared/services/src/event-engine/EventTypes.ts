@@ -59,6 +59,9 @@ export enum SETTINGS {
     SETTINGS_UPDATE = "settings.update",
 }
 
+export enum UPDATE {
+    UPDATE_READY = "update.ready"
+}
 
 export const EVENTTYPE = { 
     CAMERA, 
@@ -69,8 +72,9 @@ export const EVENTTYPE = {
     PARAMETER, 
     RENDERING, 
     SCENE, 
-    SETTINGS
+    SETTINGS,
+    UPDATE
 };
 export type EVENTTYPE = typeof EVENTTYPE;
 
-export type MAIN_EVENTTYPE = typeof CAMERA | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SETTINGS;
+export type MAIN_EVENTTYPE = typeof CAMERA | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SETTINGS | typeof UPDATE;

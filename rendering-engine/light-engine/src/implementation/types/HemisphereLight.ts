@@ -33,6 +33,7 @@ export class HemisphereLight extends AbstractLight {
      */
     public set groundColor(value: vec3) {
         this._groundColor = value;
+        this.updateVersion();
     }
 
     // #endregion Public Accessors (2)

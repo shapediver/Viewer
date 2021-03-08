@@ -1,27 +1,25 @@
-import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
-import { container } from "tsyringe";
-import { IViewer, RENDERERTYPE } from "../interfaces/IViewer";
-import { AbstractCamera as Camera } from "./camera/AbstractCamera";
-import { PerspectiveCamera } from "./camera/PerspectiveCamera";
-import { CAMERATYPE, ICameraEngine, OrthographicCameraEngine, PerspectiveCameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { OrthographicCamera } from "./camera/OrthographicCamera";
-import { vec3 } from "gl-matrix";
-import { UuidGenerator } from "@shapediver/viewer.shared.utils";
+import { CAMERATYPE, ICameraEngine as Camera, OrthographicCameraEngine, PerspectiveCameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { ILightScene as LightScene, AbstractLight as Light, AmbientLight, DirectionalLight, HemisphereLight, ILightEngine, LightEngine, PointLight, SpotLight } from "@shapediver/viewer.rendering-engine.light-engine";
+import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { DomEventEngine } from "@shapediver/viewer.shared.services";
+import { UuidGenerator } from "@shapediver/viewer.shared.utils";
+import { vec3 } from "gl-matrix";
+import { container } from "tsyringe";
 
-export class Viewer implements IViewer {
-  // #region Properties (21)
+export enum RENDERERTYPE {
+  THREEJS = 'threejs'
+}
+export class Viewer implements ILightEngine {
+  // #region Properties (25)
 
-  private readonly _renderingEngine: RenderingEngine;
-  private readonly _domEventEngine: DomEventEngine;
-  private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
   private readonly _cameras: {
-    [key: string]: {
-      camera: Camera,
-      engine: ICameraEngine
-    } 
+    [key: string]: Camera
   } = {};
+  private readonly _domEventEngine: DomEventEngine;
+  private readonly _renderingEngine: RenderingEngine;
+  private readonly _lightEngine: LightEngine = container.resolve(LightEngine);
+  private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
 
   private _ambientOcclusion: boolean = true;
   private _beautyRenderDelay: number = 50;
@@ -36,25 +34,30 @@ export class Viewer implements IViewer {
   private _gridVisibility: boolean = true;
   private _groundPlaneReflectionThreshold: number = 0.01;
   private _groundPlaneReflectionVisibility: boolean = false;
+  private _groundPlaneVisibility: boolean = true;
   private _lightHelper: boolean = false;
   private _lightScene: string = 'default';
   private _pointSize: number = 1.0;
-  private _roundPlaneVisibility: boolean = true;
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showSceneTransition: number = 1000;
 
-  // #endregion Properties (21)
+  // #endregion Properties (25)
 
   // #region Constructors (1)
 
-  constructor(type: RENDERERTYPE, name: string, canvas: HTMLCanvasElement) {
-    const renderingEngineThreejs = new RenderingEngineThreejs(name, canvas);
-    container.registerInstance(name, renderingEngineThreejs);
+  constructor(private readonly _id: string, type: RENDERERTYPE, canvas: HTMLCanvasElement) {
+    const renderingEngineThreejs = new RenderingEngineThreejs(this._id, canvas);
+    container.registerInstance(this._id, renderingEngineThreejs);
     this._renderingEngine = renderingEngineThreejs;
 
     this._domEventEngine = new DomEventEngine(canvas);
+
+    // default camera
     this.createCamera(CAMERATYPE.PERSPECTIVE);
+
+    // default light scene
+    this.createLightScene(this._lightScene, true);
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -62,7 +65,7 @@ export class Viewer implements IViewer {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (41)
+  // #region Public Accessors (42)
 
   /**
    * Getter ambientOcclusion
@@ -273,6 +276,30 @@ export class Viewer implements IViewer {
   }
 
   /**
+   * Getter groundPlaneVisibility
+   * @return {boolean}
+   */
+  public get groundPlaneVisibility(): boolean {
+    return this._groundPlaneVisibility;
+  }
+
+  /**
+   * Setter groundPlaneVisibility
+   * @param {boolean} value
+   */
+  public set groundPlaneVisibility(value: boolean) {
+    this._groundPlaneVisibility = value;
+  }
+
+  /**
+   * Getter id
+   * @return {string}
+   */
+  public get id(): string {
+    return this._id;
+  }
+
+  /**
    * Getter lightHelper
    * @return {boolean}
    */
@@ -325,22 +352,6 @@ export class Viewer implements IViewer {
   }
 
   /**
-   * Getter roundPlaneVisibility
-   * @return {boolean}
-   */
-  public get roundPlaneVisibility(): boolean {
-    return this._roundPlaneVisibility;
-  }
-
-  /**
-   * Setter roundPlaneVisibility
-   * @param {boolean} value
-   */
-  public set roundPlaneVisibility(value: boolean) {
-    this._roundPlaneVisibility = value;
-  }
-
-  /**
    * Getter shadows
    * @return {boolean}
    */
@@ -388,34 +399,104 @@ export class Viewer implements IViewer {
     this._showSceneTransition = value;
   }
 
-  // #endregion Public Accessors (41)
+  // #endregion Public Accessors (42)
 
-  // #region Public Methods (1)
+  // #region Public Methods (11)
 
-  public createCamera(type?: CAMERATYPE): Camera {
-    if(CAMERATYPE.ORTHOGRAPHIC === type) {
-      const engine = new OrthographicCameraEngine(this.renderingEngine.canvas.canvasElement);
-      this._domEventEngine.addDomEventListener(engine.controls.cameraControlsEventDistribution);
-      const cameraId = this._uuidGenerator.create();
-      const camera = new OrthographicCamera(cameraId, engine);
-      this._cameras[cameraId] = { camera, engine };
-      this.assignCamera(camera);
+  public assignCamera(id: string): void {
+    const camera = this._cameras[id];
+    if (!camera) new Error('Camera with this id does not exist.');
+    this._renderingEngine.cameraEngine = camera;
+  }
+
+  public createCamera(type: CAMERATYPE, id?: string): Camera {
+    const cameraId = id || this._uuidGenerator.create();
+    if (this._cameras[cameraId]) new Error('Camera with this id already exists.');
+    if (CAMERATYPE.ORTHOGRAPHIC === type) {
+      const camera = new OrthographicCameraEngine(cameraId, this.renderingEngine.canvas.canvasElement);
+      this._domEventEngine.addDomEventListener(camera.controls.cameraControlsEventDistribution);
+      this._cameras[cameraId] = camera;
+      this.assignCamera(cameraId);
       return camera;
     } else {
-      const engine = new PerspectiveCameraEngine(this.renderingEngine.canvas.canvasElement);
-      this._domEventEngine.addDomEventListener(engine.controls.cameraControlsEventDistribution);
-      const cameraId = this._uuidGenerator.create();
-      const camera = new PerspectiveCamera(cameraId, engine);
-      this._cameras[cameraId] = { camera, engine };
-      this.assignCamera(camera);
+      const camera = new PerspectiveCameraEngine(cameraId, this.renderingEngine.canvas.canvasElement);
+      this._domEventEngine.addDomEventListener(camera.controls.cameraControlsEventDistribution);
+      this._cameras[cameraId] = camera;
+      this.assignCamera(cameraId);
       return camera;
     }
   }
 
-  public assignCamera(camera: Camera): void {
-    const cameraDef = this._cameras[camera.id];
-    this._renderingEngine.cameraEngine = cameraDef.engine;
+  public getCamera(id: string): Camera {
+    const camera = this._cameras[id];
+    if (!camera) throw new Error('Camera with this id does not exist.');
+    return camera;
   }
 
-  // #endregion Public Methods (1)
+  public getCameras(): { [key: string]: Camera } {
+    const r: { [key: string]: Camera } = {};
+    for (let c in this._cameras)
+      r[c] = this._cameras[c];
+    return r;
+  }
+
+
+
+
+  
+
+  public addAmbientLight(color: vec3, intensity: number, id?: string): AmbientLight {
+    return this._lightEngine.addAmbientLight(color, intensity, id);
+  }
+
+  public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, id?: string): DirectionalLight {
+    return this._lightEngine.addDirectionalLight(color, intensity, direction, castShadow, id);
+  }
+
+  public addHemisphereLight(color: vec3, intensity: number, groundColor: vec3, id?: string): HemisphereLight {
+    return this._lightEngine.addHemisphereLight(color, intensity, groundColor, id);
+  }
+
+  public addPointLight(color: vec3, intensity: number, position: vec3, distance: number, decay: number, id?: string): PointLight {
+    return this._lightEngine.addPointLight(color, intensity, position, distance, decay, id);
+  }
+
+  public addSpotLight(color: vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, id?: string): SpotLight {
+    return this._lightEngine.addSpotLight(color, intensity, position, target, distance, decay, angle, penumbra, id);
+  }
+
+  public createLightScene(id?: string, standard?: boolean): string {
+    return this._lightEngine.createLightScene(id, standard);
+  }
+
+  public removeLightScene(id: string): boolean {
+    return this._lightEngine.removeLightScene(id);
+  }
+
+  public getLightScene(): string {
+    return this._lightEngine.getLightScene();
+  }
+
+  public getLightScenes(): string[] {
+    return this._lightEngine.getLightScenes();
+  }
+
+  public removeLight(id: string): boolean {
+    return this._lightEngine.removeLight(id);
+  }
+
+  public assignLightScene(id: string): boolean {
+    return this._lightEngine.assignLightScene(id);
+  }
+
+  public getLight(id: string): Light {
+    return this._lightEngine.getLight(id);
+  }
+
+  public getLights(): { [key: string]: Light } {
+    return this._lightEngine.getLights();
+  }
+
+
+  // #endregion Public Methods (11)
 }

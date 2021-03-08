@@ -3,6 +3,7 @@ import { container } from 'tsyringe'
 
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { ITreeNodeData } from './interfaces/ITreeNodeData';
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 
 export interface ITransformation {
   // #region Properties (3)
@@ -19,6 +20,7 @@ export class TreeNode {
 
   protected readonly _children: TreeNode[] = [];
   protected readonly _uuidGenerator = container.resolve(UuidGenerator);
+  protected readonly _eventEngine = container.resolve(EventEngine);
 
   protected _id: string;
   protected _version: string;
@@ -257,6 +259,7 @@ export class TreeNode {
    */
   public updateVersionAtomic(): void {
     this._version = this._uuidGenerator.create();
+    this._eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
   /**
@@ -276,6 +279,7 @@ export class TreeNode {
       this._children[i].updateVersion();
 
     this._version = this._uuidGenerator.create();
+    this._eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
   // #endregion Public Methods (8)
