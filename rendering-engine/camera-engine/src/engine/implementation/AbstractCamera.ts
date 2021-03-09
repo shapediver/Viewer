@@ -1,8 +1,9 @@
 import { ICameraControls } from '../../controls/interface/ICameraControls';
-import { CAMERATYPE, ICameraDefinition, ICameraEngine } from '../interface/ICameraEngine';
+import { ICamera } from '../interface/ICamera';
 import { vec3 } from 'gl-matrix';
+import { ICameraDefinition, CAMERATYPE } from '../interface/ICameraEngine';
 
-export abstract class AbstractCameraEngine implements ICameraEngine {
+export abstract class AbstractCamera implements ICamera {
     // #region Properties (10)
 
     private _autoAdjust: boolean = false;

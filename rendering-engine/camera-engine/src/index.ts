@@ -1,16 +1,22 @@
 import { OrthographicCameraControls } from "./controls/implementation/OrthographicCameraControls";
 import { PerspectiveCameraControls } from "./controls/implementation/PerspectiveCameraControls";
-import { AbstractCameraEngine } from "./engine/implementation/AbstractCameraEngine";
-import { OrthographicCameraEngine } from "./engine/implementation/OrthographicCameraEngine";
-import { PerspectiveCameraEngine } from "./engine/implementation/PerspectiveCameraEngine";
+import { AbstractCamera } from "./engine/implementation/AbstractCamera";
+import { CameraEngine } from "./engine/implementation/CameraEngine";
+import { OrthographicCamera } from "./engine/implementation/OrthographicCamera";
+import { PerspectiveCamera } from "./engine/implementation/PerspectiveCamera";
+import { ICamera } from "./engine/interface/ICamera";
 import { CAMERATYPE, ICameraEngine } from "./engine/interface/ICameraEngine";
 
 export {
-  ICameraEngine, AbstractCameraEngine, CAMERATYPE
+  ICameraEngine, ICamera
+}
+
+export {
+  CameraEngine, AbstractCamera, CAMERATYPE
 }
 
 export { 
-  PerspectiveCameraEngine, OrthographicCameraEngine
+  PerspectiveCamera, OrthographicCamera
 }
 
 export { 

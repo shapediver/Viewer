@@ -11,7 +11,6 @@ import { StateEngine, SettingsEngine } from "@shapediver/viewer.shared.services"
 import { LightScene } from "./LightScene";
 import { AbstractLight } from "./AbstractLight";
 
-@singleton()
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
 

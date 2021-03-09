@@ -2,50 +2,72 @@ import { vec3, vec4 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe'
 
-import { CAMERATYPE, ICameraEngine, PerspectiveCameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { CameraEngine, CAMERATYPE, ICamera as Camera, ICameraEngine, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Tree } from '@shapediver/viewer.shared.node-tree';
 
 import { SceneTree } from './SceneTree';
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { StateEngine, SettingsEngine } from '@shapediver/viewer.shared.services';
+import { StateEngine, SettingsEngine, DomEventEngine } from '@shapediver/viewer.shared.services';
 import { Converter } from '@shapediver/viewer.shared.utils';
 import { SDObject } from './SDObject';
 import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
-import { CAMERA } from '@shapediver/viewer.shared.services/dist/event-engine/EventTypes';
 
 export class RenderingEngine implements IRenderingEngine {
-    // #region Properties (9)
+    // #region Properties (14)
 
+    private readonly _cameraEngine;
     private readonly _canvasEngine: CanvasEngine;
     private readonly _converter = <Converter>container.resolve(Converter);
-    private readonly _lightEngine = <LightEngine>container.resolve(LightEngine);
+    private readonly _domEventEngine: DomEventEngine;
+    private readonly _lightEngine;
+    private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
+    private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _settings = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _tree: Tree = <Tree>container.resolve(Tree);
 
-    private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
-    private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
-
-    private _cameraEngine!: ICameraEngine;
+    private _camera!: Camera;
     private _canvas!: Canvas;
-    private _sceneTree!: SceneTree;
     private _lastTime: number = 0;
+    private _sceneTree!: SceneTree;
 
-    // #endregion Properties (9)
+    // #endregion Properties (14)
 
     // #region Constructors (1)
 
     constructor(name: string, canvasDefinition?: string | HTMLCanvasElement) {
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
         this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
+
+        this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
+
+        this._lightEngine = new LightEngine();
+        this._cameraEngine = new CameraEngine(this._canvas, this._domEventEngine);
+
         this._stateEngine.settingsRegistered.then(() => this.init());
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (4)
+    // #region Public Accessors (5)
+
+    /**
+     * Getter camera
+     * @return {Camera}
+     */
+    public get camera(): Camera {
+        return this._camera;
+    }
+
+    /**
+     * Setter camera
+     * @param {Camera} value
+     */
+    public set camera(value: Camera) {
+        this._camera = value;
+    }
 
     /**
      * Getter cameraEngine
@@ -53,14 +75,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public get cameraEngine(): ICameraEngine {
         return this._cameraEngine;
-    }
-
-    /**
-     * Setter cameraEngine
-     * @param {ICameraEngine} value
-     */
-    public set cameraEngine(value: ICameraEngine) {
-        this._cameraEngine = value;
     }
 
     /**
@@ -79,19 +93,29 @@ export class RenderingEngine implements IRenderingEngine {
         return this._lightEngine;
     }
 
-    // #endregion Public Accessors (4)
+    // #endregion Public Accessors (5)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
+
+    public assignCamera(id: string): void {
+        const camera = this._cameraEngine.getCamera(id);
+        if (!camera) new Error('Camera with this id does not exist.');
+        this.camera = camera;
+    }
 
     public updateSceneTree(): void {
         if (this._stateEngine.settingsRegistered.resolved !== true) return;
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     }
 
+    // #endregion Public Methods (2)
+
+    // #region Private Methods (2)
+
     private adjustCamera(time: number): THREE.Camera {
         let camera: THREE.Camera;
-        const cameraDefinition = this.cameraEngine.update(time);
-        if(this._cameraEngine.type === CAMERATYPE.ORTHOGRAPHIC) {
+        const cameraDefinition = this._camera.update(time);
+        if (this._camera.type === CAMERATYPE.ORTHOGRAPHIC) {
             const aspect = this._canvas.canvasElement.width / this.canvas.canvasElement.height;
             const distance = vec3.distance(cameraDefinition.position, cameraDefinition.target) / 2;
             this._orthographicCamera.up.set(0, 0, 1);
@@ -105,7 +129,7 @@ export class RenderingEngine implements IRenderingEngine {
             camera = this._orthographicCamera;
         } else {
             this._perspectiveCamera.up.set(0, 0, 1);
-            this._perspectiveCamera.fov = (<PerspectiveCameraEngine>this._cameraEngine).fov;
+            this._perspectiveCamera.fov = (<PerspectiveCamera>this._camera).fov;
             this._perspectiveCamera.aspect = this._canvas.canvasElement.width / this.canvas.canvasElement.height;
             this._perspectiveCamera.near = 0.01;
             this._perspectiveCamera.far = 10000;
@@ -117,15 +141,10 @@ export class RenderingEngine implements IRenderingEngine {
         return camera;
     }
 
-    // #endregion Public Methods (1)
-
-    // #region Private Methods (1)
-
     private init() {
         this._sceneTree = new SceneTree();
 
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
-
 
         (<SceneTree>this._sceneTree).scene.background = new THREE.Color(0xffffff)
 
@@ -141,13 +160,13 @@ export class RenderingEngine implements IRenderingEngine {
         this._stateEngine.boundingBoxCreated.then(() => {
             let bb = this._sceneTree.boundingBox;
             let sceneExtents = vec3.distance(bb.min, bb.max);
-    
+
             /**
              * TODO evaluate this magic
              * 
              * magic begin
              */
-    
+
             let divisions = 0.1;
             let gridExtents = sceneExtents;
             if (sceneExtents > 1) {
@@ -167,11 +186,11 @@ export class RenderingEngine implements IRenderingEngine {
                 gridExtents = parseFloat(gridExtentsS + firstDigit);
                 divisions = firstDigit * 10;
             }
-    
+
             /**
              * magic end
              */
-            
+
             const gridObject = new SDObject('grid', '');
             let grid = new THREE.GridHelper(2 * gridExtents, divisions);
             (<THREE.Material>grid.material).opacity = 0.15;
@@ -204,7 +223,7 @@ export class RenderingEngine implements IRenderingEngine {
             let deltaTime = time - this._lastTime;
             deltaTime = deltaTime < 0 ? 0 : deltaTime;
             this._lastTime = time;
-            if(!this.cameraEngine) return;
+            if (!this.camera) return;
             const camera = this.adjustCamera(deltaTime);
             renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
             renderer.render((<SceneTree>this._sceneTree).scene, camera);
@@ -212,5 +231,5 @@ export class RenderingEngine implements IRenderingEngine {
         animate(0);
     }
 
-    // #endregion Private Methods (1)
+    // #endregion Private Methods (2)
 }
