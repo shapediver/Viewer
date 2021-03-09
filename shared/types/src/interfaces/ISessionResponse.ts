@@ -4,7 +4,7 @@ import { ISessionOutput } from "./ISessionOutput";
 import { ISessionParameter } from "./ISessionParameter";
 
 
-export interface ISession {
+export interface ISessionResponse {
     // #region Properties (8)
 
     actions?: ISessionAction[] | {

@@ -1,5 +1,5 @@
-import { Session } from "./implementation/Session";
-import { ISession } from "./interfaces/ISession";
+import { SessionResponse } from "./implementation/SessionResponse";
+import { ISessionResponse } from "./interfaces/ISessionResponse";
 import { ISessionAction } from "./interfaces/ISessionAction";
 import { ISessionExport } from "./interfaces/ISessionExport";
 import { ISessionOutput } from "./interfaces/ISessionOutput";
@@ -18,11 +18,11 @@ export {
 }
 
 export {
-  Session
+  SessionResponse
 }
 
 export {
-  ISession as SessionJson,
+  ISessionResponse as SessionJson,
 }
 
 export {

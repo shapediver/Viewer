@@ -1,10 +1,10 @@
-import { SessionEngine } from "./implementation/SessionEngine"
-import { ISessionEngine } from "./interfaces/ISessionEngine"
+import { Session } from "./implementation/Session"
+import { ISession } from "./interfaces/ISession"
 
 export {
-  SessionEngine
+  Session
 }
 
 export {
-  ISessionEngine
+  ISession
 }

@@ -1,4 +1,4 @@
-import { ISession } from '../interfaces/ISession';
+import { ISessionResponse } from '../interfaces/ISessionResponse';
 import { ISessionAction } from '../interfaces/ISessionAction';
 import { ISessionExport } from '../interfaces/ISessionExport';
 import { ISessionOutput } from '../interfaces/ISessionOutput';
@@ -9,7 +9,7 @@ import { SessionOutput } from './SessionOutput';
 import { SessionOutputContent } from './SessionOutputContent';
 import { SessionParameter } from './SessionParameter';
 
-export class Session implements ISession {
+export class SessionResponse implements ISessionResponse {
     // #region Properties (8)
 
     private _actions: {
@@ -187,7 +187,7 @@ export class Session implements ISession {
 
     // #region Public Methods (1)
 
-    public adaptSession(sessionDefinition: ISession) {
+    public adaptSession(sessionDefinition: ISessionResponse) {
         // convert actions
         if(sessionDefinition.actions) {
             for (let i = 0, len = sessionDefinition.actions.length; i < len; i++) {

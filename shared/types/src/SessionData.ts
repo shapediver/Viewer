@@ -1,12 +1,12 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 
-import { ISession } from './interfaces/ISession';
+import { ISessionResponse } from './interfaces/ISessionResponse';
 
 export class SessionData extends AbstractTreeNodeData {
     // #region Constructors (1)
 
     constructor( 
-        private _session: ISession,
+        private _session: ISessionResponse,
         id?: string
     ) {
         super(id);
@@ -20,7 +20,7 @@ export class SessionData extends AbstractTreeNodeData {
      * Getter session
      * @return {ISession}
      */
-    public get session(): ISession {
+    public get session(): ISessionResponse {
 		return this._session;
 	}
 
@@ -28,7 +28,7 @@ export class SessionData extends AbstractTreeNodeData {
      * Setter session
      * @param {ISession} value
      */
-    public set session(value: ISession) {
+    public set session(value: ISessionResponse) {
 		this._session = value;
 	}
 

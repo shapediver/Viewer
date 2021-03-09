@@ -1,7 +1,7 @@
 import { container } from 'tsyringe';
 
 import {
-    Session, SessionOutput, SessionOutputContent, SessionOutputData, MaterialData, GeometryData, CustomData
+    SessionResponse, SessionOutput, SessionOutputContent, SessionOutputData, MaterialData, GeometryData, CustomData
 } from '@shapediver/viewer.shared.types';
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 
@@ -28,7 +28,7 @@ export class OutputLoader {
      * 
      * @param _session the session for this output loader
      */
-    constructor(private readonly _session: Session) {
+    constructor(private readonly _session: SessionResponse) {
         this._dataEngine = container.resolve(DataEngine);
     }
 
@@ -159,7 +159,7 @@ export class OutputLoader {
                 outputNode.addChild(await this.loadContent('content_' + i, output.content[i]));
         return outputNode;
     }
-
+    
     /**
      * Loads a single content of the content array
      * 
