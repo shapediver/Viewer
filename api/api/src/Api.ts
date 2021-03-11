@@ -10,7 +10,6 @@ import { UuidGenerator } from "@shapediver/viewer.shared.utils";
 export class Api {
   // #region Properties (9)
 
-  private readonly _renderingEngines: RenderingEngine[] = [];
   private readonly _sceneTree = <Tree>container.resolve(Tree);
   private readonly _sessions: { [key: string]: Session } = {};
   private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
@@ -93,7 +92,7 @@ export class Api {
       sessionId,
       this._sceneTree,
       async () => {
-        this._renderingEngines.forEach((e) => e.updateSceneTree());
+        Object.values(this._viewers).forEach((e) => e.update());
       },
       ticket,
       modelViewUrl
@@ -107,9 +106,8 @@ export class Api {
     const viewerId = id || this._uuidGenerator.create();
     if(this._viewers[viewerId]) new Error('Viewer with this id already exists.');
     const viewer = new Viewer(viewerId, type, canvas);
-    this._renderingEngines.push(viewer.renderingEngine)
-    this._renderingEngines.forEach((e) => e.updateSceneTree());
     this._viewers[viewerId] = viewer;
+    Object.values(this._viewers).forEach((e) => e.update());
     return this._viewers[viewerId];
   }
 
@@ -136,7 +134,7 @@ export class Api {
   }
 
   public onUpdate(): void {
-    this._renderingEngines.forEach((e) => e.updateSceneTree());
+    Object.values(this._viewers).forEach((e) => e.update());
   }
 
   // #endregion Public Methods (7)

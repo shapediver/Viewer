@@ -1,7 +1,6 @@
 import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { CAMERATYPE, AbstractCamera as Camera, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { AbstractLight as Light, AmbientLight, DirectionalLight, HemisphereLight, ILightEngine, PointLight, SpotLight } from "@shapediver/viewer.rendering-engine.light-engine";
-import { IRenderingEngine as RenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
 
@@ -318,10 +317,6 @@ export class Viewer implements ILightEngine, ICameraEngine {
     (<RenderingEngineThreejs>container.resolve(_id)).pointSize = value;
   }
 
-  public get renderingEngine(): RenderingEngine {
-    return (<RenderingEngineThreejs>(<RenderingEngineThreejs>container.resolve(_id)));
-  }
-
   /**
    * Getter shadows
    * @return {boolean}
@@ -373,6 +368,12 @@ export class Viewer implements ILightEngine, ICameraEngine {
   // #endregion Public Accessors (42)
 
   // #region Public Methods (11)
+
+
+  public update(): void {
+    (<RenderingEngineThreejs>container.resolve(_id)).updateSceneTree();
+  }
+
 
   public assignCamera(id: string): void {
     (<RenderingEngineThreejs>(<RenderingEngineThreejs>container.resolve(_id))).cameraEngine.assignCamera(id);
