@@ -5,7 +5,6 @@ import { ILightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
 export interface IRenderingEngine {
     // #region Properties (2)
 
-    camera: ICamera;
     cameraEngine: ICameraEngine;
     lightEngine: ILightEngine;
     canvas: Canvas;
@@ -14,7 +13,6 @@ export interface IRenderingEngine {
 
     // #region Public Methods (1)
 
-    assignCamera(id: string): void;
     /**
      * Update the current tree with the provided node.
      * 

@@ -340,7 +340,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
   }
 
   public get renderingEngine(): RenderingEngine {
-    return this._renderingEngine;
+    return (<RenderingEngineThreejs>this._renderingEngine);
   }
 
   /**
@@ -396,19 +396,19 @@ export class Viewer implements ILightEngine, ICameraEngine {
   // #region Public Methods (11)
 
   public assignCamera(id: string): void {
-    this._renderingEngine.assignCamera(id);
+    (<RenderingEngineThreejs>this._renderingEngine).cameraEngine.assignCamera(id);
   }
 
   public createCamera(type: CAMERATYPE, id?: string): Camera {
-    return this._renderingEngine.cameraEngine.createCamera(type, id);
+    return (<RenderingEngineThreejs>this._renderingEngine).cameraEngine.createCamera(type, id);
   }
 
   public getCamera(id: string): Camera {
-    return this._renderingEngine.cameraEngine.getCamera(id);
+    return (<RenderingEngineThreejs>this._renderingEngine).cameraEngine.getCamera(id);
   }
 
   public getCameras(): { [key: string]: Camera } {
-    return this._renderingEngine.cameraEngine.getCameras();
+    return (<RenderingEngineThreejs>this._renderingEngine).cameraEngine.getCameras();
   }
 
 
@@ -417,55 +417,55 @@ export class Viewer implements ILightEngine, ICameraEngine {
   
 
   public addAmbientLight(color: vec3, intensity: number, id?: string): AmbientLight {
-    return this._renderingEngine.lightEngine.addAmbientLight(color, intensity, id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.addAmbientLight(color, intensity, id);
   }
 
   public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, id?: string): DirectionalLight {
-    return this._renderingEngine.lightEngine.addDirectionalLight(color, intensity, direction, castShadow, id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.addDirectionalLight(color, intensity, direction, castShadow, id);
   }
 
   public addHemisphereLight(color: vec3, intensity: number, groundColor: vec3, id?: string): HemisphereLight {
-    return this._renderingEngine.lightEngine.addHemisphereLight(color, intensity, groundColor, id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.addHemisphereLight(color, intensity, groundColor, id);
   }
 
   public addPointLight(color: vec3, intensity: number, position: vec3, distance: number, decay: number, id?: string): PointLight {
-    return this._renderingEngine.lightEngine.addPointLight(color, intensity, position, distance, decay, id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.addPointLight(color, intensity, position, distance, decay, id);
   }
 
   public addSpotLight(color: vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, id?: string): SpotLight {
-    return this._renderingEngine.lightEngine.addSpotLight(color, intensity, position, target, distance, decay, angle, penumbra, id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.addSpotLight(color, intensity, position, target, distance, decay, angle, penumbra, id);
   }
 
   public createLightScene(id?: string, standard?: boolean): string {
-    return this._renderingEngine.lightEngine.createLightScene(id, standard);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.createLightScene(id, standard);
   }
 
   public removeLightScene(id: string): boolean {
-    return this._renderingEngine.lightEngine.removeLightScene(id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.removeLightScene(id);
   }
 
   public getLightScene(): string {
-    return this._renderingEngine.lightEngine.getLightScene();
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.getLightScene();
   }
 
   public getLightScenes(): string[] {
-    return this._renderingEngine.lightEngine.getLightScenes();
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.getLightScenes();
   }
 
   public removeLight(id: string): boolean {
-    return this._renderingEngine.lightEngine.removeLight(id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.removeLight(id);
   }
 
   public assignLightScene(id: string): boolean {
-    return this._renderingEngine.lightEngine.assignLightScene(id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.assignLightScene(id);
   }
 
   public getLight(id: string): Light {
-    return this._renderingEngine.lightEngine.getLight(id);
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.getLight(id);
   }
 
   public getLights(): { [key: string]: Light } {
-    return this._renderingEngine.lightEngine.getLights();
+    return (<RenderingEngineThreejs>this._renderingEngine).lightEngine.getLights();
   }
 
 

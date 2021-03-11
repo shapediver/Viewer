@@ -28,7 +28,6 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _tree: Tree = <Tree>container.resolve(Tree);
 
-    private _camera!: Camera;
     private _canvas!: Canvas;
     private _lastTime: number = 0;
     private _sceneTree!: SceneTree;
@@ -52,22 +51,6 @@ export class RenderingEngine implements IRenderingEngine {
     // #endregion Constructors (1)
 
     // #region Public Accessors (5)
-
-    /**
-     * Getter camera
-     * @return {Camera}
-     */
-    public get camera(): Camera {
-        return this._camera;
-    }
-
-    /**
-     * Setter camera
-     * @param {Camera} value
-     */
-    public set camera(value: Camera) {
-        this._camera = value;
-    }
 
     /**
      * Getter cameraEngine
@@ -97,12 +80,6 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #region Public Methods (2)
 
-    public assignCamera(id: string): void {
-        const camera = this._cameraEngine.getCamera(id);
-        if (!camera) new Error('Camera with this id does not exist.');
-        this.camera = camera;
-    }
-
     public updateSceneTree(): void {
         if (this._stateEngine.settingsRegistered.resolved !== true) return;
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
@@ -114,8 +91,8 @@ export class RenderingEngine implements IRenderingEngine {
 
     private adjustCamera(time: number): THREE.Camera {
         let camera: THREE.Camera;
-        const cameraDefinition = this._camera.update(time);
-        if (this._camera.type === CAMERATYPE.ORTHOGRAPHIC) {
+        const cameraDefinition = this._cameraEngine.getCamera().update(time);
+        if (this._cameraEngine.getCamera().type === CAMERATYPE.ORTHOGRAPHIC) {
             const aspect = this._canvas.canvasElement.width / this.canvas.canvasElement.height;
             const distance = vec3.distance(cameraDefinition.position, cameraDefinition.target) / 2;
             this._orthographicCamera.up.set(0, 0, 1);
@@ -129,7 +106,7 @@ export class RenderingEngine implements IRenderingEngine {
             camera = this._orthographicCamera;
         } else {
             this._perspectiveCamera.up.set(0, 0, 1);
-            this._perspectiveCamera.fov = (<PerspectiveCamera>this._camera).fov;
+            this._perspectiveCamera.fov = (<PerspectiveCamera>this._cameraEngine.getCamera()).fov;
             this._perspectiveCamera.aspect = this._canvas.canvasElement.width / this.canvas.canvasElement.height;
             this._perspectiveCamera.near = 0.01;
             this._perspectiveCamera.far = 10000;
@@ -223,10 +200,12 @@ export class RenderingEngine implements IRenderingEngine {
             let deltaTime = time - this._lastTime;
             deltaTime = deltaTime < 0 ? 0 : deltaTime;
             this._lastTime = time;
-            if (!this.camera) return;
-            const camera = this.adjustCamera(deltaTime);
-            renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
-            renderer.render((<SceneTree>this._sceneTree).scene, camera);
+            try {
+                this._cameraEngine.getCamera();
+                const camera = this.adjustCamera(deltaTime);
+                renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
+                renderer.render((<SceneTree>this._sceneTree).scene, camera);
+            } catch (e) { console.log(e) }
         };
         animate(0);
     }
