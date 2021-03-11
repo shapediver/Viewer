@@ -4,28 +4,24 @@ import { container, singleton } from "tsyringe";
 import { Session } from "./session/Session";
 import { RENDERERTYPE, Viewer } from "./viewer/Viewer";
 import { StateEngine, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
-import { UuidGenerator } from "@shapediver/viewer.shared.utils";
+import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 
+let _commitSettings: boolean = false;
+let _loggingLevel: number = -1;
+let _showMessages: boolean = true;
+
+const _sessions: { [key: string]: Session } = {};
+const _viewers: { [key: string]: Viewer } = {};
 @singleton()
 export class Api {
-  // #region Properties (9)
-
-  private readonly _sceneTree = <Tree>container.resolve(Tree);
-  private readonly _sessions: { [key: string]: Session } = {};
-  private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
-  private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
-  private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
-  private readonly _viewers: { [key: string]: Viewer } = {};
-
-  private _commitSettings: boolean = false;
-  private _loggingLevel: number = -1;
-  private _showMessages: boolean = true;
-
-  // #endregion Properties (9)
+  // #region Constructors (1)
 
   constructor() {
-    this._eventEngine.addListener(EVENTTYPE.UPDATE.UPDATE_READY, () => { this.onUpdate(); })
+    const stateEngine = <StateEngine>container.resolve(StateEngine);
+    (<EventEngine>container.resolve(EventEngine)).addListener(EVENTTYPE.UPDATE.UPDATE_READY, () => { this.onUpdate(); })
   }
+
+  // #endregion Constructors (1)
 
   // #region Public Accessors (7)
 
@@ -34,7 +30,7 @@ export class Api {
    * @return {boolean}
    */
   public get commitSettings(): boolean {
-    return this._commitSettings;
+    return _commitSettings;
   }
 
   /**
@@ -42,7 +38,7 @@ export class Api {
    * @param {boolean} value
    */
   public set commitSettings(value: boolean) {
-    this._commitSettings = value;
+    _commitSettings = value;
   }
 
   /**
@@ -50,7 +46,7 @@ export class Api {
    * @return {number}
    */
   public get loggingLevel(): number {
-    return this._loggingLevel;
+    return _loggingLevel;
   }
 
   /**
@@ -58,11 +54,11 @@ export class Api {
    * @param {number} value
    */
   public set loggingLevel(value: number) {
-    this._loggingLevel = value;
+    _loggingLevel = value;
   }
 
   public get sceneTree(): Tree {
-    return this._sceneTree;
+    return <Tree>container.resolve(Tree);
   }
 
   /**
@@ -70,7 +66,7 @@ export class Api {
    * @return {boolean}
    */
   public get showMessages(): boolean {
-    return this._showMessages;
+    return _showMessages;
   }
 
   /**
@@ -78,7 +74,7 @@ export class Api {
    * @param {boolean} value
    */
   public set showMessages(value: boolean) {
-    this._showMessages = value;
+    _showMessages = value;
   }
 
   // #endregion Public Accessors (7)
@@ -86,55 +82,55 @@ export class Api {
   // #region Public Methods (7)
 
   public async createSession(ticket: string, modelViewUrl: string, id?: string): Promise<Session> {
-    const sessionId = id || this._uuidGenerator.create();
-    if(this._sessions[sessionId]) new Error('Session with this id already exists.');
+    const sessionId = id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    if (_sessions[sessionId]) new Error('Session with this id already exists.');
     const session = new Session(
       sessionId,
-      this._sceneTree,
+      <Tree>container.resolve(Tree),
       async () => {
-        Object.values(this._viewers).forEach((e) => e.update());
+        Object.values(_viewers).forEach((e) => e.update());
       },
       ticket,
       modelViewUrl
     );
     await session.init()
-    this._sessions[sessionId] = session;
-    return this._sessions[sessionId];
+    _sessions[sessionId] = session;
+    return _sessions[sessionId];
   }
 
   public async createViewer(type: RENDERERTYPE, canvas: HTMLCanvasElement, id?: string): Promise<Viewer> {
-    const viewerId = id || this._uuidGenerator.create();
-    if(this._viewers[viewerId]) new Error('Viewer with this id already exists.');
+    const viewerId = id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    if (_viewers[viewerId]) new Error('Viewer with this id already exists.');
     const viewer = new Viewer(viewerId, type, canvas);
-    this._viewers[viewerId] = viewer;
-    Object.values(this._viewers).forEach((e) => e.update());
-    return this._viewers[viewerId];
+    _viewers[viewerId] = viewer;
+    Object.values(_viewers).forEach((e) => e.update());
+    return _viewers[viewerId];
   }
 
   public getSession(id: string): Session {
-    return this._sessions[id];
+    return _sessions[id];
   }
 
   public getSessions(): { [key: string]: Session } {
     const r: { [key: string]: Session } = {};
-    for (let s in this._sessions)
-      r[s] = this._sessions[s];
+    for (let s in _sessions)
+      r[s] = _sessions[s];
     return r;
   }
 
   public getViewer(id: string): Viewer {
-    return this._viewers[id];
+    return _viewers[id];
   }
 
   public getViewers(): { [key: string]: Viewer } {
     const r: { [key: string]: Viewer } = {};
-    for (let v in this._viewers)
-      r[v] = this._viewers[v];
+    for (let v in _viewers)
+      r[v] = _viewers[v];
     return r;
   }
 
   public onUpdate(): void {
-    Object.values(this._viewers).forEach((e) => e.update());
+    Object.values(_viewers).forEach((e) => e.update());
   }
 
   // #endregion Public Methods (7)
