@@ -13,28 +13,6 @@ export class Viewer implements ILightEngine, ICameraEngine {
   // #region Properties (25)
 
   private readonly _renderingEngine: RenderingEngine;
-  private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
-
-  private _ambientOcclusion: boolean = true;
-  private _beautyRenderDelay: number = 50;
-  private _blurSceneWhenBusy: boolean = true;
-  private _clearAlpha: number = 1.0;
-  private _clearColor: string = '#ffffff';
-  private _duration: number = 0;
-  private _environmentMap: string = 'none';
-  private _environmentMapAsBackground: boolean = false;
-  private _environmentMapResolution: string = '1024';
-  private _fullscreen: boolean = false;
-  private _gridVisibility: boolean = true;
-  private _groundPlaneReflectionThreshold: number = 0.01;
-  private _groundPlaneReflectionVisibility: boolean = false;
-  private _groundPlaneVisibility: boolean = true;
-  private _lightHelper: boolean = false;
-  private _lightScene: string = 'default';
-  private _pointSize: number = 1.0;
-  private _shadows: boolean = true;
-  private _show: boolean = false;
-  private _showSceneTransition: number = 1000;
 
   // #endregion Properties (25)
 
@@ -49,7 +27,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
     this.assignCamera(camera.id);
 
     // default light scene
-    this.createLightScene(this._lightScene, true);
+    this.createLightScene(this._renderingEngine.lightScene, true);
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -64,7 +42,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get ambientOcclusion(): boolean {
-    return this._ambientOcclusion;
+    return this._renderingEngine.ambientOcclusion;
   }
 
   /**
@@ -72,7 +50,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set ambientOcclusion(value: boolean) {
-    this._ambientOcclusion = value;
+    this._renderingEngine.ambientOcclusion = value;
   }
 
   /**
@@ -80,7 +58,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {number}
    */
   public get beautyRenderDelay(): number {
-    return this._beautyRenderDelay;
+    return this._renderingEngine.beautyRenderDelay;
   }
 
   /**
@@ -88,7 +66,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {number} value
    */
   public set beautyRenderDelay(value: number) {
-    this._beautyRenderDelay = value;
+    this._renderingEngine.beautyRenderDelay = value;
   }
 
   /**
@@ -96,7 +74,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get blurSceneWhenBusy(): boolean {
-    return this._blurSceneWhenBusy;
+    return this._renderingEngine.blurSceneWhenBusy;
   }
 
   /**
@@ -104,7 +82,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set blurSceneWhenBusy(value: boolean) {
-    this._blurSceneWhenBusy = value;
+    this._renderingEngine.blurSceneWhenBusy = value;
   }
 
   /**
@@ -112,7 +90,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {number}
    */
   public get clearAlpha(): number {
-    return this._clearAlpha;
+    return this._renderingEngine.clearAlpha;
   }
 
   /**
@@ -120,7 +98,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {number} value
    */
   public set clearAlpha(value: number) {
-    this._clearAlpha = value;
+    this._renderingEngine.clearAlpha = value;
   }
 
   /**
@@ -128,7 +106,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {string}
    */
   public get clearColor(): string {
-    return this._clearColor;
+    return this._renderingEngine.clearColor;
   }
 
   /**
@@ -136,7 +114,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {string} value
    */
   public set clearColor(value: string) {
-    this._clearColor = value;
+    this._renderingEngine.clearColor = value;
   }
 
   /**
@@ -144,7 +122,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {number}
    */
   public get duration(): number {
-    return this._duration;
+    return this._renderingEngine.duration;
   }
 
   /**
@@ -152,7 +130,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {number} value
    */
   public set duration(value: number) {
-    this._duration = value;
+    this._renderingEngine.duration = value;
   }
 
   /**
@@ -160,7 +138,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {string}
    */
   public get environmentMap(): string {
-    return this._environmentMap;
+    return this._renderingEngine.environmentMap;
   }
 
   /**
@@ -168,7 +146,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {string} value
    */
   public set environmentMap(value: string) {
-    this._environmentMap = value;
+    this._renderingEngine.environmentMap = value;
   }
 
   /**
@@ -176,7 +154,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get environmentMapAsBackground(): boolean {
-    return this._environmentMapAsBackground;
+    return this._renderingEngine.environmentMapAsBackground;
   }
 
   /**
@@ -184,7 +162,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set environmentMapAsBackground(value: boolean) {
-    this._environmentMapAsBackground = value;
+    this._renderingEngine.environmentMapAsBackground = value;
   }
 
   /**
@@ -192,7 +170,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {string}
    */
   public get environmentMapResolution(): string {
-    return this._environmentMapResolution;
+    return this._renderingEngine.environmentMapResolution;
   }
 
   /**
@@ -200,7 +178,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {string} value
    */
   public set environmentMapResolution(value: string) {
-    this._environmentMapResolution = value;
+    this._renderingEngine.environmentMapResolution = value;
   }
 
   /**
@@ -208,7 +186,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get fullscreen(): boolean {
-    return this._fullscreen;
+    return this._renderingEngine.fullscreen;
   }
 
   /**
@@ -216,7 +194,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set fullscreen(value: boolean) {
-    this._fullscreen = value;
+    this._renderingEngine.fullscreen = value;
   }
 
   /**
@@ -224,7 +202,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get gridVisibility(): boolean {
-    return this._gridVisibility;
+    return this._renderingEngine.gridVisibility;
   }
 
   /**
@@ -232,7 +210,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set gridVisibility(value: boolean) {
-    this._gridVisibility = value;
+    this._renderingEngine.gridVisibility = value;
   }
 
   /**
@@ -240,7 +218,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {number}
    */
   public get groundPlaneReflectionThreshold(): number {
-    return this._groundPlaneReflectionThreshold;
+    return this._renderingEngine.groundPlaneReflectionThreshold;
   }
 
   /**
@@ -248,7 +226,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {number} value
    */
   public set groundPlaneReflectionThreshold(value: number) {
-    this._groundPlaneReflectionThreshold = value;
+    this._renderingEngine.groundPlaneReflectionThreshold = value;
   }
 
   /**
@@ -256,7 +234,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get groundPlaneReflectionVisibility(): boolean {
-    return this._groundPlaneReflectionVisibility;
+    return this._renderingEngine.groundPlaneReflectionVisibility;
   }
 
   /**
@@ -264,7 +242,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set groundPlaneReflectionVisibility(value: boolean) {
-    this._groundPlaneReflectionVisibility = value;
+    this._renderingEngine.groundPlaneReflectionVisibility = value;
   }
 
   /**
@@ -272,7 +250,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get groundPlaneVisibility(): boolean {
-    return this._groundPlaneVisibility;
+    return this._renderingEngine.groundPlaneVisibility;
   }
 
   /**
@@ -280,7 +258,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set groundPlaneVisibility(value: boolean) {
-    this._groundPlaneVisibility = value;
+    this._renderingEngine.groundPlaneVisibility = value;
   }
 
   /**
@@ -296,7 +274,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get lightHelper(): boolean {
-    return this._lightHelper;
+    return this._renderingEngine.lightHelper;
   }
 
   /**
@@ -304,7 +282,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set lightHelper(value: boolean) {
-    this._lightHelper = value;
+    this._renderingEngine.lightHelper = value;
   }
 
   /**
@@ -312,7 +290,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {string}
    */
   public get lightScene(): string {
-    return this._lightScene;
+    return this._renderingEngine.lightScene;
   }
 
   /**
@@ -320,7 +298,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {string} value
    */
   public set lightScene(value: string) {
-    this._lightScene = value;
+    this._renderingEngine.lightScene = value;
   }
 
   /**
@@ -328,7 +306,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {number}
    */
   public get pointSize(): number {
-    return this._pointSize;
+    return this._renderingEngine.pointSize;
   }
 
   /**
@@ -336,7 +314,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {number} value
    */
   public set pointSize(value: number) {
-    this._pointSize = value;
+    this._renderingEngine.pointSize = value;
   }
 
   public get renderingEngine(): RenderingEngine {
@@ -348,7 +326,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get shadows(): boolean {
-    return this._shadows;
+    return this._renderingEngine.shadows;
   }
 
   /**
@@ -356,7 +334,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set shadows(value: boolean) {
-    this._shadows = value;
+    this._renderingEngine.shadows = value;
   }
 
   /**
@@ -364,7 +342,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {boolean}
    */
   public get show(): boolean {
-    return this._show;
+    return this._renderingEngine.show;
   }
 
   /**
@@ -372,7 +350,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {boolean} value
    */
   public set show(value: boolean) {
-    this._show = value;
+    this._renderingEngine.show = value;
   }
 
   /**
@@ -380,7 +358,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @return {number}
    */
   public get showSceneTransition(): number {
-    return this._showSceneTransition;
+    return this._renderingEngine.showSceneTransition;
   }
 
   /**
@@ -388,7 +366,7 @@ export class Viewer implements ILightEngine, ICameraEngine {
    * @param {number} value
    */
   public set showSceneTransition(value: number) {
-    this._showSceneTransition = value;
+    this._renderingEngine.showSceneTransition = value;
   }
 
   // #endregion Public Accessors (42)
