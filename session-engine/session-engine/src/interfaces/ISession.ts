@@ -4,6 +4,8 @@ import { Output } from "../implementation/Output";
 import { Parameter } from "../implementation/Parameter";
 
 export interface ISession {
+    id: string;
+
     createOutput(id: string): Output;
     customize(): Promise<TreeNode>;
     init(): Promise<TreeNode>;

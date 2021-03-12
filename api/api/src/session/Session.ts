@@ -3,31 +3,32 @@ import { ISession, Session as SessionEngine } from "@shapediver/viewer.session-e
 import { Export } from "@shapediver/viewer.session-engine.session-engine/dist/implementation/Export";
 import { Output } from "@shapediver/viewer.session-engine.session-engine/dist/implementation/Output";
 import { Parameter } from "@shapediver/viewer.session-engine.session-engine/dist/implementation/Parameter";
+import { container, injectable } from "tsyringe";
+import { Viewer } from "../viewer/Viewer";
 
+@injectable()
 export class Session implements ISession {
     // #region Properties (6)
 
-    private readonly _sessionEngine: SessionEngine;
+    readonly #sessionEngine: SessionEngine;
+    readonly #ticket: string; 
+    readonly #modelViewUrl: string;
 
-    private _commitParameters: boolean = false;
-    private _node: TreeNode;
-    private _parameterControlNames: string[] = [];
-    private _parameterControlOrder: string[] = [];
-    private _parameterHidden: string[] = [];
+    #commitParameters: boolean = false;
+    #node: TreeNode;
+    #parameterControlNames: string[] = [];
+    #parameterControlOrder: string[] = [];
+    #parameterHidden: string[] = [];
 
     // #endregion Properties (6)
 
     // #region Constructors (1)
 
-    constructor(
-        private readonly _id: string,
-        private readonly _sceneTree: Tree,
-        private readonly _onUpdate: () => void,
-        private readonly _ticket: string,
-        private readonly _modelViewUrl: string
-    ) {
-        this._node = new TreeNode(this.ticket)
-        this._sessionEngine = new SessionEngine(this._ticket, this._modelViewUrl);
+    constructor( id: string, ticket: string, modelViewUrl: string ) {
+        this.#ticket = ticket;
+        this.#modelViewUrl = modelViewUrl;
+        this.#node = new TreeNode(this.ticket)
+        this.#sessionEngine = new SessionEngine(id, this.#ticket, this.#modelViewUrl);
     }
 
     // #endregion Constructors (1)
@@ -39,7 +40,7 @@ export class Session implements ISession {
      * @return {boolean}
      */
     public get commitParameters(): boolean {
-        return this._commitParameters;
+        return this.#commitParameters;
     }
 
     /**
@@ -47,7 +48,7 @@ export class Session implements ISession {
      * @param {boolean} value
      */
     public set commitParameters(value: boolean) {
-        this._commitParameters = value;
+        this.#commitParameters = value;
     }
 
     /**
@@ -55,7 +56,7 @@ export class Session implements ISession {
    * @return {string}
    */
     public get id(): string {
-        return this._id;
+        return this.#sessionEngine.id;
     }
 
     /**
@@ -63,7 +64,7 @@ export class Session implements ISession {
      * @return {string}
      */
     public get modelViewUrl(): string {
-        return this._modelViewUrl;
+        return this.#modelViewUrl;
     }
 
     /**
@@ -71,7 +72,7 @@ export class Session implements ISession {
      * @return {TreeNode}
      */
     public get node(): TreeNode {
-        return this._node;
+        return this.#node;
     }
 
     /**
@@ -79,7 +80,7 @@ export class Session implements ISession {
      * @return {string[]}
      */
     public get parameterControlNames(): string[] {
-        return this._parameterControlNames;
+        return this.#parameterControlNames;
     }
 
     /**
@@ -87,7 +88,7 @@ export class Session implements ISession {
      * @param {string[]} value
      */
     public set parameterControlNames(value: string[]) {
-        this._parameterControlNames = value;
+        this.#parameterControlNames = value;
     }
 
     /**
@@ -95,7 +96,7 @@ export class Session implements ISession {
      * @return {string[]}
      */
     public get parameterControlOrder(): string[] {
-        return this._parameterControlOrder;
+        return this.#parameterControlOrder;
     }
 
     /**
@@ -103,7 +104,7 @@ export class Session implements ISession {
      * @param {string[]} value
      */
     public set parameterControlOrder(value: string[]) {
-        this._parameterControlOrder = value;
+        this.#parameterControlOrder = value;
     }
 
     /**
@@ -111,7 +112,7 @@ export class Session implements ISession {
      * @return {string[]}
      */
     public get parameterHidden(): string[] {
-        return this._parameterHidden;
+        return this.#parameterHidden;
     }
 
     /**
@@ -119,7 +120,7 @@ export class Session implements ISession {
      * @param {string[]} value
      */
     public set parameterHidden(value: string[]) {
-        this._parameterHidden = value;
+        this.#parameterHidden = value;
     }
 
     /**
@@ -127,7 +128,7 @@ export class Session implements ISession {
      * @return {string}
      */
     public get ticket(): string {
-        return this._ticket;
+        return this.#ticket;
     }
 
     // #endregion Public Accessors (12)
@@ -135,78 +136,78 @@ export class Session implements ISession {
     // #region Public Methods (17)
 
     public createOutput(id: string): Output {
-        return this._sessionEngine.createOutput(id);
+        return this.#sessionEngine.createOutput(id);
     }
 
     public async customize(): Promise<TreeNode> {
-        this._sceneTree.removeNode(this._node);
-        this._node = await this._sessionEngine.customize();
-        this._sceneTree.addNode(this._node);
-        this._onUpdate();
-        return this._node;
+        (container.resolve(Tree)).removeNode(this.#node);
+        this.#node = await this.#sessionEngine.customize();
+        (container.resolve(Tree)).addNode(this.#node);
+        if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        return this.#node;
     }
 
     public getExport(id: string): Export {
-        return this._sessionEngine.getExport(id);
+        return this.#sessionEngine.getExport(id);
     }
 
     public getExportById(id: string): Export {
-        return this._sessionEngine.getExportById(id);
+        return this.#sessionEngine.getExportById(id);
     }
 
     public getExportByName(name: string): Export[] {
-        return this._sessionEngine.getExportByName(name);
+        return this.#sessionEngine.getExportByName(name);
     }
 
     public getExportByType(type: string): Export[] {
-        return this._sessionEngine.getExportByType(type);
+        return this.#sessionEngine.getExportByType(type);
     }
 
     public getExports(): { [key: string]: Export; } {
-        return this._sessionEngine.getExports();
+        return this.#sessionEngine.getExports();
     }
 
     public getOutput(id: string): Output {
-        return this._sessionEngine.getOutput(id);
+        return this.#sessionEngine.getOutput(id);
     }
 
     public getOutputById(id: string): Output {
-        return this._sessionEngine.getOutputById(id);
+        return this.#sessionEngine.getOutputById(id);
     }
 
     public getOutputByName(name: string): Output[] {
-        return this._sessionEngine.getOutputByName(name);
+        return this.#sessionEngine.getOutputByName(name);
     }
 
     public getOutputs(): { [key: string]: Output; } {
-        return this._sessionEngine.getOutputs();
+        return this.#sessionEngine.getOutputs();
     }
 
     public getParameter(id: string): Parameter {
-        return this._sessionEngine.getParameter(id);
+        return this.#sessionEngine.getParameter(id);
     }
 
     public getParameterById(id: string): Parameter {
-        return this._sessionEngine.getParameterById(id);
+        return this.#sessionEngine.getParameterById(id);
     }
 
     public getParameterByName(name: string): Parameter[] {
-        return this._sessionEngine.getParameterByName(name);
+        return this.#sessionEngine.getParameterByName(name);
     }
 
     public getParameterByType(type: string): Parameter[] {
-        return this._sessionEngine.getParameterByType(type);
+        return this.#sessionEngine.getParameterByType(type);
     }
 
     public getParameters(): { [key: string]: Parameter; } {
-        return this._sessionEngine.getParameters();
+        return this.#sessionEngine.getParameters();
     }
 
     public async init(): Promise<TreeNode>  {
-        this._node = await this._sessionEngine.init();
-        this._sceneTree.addNode(this._node);
-        this._onUpdate();
-        return this._node;
+        this.#node = await this.#sessionEngine.init();
+        (container.resolve(Tree)).addNode(this.#node);
+        if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        return this.#node;
     }
 
     // #endregion Public Methods (17)

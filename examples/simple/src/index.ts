@@ -2,7 +2,6 @@ import "reflect-metadata"
 import { container } from "tsyringe";
 import { api } from "@shapediver/viewer"
 import { RENDERERTYPE } from "@shapediver/viewer";
-import { mat4 } from "gl-matrix";
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
 
 const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
@@ -25,7 +24,7 @@ glTFv2Button.onclick = async () => {
         href: uri
     });
     api.sceneTree.addNode(node);
-    api.onUpdate()
+    api.update()
 }
 
 (<any>window).sceneTree = api.sceneTree;

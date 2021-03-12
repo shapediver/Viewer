@@ -13,7 +13,7 @@ import { Parameter } from './Parameter';
 import { ISession } from '../interfaces/ISession';
 
 export class Session implements ISession {
-    // #region Properties (12)
+    // #region Properties (11)
 
     private readonly _exports: { [key: string]: Export; } = {};
     private readonly _httpClient = container.resolve(HttpClient);
@@ -35,7 +35,7 @@ export class Session implements ISession {
     private _initialized: boolean = false;
     private _sessionResponse: SessionResponse;
 
-    // #endregion Properties (12)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -47,8 +47,9 @@ export class Session implements ISession {
      * @param modelViewUrl the model view url
      */
     constructor(
-        private readonly ticket: string,
-        private readonly modelViewUrl: string
+        private readonly _id: string,
+        private readonly _ticket: string,
+        private readonly _modelViewUrl: string
     ) {
         this._sessionResponse = new SessionResponse();     
         this._outputLoader = new OutputLoader(this._sessionResponse);
@@ -56,7 +57,15 @@ export class Session implements ISession {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (20)
+    // #region Public Accessors (1)
+
+    public get id(): string {
+        return this._id;
+    }
+
+    // #endregion Public Accessors (1)
+
+    // #region Public Methods (17)
 
     public createOutput(id: string): Output {
         if (this._outputs[id] || this._outputsCreated[id])
@@ -213,7 +222,7 @@ export class Session implements ISession {
     public async init(): Promise<SessionTreeNode> {
         if (this._initialized === true) throw new Error('Already initialized.'); //TODO
         try {
-            const sessionResponse = <SessionJson>(await this._httpClient.post(this.modelViewUrl + "/ticket/" + this.ticket, null, { headers: this._headers })).data;
+            const sessionResponse = <SessionJson>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers: this._headers })).data;
             (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
             this._sessionResponse.adaptSession(sessionResponse);
 
@@ -235,9 +244,9 @@ export class Session implements ISession {
         }
     }
 
-    // #endregion Public Methods (20)
+    // #endregion Public Methods (17)
 
-    // #region Private Methods (4)
+    // #region Private Methods (3)
 
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
         try {
@@ -282,5 +291,5 @@ export class Session implements ISession {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // #endregion Private Methods (4)
+    // #endregion Private Methods (3)
 }

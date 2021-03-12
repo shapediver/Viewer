@@ -20,6 +20,7 @@ export interface IRenderingEngine {
     groundPlaneReflectionThreshold: number;
     groundPlaneReflectionVisibility: boolean;
     groundPlaneVisibility: boolean;
+    id: string;
     lightHelper: boolean;
     lightScene: string;
     pointSize: number;
