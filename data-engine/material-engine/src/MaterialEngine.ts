@@ -2,7 +2,7 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { container, singleton } from 'tsyringe';
 import { HttpClient, ImageLoader } from '@shapediver/viewer.shared.utils';
-import { MapData, MaterialData, SessionOutputContent, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
+import { MapData, MaterialData, ISessionOutputContent, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
 import { vec2, vec3, vec4 } from 'gl-matrix';
 
 interface IPresetMaterialDefinition {
@@ -67,7 +67,7 @@ export class MaterialEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-    public async loadContent(content: SessionOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ISessionOutputContent): Promise<TreeNode> {
         // TODO other formats
         const node = new TreeNode('material');
 

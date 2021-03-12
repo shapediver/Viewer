@@ -1,20 +1,25 @@
 import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
-import { CAMERATYPE, AbstractCamera as Camera, ICameraEngine } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { AbstractLight as Light, AmbientLight, DirectionalLight, HemisphereLight, ILightEngine, PointLight, SpotLight } from "@shapediver/viewer.rendering-engine.light-engine";
+import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic, OrthographicCamera as OrthographicCameraLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { ILightEngine } from "@shapediver/viewer.rendering-engine.light-engine";
 import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
 import { injectable } from "tsyringe";
+import { Camera } from "./camera/Camera";
+import { OrthographicCamera } from "./camera/OrthographicCamera";
+import { PerspectiveCamera } from "./camera/PerspectiveCamera";
 
 export enum RENDERERTYPE {
   THREEJS = 'threejs'
 }
 
 @injectable()
-export class Viewer implements ILightEngine, ICameraEngine {
+export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Properties (25)
-  readonly #renderingEngine: IRenderingEngine;
+  readonly #renderingEngine: RenderingEngineThreejs;
 
-
+  readonly #cameras: {
+    [key: string]: Camera
+  } = {};
   // #endregion Properties (25)
 
   // #region Constructors (1)
@@ -371,30 +376,39 @@ export class Viewer implements ILightEngine, ICameraEngine {
 
 
   public update(): void {
-    this.#renderingEngine.updateSceneTree();
+    this.#renderingEngine.update();
   }
-
 
   public assignCamera(id: string): void {
     this.#renderingEngine.cameraEngine.assignCamera(id);
   }
 
   public createCamera(type: CAMERATYPE, id?: string): Camera {
-    return this.#renderingEngine.cameraEngine.createCamera(type, id);
+    const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
+    this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
+    return this.#cameras[cameraLogic.id];
   }
 
   public getCamera(id: string): Camera {
-    return this.#renderingEngine.cameraEngine.getCamera(id);
+    const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
+    if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
+    return this.#cameras[cameraLogic.id];
   }
 
   public getCameras(): { [key: string]: Camera } {
-    return this.#renderingEngine.cameraEngine.getCameras();
+    const cameraLogic = this.#renderingEngine.cameraEngine.getCameras();
+    const cameras: { [key: string]: Camera; } = {};
+    for (let e in cameraLogic) {
+      if (!this.#cameras[cameraLogic[e].id]) this.#cameras[cameraLogic[e].id] = cameraLogic[e].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic[e]) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic[e]);
+      cameras[e] = this.#cameras[cameraLogic[e].id];
+    }
+    return cameras;
   }
 
 
 
 
-  
+
 
   public addAmbientLight(color: vec3, intensity: number, id?: string): AmbientLight {
     return this.#renderingEngine.lightEngine.addAmbientLight(color, intensity, id);

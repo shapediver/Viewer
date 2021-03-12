@@ -2,15 +2,22 @@ import { ICameraControls } from '../../controls/interface/ICameraControls';
 import { CAMERATYPE, ICameraDefinition } from './ICameraEngine';
 
 export interface ICamera {
-    // #region Properties (3)
+    // #region Properties (11)
 
     readonly controls: ICameraControls;
-    readonly type: CAMERATYPE;
     readonly id: string;
+    readonly type: CAMERATYPE;
 
+    autoAdjust: boolean;
     cameraDefinition: ICameraDefinition;
+    cameraMovementDuration: number;
+    default: ICameraDefinition;
+    enableCameraControls: boolean;
+    revertAtMouseUp: boolean;
+    revertAtMouseUpDuration: number;
+    zoomExtentsFactor: number;
 
-    // #endregion Properties (3)
+    // #endregion Properties (11)
 
     // #region Public Methods (1)
 

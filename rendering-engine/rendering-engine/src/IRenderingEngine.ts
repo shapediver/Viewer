@@ -28,11 +28,6 @@ export interface IRenderingEngine {
     show: boolean;
     showSceneTransition: number;
 
-
-    cameraEngine: ICameraEngine;
-    lightEngine: ILightEngine;
-    canvas: Canvas;
-
     // #endregion Properties (2)
 
     // #region Public Methods (1)
@@ -42,7 +37,7 @@ export interface IRenderingEngine {
      * 
      * @param root the root node 
      */
-    updateSceneTree(): void;
+    update(): void;
 
     // #endregion Public Methods (1)
 }

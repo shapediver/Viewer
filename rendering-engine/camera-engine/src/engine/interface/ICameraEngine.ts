@@ -1,5 +1,5 @@
 import { vec3 } from 'gl-matrix';
-import { AbstractCamera as Camera } from '../implementation/AbstractCamera';
+import { ICamera } from './ICamera';
 export interface ICameraDefinition {
     // #region Properties (2)
 
@@ -16,7 +16,7 @@ export enum CAMERATYPE {
 
 export interface ICameraEngine {
     assignCamera(id: string): void;
-    createCamera(type: CAMERATYPE, id?: string): Camera;
-    getCamera(id?: string): Camera;
-    getCameras(): { [key: string]: Camera };
+    createCamera(type: CAMERATYPE, id?: string): ICamera;
+    getCamera(id?: string): ICamera;
+    getCameras(): { [key: string]: ICamera };
 }

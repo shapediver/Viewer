@@ -1,117 +1,118 @@
-import { SessionOutput, SessionOutputContent } from "@shapediver/viewer.shared.types";
+import { ISessionOutput, ISessionOutputContent } from "@shapediver/viewer.shared.types";
+import { IOutput } from "../interfaces/IOutput";
 
-export class Output {
-    // #region Properties (7)
+export class Output implements IOutput {
+  // #region Properties (7)
 
-    private readonly _bbmax?: number[];
-    private readonly _bbmin?: number[];
-    private readonly _delay?: number;
-    private readonly _material?: string;
-    private readonly _name?: string;
+  private readonly _bbmax?: number[];
+  private readonly _bbmin?: number[];
+  private readonly _delay?: number;
+  private readonly _material?: string;
+  private readonly _name?: string;
 
-    private _content?: SessionOutputContent[];
-    private _version: string;
+  private _content?: ISessionOutputContent[];
+  private _version: string;
 
-    // #endregion Properties (7)
+  // #endregion Properties (7)
 
-    // #region Constructors (1)
+  // #region Constructors (1)
 
-    constructor(
-        private readonly _id: string, 
-        private readonly _outputDefinition: SessionOutput
-    ) {
-        this._bbmax = this._outputDefinition.bbmax;
-        this._bbmin = this._outputDefinition.bbmin;
-        this._delay = this._outputDefinition.delay;
-        this._material = this._outputDefinition.material;
-        this._name = this._outputDefinition.name;
-        this._content = this._outputDefinition.content;
-        this._version = this._outputDefinition.version;
-    }
+  constructor(
+    private readonly _id: string,
+    private readonly _outputDefinition: ISessionOutput
+  ) {
+    this._bbmax = this._outputDefinition.bbmax;
+    this._bbmin = this._outputDefinition.bbmin;
+    this._delay = this._outputDefinition.delay;
+    this._material = this._outputDefinition.material;
+    this._name = this._outputDefinition.name;
+    this._content = this._outputDefinition.content;
+    this._version = this._outputDefinition.version;
+  }
 
-    // #endregion Constructors (1)
+  // #endregion Constructors (1)
 
-    // #region Public Accessors (10)
+  // #region Public Accessors (10)
 
-    /**
-     * Getter bbmax
-     * @return {number[] | undefined}
-     */
-    public get bbmax(): number[] | undefined {
-		return this._bbmax;
-	}
+  /**
+   * Getter bbmax
+   * @return {number[] | undefined}
+   */
+  public get bbmax(): number[] | undefined {
+    return this._bbmax;
+  }
 
-    /**
-     * Getter bbmin
-     * @return {number[] | undefined}
-     */
-    public get bbmin(): number[] | undefined {
-		return this._bbmin;
-	}
+  /**
+   * Getter bbmin
+   * @return {number[] | undefined}
+   */
+  public get bbmin(): number[] | undefined {
+    return this._bbmin;
+  }
 
-    /**
-     * Getter content
-     * @return {SessionOutputContent[] | undefined}
-     */
-    public get content(): SessionOutputContent[] | undefined {
-		return this._content;
-	}
+  /**
+   * Getter content
+   * @return {ISessionOutputContent[] | undefined}
+   */
+  public get content(): ISessionOutputContent[] | undefined {
+    return this._content;
+  }
 
-    /**
-    * Setter content
-    * @param {SessionOutputContent[] | undefined} value
-    */
-    public set content(value: SessionOutputContent[] | undefined) {
-       this._content = value;
-   }
+  /**
+  * Setter content
+  * @param {ISessionOutputContent[] | undefined} value
+  */
+  public set content(value: ISessionOutputContent[] | undefined) {
+    this._content = value;
+  }
 
-    /**
-     * Getter delay
-     * @return {number | undefined}
-     */
-    public get delay(): number | undefined {
-		return this._delay;
-	}
+  /**
+   * Getter delay
+   * @return {number | undefined}
+   */
+  public get delay(): number | undefined {
+    return this._delay;
+  }
 
-    /**
-     * Getter id
-     * @return {string}
-     */
-    public get id(): string {
-		return this._id;
-    }
+  /**
+   * Getter id
+   * @return {string}
+   */
+  public get id(): string {
+    return this._id;
+  }
 
-    /**
-     * Getter material
-     * @return {string | undefined}
-     */
-    public get material(): string | undefined {
-		return this._material;
-	}
+  /**
+   * Getter material
+   * @return {string | undefined}
+   */
+  public get material(): string | undefined {
+    return this._material;
+  }
 
-    /**
-     * Getter name
-     * @return {string | undefined}
-     */
-    public get name(): string | undefined {
-		return this._name;
-    }
+  /**
+   * Getter name
+   * @return {string | undefined}
+   */
+  public get name(): string | undefined {
+    return this._name;
+  }
 
-    /**
-     * Getter version
-     * @return {string}
-     */
-    public get version(): string {
-		return this._version;
-    }
+  /**
+   * Getter version
+   * @return {string}
+   */
+  public get version(): string {
+    return this._version;
+  }
 
-    /**
-    * Setter version
-    * @param {string} value
-    */
-    public set version(value: string) {
-       this._version = value;
-   }
+  /**
+  * Setter version
+  * @param {string} value
+  */
+  public set version(value: string) {
+    this._version = value;
+  }
 
-    // #endregion Public Accessors (10)
+  // #endregion Public Accessors (10)
 }

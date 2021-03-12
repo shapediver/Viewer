@@ -1,6 +1,6 @@
 import { mat4, vec3 } from "gl-matrix";
 import * as THREE from "three";
-import { ICameraControls } from "../../interface/ICameraControls";
+import { ICameraControlsUsage } from "../../interface/ICameraControlsUsage";
 import { ICameraInterpolation } from "../../interface/ICameraInterpolation";
 
 export class CameraSphericalInterpolation implements ICameraInterpolation {
@@ -17,7 +17,7 @@ export class CameraSphericalInterpolation implements ICameraInterpolation {
 
     // #region Constructors (1)
 
-    constructor(private readonly _cameraControls: ICameraControls,
+    constructor(private readonly _cameraControls: ICameraControlsUsage,
         private readonly _from: { position: THREE.Vector3, target: THREE.Vector3 },
         private readonly _to: { position: THREE.Vector3, target: THREE.Vector3 })
     {

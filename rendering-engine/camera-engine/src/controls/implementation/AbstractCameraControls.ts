@@ -5,8 +5,9 @@ import { CAMERATYPE, ICameraDefinition } from '../../engine/interface/ICameraEng
 import { CameraInterpolationManager } from './CameraInterpolationManager';
 import { ICameraControlsLogic } from '../interface/ICameraControlsLogic';
 import { ICameraControlsEventDistribution } from '../interface/ICameraControlsEventDistribution';
+import { ICameraControlsUsage } from '../interface/ICameraControlsUsage';
 
-export class AbstractCameraControls implements ICameraControls {
+export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Properties (11)
 
     private readonly _cameraInterpolationManager: CameraInterpolationManager = new CameraInterpolationManager(this);
@@ -196,7 +197,8 @@ export class AbstractCameraControls implements ICameraControls {
     }
 
     public update(time: number): ICameraDefinition {
-        if (!this._enabled) this._cameraLogic.restrict(this.getPosition(), this.getTarget());
+        if (!this._enabled) 
+            return { position: vec3.clone(this._position), target: vec3.clone(this._target) };
         let { position, target } = this._cameraLogic.restrict(this.getPosition(), this.getTarget());
         this._position = vec3.clone(position);
         this._target = vec3.clone(target);

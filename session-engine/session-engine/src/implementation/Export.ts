@@ -1,6 +1,7 @@
-import { SessionExport } from "@shapediver/viewer.shared.types";
+import { ISessionExport } from "@shapediver/viewer.shared.types";
+import { IExport } from "../interfaces/IExport";
 
-export class Export {
+export class Export implements IExport {
     // #region Properties (2)
 
     private _name?: string;
@@ -12,7 +13,7 @@ export class Export {
 
     constructor(
         private readonly _id: string, 
-        private readonly _exportDefinition: SessionExport
+        private readonly _exportDefinition: ISessionExport
         )
     {
         this._name = this._exportDefinition.name;

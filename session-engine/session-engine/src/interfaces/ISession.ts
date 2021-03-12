@@ -1,29 +1,29 @@
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { Export } from "../implementation/Export";
-import { Output } from "../implementation/Output";
-import { Parameter } from "../implementation/Parameter";
+import { IExport } from "./IExport";
+import { IOutput } from "./IOutput";
+import { IParameter } from "./IParameter";
 
 export interface ISession {
     id: string;
 
-    createOutput(id: string): Output;
+    createOutput(id: string): IOutput;
     customize(): Promise<TreeNode>;
     init(): Promise<TreeNode>;
 
-    getExport(id: string): Export;
-    getExportById(id: string): Export;
-    getExportByName(name: string): Export[];
-    getExportByType(type: string): Export[];
-    getExports(): { [key: string]: Export; };
+    getExport(id: string): IExport;
+    getExportById(id: string): IExport;
+    getExportByName(name: string): IExport[];
+    getExportByType(type: string): IExport[];
+    getExports(): { [key: string]: IExport; };
 
-    getOutput(id: string): Output;
-    getOutputById(id: string): Output;
-    getOutputByName(name: string): Output[];
-    getOutputs(): { [key: string]: Output; };
+    getOutput(id: string): IOutput;
+    getOutputById(id: string): IOutput;
+    getOutputByName(name: string): IOutput[];
+    getOutputs(): { [key: string]: IOutput; };
     
-    getParameter(id: string): Parameter;
-    getParameterById(id: string): Parameter;
-    getParameterByName(name: string): Parameter[];
-    getParameterByType(type: string): Parameter[];
-    getParameters(): { [key: string]: Parameter; };
+    getParameter(id: string): IParameter;
+    getParameterById(id: string): IParameter;
+    getParameterByName(name: string): IParameter[];
+    getParameterByType(type: string): IParameter[];
+    getParameters(): { [key: string]: IParameter; };
 }

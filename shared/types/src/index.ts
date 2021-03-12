@@ -22,15 +22,15 @@ export {
 }
 
 export {
-  ISessionResponse as SessionJson,
+  ISessionResponse,
 }
 
 export {
-  ISessionAction as SessionAction,
-  ISessionExport as SessionExport,
-  ISessionOutput as SessionOutput,
-  ISessionOutputContent as SessionOutputContent,
-  ISessionParameter as SessionParameter
+  ISessionAction,
+  ISessionExport,
+  ISessionOutput,
+  ISessionOutputContent,
+  ISessionParameter
 }
 
 export {

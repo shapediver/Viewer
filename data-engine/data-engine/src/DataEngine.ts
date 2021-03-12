@@ -1,5 +1,5 @@
 import { container, singleton } from 'tsyringe';
-import { CustomData, SessionOutputContent } from '@shapediver/viewer.shared.types';
+import { CustomData, ISessionOutputContent } from '@shapediver/viewer.shared.types';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
@@ -15,7 +15,7 @@ export class DataEngine {
         this._materialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     }
 
-    public async loadContent(content: SessionOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ISessionOutputContent): Promise<TreeNode> {
         if (content.format === 'glb' || content.format === 'gltf') {
             return await this._geometryEngine.loadContent(content);
         } else if (content.format === 'material') {

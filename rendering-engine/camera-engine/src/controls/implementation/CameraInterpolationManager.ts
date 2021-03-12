@@ -5,6 +5,7 @@ import { Tween, Easing, Interpolation } from "@tweenjs/tween.js";
 import { CameraMultipleInterpolation } from "./interpolationMethods/CameraMultipleInterpolation";
 import { CameraSphericalInterpolation } from "./interpolationMethods/CameraSphericalInterpolation";
 import { vec3 } from "gl-matrix";
+import { ICameraControlsUsage } from "../interface/ICameraControlsUsage";
 
 export class CameraInterpolationManager {
     // #region Properties (3)
@@ -52,7 +53,7 @@ export class CameraInterpolationManager {
 
     // #region Constructors (1)
 
-    constructor(private readonly _cameraControls: ICameraControls) {
+    constructor(private readonly _cameraControls: ICameraControlsUsage) {
     }
 
     // #endregion Constructors (1)

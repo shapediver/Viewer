@@ -1,6 +1,7 @@
-import { SessionParameter } from "@shapediver/viewer.shared.types";
+import { ISessionParameter } from "@shapediver/viewer.shared.types";
+import { IParameter } from "../interfaces/IParameter";
 
-export class Parameter {
+export class Parameter implements IParameter {
     // #region Properties (11)
 
     private readonly _choices?: string[];
@@ -22,7 +23,7 @@ export class Parameter {
 
     constructor(
         private readonly _id: string, 
-        private readonly _parameterDefinition: SessionParameter
+        private readonly _parameterDefinition: ISessionParameter
         )
     {
         this._choices = this._parameterDefinition.choices;

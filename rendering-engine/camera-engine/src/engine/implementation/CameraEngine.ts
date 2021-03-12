@@ -6,6 +6,7 @@ import { AbstractCamera as Camera } from "./AbstractCamera";
 import { OrthographicCamera } from "./OrthographicCamera";
 import { PerspectiveCamera } from "./PerspectiveCamera";
 import { Canvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
+import { OrthographicCameraControls } from "../../controls/implementation/OrthographicCameraControls";
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (3)
@@ -38,12 +39,12 @@ export class CameraEngine implements ICameraEngine {
         if (this._cameras[cameraId]) new Error('Camera with this id already exists.');
         if (CAMERATYPE.ORTHOGRAPHIC === type) {
             const camera = new OrthographicCamera(cameraId, this._canvas.canvasElement);
-            this._domEventEngine.addDomEventListener(camera.controls.cameraControlsEventDistribution);
+            this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
             return camera;
         } else {
             const camera = new PerspectiveCamera(cameraId, this._canvas.canvasElement);
-            this._domEventEngine.addDomEventListener(camera.controls.cameraControlsEventDistribution);
+            this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
             return camera;
         }

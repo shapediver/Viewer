@@ -1,7 +1,7 @@
 import { container } from 'tsyringe';
 
 import {
-    SessionResponse, SessionOutput, SessionOutputContent, SessionOutputData, MaterialData, GeometryData, CustomData
+    SessionResponse, ISessionOutput, ISessionOutputContent, SessionOutputData, MaterialData, GeometryData, CustomData
 } from '@shapediver/viewer.shared.types';
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 
@@ -43,7 +43,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(outputs: { [key: string]: SessionOutput; }): Promise<SessionTreeNode> {
+    public async loadOutputs(outputs: { [key: string]: ISessionOutput; }): Promise<SessionTreeNode> {
         const node = new SessionTreeNode(this._session.name);
         let currentNodes: { 
             [key: string]: {
@@ -151,7 +151,7 @@ export class OutputLoader {
      * @param output the output definition
      * @returns promise with a scene graph node
      */
-    private async loadOutput(id: string, output: SessionOutput): Promise<SessionTreeNode> {
+    private async loadOutput(id: string, output: ISessionOutput): Promise<SessionTreeNode> {
         const outputNode = new SessionTreeNode(id);
         outputNode.data.push(new SessionOutputData(output));
         if(output.content)
@@ -167,7 +167,7 @@ export class OutputLoader {
      * @param content the content definition
      * @returns promise with a scene graph node
      */
-    public async loadContent(name: string, content: SessionOutputContent): Promise<SessionTreeNode> {
+    public async loadContent(name: string, content: ISessionOutputContent): Promise<SessionTreeNode> {
         const contentNode = new SessionTreeNode(name);
         contentNode.addChild(await this._dataEngine.loadContent(content));
         return contentNode;

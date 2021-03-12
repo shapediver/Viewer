@@ -1,14 +1,18 @@
 import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ISession, Session as SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
-import { Export } from "@shapediver/viewer.session-engine.session-engine/dist/implementation/Export";
-import { Output } from "@shapediver/viewer.session-engine.session-engine/dist/implementation/Output";
-import { Parameter } from "@shapediver/viewer.session-engine.session-engine/dist/implementation/Parameter";
+import { Export } from "./Export";
+import { Output } from "./Output";
+import { Parameter } from "./Parameter";
 import { container, injectable } from "tsyringe";
 import { Viewer } from "../viewer/Viewer";
 
 @injectable()
 export class Session implements ISession {
     // #region Properties (6)
+
+    readonly #exports: { [key: string]: Export; } = {};
+    readonly #outputs: { [key: string]: Output; } = {};
+    readonly #parameters: { [key: string]: Parameter; } = {};
 
     readonly #sessionEngine: SessionEngine;
     readonly #ticket: string; 
@@ -136,7 +140,7 @@ export class Session implements ISession {
     // #region Public Methods (17)
 
     public createOutput(id: string): Output {
-        return this.#sessionEngine.createOutput(id);
+        return new Output(this.#sessionEngine.createOutput(id));
     }
 
     public async customize(): Promise<TreeNode> {
@@ -148,59 +152,119 @@ export class Session implements ISession {
     }
 
     public getExport(id: string): Export {
-        return this.#sessionEngine.getExport(id);
+        const exportLogic = this.#sessionEngine.getExport(id);
+        if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
+        return this.#exports[id];
     }
 
     public getExportById(id: string): Export {
-        return this.#sessionEngine.getExportById(id);
+        const exportLogic = this.#sessionEngine.getExportById(id);
+        if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
+        return this.#exports[id];
     }
 
     public getExportByName(name: string): Export[] {
-        return this.#sessionEngine.getExportByName(name);
+        const exportLogic = this.#sessionEngine.getExportByName(name);
+        const exports: Export[] = [];
+        for(let i = 0; i < exportLogic.length; i++) {
+            if(!this.#exports[exportLogic[i].id]) this.#exports[exportLogic[i].id] = new Export(exportLogic[i]);
+            exports.push(this.#exports[exportLogic[i].id]);
+        }
+        return exports;
     }
 
     public getExportByType(type: string): Export[] {
-        return this.#sessionEngine.getExportByType(type);
+        const exportLogic = this.#sessionEngine.getExportByType(type);
+        const exports: Export[] = [];
+        for(let i = 0; i < exportLogic.length; i++){
+            if(!this.#exports[exportLogic[i].id]) this.#exports[exportLogic[i].id] = new Export(exportLogic[i]);
+            exports.push(this.#exports[exportLogic[i].id]);
+        }
+        return exports;
     }
 
-    public getExports(): { [key: string]: Export; } {
-        return this.#sessionEngine.getExports();
+    public getExports(): { [key: string]: Export; } {        
+        const exportLogic = this.#sessionEngine.getExports();
+        const exports: { [key: string]: Export; } = {};
+        for(let e in exportLogic) {
+            if(!this.#exports[exportLogic[e].id]) this.#exports[exportLogic[e].id] = new Export(exportLogic[e]);
+            exports[e] = this.#exports[exportLogic[e].id];
+        }
+        return exports;
     }
 
     public getOutput(id: string): Output {
-        return this.#sessionEngine.getOutput(id);
+        const outputLogic = this.#sessionEngine.getOutput(id);
+        if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
+        return this.#outputs[id];
     }
 
     public getOutputById(id: string): Output {
-        return this.#sessionEngine.getOutputById(id);
+        const outputLogic = this.#sessionEngine.getOutputById(id);
+        if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
+        return this.#outputs[id];
     }
 
     public getOutputByName(name: string): Output[] {
-        return this.#sessionEngine.getOutputByName(name);
+        const outputLogic = this.#sessionEngine.getOutputByName(name);
+        const outputs: Output[] = [];
+        for(let i = 0; i < outputLogic.length; i++) {
+            if(!this.#outputs[outputLogic[i].id]) this.#outputs[outputLogic[i].id] = new Output(outputLogic[i]);
+            outputs.push(this.#outputs[outputLogic[i].id]);
+        }
+        return outputs;
     }
 
-    public getOutputs(): { [key: string]: Output; } {
-        return this.#sessionEngine.getOutputs();
+    public getOutputs(): { [key: string]: Output; } {       
+        const outputLogic = this.#sessionEngine.getOutputs();
+        const outputs: { [key: string]: Output; } = {};
+        for(let e in outputLogic){
+            if(!this.#outputs[outputLogic[e].id]) this.#outputs[outputLogic[e].id] = new Output(outputLogic[e]);
+            outputs[e] = this.#outputs[outputLogic[e].id];
+        }
+        return outputs;
     }
 
     public getParameter(id: string): Parameter {
-        return this.#sessionEngine.getParameter(id);
+        const parameterLogic = this.#sessionEngine.getParameter(id);
+        if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
+        return this.#parameters[id];
     }
 
     public getParameterById(id: string): Parameter {
-        return this.#sessionEngine.getParameterById(id);
+        const parameterLogic = this.#sessionEngine.getParameterById(id);
+        if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
+        return this.#parameters[id];
     }
 
     public getParameterByName(name: string): Parameter[] {
-        return this.#sessionEngine.getParameterByName(name);
+        const parameterLogic = this.#sessionEngine.getParameterByName(name);
+        const parameters: Parameter[] = [];
+        for(let i = 0; i < parameterLogic.length; i++){
+            if(!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = new Parameter(parameterLogic[i]);
+            parameters.push(this.#parameters[parameterLogic[i].id]);
+        }
+        return parameters;
     }
 
     public getParameterByType(type: string): Parameter[] {
-        return this.#sessionEngine.getParameterByType(type);
+        const parameterLogic = this.#sessionEngine.getParameterByType(type);
+        const parameters: Parameter[] = [];
+        for(let i = 0; i < parameterLogic.length; i++){
+            if(!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = new Parameter(parameterLogic[i]);
+            parameters.push(this.#parameters[parameterLogic[i].id]);
+        }
+        return parameters;
     }
 
-    public getParameters(): { [key: string]: Parameter; } {
-        return this.#sessionEngine.getParameters();
+    public getParameters(): { [key: string]: Parameter; } {    
+        const parameterLogic = this.#sessionEngine.getParameters();
+        const parameters: { [key: string]: Parameter; } = {};
+        for(let e in parameterLogic){
+            if(!this.#parameters[parameterLogic[e].id]) this.#parameters[parameterLogic[e].id] = new Parameter(parameterLogic[e]);
+            parameters[e] = this.#parameters[parameterLogic[e].id];
+        }
+        return parameters;
     }
 
     public async init(): Promise<TreeNode>  {

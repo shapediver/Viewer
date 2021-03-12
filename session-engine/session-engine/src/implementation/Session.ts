@@ -1,4 +1,4 @@
-import { SessionJson, SessionResponse, SessionOutput, SessionData, SessionOutputContent, SessionParameter, SessionExport } from '@shapediver/viewer.shared.types';
+import { ISessionResponse, SessionResponse, ISessionOutput, SessionData, ISessionOutputContent, ISessionParameter, ISessionExport } from '@shapediver/viewer.shared.types';
 
 import { OutputDelayException } from './OutputDelayException';
 import { OutputLoader } from './OutputLoader';
@@ -222,7 +222,7 @@ export class Session implements ISession {
     public async init(): Promise<SessionTreeNode> {
         if (this._initialized === true) throw new Error('Already initialized.'); //TODO
         try {
-            const sessionResponse = <SessionJson>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers: this._headers })).data;
+            const sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers: this._headers })).data;
             (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
             this._sessionResponse.adaptSession(sessionResponse);
 
@@ -251,7 +251,7 @@ export class Session implements ISession {
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
         try {
             const headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
-            const responseCustomize = <SessionJson>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
+            const responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
             this._sessionResponse.adaptSession(responseCustomize);
             return this.loadOutputs(parameters, this._sessionResponse.outputs);
         } catch (e) {
@@ -267,7 +267,7 @@ export class Session implements ISession {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    private async loadOutputs(parameters: { [key: string]: string }, outputs: { [key: string]: SessionOutput; }): Promise<SessionTreeNode> {
+    private async loadOutputs(parameters: { [key: string]: string }, outputs: { [key: string]: ISessionOutput; }): Promise<SessionTreeNode> {
         try {
             const node = await this._outputLoader.loadOutputs(outputs);
             node.data.push(new SessionData(this._sessionResponse));
