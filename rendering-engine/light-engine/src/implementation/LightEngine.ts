@@ -1,6 +1,6 @@
 import { container, singleton } from "tsyringe"
 import { vec3 } from "gl-matrix";
-import { ILightEngine } from "..";
+import { ILight, ILightEngine } from "..";
 import { AmbientLight } from "./types/AmbientLight";
 import { DirectionalLight } from "./types/DirectionalLight";
 import { HemisphereLight } from "./types/HemisphereLight";
@@ -84,7 +84,7 @@ export class LightEngine implements ILightEngine {
         return id;
     }
 
-    public getLight(id: string): AbstractLight {
+    public getLight(id: string): ILight {
         return this._currentLightScene.getLight(id);
     }
 
@@ -100,7 +100,7 @@ export class LightEngine implements ILightEngine {
         return Object.keys(this._lightScenes);
     }
 
-    public getLights(): { [key: string]: AbstractLight; } {
+    public getLights(): { [key: string]: ILight; } {
         return this._currentLightScene.lights;
     }
 

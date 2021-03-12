@@ -5,12 +5,12 @@ import { DirectionalLight } from "./implementation/types/DirectionalLight";
 import { HemisphereLight } from "./implementation/types/HemisphereLight";
 import { PointLight } from "./implementation/types/PointLight";
 import { SpotLight } from "./implementation/types/SpotLight";
-import { LIGHTTYPE } from "./interface/ILight";
+import { ILight, LIGHTTYPE } from "./interface/ILight";
 import { ILightEngine } from "./interface/ILightEngine";
 import { ILightScene } from "./interface/ILightScene";
 
 export {
-  ILightEngine, LightEngine, LIGHTTYPE, ILightScene
+  ILightEngine, LightEngine, LIGHTTYPE, ILightScene, ILight
 }
 
 export {

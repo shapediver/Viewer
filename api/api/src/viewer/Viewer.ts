@@ -1,12 +1,18 @@
 import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic, OrthographicCamera as OrthographicCameraLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { ILightEngine } from "@shapediver/viewer.rendering-engine.light-engine";
+import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
 import { injectable } from "tsyringe";
 import { Camera } from "./camera/Camera";
 import { OrthographicCamera } from "./camera/OrthographicCamera";
 import { PerspectiveCamera } from "./camera/PerspectiveCamera";
+import { AmbientLight } from "./lights/AmbientLight";
+import { DirectionalLight } from "./lights/DirectionalLight";
+import { HemisphereLight } from "./lights/HemisphereLight";
+import { Light } from "./lights/Light";
+import { PointLight } from "./lights/PointLight";
+import { SpotLight } from "./lights/SpotLight";
 
 export enum RENDERERTYPE {
   THREEJS = 'threejs'
@@ -19,6 +25,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   readonly #cameras: {
     [key: string]: Camera
+  } = {};
+  readonly #lights: {
+    [key: string]: Light
   } = {};
   // #endregion Properties (25)
 
@@ -411,31 +420,50 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
 
   public addAmbientLight(color: vec3, intensity: number, id?: string): AmbientLight {
-    return this.#renderingEngine.lightEngine.addAmbientLight(color, intensity, id);
+    const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(color, intensity, id)
+    this.#lights[(<AbstractLight>lightLogic).id] = new AmbientLight(<AmbientLightLogic>lightLogic);
+    this.update();
+    return <AmbientLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
   public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, id?: string): DirectionalLight {
-    return this.#renderingEngine.lightEngine.addDirectionalLight(color, intensity, direction, castShadow, id);
+    const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(color, intensity, direction, castShadow, id);
+    this.#lights[(<AbstractLight>lightLogic).id] = new DirectionalLight(<DirectionalLightLogic>lightLogic);
+    this.update();
+    return <DirectionalLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
   public addHemisphereLight(color: vec3, intensity: number, groundColor: vec3, id?: string): HemisphereLight {
-    return this.#renderingEngine.lightEngine.addHemisphereLight(color, intensity, groundColor, id);
+    const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(color, intensity, groundColor, id);
+    this.#lights[(<AbstractLight>lightLogic).id] = new HemisphereLight(<HemisphereLightLogic>lightLogic);
+    this.update();
+    return <HemisphereLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
   public addPointLight(color: vec3, intensity: number, position: vec3, distance: number, decay: number, id?: string): PointLight {
-    return this.#renderingEngine.lightEngine.addPointLight(color, intensity, position, distance, decay, id);
+    const lightLogic = this.#renderingEngine.lightEngine.addPointLight(color, intensity, position, distance, decay, id);
+    this.#lights[(<AbstractLight>lightLogic).id] = new PointLight(<PointLightLogic>lightLogic);
+    this.update();
+    return <PointLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
   public addSpotLight(color: vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, id?: string): SpotLight {
-    return this.#renderingEngine.lightEngine.addSpotLight(color, intensity, position, target, distance, decay, angle, penumbra, id);
+    const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(color, intensity, position, target, distance, decay, angle, penumbra, id);
+    this.#lights[(<AbstractLight>lightLogic).id] = new SpotLight(<SpotLightLogic>lightLogic);
+    this.update();
+    return <SpotLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
   public createLightScene(id?: string, standard?: boolean): string {
-    return this.#renderingEngine.lightEngine.createLightScene(id, standard);
+    const r = this.#renderingEngine.lightEngine.createLightScene(id, standard);
+    this.update();
+    return r;
   }
 
   public removeLightScene(id: string): boolean {
-    return this.#renderingEngine.lightEngine.removeLightScene(id);
+    const r = this.#renderingEngine.lightEngine.removeLightScene(id);
+    this.update();
+    return r;
   }
 
   public getLightScene(): string {
@@ -447,19 +475,47 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   public removeLight(id: string): boolean {
-    return this.#renderingEngine.lightEngine.removeLight(id);
+    const r = this.#renderingEngine.lightEngine.removeLight(id);
+    this.update();
+    return r;
   }
 
   public assignLightScene(id: string): boolean {
-    return this.#renderingEngine.lightEngine.assignLightScene(id);
+    const r = this.#renderingEngine.lightEngine.assignLightScene(id);
+    this.update();
+    return r;
   }
 
   public getLight(id: string): Light {
-    return this.#renderingEngine.lightEngine.getLight(id);
+    if (!this.#lights[id]) {
+      const lightLogic = this.#renderingEngine.lightEngine.getLight(id);
+      switch (lightLogic.type) {
+        case LIGHTTYPE.DIRECTIONAL:
+          this.#lights[id] = new DirectionalLight(<DirectionalLightLogic>lightLogic);
+          break;
+        case LIGHTTYPE.HEMISPHERE:
+          this.#lights[id] = new HemisphereLight(<HemisphereLightLogic>lightLogic);
+          break;
+        case LIGHTTYPE.POINT:
+          this.#lights[id] = new PointLight(<PointLightLogic>lightLogic);
+          break;
+        case LIGHTTYPE.SPOT:
+          this.#lights[id] = new SpotLight(<SpotLightLogic>lightLogic);
+          break;
+        case LIGHTTYPE.AMBIENT:
+        default:
+          this.#lights[id] = new AmbientLight(<AmbientLightLogic>lightLogic);
+      }
+    }
+    return this.#lights[id];
   }
 
   public getLights(): { [key: string]: Light } {
-    return this.#renderingEngine.lightEngine.getLights();
+    const lightLogic = this.#renderingEngine.lightEngine.getLights();
+    const lights: { [key: string]: Light } = {};
+    for(let l in lightLogic) 
+      lights[l] = this.getLight(l);
+    return lights;
   }
 
   // #endregion Public Methods (11)
