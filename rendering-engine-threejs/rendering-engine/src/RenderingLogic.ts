@@ -31,7 +31,7 @@ export class RenderingLogic {
 
         this._renderer.shadowMap.enabled = true;
         this._renderer.shadowMap.needsUpdate = true;
-        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this._renderer.shadowMap.type = THREE.VSMShadowMap;
         this._renderer.setSize(this._canvas.canvasElement.width, this._canvas.canvasElement.height);
         this._renderer.setClearColor(new THREE.Color(0xffffff));
 

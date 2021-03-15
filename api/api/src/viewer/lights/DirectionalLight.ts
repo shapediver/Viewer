@@ -52,5 +52,53 @@ export class DirectionalLight extends Light {
         this.#light.direction = value;
     }
 
+    /**
+     * Getter shadowMapBias
+     * @return {number}
+     */
+    public get shadowMapBias(): number {
+        return this.#light.shadowMapBias;
+    }
+
+    /**
+     * Setter shadowMapBias
+     * @param {number} value
+     */
+    public set shadowMapBias(value: number) {
+        this.#light.shadowMapBias = value;
+    }
+
+    /**
+     * Getter shadowMapRadius
+     * @return {number}
+     */
+    public get shadowMapRadius(): number {
+        return this.#light.shadowMapRadius;
+    }
+
+    /**
+     * Setter shadowMapRadius
+     * @param {number} value
+     */
+    public set shadowMapRadius(value: number) {
+        this.#light.shadowMapRadius = value;
+    }
+
+    /**
+     * Getter shadowMapResolution
+     * @return {number}
+     */
+    public get shadowMapResolution(): number {
+        return this.#light.shadowMapResolution;
+    }
+
+    /**
+     * Setter shadowMapResolution
+     * @param {number} value
+     */
+    public set shadowMapResolution(value: number) {
+        this.#light.shadowMapResolution = value;
+    }
+
     // #endregion Public Accessors (4)
 }

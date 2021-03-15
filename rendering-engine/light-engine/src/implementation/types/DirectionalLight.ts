@@ -11,6 +11,9 @@ export class DirectionalLight extends AbstractLight {
         intensity: number = 0.5,
         private _direction: vec3 = vec3.fromValues(-1, 0, 1),
         private _castShadow: boolean = false,
+        private _shadowMapResolution: number = 1024,
+        private _shadowMapRadius: number = 10,
+        private _shadowMapBias: number = -0.00175,
         name?: string
     ) {
         super(color, intensity, LIGHTTYPE.DIRECTIONAL, name);
@@ -18,7 +21,7 @@ export class DirectionalLight extends AbstractLight {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (4)
+    // #region Public Accessors (10)
 
     /**
      * Getter castShadow
@@ -54,12 +57,63 @@ export class DirectionalLight extends AbstractLight {
         this.updateVersion();
     }
 
-    // #endregion Public Accessors (4)
+    /**
+     * Getter shadowMapBias
+     * @return {number}
+     */
+    public get shadowMapBias(): number {
+        return this._shadowMapBias;
+    }
+
+    /**
+     * Setter shadowMapBias
+     * @param {number} value
+     */
+    public set shadowMapBias(value: number) {
+        this._shadowMapBias = value;
+        this.updateVersion();
+    }
+
+    /**
+     * Getter shadowMapRadius
+     * @return {number}
+     */
+    public get shadowMapRadius(): number {
+        return this._shadowMapRadius;
+    }
+
+    /**
+     * Setter shadowMapRadius
+     * @param {number} value
+     */
+    public set shadowMapRadius(value: number) {
+        this._shadowMapRadius = value;
+        this.updateVersion();
+    }
+
+    /**
+     * Getter shadowMapResolution
+     * @return {number}
+     */
+    public get shadowMapResolution(): number {
+        return this._shadowMapResolution;
+    }
+
+    /**
+     * Setter shadowMapResolution
+     * @param {number} value
+     */
+    public set shadowMapResolution(value: number) {
+        this._shadowMapResolution = value;
+        this.updateVersion();
+    }
+
+    // #endregion Public Accessors (10)
 
     // #region Public Methods (1)
 
     public clone(): ITreeNodeData {
-        return new DirectionalLight(this.color, this.intensity, this.direction, this.castShadow, this.name);
+        return new DirectionalLight(this.color, this.intensity, this.direction, this.castShadow, this.shadowMapResolution, this.shadowMapRadius, this.shadowMapBias, this.name);
     }
 
     // #endregion Public Methods (1)

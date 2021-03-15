@@ -430,8 +430,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     return <AmbientLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
-  public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, id?: string): DirectionalLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(color, intensity, direction, castShadow, id);
+  public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapRadius: number, shadowMapBias: number, id?: string): DirectionalLight {
+    const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(color, intensity, direction, castShadow, shadowMapResolution, shadowMapRadius, shadowMapBias, id);
     this.#lights[(<AbstractLight>lightLogic).id] = new DirectionalLight(<DirectionalLightLogic>lightLogic);
     this.update();
     return <DirectionalLight>this.#lights[(<AbstractLight>lightLogic).id];

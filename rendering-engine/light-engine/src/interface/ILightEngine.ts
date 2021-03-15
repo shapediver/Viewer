@@ -11,7 +11,7 @@ export interface ILightEngine {
     // #region Public Methods (12)
 
     addAmbientLight(color: vec3, intensity: number, name?: string): ILight;
-    addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, name?: string): ILight;
+    addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapRadius: number, shadowMapBias: number, name?: string): ILight;
     addHemisphereLight(color: vec3, intensity: number, groundColor: vec3, name?: string): ILight;
     addPointLight(color: vec3, intensity: number, position: vec3, distance: number, decay: number, name?: string): ILight;
     addSpotLight(color: vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, name?: string): ILight;

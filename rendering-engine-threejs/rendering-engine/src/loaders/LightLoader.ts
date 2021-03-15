@@ -44,10 +44,10 @@ export class LightLoader {
                 threeLight.shadow.camera.left = -1.5 * bs.radius;
                 threeLight.shadow.camera.top = 1.5 * bs.radius;
                 threeLight.shadow.camera.bottom = -1.5 * bs.radius;
-                threeLight.shadow.mapSize.width = 2048;
-                threeLight.shadow.mapSize.height = 2048;
-                threeLight.shadow.radius = 2;
-                threeLight.shadow.bias = -0.00175;
+                threeLight.shadow.mapSize.width = light.shadowMapResolution;
+                threeLight.shadow.mapSize.height = light.shadowMapResolution;
+                threeLight.shadow.radius = light.shadowMapRadius;
+                threeLight.shadow.bias = light.shadowMapBias;
                 threeLight.shadow.camera.updateProjectionMatrix();
               } else {
                 threeLight.castShadow = false;
