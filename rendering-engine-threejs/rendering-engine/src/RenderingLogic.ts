@@ -20,13 +20,21 @@ export class RenderingLogic {
 
     constructor(private readonly _cameraEngine: ICameraEngine, private readonly _canvas: Canvas, private readonly _sceneTree: SceneTree) {
         this._renderer = new THREE.WebGLRenderer({
-            canvas: this._canvas.canvasElement,
+            alpha: true,
+            depth: false,
             antialias: true,
+            preserveDrawingBuffer: true,
+            canvas: this._canvas.canvasElement,
+
         });
+        this._renderer.setPixelRatio(window.devicePixelRatio);
+
         this._renderer.shadowMap.enabled = true;
+        this._renderer.shadowMap.needsUpdate = true;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this._renderer.setSize(this._canvas.canvasElement.width, this._canvas.canvasElement.height);
-        this._renderer.setClearColor(new THREE.Color(0xffffff))
+        this._renderer.setClearColor(new THREE.Color(0xffffff));
+
         this.animate(0);
     }
 
@@ -34,11 +42,11 @@ export class RenderingLogic {
 
     // #region Private Methods (2)
 
-    private adjustCamera(time: number): THREE.Camera {
+    private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let camera: THREE.Camera;
         const cameraDefinition = this._cameraEngine.getCamera().update(time);
         if (this._cameraEngine.getCamera().type === CAMERATYPE.ORTHOGRAPHIC) {
-            const aspect = this._canvas.canvasElement.width / this._canvas.canvasElement.height;
+            const aspect = width / height;
             const distance = vec3.distance(cameraDefinition.position, cameraDefinition.target) / 2;
             this._orthographicCamera.up.set(0, 0, 1);
             this._orthographicCamera.left = -distance * aspect;
@@ -47,33 +55,39 @@ export class RenderingLogic {
             this._orthographicCamera.top = distance;
             this._orthographicCamera.near = 0.01 * distance;
             this._orthographicCamera.far = 10000 * distance;
+            this._orthographicCamera.position.set(cameraDefinition.position[0], cameraDefinition.position[1], cameraDefinition.position[2]);
+            this._orthographicCamera.lookAt(cameraDefinition.target[0], cameraDefinition.target[1], cameraDefinition.target[2]);
             this._orthographicCamera.updateProjectionMatrix();
             camera = this._orthographicCamera;
         } else {
             this._perspectiveCamera.up.set(0, 0, 1);
-            this._perspectiveCamera.fov = (<PerspectiveCamera>this._cameraEngine.getCamera()).fov;
-            this._perspectiveCamera.aspect = this._canvas.canvasElement.width / this._canvas.canvasElement.height;
-            this._perspectiveCamera.near = 0.01;
-            this._perspectiveCamera.far = 10000;
+            const fov = (<PerspectiveCamera>this._cameraEngine.getCamera()).fov;
+            const bs = this._sceneTree.boundingBox.boundingSphere;
+            this._perspectiveCamera.fov = fov;
+            this._perspectiveCamera.aspect = width / height;
+            this._perspectiveCamera.far = fov < 10 ? fov * 100.0 * 100 * bs.radius : 100 * bs.radius;
+            this._perspectiveCamera.near = fov < 10 ? fov * 100.0 * 0.1 * bs.radius : 0.1 * bs.radius;
+            this._perspectiveCamera.position.set(cameraDefinition.position[0], cameraDefinition.position[1], cameraDefinition.position[2]);
+            this._perspectiveCamera.lookAt(cameraDefinition.target[0], cameraDefinition.target[1], cameraDefinition.target[2]);
             this._perspectiveCamera.updateProjectionMatrix();
             camera = this._perspectiveCamera;
         }
-        camera.position.set(cameraDefinition.position[0], cameraDefinition.position[1], cameraDefinition.position[2]);
-        camera.lookAt(cameraDefinition.target[0], cameraDefinition.target[1], cameraDefinition.target[2]);
         return camera;
     }
 
     private animate(time: number): void {
         requestAnimationFrame((time: number) => this.animate(time));
-        let deltaTime = time - this._lastTime;
-        deltaTime = deltaTime < 0 ? 0 : deltaTime;
+        const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
-        try {
-            this._cameraEngine.getCamera();
-            const camera = this.adjustCamera(deltaTime);
-            this._renderer.setSize(this._canvas.canvasElement.width, this._canvas.canvasElement.height);
-            this._renderer.render((<SceneTree>this._sceneTree).scene, camera);
-        } catch (e) { console.log(e) }
+
+        if (!this._cameraEngine.hasCamera()) return;
+        (<HTMLCanvasElement>document.getElementById('canvas')).width = window.innerWidth;
+        (<HTMLCanvasElement>document.getElementById('canvas')).height = window.innerHeight;
+        let width: number = window.innerWidth, height: number = window.innerHeight;
+
+        const camera = this.adjustCamera(deltaTime, width, height);
+        this._renderer.setSize(width, height);
+        this._renderer.render((<SceneTree>this._sceneTree).scene, camera);
     }
 
     // #endregion Private Methods (2)

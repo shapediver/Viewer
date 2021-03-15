@@ -19,4 +19,5 @@ export interface ICameraEngine {
     createCamera(type: CAMERATYPE, id?: string): ICamera;
     getCamera(id?: string): ICamera;
     getCameras(): { [key: string]: ICamera };
+    hasCamera(): boolean;
 }

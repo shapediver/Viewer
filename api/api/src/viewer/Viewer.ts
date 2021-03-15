@@ -414,6 +414,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     return cameras;
   }
 
+  public hasCamera(): boolean {
+    return this.#renderingEngine.cameraEngine.hasCamera();
+  }
+
 
 
 

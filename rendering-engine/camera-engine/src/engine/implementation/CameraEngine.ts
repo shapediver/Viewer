@@ -26,7 +26,7 @@ export class CameraEngine implements ICameraEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (4)
+    // #region Public Methods (5)
 
     public assignCamera(id: string): void {
         const camera = this.getCamera(id);
@@ -67,5 +67,9 @@ export class CameraEngine implements ICameraEngine {
         return r;
     }
 
-    // #endregion Public Methods (4)
+    public hasCamera(): boolean {
+        return this._camera ? true : false;
+    }
+
+    // #endregion Public Methods (5)
 }
