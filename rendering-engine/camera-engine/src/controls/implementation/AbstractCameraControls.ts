@@ -6,11 +6,14 @@ import { CameraInterpolationManager } from './CameraInterpolationManager';
 import { ICameraControlsLogic } from '../interface/ICameraControlsLogic';
 import { ICameraControlsEventDistribution } from '../interface/ICameraControlsEventDistribution';
 import { ICameraControlsUsage } from '../interface/ICameraControlsUsage';
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
+import { container } from 'tsyringe';
 
 export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Properties (11)
 
     private readonly _cameraInterpolationManager: CameraInterpolationManager = new CameraInterpolationManager(this);
+    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
 
     private _manualInteraction: boolean = false;
     private _manualInteractionMatrices: {
@@ -214,13 +217,29 @@ export class AbstractCameraControls implements ICameraControlsUsage {
 
         this._cameraLogic.update(time, this._nonmanualInteraction);
 
-        this._moving = (this._manualInteraction || this._nonmanualInteraction);
-        if (!this._moving) this._movingDuration = 0;
-
-        return {
+        const oldMovement = this._moving;
+        const cameraDefinition = {
             position: vec3.clone(this._position),
             target: vec3.clone(this._target)
+        };
+
+        this._movingDuration += time;
+        this._moving = (this._manualInteraction || this._nonmanualInteraction);
+
+        switch(true) {
+            case oldMovement !== this._moving && this._moving === true:
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, { cameraDefinition, movementDuration: 0 });
+                break;
+            case oldMovement !== this._moving && this._moving === false:
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, { cameraDefinition, movementDuration: this._movingDuration });
+                break;
+            default: 
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, { cameraDefinition, movementDuration: this._movingDuration });
         }
+        
+        if (!this._moving) this._movingDuration = 0;
+
+        return cameraDefinition;
     }
 
     // #endregion Public Methods (10)

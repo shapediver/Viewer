@@ -1,8 +1,10 @@
-import { CAMERATYPE, ICameraEngine, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { Canvas } from "@shapediver/viewer.rendering-engine.canvas-engine";
+import { CAMERATYPE, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
 import * as THREE from 'three';
-import { singleton } from "tsyringe";
+import { container } from "tsyringe";
+import { RenderingEngine } from "./RenderingEngine";
 import { SceneTree } from "./SceneTree";
 
 export class RenderingLogic {
@@ -11,20 +13,23 @@ export class RenderingLogic {
     private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
     private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _renderer: THREE.WebGLRenderer;
+    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
 
     private _lastTime: number = 0;
+    private _beautyRenderingTimeout: NodeJS.Timeout | null = null;
+    private _beautyRenderingStart: boolean = false;
 
     // #endregion Properties (4)
 
     // #region Constructors (1)
 
-    constructor(private readonly _cameraEngine: ICameraEngine, private readonly _canvas: Canvas, private readonly _sceneTree: SceneTree) {
+    constructor(private readonly _renderingEngine: RenderingEngine) {
         this._renderer = new THREE.WebGLRenderer({
             alpha: true,
             depth: false,
             antialias: true,
             preserveDrawingBuffer: true,
-            canvas: this._canvas.canvasElement,
+            canvas: this._renderingEngine.canvas.canvasElement,
 
         });
         this._renderer.setPixelRatio(window.devicePixelRatio);
@@ -32,10 +37,28 @@ export class RenderingLogic {
         this._renderer.shadowMap.enabled = true;
         this._renderer.shadowMap.needsUpdate = true;
         this._renderer.shadowMap.type = THREE.VSMShadowMap;
-        this._renderer.setSize(this._canvas.canvasElement.width, this._canvas.canvasElement.height);
+        this._renderer.setSize(this._renderingEngine.canvas.canvasElement.width, this._renderingEngine.canvas.canvasElement.height);
         this._renderer.setClearColor(new THREE.Color(0xffffff));
 
+        this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => { 
+            this.stopBeautyRenderCountdown();
+        })
+        this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => { 
+            this.startBeautyRenderCountdown();
+        })
         this.animate(0);
+    }
+
+    private startBeautyRenderCountdown() {
+        this._beautyRenderingTimeout = setTimeout(() => {
+            this._beautyRenderingStart = true;
+        }, this._renderingEngine.beautyRenderDelay);
+    }    
+    
+    private stopBeautyRenderCountdown() {
+        if(this._beautyRenderingTimeout) 
+            clearTimeout(this._beautyRenderingTimeout);
+        this._beautyRenderingTimeout = null;
     }
 
     // #endregion Constructors (1)
@@ -44,8 +67,8 @@ export class RenderingLogic {
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let camera: THREE.Camera;
-        const cameraDefinition = this._cameraEngine.getCamera().update(time);
-        if (this._cameraEngine.getCamera().type === CAMERATYPE.ORTHOGRAPHIC) {
+        const cameraDefinition = this._renderingEngine.cameraEngine.getCamera().update(time);
+        if (this._renderingEngine.cameraEngine.getCamera().type === CAMERATYPE.ORTHOGRAPHIC) {
             const aspect = width / height;
             const distance = vec3.distance(cameraDefinition.position, cameraDefinition.target) / 2;
             this._orthographicCamera.up.set(0, 0, 1);
@@ -61,8 +84,8 @@ export class RenderingLogic {
             camera = this._orthographicCamera;
         } else {
             this._perspectiveCamera.up.set(0, 0, 1);
-            const fov = (<PerspectiveCamera>this._cameraEngine.getCamera()).fov;
-            const bs = this._sceneTree.boundingBox.boundingSphere;
+            const fov = (<PerspectiveCamera>this._renderingEngine.cameraEngine.getCamera()).fov;
+            const bs = this._renderingEngine.sceneTree.boundingBox.boundingSphere;
             this._perspectiveCamera.fov = fov;
             this._perspectiveCamera.aspect = width / height;
             this._perspectiveCamera.far = fov < 10 ? fov * 100.0 * 100 * bs.radius : 100 * bs.radius;
@@ -80,14 +103,20 @@ export class RenderingLogic {
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
 
-        if (!this._cameraEngine.hasCamera()) return;
+        if (!this._renderingEngine.cameraEngine.hasCamera()) return;
         (<HTMLCanvasElement>document.getElementById('canvas')).width = window.innerWidth;
         (<HTMLCanvasElement>document.getElementById('canvas')).height = window.innerHeight;
         let width: number = window.innerWidth, height: number = window.innerHeight;
 
         const camera = this.adjustCamera(deltaTime, width, height);
         this._renderer.setSize(width, height);
-        this._renderer.render((<SceneTree>this._sceneTree).scene, camera);
+        this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
+
+
+        if(this._beautyRenderingStart) {
+            console.log('BEAUTY')
+            this._beautyRenderingStart = false;
+        }
     }
 
     // #endregion Private Methods (2)

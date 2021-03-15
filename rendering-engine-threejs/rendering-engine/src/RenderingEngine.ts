@@ -73,7 +73,7 @@ export class RenderingEngine implements IRenderingEngine {
 
         (<SceneTree>this._sceneTree).scene.background = new THREE.Color(0xffffff);
 
-        this._renderingLogic = new RenderingLogic(this._cameraEngine, this._canvas, this._sceneTree);
+        this._renderingLogic = new RenderingLogic(this);
 
         this._stateEngine.boundingBoxCreated.then(() => this.init());
     }
@@ -384,6 +384,14 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set pointSize(value: number) {
         this._pointSize = value;
+    }
+
+    /**
+     * Getter sceneTree
+     * @return {SceneTree}
+     */
+    public get sceneTree(): SceneTree {
+        return this._sceneTree;
     }
 
     /**
