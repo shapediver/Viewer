@@ -24,7 +24,6 @@ export class RenderingLogic {
     private _lastTime: number = 0;
     private _lightSizeUVEnd = 0.15;
     private _lightSizeUVStart = 0.025;
-    private _noNeedToRender: boolean = false;
 
     // #endregion Properties (13)
 
@@ -53,7 +52,6 @@ export class RenderingLogic {
         this._renderer.setClearColor(new THREE.Color(0xffffff));
 
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
-            this._noNeedToRender = false;
             this.stopBeautyRenderCountdown();
         })
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
@@ -111,7 +109,6 @@ export class RenderingLogic {
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
 
-        if (this._noNeedToRender) return;
         if (!this._renderingEngine.cameraEngine.hasCamera()) return;
         (<HTMLCanvasElement>document.getElementById('canvas')).width = window.innerWidth;
         (<HTMLCanvasElement>document.getElementById('canvas')).height = window.innerHeight;
@@ -142,7 +139,6 @@ export class RenderingLogic {
     }
 
     private deactivateBeautyRenderShaders() {
-        this._noNeedToRender = true;
         this._beautyRenderingTimeout = null;
         this._beautyRenderingTimeoutStart = false;
         this._beautyRenderingActive = false;
