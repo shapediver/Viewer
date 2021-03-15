@@ -1,10 +1,17 @@
 import * as THREE from 'three';
 import { MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData } from '@shapediver/viewer.shared.types';
 import { vec4 } from 'gl-matrix';
+import { UuidGenerator } from '../../../../shared/services/node_modules/@shapediver/viewer.shared.utils/dist';
+import { container } from 'tsyringe';
 
 export class MaterialLoader {
     private readonly _defaultColor: vec4 = vec4.fromValues(0, 1, 0.9686, 1);
+    private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
 
+    private readonly _materialLibrary: THREE.Material[] = [];
+    private _lightSizeUV: number = 0.025;
+    private _blending: number = 0.0;
+    
     private createTexture(map: MapData): THREE.Texture {
         const texture = new THREE.Texture(map.image);
         texture.format = THREE.RGBFormat;
@@ -76,8 +83,10 @@ export class MaterialLoader {
      * @returns the material object
      */
      public load(materialProperties?: MaterialData): THREE.Material {
+
+        let material: THREE.MeshStandardMaterial;
         if (materialProperties) {
-            const material = new THREE.MeshStandardMaterial();
+            material = new THREE.MeshStandardMaterial();
 
             material.alphaTest = materialProperties.alphaCutoff;
 
@@ -234,11 +243,34 @@ export class MaterialLoader {
 
 
             material.side = THREE.DoubleSide;
-            return material;
         } else {
-            const material = new THREE.MeshStandardMaterial({color: new THREE.Color(this._defaultColor[0], this._defaultColor[1], this._defaultColor[2])});
+            material = new THREE.MeshStandardMaterial({color: new THREE.Color(this._defaultColor[0], this._defaultColor[1], this._defaultColor[2])});
             material.side = THREE.DoubleSide;
-            return material;
+        }
+
+        material.onBeforeCompile = (shader: THREE.Shader) => {
+            console.log(this._lightSizeUV, this._blending)
+            shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
+            shader.uniforms.blending = { value: this._blending };
+            material.userData.shader = shader;
+        };
+
+        material.needsUpdate = true;
+        this._materialLibrary.push(material);
+        return material;
+    }
+
+    public updateMaterials(): void {
+        for(let i = 0; i < this._materialLibrary.length; i++)
+            this._materialLibrary[i].needsUpdate = true;
+    }
+
+    public updateSoftShadow(lightSizeUV: number, blending: number) {
+        this._lightSizeUV = lightSizeUV;
+        this._blending = blending;
+        for(let i = 0; i < this._materialLibrary.length; i++) {
+            this._materialLibrary[i].userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
+            this._materialLibrary[i].userData.shader.uniforms.blending.value = blending;
         }
     }
 }

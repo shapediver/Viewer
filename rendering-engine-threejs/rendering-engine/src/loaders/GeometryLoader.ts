@@ -7,7 +7,6 @@ import { MaterialLoader } from './MaterialLoader';
 
 export class GeometryLoader {
     // #region Public Methods (1)
-    private readonly _materialLoader: MaterialLoader = new MaterialLoader();
     private _geometryCache: {
         [key: string]: SDObject
     } = {};
@@ -18,7 +17,7 @@ export class GeometryLoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-     public load(geometry: GeometryData, parent: SDObject, boundingBox: Box): void {
+     public load(geometry: GeometryData, parent: SDObject, boundingBox: Box, materialLoader: MaterialLoader): void {
         boundingBox.union(geometry.boundingBox);
         if (this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS]) {
             // if already in geo cache
@@ -77,7 +76,7 @@ export class GeometryLoader {
 
         } else {
             const obj = new SDObject(geometry.id, geometry.version);
-            const mesh: THREE.Mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), this._materialLoader.load(geometry.primitive.material!));
+            const mesh: THREE.Mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), materialLoader.load(geometry.primitive.material!));
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             obj.add(mesh);

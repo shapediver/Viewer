@@ -22,7 +22,6 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _canvasEngine: CanvasEngine;
     private readonly _domEventEngine: DomEventEngine;
     private readonly _lightEngine: LightEngine;
-    private readonly _materialLoader: MaterialLoader;
     private readonly _renderingLogic: RenderingLogic;
     private readonly _settings: SettingsEngine;
     private readonly _stateEngine: StateEngine;
@@ -63,7 +62,6 @@ export class RenderingEngine implements IRenderingEngine {
         this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
 
         this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
-        this._materialLoader = new MaterialLoader();
 
         this._lightEngine = new LightEngine();
         this._cameraEngine = new CameraEngine(this._canvas, this._domEventEngine);
@@ -504,7 +502,7 @@ export class RenderingEngine implements IRenderingEngine {
         mat.side = MATERIAL_SIDE.FRONT;
         mat.roughness = 1;
         mat.metalness = 0;
-        let groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2), this._materialLoader.load(mat));
+        let groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2), this._sceneTree.materialLoader.load(mat));
         groundPlane.receiveShadow = true;
         groundPlane.visible = this._settings.scene.groundPlaneVisibility.value;
         groundPlaneObject.add(groundPlane);

@@ -6,24 +6,36 @@ import * as THREE from 'three';
 import { container } from "tsyringe";
 import { RenderingEngine } from "./RenderingEngine";
 import { SceneTree } from "./SceneTree";
+import { main, entry } from "./shaders/PCSS";
 
 export class RenderingLogic {
-    // #region Properties (4)
+    // #region Properties (13)
 
+    private readonly _beautyRenderingDuration: number = 5000;
+    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
     private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
     private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _renderer: THREE.WebGLRenderer;
-    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
 
-    private _lastTime: number = 0;
+    private _beautyRenderingActive: boolean = false;
+    private _beautyRenderingActiveCounter: number = 0;
     private _beautyRenderingTimeout: NodeJS.Timeout | null = null;
-    private _beautyRenderingStart: boolean = false;
+    private _beautyRenderingTimeoutStart: boolean = false;
+    private _lastTime: number = 0;
+    private _lightSizeUVEnd = 0.15;
+    private _lightSizeUVStart = 0.025;
+    private _noNeedToRender: boolean = false;
 
-    // #endregion Properties (4)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
+        let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
+        shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
+        shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
+        THREE.ShaderChunk.shadowmap_pars_fragment = shader;
+
         this._renderer = new THREE.WebGLRenderer({
             alpha: true,
             depth: false,
@@ -36,34 +48,30 @@ export class RenderingLogic {
 
         this._renderer.shadowMap.enabled = true;
         this._renderer.shadowMap.needsUpdate = true;
-        this._renderer.shadowMap.type = THREE.VSMShadowMap;
+        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this._renderer.setSize(this._renderingEngine.canvas.canvasElement.width, this._renderingEngine.canvas.canvasElement.height);
         this._renderer.setClearColor(new THREE.Color(0xffffff));
 
-        this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => { 
+        this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
+            this._noNeedToRender = false;
             this.stopBeautyRenderCountdown();
         })
-        this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => { 
+        this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
             this.startBeautyRenderCountdown();
         })
         this.animate(0);
-    }
-
-    private startBeautyRenderCountdown() {
-        this._beautyRenderingTimeout = setTimeout(() => {
-            this._beautyRenderingStart = true;
-        }, this._renderingEngine.beautyRenderDelay);
-    }    
-    
-    private stopBeautyRenderCountdown() {
-        if(this._beautyRenderingTimeout) 
-            clearTimeout(this._beautyRenderingTimeout);
-        this._beautyRenderingTimeout = null;
+        this.startBeautyRenderCountdown();
     }
 
     // #endregion Constructors (1)
 
-    // #region Private Methods (2)
+    // #region Private Methods (7)
+
+    private activateBeautyRenderShaders() {
+        this._renderer.shadowMap.type = THREE.PCFShadowMap;
+        this._renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.sceneTree.materialLoader.updateMaterials();
+    }
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let camera: THREE.Camera;
@@ -103,6 +111,7 @@ export class RenderingLogic {
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
 
+        if (this._noNeedToRender) return;
         if (!this._renderingEngine.cameraEngine.hasCamera()) return;
         (<HTMLCanvasElement>document.getElementById('canvas')).width = window.innerWidth;
         (<HTMLCanvasElement>document.getElementById('canvas')).height = window.innerHeight;
@@ -110,14 +119,66 @@ export class RenderingLogic {
 
         const camera = this.adjustCamera(deltaTime, width, height);
         this._renderer.setSize(width, height);
-        this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
 
+        // the delay to start the beauty rendering is over, now initialize it
+        if (this._beautyRenderingTimeoutStart) {
+            this._beautyRenderingTimeoutStart = false;
+            this._beautyRenderingActive = true;
+            this._beautyRenderingActiveCounter = 0;
+            this.activateBeautyRenderShaders();
+        }
 
-        if(this._beautyRenderingStart) {
-            console.log('BEAUTY')
-            this._beautyRenderingStart = false;
+        // beauty rendering is active
+        if (this._beautyRenderingActive) {
+            this._beautyRenderingActiveCounter += deltaTime;
+            this.setShaderProperties();
+            this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
+
+            if (this._beautyRenderingActiveCounter >= this._beautyRenderingDuration)
+                this.deactivateBeautyRenderShaders();
+        } else {
+            this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
         }
     }
 
-    // #endregion Private Methods (2)
+    private deactivateBeautyRenderShaders() {
+        this._noNeedToRender = true;
+        this._beautyRenderingTimeout = null;
+        this._beautyRenderingTimeoutStart = false;
+        this._beautyRenderingActive = false;
+        this._beautyRenderingActiveCounter = 0;
+        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this._renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.sceneTree.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
+        this._renderingEngine.sceneTree.materialLoader.updateMaterials();
+    }
+
+    private setShaderProperties() {
+        const deltaTime = Math.min(this._beautyRenderingActiveCounter, this._beautyRenderingDuration)
+        const percentage = deltaTime / this._beautyRenderingDuration;
+
+        if (percentage < 0.25) {
+            const percentageMapped = percentage / 0.25;
+            this._renderingEngine.sceneTree.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
+
+        } else {
+            const percentageMapped = (percentage - 0.25) / (1 - 0.25);
+            // this._lightSizeUVStart -> this._endlightuv
+            this._renderingEngine.sceneTree.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
+        }
+    }
+
+    private startBeautyRenderCountdown() {
+        this._beautyRenderingTimeout = setTimeout(() => {
+            this._beautyRenderingTimeoutStart = true;
+        }, this._renderingEngine.beautyRenderDelay);
+    }
+
+    private stopBeautyRenderCountdown() {
+        if (this._beautyRenderingTimeout)
+            clearTimeout(this._beautyRenderingTimeout);
+        this.deactivateBeautyRenderShaders();
+    }
+
+    // #endregion Private Methods (7)
 }

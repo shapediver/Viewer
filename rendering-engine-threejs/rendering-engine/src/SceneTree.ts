@@ -12,6 +12,7 @@ import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.
 import { vec3 } from 'gl-matrix';
 import { container } from 'tsyringe';
 import { LightLoader } from './loaders/LightLoader';
+import { MaterialLoader } from './loaders/MaterialLoader';
 
 export class SceneTree {
     // #region Properties (7)
@@ -21,6 +22,7 @@ export class SceneTree {
     private readonly _lightLoader: LightLoader = new LightLoader();
     private readonly _scene: THREE.Scene = new THREE.Scene();
     private readonly _stateEngine: StateEngine = container.resolve(StateEngine);
+    private readonly _materialLoader = new MaterialLoader();
 
     private _boundingBox: Box = new Box();
     private _mainNode!: SDObject;
@@ -31,6 +33,10 @@ export class SceneTree {
 
     public get boundingBox(): Box {
         return this._boundingBox;
+    }
+
+    public get materialLoader(): MaterialLoader {
+        return this._materialLoader;
     }
 
     public get scene() {
@@ -57,7 +63,7 @@ export class SceneTree {
 
         switch (true) {
             case data instanceof GeometryData:
-                this._geometryLoader.load(<GeometryData>data, dataChild, this._boundingBox);
+                this._geometryLoader.load(<GeometryData>data, dataChild, this._boundingBox, this._materialLoader);
                 break;
             case data instanceof ThreejsData:
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);
