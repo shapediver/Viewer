@@ -1,21 +1,18 @@
-# `sdtf.reader`
+# `viewer.sdtf.reader`
 
-> This package encodes encodes:
+> This package reads from:
 > - uri to sdtf file
 > - array buffer to sdtf file
 > - json to sdtf file
 
 ## Install
 ```
-npm install @shapediver/sdtf.reader
+npm install @shapediver/viewer.sdtf.reader
 ```
-
-Please see the explanation in the [template repository](https://github.com/shapediver/ShapeDiverMonorepoTemplate) for permissions.
-
 ## Usage
 
 ```typescript
-import { Reader } from '@shapediver/sdtf.reader';
+import { Reader } from '@shapediver/viewer.sdtf.reader';
 
 const reader = new Reader();
 
