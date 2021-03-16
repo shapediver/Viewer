@@ -9,7 +9,7 @@ import { Tree } from '@shapediver/viewer.shared.node-tree';
 import { SceneTree } from './SceneTree';
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { StateEngine, SettingsEngine, DomEventEngine } from '@shapediver/viewer.shared.services';
+import { StateEngine, SettingsEngine, DomEventEngine, EVENTTYPE, EventEngine } from '@shapediver/viewer.shared.services';
 import { SDObject } from './types/SDObject';
 import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
 import { RenderingLogic } from './RenderingLogic';
@@ -25,9 +25,11 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _renderingLogic: RenderingLogic;
     private readonly _settings: SettingsEngine;
     private readonly _stateEngine: StateEngine;
+    private readonly _eventEngine: EventEngine;
     private readonly _tree: Tree;
 
     private _ambientOcclusion: boolean = true;
+    private _beautyRenderBlendingDuration: number = 1500;
     private _beautyRenderDelay: number = 50;
     private _blurSceneWhenBusy: boolean = true;
     private _canvas!: Canvas;
@@ -56,6 +58,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     constructor(private readonly _id: string, canvasDefinition?: string | HTMLCanvasElement) {
         this._settings = <SettingsEngine>container.resolve(SettingsEngine);
+        this._eventEngine = <EventEngine>container.resolve(EventEngine);
         this._stateEngine = <StateEngine>container.resolve(StateEngine);
         this._tree = <Tree>container.resolve(Tree);
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
@@ -74,11 +77,36 @@ export class RenderingEngine implements IRenderingEngine {
         this._renderingLogic = new RenderingLogic(this);
 
         this._stateEngine.boundingBoxCreated.then(() => this.init());
+        this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => {})
+    }
+
+    private applySettings() {
+        this.ambientOcclusion = this._settings.scene.render.ambientOcclusion.value;
+        this.beautyRenderBlendingDuration = this._settings.scene.render.beautyRenderBlendingDuration.value;
+        this.beautyRenderDelay = this._settings.scene.render.beautyRenderDelay.value;
+        this.blurSceneWhenBusy = this._settings.general.blurSceneWhenBusy.value;
+        this.clearAlpha = this._settings.scene.render.clearAlpha.value;
+        this.clearColor = this._settings.scene.render.clearColor.value;
+        this.duration = this._settings.scene.duration.value;
+        this.environmentMap = this._settings.scene.material.environmentMap.value;
+        this.environmentMapAsBackground = this._settings.scene.material.environmentMapAsBackground.value;
+        this.environmentMapResolution = this._settings.scene.material.environmentMapResolution.value;
+        this.fullscreen = this._settings.scene.fullscreen.value;
+        this.gridVisibility = this._settings.scene.gridVisibility.value;
+        this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
+        this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
+        this.groundPlaneVisibility = this._settings.scene.groundPlaneVisibility.value;
+        this.lightHelper = this._settings.scene.lights.helper.value;
+        this.lightScene = this._settings.scene.lights.lightScene.value;
+        this.pointSize = this._settings.rendering.pointSize.value;
+        this.shadows = this._settings.scene.render.shadows.value;
+        this.show = this._settings.scene.show.value;
+        //this.showSceneTransition = this._settings.scene.showSceneTransition.value;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (44)
+    // #region Public Accessors (47)
 
     /**
      * Getter ambientOcclusion
@@ -94,6 +122,22 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set ambientOcclusion(value: boolean) {
         this._ambientOcclusion = value;
+    }
+
+    /**
+     * Getter beautyRenderBlendingDuration
+     * @return {number}
+     */
+    public get beautyRenderBlendingDuration(): number {
+        return this._beautyRenderBlendingDuration;
+    }
+
+    /**
+     * Setter beautyRenderBlendingDuration
+     * @param {number} value
+     */
+    public set beautyRenderBlendingDuration(value: number) {
+        this._beautyRenderBlendingDuration = value;
     }
 
     /**
@@ -440,7 +484,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._showSceneTransition = value;
     }
 
-    // #endregion Public Accessors (44)
+    // #endregion Public Accessors (47)
 
     // #region Public Methods (1)
 
@@ -492,7 +536,7 @@ export class RenderingEngine implements IRenderingEngine {
         (<THREE.Material>grid.material).opacity = 0.15;
         (<THREE.Material>grid.material).transparent = true;
         grid.rotateX(Math.PI / 2);
-        grid.visible = this._settings.scene.gridVisibility.value;
+        grid.visible = this.gridVisibility;
         gridObject.add(grid);
         this._sceneTree.scene.add(gridObject);
 
@@ -504,7 +548,7 @@ export class RenderingEngine implements IRenderingEngine {
         mat.metalness = 0;
         let groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2), this._sceneTree.materialLoader.load(mat));
         groundPlane.receiveShadow = true;
-        groundPlane.visible = this._settings.scene.groundPlaneVisibility.value;
+        groundPlane.visible = this.groundPlaneVisibility;
         groundPlaneObject.add(groundPlane);
         this._sceneTree.scene.add(groundPlaneObject);
 

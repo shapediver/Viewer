@@ -11,16 +11,14 @@ import { main, entry } from "./shaders/PCSS";
 export class RenderingLogic {
     // #region Properties (13)
 
-    private readonly _beautyRenderingDuration: number = 5000;
     private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
     private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
     private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _renderer: THREE.WebGLRenderer;
 
     private _beautyRenderingActive: boolean = false;
-    private _beautyRenderingActiveCounter: number = 0;
+    private _beautyRenderingDurationActive: number = 0;
     private _beautyRenderingTimeout: NodeJS.Timeout | null = null;
-    private _beautyRenderingTimeoutStart: boolean = false;
     private _lastTime: number = 0;
     private _lightSizeUVEnd = 0.15;
     private _lightSizeUVStart = 0.025;
@@ -111,42 +109,37 @@ export class RenderingLogic {
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
 
-        if (this._noNeedToRender) return;
         if (!this._renderingEngine.cameraEngine.hasCamera()) return;
         (<HTMLCanvasElement>document.getElementById('canvas')).width = window.innerWidth;
         (<HTMLCanvasElement>document.getElementById('canvas')).height = window.innerHeight;
         let width: number = window.innerWidth, height: number = window.innerHeight;
 
         const camera = this.adjustCamera(deltaTime, width, height);
-        this._renderer.setSize(width, height);
 
-        // the delay to start the beauty rendering is over, now initialize it
-        if (this._beautyRenderingTimeoutStart) {
-            this._beautyRenderingTimeoutStart = false;
-            this._beautyRenderingActive = true;
-            this._beautyRenderingActiveCounter = 0;
-            this.activateBeautyRenderShaders();
-        }
+
+
+        if (this._noNeedToRender === true) return;
+        this._renderer.setSize(width, height);
 
         // beauty rendering is active
         if (this._beautyRenderingActive) {
-            this._beautyRenderingActiveCounter += deltaTime;
+            this._beautyRenderingDurationActive += deltaTime;
             this.setShaderProperties();
             this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
 
-            if (this._beautyRenderingActiveCounter >= this._beautyRenderingDuration)
+            if (this._beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
                 this.deactivateBeautyRenderShaders();
+                this._noNeedToRender = true;
+            }
         } else {
             this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
         }
     }
 
     private deactivateBeautyRenderShaders() {
-        this._noNeedToRender = true;
         this._beautyRenderingTimeout = null;
-        this._beautyRenderingTimeoutStart = false;
         this._beautyRenderingActive = false;
-        this._beautyRenderingActiveCounter = 0;
+        this._beautyRenderingDurationActive = 0;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this._renderer.shadowMap.needsUpdate = true;
         this._renderingEngine.sceneTree.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
@@ -154,8 +147,8 @@ export class RenderingLogic {
     }
 
     private setShaderProperties() {
-        const deltaTime = Math.min(this._beautyRenderingActiveCounter, this._beautyRenderingDuration)
-        const percentage = deltaTime / this._beautyRenderingDuration;
+        const deltaTime = Math.min(this._beautyRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration)
+        const percentage = deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
 
         if (percentage < 0.25) {
             const percentageMapped = percentage / 0.25;
@@ -163,14 +156,16 @@ export class RenderingLogic {
 
         } else {
             const percentageMapped = (percentage - 0.25) / (1 - 0.25);
-            // this._lightSizeUVStart -> this._endlightuv
+            // this._lightSizeUVStart -> this._lightSizeUVEnd
             this._renderingEngine.sceneTree.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
         }
     }
 
     private startBeautyRenderCountdown() {
         this._beautyRenderingTimeout = setTimeout(() => {
-            this._beautyRenderingTimeoutStart = true;
+            this._beautyRenderingActive = true;
+            this._beautyRenderingDurationActive = 0;
+            this.activateBeautyRenderShaders();
         }, this._renderingEngine.beautyRenderDelay);
     }
 

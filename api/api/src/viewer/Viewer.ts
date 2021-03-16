@@ -68,6 +68,22 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
+   * Getter beautyRenderBlendingDuration
+   * @return {number}
+   */
+  public get beautyRenderBlendingDuration(): number {
+    return this.#renderingEngine.beautyRenderBlendingDuration;
+  }
+
+  /**
+   * Setter beautyRenderBlendingDuration
+   * @param {number} value
+   */
+  public set beautyRenderBlendingDuration(value: number) {
+    this.#renderingEngine.beautyRenderBlendingDuration = value;
+  }
+
+  /**
    * Getter beautyRenderDelay
    * @return {number}
    */
@@ -517,7 +533,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public getLights(): { [key: string]: Light } {
     const lightLogic = this.#renderingEngine.lightEngine.getLights();
     const lights: { [key: string]: Light } = {};
-    for(let l in lightLogic) 
+    for (let l in lightLogic)
       lights[l] = this.getLight(l);
     return lights;
   }

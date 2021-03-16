@@ -134,6 +134,7 @@ export const DefaultSettings = {
             render: {
                 ambientOcclusion: <ISetting<boolean>> new BooleanSetting(true, 'Enable / disable ambient occlusion for rendering'),
                 beautyRenderDelay: <ISetting<number>> new NumberSetting(50, 'Amount of which the beauty rendering is delayed', (value: number) => value >= 0),
+                beautyRenderBlendingDuration: <ISetting<number>> new NumberSetting(1500, 'Time to blend the beauty rendering', (value: number) => value >= 0),
                 clearColor: <ISetting<string>> new StringSetting('#ffffff', 'Set background color'),
                 clearAlpha: <ISetting<number>> new NumberSetting(1.0, 'Set background alpha value', (value: number) => value >= 0 && value <= 1),
                 pointSize: <ISetting<number>> new NumberSetting(1.0, 'Set size of point objects', (value: number) => value >= 0),

@@ -249,7 +249,6 @@ export class MaterialLoader {
         }
 
         material.onBeforeCompile = (shader: THREE.Shader) => {
-            console.log(this._lightSizeUV, this._blending)
             shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
             shader.uniforms.blending = { value: this._blending };
             material.userData.shader = shader;
