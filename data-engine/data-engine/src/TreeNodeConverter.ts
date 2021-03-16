@@ -1,15 +1,13 @@
 import { TreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { SdtfAttributes, SdtfChunk, SdtfData as SdtfFileData, SdtfFile, SdtfNode } from "@shapediver/viewer.sdtf.shared"
-import { SdtfAttributeData } from "./SdtfAttributeData";
-import { SdtfItemData } from "./SdtfItemData";
+import { SdtfAttributes, SdtfChunk, SdtfData as SdtfFileData, SdtfFile, SdtfNode } from "@shapediver/viewer.sdtf.shared";
+import { SdtfAttributeData, SdtfItemData } from "@shapediver/viewer.sdtf.converter";
 
 export class TreeNodeConverter {
     // #region Public Methods (2)
 
-    public convertToSdtfFile(node: TreeNode): SdtfFile {       
-        // TODO
-        throw new Error();
-    }
+    // public convertToSdtfFile(node: TreeNode): SdtfFile {       
+    //     throw new Error();
+    // }
 
     public convertToTreeNode(file: SdtfFile): TreeNode {
         const root = new TreeNode("sdtf");

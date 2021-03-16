@@ -59,13 +59,13 @@ glTFv2Button.onclick = async () => {
     await api.getSession('mySession').customize();
 }
 
-// (<any>window).addSDTFOutput = async (uri: string) => {
-//     const session = api.getSession('mySession');
-//     const output = session.createOutput('sdtfFile');
-//     output.content = [];
-//     output.content.push({
-//         format: 'sdtf',
-//         href: uri
-//     });
-//     await session.customize();
-// }
+(<any>window).addSDTFOutput = async (uri: string) => {
+    const session = api.getSession('mySession');
+    const output = session.createOutput('sdtfFile');
+    output.content = [];
+    output.content.push({
+        format: 'sdtf',
+        href: uri
+    });
+    await session.customize();
+}

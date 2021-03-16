@@ -45,6 +45,8 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.utils": "^0.0.0"
+    "@shapediver/viewer.shared.utils": "^0.0.0",
+    "@types/pako": "^1.0.1",
+    "pako": "^2.0.3"
   }
 }

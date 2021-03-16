@@ -1,5 +1,6 @@
 import { CONTENTTYPE, CONTENT_ENCODING } from "../../enums";
 import { SdtfBuffer } from "./SdtfBuffer";
+import { ungzip } from "pako"
 
 export class SdtfBufferView {
   // #region Properties (1)
@@ -93,20 +94,20 @@ export class SdtfBufferView {
       });
       return this._data;
     } else {
-      // TODO
-      // const bytes = new Uint8Array(this._arrayBuffer);
-      // const data = pako.ungzip(bytes);
-      // const blob = new Blob([data], { type: this.contentType });
+      const bytes = new Uint8Array(arrayBuffer);
+      const data = ungzip(bytes);
+      const blob = new Blob([data], { type: this.contentType });
 
-      // const reader = new FileReader();
-      // reader.readAsDataURL(blob);
-      // const link = document.createElement('a');
-      // await new Promise<void>((resolve) => {
-      //   reader.onload = function () {
-      //     link.href = <string>reader.result;
-      //     resolve();
-      //   };
-      // });
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      const link = document.createElement('a');
+      await new Promise<void>((resolve) => {
+        reader.onload = () => {
+          link.href = <string>reader.result;
+          this._data = link;
+          resolve();
+        };
+      });
       return this._data;
     }
   }

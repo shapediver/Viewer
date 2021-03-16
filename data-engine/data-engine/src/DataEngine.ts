@@ -3,7 +3,8 @@ import { CustomData, ISessionOutputContent } from '@shapediver/viewer.shared.typ
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Reader, TreeNodeConverter } from '@shapediver/viewer.sdtf.converter';
+import { Reader } from '@shapediver/viewer.sdtf.converter';
+import { TreeNodeConverter } from './TreeNodeConverter';
 
 @singleton()
 export class DataEngine {
