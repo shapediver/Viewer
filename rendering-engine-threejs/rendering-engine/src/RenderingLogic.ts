@@ -22,7 +22,6 @@ export class RenderingLogic {
     private _lastTime: number = 0;
     private _lightSizeUVEnd = 0.15;
     private _lightSizeUVStart = 0.025;
-    private _noNeedToRender: boolean = false;
 
     // #endregion Properties (13)
 
@@ -51,7 +50,6 @@ export class RenderingLogic {
         this._renderer.setClearColor(new THREE.Color(0xffffff));
 
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
-            this._noNeedToRender = false;
             this.stopBeautyRenderCountdown();
         })
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
