@@ -268,8 +268,10 @@ export class MaterialLoader {
         this._lightSizeUV = lightSizeUV;
         this._blending = blending;
         for(let i = 0; i < this._materialLibrary.length; i++) {
-            this._materialLibrary[i].userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
-            this._materialLibrary[i].userData.shader.uniforms.blending.value = blending;
+            if(this._materialLibrary[i].userData.shader) {
+                this._materialLibrary[i].userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
+                this._materialLibrary[i].userData.shader.uniforms.blending.value = blending;
+            }
         }
     }
 }

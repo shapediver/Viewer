@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.examples.simple",
+  "name": "@shapediver/viewer.examples.static",
   "version": "0.0.0",
   "private": true,
   "description": "",
@@ -34,10 +34,8 @@
   "homepage": "https://github.com/shapediver/Viewer#readme",
   "typings": "dist/index.d.ts",
   "jest": {
-    "preset": "jest-puppeteer",
-    "transform": {
-      "^.+\\.ts?$": "ts-jest"
-    }
+    "preset": "ts-jest",
+    "testEnvironment": "node"
   },
   "devDependencies": {
     "jest": "^26.6.3",
@@ -49,7 +47,6 @@
   },
   "dependencies": {
     "@shapediver/viewer": "^0.1.0",
-    "@shapediver/viewer.data-engine.data-engine": "^0.1.0",
     "reflect-metadata": "^0.1.13"
   }
 }

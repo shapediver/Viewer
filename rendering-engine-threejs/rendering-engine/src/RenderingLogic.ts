@@ -9,7 +9,7 @@ import { SceneTree } from "./SceneTree";
 import { main, entry } from "./shaders/PCSS";
 
 export class RenderingLogic {
-    // #region Properties (13)
+    // #region Properties (11)
 
     private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
     private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
@@ -24,7 +24,7 @@ export class RenderingLogic {
     private _lightSizeUVStart = 0.025;
     private _noNeedToRender: boolean = false;
 
-    // #endregion Properties (13)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -62,6 +62,15 @@ export class RenderingLogic {
     }
 
     // #endregion Constructors (1)
+
+    // #region Public Methods (1)
+
+    public render() {
+        this._noNeedToRender = false;
+        this.startBeautyRenderCountdown();
+    }
+
+    // #endregion Public Methods (1)
 
     // #region Private Methods (7)
 
@@ -115,8 +124,6 @@ export class RenderingLogic {
         let width: number = window.innerWidth, height: number = window.innerHeight;
 
         const camera = this.adjustCamera(deltaTime, width, height);
-
-
 
         if (this._noNeedToRender === true) return;
         this._renderer.setSize(width, height);

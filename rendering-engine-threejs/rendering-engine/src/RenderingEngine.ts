@@ -491,6 +491,7 @@ export class RenderingEngine implements IRenderingEngine {
     public update(): void {
         if (this._stateEngine.settingsRegistered.resolved !== true) return;
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
+        this._renderingLogic.render();
     }
 
     // #endregion Public Methods (1)
