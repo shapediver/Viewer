@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.utils",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -45,9 +45,9 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@ctrl/tinycolor": "^3.4.0",
-    "@shapediver/viewer.shared.monitoring": "^0.1.0",
+    "@shapediver/viewer.shared.monitoring": "^0.0.0",
     "@types/uuid": "^8.3.0",
+    "@ctrl/tinycolor": "^3.4.0",
     "axios": "^0.19.2",
     "uuid": "^8.3.2"
   }
