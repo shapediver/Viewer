@@ -94,21 +94,22 @@ export class SdtfBufferView {
       });
       return this._data;
     } else {
-      const bytes = new Uint8Array(arrayBuffer);
-      const data = ungzip(bytes);
-      const blob = new Blob([data], { type: this.contentType });
+      throw new Error('The MIME type "model/vnd.3dm" is currently not implemented.')
+      // const bytes = new Uint8Array(arrayBuffer);
+      // const data = ungzip(bytes);
+      // const blob = new Blob([data], { type: this.contentType });
 
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      const link = document.createElement('a');
-      await new Promise<void>((resolve) => {
-        reader.onload = () => {
-          link.href = <string>reader.result;
-          this._data = link;
-          resolve();
-        };
-      });
-      return this._data;
+      // const reader = new FileReader();
+      // reader.readAsDataURL(blob);
+      // const link = document.createElement('a');
+      // await new Promise<void>((resolve) => {
+      //   reader.onload = () => {
+      //     link.href = <string>reader.result;
+      //     this._data = link;
+      //     resolve();
+      //   };
+      // });
+      // return this._data;
     }
   }
 
