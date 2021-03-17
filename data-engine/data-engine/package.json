@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.data-engine",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -45,11 +45,11 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@shapediver/viewer.data-engine.geometry-engine": "^0.1.0",
-    "@shapediver/viewer.data-engine.material-engine": "^0.1.0",
-    "@shapediver/viewer.sdtf.converter": "^0.1.0",
-    "@shapediver/viewer.sdtf.shared": "^0.1.0",
-    "@shapediver/viewer.shared.node-tree": "^0.1.0",
-    "@shapediver/viewer.shared.types": "^0.1.0"
+    "@shapediver/viewer.data-engine.geometry-engine": "^0.0.0",
+    "@shapediver/viewer.data-engine.material-engine": "^0.0.0",
+    "@shapediver/viewer.shared.node-tree": "^0.0.0",
+    "@shapediver/viewer.sdtf.converter": "^0.0.0",
+    "@shapediver/viewer.sdtf.shared": "^0.0.0",
+    "@shapediver/viewer.shared.types": "^0.0.0"
   }
 }
