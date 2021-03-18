@@ -112,6 +112,11 @@ export class SceneTree {
         }
     }
 
+    public isEmpty() {
+        console.log(this._boundingBox)
+        return vec3.equals(this._boundingBox.min, vec3.create()) && vec3.equals(this._boundingBox.max, vec3.create());
+    }
+
     // #endregion Public Methods (2)
 
     // #region Private Methods (1)

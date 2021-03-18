@@ -14,18 +14,20 @@ import { SDObject } from './types/SDObject';
 import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
 import { RenderingLogic } from './RenderingLogic';
 import { MaterialLoader } from './loaders/MaterialLoader';
+import { Converter } from '../../../shared/services/node_modules/@shapediver/viewer.shared.utils/dist';
 
 export class RenderingEngine implements IRenderingEngine {
-    // #region Properties (31)
+    // #region Properties (36)
 
     private readonly _cameraEngine: CameraEngine;
     private readonly _canvasEngine: CanvasEngine;
+    private readonly _converter: Converter;
     private readonly _domEventEngine: DomEventEngine;
+    private readonly _eventEngine: EventEngine;
     private readonly _lightEngine: LightEngine;
     private readonly _renderingLogic: RenderingLogic;
     private readonly _settings: SettingsEngine;
     private readonly _stateEngine: StateEngine;
-    private readonly _eventEngine: EventEngine;
     private readonly _tree: Tree;
 
     private _ambientOcclusion: boolean = true;
@@ -34,35 +36,53 @@ export class RenderingEngine implements IRenderingEngine {
     private _blurSceneWhenBusy: boolean = true;
     private _canvas!: Canvas;
     private _clearAlpha: number = 1.0;
-    private _clearColor: string = '#ffffff';
+    private _clearColor: vec3 = vec3.fromValues(1,1,1);
     private _duration: number = 0;
     private _environmentMap: string = 'none';
     private _environmentMapAsBackground: boolean = false;
     private _environmentMapResolution: string = '1024';
     private _fullscreen: boolean = false;
+    private _grid!: THREE.GridHelper;
     private _gridVisibility: boolean = true;
+    private _groundPlane!: THREE.Mesh;
     private _groundPlaneReflectionThreshold: number = 0.01;
     private _groundPlaneReflectionVisibility: boolean = false;
     private _groundPlaneVisibility: boolean = true;
     private _lightHelper: boolean = false;
     private _lightScene: string = 'default';
+    private _logoDivElement: HTMLDivElement;
     private _pointSize: number = 1.0;
     private _sceneTree!: SceneTree;
     private _shadows: boolean = true;
     private _show: boolean = false;
-    private _showSceneTransition: number = 1000;
 
-    // #endregion Properties (31)
+    // #endregion Properties (36)
 
     // #region Constructors (1)
 
     constructor(private readonly _id: string, canvasDefinition?: string | HTMLCanvasElement) {
         this._settings = <SettingsEngine>container.resolve(SettingsEngine);
+        this._converter = <Converter>container.resolve(Converter);
         this._eventEngine = <EventEngine>container.resolve(EventEngine);
         this._stateEngine = <StateEngine>container.resolve(StateEngine);
         this._tree = <Tree>container.resolve(Tree);
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
         this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
+
+        this._logoDivElement = document.createElement('div');
+        this._logoDivElement.style.background = '#030531';
+        this._logoDivElement.style.position = 'absolute';
+        this._logoDivElement.style.height = '100%';
+        this._logoDivElement.style.width = '100%';
+        this._canvas.canvasElement.parentElement?.insertBefore(this._logoDivElement, this._canvas.canvasElement.parentElement?.firstChild);
+
+        const img = new Image();
+        img.style.position = 'absolute';
+        img.style.top = '50%';
+        img.style.left = '50%';
+        img.style.transform = 'translateX(-50%) translateY(-50%)';
+        img.src = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
+        this._logoDivElement.appendChild(img)
 
         this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
 
@@ -77,36 +97,13 @@ export class RenderingEngine implements IRenderingEngine {
         this._renderingLogic = new RenderingLogic(this);
 
         this._stateEngine.boundingBoxCreated.then(() => this.init());
-        this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => {})
-    }
-
-    private applySettings() {
-        this.ambientOcclusion = this._settings.scene.render.ambientOcclusion.value;
-        this.beautyRenderBlendingDuration = this._settings.scene.render.beautyRenderBlendingDuration.value;
-        this.beautyRenderDelay = this._settings.scene.render.beautyRenderDelay.value;
-        this.blurSceneWhenBusy = this._settings.general.blurSceneWhenBusy.value;
-        this.clearAlpha = this._settings.scene.render.clearAlpha.value;
-        this.clearColor = this._settings.scene.render.clearColor.value;
-        this.duration = this._settings.scene.duration.value;
-        this.environmentMap = this._settings.scene.material.environmentMap.value;
-        this.environmentMapAsBackground = this._settings.scene.material.environmentMapAsBackground.value;
-        this.environmentMapResolution = this._settings.scene.material.environmentMapResolution.value;
-        this.fullscreen = this._settings.scene.fullscreen.value;
-        this.gridVisibility = this._settings.scene.gridVisibility.value;
-        this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
-        this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
-        this.groundPlaneVisibility = this._settings.scene.groundPlaneVisibility.value;
-        this.lightHelper = this._settings.scene.lights.helper.value;
-        this.lightScene = this._settings.scene.lights.lightScene.value;
-        this.pointSize = this._settings.rendering.pointSize.value;
-        this.shadows = this._settings.scene.render.shadows.value;
-        this.show = this._settings.scene.show.value;
-        //this.showSceneTransition = this._settings.scene.showSceneTransition.value;
+        this.applySettings();
+        this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => this.applySettings())
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (47)
+    // #region Public Accessors (48)
 
     /**
      * Getter ambientOcclusion
@@ -206,17 +203,17 @@ export class RenderingEngine implements IRenderingEngine {
 
     /**
      * Getter clearColor
-     * @return {string}
+     * @return {vec3}
      */
-    public get clearColor(): string {
+    public get clearColor(): vec3 {
         return this._clearColor;
     }
 
     /**
      * Setter clearColor
-     * @param {string} value
+     * @param {vec3} value
      */
-    public set clearColor(value: string) {
+    public set clearColor(value: vec3) {
         this._clearColor = value;
     }
 
@@ -313,6 +310,7 @@ export class RenderingEngine implements IRenderingEngine {
      * @param {boolean} value
      */
     public set gridVisibility(value: boolean) {
+        if(this._grid) this._grid.visible = value;
         this._gridVisibility = value;
     }
 
@@ -361,6 +359,7 @@ export class RenderingEngine implements IRenderingEngine {
      * @param {boolean} value
      */
     public set groundPlaneVisibility(value: boolean) {
+        if(this._groundPlane) this._groundPlane.visible = value;
         this._groundPlaneVisibility = value;
     }
 
@@ -410,6 +409,14 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set lightScene(value: string) {
         this._lightScene = value;
+    }
+
+    /**
+     * Getter logoDivElement
+     * @return {HTMLDivElement}
+     */
+    public get logoDivElement(): HTMLDivElement {
+        return this._logoDivElement;
     }
 
     /**
@@ -468,23 +475,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._show = value;
     }
 
-    /**
-     * Getter showSceneTransition
-     * @return {number}
-     */
-    public get showSceneTransition(): number {
-        return this._showSceneTransition;
-    }
-
-    /**
-     * Setter showSceneTransition
-     * @param {number} value
-     */
-    public set showSceneTransition(value: number) {
-        this._showSceneTransition = value;
-    }
-
-    // #endregion Public Accessors (47)
+    // #endregion Public Accessors (48)
 
     // #region Public Methods (1)
 
@@ -496,7 +487,44 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #endregion Public Methods (1)
 
-    // #region Private Methods (1)
+    // #region Private Methods (2)
+
+    private applySettings() {
+        // TODO
+        this.ambientOcclusion = this._settings.scene.render.ambientOcclusion.value;
+        this.beautyRenderBlendingDuration = this._settings.scene.render.beautyRenderBlendingDuration.value;
+        this.beautyRenderDelay = this._settings.scene.render.beautyRenderDelay.value;
+        // TODO
+        this.blurSceneWhenBusy = this._settings.general.blurSceneWhenBusy.value;
+        this.clearAlpha = this._settings.scene.render.clearAlpha.value;
+        const c = this._converter.toColor(this._settings.scene.render.clearColor.value);
+        this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
+        // TODO
+        this.duration = this._settings.scene.duration.value;
+        // TODO
+        this.environmentMap = this._settings.scene.material.environmentMap.value;
+        // TODO
+        this.environmentMapAsBackground = this._settings.scene.material.environmentMapAsBackground.value;
+        // TODO
+        this.environmentMapResolution = this._settings.scene.material.environmentMapResolution.value;
+        // TODO
+        this.fullscreen = this._settings.scene.fullscreen.value;
+        this.gridVisibility = this._settings.scene.gridVisibility.value;
+        // TODO
+        this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
+        // TODO
+        this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
+        this.groundPlaneVisibility = this._settings.scene.groundPlaneVisibility.value;
+        // TODO
+        this.lightHelper = this._settings.scene.lights.helper.value;
+        this.lightScene = this._settings.scene.lights.lightScene.value;
+        // TODO
+        this.pointSize = this._settings.rendering.pointSize.value;
+        this.shadows = this._settings.scene.render.shadows.value;
+        this.show = this._settings.scene.show.value;
+        // TODO
+        //this.showSceneTransition = +this._settings.scene.showSceneTransition.value.replace('s', '') * 1000;
+    }
 
     private init() {
         let bb = this._sceneTree.boundingBox;
@@ -533,12 +561,12 @@ export class RenderingEngine implements IRenderingEngine {
          */
 
         const gridObject = new SDObject('grid', '');
-        let grid = new THREE.GridHelper(2 * gridExtents, divisions);
-        (<THREE.Material>grid.material).opacity = 0.15;
-        (<THREE.Material>grid.material).transparent = true;
-        grid.rotateX(Math.PI / 2);
-        grid.visible = this.gridVisibility;
-        gridObject.add(grid);
+        this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
+        (<THREE.Material>this._grid.material).opacity = 0.15;
+        (<THREE.Material>this._grid.material).transparent = true;
+        this._grid.rotateX(Math.PI / 2);
+        this._grid.visible = this.gridVisibility;
+        gridObject.add(this._grid);
         this._sceneTree.scene.add(gridObject);
 
         const groundPlaneObject = new SDObject('grid', '');
@@ -547,17 +575,17 @@ export class RenderingEngine implements IRenderingEngine {
         mat.side = MATERIAL_SIDE.FRONT;
         mat.roughness = 1;
         mat.metalness = 0;
-        let groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2), this._sceneTree.materialLoader.load(mat));
-        groundPlane.receiveShadow = true;
-        groundPlane.visible = this.groundPlaneVisibility;
-        groundPlaneObject.add(groundPlane);
+        this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2), this._sceneTree.materialLoader.load(mat));
+        this._groundPlane.receiveShadow = true;
+        this._groundPlane.visible = this.groundPlaneVisibility;
+        groundPlaneObject.add(this._groundPlane);
         this._sceneTree.scene.add(groundPlaneObject);
 
         let eps = 0.005;
         let bs = bb.boundingSphere;
-        grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-        groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+        this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+        this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
     }
 
-    // #endregion Private Methods (1)
+    // #endregion Private Methods (2)
 }

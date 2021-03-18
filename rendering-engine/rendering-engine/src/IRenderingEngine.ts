@@ -1,6 +1,4 @@
-import { ICamera, ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
-import { Canvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
-import { ILightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
+import { vec3 } from 'gl-matrix';
 
 export interface IRenderingEngine {
     // #region Properties (2)
@@ -10,7 +8,7 @@ export interface IRenderingEngine {
     beautyRenderDelay: number;
     blurSceneWhenBusy: boolean;
     clearAlpha: number;
-    clearColor: string;
+    clearColor: vec3;
     duration: number;
     environmentMap: string;
     environmentMapAsBackground: boolean;
@@ -26,7 +24,6 @@ export interface IRenderingEngine {
     pointSize: number;
     shadows: boolean;
     show: boolean;
-    showSceneTransition: number;
 
     // #endregion Properties (2)
 

@@ -40,9 +40,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const camera = this.createCamera(CAMERATYPE.PERSPECTIVE);
     this.assignCamera(camera.id);
 
-    // default light scene
-    this.createLightScene(this.#renderingEngine.lightScene, true);
-
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
@@ -133,17 +130,17 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Getter clearColor
-   * @return {string}
+   * @return {vec3}
    */
-  public get clearColor(): string {
+  public get clearColor(): vec3 {
     return this.#renderingEngine.clearColor;
   }
 
   /**
    * Setter clearColor
-   * @param {string} value
+   * @param {vec3} value
    */
-  public set clearColor(value: string) {
+  public set clearColor(value: vec3) {
     this.#renderingEngine.clearColor = value;
   }
 
@@ -377,22 +374,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set show(value: boolean) {
     this.#renderingEngine.show = value;
-  }
-
-  /**
-   * Getter showSceneTransition
-   * @return {number}
-   */
-  public get showSceneTransition(): number {
-    return this.#renderingEngine.showSceneTransition;
-  }
-
-  /**
-   * Setter showSceneTransition
-   * @param {number} value
-   */
-  public set showSceneTransition(value: number) {
-    this.#renderingEngine.showSceneTransition = value;
   }
 
   // #endregion Public Accessors (42)

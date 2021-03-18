@@ -6,6 +6,8 @@ import { singleton } from 'tsyringe';
 export class Converter {
 
     private tinyColorToVec3(color: TinyColor): vec4 {
+        if(color.r > 1 || color.b > 1 || color.g > 1 || color.a > 1)
+            return vec4.fromValues(color.r / 255, color.g / 255, color.b / 255, color.a / 255);
         return vec4.fromValues(color.r, color.g, color.b, color.a);
     }
 

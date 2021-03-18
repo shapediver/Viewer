@@ -48,7 +48,7 @@ export class RenderingLogic {
         this._renderer.shadowMap.needsUpdate = true;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this._renderer.setSize(this._renderingEngine.canvas.canvasElement.width, this._renderingEngine.canvas.canvasElement.height);
-        this._renderer.setClearColor(new THREE.Color(0xffffff));
+        this._renderer.setClearColor(new THREE.Color('#ffffff'), 1);
 
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
             this._noNeedToRender = false;
@@ -57,6 +57,9 @@ export class RenderingLogic {
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
             this.startBeautyRenderCountdown();
         })
+
+        window.onresize = () => this._noNeedToRender = false;
+
         this.animate(0);
         this.startBeautyRenderCountdown();
     }
@@ -126,6 +129,13 @@ export class RenderingLogic {
         const camera = this.adjustCamera(deltaTime, width, height);
 
         if (this._noNeedToRender === true) return;
+        if (this._renderingEngine.sceneTree.isEmpty()) return;
+        console.log(this._renderingEngine.show)
+        this._renderingEngine.logoDivElement.style.visibility = this._renderingEngine.show ? 'hidden' : 'visible';
+        
+        this._renderer.shadowMap.enabled = this._renderingEngine.shadows;
+        this._renderingEngine.sceneTree.scene.background = null;//new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]);
+        this._renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]), this._renderingEngine.clearAlpha);
         this._renderer.setSize(width, height);
 
         // beauty rendering is active

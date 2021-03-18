@@ -27,6 +27,8 @@ export class LightEngine implements ILightEngine {
     // #region Constructors (1)
 
     constructor() {
+        this.createLightScene('default', true);
+        this.setFromSettings();
         this._stateEngine.settingsRegistered.then(() => this.setFromSettings());
         (<any>window).lightScenes = this._lightScenes;
     }
