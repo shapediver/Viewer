@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { GeometryData, MaterialData } from '@shapediver/viewer.shared.types';
 import { ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree';
 
-import { GeometryLoader } from './loaders/GeometryLoader';
 import { SDObject } from './types/SDObject';
 import { ThreejsData } from './types/ThreejsData';
 import { Box } from '@shapediver/viewer.shared.math';
@@ -11,21 +10,20 @@ import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.s
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
 import { vec3 } from 'gl-matrix';
 import { container } from 'tsyringe';
-import { LightLoader } from './loaders/LightLoader';
-import { MaterialLoader } from './loaders/MaterialLoader';
+import { RenderingEngine } from './RenderingEngine';
 
 export class SceneTree {
     // #region Properties (7)
 
     private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
-    private readonly _geometryLoader: GeometryLoader = new GeometryLoader();
-    private readonly _lightLoader: LightLoader = new LightLoader();
     private readonly _scene: THREE.Scene = new THREE.Scene();
     private readonly _stateEngine: StateEngine = container.resolve(StateEngine);
-    private readonly _materialLoader = new MaterialLoader();
 
     private _boundingBox: Box = new Box();
     private _mainNode!: SDObject;
+
+
+    constructor(private readonly _renderingEngine: RenderingEngine) {}
 
     // #endregion Properties (7)
 
@@ -33,10 +31,6 @@ export class SceneTree {
 
     public get boundingBox(): Box {
         return this._boundingBox;
-    }
-
-    public get materialLoader(): MaterialLoader {
-        return this._materialLoader;
     }
 
     public get scene() {
@@ -63,7 +57,7 @@ export class SceneTree {
 
         switch (true) {
             case data instanceof GeometryData:
-                this._geometryLoader.load(<GeometryData>data, dataChild, this._boundingBox, this._materialLoader);
+                this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, this._boundingBox);
                 break;
             case data instanceof ThreejsData:
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);
@@ -73,7 +67,7 @@ export class SceneTree {
                 // this._helper.addData(this.createMaterial(<SceneGraphMaterialData>data), dataChild);
                 break;
             case data instanceof AbstractLight:
-                this._lightLoader.load(<AbstractLight>data, dataChild, this._scene, this._boundingBox);
+                this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild, this._scene, this._boundingBox);
                 // we only store it here to retrieve it for material assignment later on
                 // this._helper.addData(this.createMaterial(<SceneGraphMaterialData>data), dataChild);
                 break;
@@ -86,7 +80,7 @@ export class SceneTree {
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
 
-        this._geometryLoader.emptyGeometryCache();
+        this._renderingEngine.geometryLoader.emptyGeometryCache();
         if (!this._mainNode) {
             this._mainNode = new SDObject(root.id, root.version);
             this._scene.add(this._mainNode);
@@ -113,7 +107,6 @@ export class SceneTree {
     }
 
     public isEmpty() {
-        console.log(this._boundingBox)
         return vec3.equals(this._boundingBox.min, vec3.create()) && vec3.equals(this._boundingBox.max, vec3.create());
     }
 

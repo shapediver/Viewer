@@ -3,77 +3,33 @@ import { MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData } from '@sha
 import { vec4 } from 'gl-matrix';
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
+import { RenderingEngine } from '../RenderingEngine';
 
 export class MaterialLoader {
+    // #region Properties (5)
+
     private readonly _defaultColor: vec4 = vec4.fromValues(0, 1, 0.9686, 1);
+    private readonly _materialLibrary: THREE.MeshStandardMaterial[] = [];
     private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
 
-    private readonly _materialLibrary: THREE.Material[] = [];
-    private _lightSizeUV: number = 0.025;
     private _blending: number = 0.0;
-    
-    private createTexture(map: MapData): THREE.Texture {
-        const texture = new THREE.Texture(map.image);
-        texture.format = THREE.RGBAFormat;
-        texture.minFilter = (() => {
-            switch (map.minFilter) {
-                case TEXTURE_FILTERING.NEAREST:
-                    return THREE.NearestFilter;
-                case TEXTURE_FILTERING.NEAREST_MIPMAP_NEAREST:
-                    return THREE.NearestMipMapNearestFilter;
-                case TEXTURE_FILTERING.LINEAR_MIPMAP_NEAREST:
-                    return THREE.LinearMipMapNearestFilter;
-                case TEXTURE_FILTERING.NEAREST_MIPMAP_LINEAR:
-                    return THREE.NearestMipMapLinearFilter;
-                case TEXTURE_FILTERING.LINEAR:
-                    return THREE.LinearFilter
-                case TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR:
-                default:
-                    return THREE.LinearMipMapLinearFilter;
-            }
-        })();
-        texture.magFilter = (() => {
-            switch (map.magFilter) {
-                case TEXTURE_FILTERING.NEAREST:
-                    return THREE.NearestFilter;
-                case TEXTURE_FILTERING.LINEAR:
-                default:
-                    return THREE.LinearFilter
-            }
-        })();
-        texture.wrapS = (() => {
-            switch (map.wrapS) {
-                case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
-                    return THREE.ClampToEdgeWrapping;
-                case TEXTURE_WRAPPING.MIRRORED_REPEAT:
-                    return THREE.MirroredRepeatWrapping;
-                case TEXTURE_WRAPPING.REPEAT:
-                default:
-                    return THREE.RepeatWrapping
-            }
-        })();
-        texture.wrapT = (() => {
-            switch (map.wrapT) {
-                case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
-                    return THREE.ClampToEdgeWrapping;
-                case TEXTURE_WRAPPING.MIRRORED_REPEAT:
-                    return THREE.MirroredRepeatWrapping;
-                case TEXTURE_WRAPPING.REPEAT:
-                default:
-                    return THREE.RepeatWrapping
-            }
-        })();
+    private _lightSizeUV: number = 0.025;
 
-        texture.center = new THREE.Vector2(map.center[0], map.center[1]);
-        // TODO color
-        // texture.color = new THREE.Color(map.color[0], map.color[1], map.color[2]);
-        texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
-        texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
-        texture.rotation = map.rotation;
+    // #endregion Properties (5)
 
-        texture.flipY = map.flipY;
-        texture.needsUpdate = true;
-        return texture;
+    // #region Constructors (1)
+
+    constructor(private readonly _renderingEngine: RenderingEngine) {}
+
+    // #endregion Constructors (1)
+
+    // #region Public Methods (4)
+
+    public assignEnvironmentMap(e: THREE.CubeTexture | null) {
+        for(let i = 0; i < this._materialLibrary.length; i++) {
+            this._materialLibrary[i].envMap = e;
+            this._materialLibrary[i].needsUpdate = true;
+        }
     }
 
     /**
@@ -82,7 +38,7 @@ export class MaterialLoader {
      * @param material the material data
      * @returns the material object
      */
-     public load(materialProperties?: MaterialData): THREE.Material {
+    public load(materialProperties?: MaterialData): THREE.Material {
         let material: THREE.MeshStandardMaterial;
         if (materialProperties) {
             material = new THREE.MeshStandardMaterial();
@@ -231,7 +187,6 @@ export class MaterialLoader {
 
             // refractionRatio
 
-
             // skinning
 
             // vertexTangents
@@ -276,4 +231,74 @@ export class MaterialLoader {
             }
         }
     }
+
+    // #endregion Public Methods (4)
+
+    // #region Private Methods (1)
+
+    private createTexture(map: MapData): THREE.Texture {
+        const texture = new THREE.Texture(map.image);
+        texture.format = THREE.RGBAFormat;
+        texture.minFilter = (() => {
+            switch (map.minFilter) {
+                case TEXTURE_FILTERING.NEAREST:
+                    return THREE.NearestFilter;
+                case TEXTURE_FILTERING.NEAREST_MIPMAP_NEAREST:
+                    return THREE.NearestMipMapNearestFilter;
+                case TEXTURE_FILTERING.LINEAR_MIPMAP_NEAREST:
+                    return THREE.LinearMipMapNearestFilter;
+                case TEXTURE_FILTERING.NEAREST_MIPMAP_LINEAR:
+                    return THREE.NearestMipMapLinearFilter;
+                case TEXTURE_FILTERING.LINEAR:
+                    return THREE.LinearFilter
+                case TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR:
+                default:
+                    return THREE.LinearMipMapLinearFilter;
+            }
+        })();
+        texture.magFilter = (() => {
+            switch (map.magFilter) {
+                case TEXTURE_FILTERING.NEAREST:
+                    return THREE.NearestFilter;
+                case TEXTURE_FILTERING.LINEAR:
+                default:
+                    return THREE.LinearFilter
+            }
+        })();
+        texture.wrapS = (() => {
+            switch (map.wrapS) {
+                case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
+                    return THREE.ClampToEdgeWrapping;
+                case TEXTURE_WRAPPING.MIRRORED_REPEAT:
+                    return THREE.MirroredRepeatWrapping;
+                case TEXTURE_WRAPPING.REPEAT:
+                default:
+                    return THREE.RepeatWrapping
+            }
+        })();
+        texture.wrapT = (() => {
+            switch (map.wrapT) {
+                case TEXTURE_WRAPPING.CLAMP_TO_EDGE:
+                    return THREE.ClampToEdgeWrapping;
+                case TEXTURE_WRAPPING.MIRRORED_REPEAT:
+                    return THREE.MirroredRepeatWrapping;
+                case TEXTURE_WRAPPING.REPEAT:
+                default:
+                    return THREE.RepeatWrapping
+            }
+        })();
+
+        texture.center = new THREE.Vector2(map.center[0], map.center[1]);
+        // TODO color
+        // texture.color = new THREE.Color(map.color[0], map.color[1], map.color[2]);
+        texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
+        texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
+        texture.rotation = map.rotation;
+
+        texture.flipY = map.flipY;
+        texture.needsUpdate = true;
+        return texture;
+    }
+
+    // #endregion Private Methods (1)
 }

@@ -4,12 +4,15 @@ import { GeometryData, PrimitiveData, SD_RENDERINGTYPE } from '@shapediver/viewe
 import { SDObject } from '../types/SDObject';
 import { Box } from '@shapediver/viewer.shared.math';
 import { MaterialLoader } from './MaterialLoader';
+import { RenderingEngine } from '../RenderingEngine';
 
 export class GeometryLoader {
     // #region Public Methods (1)
     private _geometryCache: {
         [key: string]: SDObject
     } = {};
+
+    constructor(private readonly _renderingEngine: RenderingEngine) {}
     
     /**
      * Create a geometry object with the provided geometry data.
@@ -17,7 +20,7 @@ export class GeometryLoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-     public load(geometry: GeometryData, parent: SDObject, boundingBox: Box, materialLoader: MaterialLoader): void {
+     public load(geometry: GeometryData, parent: SDObject, boundingBox: Box): void {
         boundingBox.union(geometry.boundingBox);
         if (this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS]) {
             // if already in geo cache
@@ -76,7 +79,8 @@ export class GeometryLoader {
 
         } else {
             const obj = new SDObject(geometry.id, geometry.version);
-            const mesh: THREE.Mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), materialLoader.load(geometry.primitive.material!));
+            const mesh: THREE.Mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!));
+            mesh.geometry.computeVertexNormals();
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             obj.add(mesh);

@@ -82,7 +82,7 @@ export class RenderingLogic {
     private activateBeautyRenderShaders() {
         this._renderer.shadowMap.type = THREE.PCFShadowMap;
         this._renderer.shadowMap.needsUpdate = true;
-        this._renderingEngine.sceneTree.materialLoader.updateMaterials();
+        this._renderingEngine.materialLoader.updateMaterials();
     }
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
@@ -136,7 +136,7 @@ export class RenderingLogic {
         if (this._renderingEngine.sceneTree.isEmpty()) return;
         
         this._renderer.shadowMap.enabled = this._renderingEngine.shadows;
-        this._renderingEngine.sceneTree.scene.background = null;//new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]);
+        this._renderingEngine.sceneTree.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         this._renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]), this._renderingEngine.clearAlpha);
         this._renderer.setSize(width, height);
 
@@ -161,8 +161,8 @@ export class RenderingLogic {
         this._beautyRenderingDurationActive = 0;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this._renderer.shadowMap.needsUpdate = true;
-        this._renderingEngine.sceneTree.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
-        this._renderingEngine.sceneTree.materialLoader.updateMaterials();
+        this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
+        this._renderingEngine.materialLoader.updateMaterials();
     }
 
     private setShaderProperties() {
@@ -171,12 +171,12 @@ export class RenderingLogic {
 
         if (percentage < 0.25) {
             const percentageMapped = percentage / 0.25;
-            this._renderingEngine.sceneTree.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
 
         } else {
             const percentageMapped = (percentage - 0.25) / (1 - 0.25);
             // this._lightSizeUVStart -> this._lightSizeUVEnd
-            this._renderingEngine.sceneTree.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
         }
     }
 

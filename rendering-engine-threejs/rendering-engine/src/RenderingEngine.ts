@@ -14,17 +14,24 @@ import { SDObject } from './types/SDObject';
 import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
 import { RenderingLogic } from './RenderingLogic';
 import { MaterialLoader } from './loaders/MaterialLoader';
-import { Converter } from '../../../shared/services/node_modules/@shapediver/viewer.shared.utils/dist';
+import { Converter } from '@shapediver/viewer.shared.utils';
+import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader';
+import { GeometryLoader } from './loaders/GeometryLoader';
+import { LightLoader } from './loaders/LightLoader';
 
 export class RenderingEngine implements IRenderingEngine {
-    // #region Properties (36)
+    // #region Properties (39)
 
     private readonly _cameraEngine: CameraEngine;
     private readonly _canvasEngine: CanvasEngine;
     private readonly _converter: Converter;
     private readonly _domEventEngine: DomEventEngine;
+    private readonly _environmentMapLoader: EnvironmentMapLoader;
     private readonly _eventEngine: EventEngine;
+    private readonly _geometryLoader: GeometryLoader;
     private readonly _lightEngine: LightEngine;
+    private readonly _lightLoader: LightLoader;
+    private readonly _materialLoader: MaterialLoader;
     private readonly _renderingLogic: RenderingLogic;
     private readonly _settings: SettingsEngine;
     private readonly _stateEngine: StateEngine;
@@ -56,7 +63,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _shadows: boolean = true;
     private _show: boolean = false;
 
-    // #endregion Properties (36)
+    // #endregion Properties (39)
 
     // #region Constructors (1)
 
@@ -68,6 +75,10 @@ export class RenderingEngine implements IRenderingEngine {
         this._tree = <Tree>container.resolve(Tree);
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
         this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
+        this._environmentMapLoader = new EnvironmentMapLoader(this);
+        this._materialLoader = new MaterialLoader(this);
+        this._geometryLoader = new GeometryLoader(this);
+        this._lightLoader = new LightLoader(this);
 
         this._logoDivElement = document.createElement('div');
         this._logoDivElement.style.background = '#030531';
@@ -89,7 +100,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._lightEngine = new LightEngine();
         this._cameraEngine = new CameraEngine(this._canvas, this._domEventEngine);
 
-        this._sceneTree = new SceneTree();
+        this._sceneTree = new SceneTree(this);
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
         (<SceneTree>this._sceneTree).scene.background = new THREE.Color(0xffffff);
@@ -103,7 +114,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (48)
+    // #region Public Accessors (50)
 
     /**
      * Getter ambientOcclusion
@@ -247,6 +258,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set environmentMap(value: string) {
         this._environmentMap = value;
+        this._environmentMapLoader.load(this.environmentMap);
     }
 
     /**
@@ -266,6 +278,14 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     /**
+     * Getter environmentMapLoader
+     * @return {EnvironmentMapLoader}
+     */
+    public get environmentMapLoader(): EnvironmentMapLoader {
+        return this._environmentMapLoader;
+    }
+
+    /**
      * Getter environmentMapResolution
      * @return {string}
      */
@@ -279,6 +299,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set environmentMapResolution(value: string) {
         this._environmentMapResolution = value;
+        this._environmentMapLoader.load(this.environmentMap);
     }
 
     /**
@@ -295,6 +316,14 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set fullscreen(value: boolean) {
         this._fullscreen = value;
+    }
+
+    /**
+     * Getter geometryLoader
+     * @return {GeometryLoader}
+     */
+    public get geometryLoader(): GeometryLoader {
+        return this._geometryLoader;
     }
 
     /**
@@ -396,6 +425,14 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     /**
+     * Getter lightLoader
+     * @return {LightLoader}
+     */
+    public get lightLoader(): LightLoader {
+        return this._lightLoader;
+    }
+
+    /**
      * Getter lightScene
      * @return {string}
      */
@@ -417,6 +454,14 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public get logoDivElement(): HTMLDivElement {
         return this._logoDivElement;
+    }
+
+    /**
+     * Getter materialLoader
+     * @return {MaterialLoader}
+     */
+    public get materialLoader(): MaterialLoader {
+        return this._materialLoader;
     }
 
     /**
@@ -475,7 +520,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._show = value;
     }
 
-    // #endregion Public Accessors (48)
+    // #endregion Public Accessors (50)
 
     // #region Public Methods (1)
 
@@ -501,11 +546,8 @@ export class RenderingEngine implements IRenderingEngine {
         this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
         // TODO
         this.duration = this._settings.scene.duration.value;
-        // TODO
         this.environmentMap = this._settings.scene.material.environmentMap.value;
-        // TODO
         this.environmentMapAsBackground = this._settings.scene.material.environmentMapAsBackground.value;
-        // TODO
         this.environmentMapResolution = this._settings.scene.material.environmentMapResolution.value;
         // TODO
         this.fullscreen = this._settings.scene.fullscreen.value;
@@ -575,7 +617,7 @@ export class RenderingEngine implements IRenderingEngine {
         mat.side = MATERIAL_SIDE.FRONT;
         mat.roughness = 1;
         mat.metalness = 0;
-        this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2), this._sceneTree.materialLoader.load(mat));
+        this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2), this._materialLoader.load(mat));
         this._groundPlane.receiveShadow = true;
         this._groundPlane.visible = this.groundPlaneVisibility;
         groundPlaneObject.add(this._groundPlane);

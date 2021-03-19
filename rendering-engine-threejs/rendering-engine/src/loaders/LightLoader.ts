@@ -2,9 +2,17 @@ import * as THREE from 'three';
 import { Box, Sphere } from '@shapediver/viewer.shared.math';
 import { AbstractLight, AmbientLight, DirectionalLight, HemisphereLight, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine';
 import { SDObject } from '../types/SDObject';
+import { RenderingEngine } from '../RenderingEngine';
 
 export class LightLoader {
-    
+    // #region Constructors (1)
+
+    constructor(private readonly _renderingEngine: RenderingEngine) {}
+
+    // #endregion Constructors (1)
+
+    // #region Public Methods (1)
+
     public load(light: AbstractLight, parent: SDObject, scene: THREE.Scene, boundingBox: Box) {
         let converted = null;
         for (let k = 0; k < light.convertedObjects.length; k++)
@@ -53,7 +61,6 @@ export class LightLoader {
                 threeLight.castShadow = false;
               }
         }
-
         
         if (light instanceof HemisphereLight) {
             const threeLight: THREE.HemisphereLight = converted.children[0] instanceof THREE.HemisphereLight ? (<THREE.HemisphereLight>converted.children[0]) : new THREE.HemisphereLight();
@@ -89,4 +96,6 @@ export class LightLoader {
 
         parent.add(converted);
     }
+
+    // #endregion Public Methods (1)
 }
