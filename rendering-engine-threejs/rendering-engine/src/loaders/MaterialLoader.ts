@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData } from '@shapediver/viewer.shared.types';
 import { vec4 } from 'gl-matrix';
-import { UuidGenerator } from '../../../../shared/services/node_modules/@shapediver/viewer.shared.utils/dist';
+import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
 
 export class MaterialLoader {
@@ -14,7 +14,7 @@ export class MaterialLoader {
     
     private createTexture(map: MapData): THREE.Texture {
         const texture = new THREE.Texture(map.image);
-        texture.format = THREE.RGBFormat;
+        texture.format = THREE.RGBAFormat;
         texture.minFilter = (() => {
             switch (map.minFilter) {
                 case TEXTURE_FILTERING.NEAREST:
@@ -71,7 +71,7 @@ export class MaterialLoader {
         texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
         texture.rotation = map.rotation;
 
-        texture.flipY = false;
+        texture.flipY = map.flipY;
         texture.needsUpdate = true;
         return texture;
     }
@@ -83,7 +83,6 @@ export class MaterialLoader {
      * @returns the material object
      */
      public load(materialProperties?: MaterialData): THREE.Material {
-
         let material: THREE.MeshStandardMaterial;
         if (materialProperties) {
             material = new THREE.MeshStandardMaterial();
@@ -129,6 +128,8 @@ export class MaterialLoader {
             // stencilZPass
 
             // flatShading
+            if(materialProperties.shading !== undefined)
+                material.flatShading = materialProperties.shading !== 'smooth';
 
             // fog
 
@@ -158,8 +159,10 @@ export class MaterialLoader {
 
             // visible
 
-            if (materialProperties.alphaMap !== undefined)
+            if (materialProperties.alphaMap !== undefined) {
                 material.alphaMap = this.createTexture(materialProperties.alphaMap);
+                material.transparent = true;
+            }
 
             // aoMap
 
@@ -240,7 +243,6 @@ export class MaterialLoader {
             // wireframeLinejoin
 
             // wireframeLinewidth
-
 
             material.side = THREE.DoubleSide;
         } else {

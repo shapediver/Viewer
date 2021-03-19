@@ -209,7 +209,7 @@ export class MaterialEngine {
 
         // specular is ignored
 
-        if(data.shine) {
+        if(data.shine || data.shine === 0) {
             material.metalness = Math.min(1, data.shine);
             material.roughness = 1 - (Math.min(1, data.shine));
         }
@@ -249,15 +249,15 @@ export class MaterialEngine {
 
         material.side = data.side === 'front' ? MATERIAL_SIDE.FRONT : data.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
 
-        if(data.metalness)
+        if(data.metalness || data.metalness === 0)
             material.metalness = data.metalness;
 
-        if(data.roughness)
+        if(data.roughness || data.roughness === 0)
             material.roughness = data.roughness;
 
         material.opacity = data.hasOwnProperty('transparency') ? 1 - data.transparency! : 1;
         
-        if(data.alphaThreshold)
+        if(data.alphaThreshold || data.alphaThreshold === 0)
             material.alphaCutoff = data.alphaThreshold;
 
         if(data.bitmaptexture)
@@ -309,15 +309,15 @@ export class MaterialEngine {
 
         material.side = data.side === 'front' ? MATERIAL_SIDE.FRONT : data.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
 
-        if(data.metalness)
+        if(data.metalness || data.metalness === 0)
             material.metalness = data.metalness;
 
-        if(data.roughness)
+        if(data.roughness || data.roughness === 0)
             material.roughness = data.roughness;
 
         material.opacity = data.hasOwnProperty('transparency') ? 1 - data.transparency! : 1;
         
-        if(data.alphaThreshold)
+        if(data.alphaThreshold || data.alphaThreshold === 0)
             material.alphaCutoff = data.alphaThreshold;
 
         // TODO
@@ -328,7 +328,7 @@ export class MaterialEngine {
         // if(data.lightReflectivity)
         //     material.lightReflectivity = data.lightReflectivity;
 
-        if(data.bumpAmplitude)
+        if(data.bumpAmplitude || data.bumpAmplitude === 0)
             material.bumpScale = data.bumpAmplitude;
 
         // TODO threeDNoise

@@ -71,6 +71,7 @@ export class MapData {
     private readonly _offset: vec2 = vec2.fromValues(0, 0),
     private readonly _repeat: vec2 = vec2.fromValues(1, 1),
     private readonly _rotation: number = 0,
+    private readonly _flipY: boolean = true,
   ) { }
 
   // #endregion Constructors (1)
@@ -157,6 +158,14 @@ export class MapData {
     return this._wrapT;
   }
 
+  /**
+   * Getter flipY
+   * @return {boolean}
+   */
+  public get flipY(): boolean {
+    return this._flipY;
+  }
+
   // #endregion Public Accessors (10)
 }
 
@@ -171,7 +180,7 @@ export class MaterialData extends AbstractTreeNodeData {
    */
   constructor(
     private _alphaMap?: MapData,
-    private _alphaCutoff: number = 0.5,
+    private _alphaCutoff: number = 0,
     private _alphaMode: MATERIAL_ALPHA = MATERIAL_ALPHA.OPAQUE,
     private _bumpMap?: MapData,
     private _bumpScale: number = 1.0,

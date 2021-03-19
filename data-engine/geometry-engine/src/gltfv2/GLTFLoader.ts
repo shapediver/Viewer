@@ -147,10 +147,10 @@ export class GLTFLoader {
             const blob = new Blob([new Uint8Array(array)], { type: image.mimeType});
             const dataUri = window.URL.createObjectURL(blob);
             window.open(dataUri);
-            mapData = new MapData(await this._imageLoader.load(dataUri!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter);
+            mapData = new MapData(await this._imageLoader.load(dataUri!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         } else {
             const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
-            mapData = new MapData(await this._imageLoader.load(url!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter);
+            mapData = new MapData(await this._imageLoader.load(url!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         }
         return mapData;
     }

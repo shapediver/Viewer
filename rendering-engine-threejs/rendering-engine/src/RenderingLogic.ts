@@ -7,6 +7,7 @@ import { container } from "tsyringe";
 import { RenderingEngine } from "./RenderingEngine";
 import { SceneTree } from "./SceneTree";
 import { main, entry } from "./shaders/PCSS";
+import { shader as normalShader } from "./shaders/normal";
 
 export class RenderingLogic {
     // #region Properties (11)
@@ -33,6 +34,7 @@ export class RenderingLogic {
         shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
         shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
         THREE.ShaderChunk.shadowmap_pars_fragment = shader;
+        THREE.ShaderChunk.normalmap_pars_fragment = normalShader;
 
         this._renderer = new THREE.WebGLRenderer({
             alpha: true,
@@ -126,12 +128,12 @@ export class RenderingLogic {
         (<HTMLCanvasElement>document.getElementById('canvas')).height = window.innerHeight;
         let width: number = window.innerWidth, height: number = window.innerHeight;
 
+        this._renderingEngine.logoDivElement.style.visibility = this._renderingEngine.show ? 'hidden' : 'visible';
+
         const camera = this.adjustCamera(deltaTime, width, height);
 
         if (this._noNeedToRender === true) return;
         if (this._renderingEngine.sceneTree.isEmpty()) return;
-        console.log(this._renderingEngine.show)
-        this._renderingEngine.logoDivElement.style.visibility = this._renderingEngine.show ? 'hidden' : 'visible';
         
         this._renderer.shadowMap.enabled = this._renderingEngine.shadows;
         this._renderingEngine.sceneTree.scene.background = null;//new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]);
