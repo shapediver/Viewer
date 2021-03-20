@@ -1,22 +1,18 @@
 import 'reflect-metadata'
 import { container } from 'tsyringe';
 
-import { ErrorHandler, PerformanceEvaluator, Logger } from '../src/index'
+import { PerformanceEvaluator, Logger } from '../src/index'
 
 
 describe('error handler - test', () => {
-    let errorHandler: ErrorHandler;
+    let logger: Logger;
 
     beforeEach(() => {
-        errorHandler = <ErrorHandler>container.resolve(ErrorHandler);
-    });
-
-    test('standard error', async () => {
-        errorHandler.handle(new Error('this is an error message'))
+        logger = <Logger>container.resolve(Logger);
     });
 
     test('http error', async () => {
-        errorHandler.handleHttpError(404, new Error('this is an http error message'))
+        logger.httpError(404, new Error('this is an http error message'))
     });
 
     // TODO to be expanded when there is more errors to handle

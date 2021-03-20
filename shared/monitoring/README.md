@@ -27,14 +27,3 @@ performanceEvaluator.end('id');
 
 const evaluation = performanceEvaluator.getEvaluation('id')
 ```
-
-
-```typescript
-import { container } from 'tsyringe';
-import { ErrorHandler } from '@shapediver/viewer.shared.monitoring';
-
-const errorHandler = <ErrorHandler>container.resolve(ErrorHandler);
-
-errorHandler.handle(new Error('this is an error message'));
-errorHandler.handleHttpError(404, new Error('this is an http error message'));
-```

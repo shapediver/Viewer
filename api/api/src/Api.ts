@@ -8,6 +8,7 @@ import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 @singleton()
 export class Api {
   
+  // TODO
   #commitSettings: boolean = false;
   #loggingLevel: number = -1;
   #showMessages: boolean = true;
@@ -16,6 +17,9 @@ export class Api {
   readonly #viewers: { [key: string]: Viewer } = {};
   // #region Constructors (1)
 
+  /**
+   * @ignore
+   */
   constructor() {
     const stateEngine = <StateEngine>container.resolve(StateEngine);
     (<EventEngine>container.resolve(EventEngine)).addListener(EVENTTYPE.UPDATE.UPDATE_READY, () => { this.update(); })
@@ -25,62 +29,73 @@ export class Api {
 
   // #region Public Accessors (7)
 
-  /**
-   * Getter commitSettings
-   * @return {boolean}
-   */
-  public get commitSettings(): boolean {
-    return this.#commitSettings;
-  }
+  // /**
+  //  * Getter commitSettings
+  //  * @return {boolean}
+  //  */
+  // public get commitSettings(): boolean {
+  //   return this.#commitSettings;
+  // }
+
+  // /**
+  //  * Setter commitSettings
+  //  * @param {boolean} value
+  //  */
+  // public set commitSettings(value: boolean) {
+  //   this.#commitSettings = value;
+  // }
+
+  // /**
+  //  * Getter loggingLevel
+  //  * @return {number}
+  //  */
+  // public get loggingLevel(): number {
+  //   return this.#loggingLevel;
+  // }
+
+  // /**
+  //  * Setter loggingLevel
+  //  * @param {number} value
+  //  */
+  // public set loggingLevel(value: number) {
+  //   this.#loggingLevel = value;
+  // }
 
   /**
-   * Setter commitSettings
-   * @param {boolean} value
+   * The scene tree.
+   * Please see TODO for more information.
    */
-  public set commitSettings(value: boolean) {
-    this.#commitSettings = value;
-  }
-
-  /**
-   * Getter loggingLevel
-   * @return {number}
-   */
-  public get loggingLevel(): number {
-    return this.#loggingLevel;
-  }
-
-  /**
-   * Setter loggingLevel
-   * @param {number} value
-   */
-  public set loggingLevel(value: number) {
-    this.#loggingLevel = value;
-  }
-
   public get sceneTree(): Tree {
     return <Tree>container.resolve(Tree);
   }
 
-  /**
-   * Getter showMessages
-   * @return {boolean}
-   */
-  public get showMessages(): boolean {
-    return this.#showMessages;
-  }
+  // /**
+  //  * Getter showMessages
+  //  * @return {boolean}
+  //  */
+  // public get showMessages(): boolean {
+  //   return this.#showMessages;
+  // }
 
-  /**
-   * Setter showMessages
-   * @param {boolean} value
-   */
-  public set showMessages(value: boolean) {
-    this.#showMessages = value;
-  }
+  // /**
+  //  * Setter showMessages
+  //  * @param {boolean} value
+  //  */
+  // public set showMessages(value: boolean) {
+  //   this.#showMessages = value;
+  // }
 
   // #endregion Public Accessors (7)
 
   // #region Public Methods (7)
 
+  /**
+   * 
+   * @param ticket 
+   * @param modelViewUrl 
+   * @param id 
+   * @returns 
+   */
   public async createSession(ticket: string, modelViewUrl: string, id?: string): Promise<Session> {
     const sessionId = id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#sessions[sessionId]) new Error('Session with this id already exists.');

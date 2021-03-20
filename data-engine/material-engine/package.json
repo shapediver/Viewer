@@ -48,6 +48,8 @@
     "@shapediver/viewer.data-engine.shared-types": "^0.1.0",
     "@shapediver/viewer.shared.node-tree": "^0.1.0",
     "@shapediver/viewer.shared.types": "^0.1.0",
+    "@shapediver/viewer.shared.services": "^0.1.0",
+    "@shapediver/viewer.shared.monitoring": "^0.1.0",
     "@shapediver/viewer.shared.utils": "^0.1.0"
   }
 }

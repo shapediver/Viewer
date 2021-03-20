@@ -47,6 +47,8 @@
   "dependencies": {
     "@shapediver/viewer.sdtf.parser": "^0.1.0",
     "@shapediver/viewer.sdtf.shared": "^0.1.0",
+    "@shapediver/viewer.shared.services": "^0.1.0",
+    "@shapediver/viewer.shared.monitoring": "^0.1.0",
     "@shapediver/viewer.shared.node-tree": "^0.1.0"
   }
 }

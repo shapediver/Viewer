@@ -544,27 +544,27 @@ export class RenderingEngine implements IRenderingEngine {
         this.clearAlpha = this._settings.scene.render.clearAlpha.value;
         const c = this._converter.toColor(this._settings.scene.render.clearColor.value);
         this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
-        // TODO
+        // FIXME
         this.duration = this._settings.scene.duration.value;
         this.environmentMap = this._settings.scene.material.environmentMap.value;
         this.environmentMapAsBackground = this._settings.scene.material.environmentMapAsBackground.value;
         this.environmentMapResolution = this._settings.scene.material.environmentMapResolution.value;
-        // TODO
+        // FIXME
         this.fullscreen = this._settings.scene.fullscreen.value;
         this.gridVisibility = this._settings.scene.gridVisibility.value;
-        // TODO
+        // FIXME
         this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
-        // TODO
+        // FIXME
         this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
         this.groundPlaneVisibility = this._settings.scene.groundPlaneVisibility.value;
-        // TODO
+        // FIXME
         this.lightHelper = this._settings.scene.lights.helper.value;
         this.lightScene = this._settings.scene.lights.lightScene.value;
         // TODO
         this.pointSize = this._settings.rendering.pointSize.value;
         this.shadows = this._settings.scene.render.shadows.value;
         this.show = this._settings.scene.show.value;
-        // TODO
+        // FIXME
         //this.showSceneTransition = +this._settings.scene.showSceneTransition.value.replace('s', '') * 1000;
     }
 

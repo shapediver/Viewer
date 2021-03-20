@@ -47,6 +47,7 @@
   "dependencies": {
     "@shapediver/viewer.rendering-engine.canvas-engine": "^0.1.0",
     "@shapediver/viewer.shared.services": "^0.1.0",
+    "@shapediver/viewer.shared.monitoring": "^0.1.0",
     "@shapediver/viewer.shared.utils": "^0.1.0",
     "@tweenjs/tween.js": "^18.6.4",
     "three": "^0.123.0"

@@ -389,6 +389,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#renderingEngine.cameraEngine.assignCamera(id);
   }
 
+  public createPerspectiveCamera(id?: string): Camera {
+    return this.createCamera(CAMERATYPE.PERSPECTIVE, id);
+  }
+
+  public createOrthographicCamera(id?: string): Camera {
+    return this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
+  }
+
   public createCamera(type: CAMERATYPE, id?: string): Camera {
     const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
     this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);

@@ -1,9 +1,3 @@
-import { ErrorHandler } from "./error-handler/ErrorHandler";
-
-export {
-    ErrorHandler
-}
-
 import { Logger } from "./logger/Logger";
 
 export {

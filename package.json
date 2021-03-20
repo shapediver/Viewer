@@ -31,6 +31,7 @@
     "check-npm-version": "bash ./scripts/check-npm-version.sh",
     "create-lib": "npm run check-npm-version && bash ./scripts/create-lib.sh",
     "create-package": "bash ./scripts/create-package.sh",
+    "doc": "lerna run doc",
     "add-dependency": "bash ./scripts/add-dependency.sh",
     "add-devDependency": "bash ./scripts/add-devDependency.sh",
     "publish": "lerna publish --no-private --force-publish --no-push --registry https://npm.pkg.github.com/",

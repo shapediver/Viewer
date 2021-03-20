@@ -50,6 +50,8 @@
     "@shapediver/viewer.sdtf.converter": "^0.1.0",
     "@shapediver/viewer.sdtf.shared": "^0.1.0",
     "@shapediver/viewer.shared.node-tree": "^0.1.0",
+    "@shapediver/viewer.shared.services": "^0.1.0",
+    "@shapediver/viewer.shared.monitoring": "^0.1.0",
     "@shapediver/viewer.shared.types": "^0.1.0"
   }
 }
