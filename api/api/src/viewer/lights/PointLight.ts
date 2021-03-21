@@ -11,6 +11,10 @@ export class PointLight extends Light {
 
     // #region Constructors (1)
 
+    /**
+     * @ignore
+     * @param light 
+     */
     constructor(light: PointLightLogic) {
         super(light);
         this.#light = light;
@@ -21,7 +25,7 @@ export class PointLight extends Light {
     // #region Public Accessors (6)
 
     /**
-     * Getter decay
+     * The decay of the light radiance
      * @return {number}
      */
     public get decay(): number {
@@ -29,7 +33,7 @@ export class PointLight extends Light {
     }
 
     /**
-     * Setter decay
+     * The decay of the light radiance
      * @param {number} value
      */
     public set decay(value: number) {
@@ -37,7 +41,7 @@ export class PointLight extends Light {
     }
 
     /**
-     * Getter distance
+     * The distance of the light radiance
      * @return {number}
      */
     public get distance(): number {
@@ -45,7 +49,7 @@ export class PointLight extends Light {
     }
 
     /**
-     * Setter distance
+     * The distance of the light radiance
      * @param {number} value
      */
     public set distance(value: number) {
@@ -53,7 +57,7 @@ export class PointLight extends Light {
     }
 
     /**
-     * Getter position
+     * The position of the light
      * @return {vec3}
      */
     public get position(): vec3 {
@@ -61,7 +65,7 @@ export class PointLight extends Light {
     }
 
     /**
-     * Setter position
+     * The position of the light
      * @param {vec3} value
      */
     public set position(value: vec3) {

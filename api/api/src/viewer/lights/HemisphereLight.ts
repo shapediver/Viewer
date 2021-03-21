@@ -11,6 +11,10 @@ export class HemisphereLight extends Light {
 
     // #region Constructors (1)
 
+    /**
+     * @ignore
+     * @param light 
+     */
     constructor(light: HemisphereLightLogic) {
         super(light);
         this.#light = light;
@@ -21,7 +25,7 @@ export class HemisphereLight extends Light {
     // #region Public Accessors (2)
 
     /**
-     * Getter groundColor
+     * The ground color of the light
      * @return {vec3}
      */
     public get groundColor(): vec3 {
@@ -29,7 +33,7 @@ export class HemisphereLight extends Light {
     }
 
     /**
-     * Setter groundColor
+     * The ground color of the light
      * @param {vec3} value
      */
     public set groundColor(value: vec3) {

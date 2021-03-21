@@ -2707,9 +2707,6 @@ img {
 		<li class="current tsd-kind-class tsd-parent-kind-module">
 			<a href="viewer_lights_spotlight.spotlight.html" class="tsd-kind-icon">Spot<wbr>Light</a>
 			<ul>
-				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-					<a href="viewer_lights_spotlight.spotlight.html#constructor" class="tsd-kind-icon">constructor</a>
-				</li>
 				<li class=" tsd-kind-accessor tsd-parent-kind-class">
 					<a href="viewer_lights_spotlight.spotlight.html#angle" class="tsd-kind-icon">angle</a>
 				</li>
@@ -2764,12 +2761,6 @@ img {
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
-						<h3>Constructors</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="viewer_lights_spotlight.spotlight.html#constructor" class="tsd-kind-icon">constructor</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
 						<h3>Accessors</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="viewer_lights_spotlight.spotlight.html#angle" class="tsd-kind-icon">angle</a></li>
@@ -2788,30 +2779,6 @@ img {
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Constructors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-				<a name="constructor" class="tsd-anchor"></a>
-				<h3>constructor</h3>
-				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-					<li class="tsd-signature tsd-kind-icon">new <wbr>Spot<wbr>Light<span class="tsd-signature-symbol">(</span>light<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">SpotLight</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="viewer_lights_spotlight.spotlight.html" class="tsd-signature-type" data-tsd-kind="Class">SpotLight</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<p>Overrides <a href="viewer_lights_light.light.html">Light</a>.<a href="viewer_lights_light.light.html#constructor">constructor</a></p>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>light: <span class="tsd-signature-type">SpotLight</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="viewer_lights_spotlight.spotlight.html" class="tsd-signature-type" data-tsd-kind="Class">SpotLight</a></h4>
-					</li>
-				</ul>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Accessors</h2>
 			<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class">
 				<a name="angle" class="tsd-anchor"></a>
@@ -2826,7 +2793,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter angle</p>
+								<p>The angle of the light cone</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -2836,7 +2803,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter angle</p>
+								<p>The angle of the light cone</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2862,11 +2829,21 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>The color of the light</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">vec3</span></h4>
 					</li>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>The color of the light</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
@@ -2890,7 +2867,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter decay</p>
+								<p>The decay of the light radiance</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -2900,7 +2877,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter decay</p>
+								<p>The decay of the light radiance</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2928,7 +2905,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter distance</p>
+								<p>The distance of the light radiance</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -2938,7 +2915,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter distance</p>
+								<p>The distance of the light radiance</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2964,11 +2941,21 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>The intensity of the light</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 					</li>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>The intensity of the light</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
@@ -2990,11 +2977,21 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>The name of the light</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4>
 					</li>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>The name of the light</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
@@ -3018,7 +3015,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter penumbra</p>
+								<p>The percentage of the cone that is part of the penmubra</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -3028,7 +3025,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter penumbra</p>
+								<p>The percentage of the cone that is part of the penmubra</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3056,7 +3053,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter position</p>
+								<p>The position of the light</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">vec3</span></h4>
@@ -3066,7 +3063,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter position</p>
+								<p>The position of the light</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3094,7 +3091,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter target</p>
+								<p>The target of the light</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">vec3</span></h4>
@@ -3104,7 +3101,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter target</p>
+								<p>The target of the light</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3129,6 +3126,11 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>The type of the light</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <a href="../enums/index.lighttype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">LIGHTTYPE</a></h4>
 					</li>
 				</ul>
@@ -3140,7 +3142,6 @@ img {
 				<div class="tsd-legend-group">
 					<ul class="tsd-legend">
 						<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-						<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
 						<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
 					</ul>
 					<ul class="tsd-legend">

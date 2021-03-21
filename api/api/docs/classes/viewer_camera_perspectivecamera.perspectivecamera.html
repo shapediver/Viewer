@@ -2707,9 +2707,6 @@ img {
 		<li class="current tsd-kind-class tsd-parent-kind-module">
 			<a href="viewer_camera_perspectivecamera.perspectivecamera.html" class="tsd-kind-icon">Perspective<wbr>Camera</a>
 			<ul>
-				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-					<a href="viewer_camera_perspectivecamera.perspectivecamera.html#constructor" class="tsd-kind-icon">constructor</a>
-				</li>
 				<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 					<a href="viewer_camera_perspectivecamera.perspectivecamera.html#autoadjust" class="tsd-kind-icon">auto<wbr>Adjust</a>
 				</li>
@@ -2773,12 +2770,6 @@ img {
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
-						<h3>Constructors</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="viewer_camera_perspectivecamera.perspectivecamera.html#constructor" class="tsd-kind-icon">constructor</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
 						<h3>Accessors</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="viewer_camera_perspectivecamera.perspectivecamera.html#autoadjust" class="tsd-kind-icon">auto<wbr>Adjust</a></li>
@@ -2805,30 +2796,6 @@ img {
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Constructors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-				<a name="constructor" class="tsd-anchor"></a>
-				<h3>constructor</h3>
-				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-					<li class="tsd-signature tsd-kind-icon">new <wbr>Perspective<wbr>Camera<span class="tsd-signature-symbol">(</span>camera<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PerspectiveCamera</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="viewer_camera_perspectivecamera.perspectivecamera.html" class="tsd-signature-type" data-tsd-kind="Class">PerspectiveCamera</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<p>Overrides <a href="viewer_camera_camera.camera.html">Camera</a>.<a href="viewer_camera_camera.camera.html#constructor">constructor</a></p>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>camera: <span class="tsd-signature-type">PerspectiveCamera</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="viewer_camera_perspectivecamera.perspectivecamera.html" class="tsd-signature-type" data-tsd-kind="Class">PerspectiveCamera</a></h4>
-					</li>
-				</ul>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Accessors</h2>
 			<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 				<a name="autoadjust" class="tsd-anchor"></a>
@@ -2843,7 +2810,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter autoAdjust</p>
+								<p>Enable / Disable that the camera adjusts to geometry updates</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -2853,7 +2820,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter autoAdjust</p>
+								<p>Enable / Disable that the camera adjusts to geometry updates</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2881,7 +2848,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter cameraDefinition</p>
+								<p>The definition (position and target) of the camera</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ICameraDefinition</span></h4>
@@ -2891,7 +2858,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter cameraDefinition</p>
+								<p>The definition (position and target) of the camera</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2919,7 +2886,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter cameraMovementDuration</p>
+								<p>Default duration of camera movements</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -2929,7 +2896,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter cameraMovementDuration</p>
+								<p>Default duration of camera movements</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2956,7 +2923,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter controls</p>
+								<p>The camera controls</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <a href="viewer_camera_controls_perspectivecameracontrols.perspectivecameracontrols.html" class="tsd-signature-type" data-tsd-kind="Class">PerspectiveCameraControls</a></h4>
@@ -2976,7 +2943,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter default</p>
+								<p>The default definition (position and target) of the camera</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ICameraDefinition</span></h4>
@@ -2986,7 +2953,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter default</p>
+								<p>The default definition (position and target) of the camera</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3014,7 +2981,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter enableCameraControls</p>
+								<p>Enable / Disable the camera controls</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -3024,7 +2991,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter enableCameraControls</p>
+								<p>Enable / Disable the camera controls</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3052,7 +3019,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter fov</p>
+								<p>Camera frustum vertical field of view angle, unit degree, interval [0,180]</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -3062,7 +3029,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter fov</p>
+								<p>Camera frustum vertical field of view angle, unit degree, interval [0,180]</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3089,7 +3056,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter id</p>
+								<p>The id of the camera</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -3109,7 +3076,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter revertAtMouseUp</p>
+								<p>Enable / Disable if the mouse should reset on mouse up</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -3119,7 +3086,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter revertAtMouseUp</p>
+								<p>Enable / Disable if the mouse should reset on mouse up</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3147,7 +3114,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter revertAtMouseUpDuration</p>
+								<p>The duration of the transition of the revertAtMouseUp</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -3157,7 +3124,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter revertAtMouseUpDuration</p>
+								<p>The duration of the transition of the revertAtMouseUp</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3184,7 +3151,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter type</p>
+								<p>The type of the camera</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <a href="../enums/index.cameratype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">CAMERATYPE</a></h4>
@@ -3204,7 +3171,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter zoomExtentsFactor</p>
+								<p>Factor to apply to the bounding box before zooming to extents</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -3214,7 +3181,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter zoomExtentsFactor</p>
+								<p>Factor to apply to the bounding box before zooming to extents</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3243,10 +3210,20 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="viewer_camera_camera.camera.html">Camera</a>.<a href="viewer_camera_camera.camera.html#update">update</a></p>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Update the camera with the delta time of the viewer.
+									Normally, there should&#39;t be much reason to use this function.
+								It is used internally in the rendering engine.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>time: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the delta time</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ICameraDefinition</span></h4>
@@ -3260,7 +3237,6 @@ img {
 				<div class="tsd-legend-group">
 					<ul class="tsd-legend">
 						<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-						<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
 						<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
 					</ul>
 					<ul class="tsd-legend">

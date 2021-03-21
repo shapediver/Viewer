@@ -3,23 +3,23 @@ import { ISessionOutputContent } from "@shapediver/viewer.shared.types";
 
 export class Output implements IOutput {
 
-    readonly #output: OutputLogic;
+  readonly #output: OutputLogic;
 
-    // #region Public Accessors (16)
-    constructor(o: OutputLogic) {
-        this.#output = o;
-    }
+  // #region Public Accessors (16)
+  constructor(o: OutputLogic) {
+    this.#output = o;
+  }
 
   /**
-   * Getter bbmax
+   * Maximum coordinates of the axis-aligned bounding box of the geometry in this asset.
    * @return {number[] | undefined}
    */
-   public get bbmax(): number[] | undefined {
+  public get bbmax(): number[] | undefined {
     return this.#output.bbmax;
   }
 
   /**
-   * Getter bbmin
+   * Minimum coordinates of the axis-aligned bounding box of the geometry in this asset.
    * @return {number[] | undefined}
    */
   public get bbmin(): number[] | undefined {
@@ -27,7 +27,7 @@ export class Output implements IOutput {
   }
 
   /**
-   * Getter content
+   * Items of this asset - the geometries and materials to be added to the scene.
    * @return {ISessionOutputContent[] | undefined}
    */
   public get content(): ISessionOutputContent[] | undefined {
@@ -35,7 +35,7 @@ export class Output implements IOutput {
   }
 
   /**
-  * Setter content
+  * Items of this asset - the geometries and materials to be added to the scene
   * @param {ISessionOutputContent[] | undefined} value
   */
   public set content(value: ISessionOutputContent[] | undefined) {
@@ -43,7 +43,7 @@ export class Output implements IOutput {
   }
 
   /**
-   * Getter delay
+   * @ignore
    * @return {number | undefined}
    */
   public get delay(): number | undefined {
@@ -51,7 +51,7 @@ export class Output implements IOutput {
   }
 
   /**
-   * Getter id
+   * The id of the output.
    * @return {string}
    */
   public get id(): string {
@@ -59,7 +59,7 @@ export class Output implements IOutput {
   }
 
   /**
-   * Getter material
+   * The id of the material for the output.
    * @return {string | undefined}
    */
   public get material(): string | undefined {
@@ -67,7 +67,7 @@ export class Output implements IOutput {
   }
 
   /**
-   * Getter name
+   * The name of the output.
    * @return {string | undefined}
    */
   public get name(): string | undefined {
@@ -75,7 +75,7 @@ export class Output implements IOutput {
   }
 
   /**
-   * Getter version
+   * The version of the output.
    * @return {string}
    */
   public get version(): string {
@@ -83,12 +83,12 @@ export class Output implements IOutput {
   }
 
   /**
-  * Setter version
+  * The version of the output.
   * @param {string} value
   */
   public set version(value: string) {
     this.#output.version = value;
   }
 
-    // #endregion Public Accessors (16)
+  // #endregion Public Accessors (16)
 }

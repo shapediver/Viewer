@@ -43,8 +43,8 @@ export class LightEngine implements ILightEngine {
         return light;
     }
 
-    public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapRadius: number, shadowMapBias: number, id?: string): DirectionalLight {
-        const light = new DirectionalLight(color, intensity, direction, castShadow, shadowMapResolution, shadowMapRadius, shadowMapBias, id);
+    public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapBias: number, id?: string): DirectionalLight {
+        const light = new DirectionalLight(color, intensity, direction, castShadow, shadowMapResolution, shadowMapBias, id);
         this._currentLightScene.addLight(light);
         return light;
     }
@@ -78,8 +78,8 @@ export class LightEngine implements ILightEngine {
         const lightScene = new LightScene(id);
         if (standard === true) {
             lightScene.addLight(new AmbientLight(vec3.fromValues(1, 1, 1), 0.5, 'ambient0'));
-            lightScene.addLight(new DirectionalLight(vec3.fromValues(1, 1, 1), 0.75, vec3.fromValues(.5774, -.5774, .5774), true, 1024, 10, -0.00175, 'directional0'));
-            lightScene.addLight(new DirectionalLight(vec3.fromValues(1, 1, 1), 0.35, vec3.fromValues(.25, -1, 1), false, 1024, 10, -0.00175, 'directional1'));
+            lightScene.addLight(new DirectionalLight(vec3.fromValues(1, 1, 1), 0.75, vec3.fromValues(.5774, -.5774, .5774), true, 1024, -0.00175, 'directional0'));
+            lightScene.addLight(new DirectionalLight(vec3.fromValues(1, 1, 1), 0.35, vec3.fromValues(.25, -1, 1), false, 1024, -0.00175, 'directional1'));
         }
         this._lightScenes[id] = lightScene;
         this._currentLightScene = lightScene;
@@ -131,7 +131,7 @@ export class LightEngine implements ILightEngine {
                 let l: AbstractLight;
                 switch (light.type) {
                     case 'directional':
-                        l = new DirectionalLight(colorDecoder(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.direction), light.properties.castShadow, 1024, 10, -0.00175, lightId);
+                        l = new DirectionalLight(colorDecoder(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.direction), light.properties.castShadow, 1024, -0.00175, lightId);
                         break;
                     case 'hemisphere':
                         l = new HemisphereLight(colorDecoder(light.properties.skyColor), light.properties.intensity, colorDecoder(light.properties.groundColor), lightId);

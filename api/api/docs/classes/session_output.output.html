@@ -2720,9 +2720,6 @@ img {
 					<a href="session_output.output.html#content" class="tsd-kind-icon">content</a>
 				</li>
 				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-					<a href="session_output.output.html#delay" class="tsd-kind-icon">delay</a>
-				</li>
-				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
 					<a href="session_output.output.html#id" class="tsd-kind-icon">id</a>
 				</li>
 				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
@@ -2770,7 +2767,6 @@ img {
 							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session_output.output.html#bbmax" class="tsd-kind-icon">bbmax</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session_output.output.html#bbmin" class="tsd-kind-icon">bbmin</a></li>
 							<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="session_output.output.html#content" class="tsd-kind-icon">content</a></li>
-							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session_output.output.html#delay" class="tsd-kind-icon">delay</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session_output.output.html#id" class="tsd-kind-icon">id</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session_output.output.html#material" class="tsd-kind-icon">material</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session_output.output.html#name" class="tsd-kind-icon">name</a></li>
@@ -2817,7 +2813,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter bbmax</p>
+								<p>Maximum coordinates of the axis-aligned bounding box of the geometry in this asset.</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -2836,7 +2832,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter bbmin</p>
+								<p>Minimum coordinates of the axis-aligned bounding box of the geometry in this asset.</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -2856,7 +2852,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter content</p>
+								<p>Items of this asset - the geometries and materials to be added to the scene.</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ISessionOutputContent</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -2866,7 +2862,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter content</p>
+								<p>Items of this asset - the geometries and materials to be added to the scene</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2882,25 +2878,6 @@ img {
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-				<a name="delay" class="tsd-anchor"></a>
-				<h3>delay</h3>
-				<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> delay<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Getter delay</p>
-							</div>
-						</div>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
 				<a name="id" class="tsd-anchor"></a>
 				<h3>id</h3>
 				<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
@@ -2912,7 +2889,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter id</p>
+								<p>The id of the output.</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -2931,7 +2908,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter material</p>
+								<p>The id of the material for the output.</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4>
@@ -2950,7 +2927,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter name</p>
+								<p>The name of the output.</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4>
@@ -2970,7 +2947,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Getter version</p>
+								<p>The version of the output.</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -2980,7 +2957,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Setter version</p>
+								<p>The version of the output.</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>

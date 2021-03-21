@@ -4,7 +4,7 @@ import { api, RENDERERTYPE, Session, Viewer, Parameter, Export } from "@shapediv
 let viewer: Viewer, session: Session;
 
 (async () => {
-    viewer = await api.createViewer(RENDERERTYPE.THREEJS, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
+    viewer = await api.createViewer(RENDERERTYPE.STANDARD, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
 })();
 
 (<any>window).sceneTree = api.sceneTree;

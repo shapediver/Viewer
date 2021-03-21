@@ -90,10 +90,16 @@ export class Api {
   // #region Public Methods (7)
 
   /**
+   * Create a session with the provided ticket and modelViewUrl.
+   * An id can be provided. This id can be used to retrieve this object later on.
+   * In the case no id has been provided, a unique one will be generated.
    * 
-   * @param ticket 
-   * @param modelViewUrl 
-   * @param id 
+   * The session will be initialized automatically, 
+   * and the first computation will be loaded in the the scene tree once the promise has resolved.
+   * 
+   * @param ticket the ticket of a session
+   * @param modelViewUrl the modelViewUrl of the session
+   * @param id the unique id the session should have
    * @returns 
    */
   public async createSession(ticket: string, modelViewUrl: string, id?: string): Promise<Session> {
@@ -106,6 +112,18 @@ export class Api {
     return this.#sessions[sessionId];
   }
 
+  /**
+   * Create a viewer with the provided type and canvas.
+   * An id can be provided. This id can be used to retrieve this object later on.
+   * In the case no id has been provided, a unique one will be generated.
+   * 
+   * The viewer will automatically load what is currently in the scene tree.
+   * 
+   * @param type the type of the viewer
+   * @param canvas the canvas that the viewer should use
+   * @param id the unique id the session should have 
+   * @returns 
+   */
   public async createViewer(type: RENDERERTYPE, canvas: HTMLCanvasElement, id?: string): Promise<Viewer> {
     const viewerId = id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#viewers[viewerId]) new Error('Viewer with this id already exists.');
@@ -116,10 +134,21 @@ export class Api {
     return this.#viewers[viewerId];
   }
 
+  /**
+   * Return the session with the specified id.
+   * 
+   * @param id the id of the session
+   * @returns 
+   */
   public getSession(id: string): Session {
     return this.#sessions[id];
   }
 
+  /**
+   * Retrun all sessions as key-value pairs with the id of the session being the key.
+   * 
+   * @returns 
+   */
   public getSessions(): { [key: string]: Session } {
     const r: { [key: string]: Session } = {};
     for (let s in this.#sessions)
@@ -127,10 +156,21 @@ export class Api {
     return r;
   }
 
+  /**
+   * Return the viewer with the specified id.
+   * 
+   * @param id the id of the viewer
+   * @returns 
+   */
   public getViewer(id: string): Viewer {
     return this.#viewers[id];
   }
 
+  /**
+   * Return all viewers as key-value pairs with the id of the viewer being the key.
+   * 
+   * @returns 
+   */
   public getViewers(): { [key: string]: Viewer } {
     const r: { [key: string]: Viewer } = {};
     for (let v in this.#viewers)
@@ -138,6 +178,10 @@ export class Api {
     return r;
   }
 
+  /**
+   * Update all viewers.
+   * The viewers are updated with all current changes in the scene tree.
+   */
   public update(): void {
     if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
   }

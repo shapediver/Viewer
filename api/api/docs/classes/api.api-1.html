@@ -2782,6 +2782,12 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>The scene tree.
+								Please see TODO for more information.</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Tree</span></h4>
 					</li>
 				</ul>
@@ -2799,16 +2805,34 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Create a session with the provided ticket and modelViewUrl.
+									An id can be provided. This id can be used to retrieve this object later on.
+								In the case no id has been provided, a unique one will be generated.</p>
+							</div>
+							<p>The session will be initialized automatically,
+							and the first computation will be loaded in the the scene tree once the promise has resolved.</p>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>ticket: <span class="tsd-signature-type">string</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the ticket of a session</p>
+								</div>
 							</li>
 							<li>
 								<h5>modelViewUrl: <span class="tsd-signature-type">string</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the modelViewUrl of the session</p>
+								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> id: <span class="tsd-signature-type">string</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the unique id the session should have</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="session_session.session.html" class="tsd-signature-type" data-tsd-kind="Class">Session</a><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -2819,22 +2843,39 @@ img {
 				<a name="createviewer" class="tsd-anchor"></a>
 				<h3>create<wbr>Viewer</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">create<wbr>Viewer<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../enums/viewer_viewer.renderertype.html#threejs" class="tsd-signature-type" data-tsd-kind="Enumeration member">THREEJS</a>, canvas<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">HTMLCanvasElement</span>, id<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="viewer_viewer.viewer.html" class="tsd-signature-type" data-tsd-kind="Class">Viewer</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">create<wbr>Viewer<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../enums/viewer_viewer.renderertype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">RENDERERTYPE</a>, canvas<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">HTMLCanvasElement</span>, id<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="viewer_viewer.viewer.html" class="tsd-signature-type" data-tsd-kind="Class">Viewer</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Create a viewer with the provided type and canvas.
+									An id can be provided. This id can be used to retrieve this object later on.
+								In the case no id has been provided, a unique one will be generated.</p>
+							</div>
+							<p>The viewer will automatically load what is currently in the scene tree.</p>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>type: <a href="../enums/viewer_viewer.renderertype.html#threejs" class="tsd-signature-type" data-tsd-kind="Enumeration member">THREEJS</a></h5>
+								<h5>type: <a href="../enums/viewer_viewer.renderertype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">RENDERERTYPE</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the type of the viewer</p>
+								</div>
 							</li>
 							<li>
 								<h5>canvas: <span class="tsd-signature-type">HTMLCanvasElement</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the canvas that the viewer should use</p>
+								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> id: <span class="tsd-signature-type">string</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the unique id the session should have</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="viewer_viewer.viewer.html" class="tsd-signature-type" data-tsd-kind="Class">Viewer</a><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -2851,10 +2892,18 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Return the session with the specified id.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>id: <span class="tsd-signature-type">string</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the id of the session</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="session_session.session.html" class="tsd-signature-type" data-tsd-kind="Class">Session</a></h4>
@@ -2871,6 +2920,11 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Retrun all sessions as key-value pairs with the id of the session being the key.</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{}</span></h4>
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-index-signature">
@@ -2890,10 +2944,18 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Return the viewer with the specified id.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>id: <span class="tsd-signature-type">string</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>the id of the viewer</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="viewer_viewer.viewer.html" class="tsd-signature-type" data-tsd-kind="Class">Viewer</a></h4>
@@ -2910,6 +2972,11 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Return all viewers as key-value pairs with the id of the viewer being the key.</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{}</span></h4>
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-index-signature">
@@ -2929,6 +2996,12 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Update all viewers.
+								The viewers are updated with all current changes in the scene tree.</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 					</li>
 				</ul>

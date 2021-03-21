@@ -5,5 +5,7 @@ export interface IExport {
     readonly name?: string;
     readonly type?: string;
 
+    request(): Promise<any>;
+
     // #endregion Properties (3)
 }

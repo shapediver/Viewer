@@ -11,6 +11,10 @@ export class SpotLight extends Light {
 
     // #region Constructors (1)
 
+    /**
+     * @ignore
+     * @param light 
+     */
     constructor(light: SpotLightLogic) {
         super(light);
         this.#light = light;
@@ -21,7 +25,7 @@ export class SpotLight extends Light {
     // #region Public Accessors (12)
 
     /**
-     * Getter angle
+     * The angle of the light cone
      * @return {number}
      */
     public get angle(): number {
@@ -29,7 +33,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Setter angle
+     * The angle of the light cone
      * @param {number} value
      */
     public set angle(value: number) {
@@ -37,7 +41,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Getter decay
+     * The decay of the light radiance
      * @return {number}
      */
     public get decay(): number {
@@ -45,7 +49,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Setter decay
+     * The decay of the light radiance
      * @param {number} value
      */
     public set decay(value: number) {
@@ -53,7 +57,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Getter distance
+     * The distance of the light radiance
      * @return {number}
      */
     public get distance(): number {
@@ -61,7 +65,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Setter distance
+     * The distance of the light radiance
      * @param {number} value
      */
     public set distance(value: number) {
@@ -69,7 +73,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Getter penumbra
+     * The percentage of the cone that is part of the penmubra
      * @return {number}
      */
     public get penumbra(): number {
@@ -77,7 +81,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Setter penumbra
+     * The percentage of the cone that is part of the penmubra
      * @param {number} value
      */
     public set penumbra(value: number) {
@@ -85,7 +89,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Getter position
+     * The position of the light
      * @return {vec3}
      */
     public get position(): vec3 {
@@ -93,7 +97,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Setter position
+     * The position of the light
      * @param {vec3} value
      */
     public set position(value: vec3) {
@@ -101,7 +105,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Getter target
+     * The target of the light
      * @return {vec3}
      */
     public get target(): vec3 {
@@ -109,7 +113,7 @@ export class SpotLight extends Light {
     }
 
     /**
-     * Setter target
+     * The target of the light
      * @param {vec3} value
      */
     public set target(value: vec3) {

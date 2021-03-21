@@ -12,6 +12,10 @@ export class PerspectiveCamera extends Camera {
 
     // #region Constructors (1)
 
+    /**
+     * @ignore
+     * @param camera 
+     */
     constructor(camera: PerspectiveCameraLogic) {
         super(camera);
         this.#camera = camera;
@@ -23,7 +27,7 @@ export class PerspectiveCamera extends Camera {
     // #region Public Accessors (2)
 
     /**
-     * Getter fov
+     * Camera frustum vertical field of view angle, unit degree, interval [0,180]
      * @return {number}
      */
     public get fov(): number {
@@ -31,7 +35,7 @@ export class PerspectiveCamera extends Camera {
     }
 
     /**
-     * Setter fov
+     * Camera frustum vertical field of view angle, unit degree, interval [0,180]
      * @param {number} value
      */
     public set fov(value: number) {
@@ -39,7 +43,7 @@ export class PerspectiveCamera extends Camera {
     }
 
     /**
-     * Getter controls
+     * The camera controls
      * @return {PerspectiveCameraControls}
      */
      public get controls(): PerspectiveCameraControls {

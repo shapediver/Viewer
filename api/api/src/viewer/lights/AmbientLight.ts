@@ -10,6 +10,10 @@ export class AmbientLight extends Light {
 
     // #region Constructors (1)
 
+    /**
+     * @ignore
+     * @param light 
+     */
     constructor(light: AmbientLightLogic) {
         super(light);
         this.#light = light;

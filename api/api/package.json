@@ -20,7 +20,7 @@
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
   "scripts": {
-    "doc": "rm -rf ./docs && typedoc --out docs src  --readme ./apiReadMe.md --disableSources --excludePrivate --hideGenerator --theme minimal --name Viewer && cp -r images docs/images",
+    "doc": "rm -rf ./docs && typedoc --out docs src --readme ./apiReadMe.md --disableSources --excludePrivate --hideGenerator --theme minimal --name Viewer && cp -r images docs/images",
     "test": "bash ../../scripts/test.sh",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
@@ -41,6 +41,7 @@
     "jest": "^26.6.3",
     "lerna": "^3.22.1",
     "typedoc": "^0.20.32",
+    "typedoc-plugin-no-inherit": "^1.2.2",
     "typescript": "^4.1.2",
     "webpack": "^5.6.0",
     "webpack-cli": "^4.2.0",

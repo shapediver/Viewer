@@ -17,7 +17,7 @@ const session = await api.createSession('MY_TICKET', 'MY_MODELVIEW_URL', 'mySess
 
 // From the api let's also create a three.js viewer on our canvas
 // Therefore, we chose the type `THREE` from the RenderTypes 
-const viewer = await api.createViewer(RENDERERTYPE.THREEJS, CANVAS, 'myViewer');
+const viewer = await api.createViewer(RENDERERTYPE.STANDARD, CANVAS, 'myViewer');
 ```
 
 That's it, with that we have loaded a session and created a viewer on a canvas.

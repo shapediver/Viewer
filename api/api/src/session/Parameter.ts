@@ -2,113 +2,117 @@ import { IParameter, Parameter as ParameterLogic } from "@shapediver/viewer.sess
 
 export class Parameter implements IParameter {
 
-    readonly #parameter: ParameterLogic;
+  readonly #parameter: ParameterLogic;
 
-    constructor(p: ParameterLogic) {
-        this.#parameter = p;
-    }
-    
-    /**
-     * Getter choices
-     * @return {string[] | undefined}
-     */
-     public get choices(): string[] | undefined {
-		return this.#parameter.choices;
-    }
+  /**
+   * @ignore
+   * @param p 
+   */
+  constructor(p: ParameterLogic) {
+    this.#parameter = p;
+  }
 
-    /**
-     * Getter decimalplaces
-     * @return {string | undefined}
-     */
-    public get decimalplaces(): string | undefined {
-		return this.#parameter.decimalplaces;
-    }
+  /**
+   * The possible choices.
+   * @return {string[] | undefined}
+   */
+  public get choices(): string[] | undefined {
+    return this.#parameter.choices;
+  }
 
-    /**
-     * Getter defval
-     * @return {string}
-     */
-    public get defval(): string {
-		return this.#parameter.defval;
-    }
+  /**
+   * The number of decimal places.
+   * @return {string | undefined}
+   */
+  public get decimalplaces(): string | undefined {
+    return this.#parameter.decimalplaces;
+  }
 
-    /**
-     * Getter format
-     * @return {string[] | undefined}
-     */
-    public get format(): string[] | undefined {
-		return this.#parameter.format;
-    }
+  /**
+   * The default value of the parameter.
+   * @return {string}
+   */
+  public get defval(): string {
+    return this.#parameter.defval;
+  }
 
-    /**
-     * Getter id
-     * @return {string}
-     */
-    public get id(): string {
-		return this.#parameter.id;
-    }
+  /**
+   * The format of the parameter.
+   * @return {string[] | undefined}
+   */
+  public get format(): string[] | undefined {
+    return this.#parameter.format;
+  }
 
-    /**
-     * Getter max
-     * @return {string | undefined}
-     */
-    public get max(): string | undefined {
-		return this.#parameter.max;
-    }
+  /**
+   * The id of the parameter.
+   * @return {string}
+   */
+  public get id(): string {
+    return this.#parameter.id;
+  }
 
-    /**
-     * Getter min
-     * @return {string | undefined}
-     */
-    public get min(): string | undefined {
-		return this.#parameter.min;
-    }
+  /**
+   * The maximum value of the parameter.
+   * @return {string | undefined}
+   */
+  public get max(): string | undefined {
+    return this.#parameter.max;
+  }
 
-    /**
-     * Getter name
-     * @return {string | undefined}
-     */
-    public get name(): string | undefined {
-		return this.#parameter.name;
-    }
+  /**
+   * The minimum value of the parameter.
+   * @return {string | undefined}
+   */
+  public get min(): string | undefined {
+    return this.#parameter.min;
+  }
 
-    /**
-     * Getter note
-     * @return {string | undefined}
-     */
-    public get note(): string | undefined {
-		return this.#parameter.note;
-    }
+  /**
+   * The name of the parameter.
+   * @return {string | undefined}
+   */
+  public get name(): string | undefined {
+    return this.#parameter.name;
+  }
 
-    /**
-     * Getter type
-     * @return {string}
-     */
-    public get type(): string {
-		return this.#parameter.type;
-    }
+  /**
+   * The description of the parameter.
+   * @return {string | undefined}
+   */
+  public get note(): string | undefined {
+    return this.#parameter.note;
+  }
 
-    /**
-     * Getter value
-     * @return {string}
-     */
-    public get value(): string {
-		return this.#parameter.value;
-	}
+  /**
+   * The type of the parameter.
+   * @return {string}
+   */
+  public get type(): string {
+    return this.#parameter.type;
+  }
 
-    /**
-     * Setter value
-     * @param {string} value
-     */
-    public set value(value: string) {
-        this.#parameter.value = value;
-	}
+  /**
+   * The value of the parameter.
+   * @return {string}
+   */
+  public get value(): string {
+    return this.#parameter.value;
+  }
 
-    /**
-     * Getter visualization
-     * @return {string | undefined}
-     */
-    public get visualization(): string | undefined {
-		return this.#parameter.visualization;
-    }
+  /**
+   * The value of the parameter.
+   * @param {string} value
+   */
+  public set value(value: string) {
+    this.#parameter.value = value;
+  }
+
+  /**
+   * The visualization description of the parameter.
+   * @return {string | undefined}
+   */
+  public get visualization(): string | undefined {
+    return this.#parameter.visualization;
+  }
 }

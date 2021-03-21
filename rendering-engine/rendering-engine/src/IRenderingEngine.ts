@@ -10,13 +10,13 @@ export interface IRenderingEngine {
     clearAlpha: number;
     clearColor: vec3;
     duration: number;
-    environmentMap: string;
+    environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;
     fullscreen: boolean;
     gridVisibility: boolean;
-    groundPlaneReflectionThreshold: number;
-    groundPlaneReflectionVisibility: boolean;
+    // groundPlaneReflectionThreshold: number;
+    // groundPlaneReflectionVisibility: boolean;
     groundPlaneVisibility: boolean;
     id: string;
     lightHelper: boolean;

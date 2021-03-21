@@ -11,6 +11,10 @@ export class DirectionalLight extends Light {
 
     // #region Constructors (1)
 
+    /**
+     * @ignore
+     * @param light 
+     */
     constructor(light: DirectionalLightLogic) {
         super(light);
         this.#light = light;
@@ -21,7 +25,7 @@ export class DirectionalLight extends Light {
     // #region Public Accessors (4)
 
     /**
-     * Getter castShadow
+     * The option to cast shadow
      * @return {boolean}
      */
     public get castShadow(): boolean {
@@ -29,7 +33,7 @@ export class DirectionalLight extends Light {
     }
 
     /**
-     * Setter castShadow
+     * The option to cast shadow
      * @param {boolean} value
      */
     public set castShadow(value: boolean) {
@@ -37,7 +41,7 @@ export class DirectionalLight extends Light {
     }
 
     /**
-     * Getter direction
+     * The directional of the light
      * @return {vec3}
      */
     public get direction(): vec3 {
@@ -45,7 +49,7 @@ export class DirectionalLight extends Light {
     }
 
     /**
-     * Setter direction
+     * The directional of the light
      * @param {vec3} value
      */
     public set direction(value: vec3) {
@@ -53,7 +57,7 @@ export class DirectionalLight extends Light {
     }
 
     /**
-     * Getter shadowMapBias
+     * The bias of the shadow map
      * @return {number}
      */
     public get shadowMapBias(): number {
@@ -61,7 +65,7 @@ export class DirectionalLight extends Light {
     }
 
     /**
-     * Setter shadowMapBias
+     * The bias of the shadow map
      * @param {number} value
      */
     public set shadowMapBias(value: number) {
@@ -69,23 +73,7 @@ export class DirectionalLight extends Light {
     }
 
     /**
-     * Getter shadowMapRadius
-     * @return {number}
-     */
-    public get shadowMapRadius(): number {
-        return this.#light.shadowMapRadius;
-    }
-
-    /**
-     * Setter shadowMapRadius
-     * @param {number} value
-     */
-    public set shadowMapRadius(value: number) {
-        this.#light.shadowMapRadius = value;
-    }
-
-    /**
-     * Getter shadowMapResolution
+     * The resolution of the shadow map
      * @return {number}
      */
     public get shadowMapResolution(): number {
@@ -93,7 +81,7 @@ export class DirectionalLight extends Light {
     }
 
     /**
-     * Setter shadowMapResolution
+     * The resolution of the shadow map
      * @param {number} value
      */
     public set shadowMapResolution(value: number) {

@@ -12,7 +12,6 @@ export class DirectionalLight extends AbstractLight {
         private _direction: vec3 = vec3.fromValues(-1, 0, 1),
         private _castShadow: boolean = false,
         private _shadowMapResolution: number = 1024,
-        private _shadowMapRadius: number = 10,
         private _shadowMapBias: number = -0.00175,
         name?: string
     ) {
@@ -75,23 +74,6 @@ export class DirectionalLight extends AbstractLight {
     }
 
     /**
-     * Getter shadowMapRadius
-     * @return {number}
-     */
-    public get shadowMapRadius(): number {
-        return this._shadowMapRadius;
-    }
-
-    /**
-     * Setter shadowMapRadius
-     * @param {number} value
-     */
-    public set shadowMapRadius(value: number) {
-        this._shadowMapRadius = value;
-        this.updateVersion();
-    }
-
-    /**
      * Getter shadowMapResolution
      * @return {number}
      */
@@ -113,7 +95,7 @@ export class DirectionalLight extends AbstractLight {
     // #region Public Methods (1)
 
     public clone(): ITreeNodeData {
-        return new DirectionalLight(this.color, this.intensity, this.direction, this.castShadow, this.shadowMapResolution, this.shadowMapRadius, this.shadowMapBias, this.name);
+        return new DirectionalLight(this.color, this.intensity, this.direction, this.castShadow, this.shadowMapResolution, this.shadowMapBias, this.name);
     }
 
     // #endregion Public Methods (1)

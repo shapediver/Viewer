@@ -45,15 +45,15 @@ export class RenderingEngine implements IRenderingEngine {
     private _clearAlpha: number = 1.0;
     private _clearColor: vec3 = vec3.fromValues(1,1,1);
     private _duration: number = 0;
-    private _environmentMap: string = 'none';
+    private _environmentMap: string | string[] = 'none';
     private _environmentMapAsBackground: boolean = false;
     private _environmentMapResolution: string = '1024';
     private _fullscreen: boolean = false;
     private _grid!: THREE.GridHelper;
     private _gridVisibility: boolean = true;
     private _groundPlane!: THREE.Mesh;
-    private _groundPlaneReflectionThreshold: number = 0.01;
-    private _groundPlaneReflectionVisibility: boolean = false;
+    // private _groundPlaneReflectionThreshold: number = 0.01;
+    // private _groundPlaneReflectionVisibility: boolean = false;
     private _groundPlaneVisibility: boolean = true;
     private _lightHelper: boolean = false;
     private _lightScene: string = 'default';
@@ -246,17 +246,17 @@ export class RenderingEngine implements IRenderingEngine {
 
     /**
      * Getter environmentMap
-     * @return {string}
+     * @return {string | string[]}
      */
-    public get environmentMap(): string {
+    public get environmentMap(): string | string[] {
         return this._environmentMap;
     }
 
     /**
      * Setter environmentMap
-     * @param {string} value
+     * @param {string | string[]} value
      */
-    public set environmentMap(value: string) {
+    public set environmentMap(value: string | string[]) {
         this._environmentMap = value;
         this._environmentMapLoader.load(this.environmentMap);
     }
@@ -343,37 +343,37 @@ export class RenderingEngine implements IRenderingEngine {
         this._gridVisibility = value;
     }
 
-    /**
-     * Getter groundPlaneReflectionThreshold
-     * @return {number}
-     */
-    public get groundPlaneReflectionThreshold(): number {
-        return this._groundPlaneReflectionThreshold;
-    }
+    // /**
+    //  * Getter groundPlaneReflectionThreshold
+    //  * @return {number}
+    //  */
+    // public get groundPlaneReflectionThreshold(): number {
+    //     return this._groundPlaneReflectionThreshold;
+    // }
 
-    /**
-     * Setter groundPlaneReflectionThreshold
-     * @param {number} value
-     */
-    public set groundPlaneReflectionThreshold(value: number) {
-        this._groundPlaneReflectionThreshold = value;
-    }
+    // /**
+    //  * Setter groundPlaneReflectionThreshold
+    //  * @param {number} value
+    //  */
+    // public set groundPlaneReflectionThreshold(value: number) {
+    //     this._groundPlaneReflectionThreshold = value;
+    // }
 
-    /**
-     * Getter groundPlaneReflectionVisibility
-     * @return {boolean}
-     */
-    public get groundPlaneReflectionVisibility(): boolean {
-        return this._groundPlaneReflectionVisibility;
-    }
+    // /**
+    //  * Getter groundPlaneReflectionVisibility
+    //  * @return {boolean}
+    //  */
+    // public get groundPlaneReflectionVisibility(): boolean {
+    //     return this._groundPlaneReflectionVisibility;
+    // }
 
-    /**
-     * Setter groundPlaneReflectionVisibility
-     * @param {boolean} value
-     */
-    public set groundPlaneReflectionVisibility(value: boolean) {
-        this._groundPlaneReflectionVisibility = value;
-    }
+    // /**
+    //  * Setter groundPlaneReflectionVisibility
+    //  * @param {boolean} value
+    //  */
+    // public set groundPlaneReflectionVisibility(value: boolean) {
+    //     this._groundPlaneReflectionVisibility = value;
+    // }
 
     /**
      * Getter groundPlaneVisibility
@@ -553,9 +553,9 @@ export class RenderingEngine implements IRenderingEngine {
         this.fullscreen = this._settings.scene.fullscreen.value;
         this.gridVisibility = this._settings.scene.gridVisibility.value;
         // FIXME
-        this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
-        // FIXME
-        this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
+        // this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
+        // // FIXME
+        // this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
         this.groundPlaneVisibility = this._settings.scene.groundPlaneVisibility.value;
         // FIXME
         this.lightHelper = this._settings.scene.lights.helper.value;

@@ -3,12 +3,16 @@ export abstract class Camera implements ICamera {
 
     readonly #camera: ICamera;
 
+    /**
+     * @ignore
+     * @param camera 
+     */
     constructor(camera: ICamera) {
         this.#camera = camera;
     }
 
     /**
-     * Getter autoAdjust
+     * Enable / Disable that the camera adjusts to geometry updates
      * @return {boolean}
      */
      public get autoAdjust(): boolean {
@@ -16,7 +20,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Setter autoAdjust
+     * Enable / Disable that the camera adjusts to geometry updates
      * @param {boolean} value
      */
     public set autoAdjust(value: boolean) {
@@ -24,7 +28,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Getter cameraDefinition
+     * The definition (position and target) of the camera
      * @return {ICameraDefinition}
      */
     public get cameraDefinition(): ICameraDefinition {
@@ -32,7 +36,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Setter cameraDefinition
+     * The definition (position and target) of the camera
      * @param {ICameraDefinition} value
      */
     public set cameraDefinition(value: ICameraDefinition) {
@@ -40,7 +44,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Getter cameraMovementDuration
+     * Default duration of camera movements
      * @return {number}
      */
     public get cameraMovementDuration(): number {
@@ -48,7 +52,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Setter cameraMovementDuration
+     * Default duration of camera movements
      * @param {number} value
      */
     public set cameraMovementDuration(value: number) {
@@ -56,13 +60,13 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Getter controls
+     * The camera controls
      * @return {ICameraControls}
      */
     public abstract get controls(): ICameraControls;
 
     /**
-     * Getter default
+     * The default definition (position and target) of the camera
      * @return {ICameraDefinition}
      */
     public get default(): ICameraDefinition {
@@ -70,7 +74,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Setter default
+     * The default definition (position and target) of the camera
      * @param {ICameraDefinition} value
      */
     public set default(value: ICameraDefinition) {
@@ -78,7 +82,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Getter enableCameraControls
+     * Enable / Disable the camera controls
      * @return {boolean}
      */
     public get enableCameraControls(): boolean {
@@ -86,7 +90,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Setter enableCameraControls
+     * Enable / Disable the camera controls
      * @param {boolean} value
      */
     public set enableCameraControls(value: boolean) {
@@ -94,7 +98,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Getter revertAtMouseUp
+     * Enable / Disable if the mouse should reset on mouse up
      * @return {boolean}
      */
     public get revertAtMouseUp(): boolean {
@@ -102,7 +106,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Setter revertAtMouseUp
+     * Enable / Disable if the mouse should reset on mouse up
      * @param {boolean} value
      */
     public set revertAtMouseUp(value: boolean) {
@@ -110,7 +114,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Getter revertAtMouseUpDuration
+     * The duration of the transition of the revertAtMouseUp
      * @return {number}
      */
     public get revertAtMouseUpDuration(): number {
@@ -118,7 +122,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Setter revertAtMouseUpDuration
+     * The duration of the transition of the revertAtMouseUp
      * @param {number} value
      */
     public set revertAtMouseUpDuration(value: number) {
@@ -126,7 +130,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Getter type
+     * The type of the camera
      * @return {CAMERATYPE}
      */
     public get type(): CAMERATYPE {
@@ -134,7 +138,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Getter zoomExtentsFactor
+     * Factor to apply to the bounding box before zooming to extents
      * @return {number}
      */
     public get zoomExtentsFactor(): number {
@@ -142,7 +146,7 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Setter zoomExtentsFactor
+     * Factor to apply to the bounding box before zooming to extents
      * @param {number} value
      */
     public set zoomExtentsFactor(value: number) {
@@ -150,9 +154,9 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-       * Getter id
-       * @return {string}
-       */
+     * The id of the camera
+     * @return {string}
+     */
     public get id(): string {
         return this.#camera.id;
     }
@@ -161,6 +165,14 @@ export abstract class Camera implements ICamera {
 
     // #region Public Methods (1)
 
+    /**
+     * Update the camera with the delta time of the viewer.
+     * Normally, there should't be much reason to use this function.
+     * It is used internally in the rendering engine.
+     * 
+     * @param time the delta time
+     * @returns 
+     */
     public update(time: number): ICameraDefinition {
         return this.#camera.controls.update(time);
     }

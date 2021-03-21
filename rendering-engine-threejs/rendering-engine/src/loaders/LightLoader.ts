@@ -54,7 +54,6 @@ export class LightLoader {
                 threeLight.shadow.camera.bottom = -1.5 * bs.radius;
                 threeLight.shadow.mapSize.width = light.shadowMapResolution;
                 threeLight.shadow.mapSize.height = light.shadowMapResolution;
-                threeLight.shadow.radius = light.shadowMapRadius;
                 threeLight.shadow.bias = light.shadowMapBias;
                 threeLight.shadow.camera.updateProjectionMatrix();
               } else {

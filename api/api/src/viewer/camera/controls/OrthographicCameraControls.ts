@@ -10,6 +10,10 @@ export class OrthographicCameraControls implements ICameraControls {
 
     // #region Constructors (1)
 
+    /**
+     * @ignore
+     * @param controls 
+     */
     constructor(controls: OrthographicCameraControlsLogic) {
         this.#controls = controls;
     }
@@ -19,7 +23,7 @@ export class OrthographicCameraControls implements ICameraControls {
     // #region Public Accessors (44)
 
     /**
-     * Getter damping
+     * The daming of the camera movement
      * @return {number}
      */
     public get damping(): number {
@@ -27,7 +31,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter damping
+     * The daming of the camera movement
      * @param {number} value
      */
     public set damping(value: number) {
@@ -35,7 +39,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter enableKeyPan
+     * Enable / disable panning using the keyboard, also refer to enablePan
      * @return {boolean}
      */
     public get enableKeyPan(): boolean {
@@ -43,7 +47,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter enableKeyPan
+     * Enable / disable panning using the keyboard, also refer to enablePan
      * @param {boolean} value
      */
     public set enableKeyPan(value: boolean) {
@@ -51,7 +55,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter enablePan
+     * Enable / disable panning in general, also refer to enableKeyPan
      * @return {boolean}
      */
     public get enablePan(): boolean {
@@ -59,7 +63,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter enablePan
+     * Enable / disable panning in general, also refer to enableKeyPan
      * @param {boolean} value
      */
     public set enablePan(value: boolean) {
@@ -67,7 +71,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter enableZoom
+     * Enable / disable zooming
      * @return {boolean}
      */
     public get enableZoom(): boolean {
@@ -75,7 +79,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter enableZoom
+     * Enable / disable zooming
      * @param {boolean} value
      */
     public set enableZoom(value: boolean) {
@@ -83,7 +87,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter enabled
+     * Enable / Disable the camera controls
      * @return {boolean}
      */
     public get enabled(): boolean {
@@ -91,7 +95,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter enabled
+     * Enable / Disable the camera controls
      * @param {boolean} value
      */
     public set enabled(value: boolean) {
@@ -99,7 +103,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter input
+     * The input definition
      * @return {{ keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }}
      */
     public get input(): { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } {
@@ -107,7 +111,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter input
+     * The input definition
      * @param {{ keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }} value
      */
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
@@ -115,7 +119,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter keyPanSpeed
+     * Speed of panning when using the keyboard
      * @return {number}
      */
     public get keyPanSpeed(): number {
@@ -123,7 +127,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter keyPanSpeed
+     * Speed of panning when using the keyboard
      * @param {number} value
      */
     public set keyPanSpeed(value: number) {
@@ -131,7 +135,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter movementSmoothness
+     * The effect the previous movement has on the next one
      * @return {number}
      */
     public get movementSmoothness(): number {
@@ -139,7 +143,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter movementSmoothness
+     * The effect the previous movement has on the next one
      * @param {number} value
      */
     public set movementSmoothness(value: number) {
@@ -147,7 +151,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter panSpeed
+     * Speed of panning
      * @return {number}
      */
     public get panSpeed(): number {
@@ -155,7 +159,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter panSpeed
+     * Speed of panning
      * @param {number} value
      */
     public set panSpeed(value: number) {
@@ -163,7 +167,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter position
+     * The position of the camera
      * @return {vec3}
      */
     public get position(): vec3 {
@@ -171,7 +175,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter position
+     * The position of the camera
      * @param {vec3} value
      */
     public set position(value: vec3) {
@@ -179,7 +183,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter target
+     * The target of the camera
      * @return {vec3}
      */
     public get target(): vec3 {
@@ -187,7 +191,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter target
+     * The target of the camera
      * @param {vec3} value
      */
     public set target(value: vec3) {
@@ -195,7 +199,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Getter zoomSpeed
+     * Speed of zooming
      * @return {number}
      */
     public get zoomSpeed(): number {
@@ -203,7 +207,7 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * Setter zoomSpeed
+     * Speed of zooming
      * @param {number} value
      */
     public set zoomSpeed(value: number) {
@@ -214,6 +218,14 @@ export class OrthographicCameraControls implements ICameraControls {
 
     // #region Public Methods (1)
 
+    /**
+     * Update the camera with the delta time of the viewer.
+     * Normally, there should't be much reason to use this function.
+     * It is used internally in the rendering engine.
+     * 
+     * @param time the delta time
+     * @returns 
+     */
     public update(time: number): ICameraDefinition {
         return this.#controls.update(time);
     }

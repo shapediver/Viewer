@@ -12,6 +12,10 @@ export class OrthographicCamera extends Camera {
 
     // #region Constructors (1)
 
+    /**
+     * @ignore
+     * @param camera 
+     */
     constructor(camera: OrthographicCameraLogic) {
         super(camera);
         this.#camera = camera;
@@ -23,7 +27,7 @@ export class OrthographicCamera extends Camera {
     // #region Public Accessors (2)
 
     /**
-     * Getter controls
+     * The camera controls
      * @return {OrthographicCameraControls}
      */
      public get controls(): OrthographicCameraControls {
