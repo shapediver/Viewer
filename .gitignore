@@ -4,3 +4,4 @@ dist-dev
 dist-prod
 lerna-debug.log
 .npmrc
+**/docs	
