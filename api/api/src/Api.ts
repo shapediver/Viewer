@@ -1,9 +1,10 @@
 import { Tree } from "@shapediver/viewer.shared.node-tree";
 import { container, singleton } from "tsyringe";
 import { Session } from "./session/Session";
-import { RENDERERTYPE, Viewer } from "./viewer/Viewer";
+import { Viewer } from "./viewer/Viewer";
 import { StateEngine, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
+import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 
 @singleton()
 export class Api {

@@ -1,7 +1,7 @@
 import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic, OrthographicCamera as OrthographicCameraLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
-import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { IRenderingEngine, RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
 import { injectable } from "tsyringe";
 import { Camera } from "./camera/Camera";
@@ -13,14 +13,6 @@ import { HemisphereLight } from "./lights/HemisphereLight";
 import { Light } from "./lights/Light";
 import { PointLight } from "./lights/PointLight";
 import { SpotLight } from "./lights/SpotLight";
-
-export enum RENDERERTYPE {
-  /** The standard rendering engine */
-  STANDARD = 'standard',
-  /** A basic version of the rendering engine */
-  BASIC = 'basic'
-}
-
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Properties (25)

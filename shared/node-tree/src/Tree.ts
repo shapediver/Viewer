@@ -12,6 +12,7 @@ export class Tree {
   // #region Constructors (1)
 
   /**
+   * @ignore
    * Management of the main tree node.
    */
   constructor() { }

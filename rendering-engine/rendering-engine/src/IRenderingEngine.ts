@@ -1,5 +1,12 @@
 import { vec3 } from 'gl-matrix';
 
+export enum RENDERERTYPE {
+    /** The standard rendering engine */
+    STANDARD = 'standard',
+    /** A basic version of the rendering engine */
+    BASIC = 'basic'
+  }
+  
 export interface IRenderingEngine {
     // #region Properties (2)
 

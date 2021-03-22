@@ -8,7 +8,7 @@
         "declarationMap": true,
         "target": "ES2015",
         "strict": true,
-        "rootDir": "src",
+        "rootDir": ".",
         "outDir": "dist",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
@@ -22,5 +22,9 @@
         "dist",
         "dist-dev",
         "dist-prod"
-    ]
+    ],
+    "paths": {
+        "@shapediver/viewer.shared.node-tree": "./shared/node-tree/src/index.ts",
+        "@shapediver/viewer": "./api/api/src/index.ts",
+    }
 }

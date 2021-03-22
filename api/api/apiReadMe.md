@@ -1,5 +1,8 @@
-![logo](https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png "ShapeDiver")
-# ShapeDiver Viewer API
+
+<script defer src="https://viewer.shapediver.com/v3/0.1.0/bundle.js"></script>
+
+![logo](https://shapediver.com/imgs/logo-black.png "ShapeDiver")
+# Viewer API
 
 ## Simple Examples
 <details>
