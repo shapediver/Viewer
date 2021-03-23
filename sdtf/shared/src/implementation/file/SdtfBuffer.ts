@@ -1,11 +1,13 @@
 import { HttpClient } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
+import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 export class SdtfBuffer {
   // #region Properties (1)
 
   private _arrayBuffer?: ArrayBuffer;
   private readonly _httpClient = container.resolve(HttpClient);
+  private readonly _logger = container.resolve(Logger);
 
   // #endregion Properties (1)
 
@@ -44,12 +46,20 @@ export class SdtfBuffer {
 
   // #region Public Methods (1)
 
-  public async load(): Promise<ArrayBuffer> {
+  public async load(): Promise<ArrayBuffer | null> {
     if (this._arrayBuffer) return this._arrayBuffer;
 
-    let result = await this._httpClient.get(/**this._baseUri + '/' + **/this.uri!, {
-      responseType: 'arraybuffer'
-    })
+    let result;
+    try {
+
+      result = await this._httpClient.get(/**this._baseUri + '/' + **/this.uri!, {
+        responseType: 'arraybuffer'
+      })
+    } catch (e) {
+      this._logger.error('Initial loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+      return null;
+    }
+
     this._arrayBuffer = <ArrayBuffer>result.data;
     return this._arrayBuffer;
   }

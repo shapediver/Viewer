@@ -5,11 +5,13 @@ import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Reader } from '@shapediver/viewer.sdtf.converter';
 import { TreeNodeConverter } from './TreeNodeConverter';
+import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 @singleton()
 export class DataEngine {
     private readonly _geometryEngine: GeometryEngine;
     private readonly _materialEngine: MaterialEngine;
+    private readonly _logger = container.resolve(Logger);
 
     constructor() {
         this._geometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
@@ -17,16 +19,23 @@ export class DataEngine {
     }
 
     public async loadContent(content: ISessionOutputContent): Promise<TreeNode> {
-        if (content.format === 'glb' || content.format === 'gltf') {
-            return await this._geometryEngine.loadContent(content);
-        } else if (content.format === 'material') {
-            return await this._materialEngine.loadContent(content);
-        } else if (content.format === 'sdtf') {
-            return new TreeNodeConverter().convertToTreeNode(await new Reader().readFromUri(content.href!));
-        } else {
-            const customNode = new TreeNode('custom');
-            customNode.data.push(new CustomData({ ...content }));
-            return customNode;
+        try {
+            if (content.format === 'glb' || content.format === 'gltf') {
+                return await this._geometryEngine.loadContent(content);
+            } else if (content.format === 'material') {
+                return await this._materialEngine.loadContent(content);
+            } else if (content.format === 'sdtf') {
+                const sdtfFile = await new Reader().readFromUri(content.href!);
+                if(!sdtfFile) return new TreeNode();
+                return new TreeNodeConverter().convertToTreeNode(sdtfFile);
+            } else {
+                const customNode = new TreeNode('custom');
+                customNode.data.push(new CustomData({ ...content }));
+                return customNode;
+            }
+        } catch (e) {
+            this._logger.error(`An error occurred while loading the ${content.format}.`, e, e.response && e.response.status ? e.response.status : null);
+            return new TreeNode();
         }
     }
 }

@@ -87,8 +87,8 @@ export class RenderingLogic {
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let camera: THREE.Camera;
-        const cameraDefinition = this._renderingEngine.cameraEngine.getCamera().update(time);
-        if (this._renderingEngine.cameraEngine.getCamera().type === CAMERATYPE.ORTHOGRAPHIC) {
+        const cameraDefinition = this._renderingEngine.cameraEngine.getCamera()!.update(time);
+        if (this._renderingEngine.cameraEngine.getCamera()!.type === CAMERATYPE.ORTHOGRAPHIC) {
             const aspect = width / height;
             const distance = vec3.distance(cameraDefinition.position, cameraDefinition.target) / 2;
             this._orthographicCamera.up.set(0, 0, 1);

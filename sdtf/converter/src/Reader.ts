@@ -10,8 +10,9 @@ export class Reader {
      * @param uri the uri to read
      * @returns a promise for the sdtf file
      */
-    public async readFromUri(uri: string): Promise<SdtfFile> {
-        const arrayBuffer: ArrayBuffer = await new Encoder().encodeFromUriToArrayBuffer(uri);
+    public async readFromUri(uri: string): Promise<SdtfFile  | null> {
+        const arrayBuffer = await new Encoder().encodeFromUriToArrayBuffer(uri);
+        if(!arrayBuffer) return null;
         return this.readFromArrayBuffer(arrayBuffer);
     }
 
@@ -21,11 +22,9 @@ export class Reader {
      * @param arrayBuffer the array buffer to read
      * @returns a promise for the sdtf file
      */
-    public async readFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<SdtfFile> {
-        const json: {
-            json: JsonSdtf,
-            binaryData?: ArrayBuffer
-        } = await new Encoder().encodeFromArrayBufferToJson(arrayBuffer);
+    public async readFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<SdtfFile | null> {
+        const json = await new Encoder().encodeFromArrayBufferToJson(arrayBuffer);
+        if(!json) return null;
         return this.readFromJson(json.json, json.binaryData);
     }
 

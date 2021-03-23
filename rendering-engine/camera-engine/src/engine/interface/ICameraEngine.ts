@@ -17,7 +17,7 @@ export enum CAMERATYPE {
 export interface ICameraEngine {
     assignCamera(id: string): void;
     createCamera(type: CAMERATYPE, id?: string): ICamera;
-    getCamera(id?: string): ICamera;
+    getCamera(id?: string): ICamera | null;
     getCameras(): { [key: string]: ICamera };
     hasCamera(): boolean;
 }

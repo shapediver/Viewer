@@ -11,6 +11,7 @@ import { Export } from './Export';
 import { Output } from './Output';
 import { Parameter } from './Parameter';
 import { ISession } from '../interfaces/ISession';
+import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 export class Session implements ISession {
     // #region Properties (11)
@@ -21,8 +22,8 @@ export class Session implements ISession {
     private readonly _outputs: { [key: string]: Output; } = {};
     private readonly _outputsCreated: { [key: string]: Output; } = {};
     private readonly _parameters: { [key: string]: Parameter; } = {};
-    private readonly _uuidGenerator = container.resolve(UuidGenerator);
-    private readonly _sessionEngineId = this._uuidGenerator.create();
+    private readonly _sessionEngineId = container.resolve(UuidGenerator).create();
+    private readonly _logger = container.resolve(Logger);
 
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
@@ -68,8 +69,10 @@ export class Session implements ISession {
     // #region Public Methods (17)
 
     public createOutput(id: string): Output {
-        if (this._outputs[id] || this._outputsCreated[id])
-            throw Error('Output with this id already exists.')
+        if (this._outputs[id] || this._outputsCreated[id]) {
+            this._logger.error('Output with this id already exists.');
+            return this._outputs[id];
+        }
 
         this._outputsCreated[id] = new Output(id, { version: '1.0' });
         this._outputs[id] = this._outputsCreated[id];
@@ -98,13 +101,16 @@ export class Session implements ISession {
      * Getter export
      * @return {Export}
      */
-    public getExport(id: string): Export {
+    public getExport(id: string): Export | null {
         const e = this._exports[id];
-        if (!e) throw new Error('Export with this id does not exist.')
+        if (!e) {
+            this._logger.error('Export with this id does not exist.');
+            return null;
+        }
         return e;
     }
 
-    public getExportById(id: string): Export {
+    public getExportById(id: string): Export | null {
         return this.getExport(id);
     }
 
@@ -141,13 +147,16 @@ export class Session implements ISession {
      * Getter output
      * @return {Output}
      */
-    public getOutput(id: string): Output {
+    public getOutput(id: string): Output | null {
         const o = this._outputs[id];
-        if (!o) throw new Error('Output with this id does not exist.')
+        if (!o) {
+            this._logger.error('Output with this id does not exist.');
+            return null;
+        }
         return o;
     }
 
-    public getOutputById(id: string): Output {
+    public getOutputById(id: string): Output | null {
         return this.getOutput(id);
     }
 
@@ -175,13 +184,16 @@ export class Session implements ISession {
      * Getter parameter
      * @return {Parameter}
      */
-    public getParameter(id: string): Parameter {
+    public getParameter(id: string): Parameter | null {
         const p = this._parameters[id];
-        if (!p) throw new Error('Parameter with this id does not exist.')
+        if (!p) {
+            this._logger.error('Parameter with this id does not exist.');
+            return null;
+        }
         return p;
     }
 
-    public getParameterById(id: string): Parameter {
+    public getParameterById(id: string): Parameter | null {
         return this.getParameter(id);
     }
 
@@ -222,7 +234,14 @@ export class Session implements ISession {
     public async init(): Promise<SessionTreeNode> {
         if (this._initialized === true) throw new Error('Already initialized.'); //TODO
         try {
-            const sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers: this._headers })).data;
+            let sessionResponse;
+            try {
+                sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers: this._headers })).data;
+            } catch (e) {
+                this._logger.error('Session init failed.', e, e.response && e.response.status ? e.response.status : null);
+                return new SessionTreeNode();
+            }
+
             (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
             this._sessionResponse.adaptSession(sessionResponse);
 
@@ -240,6 +259,7 @@ export class Session implements ISession {
             this._initialized = true;
             return this.loadOutputs(parameters, this._sessionResponse.outputs);
         } catch (e) {
+            this._logger.error('Something went wrong at session init.', e);
             return new SessionTreeNode();
         }
     }
@@ -251,10 +271,18 @@ export class Session implements ISession {
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
         try {
             const headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
-            const responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
+            let responseCustomize;
+            try {
+                responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
+            } catch (e) {
+                this._logger.error('Session customization failed.', e, e.response && e.response.status ? e.response.status : null);
+                return new SessionTreeNode();
+            }
+
             this._sessionResponse.adaptSession(responseCustomize);
             return this.loadOutputs(parameters, this._sessionResponse.outputs);
         } catch (e) {
+            this._logger.error('Something went wrong at session customization.', e);
             return new SessionTreeNode();
         }
     }

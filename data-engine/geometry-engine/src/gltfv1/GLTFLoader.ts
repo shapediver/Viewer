@@ -23,11 +23,16 @@ export class GLTFLoader {
     // #region Public Methods (1)
 
     public async load(url?: string | undefined): Promise<TreeNode> {
-        const binaryGeometry: ArrayBuffer = (await this._httpClient.get(url!, {
-            responseType: 'arraybuffer'
-        })).data;
+        let binaryGeometry: ArrayBuffer;
 
-        // TODO handle error case
+        try {
+            binaryGeometry = (await this._httpClient.get(url!, {
+                responseType: 'arraybuffer'
+            })).data;
+        } catch (e) {
+            this._logger.error('Initial loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+            return new TreeNode();
+        }
 
         // create header data
         const headerDataView = new DataView(binaryGeometry, 0, this.BINARY_EXTENSION_HEADER_LENGTH);
@@ -38,7 +43,10 @@ export class GLTFLoader {
             contentLength: headerDataView.getUint32(12, true),
             contentFormat: headerDataView.getUint32(16, true)
         }
-        if (header.magic != 'glTF') this._logger.error('ShapeDiverGLBLoader got invalid data: glTF magic wrong.');
+        if (header.magic != 'glTF') {
+            this._logger.error('Invalid data: glTF magic wrong.');
+            return new TreeNode();
+        }
 
         // create content
         const contentDataView = new DataView(binaryGeometry, this.BINARY_EXTENSION_HEADER_LENGTH, header.contentLength);
@@ -48,7 +56,15 @@ export class GLTFLoader {
         // create body
         this._body = binaryGeometry.slice(this.BINARY_EXTENSION_HEADER_LENGTH + header.contentLength, header.length);
 
-        return await this.loadScene()
+        let node;
+        try {
+            node = await this.loadScene();
+        } catch (e) {
+            this._logger.error('Loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+            node = new TreeNode();
+        }
+
+        return node;
     }
 
     // #endregion Public Methods (1)
@@ -56,7 +72,7 @@ export class GLTFLoader {
     // #region Private Methods (6)
 
     private async loadAccessor(accessorName: string): Promise<AttributeData> {
-        if (!this._content.accessors![accessorName]) this._logger.error('Accessor not available')
+        if (!this._content.accessors![accessorName]) throw new Error('Accessor not available')
         const accessor = this._content.accessors![accessorName];
         const bufferView = await this.loadBufferView(accessor.bufferView!);
 
@@ -76,7 +92,7 @@ export class GLTFLoader {
     }
 
     private async loadBuffer(bufferName: string): Promise<ArrayBuffer> {
-        if (!this._content.buffers![bufferName]) this._logger.error('Buffer not available')
+        if (!this._content.buffers![bufferName]) throw new Error('Buffer not available')
         const buffer = this._content.buffers![bufferName];
 
         if (bufferName === 'binary_glTF')
@@ -92,7 +108,7 @@ export class GLTFLoader {
     }
 
     private async loadBufferView(bufferViewName: string): Promise<ArrayBuffer> {
-        if (!this._content.bufferViews![bufferViewName]) this._logger.error('Buffer View not available')
+        if (!this._content.bufferViews![bufferViewName]) throw new Error('Buffer View not available')
         const bufferView = this._content.bufferViews![bufferViewName];
         const buffer: ArrayBuffer = await this.loadBuffer(bufferView.buffer!);
         const byteLength = bufferView.byteLength !== undefined ? bufferView.byteLength : 0;
@@ -101,7 +117,7 @@ export class GLTFLoader {
     }
 
     private async loadMesh(meshName: string): Promise<TreeNode> {
-        if (!this._content.meshes![meshName]) this._logger.error('Mesh not available')
+        if (!this._content.meshes![meshName]) throw new Error('Mesh not available')
         const mesh = this._content.meshes![meshName];
         const meshNode = new TreeNode(meshName);
 
@@ -124,7 +140,7 @@ export class GLTFLoader {
     }
 
     private async loadNode(nodeName: string): Promise<TreeNode> {
-        if (!this._content.nodes![nodeName]) this._logger.error('Node not available')
+        if (!this._content.nodes![nodeName]) throw new Error('Node not available')
         const node = this._content.nodes![nodeName];
         const nodeDef = new TreeNode(nodeName);
 
@@ -165,8 +181,8 @@ export class GLTFLoader {
     }
 
     private async loadScene(): Promise<TreeNode> {
-        if (!this._content.scene) this._logger.error('No scene')
-        if (!this._content.scenes![this._content.scene!]) this._logger.error('Scene not available')
+        if (!this._content.scene) throw new Error('No scene')
+        if (!this._content.scenes![this._content.scene!]) throw new Error('Scene not available')
         const scene = this._content.scenes![this._content.scene!];
         const sceneDef = new TreeNode(this._content.scene!);
         for (let i = 0, len = scene.nodes!.length; i < len; i++)

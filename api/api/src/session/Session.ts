@@ -177,8 +177,9 @@ export class Session implements ISession {
      * @param id the id of the export
      * @returns 
      */
-    public getExport(id: string): Export {
+    public getExport(id: string): Export | null {
         const exportLogic = this.#sessionEngine.getExport(id);
+        if(!exportLogic) return null;
         if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
         return this.#exports[id];
     }
@@ -189,8 +190,9 @@ export class Session implements ISession {
      * @param id the id of the export
      * @returns 
      */
-    public getExportById(id: string): Export {
+    public getExportById(id: string): Export | null {
         const exportLogic = this.#sessionEngine.getExportById(id);
+        if(!exportLogic) return null;
         if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
         return this.#exports[id];
     }
@@ -249,8 +251,9 @@ export class Session implements ISession {
      * @param id the id of the output
      * @returns 
      */
-    public getOutput(id: string): Output {
+    public getOutput(id: string): Output | null {
         const outputLogic = this.#sessionEngine.getOutput(id);
+        if(!outputLogic) return null;
         if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
         return this.#outputs[id];
     }
@@ -261,8 +264,9 @@ export class Session implements ISession {
      * @param id the id of the output
      * @returns 
      */
-    public getOutputById(id: string): Output {
+    public getOutputById(id: string): Output | null {
         const outputLogic = this.#sessionEngine.getOutputById(id);
+        if(!outputLogic) return null;
         if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
         return this.#outputs[id];
     }
@@ -305,8 +309,9 @@ export class Session implements ISession {
      * @param id the id of the parameter
      * @returns 
      */
-    public getParameter(id: string): Parameter {
+    public getParameter(id: string): Parameter | null {
         const parameterLogic = this.#sessionEngine.getParameter(id);
+        if(!parameterLogic) return null;
         if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
         return this.#parameters[id];
     }
@@ -317,8 +322,9 @@ export class Session implements ISession {
      * @param id the id of the parameter
      * @returns 
      */
-    public getParameterById(id: string): Parameter {
+    public getParameterById(id: string): Parameter | null {
         const parameterLogic = this.#sessionEngine.getParameterById(id);
+        if(!parameterLogic) return null;
         if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
         return this.#parameters[id];
     }

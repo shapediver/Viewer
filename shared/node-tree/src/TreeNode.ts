@@ -196,7 +196,8 @@ export class TreeNode {
    * Getter child
    * @return {TreeNode}
    */
-  public getChildAt(index: number): TreeNode {
+  public getChildAt(index: number): TreeNode | null {
+    if(!this._children[index]) return null;
     return this._children[index];
   }
 
@@ -204,11 +205,11 @@ export class TreeNode {
    * Getter child
    * @return {TreeNode}
    */
-  public getChild(id: string): TreeNode {
+  public getChild(id: string): TreeNode | null {
     for(let i = 0; i < this._children.length; i++)
       if(this._children[i].id === id)
-        return this._children[i]
-    throw new Error();
+        return this._children[i];
+    return null;
   }
 
   /**

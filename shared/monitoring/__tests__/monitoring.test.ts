@@ -3,22 +3,6 @@ import { container } from 'tsyringe';
 
 import { PerformanceEvaluator, Logger } from '../src/index'
 
-
-describe('error handler - test', () => {
-    let logger: Logger;
-
-    beforeEach(() => {
-        logger = <Logger>container.resolve(Logger);
-    });
-
-    test('http error', async () => {
-        logger.httpError(404, new Error('this is an http error message'))
-    });
-
-    // TODO to be expanded when there is more errors to handle
-
-})
-
 describe('logger - test', () => {
     let logger: Logger;
 
