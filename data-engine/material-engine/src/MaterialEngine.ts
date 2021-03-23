@@ -4,6 +4,7 @@ import { container, singleton } from 'tsyringe';
 import { HttpClient, ImageLoader } from '@shapediver/viewer.shared.utils';
 import { MapData, MaterialData, ISessionOutputContent, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
 import { vec2, vec3, vec4 } from 'gl-matrix';
+import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 interface IPresetMaterialDefinition {
     // #region Properties (13)
@@ -48,13 +49,18 @@ export class MaterialEngine {
     private _dataBase: any;
     private readonly _httpClient = container.resolve(HttpClient);
     private readonly _imageLoader = container.resolve(ImageLoader);
+    private readonly _logger = container.resolve(Logger);
 
     // #endregion Properties (2)
 
     // #region Constructors (1)
 
     constructor() {
-        this._httpClient.get('https://viewer.shapediver.com/v2/materials/db.json').then((res) => { this._dataBase = res.data; });
+        try {
+            this._httpClient.get('https://viewer.shapediver.com/v2/materials/db.json').then((res) => { this._dataBase = res.data; });
+        } catch (e) {
+            this._logger.error('Loading of material DB failed.', e, e.response && e.response.status ? e.response.status : null);
+        }
     }
 
     // #endregion Constructors (1)
@@ -101,34 +107,70 @@ export class MaterialEngine {
     // #region Private Methods (8)
 
     private async assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, material: MaterialData) {
-        if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture) material.alphaMap = await this.loadMap(generalDefinition.transparencytexture, id.class);
+        if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture) {
+            const map = await this.loadMap(generalDefinition.transparencytexture, id.class);
+            if(map) material.alphaMap = map;
+        }
         if (generalDefinition.hasOwnProperty('alphaThreshold') && !specificDefinition.hasOwnProperty('alphaThreshold')) material.alphaCutoff = generalDefinition.alphaThreshold!;
-        if (generalDefinition.bumptexture  && !specificDefinition.bumptexture) material.bumpMap = await this.loadMap(generalDefinition.bumptexture, id.class);
+        if (generalDefinition.bumptexture  && !specificDefinition.bumptexture) {
+            const map = await this.loadMap(generalDefinition.bumptexture, id.class);
+            if(map) material.bumpMap = map;
+        }
         if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude')) material.bumpScale = generalDefinition.bumpAmplitude!;
         if (generalDefinition.color  && !specificDefinition.color) material.color = vec4.fromValues(generalDefinition.color[0] / 255, generalDefinition.color[1] / 255, generalDefinition.color[2] / 255, generalDefinition.color[3] / 255);
-        if (generalDefinition.bitmaptexture  && !specificDefinition.bitmaptexture) material.map = await this.loadMap(generalDefinition.bitmaptexture, id.class);
+        if (generalDefinition.bitmaptexture  && !specificDefinition.bitmaptexture) {
+            const map = await this.loadMap(generalDefinition.bitmaptexture, id.class);
+            if(map) material.map = map;
+        }
         if (generalDefinition.hasOwnProperty('metalness') && !specificDefinition.hasOwnProperty('metalness')) material.metalness = generalDefinition.metalness!;
-        if (generalDefinition.metalnesstexture  && !specificDefinition.metalnesstexture) material.metalnessMap = await this.loadMap(generalDefinition.metalnesstexture, id.class);
-        if (generalDefinition.normaltexture  && !specificDefinition.normaltexture) material.normalMap = await this.loadMap(generalDefinition.normaltexture, id.class);
+        if (generalDefinition.metalnesstexture  && !specificDefinition.metalnesstexture) {
+            const map = await this.loadMap(generalDefinition.metalnesstexture, id.class);
+            if(map) material.metalnessMap = map;
+        }
+        if (generalDefinition.normaltexture  && !specificDefinition.normaltexture) {
+            const map = await this.loadMap(generalDefinition.normaltexture, id.class);
+            if(map) material.normalMap = map;
+        }
         if (generalDefinition.hasOwnProperty('transparency') && !specificDefinition.hasOwnProperty('transparency')) material.opacity = 1 - generalDefinition.transparency!;
         if (generalDefinition.hasOwnProperty('roughness') && !specificDefinition.hasOwnProperty('roughness')) material.roughness = generalDefinition.roughness!;
-        if (generalDefinition.roughnesstexture  && !specificDefinition.roughnesstexture) material.roughnessMap = await this.loadMap(generalDefinition.roughnesstexture, id.class);
+        if (generalDefinition.roughnesstexture  && !specificDefinition.roughnesstexture) {
+            const map = await this.loadMap(generalDefinition.roughnesstexture, id.class);
+            if(map) material.roughnessMap = map;
+        }
         if (generalDefinition.side && !specificDefinition.side) material.side = generalDefinition.side === 'front' ? MATERIAL_SIDE.FRONT : generalDefinition.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
     }
 
     private async assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, material: MaterialData) {
-        if (specificDefinition.transparencytexture) material.alphaMap = await this.loadMap(specificDefinition.transparencytexture, id.class + '/' + id.specific);
+        if (specificDefinition.transparencytexture) {
+            const map = await this.loadMap(specificDefinition.transparencytexture, id.class + '/' + id.specific);
+            if(map) material.alphaMap = map;
+        }
         if (specificDefinition.hasOwnProperty('alphaThreshold')) material.alphaCutoff = specificDefinition.alphaThreshold!;
-        if (specificDefinition.bumptexture) material.bumpMap = await this.loadMap(specificDefinition.bumptexture, id.class + '/' + id.specific);
+        if (specificDefinition.bumptexture) {
+            const map = await this.loadMap(specificDefinition.bumptexture, id.class + '/' + id.specific);
+            if(map) material.bumpMap = map;
+        }
         if (specificDefinition.hasOwnProperty('bumpAmplitude')) material.bumpScale = specificDefinition.bumpAmplitude!;
         if (specificDefinition.color) material.color = vec4.fromValues(specificDefinition.color[0] / 255, specificDefinition.color[1] / 255, specificDefinition.color[2] / 255, specificDefinition.color[3] / 255);
-        if (specificDefinition.bitmaptexture) material.map = await this.loadMap(specificDefinition.bitmaptexture, id.class + '/' + id.specific);
+        if (specificDefinition.bitmaptexture) {
+            const map = await this.loadMap(specificDefinition.bitmaptexture, id.class + '/' + id.specific);
+            if(map) material.map = map;
+        }
         if (specificDefinition.hasOwnProperty('metalness')) material.metalness = specificDefinition.metalness!;
-        if (specificDefinition.metalnesstexture) material.metalnessMap = await this.loadMap(specificDefinition.metalnesstexture, id.class + '/' + id.specific);
-        if (specificDefinition.normaltexture) material.normalMap = await this.loadMap(specificDefinition.normaltexture, id.class + '/' + id.specific);
+        if (specificDefinition.metalnesstexture) {
+            const map = await this.loadMap(specificDefinition.metalnesstexture, id.class + '/' + id.specific);
+            if(map) material.metalnessMap = map;
+        }
+        if (specificDefinition.normaltexture) {
+            const map = await this.loadMap(specificDefinition.normaltexture, id.class + '/' + id.specific);
+            if(map) material.normalMap = map;
+        }
         if (specificDefinition.hasOwnProperty('transparency')) material.opacity = 1 - specificDefinition.transparency!;
         if (specificDefinition.hasOwnProperty('roughness')) material.roughness = specificDefinition.roughness!;
-        if (specificDefinition.roughnesstexture) material.roughnessMap = await this.loadMap(specificDefinition.roughnesstexture, id.class + '/' + id.specific);
+        if (specificDefinition.roughnesstexture) {
+            const map = await this.loadMap(specificDefinition.roughnesstexture, id.class + '/' + id.specific);
+            if(map) material.roughnessMap = map;
+        }
         if (specificDefinition.side) material.side = specificDefinition.side === 'front' ? MATERIAL_SIDE.FRONT : specificDefinition.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
     }
 
@@ -150,25 +192,36 @@ export class MaterialEngine {
         };
     }
 
-    private async loadMap(url: string, id?: string): Promise<MapData> {
+    private async loadMap(url: string, id?: string): Promise<MapData | null> {
         let image: HTMLImageElement;
-        if(!id) {
-            image = await this._imageLoader.load(url);  
-        } else {
-            image = await this._imageLoader.load('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
+        try {
+            if(!id) {
+                image = await this._imageLoader.load(url);  
+            } else {
+                image = await this._imageLoader.load('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
+            }
+        } catch (e) {
+            this._logger.error('Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
+            return null;
         }
         return new MapData(image);        
     }
 
     
-    private async loadMapWithProperties(texture: ITexture): Promise<MapData> {
+    private async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
         let image: HTMLImageElement;
-        // if(texture.href) {
-            image = await this._imageLoader.load(texture.href!);  
-        // } else {
-        //     image = await this._imageLoader.load();  
-        //     // TODO canvas
-        // }
+        try {
+
+            // if(texture.href) {
+                image = await this._imageLoader.load(texture.href!);  
+            // } else {
+            //     image = await this._imageLoader.load();  
+            //     // TODO canvas
+            // }
+        } catch (e) {
+            this._logger.error('Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
+            return null;
+        }
 
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
         const wrapT = texture.wrapT === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapT === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
@@ -216,14 +269,20 @@ export class MaterialEngine {
 
         material.opacity = data.hasOwnProperty('transparency') ? 1 - data.transparency! : 1;
 
-        if(data.bitmaptexture)
-            material.map = await this.loadMap(data.bitmaptexture);
+        if(data.bitmaptexture) {
+            const map = await this.loadMap(data.bitmaptexture);
+            if(map) material.map = map;
+        }
 
-        if(data.bumptexture)
-            material.bumpMap = await this.loadMap(data.bumptexture);
+        if(data.bumptexture) {
+            const map = await this.loadMap(data.bumptexture);
+            if(map) material.bumpMap = map;
+        }
 
-        if(data.transparencytexture)
-            material.alphaMap = await this.loadMap(data.transparencytexture);
+        if(data.transparencytexture) {
+            const map = await this.loadMap(data.transparencytexture);
+            if(map) material.alphaMap = map;
+        }
     }
 
     private async loadMaterialV2(data: {
@@ -260,23 +319,35 @@ export class MaterialEngine {
         if(data.alphaThreshold || data.alphaThreshold === 0)
             material.alphaCutoff = data.alphaThreshold;
 
-        if(data.bitmaptexture)
-            material.map = await this.loadMap(data.bitmaptexture);
+        if(data.bitmaptexture) {
+            const map = await this.loadMap(data.bitmaptexture);
+            if(map) material.map = map;
+        }
 
-        if(data.metalnesstexture)
-            material.metalnessMap = await this.loadMap(data.metalnesstexture);
+        if(data.metalnesstexture) {
+            const map = await this.loadMap(data.metalnesstexture);
+            if(map) material.metalnessMap = map;
+        }
 
-        if(data.roughnesstexture)
-            material.roughnessMap = await this.loadMap(data.roughnesstexture);
+        if(data.roughnesstexture) {
+            const map = await this.loadMap(data.roughnesstexture);
+            if(map) material.roughnessMap = map;
+        }
 
-        if(data.bumptexture)
-            material.bumpMap = await this.loadMap(data.bumptexture);
+        if(data.bumptexture) {
+            const map = await this.loadMap(data.bumptexture);
+            if(map) material.bumpMap = map;
+        }
  
-        if(data.normaltexture)
-            material.normalMap = await this.loadMap(data.normaltexture);
+        if(data.normaltexture) {
+            const map = await this.loadMap(data.normaltexture);
+            if(map) material.normalMap = map;
+        }
 
-        if(data.transparencytexture)
-            material.alphaMap = await this.loadMap(data.transparencytexture);
+        if(data.transparencytexture) {
+            const map = await this.loadMap(data.transparencytexture);
+            if(map) material.alphaMap = map;
+        }
 
         // TODO line material
     }
@@ -333,23 +404,35 @@ export class MaterialEngine {
 
         // TODO threeDNoise
 
-        if(data.bitmaptexture)
-            material.map = await this.loadMapWithProperties(data.bitmaptexture);
+        if(data.bitmaptexture) {
+            const map = await this.loadMapWithProperties(data.bitmaptexture);
+            if(map) material.map = map;
+        }
 
-        if(data.metalnesstexture)
-            material.metalnessMap = await this.loadMapWithProperties(data.metalnesstexture);
+        if(data.metalnesstexture) {
+            const map = await this.loadMapWithProperties(data.metalnesstexture);
+            if(map) material.metalnessMap = map;
+        }
 
-        if(data.roughnesstexture)
-            material.roughnessMap = await this.loadMapWithProperties(data.roughnesstexture);
+        if(data.roughnesstexture) {
+            const map = await this.loadMapWithProperties(data.roughnesstexture);
+            if(map) material.roughnessMap = map;
+        }
 
-        if(data.bumptexture)
-            material.bumpMap = await this.loadMapWithProperties(data.bumptexture);
+        if(data.bumptexture) {
+            const map = await this.loadMapWithProperties(data.bumptexture);
+            if(map) material.bumpMap = map;
+        }
  
-        if(data.normaltexture)
-            material.normalMap = await this.loadMapWithProperties(data.normaltexture);
+        if(data.normaltexture) {
+            const map = await this.loadMapWithProperties(data.normaltexture);
+            if(map) material.normalMap = map;
+        }
 
-        if(data.transparencytexture)
-            material.alphaMap = await this.loadMapWithProperties(data.transparencytexture);
+        if(data.transparencytexture) {
+            const map = await this.loadMapWithProperties(data.transparencytexture);
+            if(map) material.alphaMap = map;
+        }
 
         // TODO line material
     }

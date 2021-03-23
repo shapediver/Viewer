@@ -83,7 +83,10 @@ export class SdtfBufferView {
     if (this._data) return this._data;
     const byteLength = this.byteLength || 0;
     const byteOffset = this.byteOffset || 0;
-    const arrayBuffer = (await this.buffer.load()).slice(byteOffset, byteOffset + byteLength);
+    const buffer = await this.buffer.load();
+    if(!buffer) return null;
+
+    const arrayBuffer = buffer.slice(byteOffset, byteOffset + byteLength);
 
     if (Object.values(CONTENTTYPE).includes(this.contentType) && this.contentType !== CONTENTTYPE.MODEL_VND_3DM) {
       const reader = new FileReader();

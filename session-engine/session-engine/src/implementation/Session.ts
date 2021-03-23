@@ -22,8 +22,7 @@ export class Session implements ISession {
     private readonly _outputs: { [key: string]: Output; } = {};
     private readonly _outputsCreated: { [key: string]: Output; } = {};
     private readonly _parameters: { [key: string]: Parameter; } = {};
-    private readonly _uuidGenerator = container.resolve(UuidGenerator);
-    private readonly _sessionEngineId = this._uuidGenerator.create();
+    private readonly _sessionEngineId = container.resolve(UuidGenerator).create();
     private readonly _logger = container.resolve(Logger);
 
     private _headers = {
@@ -235,7 +234,14 @@ export class Session implements ISession {
     public async init(): Promise<SessionTreeNode> {
         if (this._initialized === true) throw new Error('Already initialized.'); //TODO
         try {
-            const sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers: this._headers })).data;
+            let sessionResponse;
+            try {
+                sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers: this._headers })).data;
+            } catch (e) {
+                this._logger.error('Session init failed.', e, e.response && e.response.status ? e.response.status : null);
+                return new SessionTreeNode();
+            }
+
             (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
             this._sessionResponse.adaptSession(sessionResponse);
 
@@ -253,6 +259,7 @@ export class Session implements ISession {
             this._initialized = true;
             return this.loadOutputs(parameters, this._sessionResponse.outputs);
         } catch (e) {
+            this._logger.error('Something went wrong at session init.', e);
             return new SessionTreeNode();
         }
     }
@@ -264,10 +271,18 @@ export class Session implements ISession {
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
         try {
             const headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
-            const responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
+            let responseCustomize;
+            try {
+                responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
+            } catch (e) {
+                this._logger.error('Session customization failed.', e, e.response && e.response.status ? e.response.status : null);
+                return new SessionTreeNode();
+            }
+
             this._sessionResponse.adaptSession(responseCustomize);
             return this.loadOutputs(parameters, this._sessionResponse.outputs);
         } catch (e) {
+            this._logger.error('Something went wrong at session customization.', e);
             return new SessionTreeNode();
         }
     }
