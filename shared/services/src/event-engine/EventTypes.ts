@@ -63,6 +63,17 @@ export enum UPDATE {
     UPDATE_READY = "update.ready"
 }
 
+export enum SESSION {
+    SESSION_CREATED = "session.created",
+    SESSION_INITIALIZED = "session.initialized",
+    SESSION_CUSTOMIZED = "session.customized"
+}
+
+export enum VIEWER {
+    VIEWER_CREATED = "viewer.created",
+    VIEWER_UPDATED = "viewer.updated",
+}
+
 export const EVENTTYPE = { 
     CAMERA, 
     EXPORT, 
@@ -72,9 +83,11 @@ export const EVENTTYPE = {
     PARAMETER, 
     RENDERING, 
     SCENE, 
+    SESSION,
     SETTINGS,
-    UPDATE
+    UPDATE,
+    VIEWER
 };
 export type EVENTTYPE = typeof EVENTTYPE;
 
-export type MAIN_EVENTTYPE = typeof CAMERA | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SETTINGS | typeof UPDATE;
+export type MAIN_EVENTTYPE = typeof CAMERA | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof UPDATE | typeof VIEWER;

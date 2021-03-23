@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@shapediver/viewer": "^0.1.0",
+    "@shapediver/viewer.shared.monitoring": "^0.1.0",
     "@shapediver/viewer.data-engine.data-engine": "^0.1.0",
     "reflect-metadata": "^0.1.13"
   }

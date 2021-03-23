@@ -21,9 +21,9 @@ export class PerformanceEvaluator {
      * 
      * @param id 
      */
-    public start(id: string): void {
+    public start(id: string, time?: number): void {
         this._eval[id] = {
-            start: new Date().getTime(),
+            start: time || new Date().getTime(),
             pauses: []
         }
     }
@@ -103,5 +103,15 @@ export class PerformanceEvaluator {
         duration?: number,
     } {
         return this._eval[id];
+    }
+
+    /**
+     * Get the evaluation data for a specific id.
+     * 
+     * @param id 
+     */
+    public getEvaluationToString(id: string): string {
+        const e = this._eval[id];
+        return `Performance Evaluation for ${id}: ${e.duration}ms\n`;
     }
 }

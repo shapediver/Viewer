@@ -2,6 +2,7 @@ import "reflect-metadata"
 import { container } from "tsyringe";
 import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE } from "@shapediver/viewer"
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
+import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;
@@ -16,11 +17,19 @@ const ticket = 'affa36eb1031f3cd6175477dc4d76b785e2ca1c6a70c36adabc1d9547c11660a
 // const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
 // const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
 
+const performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+const logger = <Logger>container.resolve(Logger);
+performanceEvaluator.start('startup', window.performance.timing.connectStart);
+performanceEvaluator.end('startup');
+logger.info(performanceEvaluator.getEvaluationToString('startup'));
 
 (async () => {
     let viewer = await api.createViewer(RENDERERTYPE.STANDARD, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
     await api.createSession(ticket, modelViewUrl, 'mySession');
     viewer.show = true;
+    performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
+    performanceEvaluator.end('pageLoad_rendering');
+    logger.info(performanceEvaluator.getEvaluationToString('pageLoad_rendering'));
 })();
 
 // // glTFv2Button.onclick = async () => {

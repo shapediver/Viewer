@@ -5,6 +5,8 @@ import { Output } from "./Output";
 import { Parameter } from "./Parameter";
 import { container, injectable } from "tsyringe";
 import { Viewer } from "../viewer/Viewer";
+import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
+import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 
 @injectable()
 export class Session implements ISession {
@@ -17,7 +19,10 @@ export class Session implements ISession {
     readonly #sessionEngine: SessionEngine;
     readonly #ticket: string; 
     readonly #modelViewUrl: string;
-
+    readonly #performanceEvaluator: PerformanceEvaluator;
+    readonly #logger: Logger;
+    readonly #eventEngine: EventEngine;
+    
     #commitParameters: boolean = false;
     #node: TreeNode;
     #parameterControlNames: string[] = [];
@@ -35,6 +40,9 @@ export class Session implements ISession {
      * @param modelViewUrl 
      */
     constructor( id: string, ticket: string, modelViewUrl: string ) {
+        this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+        this.#logger = <Logger>container.resolve(Logger);
+        this.#eventEngine = <EventEngine>container.resolve(EventEngine);
         this.#ticket = ticket;
         this.#modelViewUrl = modelViewUrl;
         this.#node = new TreeNode(this.ticket)
@@ -167,6 +175,7 @@ export class Session implements ISession {
         (container.resolve(Tree)).removeNode(this.#node);
         this.#node = await this.#sessionEngine.customize();
         (container.resolve(Tree)).addNode(this.#node);
+        this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
         if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
         return this.#node;
     }
