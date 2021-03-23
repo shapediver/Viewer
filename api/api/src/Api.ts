@@ -5,6 +5,7 @@ import { Viewer } from "./viewer/Viewer";
 import { StateEngine, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 
 @singleton()
 export class Api {
@@ -14,6 +15,9 @@ export class Api {
   #loggingLevel: number = -1;
   #showMessages: boolean = true;
 
+  readonly #performanceEvaluator: PerformanceEvaluator;
+  readonly #logger: Logger;
+  readonly #eventEngine: EventEngine;
   readonly #sessions: { [key: string]: Session } = {};
   readonly #viewers: { [key: string]: Viewer } = {};
   // #region Constructors (1)
@@ -23,7 +27,9 @@ export class Api {
    */
   constructor() {
     const stateEngine = <StateEngine>container.resolve(StateEngine);
-    (<EventEngine>container.resolve(EventEngine)).addListener(EVENTTYPE.UPDATE.UPDATE_READY, () => { this.update(); })
+    this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+    this.#logger = <Logger>container.resolve(Logger);
+    this.#eventEngine = <EventEngine>container.resolve(EventEngine);
   }
 
   // #endregion Constructors (1)
@@ -104,12 +110,29 @@ export class Api {
    * @returns 
    */
   public async createSession(ticket: string, modelViewUrl: string, id?: string): Promise<Session> {
+    // check if the given id is valid
     const sessionId = id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.#sessions[sessionId]) new Error('Session with this id already exists.');
+    if (this.#sessions[sessionId]) this.#logger.error('Session with this id already exists.');
+
+    // start the performance eval
+    this.#performanceEvaluator.start('session_creation_' + sessionId);
+
+    // create the actual session 
     const session = new Session(sessionId, ticket, modelViewUrl);
+    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
+
+    // initialized the session
     await session.init()
+    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session });
+
+    // save the session
     this.#sessions[sessionId] = session;
     container.registerInstance('session', session);
+
+    // end the performance eval
+    this.#performanceEvaluator.end('session_creation_' + sessionId);
+    this.#logger.info(this.#performanceEvaluator.getEvaluationToString('session_creation_' + sessionId));
+
     return this.#sessions[sessionId];
   }
 
@@ -126,12 +149,28 @@ export class Api {
    * @returns 
    */
   public async createViewer(type: RENDERERTYPE, canvas: HTMLCanvasElement, id?: string): Promise<Viewer> {
+    // check if the given id is valid
     const viewerId = id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.#viewers[viewerId]) new Error('Viewer with this id already exists.');
+    if (this.#viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
+
+    // start the performance eval
+    this.#performanceEvaluator.start('viewer_creation_' + viewerId);
+
+    // create the actual viewer
     const viewer = new Viewer(viewerId, type, canvas);
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
+
+    // save the viewer
     this.#viewers[viewerId] = viewer;
     container.registerInstance('viewer', viewer);
-    this.update();
+
+    // update the viewer with the current scene tree
+    viewer.update();
+
+    // end the performance eval
+    this.#performanceEvaluator.end('viewer_creation_' + viewerId);
+    this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_creation_' + viewerId));
+
     return this.#viewers[viewerId];
   }
 

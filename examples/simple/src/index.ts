@@ -2,6 +2,7 @@ import "reflect-metadata"
 import { container } from "tsyringe";
 import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE } from "@shapediver/viewer"
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
+import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;
@@ -9,19 +10,27 @@ import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
 (<any>window).CAMERATYPE = CAMERATYPE;
 (<any>window).LIGHTTYPE = LIGHTTYPE;
 
-// const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
-// const ticket = 'affa36eb1031f3cd6175477dc4d76b785e2ca1c6a70c36adabc1d9547c11660a2957f4ba5e4f55a16225af626c2f25be90d944d355938fd35fc03daaaf9c56cbc85f0c6c7325aeb956145b3a030ad4aa217eefaf2d977b2815aefec5e87912ea1b731507ff24f9109cf74b0aa0eebcea9b9e7b3c807a-8b9959c9e647a0d633136750b78fbf61';
+const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
+const ticket = 'affa36eb1031f3cd6175477dc4d76b785e2ca1c6a70c36adabc1d9547c11660a2957f4ba5e4f55a16225af626c2f25be90d944d355938fd35fc03daaaf9c56cbc85f0c6c7325aeb956145b3a030ad4aa217eefaf2d977b2815aefec5e87912ea1b731507ff24f9109cf74b0aa0eebcea9b9e7b3c807a-8b9959c9e647a0d633136750b78fbf61';
 // const dataEngine: DataEngine = container.resolve(DataEngine);
 
 // const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
 // const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
 
+const performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+const logger = <Logger>container.resolve(Logger);
+performanceEvaluator.start('startup', window.performance.timing.connectStart);
+performanceEvaluator.end('startup');
+logger.info(performanceEvaluator.getEvaluationToString('startup'));
 
-// (async () => {
-//     let viewer = await api.createViewer(RENDERERTYPE.STANDARD, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
-//     await api.createSession(ticket, modelViewUrl, 'mySession');
-//     viewer.show = true;
-// })();
+(async () => {
+    let viewer = await api.createViewer(RENDERERTYPE.STANDARD, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
+    await api.createSession(ticket, modelViewUrl, 'mySession');
+    viewer.show = true;
+    performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
+    performanceEvaluator.end('pageLoad_rendering');
+    logger.info(performanceEvaluator.getEvaluationToString('pageLoad_rendering'));
+})();
 
 // // glTFv2Button.onclick = async () => {
 // //     const uri: string = glTFv2Input.value;

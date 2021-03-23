@@ -2,8 +2,10 @@ import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.re
 import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic, OrthographicCamera as OrthographicCameraLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { IRenderingEngine, RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
+import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
-import { injectable } from "tsyringe";
+import { container, injectable } from "tsyringe";
 import { Camera } from "./camera/Camera";
 import { OrthographicCamera } from "./camera/OrthographicCamera";
 import { PerspectiveCamera } from "./camera/PerspectiveCamera";
@@ -17,7 +19,10 @@ import { SpotLight } from "./lights/SpotLight";
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Properties (25)
   readonly #renderingEngine: RenderingEngineThreejs;
-
+  readonly #performanceEvaluator: PerformanceEvaluator;
+  readonly #logger: Logger;
+  readonly #eventEngine: EventEngine;
+  
   readonly #cameras: {
     [key: string]: Camera
   } = {};
@@ -35,6 +40,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param canvas 
    */
   constructor(id: string, type: RENDERERTYPE, canvas: HTMLCanvasElement) {
+    this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+    this.#logger = <Logger>container.resolve(Logger);
+    this.#eventEngine = <EventEngine>container.resolve(EventEngine);
     this.#renderingEngine = new RenderingEngineThreejs(id, canvas);
 
     // default camera
@@ -63,6 +71,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set ambientOcclusion(value: boolean) {
     this.#renderingEngine.ambientOcclusion = value;
+    this.#logger.info(`Viewer (${this.id}): ambientOcclusion was set to: ${value}`);
   }
 
   /**
@@ -79,6 +88,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set beautyRenderBlendingDuration(value: number) {
     this.#renderingEngine.beautyRenderBlendingDuration = value;
+    this.#logger.info(`Viewer (${this.id}): beautyRenderBlendingDuration was set to: ${value}`);
   }
 
   /**
@@ -95,6 +105,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set beautyRenderDelay(value: number) {
     this.#renderingEngine.beautyRenderDelay = value;
+    this.#logger.info(`Viewer (${this.id}): beautyRenderDelay was set to: ${value}`);
   }
 
   /**
@@ -111,6 +122,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set blurSceneWhenBusy(value: boolean) {
     this.#renderingEngine.blurSceneWhenBusy = value;
+    this.#logger.info(`Viewer (${this.id}): blurSceneWhenBusy was set to: ${value}`);
   }
 
   /**
@@ -127,6 +139,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set clearAlpha(value: number) {
     this.#renderingEngine.clearAlpha = value;
+    this.#logger.info(`Viewer (${this.id}): clearAlpha was set to: ${value}`);
   }
 
   /**
@@ -143,6 +156,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set clearColor(value: vec3) {
     this.#renderingEngine.clearColor = value;
+    this.#logger.info(`Viewer (${this.id}): clearColor was set to: ${value}`);
   }
 
   /**
@@ -159,6 +173,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set duration(value: number) {
     this.#renderingEngine.duration = value;
+    this.#logger.info(`Viewer (${this.id}): duration was set to: ${value}`);
   }
 
   /**
@@ -175,6 +190,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set environmentMap(value: string | string[]) {
     this.#renderingEngine.environmentMap = value;
+    this.#logger.info(`Viewer (${this.id}): environmentMap was set to: ${value}`);
   }
 
   /**
@@ -191,6 +207,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set environmentMapAsBackground(value: boolean) {
     this.#renderingEngine.environmentMapAsBackground = value;
+    this.#logger.info(`Viewer (${this.id}): environmentMapAsBackground was set to: ${value}`);
   }
 
   /**
@@ -207,6 +224,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set environmentMapResolution(value: string) {
     this.#renderingEngine.environmentMapResolution = value;
+    this.#logger.info(`Viewer (${this.id}): environmentMapResolution was set to: ${value}`);
   }
 
   /**
@@ -223,6 +241,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set fullscreen(value: boolean) {
     this.#renderingEngine.fullscreen = value;
+    this.#logger.info(`Viewer (${this.id}): fullscreen was set to: ${value}`);
   }
 
   /**
@@ -239,6 +258,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set gridVisibility(value: boolean) {
     this.#renderingEngine.gridVisibility = value;
+    this.#logger.info(`Viewer (${this.id}): gridVisibility was set to: ${value}`);
   }
 
   // /**
@@ -287,6 +307,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set groundPlaneVisibility(value: boolean) {
     this.#renderingEngine.groundPlaneVisibility = value;
+    this.#logger.info(`Viewer (${this.id}): groundPlaneVisibility was set to: ${value}`);
   }
 
   /**
@@ -311,6 +332,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set lightHelper(value: boolean) {
     this.#renderingEngine.lightHelper = value;
+    this.#logger.info(`Viewer (${this.id}): lightHelper was set to: ${value}`);
   }
 
   /**
@@ -327,6 +349,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set lightScene(value: string) {
     this.#renderingEngine.lightScene = value;
+    this.#logger.info(`Viewer (${this.id}): lightScene was set to: ${value}`);
   }
 
   /**
@@ -343,6 +366,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set pointSize(value: number) {
     this.#renderingEngine.pointSize = value;
+    this.#logger.info(`Viewer (${this.id}): pointSize was set to: ${value}`);
   }
 
   /**
@@ -359,6 +383,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set shadows(value: boolean) {
     this.#renderingEngine.shadows = value;
+    this.#logger.info(`Viewer (${this.id}): shadows was set to: ${value}`);
   }
 
   /**
@@ -375,6 +400,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set show(value: boolean) {
     this.#renderingEngine.show = value;
+    this.#logger.info(`Viewer (${this.id}): show was set to: ${value}`);
   }
 
   // #endregion Public Accessors (42)
@@ -387,6 +413,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public update(): void {
     this.#renderingEngine.update();
+    this.#logger.info(`Viewer (${this.id}) was updated.`);
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
   }
 
   /**
@@ -395,6 +423,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param id the id of the camera
    */
   public assignCamera(id: string): void {
+    // MICHI START HERE
     this.#renderingEngine.cameraEngine.assignCamera(id);
   }
 

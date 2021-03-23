@@ -22,6 +22,6 @@ export {
     Api, Session, Viewer, Parameter, Export, Output
 }
 
-// export {
-//     Tree, TreeNode, ITransformation, ITreeNodeData, AbstractTreeNodeData, ThreejsData, CustomData, GeometryData, MaterialData, SessionData, SessionOutputData
-// }
+export {
+    Tree, TreeNode, ITransformation, ITreeNodeData, AbstractTreeNodeData, ThreejsData, CustomData, GeometryData, MaterialData, SessionData, SessionOutputData
+}
