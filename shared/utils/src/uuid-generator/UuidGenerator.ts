@@ -24,7 +24,6 @@ export class UuidGenerator {
      * 
      * @param uuid the uuid to convert
      * @returns ArrayLike collection of 16 values
-     * @throws {TypeError} if the input is not a valid uuid
      */
     public parse(uuid: string): ArrayLike<number> {
         return parseUUID(uuid);
@@ -35,7 +34,6 @@ export class UuidGenerator {
      * 
      * @param uuid the array of bytes
      * @returns the converted uuid
-     * @throws {TypeError} if no valid UUID can be generated
      */
     public stringify(uuid: ArrayLike<number>): string {
         return stringifyUUID(uuid);

@@ -55,7 +55,7 @@ export class LightScene implements ILightScene {
 
         for(let i = 0; i < this._node.getNumberOfChildren(); i++) {
             const node = this._node.getChildAt(i);
-            if(node.name === id) {
+            if(node && node.name === id) {
                 this._node.removeChild(node);
                 break;
             }

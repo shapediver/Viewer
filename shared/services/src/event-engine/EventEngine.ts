@@ -5,12 +5,14 @@ import { ICallback } from "./interfaces/ICallback";
 import { IEvent } from "./interfaces/IEvent";
 
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
+import { Logger } from "@shapediver/viewer.shared.monitoring";
 
 @singleton()
 export class EventEngine {
     // #region Properties (2)
 
     protected readonly _uuidGenerator = container.resolve(UuidGenerator);
+    protected readonly _logger = container.resolve(Logger);
     private _eventListeners: {
         [key: string]: IListener[]
     };
@@ -40,8 +42,10 @@ export class EventEngine {
             if(type === EVENTTYPE[mainType as keyof EVENTTYPE])
                 typeString = mainType.toLowerCase();
         
-        if(!typeString || !this._eventListeners[typeString])
-            throw new Error('No valid type provided.');
+        if(!typeString || !this._eventListeners[typeString]) {
+            this._logger.error('No valid type provided.');
+            return '';
+        }
         
         return typeString;
     }
@@ -57,6 +61,7 @@ export class EventEngine {
      */
     public addListener(type: string | MAIN_EVENTTYPE, cb: ICallback): string {
         const typeString: string = this.convertTypeToString(type);
+        if(!typeString) return '';
         const token = this._uuidGenerator.create();
         this._eventListeners[typeString]?.push({ token, cb });
         return token;

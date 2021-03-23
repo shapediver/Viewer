@@ -30,7 +30,7 @@ export class CameraEngine implements ICameraEngine {
 
     public assignCamera(id: string): void {
         const camera = this.getCamera(id);
-        if (!camera) new Error('Camera with this id does not exist.');
+        if (!camera) return;
         this._camera = camera;
     }
 
@@ -50,13 +50,13 @@ export class CameraEngine implements ICameraEngine {
         }
     }
 
-    public getCamera(id?: string): Camera {
+    public getCamera(id?: string): Camera | null {
         if(!id) {
             if(this._camera) return this._camera;
-            throw new Error('No camera is active at the moment.');
+            return null;
         }
         const camera = this._cameras[id];
-        if (!camera) throw new Error('Camera with this id does not exist.');
+        if (!camera) return null;
         return camera;
     }
 
