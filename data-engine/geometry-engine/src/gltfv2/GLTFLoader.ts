@@ -15,6 +15,7 @@ export class GLTFLoader {
     private readonly _imageLoader = container.resolve(ImageLoader);
     private readonly _uuidGenerator = container.resolve(UuidGenerator);
     private readonly _logger = container.resolve(Logger);
+    private readonly _implementedExtensions = [''];
 
     private _baseUri!: string;
     private _body!: ArrayBuffer;
@@ -79,16 +80,13 @@ export class GLTFLoader {
                 
         }
 
-        
-        let node;
-        try {
-            node = await this.loadScene();
+        try{
+            this.validateVersionAndExtensions();
+            return await this.loadScene();
         } catch (e) {
             this._logger.error('Loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
-            node = new TreeNode();
+            return new TreeNode();
         }
-
-        return node;
     }
 
     // #endregion Public Methods (1)
@@ -96,7 +94,7 @@ export class GLTFLoader {
     // #region Private Methods (9)
 
     private async loadAccessor(accessorId: number): Promise<AttributeData> {
-        if (!this._content.accessors![accessorId]) throw new Error('Accessor not available')
+        if (!this._content.accessors![accessorId]) throw new Error('Accessor not available.')
         const accessor = this._content.accessors![accessorId];
         const arrayBuffer = await this.loadBufferView(accessor.bufferView!);
         
@@ -121,7 +119,7 @@ export class GLTFLoader {
     }
 
     private async loadBuffer(bufferId: number): Promise<ArrayBuffer> {
-        if (!this._content.buffers![bufferId]) throw new Error('Buffer not available')
+        if (!this._content.buffers![bufferId]) throw new Error('Buffer not available.')
         const buffer = this._content.buffers![bufferId];
 
         if (!buffer.uri && bufferId === 0)
@@ -135,7 +133,7 @@ export class GLTFLoader {
     }
 
     private async loadBufferView(bufferViewId: number): Promise<ArrayBuffer> {
-        if (!this._content.bufferViews![bufferViewId]) throw new Error('Buffer View not available')
+        if (!this._content.bufferViews![bufferViewId]) throw new Error('Buffer View not available.')
         const bufferView = this._content.bufferViews![bufferViewId];
         const byteLength = bufferView.byteLength || 0;
         const byteOffset = bufferView.byteOffset || 0;
@@ -223,7 +221,7 @@ export class GLTFLoader {
     }
 
     private async loadMesh(meshId: number): Promise<TreeNode> {
-        if (!this._content.meshes || !this._content.meshes[meshId]) throw new Error('Mesh not available')
+        if (!this._content.meshes || !this._content.meshes[meshId]) throw new Error('Mesh not available.')
         const mesh = this._content.meshes[meshId];
         const meshNode = new TreeNode(mesh.name || 'mesh_' + meshId);
 
@@ -236,7 +234,7 @@ export class GLTFLoader {
     }
 
     private async loadNode(nodeId: number): Promise<TreeNode> {
-        if (!this._content.nodes || !this._content.nodes[nodeId]) throw new Error('Node not available')
+        if (!this._content.nodes || !this._content.nodes[nodeId]) throw new Error('Node not available.')
         const node = this._content.nodes[nodeId];
         const nodeDef = new TreeNode(node.name || 'node_' + nodeId);
 
@@ -300,9 +298,49 @@ export class GLTFLoader {
         return primitiveNode;
     }
 
+    private validateVersionAndExtensions(): void {
+        if (!this._content.asset) throw new Error('Asset not available.')
+        const asset = this._content.asset;
+        if (!asset.version) throw new Error('Asset does not have a version.')
+        const version: string = asset.minVersion ? asset.minVersion : asset.version;
+        if(!version.startsWith('2')) throw new Error('Version of the glTF not supported.');
+
+        if(this._content.extensionsUsed) {
+            const notSupported = [];
+            for(let i = 0; i < this._content.extensionsUsed.length; i++) {
+                if(!this._implementedExtensions.includes(this._content.extensionsUsed[i])) 
+                    notSupported.push(this._content.extensionsUsed[i]);
+            }
+            if(notSupported.length > 0) {
+                let message = 'Extension' + (notSupported.length === 1 ? ' ' : 's ');
+                notSupported.forEach((element, index) => {
+                    message += '"' + element + '"' + (index === notSupported.length-1 ? '' : index === notSupported.length-2 ? ' and ' : ', ');
+                });
+                message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
+                this._logger.info(message);
+            }
+        }
+
+        if(this._content.extensionsRequired) {
+            const notSupported = [];
+            for(let i = 0; i < this._content.extensionsRequired.length; i++) {
+                if(!this._implementedExtensions.includes(this._content.extensionsRequired[i])) 
+                    notSupported.push(this._content.extensionsRequired[i]);
+            }
+            if(notSupported.length > 0) {
+                let message = 'Extension' + (notSupported.length === 1 ? ' ' : 's ');
+                notSupported.forEach((element, index) => {
+                    message += '"' + element + '"' + (index === notSupported.length-1 ? '' : index === notSupported.length-2 ? ' and ' : ', ');
+                });
+                message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but required. Aborting glTF loading.';
+                throw new Error(message);
+            }
+        }
+    }
+
     private async loadScene(): Promise<TreeNode> {
         const sceneID = this._content.scene || 0;
-        if (!this._content.scenes || !this._content.scenes[sceneID]) throw new Error('Scene not available')
+        if (!this._content.scenes || !this._content.scenes[sceneID]) throw new Error('Scene not available.')
         const scene = this._content.scenes[sceneID];
         const sceneDef = new TreeNode('scene_' + scene.name || sceneID +'');
         if(scene.nodes)
