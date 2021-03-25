@@ -2,10 +2,11 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { HttpClient, ImageLoader, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
 
-import { ACCESSOR_COMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
+import { ACCESSOR_COMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { PbrMaterialConverter } from './PbrSpecularGlossinessConverter';
 
 export class GLTFLoader {
     // #region Properties (6)
@@ -15,8 +16,8 @@ export class GLTFLoader {
     private readonly _imageLoader = container.resolve(ImageLoader);
     private readonly _uuidGenerator = container.resolve(UuidGenerator);
     private readonly _logger = container.resolve(Logger);
-    private readonly _implementedExtensions = [''];
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
+    private readonly _implementedExtensions = ['KHR_materials_pbrSpecularGlossiness'];
 
     private _baseUri!: string;
     private _body!: ArrayBuffer;
@@ -217,6 +218,26 @@ export class GLTFLoader {
         if(material.doubleSided !== undefined) {
             materialData.side = material.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
         }
+
+
+        if(material.extensions && material.extensions.KHR_materials_pbrSpecularGlossiness) {
+            const material_extension: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions.KHR_materials_pbrSpecularGlossiness;
+            const converted = new PbrMaterialConverter().convertToMetallicRoughness({
+                diffuseFactor: material_extension.diffuseFactor !== undefined ? vec4.fromValues(material_extension.diffuseFactor[0], material_extension.diffuseFactor[1], material_extension.diffuseFactor[2], material_extension.diffuseFactor[3]) : vec4.fromValues(1,1,1,1),
+                specularFactor:  material_extension.specularFactor !== undefined ? vec3.fromValues(material_extension.specularFactor[0], material_extension.specularFactor[1], material_extension.specularFactor[2]) : vec3.fromValues(1,1,1),
+                glossinessFactor: material_extension.glossinessFactor !== undefined ? material_extension.glossinessFactor : 1
+            });
+
+            materialData.color = converted.color;
+            materialData.metalness = converted.metalness;
+            materialData.roughness = converted.roughness;
+            if (material_extension.diffuseTexture !== undefined)
+                materialData.map = await this.loadMap(material_extension.diffuseTexture.index);
+
+            if (material_extension.specularGlossinessTexture !== undefined)
+                this._logger.info('Due to issues with the material conversion, the specularGlossinessTexture is not supported at the moment.');
+        }
+
         return materialData;
     }
 
