@@ -84,6 +84,7 @@ export class GLTFLoader {
             this.validateVersionAndExtensions();
             return await this.loadScene();
         } catch (e) {
+            console.log(e)
             this._logger.error('Loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
             return new TreeNode();
         }
@@ -146,7 +147,7 @@ export class GLTFLoader {
 
         const texture = this._content.textures[index];
         const image = this._content.images[texture.source];
-        const sampler = this._content.samplers[texture.source];
+        const sampler = this._content.samplers && this._content.samplers[texture.source] ? this._content.samplers[texture.source] : {};
 
         const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
         const HTTPS_URI_REGEX = /^https:\/\//;
