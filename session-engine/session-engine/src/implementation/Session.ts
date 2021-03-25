@@ -35,6 +35,7 @@ export class Session implements ISession {
 
     private _initialized: boolean = false;
     private _sessionResponse: SessionResponse;
+    private _refreshBearerToken!: () => string;
 
     // #endregion Properties (11)
 
@@ -50,21 +51,46 @@ export class Session implements ISession {
     constructor(
         private readonly _id: string,
         private readonly _ticket: string,
-        private readonly _modelViewUrl: string
+        private readonly _modelViewUrl: string,
+        private _bearerToken?: string,
     ) {
-        this._sessionResponse = new SessionResponse();     
+        this._sessionResponse = new SessionResponse();
         this._outputLoader = new OutputLoader(this._sessionResponse);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (1)
+    // #region Public Accessors (5)
+
+    public get bearerToken(): string | undefined {
+        return this._bearerToken;
+    }
+
+    public set bearerToken(value: string | undefined) {
+        this._bearerToken = value;
+    }
 
     public get id(): string {
         return this._id;
     }
 
-    // #endregion Public Accessors (1)
+    public get modelViewUrl(): string {
+        return this._modelViewUrl;
+    }
+
+    public set refreshBearerToken(value: () => string) {
+        this._refreshBearerToken = value;
+    }
+
+    public get ticket(): string {
+        return this._ticket;
+    }
+
+    public get initialized(): boolean {
+        return this._initialized;
+    }
+
+    // #endregion Public Accessors (5)
 
     // #region Public Methods (17)
 
@@ -232,12 +258,39 @@ export class Session implements ISession {
      * @returns promise with a scene graph node
      */
     public async init(): Promise<SessionTreeNode> {
-        if (this._initialized === true) throw new Error('Already initialized.'); //TODO
+        if (this._initialized === true) {
+            this._logger.error('Session already initialized.');
+            const parameters: { [key: string]: string } = {};
+            for (let parameter in this._sessionResponse.parameters)
+                parameters[parameter] = this._sessionResponse.parameters[parameter].value;
+            return this.loadOutputs(parameters, this._sessionResponse.outputs);
+        }
+        
+        const headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
+
         try {
             let sessionResponse;
             try {
-                sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers: this._headers })).data;
+                sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers })).data;
             } catch (e) {
+                
+                if(e.response && e.response.status && e.response.status === 403 && e.response.data && e.response.data.error === 'SdJwtValidationError') {
+                    if(!this._refreshBearerToken) {
+                        this._logger.error('Session init failed. Bearer Token invalid, please supply a valid token or assign the "refreshBearerToken" callback.');
+                        return new SessionTreeNode();
+                    } else {
+                        const bearerToken = this.bearerToken;
+                        const newToken = this._refreshBearerToken();
+                        if(bearerToken === newToken) {
+                            this._logger.error('Session init failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
+                            return new SessionTreeNode();
+                        } else {
+                            this.bearerToken = newToken;
+                            return this.init();
+                        }
+                    }
+                }
+
                 this._logger.error('Session init failed.', e, e.response && e.response.status ? e.response.status : null);
                 return new SessionTreeNode();
             }
@@ -269,12 +322,42 @@ export class Session implements ISession {
     // #region Private Methods (3)
 
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
+        if(this._initialized === false) {
+            this._logger.error('Session not initialized.');
+            return new SessionTreeNode();
+        }
         try {
-            const headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
+            let headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
+            headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
             let responseCustomize;
             try {
                 responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
             } catch (e) {
+
+                if(e.response && e.response.status) {
+                    if(e.response.status === 403 && e.response.data && e.response.data.error === 'SdJwtValidationError') {
+                        if(!this._refreshBearerToken) {
+                            this._logger.error('Session customization failed. Bearer Token invalid, please supply a valid token or assign the "refreshBearerToken" callback.');
+                            return new SessionTreeNode();
+                        } else {
+                            const bearerToken = this.bearerToken;
+                            const newToken = this._refreshBearerToken();
+                            if(bearerToken === newToken) {
+                                this._logger.error('Session customization failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
+                                return new SessionTreeNode();
+                            } else {
+                                this.bearerToken = newToken;
+                                return this.customizeSession(parameters);
+                            }
+                        }
+                    } else if(e.response.status === 410) {
+                        this._logger.info('Session customization failed. Session expired. Re-initializing session.');
+                        this._initialized = false;
+                        await this.init();
+                        return this.customizeSession(parameters);
+                    }
+                }
+
                 this._logger.error('Session customization failed.', e, e.response && e.response.status ? e.response.status : null);
                 return new SessionTreeNode();
             }

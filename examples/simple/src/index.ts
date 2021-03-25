@@ -10,8 +10,8 @@ import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitori
 (<any>window).CAMERATYPE = CAMERATYPE;
 (<any>window).LIGHTTYPE = LIGHTTYPE;
 
-const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
-const ticket = 'affa36eb1031f3cd6175477dc4d76b785e2ca1c6a70c36adabc1d9547c11660a2957f4ba5e4f55a16225af626c2f25be90d944d355938fd35fc03daaaf9c56cbc85f0c6c7325aeb956145b3a030ad4aa217eefaf2d977b2815aefec5e87912ea1b731507ff24f9109cf74b0aa0eebcea9b9e7b3c807a-8b9959c9e647a0d633136750b78fbf61';
+const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com:443';
+const ticket = '601e5b0e326c6bce15bbc6ac397e0e9e23db5b094b9e2f39e132436cc8dbb005a2d63563f8ad9ca7ac53b1b2b8714b8be6fed5fec27bfd788f0d08119c0eda462b0a22d20fb580e58fbf21197560a015ae65c94ad5aa894f77b3a7bac9eec6ba568c296ad4f7574922ecd0e733eb9bc3e842956abc-cfc5548fb37e476f774fa890c45efe0c';
 // const dataEngine: DataEngine = container.resolve(DataEngine);
 
 // const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
@@ -25,8 +25,8 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
 
 (async () => {
     let viewer = await api.createViewer(RENDERERTYPE.STANDARD, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
-    await api.createSession(ticket, modelViewUrl, 'mySession');
-    viewer.show = true;
+    let session = await api.createSession(ticket, modelViewUrl, undefined, 'mySession');
+    if(session.initialized) viewer.show = true;
     performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
     performanceEvaluator.end('pageLoad_rendering');
     logger.info(performanceEvaluator.getEvaluationToString('pageLoad_rendering'));
