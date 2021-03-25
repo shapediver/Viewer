@@ -273,10 +273,9 @@ export class Session implements ISession {
             try {
                 sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers })).data;
             } catch (e) {
-                
-                if(e.response && e.response.status && e.response.status === 403 && e.response.data && e.response.data.error === 'SdJwtValidationError') {
+                if(e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
                     if(!this._refreshBearerToken) {
-                        this._logger.error('Session init failed. Bearer Token invalid, please supply a valid token or assign the "refreshBearerToken" callback.');
+                        this._logger.error('Session init failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
                         return new SessionTreeNode();
                     } else {
                         const bearerToken = this.bearerToken;
@@ -335,9 +334,9 @@ export class Session implements ISession {
             } catch (e) {
 
                 if(e.response && e.response.status) {
-                    if(e.response.status === 403 && e.response.data && e.response.data.error === 'SdJwtValidationError') {
+                    if(e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
                         if(!this._refreshBearerToken) {
-                            this._logger.error('Session customization failed. Bearer Token invalid, please supply a valid token or assign the "refreshBearerToken" callback.');
+                            this._logger.error('Session customization failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
                             return new SessionTreeNode();
                         } else {
                             const bearerToken = this.bearerToken;
