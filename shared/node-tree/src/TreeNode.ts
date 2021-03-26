@@ -16,48 +16,64 @@ export interface ITransformation {
 }
 
 export class TreeNode {
-  // #region Properties (3)
+  // #region Properties (9)
 
-  protected readonly _children: TreeNode[] = [];
-  protected readonly _uuidGenerator = container.resolve(UuidGenerator);
-  protected readonly _eventEngine = container.resolve(EventEngine);
+  readonly #children: TreeNode[] = [];
+  readonly #data: ITreeNodeData[] = [];
+  readonly #eventEngine = container.resolve(EventEngine);
+  readonly #name: string = '';
+  readonly #uuidGenerator = container.resolve(UuidGenerator);
 
-  protected _id: string;
-  protected _version: string;
+  #id: string;
+  #parent: TreeNode | null = null;
+  #transformations: ITransformation[] = [];
+  #version: string;
 
-  // #endregion Properties (3)
+  // #endregion Properties (9)
 
   // #region Constructors (1)
 
   /**
    * Creation of a node that can be used in the node tree.
    * 
-   * @param _name the name of the node
-   * @param _parent the parent of this node
-   * @param _data the array of data 
-   * @param _transformations the array of transformations
+   * @param name the name of the node
+   * @param parent the parent of this node
+   * @param data the array of data 
+   * @param transformations the array of transformations
    */
   constructor(
-    protected readonly _name: string = '',
-    protected _parent: TreeNode | null = null,
-    protected readonly _data: ITreeNodeData[] = [],
-    protected _transformations: ITransformation[] = []
+    name: string = '',
+    parent: TreeNode | null = null,
+    data: ITreeNodeData[] = [],
+    transformations: ITransformation[] = []
   ) {
-    this._id = this._uuidGenerator.create();
-    this._version = this._uuidGenerator.create();
-    this._parent?.addChild(this);
+    this.#name = name;
+    this.#parent = parent;
+    this.#data = data;
+    this.#transformations = transformations;
+
+    this.#id = this.#uuidGenerator.create();
+    this.#version = this.#uuidGenerator.create();
+    this.#parent?.addChild(this);
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (9)
+  // #region Public Accessors (10)
 
   /**
    * Getter data
    * @return {ITreeNodeData[]}
    */
   public get data(): ITreeNodeData[] {
-    return this._data;
+    return this.#data;
+  }
+
+  /**
+   * Setter id
+   */
+  public set id(value: string) {
+    this.#id = value;
   }
 
   /**
@@ -65,7 +81,7 @@ export class TreeNode {
    * @return {string}
    */
   public get id(): string {
-    return this._id;
+    return this.#id;
   }
 
   /**
@@ -73,7 +89,7 @@ export class TreeNode {
    * @return {string }
    */
   public get name(): string {
-    return this._name;
+    return this.#name;
   }
 
   /**
@@ -82,7 +98,7 @@ export class TreeNode {
    */
   public get nodeMatrix(): mat4 {
     const matrix: mat4 = mat4.create();
-    for (let transform of this._transformations)
+    for (let transform of this.#transformations)
       mat4.multiply(matrix, matrix, transform.matrix);
     return matrix;
   }
@@ -92,7 +108,7 @@ export class TreeNode {
    * @return {TreeNode | null}
    */
   public get parent(): TreeNode | null {
-    return this._parent;
+    return this.#parent;
   }
 
   /**
@@ -101,14 +117,14 @@ export class TreeNode {
    */
   public set parent(value: TreeNode | null) {
     // check if it was removed from previous parent
-    if (value === null && this._parent !== null)
-      this._parent.removeChild(this);
+    if (value === null && this.#parent !== null)
+      this.#parent.removeChild(this);
 
     // check if it is in children of new parent
     if (value !== null)
       value.addChild(this);
 
-    this._parent = value;
+    this.#parent = value;
   }
 
   /**
@@ -116,7 +132,7 @@ export class TreeNode {
    * @return {ITransformation[]}
    */
   public get transformations(): ITransformation[] {
-    return this._transformations;
+    return this.#transformations;
   }
 
   /**
@@ -124,7 +140,7 @@ export class TreeNode {
    * @param {ITransformation[]} value
    */
   public set transformations(value: ITransformation[]) {
-    this._transformations = value;
+    this.#transformations = value;
   }
 
   /**
@@ -132,12 +148,31 @@ export class TreeNode {
    * @return {string}
    */
   public get version(): string {
-    return this._version;
+    return this.#version;
   }
 
-  // #endregion Public Accessors (9)
+  /**
+   * Getter world matrix
+   * @return {mat4}
+   */
+  public get worldMatrix(): mat4 {
+    const matrix: mat4 = mat4.create();
 
-  // #region Public Methods (8)
+    for (let transform of this.#transformations)
+      mat4.multiply(matrix, matrix, transform.matrix);
+
+    let node: TreeNode = this;
+    while (node.parent) {
+      mat4.multiply(matrix, matrix, node.parent.nodeMatrix);
+      node = node.parent;
+    }
+
+    return matrix;
+  }
+
+  // #endregion Public Accessors (10)
+
+  // #region Public Methods (11)
 
   /**
    * Add a child from the children of this node.
@@ -147,7 +182,7 @@ export class TreeNode {
   public addChild(child: TreeNode): boolean {
     if (this.hasChild(child)) return false;
 
-    this._children.push(child);
+    this.#children.push(child);
     if (child.parent !== null)
       child.parent.removeChild(child);
     child.parent = this;
@@ -159,11 +194,11 @@ export class TreeNode {
    */
   public clone(): TreeNode {
     const clone = new TreeNode(this.name);
-    for (let child of this._children)
+    for (let child of this.#children)
       clone.addChild(child.clone());
-    for (let data of this._data)
+    for (let data of this.#data)
       clone.data.push(data.clone());
-    for (let transform of this._transformations)
+    for (let transform of this.#transformations)
       clone.transformations.push({
         id: transform.id,
         name: transform.name,
@@ -178,11 +213,11 @@ export class TreeNode {
    */
   public cloneInstance(): TreeNode {
     const clone = new TreeNode(this.name);
-    for (let child of this._children)
+    for (let child of this.#children)
       clone.addChild(child.cloneInstance());
-    for (let data of this._data)
+    for (let data of this.#data)
       clone.data.push(data);
-    for (let transform of this._transformations)
+    for (let transform of this.#transformations)
       clone.transformations.push({
         id: transform.id,
         name: transform.name,
@@ -196,20 +231,20 @@ export class TreeNode {
    * Getter child
    * @return {TreeNode}
    */
-  public getChildAt(index: number): TreeNode | null {
-    if(!this._children[index]) return null;
-    return this._children[index];
+  public getChild(id: string): TreeNode | null {
+    for (let i = 0; i < this.#children.length; i++)
+      if (this.#children[i].id === id)
+        return this.#children[i];
+    return null;
   }
 
   /**
    * Getter child
    * @return {TreeNode}
    */
-  public getChild(id: string): TreeNode | null {
-    for(let i = 0; i < this._children.length; i++)
-      if(this._children[i].id === id)
-        return this._children[i];
-    return null;
+  public getChildAt(index: number): TreeNode | null {
+    if (!this.#children[index]) return null;
+    return this.#children[index];
   }
 
   /**
@@ -217,7 +252,7 @@ export class TreeNode {
    * @return {number}
    */
   public getNumberOfChildren(): number {
-    return this._children.length;
+    return this.#children.length;
   }
 
   /**
@@ -239,7 +274,7 @@ export class TreeNode {
    * @param child the child to check
    */
   public hasChild(child: TreeNode): boolean {
-    return this._children.includes(child);
+    return this.#children.includes(child);
   }
 
   /**
@@ -248,19 +283,11 @@ export class TreeNode {
    * @param child the child to remove
    */
   public removeChild(child: TreeNode): boolean {
-    const index = this._children.indexOf(child);
+    const index = this.#children.indexOf(child);
     if (index === -1) return false;
-    this._children.splice(index, 1);
+    this.#children.splice(index, 1);
     child.parent = null;
     return true;
-  }
-
-  /**
-   * Only updates the version of this node.
-   */
-  public updateVersionAtomic(): void {
-    this._version = this._uuidGenerator.create();
-    this._eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
   /**
@@ -273,15 +300,23 @@ export class TreeNode {
       node.updateVersionAtomic();
     }
 
-    for(let i = 0; i < this._data.length; i++)
-      this._data[i].updateVersion();
+    for (let i = 0; i < this.#data.length; i++)
+      this.#data[i].updateVersion();
 
-    for(let i = 0; i < this._children.length; i++)
-      this._children[i].updateVersion();
+    for (let i = 0; i < this.#children.length; i++)
+      this.#children[i].updateVersion();
 
-    this._version = this._uuidGenerator.create();
-    this._eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
+    this.#version = this.#uuidGenerator.create();
+    this.#eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
-  // #endregion Public Methods (8)
+  /**
+   * Only updates the version of this node.
+   */
+  public updateVersionAtomic(): void {
+    this.#version = this.#uuidGenerator.create();
+    this.#eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
+  }
+
+  // #endregion Public Methods (11)
 }

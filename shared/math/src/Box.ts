@@ -53,16 +53,17 @@ export class Box {
 
     // #region Public Methods (5)
 
-    public applyMatrix(matrix: mat4): void {
+    public applyMatrix(matrix: mat4): Box {
         vec3.transformMat4(this.min, this.min, matrix);
         vec3.transformMat4(this.max, this.max, matrix);
+        return this;
     }
 
     public clone(): Box {
         return new Box(vec3.clone(this.min), vec3.clone(this.max))
     }
 
-    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array) {
+    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array): Box {
         let minX = Infinity, minY = Infinity, minZ = Infinity;
         let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
@@ -82,9 +83,10 @@ export class Box {
 
         this.min = vec3.fromValues(minX, minY, minZ);
         this.max = vec3.fromValues(maxX, maxY, maxZ);
+        return this;
     }
 
-    public union(box: Box): void {
+    public union(box: Box): Box {
         if ( box.min[0] < this.min[0] ) this.min[0] = box.min[0];
         if ( box.min[1] < this.min[1] ) this.min[1] = box.min[1];
         if ( box.min[2] < this.min[2] ) this.min[2] = box.min[2];
@@ -92,6 +94,7 @@ export class Box {
         if ( box.max[0] > this.max[0] ) this.max[0] = box.max[0];
         if ( box.max[1] > this.max[1] ) this.max[1] = box.max[1];
         if ( box.max[2] > this.max[2] ) this.max[2] = box.max[2];
+        return this;
     }
 
     // #endregion Public Methods (5)

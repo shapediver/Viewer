@@ -33,10 +33,11 @@ export class Sphere {
 
     // #region Public Methods (1)
 
-    public setFromBox(box: Box): void {
+    public setFromBox(box: Box): Sphere {
         vec3.add(this.center, box.min, box.max);
         vec3.scale(this.center, this.center, 0.5);
         this.radius = vec3.dist(box.min, box.max) * 0.5;
+        return this;
     }
 
     // #endregion Public Methods (1)

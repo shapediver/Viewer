@@ -16,6 +16,7 @@ export class GLTFLoader {
     private readonly _uuidGenerator = container.resolve(UuidGenerator);
     private readonly _logger = container.resolve(Logger);
     private readonly _implementedExtensions = [''];
+    private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
 
     private _baseUri!: string;
     private _body!: ArrayBuffer;
@@ -77,14 +78,12 @@ export class GLTFLoader {
             this._baseUri = removeLastDirectoryPartOf(url!);
             if (!this._baseUri && window && window.location && window.location.href)
                 this._baseUri = removeLastDirectoryPartOf(window.location.href);
-                
         }
 
         try{
             this.validateVersionAndExtensions();
             return await this.loadScene();
         } catch (e) {
-            console.log(e)
             this._logger.error('Loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
             return new TreeNode();
         }
@@ -344,6 +343,11 @@ export class GLTFLoader {
         if (!this._content.scenes || !this._content.scenes[sceneID]) throw new Error('Scene not available.')
         const scene = this._content.scenes[sceneID];
         const sceneDef = new TreeNode('scene_' + scene.name || sceneID +'');
+        sceneDef.transformations.push({
+            id: this._uuidGenerator.create(),
+            name: 'glTF_global_transformation',
+            matrix: this._globalTransformation     
+        })
         if(scene.nodes)
             for (let i = 0, len = scene.nodes.length; i < len; i++) 
                 sceneDef.addChild(await this.loadNode(scene.nodes[i]));

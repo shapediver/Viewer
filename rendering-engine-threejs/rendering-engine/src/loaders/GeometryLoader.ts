@@ -5,6 +5,7 @@ import { SDObject } from '../types/SDObject';
 import { Box } from '@shapediver/viewer.shared.math';
 import { MaterialLoader } from './MaterialLoader';
 import { RenderingEngine } from '../RenderingEngine';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 export class GeometryLoader {
     // #region Public Methods (1)
@@ -20,8 +21,8 @@ export class GeometryLoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-     public load(geometry: GeometryData, parent: SDObject, boundingBox: Box): void {
-        boundingBox.union(geometry.boundingBox);
+     public load(geometry: GeometryData, parent: SDObject, realObject: TreeNode, boundingBox: Box): void {
+        boundingBox.union(geometry.boundingBox.clone().applyMatrix(realObject.worldMatrix));
         if (this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS]) {
             // if already in geo cache
 

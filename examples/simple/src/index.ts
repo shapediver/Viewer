@@ -14,8 +14,8 @@ const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
 const ticket = 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8';
 const dataEngine: DataEngine = container.resolve(DataEngine);
 
-// const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
-// const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
+const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
+const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
 
 const performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 const logger = <Logger>container.resolve(Logger);
@@ -30,23 +30,17 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
     performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
     performanceEvaluator.end('pageLoad_rendering');
     logger.info(performanceEvaluator.getEvaluationToString('pageLoad_rendering'));
-
-    const node = await dataEngine.loadContent({
-        format: 'gltf',
-        href: '.\\glTF-Sample-Models\\2.0\\Lantern\\glTF-pbrSpecularGlossiness\\Lantern.gltf'
-    });
-    api.sceneTree.addNode(node);
-    api.update();
 })();
 
-// // glTFv2Button.onclick = async () => {
-// //     const node = await dataEngine.loadContent({
-// //         format: 'gltf',
-// //         href: '.\glTF-Sample-Models\2.0\Avocado\glTF-pbrSpecularGlossiness\Avocado.gltf'
-// //     });
-// //     api.sceneTree.addNode(node);
-// //     api.update()
-// // }
+glTFv2Button.onclick = async () => {
+    const uri: string = glTFv2Input.value;
+    const node = await dataEngine.loadContent({
+        format: 'gltf',
+        href: uri
+    });
+    api.sceneTree.addNode(node);
+    api.update()
+}
 
 // (<any>window).sceneTree = api.sceneTree;
 // (<any>window).api = api;

@@ -47,7 +47,7 @@ export class SceneTree {
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public convertData(data: ITreeNodeData, obj: SDObject): void {
+    public convertData(data: ITreeNodeData, obj: SDObject, realObject: TreeNode): void {
         let dataChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
 
         if (!dataChild)
@@ -57,7 +57,7 @@ export class SceneTree {
 
         switch (true) {
             case data instanceof GeometryData:
-                this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, this._boundingBox);
+                this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, realObject, this._boundingBox);
                 break;
             case data instanceof ThreejsData:
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);
@@ -125,7 +125,7 @@ export class SceneTree {
         obj.applyTransformation(node.nodeMatrix);
 
         for (let i = 0, len = node.data.length; i < len; i++) {
-            this.convertData(node.data[i], obj);
+            this.convertData(node.data[i], obj, node);
         }
 
         const nodeIds: string[] = []

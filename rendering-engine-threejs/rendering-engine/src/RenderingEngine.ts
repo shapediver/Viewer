@@ -68,6 +68,7 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Constructors (1)
 
     constructor(private readonly _id: string, canvasDefinition?: string | HTMLCanvasElement) {
+        THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
         this._settings = <SettingsEngine>container.resolve(SettingsEngine);
         this._converter = <Converter>container.resolve(Converter);
         this._eventEngine = <EventEngine>container.resolve(EventEngine);
@@ -101,7 +102,6 @@ export class RenderingEngine implements IRenderingEngine {
         this._cameraEngine = new CameraEngine(this._canvas, this._domEventEngine);
 
         this._sceneTree = new SceneTree(this);
-        THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
         (<SceneTree>this._sceneTree).scene.background = new THREE.Color(0xffffff);
 
