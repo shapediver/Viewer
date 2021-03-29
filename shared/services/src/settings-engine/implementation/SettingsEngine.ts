@@ -1,5 +1,7 @@
 import { container, singleton } from 'tsyringe';
-import { EventEngine, EVENTTYPE } from '../../index';
+import { EventEngine } from '../../event-engine/EventEngine';
+import { EVENTTYPE } from '../../event-engine/EventTypes';
+import { StateEngine } from '../../state-engine/StateEngine';
 import { DefaultSettings } from './DefaultSettings';
 
 type GeneralSettings = typeof DefaultSettings.viewer;
@@ -17,6 +19,7 @@ export class SettingsEngine {
 
     private readonly _settings = DefaultSettings;
     private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
 
     // #endregion Properties (1)
 
@@ -98,6 +101,7 @@ export class SettingsEngine {
     }
 
     public fromJson(json: any) {
+        if(this._stateEngine.settingsRegistered.resolved) return;
         this._fromJson(json, this._settings);
         this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, {});
     }
