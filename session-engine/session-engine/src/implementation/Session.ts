@@ -6,7 +6,7 @@ import { SessionTreeNode } from './SessionTreeNode';
 
 import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
-import { SettingsEngine, SystemInfo } from '@shapediver/viewer.shared.services';
+import { SettingsEngine, SystemInfo, StateEngine } from '@shapediver/viewer.shared.services';
 import { Export } from './Export';
 import { Output } from './Output';
 import { Parameter } from './Parameter';
@@ -14,16 +14,16 @@ import { ISession } from '../interfaces/ISession';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 export class Session implements ISession {
-    // #region Properties (11)
+    // #region Properties (13)
 
     private readonly _exports: { [key: string]: Export; } = {};
     private readonly _httpClient = container.resolve(HttpClient);
+    private readonly _logger = container.resolve(Logger);
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: Output; } = {};
     private readonly _outputsCreated: { [key: string]: Output; } = {};
     private readonly _parameters: { [key: string]: Parameter; } = {};
     private readonly _sessionEngineId = container.resolve(UuidGenerator).create();
-    private readonly _logger = container.resolve(Logger);
 
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
@@ -34,10 +34,11 @@ export class Session implements ISession {
     }
 
     private _initialized: boolean = false;
-    private _sessionResponse: SessionResponse;
+    private _loadDefaultSettings: boolean = true;
     private _refreshBearerToken!: () => string;
+    private _sessionResponse: SessionResponse;
 
-    // #endregion Properties (11)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
@@ -53,6 +54,7 @@ export class Session implements ISession {
         private readonly _ticket: string,
         private readonly _modelViewUrl: string,
         private _bearerToken?: string,
+        private _loadDefaultSetting: boolean = true
     ) {
         this._sessionResponse = new SessionResponse();
         this._outputLoader = new OutputLoader(this._sessionResponse);
@@ -60,7 +62,7 @@ export class Session implements ISession {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (5)
+    // #region Public Accessors (9)
 
     public get bearerToken(): string | undefined {
         return this._bearerToken;
@@ -72,6 +74,10 @@ export class Session implements ISession {
 
     public get id(): string {
         return this._id;
+    }
+
+    public get initialized(): boolean {
+        return this._initialized;
     }
 
     public get modelViewUrl(): string {
@@ -86,11 +92,7 @@ export class Session implements ISession {
         return this._ticket;
     }
 
-    public get initialized(): boolean {
-        return this._initialized;
-    }
-
-    // #endregion Public Accessors (5)
+    // #endregion Public Accessors (9)
 
     // #region Public Methods (17)
 
@@ -294,7 +296,7 @@ export class Session implements ISession {
                 return new SessionTreeNode();
             }
 
-            (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
+            if(this._loadDefaultSettings && !(<StateEngine>container.resolve(StateEngine)).settingsRegistered.resolved) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
             this._sessionResponse.adaptSession(sessionResponse);
 
             const parameters: { [key: string]: string } = {};
@@ -332,7 +334,6 @@ export class Session implements ISession {
             try {
                 responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
             } catch (e) {
-
                 if(e.response && e.response.status) {
                     if(e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
                         if(!this._refreshBearerToken) {

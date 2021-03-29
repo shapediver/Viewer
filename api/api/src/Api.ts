@@ -109,10 +109,11 @@ export class Api {
    * @param properties.ticket the ticket of a session
    * @param properties.modelViewUrl the modelViewUrl of the session
    * @param properties.bearerToken the bearerToken of the session
+   * @param properties.loadDefaultSettings the bearerToken of the session
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, id?: string }): Promise<Session> {
+  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, id?: string }): Promise<Session> {
     // check if the given id is valid
     const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#sessions[sessionId]) this.#logger.error('Session with this id already exists.');
@@ -121,7 +122,7 @@ export class Api {
     this.#performanceEvaluator.start('session_creation_' + sessionId);
 
     // create the actual session 
-    const session = new Session(sessionId, properties.ticket, properties.modelViewUrl, properties.bearerToken);
+    const session = new Session(sessionId, properties.ticket, properties.modelViewUrl, properties.bearerToken, properties.loadDefaultSettings);
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
 
     // initialized the session
