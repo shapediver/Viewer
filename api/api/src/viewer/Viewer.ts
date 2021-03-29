@@ -508,13 +508,13 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add an ambient light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addAmbientLight(color: vec3, intensity: number, id?: string): AmbientLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(color, intensity, id)
+  public addAmbientLight(properties: {color: vec3, intensity: number, id?: string}): AmbientLight {
+    const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(properties)
     this.#lights[(<AbstractLight>lightLogic).id] = new AmbientLight(<AmbientLightLogic>lightLogic);
     this.update();
     return <AmbientLight>this.#lights[(<AbstractLight>lightLogic).id];
@@ -524,17 +524,17 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add a directional light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param direction the directional of the light
-   * @param castShadow the option to cast shadow
-   * @param shadowMapResolution the resolution of the shadow map
-   * @param shadowMapBias the bias of the shadow map
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.direction the directional of the light
+   * @param properties.castShadow the option to cast shadow
+   * @param properties.shadowMapResolution the resolution of the shadow map
+   * @param properties.shadowMapBias the bias of the shadow map
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapBias: number, id?: string): DirectionalLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(color, intensity, direction, castShadow, shadowMapResolution, shadowMapBias, id);
+  public addDirectionalLight(properties: {color: vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapBias: number, id?: string}): DirectionalLight {
+    const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new DirectionalLight(<DirectionalLightLogic>lightLogic);
     this.update();
     return <DirectionalLight>this.#lights[(<AbstractLight>lightLogic).id];
@@ -544,14 +544,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add a hemisphere light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param groundColor the ground color of the light
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.groundColor the ground color of the light
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addHemisphereLight(color: vec3, intensity: number, groundColor: vec3, id?: string): HemisphereLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(color, intensity, groundColor, id);
+  public addHemisphereLight(properties: {color: vec3, intensity: number, groundColor: vec3, id?: string}): HemisphereLight {
+    const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new HemisphereLight(<HemisphereLightLogic>lightLogic);
     this.update();
     return <HemisphereLight>this.#lights[(<AbstractLight>lightLogic).id];
@@ -561,16 +561,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add a point light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param position the position of the light
-   * @param distance the distance of the light radiance
-   * @param decay the decay of the light radiance
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.position the position of the light
+   * @param properties.distance the distance of the light radiance
+   * @param properties.decay the decay of the light radiance
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addPointLight(color: vec3, intensity: number, position: vec3, distance: number, decay: number, id?: string): PointLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addPointLight(color, intensity, position, distance, decay, id);
+  public addPointLight(properties: {color: vec3, intensity: number, position: vec3, distance: number, decay: number, id?: string}): PointLight {
+    const lightLogic = this.#renderingEngine.lightEngine.addPointLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new PointLight(<PointLightLogic>lightLogic);
     this.update();
     return <PointLight>this.#lights[(<AbstractLight>lightLogic).id];
@@ -580,19 +580,19 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add a spot light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param position the position of the light
-   * @param target the target of the light
-   * @param distance the distance of the light radiance
-   * @param decay the decay of the light radiance
-   * @param angle the angle of the light cone
-   * @param penumbra the percentage of the cone that is part of the penmubra
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.position the position of the light
+   * @param properties.target the target of the light
+   * @param properties.distance the distance of the light radiance
+   * @param properties.decay the decay of the light radiance
+   * @param properties.angle the angle of the light cone
+   * @param properties.penumbra the percentage of the cone that is part of the penmubra
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addSpotLight(color: vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, id?: string): SpotLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(color, intensity, position, target, distance, decay, angle, penumbra, id);
+  public addSpotLight(properties: {color: vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, id?: string}): SpotLight {
+    const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new SpotLight(<SpotLightLogic>lightLogic);
     this.update();
     return <SpotLight>this.#lights[(<AbstractLight>lightLogic).id];
@@ -603,12 +603,12 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * An id can be provided. If not, a unique id will be created.
    * If the standard option is chosen, the default lights will be added from the start.
    * 
-   * @param id the id of the light scene
-   * @param standard the option to add the standard lights
+   * @param properties.id the id of the light scene
+   * @param properties.standard the option to add the standard lights
    * @returns 
    */
-  public createLightScene(id?: string, standard?: boolean): string {
-    const r = this.#renderingEngine.lightEngine.createLightScene(id, standard);
+  public createLightScene(properties: {id?: string, standard?: boolean}): string {
+    const r = this.#renderingEngine.lightEngine.createLightScene(properties);
     this.update();
     return r;
   }

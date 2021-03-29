@@ -106,22 +106,22 @@ export class Api {
    * The session will be initialized automatically, 
    * and the first computation will be loaded in the the scene tree once the promise has resolved.
    * 
-   * @param ticket the ticket of a session
-   * @param modelViewUrl the modelViewUrl of the session
-   * @param bearerToken the bearerToken of the session
-   * @param id the unique id the session should have
+   * @param properties.ticket the ticket of a session
+   * @param properties.modelViewUrl the modelViewUrl of the session
+   * @param properties.bearerToken the bearerToken of the session
+   * @param properties.id the unique id the session should have
    * @returns 
    */
-  public async createSession(ticket: string, modelViewUrl: string, bearerToken?: string, id?: string): Promise<Session> {
+  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, id?: string }): Promise<Session> {
     // check if the given id is valid
-    const sessionId = id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#sessions[sessionId]) this.#logger.error('Session with this id already exists.');
 
     // start the performance eval
     this.#performanceEvaluator.start('session_creation_' + sessionId);
 
     // create the actual session 
-    const session = new Session(sessionId, ticket, modelViewUrl, bearerToken);
+    const session = new Session(sessionId, properties.ticket, properties.modelViewUrl, properties.bearerToken);
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
 
     // initialized the session
@@ -146,21 +146,21 @@ export class Api {
    * 
    * The viewer will automatically load what is currently in the scene tree.
    * 
-   * @param type the type of the viewer
-   * @param canvas the canvas that the viewer should use
-   * @param id the unique id the session should have 
+   * @param properties.type the type of the viewer
+   * @param properties.canvas the canvas that the viewer should use
+   * @param properties.id the unique id the session should have 
    * @returns 
    */
-  public async createViewer(type: RENDERERTYPE, canvas: HTMLCanvasElement, id?: string): Promise<Viewer> {
+  public async createViewer(properties: { type?: RENDERERTYPE, canvas: HTMLCanvasElement, id?: string }): Promise<Viewer> {
     // check if the given id is valid
-    const viewerId = id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    const viewerId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
 
     // start the performance eval
     this.#performanceEvaluator.start('viewer_creation_' + viewerId);
 
     // create the actual viewer
-    const viewer = new Viewer(viewerId, type, canvas);
+    const viewer = new Viewer(viewerId, properties.type || RENDERERTYPE.STANDARD, properties.canvas);
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
     // save the viewer

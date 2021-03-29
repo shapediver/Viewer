@@ -8,5 +8,5 @@ import { api, RENDERERTYPE, CAMERATYPE, LIGHTTYPE } from "@shapediver/viewer"
 (<any>window).LIGHTTYPE = LIGHTTYPE;
 
 (async () => {
-    await api.createViewer(RENDERERTYPE.STANDARD, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
+    await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
 })();

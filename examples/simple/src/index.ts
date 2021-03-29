@@ -24,8 +24,8 @@ performanceEvaluator.end('startup');
 logger.info(performanceEvaluator.getEvaluationToString('startup'));
 
 (async () => {
-    let viewer = await api.createViewer(RENDERERTYPE.STANDARD, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
-    let session = await api.createSession(ticket, modelViewUrl, undefined, 'mySession');
+    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
+    let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
     if(session.initialized) viewer.show = true;
     performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
     performanceEvaluator.end('pageLoad_rendering');
