@@ -11,7 +11,8 @@
     "examples/*",
     "rendering-engine/*",
     "rendering-engine-threejs/*",
-    "math/*"
+    "math/*",
+    "tests/*"
   ],
   "version": "independent"
 }

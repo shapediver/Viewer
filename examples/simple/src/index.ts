@@ -10,12 +10,12 @@ import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitori
 (<any>window).CAMERATYPE = CAMERATYPE;
 (<any>window).LIGHTTYPE = LIGHTTYPE;
 
-const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com:443';
-const ticket = '601e5b0e326c6bce15bbc6ac397e0e9e23db5b094b9e2f39e132436cc8dbb005a2d63563f8ad9ca7ac53b1b2b8714b8be6fed5fec27bfd788f0d08119c0eda462b0a22d20fb580e58fbf21197560a015ae65c94ad5aa894f77b3a7bac9eec6ba568c296ad4f7574922ecd0e733eb9bc3e842956abc-cfc5548fb37e476f774fa890c45efe0c';
-// const dataEngine: DataEngine = container.resolve(DataEngine);
+const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
+const ticket = 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8';
+const dataEngine: DataEngine = container.resolve(DataEngine);
 
-// const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
-// const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
+const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
+const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
 
 const performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 const logger = <Logger>container.resolve(Logger);
@@ -32,15 +32,15 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
     logger.info(performanceEvaluator.getEvaluationToString('pageLoad_rendering'));
 })();
 
-// // glTFv2Button.onclick = async () => {
-// //     const uri: string = glTFv2Input.value;
-// //     const node = await dataEngine.loadContent({
-// //         format: 'gltf',
-// //         href: uri
-// //     });
-// //     api.sceneTree.addNode(node);
-// //     api.update()
-// // }
+glTFv2Button.onclick = async () => {
+    const uri: string = glTFv2Input.value;
+    const node = await dataEngine.loadContent({
+        format: 'gltf',
+        href: uri
+    });
+    api.sceneTree.addNode(node);
+    api.update()
+}
 
 // (<any>window).sceneTree = api.sceneTree;
 // (<any>window).api = api;

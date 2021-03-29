@@ -5,7 +5,7 @@ import { ITreeNodeData, ITransformation, TreeNode } from '@shapediver/viewer.sha
 export class SessionTreeNode extends TreeNode {
   // #region Properties (1)
 
-  private readonly _sessionNode: boolean = true;
+  readonly #sessionNode: boolean = true;
 
   // #endregion Properties (1)
 
@@ -28,7 +28,7 @@ export class SessionTreeNode extends TreeNode {
     transformations?: ITransformation[]
   ) {
     super(name, parent, data, transformations);
-    if (id) this._id = id;
+    if (id) this.id = id;
   }
 
   // #endregion Constructors (1)
@@ -40,7 +40,7 @@ export class SessionTreeNode extends TreeNode {
    * @return {boolean }
    */
   public get sessionNode(): boolean {
-    return this._sessionNode;
+    return this.#sessionNode;
   }
 
   // #endregion Public Accessors (1)

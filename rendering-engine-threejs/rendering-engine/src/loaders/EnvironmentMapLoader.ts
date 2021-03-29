@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { RenderingEngine } from "..";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { container } from "tsyringe";
 
 export class EnvironmentMapLoader {
     // #region Properties (4)
@@ -9,6 +11,7 @@ export class EnvironmentMapLoader {
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | null
     } = {};
+    private readonly _logger: Logger = container.resolve(Logger);
 
     private _environmentMapName: string = 'none';
 
@@ -50,7 +53,7 @@ export class EnvironmentMapLoader {
             name_caching = name_internal + this._renderingEngine.environmentMapResolution;
         } else {
             if (name.length !== 6) {
-                console.error('TODO')
+                this._logger.error('Was not able to load environment map, exactly 6 files are needed in the array.')
                 return false;
             }
             name_internal = JSON.stringify(name, null, 0);
@@ -80,7 +83,7 @@ export class EnvironmentMapLoader {
                     url.push(name + this._environmentMapFilenames[i] + '.jpg');
             }
             else {
-                console.log('TODO')
+                this._logger.error('Was not able to load environment map, format not supported.')
                 return false;
             }
         } else {
@@ -92,7 +95,7 @@ export class EnvironmentMapLoader {
             return Promise.resolve(true);
         }
         catch (error) {
-            console.log('TODO')
+            this._logger.error('Was not able to load environment map.')
             return Promise.resolve(false);
         }
     }
