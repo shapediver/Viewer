@@ -10,26 +10,20 @@ import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 
 @injectable()
 export class Session implements ISession {
-    // #region Properties (6)
+    // #region Properties (9)
 
     readonly #exports: { [key: string]: Export; } = {};
     readonly #outputs: { [key: string]: Output; } = {};
     readonly #parameters: { [key: string]: Parameter; } = {};
-
     readonly #sessionEngine: SessionEngine;
-    readonly #ticket: string; 
-    readonly #modelViewUrl: string;
-    readonly #performanceEvaluator: PerformanceEvaluator;
-    readonly #logger: Logger;
     readonly #eventEngine: EventEngine;
-    
     #commitParameters: boolean = false;
     #node: TreeNode;
     #parameterControlNames: string[] = [];
     #parameterControlOrder: string[] = [];
     #parameterHidden: string[] = [];
 
-    // #endregion Properties (6)
+    // #endregion Properties (9)
 
     // #region Constructors (1)
 
@@ -39,19 +33,29 @@ export class Session implements ISession {
      * @param ticket 
      * @param modelViewUrl 
      */
-    constructor( id: string, ticket: string, modelViewUrl: string ) {
-        this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-        this.#logger = <Logger>container.resolve(Logger);
-        this.#eventEngine = <EventEngine>container.resolve(EventEngine);
-        this.#ticket = ticket;
-        this.#modelViewUrl = modelViewUrl;
-        this.#node = new TreeNode(this.ticket)
-        this.#sessionEngine = new SessionEngine(id, this.#ticket, this.#modelViewUrl);
+    constructor( id: string, ticket: string, modelViewUrl: string, bearerToken?: string ) {
+        this.#node = new TreeNode(ticket)
+        this.#sessionEngine = new SessionEngine(id, ticket, modelViewUrl, bearerToken);
+        this.#eventEngine = container.resolve(EventEngine);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (12)
+    // #region Public Accessors (8)
+
+    /**
+     * The bearerToken of the session.
+     */
+    public get bearerToken(): string | undefined {
+        return this.#sessionEngine.bearerToken;
+    }
+
+    /**
+     * The bearerToken of the session.
+     */
+    public set bearerToken(value: string | undefined) {
+        this.#sessionEngine.bearerToken = value;
+    }
 
     // /**
     //  * Getter commitParameters
@@ -78,11 +82,19 @@ export class Session implements ISession {
     }
 
     /**
+     * If the session was already initialized.
+     * @return {boolean}
+     */
+     public get initialized(): boolean {
+        return this.#sessionEngine.initialized;
+    }
+
+    /**
      * The modelViewUrl of the session.
      * @return {string}
      */
     public get modelViewUrl(): string {
-        return this.#modelViewUrl;
+        return this.#sessionEngine.modelViewUrl;
     }
 
     /**
@@ -91,6 +103,15 @@ export class Session implements ISession {
      */
     public get node(): TreeNode {
         return this.#node;
+    }
+
+    /**
+     * The callback to refresh the bearer token.
+     * This callback will be executed, 
+     * once a session request fails due to an invalid bearer token.
+     */
+    public set refreshBearerToken(value: () => string) {
+        this.#sessionEngine.refreshBearerToken = value;
     }
 
     // /**
@@ -146,10 +167,10 @@ export class Session implements ISession {
      * @return {string}
      */
     public get ticket(): string {
-        return this.#ticket;
+        return this.#sessionEngine.ticket;
     }
 
-    // #endregion Public Accessors (12)
+    // #endregion Public Accessors (8)
 
     // #region Public Methods (17)
 
