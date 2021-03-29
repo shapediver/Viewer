@@ -42,7 +42,6 @@ export class RenderingLogic {
             antialias: true,
             preserveDrawingBuffer: true,
             canvas: this._renderingEngine.canvas.canvasElement,
-
         });
         this._renderer.setPixelRatio(window.devicePixelRatio);
 

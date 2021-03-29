@@ -14,17 +14,21 @@ import { ISession } from '../interfaces/ISession';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 export class Session implements ISession {
-    // #region Properties (13)
+    // #region Properties (18)
 
     private readonly _exports: { [key: string]: Export; } = {};
     private readonly _httpClient = container.resolve(HttpClient);
+    private readonly _id: string;
     private readonly _logger = container.resolve(Logger);
+    private readonly _modelViewUrl: string;
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: Output; } = {};
     private readonly _outputsCreated: { [key: string]: Output; } = {};
     private readonly _parameters: { [key: string]: Parameter; } = {};
     private readonly _sessionEngineId = container.resolve(UuidGenerator).create();
+    private readonly _ticket: string;
 
+    private _bearerToken?: string;
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
         "X-ShapeDiver-ViewerId": '125295ae-3955-46f1-8b41-c2ce046111ec', // TODO
@@ -38,31 +42,27 @@ export class Session implements ISession {
     private _refreshBearerToken!: () => string;
     private _sessionResponse: SessionResponse;
 
-    // #endregion Properties (13)
+    // #endregion Properties (18)
 
     // #region Constructors (1)
 
     /**
      * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
-     * 
-     * @param ticket the model ticket
-     * @param modelViewUrl the model view url
      */
-    constructor(
-        private readonly _id: string,
-        private readonly _ticket: string,
-        private readonly _modelViewUrl: string,
-        private _bearerToken?: string,
-        private _loadDefaultSetting: boolean = true
-    ) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
+        this._id = properties.id;
+        this._ticket = properties.ticket;
+        this._modelViewUrl = properties.modelViewUrl;
+        this._bearerToken = properties.bearerToken;
+        this._loadDefaultSettings = properties.loadDefaultSettings || true;
         this._sessionResponse = new SessionResponse();
         this._outputLoader = new OutputLoader(this._sessionResponse);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (9)
+    // #region Public Accessors (7)
 
     public get bearerToken(): string | undefined {
         return this._bearerToken;
@@ -92,7 +92,7 @@ export class Session implements ISession {
         return this._ticket;
     }
 
-    // #endregion Public Accessors (9)
+    // #endregion Public Accessors (7)
 
     // #region Public Methods (17)
 
@@ -267,7 +267,7 @@ export class Session implements ISession {
                 parameters[parameter] = this._sessionResponse.parameters[parameter].value;
             return this.loadOutputs(parameters, this._sessionResponse.outputs);
         }
-        
+
         const headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
 
         try {
@@ -275,14 +275,14 @@ export class Session implements ISession {
             try {
                 sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers })).data;
             } catch (e) {
-                if(e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
-                    if(!this._refreshBearerToken) {
+                if (e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
+                    if (!this._refreshBearerToken) {
                         this._logger.error('Session init failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
                         return new SessionTreeNode();
                     } else {
                         const bearerToken = this.bearerToken;
                         const newToken = this._refreshBearerToken();
-                        if(bearerToken === newToken) {
+                        if (bearerToken === newToken) {
                             this._logger.error('Session init failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
                             return new SessionTreeNode();
                         } else {
@@ -296,7 +296,7 @@ export class Session implements ISession {
                 return new SessionTreeNode();
             }
 
-            if(this._loadDefaultSettings && !(<StateEngine>container.resolve(StateEngine)).settingsRegistered.resolved) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
+            if (this._loadDefaultSettings && !(<StateEngine>container.resolve(StateEngine)).settingsRegistered.resolved) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
             this._sessionResponse.adaptSession(sessionResponse);
 
             const parameters: { [key: string]: string } = {};
@@ -323,7 +323,7 @@ export class Session implements ISession {
     // #region Private Methods (3)
 
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
-        if(this._initialized === false) {
+        if (this._initialized === false) {
             this._logger.error('Session not initialized.');
             return new SessionTreeNode();
         }
@@ -334,15 +334,15 @@ export class Session implements ISession {
             try {
                 responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
             } catch (e) {
-                if(e.response && e.response.status) {
-                    if(e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
-                        if(!this._refreshBearerToken) {
+                if (e.response && e.response.status) {
+                    if (e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
+                        if (!this._refreshBearerToken) {
                             this._logger.error('Session customization failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
                             return new SessionTreeNode();
                         } else {
                             const bearerToken = this.bearerToken;
                             const newToken = this._refreshBearerToken();
-                            if(bearerToken === newToken) {
+                            if (bearerToken === newToken) {
                                 this._logger.error('Session customization failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
                                 return new SessionTreeNode();
                             } else {
@@ -350,7 +350,7 @@ export class Session implements ISession {
                                 return this.customizeSession(parameters);
                             }
                         }
-                    } else if(e.response.status === 410) {
+                    } else if (e.response.status === 410) {
                         this._logger.info('Session customization failed. Session expired. Re-initializing session.');
                         this._initialized = false;
                         await this.init();

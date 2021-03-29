@@ -6,6 +6,7 @@ import { StateEngine, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.s
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
+import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine/dist/IRenderingEngine";
 
 @singleton()
 export class Api {
@@ -122,7 +123,7 @@ export class Api {
     this.#performanceEvaluator.start('session_creation_' + sessionId);
 
     // create the actual session 
-    const session = new Session(sessionId, properties.ticket, properties.modelViewUrl, properties.bearerToken, properties.loadDefaultSettings);
+    const session = new Session(Object.assign({}, properties, {id: sessionId}));
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
 
     // initialized the session
@@ -148,11 +149,12 @@ export class Api {
    * The viewer will automatically load what is currently in the scene tree.
    * 
    * @param properties.type the type of the viewer
+   * @param properties.visibility the visibility of the viewer
    * @param properties.canvas the canvas that the viewer should use
    * @param properties.id the unique id the session should have 
    * @returns 
    */
-  public async createViewer(properties: { type?: RENDERERTYPE, canvas: HTMLCanvasElement, id?: string }): Promise<Viewer> {
+  public async createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Promise<Viewer> {
     // check if the given id is valid
     const viewerId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
@@ -161,7 +163,7 @@ export class Api {
     this.#performanceEvaluator.start('viewer_creation_' + viewerId);
 
     // create the actual viewer
-    const viewer = new Viewer(viewerId, properties.type || RENDERERTYPE.STANDARD, properties.canvas);
+    const viewer = new Viewer({ id: viewerId, canvas: properties.canvas, visibility: properties.visibility || VISIBILITYMODE.SESSION, type: properties.type || RENDERERTYPE.STANDARD });
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
     // save the viewer

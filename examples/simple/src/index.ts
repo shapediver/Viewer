@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import { container } from "tsyringe";
-import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE } from "@shapediver/viewer"
+import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE } from "@shapediver/viewer"
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 
@@ -26,7 +26,6 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
 (async () => {
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
     let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
-    if(session.initialized) viewer.show = true;
     performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
     performanceEvaluator.end('pageLoad_rendering');
     logger.info(performanceEvaluator.getEvaluationToString('pageLoad_rendering'));

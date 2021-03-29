@@ -1,7 +1,7 @@
 import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic, OrthographicCamera as OrthographicCameraLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
-import { IRenderingEngine, RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
@@ -39,18 +39,15 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param type 
    * @param canvas 
    */
-  constructor(id: string, type: RENDERERTYPE, canvas: HTMLCanvasElement) {
+  constructor(properties: { id: string, canvas: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }) {
     this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     this.#logger = <Logger>container.resolve(Logger);
     this.#eventEngine = <EventEngine>container.resolve(EventEngine);
-    this.#renderingEngine = new RenderingEngineThreejs(id, canvas);
+    this.#renderingEngine = new RenderingEngineThreejs(properties);
 
     // default camera
     const camera = this.createCamera(CAMERATYPE.PERSPECTIVE);
     this.assignCamera(camera.id);
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
   }
 
   // #endregion Constructors (1)

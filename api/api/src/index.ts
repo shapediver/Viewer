@@ -1,7 +1,7 @@
 import { CAMERATYPE } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { container } from "tsyringe";
 import { LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
-import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { RENDERERTYPE, VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Api } from "./Api";
 import { Viewer } from "./viewer/Viewer";
 import { Output } from "./session/Output";
@@ -15,7 +15,7 @@ import { CustomData, GeometryData, MaterialData, SessionData, SessionOutputData 
 export const api = <Api>container.resolve(Api);
 
 export {
-    RENDERERTYPE, CAMERATYPE, LIGHTTYPE
+    RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE
 }
 
 export {

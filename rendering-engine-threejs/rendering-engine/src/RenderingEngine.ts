@@ -8,7 +8,7 @@ import { Tree } from '@shapediver/viewer.shared.node-tree';
 
 import { SceneTree } from './SceneTree';
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
-import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { StateEngine, SettingsEngine, DomEventEngine, EVENTTYPE, EventEngine } from '@shapediver/viewer.shared.services';
 import { SDObject } from './types/SDObject';
 import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
@@ -36,6 +36,7 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _settings: SettingsEngine;
     private readonly _stateEngine: StateEngine;
     private readonly _tree: Tree;
+    private readonly _id: string;
 
     private _ambientOcclusion: boolean = true;
     private _beautyRenderBlendingDuration: number = 1500;
@@ -62,24 +63,27 @@ export class RenderingEngine implements IRenderingEngine {
     private _sceneTree!: SceneTree;
     private _shadows: boolean = true;
     private _show: boolean = false;
+    private readonly _visibility: VISIBILITYMODE;
 
     // #endregion Properties (39)
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, canvasDefinition?: string | HTMLCanvasElement) {
+    constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE }) {
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+        this._id = properties.id;
         this._settings = <SettingsEngine>container.resolve(SettingsEngine);
         this._converter = <Converter>container.resolve(Converter);
         this._eventEngine = <EventEngine>container.resolve(EventEngine);
         this._stateEngine = <StateEngine>container.resolve(StateEngine);
         this._tree = <Tree>container.resolve(Tree);
         this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
-        this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
+        this._canvas = this._canvasEngine.createCanvasObject(properties.canvas);
         this._environmentMapLoader = new EnvironmentMapLoader(this);
         this._materialLoader = new MaterialLoader(this);
         this._geometryLoader = new GeometryLoader(this);
         this._lightLoader = new LightLoader(this);
+        this._visibility = properties.visibility;
 
         this._logoDivElement = document.createElement('div');
         this._logoDivElement.style.background = '#030531';
@@ -107,9 +111,17 @@ export class RenderingEngine implements IRenderingEngine {
 
         this._renderingLogic = new RenderingLogic(this);
 
+        if(this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
+
+        if(this._visibility === VISIBILITYMODE.SESSION) {
+            this._stateEngine.firstSessionInitialized.then(() => {
+                // TODO if there are settings, wait if they are loaded
+                this.show = true;
+            })
+        }
+
         this._stateEngine.boundingBoxCreated.then(() => this.init());
-        this.applySettings();
-        this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => this.applySettings())
+        this._stateEngine.settingsRegistered.then(() => this.applySettings());
     }
 
     // #endregion Constructors (1)
@@ -563,7 +575,7 @@ export class RenderingEngine implements IRenderingEngine {
         // TODO
         this.pointSize = this._settings.rendering.pointSize.value;
         this.shadows = this._settings.scene.render.shadows.value;
-        this.show = this._settings.scene.show.value;
+        // this.show = this._settings.scene.show.value;
         // FIXME
         //this.showSceneTransition = +this._settings.scene.showSceneTransition.value.replace('s', '') * 1000;
     }

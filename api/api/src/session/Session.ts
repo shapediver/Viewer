@@ -30,9 +30,9 @@ export class Session implements ISession {
     /**
      * @ignore
      */
-    constructor( id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean ) {
-        this.#node = new TreeNode(ticket)
-        this.#sessionEngine = new SessionEngine(id, ticket, modelViewUrl, bearerToken, loadDefaultSettings);
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
+        this.#node = new TreeNode(properties.id)
+        this.#sessionEngine = new SessionEngine(properties);
         this.#eventEngine = container.resolve(EventEngine);
     }
 
