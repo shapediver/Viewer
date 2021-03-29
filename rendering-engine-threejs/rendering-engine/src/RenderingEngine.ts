@@ -110,13 +110,22 @@ export class RenderingEngine implements IRenderingEngine {
         (<SceneTree>this._sceneTree).scene.background = new THREE.Color(0xffffff);
 
         this._renderingLogic = new RenderingLogic(this);
+        
+        this._stateEngine.createCustomState(this.id + '_settings_loaded');
 
         if(this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
 
         if(this._visibility === VISIBILITYMODE.SESSION) {
             this._stateEngine.firstSessionInitialized.then(() => {
-                // TODO if there are settings, wait if they are loaded
-                this.show = true;
+                // check if there are settings
+                if(this._stateEngine.settingsRegistered.resolved === false) {
+                    this.show = true;
+                } else {
+                    // wait for settings to load before showing the scene
+                    this._stateEngine.getCustomState(this.id + '_settings_loaded').then(() => {
+                        this.show = true;
+                    })
+                }
             })
         }
 
@@ -547,37 +556,47 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Private Methods (2)
 
     private applySettings() {
-        // TODO
-        this.ambientOcclusion = this._settings.scene.render.ambientOcclusion.value;
-        this.beautyRenderBlendingDuration = this._settings.scene.render.beautyRenderBlendingDuration.value;
-        this.beautyRenderDelay = this._settings.scene.render.beautyRenderDelay.value;
-        // TODO
-        this.blurSceneWhenBusy = this._settings.general.blurSceneWhenBusy.value;
-        this.clearAlpha = this._settings.scene.render.clearAlpha.value;
-        const c = this._converter.toColor(this._settings.scene.render.clearColor.value);
-        this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
-        // FIXME
-        this.duration = this._settings.scene.duration.value;
+        // as the environment map is the only thing that needs time to load, load it first
+        this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: any) => {
+
+            // return if a different env map was loaded
+            if(!e.name || (e.name && e.name !== this._settings.scene.material.environmentMap.value)) return;
+
+            this.environmentMapAsBackground = this._settings.scene.material.environmentMapAsBackground.value;
+            // TODO
+            this.ambientOcclusion = this._settings.scene.render.ambientOcclusion.value;
+            this.beautyRenderBlendingDuration = this._settings.scene.render.beautyRenderBlendingDuration.value;
+            this.beautyRenderDelay = this._settings.scene.render.beautyRenderDelay.value;
+            // TODO
+            this.blurSceneWhenBusy = this._settings.general.blurSceneWhenBusy.value;
+            this.clearAlpha = this._settings.scene.render.clearAlpha.value;
+            const c = this._converter.toColor(this._settings.scene.render.clearColor.value);
+            this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
+            // FIXME
+            this.duration = this._settings.scene.duration.value;
+            // FIXME
+            this.fullscreen = this._settings.scene.fullscreen.value;
+            this.gridVisibility = this._settings.scene.gridVisibility.value;
+            // FIXME
+            // this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
+            // // FIXME
+            // this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
+            this.groundPlaneVisibility = this._settings.scene.groundPlaneVisibility.value;
+            // FIXME
+            this.lightHelper = this._settings.scene.lights.helper.value;
+            this.lightScene = this._settings.scene.lights.lightScene.value;
+            // TODO
+            this.pointSize = this._settings.rendering.pointSize.value;
+            this.shadows = this._settings.scene.render.shadows.value;
+            // this.show = this._settings.scene.show.value;
+            // FIXME
+            //this.showSceneTransition = +this._settings.scene.showSceneTransition.value.replace('s', '') * 1000;
+
+            this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
+        })
+        // set it like this to not trigger the loading
+        this._environmentMapResolution = this._settings.scene.material.environmentMapResolution.value;
         this.environmentMap = this._settings.scene.material.environmentMap.value;
-        this.environmentMapAsBackground = this._settings.scene.material.environmentMapAsBackground.value;
-        this.environmentMapResolution = this._settings.scene.material.environmentMapResolution.value;
-        // FIXME
-        this.fullscreen = this._settings.scene.fullscreen.value;
-        this.gridVisibility = this._settings.scene.gridVisibility.value;
-        // FIXME
-        // this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
-        // // FIXME
-        // this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
-        this.groundPlaneVisibility = this._settings.scene.groundPlaneVisibility.value;
-        // FIXME
-        this.lightHelper = this._settings.scene.lights.helper.value;
-        this.lightScene = this._settings.scene.lights.lightScene.value;
-        // TODO
-        this.pointSize = this._settings.rendering.pointSize.value;
-        this.shadows = this._settings.scene.render.shadows.value;
-        // this.show = this._settings.scene.show.value;
-        // FIXME
-        //this.showSceneTransition = +this._settings.scene.showSceneTransition.value.replace('s', '') * 1000;
     }
 
     private init() {

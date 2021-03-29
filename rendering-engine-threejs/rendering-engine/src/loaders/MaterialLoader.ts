@@ -15,6 +15,8 @@ export class MaterialLoader {
     private _blending: number = 0.0;
     private _lightSizeUV: number = 0.025;
 
+    private _envMap: THREE.CubeTexture | null = null;
+
     // #endregion Properties (5)
 
     // #region Constructors (1)
@@ -26,6 +28,7 @@ export class MaterialLoader {
     // #region Public Methods (4)
 
     public assignEnvironmentMap(e: THREE.CubeTexture | null) {
+        this._envMap = e;
         for(let i = 0; i < this._materialLibrary.length; i++) {
             this._materialLibrary[i].envMap = e;
             this._materialLibrary[i].needsUpdate = true;
@@ -148,7 +151,7 @@ export class MaterialLoader {
 
             // emissiveIntensity
 
-            // envMap
+            material.envMap = this._envMap;
 
             // envMapIntensity
 

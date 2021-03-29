@@ -76,7 +76,7 @@ export class EventEngine {
     public emitEvent(type: string | MAIN_EVENTTYPE, event: IEvent): void {
         const typeString: string = this.convertTypeToString(type);
 
-        if (this._eventListeners[typeString]?.length !== 0) 
+        if (this._eventListeners[typeString] && this._eventListeners[typeString].length !== 0) 
             for (let i = 0; i < this._eventListeners[typeString]!.length; i++)
                 this._eventListeners[typeString]![i].cb(event);
 

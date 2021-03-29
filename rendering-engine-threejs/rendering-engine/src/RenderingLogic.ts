@@ -1,6 +1,6 @@
 import { CAMERATYPE, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, StateEngine } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
 import * as THREE from 'three';
 import { container } from "tsyringe";
@@ -12,6 +12,7 @@ import { shader as normalShader } from "./shaders/normal";
 export class RenderingLogic {
     // #region Properties (11)
 
+    private readonly _stateEngine: StateEngine = container.resolve(StateEngine);
     private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
     private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
     private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
@@ -152,6 +153,8 @@ export class RenderingLogic {
         } else {
             this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
         }
+
+        if(!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
     }
 
     private deactivateBeautyRenderShaders() {
