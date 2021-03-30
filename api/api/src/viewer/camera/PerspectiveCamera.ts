@@ -1,4 +1,6 @@
 import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic  } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { container } from "tsyringe";
 import { Camera } from "./Camera";
 import { PerspectiveCameraControls } from "./controls/PerspectiveCameraControls";
 
@@ -7,6 +9,7 @@ export class PerspectiveCamera extends Camera {
 
     readonly #camera: PerspectiveCameraLogic;
     readonly #controls: PerspectiveCameraControls;
+    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
     // #endregion Properties (1)
 
@@ -39,6 +42,7 @@ export class PerspectiveCamera extends Camera {
      * @param {number} value
      */
     public set fov(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#camera.fov = value;
     }
 

@@ -7,6 +7,7 @@ import { container, injectable } from "tsyringe";
 import { Viewer } from "../viewer/Viewer";
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 
 @injectable()
 export class Session implements ISession {
@@ -16,7 +17,8 @@ export class Session implements ISession {
     readonly #outputs: { [key: string]: Output; } = {};
     readonly #parameters: { [key: string]: Parameter; } = {};
     readonly #sessionEngine: SessionEngine;
-    readonly #eventEngine: EventEngine;
+    readonly #eventEngine: EventEngine = container.resolve(EventEngine);
+    readonly #inputValidator: InputValidator = container.resolve(InputValidator);
     #commitParameters: boolean = false;
     #node: TreeNode;
     #parameterControlNames: string[] = [];
@@ -33,7 +35,6 @@ export class Session implements ISession {
     constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
         this.#node = new TreeNode(properties.id)
         this.#sessionEngine = new SessionEngine(properties);
-        this.#eventEngine = container.resolve(EventEngine);
     }
 
     // #endregion Constructors (1)
@@ -51,6 +52,7 @@ export class Session implements ISession {
      * The bearerToken of the session.
      */
     public set bearerToken(value: string | undefined) {
+        this.#inputValidator.validate(value, 'string', false);
         this.#sessionEngine.bearerToken = value;
     }
 
@@ -108,6 +110,7 @@ export class Session implements ISession {
      * once a session request fails due to an invalid bearer token.
      */
     public set refreshBearerToken(value: () => string) {
+        this.#inputValidator.validate(value, 'function');
         this.#sessionEngine.refreshBearerToken = value;
     }
 
@@ -178,6 +181,7 @@ export class Session implements ISession {
      * @returns 
      */
     public createOutput(id: string): Output {
+        this.#inputValidator.validate(id, 'string');
         return new Output(this.#sessionEngine.createOutput(id));
     }
 
@@ -205,6 +209,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getExport(id: string): Export | null {
+        this.#inputValidator.validate(id, 'string');
         const exportLogic = this.#sessionEngine.getExport(id);
         if(!exportLogic) return null;
         if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
@@ -218,6 +223,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getExportById(id: string): Export | null {
+        this.#inputValidator.validate(id, 'string');
         const exportLogic = this.#sessionEngine.getExportById(id);
         if(!exportLogic) return null;
         if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
@@ -231,6 +237,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getExportByName(name: string): Export[] {
+        this.#inputValidator.validate(name, 'string');
         const exportLogic = this.#sessionEngine.getExportByName(name);
         const exports: Export[] = [];
         for(let i = 0; i < exportLogic.length; i++) {
@@ -247,6 +254,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getExportByType(type: string): Export[] {
+        this.#inputValidator.validate(type, 'string');
         const exportLogic = this.#sessionEngine.getExportByType(type);
         const exports: Export[] = [];
         for(let i = 0; i < exportLogic.length; i++){
@@ -278,7 +286,8 @@ export class Session implements ISession {
      * @param id the id of the output
      * @returns 
      */
-    public getOutput(id: string): Output | null {
+    public getOutput(id: string): Output | null {        
+        this.#inputValidator.validate(id, 'string');
         const outputLogic = this.#sessionEngine.getOutput(id);
         if(!outputLogic) return null;
         if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
@@ -292,6 +301,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getOutputById(id: string): Output | null {
+        this.#inputValidator.validate(id, 'string');
         const outputLogic = this.#sessionEngine.getOutputById(id);
         if(!outputLogic) return null;
         if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
@@ -305,6 +315,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getOutputByName(name: string): Output[] {
+        this.#inputValidator.validate(name, 'string');
         const outputLogic = this.#sessionEngine.getOutputByName(name);
         const outputs: Output[] = [];
         for(let i = 0; i < outputLogic.length; i++) {
@@ -337,6 +348,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getParameter(id: string): Parameter | null {
+        this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameter(id);
         if(!parameterLogic) return null;
         if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
@@ -350,6 +362,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getParameterById(id: string): Parameter | null {
+        this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameterById(id);
         if(!parameterLogic) return null;
         if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
@@ -363,6 +376,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getParameterByName(name: string): Parameter[] {
+        this.#inputValidator.validate(name, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByName(name);
         const parameters: Parameter[] = [];
         for(let i = 0; i < parameterLogic.length; i++){
@@ -379,6 +393,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getParameterByType(type: string): Parameter[] {
+        this.#inputValidator.validate(type, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByType(type);
         const parameters: Parameter[] = [];
         for(let i = 0; i < parameterLogic.length; i++){

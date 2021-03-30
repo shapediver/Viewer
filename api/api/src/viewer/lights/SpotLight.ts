@@ -1,11 +1,14 @@
 import { Light } from "./Light";
 import { SpotLight as SpotLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { container } from "tsyringe";
 
 export class SpotLight extends Light {
     // #region Properties (1)
 
     readonly #light: SpotLightLogic;
+    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
     // #endregion Properties (1)
 
@@ -37,6 +40,7 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public set angle(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.angle = value;
     }
 
@@ -53,6 +57,7 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public set decay(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.decay = value;
     }
 
@@ -69,6 +74,7 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public set distance(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.distance = value;
     }
 
@@ -85,6 +91,7 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public set penumbra(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.penumbra = value;
     }
 
@@ -101,6 +108,7 @@ export class SpotLight extends Light {
      * @param {vec3} value
      */
     public set position(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.position = value;
     }
 
@@ -117,6 +125,7 @@ export class SpotLight extends Light {
      * @param {vec3} value
      */
     public set target(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.target = value;
     }
 

@@ -1,10 +1,13 @@
 import { ICameraControls, ICameraDefinition, OrthographicCameraControls as OrthographicCameraControlsLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
+import { container } from "tsyringe";
 
 export class OrthographicCameraControls implements ICameraControls {
     // #region Properties (1)
 
     readonly #controls: OrthographicCameraControlsLogic;
+    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
     // #endregion Properties (1)
 
@@ -35,6 +38,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set damping(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#controls.damping = value;
     }
 
@@ -51,6 +55,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enableKeyPan(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enableKeyPan = value;
     }
 
@@ -67,6 +72,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enablePan(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enablePan = value;
     }
 
@@ -83,6 +89,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enableZoom(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enableZoom = value;
     }
 
@@ -99,6 +106,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enabled(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enabled = value;
     }
 
@@ -115,6 +123,16 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {{ keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }} value
      */
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
+        this.#inputValidator.validate(value.keys.down, 'number');
+        this.#inputValidator.validate(value.keys.left, 'number');
+        this.#inputValidator.validate(value.keys.right, 'number');
+        this.#inputValidator.validate(value.keys.up, 'number');        
+        this.#inputValidator.validate(value.mouse.pan, 'number');
+        this.#inputValidator.validate(value.mouse.rotate, 'number');
+        this.#inputValidator.validate(value.mouse.zoom, 'number');
+        this.#inputValidator.validate(value.touch.pan, 'number');
+        this.#inputValidator.validate(value.touch.rotate, 'number');
+        this.#inputValidator.validate(value.touch.zoom, 'number');
         this.#controls.input = value;
     }
 
@@ -131,6 +149,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set keyPanSpeed(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.keyPanSpeed = value;
     }
 
@@ -147,6 +166,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set movementSmoothness(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.movementSmoothness = value;
     }
 
@@ -163,6 +183,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set panSpeed(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.panSpeed = value;
     }
 
@@ -179,6 +200,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {vec3} value
      */
     public set position(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#controls.position = value;
     }
 
@@ -195,6 +217,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {vec3} value
      */
     public set target(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#controls.target = value;
     }
 
@@ -211,6 +234,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set zoomSpeed(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.zoomSpeed = value;
     }
 
@@ -227,6 +251,7 @@ export class OrthographicCameraControls implements ICameraControls {
      * @returns 
      */
     public update(time: number): ICameraDefinition {
+        this.#inputValidator.validate(time, 'positive');
         return this.#controls.update(time);
     }
 

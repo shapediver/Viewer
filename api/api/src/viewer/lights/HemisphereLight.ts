@@ -1,11 +1,14 @@
 import { Light } from "./Light";
 import { HemisphereLight as HemisphereLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { container } from "tsyringe";
 
 export class HemisphereLight extends Light {
     // #region Properties (1)
 
     readonly #light: HemisphereLightLogic;
+    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
     // #endregion Properties (1)
 
@@ -37,6 +40,7 @@ export class HemisphereLight extends Light {
      * @param {vec3} value
      */
     public set groundColor(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.groundColor = value;
     }
 

@@ -1,11 +1,14 @@
 import { Light } from "./Light";
 import { DirectionalLight as DirectionalLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { container } from "tsyringe";
 
 export class DirectionalLight extends Light {
     // #region Properties (1)
 
     readonly #light: DirectionalLightLogic;
+    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
     // #endregion Properties (1)
 
@@ -37,6 +40,7 @@ export class DirectionalLight extends Light {
      * @param {boolean} value
      */
     public set castShadow(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#light.castShadow = value;
     }
 
@@ -53,6 +57,7 @@ export class DirectionalLight extends Light {
      * @param {vec3} value
      */
     public set direction(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.direction = value;
     }
 
@@ -69,6 +74,7 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public set shadowMapBias(value: number) {
+        this.#inputValidator.validate(value, 'number');
         this.#light.shadowMapBias = value;
     }
 
@@ -85,6 +91,7 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public set shadowMapResolution(value: number) {
+        this.#inputValidator.validate(value, 'number');
         this.#light.shadowMapResolution = value;
     }
 

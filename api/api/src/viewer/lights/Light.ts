@@ -1,10 +1,13 @@
 import { ILight, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
+import { container } from "tsyringe";
 
 export abstract class Light implements ILight {
     // #region Properties (1)
 
     readonly #light: ILight;
+    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
     // #endregion Properties (1)
 
@@ -33,6 +36,7 @@ export abstract class Light implements ILight {
      * The color of the light
      */
     public set color(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.color = value;
     }
 
@@ -47,6 +51,7 @@ export abstract class Light implements ILight {
      * The intensity of the light
      */
     public set intensity(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.intensity = value;
     }
 
@@ -61,6 +66,7 @@ export abstract class Light implements ILight {
      * The name of the light
      */
     public set name(value: string | undefined) {
+        this.#inputValidator.validate(value, 'string', false);
         this.#light.name = value;
     }
 

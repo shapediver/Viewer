@@ -1,9 +1,12 @@
 import { IOutput, Output as OutputLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { ISessionOutputContent } from "@shapediver/viewer.shared.types";
+import { container } from "tsyringe";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 
 export class Output implements IOutput {
 
   readonly #output: OutputLogic;
+  readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
   // #region Public Accessors (16)
   constructor(o: OutputLogic) {
@@ -39,6 +42,7 @@ export class Output implements IOutput {
   * @param {ISessionOutputContent[] | undefined} value
   */
   public set content(value: ISessionOutputContent[] | undefined) {
+    // TODO input validation
     this.#output.content = value;
   }
 
@@ -87,6 +91,7 @@ export class Output implements IOutput {
   * @param {string} value
   */
   public set version(value: string) {
+    this.#inputValidator.validate(value, 'string');
     this.#output.version = value;
   }
 

@@ -3,7 +3,7 @@ import { container, singleton } from "tsyringe";
 import { Session } from "./session/Session";
 import { Viewer } from "./viewer/Viewer";
 import { StateEngine, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
-import { UuidGenerator } from '@shapediver/viewer.shared.utils';
+import { UuidGenerator, InputValidator } from '@shapediver/viewer.shared.utils';
 import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine/dist/IRenderingEngine";
@@ -19,6 +19,7 @@ export class Api {
   readonly #performanceEvaluator: PerformanceEvaluator;
   readonly #logger: Logger;
   readonly #eventEngine: EventEngine;
+  readonly #inputValidator: InputValidator;
   readonly #sessions: { [key: string]: Session } = {};
   readonly #viewers: { [key: string]: Viewer } = {};
   // #region Constructors (1)
@@ -31,6 +32,7 @@ export class Api {
     this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     this.#logger = <Logger>container.resolve(Logger);
     this.#eventEngine = <EventEngine>container.resolve(EventEngine);
+    this.#inputValidator = <InputValidator>container.resolve(InputValidator);
   }
 
   // #endregion Constructors (1)
@@ -115,6 +117,13 @@ export class Api {
    * @returns 
    */
   public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, id?: string }): Promise<Session> {
+    // input validation
+    this.#inputValidator.validate(properties.ticket, 'string');
+    this.#inputValidator.validate(properties.modelViewUrl, 'string');
+    this.#inputValidator.validate(properties.bearerToken, 'string', false);
+    this.#inputValidator.validate(properties.loadDefaultSettings, 'boolean', false);
+    this.#inputValidator.validate(properties.id, 'string', false);
+    
     // check if the given id is valid
     const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#sessions[sessionId]) this.#logger.error('Session with this id already exists.');
@@ -155,6 +164,12 @@ export class Api {
    * @returns 
    */
   public async createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Promise<Viewer> {
+    // input validation
+    this.#inputValidator.validate(properties.type, 'enum', false, Object.values(RENDERERTYPE));
+    this.#inputValidator.validate(properties.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+    this.#inputValidator.validate(properties.canvas, 'HTMLCanvasElement');
+    this.#inputValidator.validate(properties.id, 'string', false);
+
     // check if the given id is valid
     const viewerId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
@@ -187,6 +202,7 @@ export class Api {
    * @returns 
    */
   public getSession(id: string): Session {
+    this.#inputValidator.validate(id, 'string');
     return this.#sessions[id];
   }
 
@@ -209,6 +225,7 @@ export class Api {
    * @returns 
    */
   public getViewer(id: string): Viewer {
+    this.#inputValidator.validate(id, 'string');
     return this.#viewers[id];
   }
 

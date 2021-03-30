@@ -1,11 +1,14 @@
 import { Light } from "./Light";
 import { PointLight as PointLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { container } from "tsyringe";
 
 export class PointLight extends Light {
     // #region Properties (1)
 
     readonly #light: PointLightLogic;
+    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
     // #endregion Properties (1)
 
@@ -37,6 +40,7 @@ export class PointLight extends Light {
      * @param {number} value
      */
     public set decay(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.decay = value;
     }
 
@@ -53,6 +57,7 @@ export class PointLight extends Light {
      * @param {number} value
      */
     public set distance(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.distance = value;
     }
 
@@ -69,6 +74,7 @@ export class PointLight extends Light {
      * @param {vec3} value
      */
     public set position(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.position = value;
     }
 

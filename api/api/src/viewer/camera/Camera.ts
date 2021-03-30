@@ -1,7 +1,10 @@
 import { CAMERATYPE, ICamera, ICameraControls, ICameraDefinition } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { container } from "tsyringe";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 export abstract class Camera implements ICamera {
 
     readonly #camera: ICamera;
+    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
     /**
      * @ignore
@@ -24,6 +27,7 @@ export abstract class Camera implements ICamera {
      * @param {boolean} value
      */
     public set autoAdjust(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#camera.autoAdjust = value;
     }
 
@@ -40,6 +44,7 @@ export abstract class Camera implements ICamera {
      * @param {ICameraDefinition} value
      */
     public set cameraDefinition(value: ICameraDefinition) {
+        // TODO 
         this.#camera.cameraDefinition = value;
     }
 
@@ -56,6 +61,7 @@ export abstract class Camera implements ICamera {
      * @param {number} value
      */
     public set cameraMovementDuration(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#camera.cameraMovementDuration = value;
     }
 
@@ -78,6 +84,7 @@ export abstract class Camera implements ICamera {
      * @param {ICameraDefinition} value
      */
     public set default(value: ICameraDefinition) {
+        // TODO
         this.#camera.default = value;
     }
 
@@ -94,6 +101,7 @@ export abstract class Camera implements ICamera {
      * @param {boolean} value
      */
     public set enableCameraControls(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#camera.enableCameraControls = value;
     }
 
@@ -110,6 +118,7 @@ export abstract class Camera implements ICamera {
      * @param {boolean} value
      */
     public set revertAtMouseUp(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#camera.revertAtMouseUp = value;
     }
 
@@ -126,6 +135,7 @@ export abstract class Camera implements ICamera {
      * @param {number} value
      */
     public set revertAtMouseUpDuration(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#camera.revertAtMouseUpDuration = value;
     }
 
@@ -150,6 +160,7 @@ export abstract class Camera implements ICamera {
      * @param {number} value
      */
     public set zoomExtentsFactor(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#camera.zoomExtentsFactor = value;
     }
 
@@ -174,6 +185,7 @@ export abstract class Camera implements ICamera {
      * @returns 
      */
     public update(time: number): ICameraDefinition {
+        this.#inputValidator.validate(time, 'positive');
         return this.#camera.controls.update(time);
     }
     
