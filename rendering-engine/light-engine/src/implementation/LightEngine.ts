@@ -16,11 +16,11 @@ export class LightEngine implements ILightEngine {
 
     private _currentLightScene!: LightScene;
     private _lightScenes: { [key: string]: LightScene; } = {};
-    private _settings = container.resolve(SettingsEngine).lights;
-    private _stateEngine: StateEngine = container.resolve(StateEngine);
+    private _settings = (<SettingsEngine>container.resolve(SettingsEngine)).lights;
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
-    protected readonly _converter = container.resolve(Converter);
-    protected readonly _uuidGenerator = container.resolve(UuidGenerator);
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     // #endregion Properties (6)
 

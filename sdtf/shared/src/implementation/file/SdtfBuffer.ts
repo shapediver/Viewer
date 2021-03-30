@@ -6,8 +6,8 @@ export class SdtfBuffer {
   // #region Properties (1)
 
   private _arrayBuffer?: ArrayBuffer;
-  private readonly _httpClient = container.resolve(HttpClient);
-  private readonly _logger = container.resolve(Logger);
+  private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+  private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
   // #endregion Properties (1)
 

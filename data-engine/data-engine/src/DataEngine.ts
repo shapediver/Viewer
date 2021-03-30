@@ -9,14 +9,9 @@ import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 @singleton()
 export class DataEngine {
-    private readonly _geometryEngine: GeometryEngine;
-    private readonly _materialEngine: MaterialEngine;
-    private readonly _logger = container.resolve(Logger);
-
-    constructor() {
-        this._geometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
-        this._materialEngine = <MaterialEngine>container.resolve(MaterialEngine);
-    }
+    private readonly _geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
+    private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
     public async loadContent(content: ISessionOutputContent): Promise<TreeNode> {
         try {

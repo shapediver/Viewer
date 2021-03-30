@@ -17,15 +17,15 @@ export class Session implements ISession {
     // #region Properties (18)
 
     private readonly _exports: { [key: string]: Export; } = {};
-    private readonly _httpClient = container.resolve(HttpClient);
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _id: string;
-    private readonly _logger = container.resolve(Logger);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _modelViewUrl: string;
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: Output; } = {};
     private readonly _outputsCreated: { [key: string]: Output; } = {};
     private readonly _parameters: { [key: string]: Parameter; } = {};
-    private readonly _sessionEngineId = container.resolve(UuidGenerator).create();
+    private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
     private readonly _ticket: string;
 
     private _bearerToken?: string;

@@ -13,7 +13,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Properties (11)
 
     private readonly _cameraInterpolationManager: CameraInterpolationManager = new CameraInterpolationManager(this);
-    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
     private _manualInteraction: boolean = false;
     private _manualInteractionMatrices: {

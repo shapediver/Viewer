@@ -9,7 +9,7 @@ export class HemisphereLight extends Light {
     // #region Properties (1)
 
     readonly #light: HemisphereLightLogic;
-    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)

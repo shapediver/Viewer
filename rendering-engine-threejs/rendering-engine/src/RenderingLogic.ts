@@ -12,8 +12,8 @@ import { shader as normalShader } from "./shaders/normal";
 export class RenderingLogic {
     // #region Properties (11)
 
-    private readonly _stateEngine: StateEngine = container.resolve(StateEngine);
-    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
     private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _renderer: THREE.WebGLRenderer;

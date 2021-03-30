@@ -18,8 +18,8 @@ export class SettingsEngine {
     // #region Properties (1)
 
     private readonly _settings = DefaultSettings;
-    private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _stateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     // #endregion Properties (1)
 

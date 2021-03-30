@@ -10,7 +10,7 @@ export class PerspectiveCamera extends Camera {
 
     readonly #camera: PerspectiveCameraLogic;
     readonly #controls: PerspectiveCameraControls;
-    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)

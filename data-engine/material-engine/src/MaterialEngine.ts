@@ -47,9 +47,9 @@ export class MaterialEngine {
     // #region Properties (2)
 
     private _dataBase: any;
-    private readonly _httpClient = container.resolve(HttpClient);
-    private readonly _imageLoader = container.resolve(ImageLoader);
-    private readonly _logger = container.resolve(Logger);
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (2)
 

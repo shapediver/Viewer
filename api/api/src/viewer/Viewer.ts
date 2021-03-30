@@ -23,7 +23,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-  readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
 
   readonly #cameras: {
     [key: string]: Camera

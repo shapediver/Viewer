@@ -11,7 +11,7 @@ export class CanvasEngine {
     private readonly _canvasDictionary: {
         [key: string]: Canvas
     } = {};
-    protected readonly _uuidGenerator = container.resolve(UuidGenerator);
+    protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     // #endregion Properties (2)
 

@@ -5,7 +5,7 @@ import { StatePromise } from './StatePromise';
 @singleton()
 export class StateEngine {
 
-    private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _settingsRegistered: StatePromise<boolean>;
     private readonly _boundingBoxCreated: StatePromise<boolean>;
     private readonly _firstSessionInitialized: StatePromise<boolean>;

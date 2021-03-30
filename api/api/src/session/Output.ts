@@ -7,7 +7,7 @@ import { Logger } from "@shapediver/viewer.shared.monitoring";
 export class Output implements IOutput {
 
   readonly #output: OutputLogic;
-  readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
 
   // #region Public Accessors (16)

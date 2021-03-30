@@ -8,7 +8,7 @@ import { container } from "tsyringe";
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
     // #region Properties (1)
 
-    protected readonly _uuidGenerator = container.resolve(UuidGenerator);
+    protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private _convertedObjects: ISDObject[] = [];
     
     // #endregion Properties (1)

@@ -12,8 +12,8 @@ export class EnvironmentMapLoader {
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | null
     } = {};
-    private readonly _logger: Logger = container.resolve(Logger);
-    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
     private _environmentMapName: string = 'none';
 

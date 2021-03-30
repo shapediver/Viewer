@@ -12,13 +12,13 @@ import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitori
 
 const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
 const ticket = 'c779ad9d41eb135de16cd86e6c84ca821f2fdc60c76f7a1041cc2ec8a93895a646a1d4995e59360559f3a7308b6bd6c1a3287fe3dfe1f205637f078c08dfc49ad03b63074a21a1f3f2bd0b11e019df687920c51d948b8ab9908eb7c3ea95cd00147d79cdc8c44dc950769c7da5cbcd528ae9ceb132d7-6f70a69df8698f79a7e01fcdd6d012f7';
-const dataEngine: DataEngine = container.resolve(DataEngine);
+const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
 const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
 const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
 
-const performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-const logger = <Logger>container.resolve(Logger);
+const performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+const logger: Logger = <Logger>container.resolve(Logger);
 performanceEvaluator.start('startup', window.performance.timing.connectStart);
 performanceEvaluator.end('startup');
 logger.info(performanceEvaluator.getEvaluationToString('startup'));

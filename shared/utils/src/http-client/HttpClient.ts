@@ -1,11 +1,9 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Logger } from '@shapediver/viewer.shared.monitoring'
-import { container, singleton } from 'tsyringe';
+import { singleton } from 'tsyringe';
 
 
 @singleton()
 export class HttpClient {
-    private readonly _logger = <Logger>container.resolve(Logger);
 
     private readonly _cache: {
         [key: string]: Promise<AxiosResponse<any>>

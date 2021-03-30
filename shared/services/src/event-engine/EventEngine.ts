@@ -11,8 +11,8 @@ import { Logger } from "@shapediver/viewer.shared.monitoring";
 export class EventEngine {
     // #region Properties (2)
 
-    protected readonly _uuidGenerator = container.resolve(UuidGenerator);
-    protected readonly _logger = container.resolve(Logger);
+    protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    protected readonly _logger: Logger = <Logger>container.resolve(Logger);
     private _eventListeners: {
         [key: string]: IListener[]
     };

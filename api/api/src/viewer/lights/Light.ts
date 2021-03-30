@@ -9,7 +9,7 @@ export abstract class Light implements ILight {
     // #region Properties (1)
 
     readonly #light: ILight;
-    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)

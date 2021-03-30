@@ -9,7 +9,7 @@ export class SpotLight extends Light {
     // #region Properties (1)
 
     readonly #light: SpotLightLogic;
-    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)

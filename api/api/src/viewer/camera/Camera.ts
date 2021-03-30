@@ -7,7 +7,7 @@ export abstract class Camera implements ICamera {
     // #region Properties (2)
 
     readonly #camera: ICamera;
-    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (2)

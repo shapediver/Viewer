@@ -12,7 +12,7 @@ import { AbstractTreeNodeData, ITransformation, ITreeNodeData, Tree, TreeNode } 
 import { ThreejsData } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { CustomData, GeometryData, MaterialData, SessionData, SessionOutputData } from "@shapediver/viewer.shared.types";
 
-export const api = <Api>container.resolve(Api);
+export const api: Api = <Api>container.resolve(Api);
 
 export {
     RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE

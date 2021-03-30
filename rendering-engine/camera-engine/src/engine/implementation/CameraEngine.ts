@@ -14,7 +14,7 @@ export class CameraEngine implements ICameraEngine {
     private readonly _cameras: {
         [key: string]: Camera
     } = {};
-    private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
+    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _camera!: Camera;
 

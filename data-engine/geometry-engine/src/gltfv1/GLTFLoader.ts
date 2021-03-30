@@ -11,9 +11,9 @@ export class GLTFLoader {
     // #region Properties (5)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _httpClient = container.resolve(HttpClient);
-    private readonly _uuidGenerator = container.resolve(UuidGenerator);
-    private readonly _logger = container.resolve(Logger);
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _implementedExtensions = [''];
 
     private _body!: ArrayBuffer;

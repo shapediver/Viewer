@@ -6,7 +6,7 @@ import { container } from "tsyringe";
 export class Parameter implements IParameter {
 
   readonly #parameter: ParameterLogic;
-  readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
 
   /**

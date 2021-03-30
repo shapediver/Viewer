@@ -8,7 +8,7 @@ export class PerspectiveCameraControls implements ICameraControls {
     // #region Properties (1)
 
     readonly #controls: PerspectiveCameraControlsLogic;
-    readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)

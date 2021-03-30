@@ -9,9 +9,9 @@ import { PerspectiveCameraControls } from "../../controls/implementation/Perspec
 export class PerspectiveCamera extends AbstractCamera {
     // #region Properties (3)
 
-    private readonly _converter: Converter = container.resolve(Converter);
-    private readonly _settingsEngine: SettingsEngine = container.resolve(SettingsEngine);
-    private readonly _stateEngine: StateEngine = container.resolve(StateEngine);
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     private _fov: number = 800;
 

@@ -10,8 +10,8 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
   private _version: string;
 
   protected readonly _id: string;
-  protected readonly _uuidGenerator = container.resolve(UuidGenerator);
-  protected readonly _eventEngine = container.resolve(EventEngine);
+  protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+  protected readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
   // #endregion Properties (3)
 

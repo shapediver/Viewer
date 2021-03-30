@@ -16,10 +16,11 @@ export class Api {
   #loggingLevel: number = -1;
   #showMessages: boolean = true;
 
-  readonly #performanceEvaluator: PerformanceEvaluator;
-  readonly #logger: Logger;
-  readonly #eventEngine: EventEngine;
-  readonly #inputValidator: InputValidator;
+  readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+  readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #sessions: { [key: string]: Session } = {};
   readonly #viewers: { [key: string]: Viewer } = {};
   // #region Constructors (1)
@@ -27,13 +28,7 @@ export class Api {
   /**
    * @ignore
    */
-  constructor() {
-    const stateEngine = <StateEngine>container.resolve(StateEngine);
-    this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    this.#logger = <Logger>container.resolve(Logger);
-    this.#eventEngine = <EventEngine>container.resolve(EventEngine);
-    this.#inputValidator = <InputValidator>container.resolve(InputValidator);
-  }
+  constructor() {}
 
   // #endregion Constructors (1)
 

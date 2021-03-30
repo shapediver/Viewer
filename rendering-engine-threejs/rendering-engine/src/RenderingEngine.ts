@@ -23,19 +23,19 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Properties (39)
 
     private readonly _cameraEngine: CameraEngine;
-    private readonly _canvasEngine: CanvasEngine;
-    private readonly _converter: Converter;
+    private readonly _canvasEngine: CanvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _domEventEngine: DomEventEngine;
     private readonly _environmentMapLoader: EnvironmentMapLoader;
-    private readonly _eventEngine: EventEngine;
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _geometryLoader: GeometryLoader;
     private readonly _lightEngine: LightEngine;
     private readonly _lightLoader: LightLoader;
     private readonly _materialLoader: MaterialLoader;
     private readonly _renderingLogic: RenderingLogic;
-    private readonly _settings: SettingsEngine;
-    private readonly _stateEngine: StateEngine;
-    private readonly _tree: Tree;
+    private readonly _settings: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _tree: Tree = <Tree>container.resolve(Tree);
     private readonly _id: string;
 
     private _ambientOcclusion: boolean = true;
@@ -72,12 +72,6 @@ export class RenderingEngine implements IRenderingEngine {
     constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE }) {
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
         this._id = properties.id;
-        this._settings = <SettingsEngine>container.resolve(SettingsEngine);
-        this._converter = <Converter>container.resolve(Converter);
-        this._eventEngine = <EventEngine>container.resolve(EventEngine);
-        this._stateEngine = <StateEngine>container.resolve(StateEngine);
-        this._tree = <Tree>container.resolve(Tree);
-        this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
         this._canvas = this._canvasEngine.createCanvasObject(properties.canvas);
         this._environmentMapLoader = new EnvironmentMapLoader(this);
         this._materialLoader = new MaterialLoader(this);

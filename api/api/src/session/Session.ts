@@ -17,8 +17,8 @@ export class Session implements ISession {
     readonly #outputs: { [key: string]: Output; } = {};
     readonly #parameters: { [key: string]: Parameter; } = {};
     readonly #sessionEngine: SessionEngine;
-    readonly #eventEngine: EventEngine = container.resolve(EventEngine);
-    readonly #inputValidator: InputValidator = container.resolve(InputValidator);
+    readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     #commitParameters: boolean = false;
     #node: TreeNode;
@@ -198,9 +198,9 @@ export class Session implements ISession {
      * @returns 
      */
     public async customize(): Promise<TreeNode> {
-        (container.resolve(Tree)).removeNode(this.#node);
+        (<Tree>container.resolve(Tree)).removeNode(this.#node);
         this.#node = await this.#sessionEngine.customize();
-        (container.resolve(Tree)).addNode(this.#node);
+        (<Tree>container.resolve(Tree)).addNode(this.#node);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
         if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
         this.#logger.info(`Session (${this.id}): Session customized.`);
@@ -433,7 +433,7 @@ export class Session implements ISession {
      */
     public async init(): Promise<TreeNode>  {
         this.#node = await this.#sessionEngine.init();
-        (container.resolve(Tree)).addNode(this.#node);
+        (<Tree>container.resolve(Tree)).addNode(this.#node);
         if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
         this.#logger.info(`Session (${this.id}): Session initialized.`);
         return this.#node;

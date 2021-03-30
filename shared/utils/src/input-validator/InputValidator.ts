@@ -10,8 +10,8 @@ export type Types = 'string' | 'boolean' | 'function' |
 @singleton()
 export class InputValidator {
 
-    private readonly _logger = container.resolve(Logger);
-    private readonly _typeChecker = container.resolve(TypeChecker);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _typeChecker: TypeChecker = <TypeChecker>container.resolve(TypeChecker);
 
     public validate(value: any, stringLiteral: Types, defined: boolean = true, enumValues: string[] = []) {
         if (defined === false && typeof value === 'undefined') return;
