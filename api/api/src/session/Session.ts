@@ -5,7 +5,7 @@ import { Output } from "./Output";
 import { Parameter } from "./Parameter";
 import { container, injectable } from "tsyringe";
 import { Viewer } from "../viewer/Viewer";
-import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 
@@ -19,6 +19,7 @@ export class Session implements ISession {
     readonly #sessionEngine: SessionEngine;
     readonly #eventEngine: EventEngine = container.resolve(EventEngine);
     readonly #inputValidator: InputValidator = container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
     #commitParameters: boolean = false;
     #node: TreeNode;
     #parameterControlNames: string[] = [];
@@ -54,6 +55,7 @@ export class Session implements ISession {
     public set bearerToken(value: string | undefined) {
         this.#inputValidator.validate(value, 'string', false);
         this.#sessionEngine.bearerToken = value;
+        this.#logger.info(`Session (${this.id}): bearerToken was set to: ${value}`);
     }
 
     // /**
@@ -112,6 +114,7 @@ export class Session implements ISession {
     public set refreshBearerToken(value: () => string) {
         this.#inputValidator.validate(value, 'function');
         this.#sessionEngine.refreshBearerToken = value;
+        this.#logger.info(`Session (${this.id}): refreshBearerToken was set to: ${value}`);
     }
 
     // /**
@@ -182,6 +185,7 @@ export class Session implements ISession {
      */
     public createOutput(id: string): Output {
         this.#inputValidator.validate(id, 'string');
+        this.#logger.info(`Session (${this.id}): New output created with id ${id}.`);
         return new Output(this.#sessionEngine.createOutput(id));
     }
 
@@ -199,6 +203,7 @@ export class Session implements ISession {
         (container.resolve(Tree)).addNode(this.#node);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
         if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        this.#logger.info(`Session (${this.id}): Session customized.`);
         return this.#node;
     }
 
@@ -430,6 +435,7 @@ export class Session implements ISession {
         this.#node = await this.#sessionEngine.init();
         (container.resolve(Tree)).addNode(this.#node);
         if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        this.#logger.info(`Session (${this.id}): Session initialized.`);
         return this.#node;
     }
 

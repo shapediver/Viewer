@@ -20,9 +20,9 @@ import { SpotLight } from "./lights/SpotLight";
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Properties (25)
   readonly #renderingEngine: RenderingEngineThreejs;
-  readonly #performanceEvaluator: PerformanceEvaluator;
-  readonly #logger: Logger;
-  readonly #eventEngine: EventEngine;
+  readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
 
   readonly #cameras: {
@@ -42,9 +42,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param canvas 
    */
   constructor(properties: { id: string, canvas: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }) {
-    this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    this.#logger = <Logger>container.resolve(Logger);
-    this.#eventEngine = <EventEngine>container.resolve(EventEngine);
     this.#renderingEngine = new RenderingEngineThreejs(properties);
 
     // default camera
@@ -442,6 +439,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public assignCamera(id: string): void {
     this.#inputValidator.validate(id, 'string');
     this.#renderingEngine.cameraEngine.assignCamera(id);
+    this.#logger.info(`Viewer (${this.id}): Camera with id ${id} assigned.`);
   }
 
   /**
@@ -453,6 +451,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public createPerspectiveCamera(id?: string): Camera {
     this.#inputValidator.validate(id, 'string', false);
+    this.#logger.info(`Viewer (${this.id}): Perspective camera with id ${id} created.`);
     return this.createCamera(CAMERATYPE.PERSPECTIVE, id);
   }
 
@@ -465,6 +464,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public createOrthographicCamera(id?: string): Camera {
     this.#inputValidator.validate(id, 'string', false);
+    this.#logger.info(`Viewer (${this.id}): Orthographic camera with id ${id} created.`);
     return this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
   }
 
@@ -481,6 +481,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(id, 'string', false);
     const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
     this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
+    this.#logger.info(`Viewer (${this.id}): ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
     return this.#cameras[cameraLogic.id];
   }
 
@@ -542,6 +543,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(properties)
     this.#lights[(<AbstractLight>lightLogic).id] = new AmbientLight(<AmbientLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Ambient light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <AmbientLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -569,6 +571,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new DirectionalLight(<DirectionalLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Directional light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <DirectionalLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -590,6 +593,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new HemisphereLight(<HemisphereLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Hemisphere light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <HemisphereLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -615,6 +619,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const lightLogic = this.#renderingEngine.lightEngine.addPointLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new PointLight(<PointLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Point light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <PointLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -646,6 +651,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new SpotLight(<SpotLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Spot light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <SpotLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -663,6 +669,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(properties.standard, 'boolean', false);
     const r = this.#renderingEngine.lightEngine.createLightScene(properties);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): New light scene with id ${r} created.`);
     return r;
   }
 
@@ -676,6 +683,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(id, 'string');
     const r = this.#renderingEngine.lightEngine.removeLightScene(id);
     this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Light scene with id ${id} removed.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not remove light scene with id ${id}.`);
     return r;
   }
 
@@ -707,6 +716,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(id, 'string');
     const r = this.#renderingEngine.lightEngine.removeLight(id);
     this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Light with id ${id} removed.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not remove light with id ${id}.`);
     return r;
   }
 
@@ -720,6 +731,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(id, 'string');
     const r = this.#renderingEngine.lightEngine.assignLightScene(id);
     this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Assigned light scene with id ${id}.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not assign light scene with id ${id}.`);
     return r;
   }
 

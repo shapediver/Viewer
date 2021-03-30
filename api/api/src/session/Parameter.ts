@@ -1,4 +1,5 @@
 import { IParameter, Parameter as ParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
@@ -6,6 +7,7 @@ export class Parameter implements IParameter {
 
   readonly #parameter: ParameterLogic;
   readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
 
   /**
    * @ignore
@@ -110,6 +112,7 @@ export class Parameter implements IParameter {
   public set value(value: string) {
     this.#inputValidator.validate(value, 'string');
     this.#parameter.value = value;
+    this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
   }
 
   /**

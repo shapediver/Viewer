@@ -2,11 +2,13 @@ import { CAMERATYPE, ICamera, ICameraControls } from "@shapediver/viewer.renderi
 import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
 export abstract class Camera implements ICamera {
     // #region Properties (2)
 
     readonly #camera: ICamera;
     readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (2)
 
@@ -39,6 +41,7 @@ export abstract class Camera implements ICamera {
     public set autoAdjust(value: boolean) {
         this.#inputValidator.validate(value, 'boolean');
         this.#camera.autoAdjust = value;
+        this.#logger.info(`Camera (${this.#camera.id}): autoAdjust was set to: ${value}`);
     }
 
     /**
@@ -56,6 +59,7 @@ export abstract class Camera implements ICamera {
     public set cameraMovementDuration(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#camera.cameraMovementDuration = value;
+        this.#logger.info(`Camera (${this.#camera.id}): cameraMovementDuration was set to: ${value}`);
     }
 
     /**
@@ -73,6 +77,7 @@ export abstract class Camera implements ICamera {
     public set defaultPosition(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#camera.defaultPosition = value;
+        this.#logger.info(`Camera (${this.#camera.id}): defaultPosition was set to: ${value}`);
     }
 
     /**
@@ -90,6 +95,7 @@ export abstract class Camera implements ICamera {
     public set defaultTarget(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#camera.defaultTarget = value;
+        this.#logger.info(`Camera (${this.#camera.id}): defaultTarget was set to: ${value}`);
     }
 
     /**
@@ -107,6 +113,7 @@ export abstract class Camera implements ICamera {
     public set enableCameraControls(value: boolean) {
         this.#inputValidator.validate(value, 'boolean');
         this.#camera.enableCameraControls = value;
+        this.#logger.info(`Camera (${this.#camera.id}): enableCameraControls was set to: ${value}`);
     }
 
     /**
@@ -132,6 +139,7 @@ export abstract class Camera implements ICamera {
     public set position(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#camera.position = value;
+        this.#logger.info(`Camera (${this.#camera.id}): position was set to: ${value}`);
     }
 
     /**
@@ -149,6 +157,7 @@ export abstract class Camera implements ICamera {
     public set revertAtMouseUp(value: boolean) {
         this.#inputValidator.validate(value, 'boolean');
         this.#camera.revertAtMouseUp = value;
+        this.#logger.info(`Camera (${this.#camera.id}): revertAtMouseUp was set to: ${value}`);
     }
 
     /**
@@ -166,6 +175,7 @@ export abstract class Camera implements ICamera {
     public set revertAtMouseUpDuration(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#camera.revertAtMouseUpDuration = value;
+        this.#logger.info(`Camera (${this.#camera.id}): revertAtMouseUpDuration was set to: ${value}`);
     }
 
     /**
@@ -183,6 +193,7 @@ export abstract class Camera implements ICamera {
     public set target(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#camera.target = value;
+        this.#logger.info(`Camera (${this.#camera.id}): target was set to: ${value}`);
     }
 
     /**
@@ -208,6 +219,7 @@ export abstract class Camera implements ICamera {
     public set zoomExtentsFactor(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#camera.zoomExtentsFactor = value;
+        this.#logger.info(`Camera (${this.#camera.id}): zoomExtentsFactor was set to: ${value}`);
     }
 
     // #endregion Public Accessors (22)
@@ -226,7 +238,7 @@ export abstract class Camera implements ICamera {
 
     /**
      * Update the camera with the delta time of the viewer.
-     * Normally, there should't be much reason to use this function.
+     * Normally, there shouldn't be much reason to use this function.
      * It is used internally in the rendering engine.
      * 
      * @param time the delta time

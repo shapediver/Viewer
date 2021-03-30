@@ -1,4 +1,6 @@
 import { ILight, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
@@ -8,6 +10,7 @@ export abstract class Light implements ILight {
 
     readonly #light: ILight;
     readonly #inputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)
 
@@ -38,6 +41,7 @@ export abstract class Light implements ILight {
     public set color(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#light.color = value;
+        this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): color was set to: ${value}`);
     }
 
     /**
@@ -53,6 +57,7 @@ export abstract class Light implements ILight {
     public set intensity(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#light.intensity = value;
+        this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): intensity was set to: ${value}`);
     }
 
     /**
@@ -68,6 +73,7 @@ export abstract class Light implements ILight {
     public set name(value: string | undefined) {
         this.#inputValidator.validate(value, 'string', false);
         this.#light.name = value;
+        this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): name was set to: ${value}`);
     }
 
     /**
