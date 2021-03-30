@@ -1,4 +1,4 @@
-import { ICameraControls, ICameraDefinition, OrthographicCameraControls as OrthographicCameraControlsLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { ICameraControls, OrthographicCameraControls as OrthographicCameraControlsLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
@@ -244,13 +244,13 @@ export class OrthographicCameraControls implements ICameraControls {
 
     /**
      * Update the camera with the delta time of the viewer.
-     * Normally, there should't be much reason to use this function.
+     * Normally, there shouldn't be much reason to use this function.
      * It is used internally in the rendering engine.
      * 
      * @param time the delta time
      * @returns 
      */
-    public update(time: number): ICameraDefinition {
+    public update(time: number): { position: vec3, target: vec3 } {
         this.#inputValidator.validate(time, 'positive');
         return this.#controls.update(time);
     }

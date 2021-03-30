@@ -1,4 +1,4 @@
-import { ICameraControls, ICameraDefinition, PerspectiveCameraControls as PerspectiveCameraControlsLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { ICameraControls, PerspectiveCameraControls as PerspectiveCameraControlsLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
@@ -428,7 +428,7 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param time the delta time
      * @returns 
      */
-    public update(time: number): ICameraDefinition {
+    public update(time: number): { position: vec3, target: vec3 } {
         this.#inputValidator.validate(time, 'positive');
         return this.#controls.update(time);
     }

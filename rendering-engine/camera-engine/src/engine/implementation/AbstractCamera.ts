@@ -1,29 +1,25 @@
 import { ICameraControls } from '../../controls/interface/ICameraControls';
 import { ICamera } from '../interface/ICamera';
 import { vec3 } from 'gl-matrix';
-import { ICameraDefinition, CAMERATYPE } from '../interface/ICameraEngine';
+import { CAMERATYPE } from '../interface/ICameraEngine';
 
 export abstract class AbstractCamera implements ICamera {
-    // #region Properties (10)
+    // #region Properties (11)
 
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
-    private _default: ICameraDefinition = {
-        position: vec3.create(),
-        target: vec3.create()    
-    };
+    private _defaultPosition: vec3 = vec3.create();
+    private _defaultTarget: vec3 = vec3.create();
     private _enableCameraControls: boolean = true;
     private _revertAtMouseUp: boolean = false;
     private _revertAtMouseUpDuration: number = 800;
     private _zoomExtentsFactor: number = 1;
 
-    protected _cameraDefinition: ICameraDefinition = {
-        position: vec3.create(),
-        target: vec3.create()
-    };
     protected _controls!: ICameraControls;
+    protected _position: vec3 = vec3.create();
+    protected _target: vec3 = vec3.create();
 
-    // #endregion Properties (10)
+    // #endregion Properties (11)
 
     // #region Constructors (1)
 
@@ -31,7 +27,7 @@ export abstract class AbstractCamera implements ICamera {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (20)
+    // #region Public Accessors (25)
 
     /**
      * Getter autoAdjust
@@ -47,24 +43,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set autoAdjust(value: boolean) {
         this._autoAdjust = value;
-    }
-
-    /**
-     * Getter cameraDefinition
-     * @return {ICameraDefinition}
-     */
-    public get cameraDefinition(): ICameraDefinition {
-        return this._cameraDefinition;
-    }
-
-    /**
-     * Setter cameraDefinition
-     * @param {ICameraDefinition} value
-     */
-    public set cameraDefinition(value: ICameraDefinition) {
-        this._cameraDefinition = value;
-        this._controls.position = value.position;
-        this._controls.target = value.target;
     }
 
     /**
@@ -92,19 +70,35 @@ export abstract class AbstractCamera implements ICamera {
     }
 
     /**
-     * Getter default
-     * @return {ICameraDefinition}
+     * Getter defaultPosition
+     * @return {vec3}
      */
-    public get default(): ICameraDefinition {
-        return this._default;
+    public get defaultPosition(): vec3 {
+        return this._defaultPosition;
     }
 
     /**
-     * Setter default
-     * @param {ICameraDefinition} value
+     * Setter defaultPosition
+     * @param {vec3} value
      */
-    public set default(value: ICameraDefinition) {
-        this._default = value;
+    public set defaultPosition(value: vec3) {
+        this._defaultPosition = value;
+    }
+
+    /**
+     * Getter defaultTarget
+     * @return {vec3}
+     */
+    public get defaultTarget(): vec3 {
+        return this._defaultTarget;
+    }
+
+    /**
+     * Setter defaultTarget
+     * @param {vec3} value
+     */
+    public set defaultTarget(value: vec3) {
+        this._defaultTarget = value;
     }
 
     /**
@@ -121,6 +115,31 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set enableCameraControls(value: boolean) {
         this._enableCameraControls = value;
+    }
+
+    /**
+       * Getter id
+       * @return {string}
+       */
+    public get id(): string {
+        return this._id;
+    }
+
+    /**
+     * Getter position
+     * @return {vec3}
+     */
+    public get position(): vec3 {
+        return this._position;
+    }
+
+    /**
+     * Setter position
+     * @param {vec3} value
+     */
+    public set position(value: vec3) {
+        this._position = value;
+        this._controls.position = value;
     }
 
     /**
@@ -156,6 +175,23 @@ export abstract class AbstractCamera implements ICamera {
     }
 
     /**
+     * Getter target
+     * @return {vec3}
+     */
+    public get target(): vec3 {
+        return this._target;
+    }
+
+    /**
+     * Setter target
+     * @param {vec3} value
+     */
+    public set target(value: vec3) {
+        this._target = value;
+        this._controls.target = value;
+    }
+
+    /**
      * Getter type
      * @return {CAMERATYPE}
      */
@@ -179,19 +215,14 @@ export abstract class AbstractCamera implements ICamera {
         this._zoomExtentsFactor = value;
     }
 
-    /**
-       * Getter id
-       * @return {string}
-       */
-    public get id(): string {
-        return this._id;
-    }
-
-    // #endregion Public Accessors (20)
+    // #endregion Public Accessors (25)
 
     // #region Public Methods (1)
 
-    public update(time: number): ICameraDefinition {
+    public update(time: number): {
+        position: vec3,
+        target: vec3
+    } {
         return this._controls.update(time);
     }
 

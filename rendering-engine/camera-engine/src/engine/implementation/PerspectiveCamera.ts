@@ -29,7 +29,8 @@ export class PerspectiveCamera extends AbstractCamera {
                 position = vec3.fromValues(0, 1, 0);
                 target = vec3.create();
             }
-            this.cameraDefinition = { position, target };
+            this.position = position;
+            this.target = target;
         });
     }
 

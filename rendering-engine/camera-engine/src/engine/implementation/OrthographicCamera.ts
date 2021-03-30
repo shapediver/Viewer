@@ -1,7 +1,7 @@
 import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { Converter } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
-import { CAMERATYPE, ICameraDefinition } from "../interface/ICameraEngine";
+import { CAMERATYPE } from "../interface/ICameraEngine";
 import { AbstractCamera } from "./AbstractCamera";
 import { vec3 } from "gl-matrix";
 import { OrthographicCameraControls } from "../../controls/implementation/OrthographicCameraControls";
@@ -27,7 +27,8 @@ export class OrthographicCamera extends AbstractCamera {
                 position = vec3.fromValues(0, 1, 0);
                 target = vec3.create();
             }
-            this.cameraDefinition = { position, target };
+            this.position = position;
+            this.target = target;
         });
     }
     
