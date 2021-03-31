@@ -74,8 +74,14 @@ export class MaterialEngine {
      * @returns the scene graph node 
      */
     public async loadContent(content: ISessionOutputContent): Promise<TreeNode> {
-        // TODO other formats
         const node = new TreeNode('material');
+    
+        if(!content) {
+            this._logger.error('Invalid content was provided to material engine.');
+            return node;
+        }
+
+        // TODO other formats
 
         const material = new MaterialData();
         node.data.push(material);
@@ -98,6 +104,8 @@ export class MaterialEngine {
                         await this.loadMaterialV3(content.data, material);
                 }
             }
+        } else {
+            this._logger.error('No material data was provided to material engine.');
         }
         return node;
     }

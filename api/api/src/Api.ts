@@ -2,69 +2,75 @@ import { Tree } from "@shapediver/viewer.shared.node-tree";
 import { container, singleton } from "tsyringe";
 import { Session } from "./session/Session";
 import { Viewer } from "./viewer/Viewer";
-import { StateEngine, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
+import { StateEngine, EventEngine, EVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services';
 import { UuidGenerator, InputValidator } from '@shapediver/viewer.shared.utils';
 import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
+import { Logger, PerformanceEvaluator, LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
 import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine/dist/IRenderingEngine";
 
 @singleton()
 export class Api {
-  
-  // TODO
-  #commitSettings: boolean = false;
-  #loggingLevel: number = -1;
-  #showMessages: boolean = true;
+  // #region Properties (7)
 
-  readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-  readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-  readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #sessions: { [key: string]: Session } = {};
+  readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+  readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #viewers: { [key: string]: Viewer } = {};
+
+  // #endregion Properties (7)
+
   // #region Constructors (1)
 
   /**
    * @ignore
    */
-  constructor() {}
+  constructor() { 
+    this.#stateEngine.settingsRegistered.then(() => {
+      switch(this.#settingsEngine.general.viewer.loggingLevel.value) {
+        case 0:
+          this.#logger.loggingLevel = LOGGINGLEVEL.ERROR;
+          break;
+        case 1:
+          this.#logger.loggingLevel = LOGGINGLEVEL.WARN;
+          break;
+        case 2:
+          this.#logger.loggingLevel = LOGGINGLEVEL.INFO;
+          break;
+        case 3:
+          this.#logger.loggingLevel = LOGGINGLEVEL.DEBUG;
+          break;
+        default:
+          this.#logger.loggingLevel = LOGGINGLEVEL.NONE;
+      }
+      this.#logger.showMessages = this.#settingsEngine.general.viewer.showMessages.value;
+    })
+  }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (7)
+  // #region Public Accessors (5)
 
-  // /**
-  //  * Getter commitSettings
-  //  * @return {boolean}
-  //  */
-  // public get commitSettings(): boolean {
-  //   return this.#commitSettings;
-  // }
+  /**
+   * The loggingLevel setting.
+   * @return {LOGGINGLEVEL}
+   */
+  public get loggingLevel(): LOGGINGLEVEL {
+    return this.#logger.loggingLevel;
+  }
 
-  // /**
-  //  * Setter commitSettings
-  //  * @param {boolean} value
-  //  */
-  // public set commitSettings(value: boolean) {
-  //   this.#commitSettings = value;
-  // }
-
-  // /**
-  //  * Getter loggingLevel
-  //  * @return {number}
-  //  */
-  // public get loggingLevel(): number {
-  //   return this.#loggingLevel;
-  // }
-
-  // /**
-  //  * Setter loggingLevel
-  //  * @param {number} value
-  //  */
-  // public set loggingLevel(value: number) {
-  //   this.#loggingLevel = value;
-  // }
+  /**
+   * The loggingLevel setting.
+   * @param {LOGGINGLEVEL} value
+   */
+  public set loggingLevel(value: LOGGINGLEVEL) {
+    this.#inputValidator.validate(value, 'enum', true, Object.values(LOGGINGLEVEL));
+    this.#logger.loggingLevel = value;
+    this.#logger.info(`LoggingLevel was set to: ${value}`);
+  }
 
   /**
    * The scene tree.
@@ -74,23 +80,25 @@ export class Api {
     return <Tree>container.resolve(Tree);
   }
 
-  // /**
-  //  * Getter showMessages
-  //  * @return {boolean}
-  //  */
-  // public get showMessages(): boolean {
-  //   return this.#showMessages;
-  // }
+  /**
+   * The showMessages setting.
+   * @return {boolean}
+   */
+  public get showMessages(): boolean {
+    return this.#logger.showMessages;
+  }
 
-  // /**
-  //  * Setter showMessages
-  //  * @param {boolean} value
-  //  */
-  // public set showMessages(value: boolean) {
-  //   this.#showMessages = value;
-  // }
+  /**
+   * The showMessages setting.
+   * @param {boolean} value
+   */
+  public set showMessages(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
+    this.#logger.showMessages = value;
+    this.#logger.info(`ShowMessages was set to: ${value}`);
+  }
 
-  // #endregion Public Accessors (7)
+  // #endregion Public Accessors (5)
 
   // #region Public Methods (7)
 
@@ -113,12 +121,13 @@ export class Api {
    */
   public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, id?: string }): Promise<Session> {
     // input validation
+    this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.ticket, 'string');
     this.#inputValidator.validate(properties.modelViewUrl, 'string');
     this.#inputValidator.validate(properties.bearerToken, 'string', false);
     this.#inputValidator.validate(properties.loadDefaultSettings, 'boolean', false);
     this.#inputValidator.validate(properties.id, 'string', false);
-    
+
     // check if the given id is valid
     const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#sessions[sessionId]) this.#logger.error('Session with this id already exists.');
@@ -127,7 +136,7 @@ export class Api {
     this.#performanceEvaluator.start('session_creation_' + sessionId);
 
     // create the actual session 
-    const session = new Session(Object.assign({}, properties, {id: sessionId}));
+    const session = new Session(Object.assign({}, properties, { id: sessionId }));
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
 
     // initialized the session
@@ -160,6 +169,7 @@ export class Api {
    */
   public async createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Promise<Viewer> {
     // input validation
+    this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.type, 'enum', false, Object.values(RENDERERTYPE));
     this.#inputValidator.validate(properties.visibility, 'enum', false, Object.values(VISIBILITYMODE));
     this.#inputValidator.validate(properties.canvas, 'HTMLCanvasElement');
@@ -241,7 +251,7 @@ export class Api {
    * The viewers are updated with all current changes in the scene tree.
    */
   public update(): void {
-    if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+    if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
   }
 
   // #endregion Public Methods (7)

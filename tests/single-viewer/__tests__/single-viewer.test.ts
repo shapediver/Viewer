@@ -21,8 +21,8 @@ describe('screenshot tests', () => {
             // DO SOMETHING WITH THE API
             await page.evaluate(async (ticket, modelViewUrl) => {
                 const api: typeof API = (<any>window).api; 
+                let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket, modelViewUrl });
-                let viewer = api.getViewer('myViewer');
                 viewer.show = true;
             }, tests[i].ticket, tests[i].modelViewUrl);
             

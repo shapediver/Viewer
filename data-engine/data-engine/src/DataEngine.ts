@@ -14,6 +14,11 @@ export class DataEngine {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
     public async loadContent(content: ISessionOutputContent): Promise<TreeNode> {
+        if(!content || (content && !content.format)) {
+            this._logger.error('Invalid content was provided to data engine.');
+            return new TreeNode();
+        }
+        
         try {
             if (content.format === 'glb' || content.format === 'gltf') {
                 return await this._geometryEngine.loadContent(content);

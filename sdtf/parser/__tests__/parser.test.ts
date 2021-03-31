@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import { Encoder } from '../src/Encoder'
 
-describe('encoder test', () => {
+describe('sdtf-parser', () => {
     let encoder: Encoder = new Encoder();
 
     it('encodeFromUriToArrayBuffer - no uri', async () => {
@@ -30,8 +30,6 @@ describe('encoder test', () => {
             expect(e).toBeNull();
         }
     });
-
-    
 
 
     it('encodeFromArrayBufferToJson - empty array buffer', async () => {

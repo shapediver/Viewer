@@ -1,7 +1,7 @@
-import { Logger } from "./logger/Logger";
+import { Logger, LOGGINGLEVEL } from "./logger/Logger";
 
 export {
-    Logger
+    Logger, LOGGINGLEVEL
 }
 
 import { PerformanceEvaluator } from "./performance-evaluator/PerformanceEvaluator";

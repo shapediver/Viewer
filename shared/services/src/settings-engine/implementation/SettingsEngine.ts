@@ -4,7 +4,7 @@ import { EVENTTYPE } from '../../event-engine/EventTypes';
 import { StateEngine } from '../../state-engine/StateEngine';
 import { DefaultSettings } from './DefaultSettings';
 
-type GeneralSettings = typeof DefaultSettings.viewer;
+type GeneralSettings = typeof DefaultSettings;
 type SceneSettings = typeof DefaultSettings.viewer.scene;
 type CameraSettings = typeof DefaultSettings.viewer.scene.camera;
 type CameraOrbitControlsSettings = typeof DefaultSettings.viewer.scene.camera.controls.orbit;
@@ -54,7 +54,7 @@ export class SettingsEngine {
      * @return {GeneralSettings}
      */
     public get general(): GeneralSettings {
-		return this._settings.viewer;
+		return this._settings;
 	}
 
     /**

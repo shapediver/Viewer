@@ -28,9 +28,11 @@ export class LightEngine implements ILightEngine {
 
     constructor() {
         this.createLightScene({ id: 'default', standard: true });
-        this.setFromSettings();
-        this._stateEngine.settingsRegistered.then(() => this.setFromSettings());
-        (<any>window).lightScenes = this._lightScenes;
+        if(this._stateEngine.settingsRegistered.resolved === true) {
+            this.setFromSettings();
+        } else {
+            this._stateEngine.settingsRegistered.then(() => this.setFromSettings());
+        }
     }
 
     // #endregion Constructors (1)
@@ -113,7 +115,9 @@ export class LightEngine implements ILightEngine {
     }
 
     public removeLightScene(id: string): boolean {
-        if (!this._lightScenes[id]) return false;
+        if (!this._lightScenes[id] || id === 'default') return false;
+        if (this._currentLightScene.id === id)
+            this.assignLightScene('default');
         delete this._lightScenes[id];
         return true;
     }

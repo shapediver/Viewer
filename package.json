@@ -30,7 +30,7 @@
   },
   "scripts": {
     "bootstrap": "npm run check-npm-version && lerna bootstrap --hoist",
-    "clean": "lerna clean --yes",
+    "clean": "lerna clean --yes && rm -rf node_modules",
     "check-npm-version": "bash ./scripts/check-npm-version.sh",
     "create-lib": "npm run check-npm-version && bash ./scripts/create-lib.sh",
     "create-package": "bash ./scripts/create-package.sh",
@@ -39,7 +39,7 @@
     "add-devDependency": "bash ./scripts/add-devDependency.sh",
     "publish": "lerna publish --no-private --force-publish --no-push --registry https://npm.pkg.github.com/",
     "init": "bash ./scripts/init.sh",
-    "test": "lerna run test",
+    "test": "lerna run test --stream",
     "build": "lerna run build",
     "build-dep": "lerna run build-dep",
     "build-current": "cd ./api/api && npm run build-dep && cd ../../",
