@@ -28,7 +28,7 @@ export class Session implements ISession {
     #controlNames: string[] = [];
     #controlOrder: string[] = [];
     #node: TreeNode;
-    #parametersHidden: string[] = [];
+    #controlHidden: string[] = [];
 
     // #endregion Properties (15)
 
@@ -47,7 +47,7 @@ export class Session implements ISession {
                 this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
                 this.#controlNames = this.#settingsEngine.general.parameters.controlNames.value;
                 this.#controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
-                this.#parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
+                this.#controlHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
             })
     }
 
@@ -176,21 +176,21 @@ export class Session implements ISession {
     }
 
     /**
-     * The parametersHidden setting of the session.
+     * The controlHidden setting of the session.
      * @return {string[]}
      */
-    public get parametersHidden(): string[] {
-        return this.#parametersHidden;
+    public get controlHidden(): string[] {
+        return this.#controlHidden;
     }
 
     /**
-     * The parametersHidden setting of the session.
+     * The controlHidden setting of the session.
      * @param {string[]} value
      */
-    public set parametersHidden(value: string[]) {
+    public set controlHidden(value: string[]) {
         this.#inputValidator.validate(value, 'stringArray');
-        this.#parametersHidden = value;
-        this.#logger.info(`Session (${this.id}): parametersHidden was set to: ${value}`);
+        this.#controlHidden = value;
+        this.#logger.info(`Session (${this.id}): controlHidden was set to: ${value}`);
     }
 
     /**
