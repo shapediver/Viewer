@@ -134,6 +134,24 @@ export interface IGLTF_v2_Image {
     extras?: any
 }
 
+export interface IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness {
+    diffuseFactor?: number[],
+    diffuseTexture?: {
+        index: number,
+        texCoord?: number,
+        extensions?: { [id: string]: any },
+        extras?: any
+    },
+    specularFactor?: number[],
+    glossinessFactor?: number,
+    specularGlossinessTexture?: {
+        index: number,
+        texCoord?: number,
+        extensions?: { [id: string]: any },
+        extras?: any
+    }
+}
+
 export interface IGLTF_v2_Material {
     name?: string,
     pbrMetallicRoughness?: {
