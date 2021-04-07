@@ -8,7 +8,7 @@ export class SdtfBufferView {
   // #region Properties (1)
 
   private _data?: any;
-  private readonly _logger: Logger = container.resolve(Logger);
+  private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
   // #endregion Properties (1)
 

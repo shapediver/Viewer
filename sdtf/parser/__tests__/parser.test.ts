@@ -1,15 +1,13 @@
 import "reflect-metadata"
 import { Encoder } from '../src/Encoder'
-import { EncodingError } from '../src/EncodingError';
 
-describe('encoder test', () => {
+describe('sdtf-parser', () => {
     let encoder: Encoder = new Encoder();
 
     it('encodeFromUriToArrayBuffer - no uri', async () => {
         try {
             await encoder.encodeFromUriToArrayBuffer('');
         } catch(e) {
-            expect(e).toBeInstanceOf(EncodingError);
             expect(e.message).toBe('The uri is an empty string.');
         }
     });
@@ -18,7 +16,6 @@ describe('encoder test', () => {
         try {
             await encoder.encodeFromUriToArrayBuffer('sdf');
         } catch(e) {
-            expect(e).toBeInstanceOf(EncodingError);
             expect(e.message).toBe('Was not able to get array buffer from uri.');
             expect(e.fullError).toBeDefined()
         }
@@ -34,8 +31,6 @@ describe('encoder test', () => {
         }
     });
 
-    
-
 
     it('encodeFromArrayBufferToJson - empty array buffer', async () => {
         try {
@@ -49,14 +44,14 @@ describe('encoder test', () => {
     it('encodeFromArrayBufferToJson - correct array buffer', async () => {
         try {
             let arraybuffer = await encoder.encodeFromUriToArrayBuffer('https://shapediverdemos.s3.amazonaws.com/sdtf/sample.sdtf');
-            let result = await encoder.encodeFromArrayBufferToJson(arraybuffer);
-            expect(result.json).toBeDefined()
-            expect(result.json).toHaveProperty('version')
-            expect(result.json).toHaveProperty('chunks')
-            expect(result.json).toHaveProperty('nodes')
-            expect(result.json).toHaveProperty('typeHints')
-            expect(result.json).toHaveProperty('attributes')
-            expect(result.json).toHaveProperty('items')
+            let result = await encoder.encodeFromArrayBufferToJson(arraybuffer!);
+            expect(result!.json).toBeDefined()
+            expect(result!.json).toHaveProperty('version')
+            expect(result!.json).toHaveProperty('chunks')
+            expect(result!.json).toHaveProperty('nodes')
+            expect(result!.json).toHaveProperty('typeHints')
+            expect(result!.json).toHaveProperty('attributes')
+            expect(result!.json).toHaveProperty('items')
         } catch(e) {
             // should not throw an exception
             expect(e).toBeNull();

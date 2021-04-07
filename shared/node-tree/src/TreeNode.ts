@@ -20,9 +20,9 @@ export class TreeNode {
 
   readonly #children: TreeNode[] = [];
   readonly #data: ITreeNodeData[] = [];
-  readonly #eventEngine = container.resolve(EventEngine);
+  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #name: string = '';
-  readonly #uuidGenerator = container.resolve(UuidGenerator);
+  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
   #id: string;
   #parent: TreeNode | null = null;

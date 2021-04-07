@@ -1,8 +1,4 @@
-describe('test', () => {
-    // TODO
-    beforeEach(() => {
-    });
-
+describe('shared-types', () => {
     it('test', async () => {
     });
 })

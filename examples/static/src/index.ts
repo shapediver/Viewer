@@ -1,17 +1,17 @@
 import "reflect-metadata"
-import { api, RENDERERTYPE, Session, Viewer, Parameter, Export } from "@shapediver/viewer";
+import { api, Session, Viewer, Parameter, Export } from "@shapediver/viewer";
 
 let viewer: Viewer, session: Session;
 
 (async () => {
-    viewer = await api.createViewer(RENDERERTYPE.STANDARD, <HTMLCanvasElement>document.getElementById('canvas'), 'myViewer')
+    viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
 })();
 
 (<any>window).sceneTree = api.sceneTree;
 (<any>window).api = api;
 
 (<any>window).init = async (ticket: string, modelViewUrl: string): Promise<void> => {
-    session = await api.createSession(ticket, modelViewUrl, 'mySession');
+    session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
     api.update()
 }
 
@@ -20,7 +20,7 @@ let viewer: Viewer, session: Session;
 }
 
 (<any>window).changeParameter = async (id: string, value: string): Promise<void> => {
-    session.getParameter(id).value = value;
+    session.getParameter(id)!.value = value;
     await session.customize();
 }
 

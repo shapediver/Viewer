@@ -6,10 +6,10 @@ import { CameraEngine } from "./engine/implementation/CameraEngine";
 import { OrthographicCamera } from "./engine/implementation/OrthographicCamera";
 import { PerspectiveCamera } from "./engine/implementation/PerspectiveCamera";
 import { ICamera } from "./engine/interface/ICamera";
-import { CAMERATYPE, ICameraDefinition, ICameraEngine } from "./engine/interface/ICameraEngine";
+import { CAMERATYPE, ICameraEngine } from "./engine/interface/ICameraEngine";
 
 export {
-  ICameraEngine, ICamera, ICameraControls, ICameraDefinition
+  ICameraEngine, ICamera, ICameraControls
 }
 
 export {

@@ -18,7 +18,7 @@ import { container } from 'tsyringe';
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 // gets the singleton instance
-const tree = <Tree>container.resolve(Tree);
+const tree: Tree = <Tree>container.resolve(Tree);
 
 // returns the root node of the tree
 const root: TreeNode = tree.root;

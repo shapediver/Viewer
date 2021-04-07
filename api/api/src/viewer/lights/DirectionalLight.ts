@@ -1,11 +1,16 @@
 import { Light } from "./Light";
 import { DirectionalLight as DirectionalLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { container } from "tsyringe";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
 
 export class DirectionalLight extends Light {
     // #region Properties (1)
 
     readonly #light: DirectionalLightLogic;
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)
 
@@ -37,7 +42,9 @@ export class DirectionalLight extends Light {
      * @param {boolean} value
      */
     public set castShadow(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#light.castShadow = value;
+        this.#logger.info(`Light (${this.#light.id}): castShadow was set to: ${value}`);
     }
 
     /**
@@ -53,7 +60,9 @@ export class DirectionalLight extends Light {
      * @param {vec3} value
      */
     public set direction(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.direction = value;
+        this.#logger.info(`Light (${this.#light.id}): direction was set to: ${value}`);
     }
 
     /**
@@ -69,7 +78,9 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public set shadowMapBias(value: number) {
+        this.#inputValidator.validate(value, 'number');
         this.#light.shadowMapBias = value;
+        this.#logger.info(`Light (${this.#light.id}): shadowMapBias was set to: ${value}`);
     }
 
     /**
@@ -85,7 +96,9 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public set shadowMapResolution(value: number) {
+        this.#inputValidator.validate(value, 'number');
         this.#light.shadowMapResolution = value;
+        this.#logger.info(`Light (${this.#light.id}): shadowMapResolution was set to: ${value}`);
     }
 
     // #endregion Public Accessors (4)

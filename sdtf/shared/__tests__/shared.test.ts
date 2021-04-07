@@ -1,7 +1,4 @@
-describe('test', () => {
-    beforeEach(() => {
-    });
-
+describe('sdtf-shared', () => {
     it('test', async () => {
     });
 })

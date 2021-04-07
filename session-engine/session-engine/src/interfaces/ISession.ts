@@ -5,10 +5,16 @@ import { IParameter } from "./IParameter";
 
 export interface ISession {
     id: string;
+    ticket: string;
+    modelViewUrl: string;
+    bearerToken?: string;
+    initialized: boolean;
 
     createOutput(id: string): IOutput;
     customize(): Promise<TreeNode>;
     init(): Promise<TreeNode>;
+
+    refreshBearerToken: () => string;
 
     getExport(id: string): IExport | null;
     getExportById(id: string): IExport | null;
