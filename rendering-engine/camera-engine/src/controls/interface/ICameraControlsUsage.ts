@@ -1,7 +1,6 @@
 import { IDomEventListener } from '@shapediver/viewer.shared.services';
 import { mat4, vec3 } from 'gl-matrix';
 
-import { ICameraDefinition } from '../../engine/interface/ICameraEngine';
 import { ICameraControls } from './ICameraControls';
 
 export interface ICameraControlsUsage extends ICameraControls {
@@ -14,7 +13,7 @@ export interface ICameraControlsUsage extends ICameraControls {
 
     // #region Public Methods (12)
 
-    animate(path: ICameraDefinition[], options: { easing?: string|Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string|Function }) : Promise<boolean>
+    animate(path: { position: vec3, target: vec3 }[], options: { easing?: string|Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string|Function }) : Promise<boolean>
     applyPositionMatrix(matrix: mat4, manualInteraction?: boolean): void;
     applyTargetMatrix(matrix: mat4, manualInteraction?: boolean): void;
     applyUpMatrix(matrix: mat4, manualInteraction?: boolean): void;

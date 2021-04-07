@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { RenderingEngine } from "..";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 
 export class EnvironmentMapLoader {
@@ -11,7 +12,8 @@ export class EnvironmentMapLoader {
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | null
     } = {};
-    private readonly _logger: Logger = container.resolve(Logger);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
     private _environmentMapName: string = 'none';
 
@@ -36,8 +38,10 @@ export class EnvironmentMapLoader {
     // #region Public Methods (1)
 
     public async load(name: string | string[]): Promise<boolean> {
+        const name_original = name;
         if (name === 'none') {
             this.assignEnvironmentMap(name);
+            this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { name: name_original })
             return true;
         };
 
@@ -54,6 +58,7 @@ export class EnvironmentMapLoader {
         } else {
             if (name.length !== 6) {
                 this._logger.error('Was not able to load environment map, exactly 6 files are needed in the array.')
+                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
                 return false;
             }
             name_internal = JSON.stringify(name, null, 0);
@@ -64,6 +69,7 @@ export class EnvironmentMapLoader {
         for (let environmentMap in this._environmentMaps)
             if (environmentMap === name_caching) {
                 this.assignEnvironmentMap(environmentMap);
+                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { name: name_original })
                 return true;
             }
 
@@ -84,6 +90,7 @@ export class EnvironmentMapLoader {
             }
             else {
                 this._logger.error('Was not able to load environment map, format not supported.')
+                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
                 return false;
             }
         } else {
@@ -92,10 +99,12 @@ export class EnvironmentMapLoader {
 
         try {
             await this.loadEnvironmentMap(name_caching, url);
+            this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { name: name_original })
             return Promise.resolve(true);
         }
         catch (error) {
             this._logger.error('Was not able to load environment map.')
+            this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
             return Promise.resolve(false);
         }
     }

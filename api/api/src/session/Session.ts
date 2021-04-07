@@ -5,69 +5,144 @@ import { Output } from "./Output";
 import { Parameter } from "./Parameter";
 import { container, injectable } from "tsyringe";
 import { Viewer } from "../viewer/Viewer";
-import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 
 @injectable()
 export class Session implements ISession {
-    // #region Properties (6)
+    // #region Properties (15)
 
+    readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     readonly #exports: { [key: string]: Export; } = {};
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #outputs: { [key: string]: Output; } = {};
     readonly #parameters: { [key: string]: Parameter; } = {};
-
     readonly #sessionEngine: SessionEngine;
-    readonly #ticket: string; 
-    readonly #modelViewUrl: string;
-    readonly #performanceEvaluator: PerformanceEvaluator;
-    readonly #logger: Logger;
-    readonly #eventEngine: EventEngine;
-    
-    #commitParameters: boolean = false;
-    #node: TreeNode;
-    #parameterControlNames: string[] = [];
-    #parameterControlOrder: string[] = [];
-    #parameterHidden: string[] = [];
+    readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
-    // #endregion Properties (6)
+    #commitParameters: boolean = false;
+    #commitSettings: boolean = false;
+    #controlNames: string[] = [];
+    #controlOrder: string[] = [];
+    #node: TreeNode;
+    #controlHidden: string[] = [];
+
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
     /**
      * @ignore
-     * @param id 
-     * @param ticket 
-     * @param modelViewUrl 
      */
-    constructor( id: string, ticket: string, modelViewUrl: string ) {
-        this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-        this.#logger = <Logger>container.resolve(Logger);
-        this.#eventEngine = <EventEngine>container.resolve(EventEngine);
-        this.#ticket = ticket;
-        this.#modelViewUrl = modelViewUrl;
-        this.#node = new TreeNode(this.ticket)
-        this.#sessionEngine = new SessionEngine(id, this.#ticket, this.#modelViewUrl);
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
+        this.#node = new TreeNode(properties.id)
+        this.#sessionEngine = new SessionEngine(properties);
+        this.#stateEngine.createCustomState(this.id + '_settings_registered');
+
+        if(properties.loadDefaultSettings !== false)
+            this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
+                this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
+                this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
+                this.#controlNames = this.#settingsEngine.general.parameters.controlNames.value;
+                this.#controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
+                this.#controlHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
+            })
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (12)
+    // #region Public Accessors (18)
 
-    // /**
-    //  * Getter commitParameters
-    //  * @return {boolean}
-    //  */
-    // public get commitParameters(): boolean {
-    //     return this.#commitParameters;
-    // }
+    /**
+     * The bearerToken of the session.
+     */
+    public get bearerToken(): string | undefined {
+        return this.#sessionEngine.bearerToken;
+    }
 
-    // /**
-    //  * Setter commitParameters
-    //  * @param {boolean} value
-    //  */
-    // public set commitParameters(value: boolean) {
-    //     this.#commitParameters = value;
-    // }
+    /**
+     * The bearerToken of the session.
+     */
+    public set bearerToken(value: string | undefined) {
+        this.#inputValidator.validate(value, 'string', false);
+        this.#sessionEngine.bearerToken = value;
+        this.#logger.info(`Session (${this.id}): bearerToken was set to: ${value}`);
+    }
+
+    /**
+     * The commitParameters setting of the session.
+     * @return {boolean}
+     */
+    public get commitParameters(): boolean {
+        return this.#commitParameters;
+    }
+
+    /**
+     * The commitParameters setting of the session.
+     * @param {boolean} value
+     */
+    public set commitParameters(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
+        this.#commitParameters = value;
+        this.#logger.info(`Session (${this.id}): commitParameters was set to: ${value}`);
+    }
+
+    /**
+     * The commitSettings setting of the session.
+     * @return {boolean}
+     */
+    public get commitSettings(): boolean {
+        return this.#commitSettings;
+    }
+
+    /**
+     * The commitSettings setting of the session.
+     * @param {boolean} value
+     */
+    public set commitSettings(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
+        this.#commitSettings = value;
+        this.#logger.info(`Session (${this.id}): commitSettings was set to: ${value}`);
+    }
+
+    /**
+     * The controlNames setting of the session.
+     * @return {string[]}
+     */
+    public get controlNames(): string[] {
+        return this.#controlNames;
+    }
+
+    /**
+     * The controlNames setting of the session.
+     * @param {string[]} value
+     */
+    public set controlNames(value: string[]) {
+        this.#inputValidator.validate(value, 'stringArray');
+        this.#controlNames = value;
+        this.#logger.info(`Session (${this.id}): controlNames was set to: ${value}`);
+    }
+
+    /**
+     * The controlOrder setting of the session.
+     * @return {string[]}
+     */
+    public get controlOrder(): string[] {
+        return this.#controlOrder;
+    }
+
+    /**
+     * The controlOrder setting of the session.
+     * @param {string[]} value
+     */
+    public set controlOrder(value: string[]) {
+        this.#inputValidator.validate(value, 'stringArray');
+        this.#controlOrder = value;
+        this.#logger.info(`Session (${this.id}): controlOrder was set to: ${value}`);
+    }
 
     /**
      * The id of the session.
@@ -78,11 +153,19 @@ export class Session implements ISession {
     }
 
     /**
+     * If the session was already initialized.
+     * @return {boolean}
+     */
+    public get initialized(): boolean {
+        return this.#sessionEngine.initialized;
+    }
+
+    /**
      * The modelViewUrl of the session.
      * @return {string}
      */
     public get modelViewUrl(): string {
-        return this.#modelViewUrl;
+        return this.#sessionEngine.modelViewUrl;
     }
 
     /**
@@ -93,63 +176,44 @@ export class Session implements ISession {
         return this.#node;
     }
 
-    // /**
-    //  * Getter parameterControlNames
-    //  * @return {string[]}
-    //  */
-    // public get parameterControlNames(): string[] {
-    //     return this.#parameterControlNames;
-    // }
+    /**
+     * The controlHidden setting of the session.
+     * @return {string[]}
+     */
+    public get controlHidden(): string[] {
+        return this.#controlHidden;
+    }
 
-    // /**
-    //  * Setter parameterControlNames
-    //  * @param {string[]} value
-    //  */
-    // public set parameterControlNames(value: string[]) {
-    //     this.#parameterControlNames = value;
-    // }
+    /**
+     * The controlHidden setting of the session.
+     * @param {string[]} value
+     */
+    public set controlHidden(value: string[]) {
+        this.#inputValidator.validate(value, 'stringArray');
+        this.#controlHidden = value;
+        this.#logger.info(`Session (${this.id}): controlHidden was set to: ${value}`);
+    }
 
-    // /**
-    //  * Getter parameterControlOrder
-    //  * @return {string[]}
-    //  */
-    // public get parameterControlOrder(): string[] {
-    //     return this.#parameterControlOrder;
-    // }
-
-    // /**
-    //  * Setter parameterControlOrder
-    //  * @param {string[]} value
-    //  */
-    // public set parameterControlOrder(value: string[]) {
-    //     this.#parameterControlOrder = value;
-    // }
-
-    // /**
-    //  * Getter parameterHidden
-    //  * @return {string[]}
-    //  */
-    // public get parameterHidden(): string[] {
-    //     return this.#parameterHidden;
-    // }
-
-    // /**
-    //  * Setter parameterHidden
-    //  * @param {string[]} value
-    //  */
-    // public set parameterHidden(value: string[]) {
-    //     this.#parameterHidden = value;
-    // }
+    /**
+     * The callback to refresh the bearer token.
+     * This callback will be executed, 
+     * once a session request fails due to an invalid bearer token.
+     */
+    public set refreshBearerToken(value: () => string) {
+        this.#inputValidator.validate(value, 'function');
+        this.#sessionEngine.refreshBearerToken = value;
+        this.#logger.info(`Session (${this.id}): refreshBearerToken was set to: ${value}`);
+    }
 
     /**
      * The ticket of the session.
      * @return {string}
      */
     public get ticket(): string {
-        return this.#ticket;
+        return this.#sessionEngine.ticket;
     }
 
-    // #endregion Public Accessors (12)
+    // #endregion Public Accessors (18)
 
     // #region Public Methods (17)
 
@@ -160,6 +224,8 @@ export class Session implements ISession {
      * @returns 
      */
     public createOutput(id: string): Output {
+        this.#inputValidator.validate(id, 'string');
+        this.#logger.info(`Session (${this.id}): New output created with id ${id}.`);
         return new Output(this.#sessionEngine.createOutput(id));
     }
 
@@ -172,11 +238,12 @@ export class Session implements ISession {
      * @returns 
      */
     public async customize(): Promise<TreeNode> {
-        (container.resolve(Tree)).removeNode(this.#node);
+        (<Tree>container.resolve(Tree)).removeNode(this.#node);
         this.#node = await this.#sessionEngine.customize();
-        (container.resolve(Tree)).addNode(this.#node);
+        (<Tree>container.resolve(Tree)).addNode(this.#node);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
         if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        this.#logger.info(`Session (${this.id}): Session customized.`);
         return this.#node;
     }
 
@@ -187,6 +254,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getExport(id: string): Export | null {
+        this.#inputValidator.validate(id, 'string');
         const exportLogic = this.#sessionEngine.getExport(id);
         if(!exportLogic) return null;
         if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
@@ -200,6 +268,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getExportById(id: string): Export | null {
+        this.#inputValidator.validate(id, 'string');
         const exportLogic = this.#sessionEngine.getExportById(id);
         if(!exportLogic) return null;
         if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
@@ -213,6 +282,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getExportByName(name: string): Export[] {
+        this.#inputValidator.validate(name, 'string');
         const exportLogic = this.#sessionEngine.getExportByName(name);
         const exports: Export[] = [];
         for(let i = 0; i < exportLogic.length; i++) {
@@ -229,6 +299,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getExportByType(type: string): Export[] {
+        this.#inputValidator.validate(type, 'string');
         const exportLogic = this.#sessionEngine.getExportByType(type);
         const exports: Export[] = [];
         for(let i = 0; i < exportLogic.length; i++){
@@ -260,7 +331,8 @@ export class Session implements ISession {
      * @param id the id of the output
      * @returns 
      */
-    public getOutput(id: string): Output | null {
+    public getOutput(id: string): Output | null {        
+        this.#inputValidator.validate(id, 'string');
         const outputLogic = this.#sessionEngine.getOutput(id);
         if(!outputLogic) return null;
         if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
@@ -274,6 +346,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getOutputById(id: string): Output | null {
+        this.#inputValidator.validate(id, 'string');
         const outputLogic = this.#sessionEngine.getOutputById(id);
         if(!outputLogic) return null;
         if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
@@ -287,6 +360,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getOutputByName(name: string): Output[] {
+        this.#inputValidator.validate(name, 'string');
         const outputLogic = this.#sessionEngine.getOutputByName(name);
         const outputs: Output[] = [];
         for(let i = 0; i < outputLogic.length; i++) {
@@ -319,6 +393,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getParameter(id: string): Parameter | null {
+        this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameter(id);
         if(!parameterLogic) return null;
         if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
@@ -332,6 +407,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getParameterById(id: string): Parameter | null {
+        this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameterById(id);
         if(!parameterLogic) return null;
         if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
@@ -345,6 +421,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getParameterByName(name: string): Parameter[] {
+        this.#inputValidator.validate(name, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByName(name);
         const parameters: Parameter[] = [];
         for(let i = 0; i < parameterLogic.length; i++){
@@ -361,6 +438,7 @@ export class Session implements ISession {
      * @returns 
      */
     public getParameterByType(type: string): Parameter[] {
+        this.#inputValidator.validate(type, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByType(type);
         const parameters: Parameter[] = [];
         for(let i = 0; i < parameterLogic.length; i++){
@@ -395,8 +473,9 @@ export class Session implements ISession {
      */
     public async init(): Promise<TreeNode>  {
         this.#node = await this.#sessionEngine.init();
-        (container.resolve(Tree)).addNode(this.#node);
+        (<Tree>container.resolve(Tree)).addNode(this.#node);
         if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        this.#logger.info(`Session (${this.id}): Session initialized.`);
         return this.#node;
     }
 

@@ -1,8 +1,10 @@
 import { container, singleton } from 'tsyringe';
-import { EventEngine, EVENTTYPE } from '../../index';
+import { EventEngine } from '../../event-engine/EventEngine';
+import { EVENTTYPE } from '../../event-engine/EventTypes';
+import { StateEngine } from '../../state-engine/StateEngine';
 import { DefaultSettings } from './DefaultSettings';
 
-type GeneralSettings = typeof DefaultSettings.viewer;
+type GeneralSettings = typeof DefaultSettings;
 type SceneSettings = typeof DefaultSettings.viewer.scene;
 type CameraSettings = typeof DefaultSettings.viewer.scene.camera;
 type CameraOrbitControlsSettings = typeof DefaultSettings.viewer.scene.camera.controls.orbit;
@@ -16,7 +18,9 @@ export class SettingsEngine {
     // #region Properties (1)
 
     private readonly _settings = DefaultSettings;
-    private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _sessionSettings = ['commitParameters', 'commitSettings', 'controlNames', 'controlOrder', 'parametersHidden'];
 
     // #endregion Properties (1)
 
@@ -51,7 +55,7 @@ export class SettingsEngine {
      * @return {GeneralSettings}
      */
     public get general(): GeneralSettings {
-		return this._settings.viewer;
+		return this._settings;
 	}
 
     /**
@@ -86,20 +90,20 @@ export class SettingsEngine {
 		return this._settings.viewer.scene;
 	}
 
-    private _fromJson(json: any, settings: any) {
+    private _fromJson(json: any, settings: any, sessionSettings: boolean = false) {
         if(!json) return;
         for (let s in settings) {
             if (settings[s].isSetting === true) {
-                if(json[s] !== undefined) settings[s].value = json[s];
+                if(json[s] !== undefined && !(sessionSettings && !this._sessionSettings.includes(s))) settings[s].value = json[s];
             } else {
                 this._fromJson(json[s], settings[s])
             }
         }
     }
 
-    public fromJson(json: any) {
-        this._fromJson(json, this._settings);
-        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, {});
+    public fromJson(json: any, sessionId: string) {
+        this._fromJson(json, this._settings, this._stateEngine.firstSettingsRegistered.resolved);
+        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
     }
 
     // #endregion Public Accessors (8)

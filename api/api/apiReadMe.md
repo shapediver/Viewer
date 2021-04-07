@@ -247,3 +247,11 @@ await Promise.all([ session, sameSession ]);
 
 This just works as it would be two independent sessions.
 </details>
+
+<!--- VERSION_START -->
+## Version
+* __Version:__ 3.0.1.0
+* __Build date:__ 2021-03-30T16:17:11.205Z
+* __Branch:__ development
+* __Commit:__ fc9cc799625bbc4cdb3c512a68e37f3819f66ce4
+<!--- VERSION_END -->

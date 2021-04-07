@@ -6,7 +6,7 @@ describe('uuid - test', () => {
     let uuidGenerator: UuidGenerator;
 
     beforeEach(() => {
-        uuidGenerator = container.resolve(UuidGenerator);
+        uuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     });
 
     test('creation', async () => {

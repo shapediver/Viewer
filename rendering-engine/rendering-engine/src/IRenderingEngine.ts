@@ -6,6 +6,15 @@ export enum RENDERERTYPE {
     /** A basic version of the rendering engine */
     BASIC = 'basic'
   }
+
+  export enum VISIBILITYMODE {
+    /** The viewer shows the scene instantly */
+    INSTANT = 'instant',
+    /** The viewer shows the scene after the first session loading */
+    SESSION = 'session',
+    /** The viewer is shown once the 'show' property is set to true */
+    MANUAL = 'manual'
+  }
   
 export interface IRenderingEngine {
     // #region Properties (2)

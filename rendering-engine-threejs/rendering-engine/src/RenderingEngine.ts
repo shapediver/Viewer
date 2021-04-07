@@ -8,7 +8,7 @@ import { Tree } from '@shapediver/viewer.shared.node-tree';
 
 import { SceneTree } from './SceneTree';
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
-import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
+import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { StateEngine, SettingsEngine, DomEventEngine, EVENTTYPE, EventEngine } from '@shapediver/viewer.shared.services';
 import { SDObject } from './types/SDObject';
 import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
@@ -23,19 +23,20 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Properties (39)
 
     private readonly _cameraEngine: CameraEngine;
-    private readonly _canvasEngine: CanvasEngine;
-    private readonly _converter: Converter;
+    private readonly _canvasEngine: CanvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _domEventEngine: DomEventEngine;
     private readonly _environmentMapLoader: EnvironmentMapLoader;
-    private readonly _eventEngine: EventEngine;
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _geometryLoader: GeometryLoader;
     private readonly _lightEngine: LightEngine;
     private readonly _lightLoader: LightLoader;
     private readonly _materialLoader: MaterialLoader;
     private readonly _renderingLogic: RenderingLogic;
-    private readonly _settings: SettingsEngine;
-    private readonly _stateEngine: StateEngine;
-    private readonly _tree: Tree;
+    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _tree: Tree = <Tree>container.resolve(Tree);
+    private readonly _id: string;
 
     private _ambientOcclusion: boolean = true;
     private _beautyRenderBlendingDuration: number = 1500;
@@ -62,24 +63,21 @@ export class RenderingEngine implements IRenderingEngine {
     private _sceneTree!: SceneTree;
     private _shadows: boolean = true;
     private _show: boolean = false;
+    private readonly _visibility: VISIBILITYMODE;
 
     // #endregion Properties (39)
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, canvasDefinition?: string | HTMLCanvasElement) {
+    constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE }) {
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
-        this._settings = <SettingsEngine>container.resolve(SettingsEngine);
-        this._converter = <Converter>container.resolve(Converter);
-        this._eventEngine = <EventEngine>container.resolve(EventEngine);
-        this._stateEngine = <StateEngine>container.resolve(StateEngine);
-        this._tree = <Tree>container.resolve(Tree);
-        this._canvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
-        this._canvas = this._canvasEngine.createCanvasObject(canvasDefinition);
+        this._id = properties.id;
+        this._canvas = this._canvasEngine.createCanvasObject(properties.canvas);
         this._environmentMapLoader = new EnvironmentMapLoader(this);
         this._materialLoader = new MaterialLoader(this);
         this._geometryLoader = new GeometryLoader(this);
         this._lightLoader = new LightLoader(this);
+        this._visibility = properties.visibility;
 
         this._logoDivElement = document.createElement('div');
         this._logoDivElement.style.background = '#030531';
@@ -106,10 +104,31 @@ export class RenderingEngine implements IRenderingEngine {
         (<SceneTree>this._sceneTree).scene.background = new THREE.Color(0xffffff);
 
         this._renderingLogic = new RenderingLogic(this);
+        
+        this._stateEngine.createCustomState(this.id + '_settings_loaded');
+
+        if(this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
+
+        if(this._visibility === VISIBILITYMODE.SESSION) {
+            this._stateEngine.firstSessionLoaded.then(() => {
+                // check if there are settings
+                if(this._stateEngine.firstSettingsRegistered.resolved === false) {
+                    this.show = true;
+                } else {
+                    // wait for settings to load before showing the scene
+                    this._stateEngine.getCustomState(this.id + '_settings_loaded').then(() => {
+                        this.show = true;
+                    })
+                }
+            })
+        }
 
         this._stateEngine.boundingBoxCreated.then(() => this.init());
-        this.applySettings();
-        this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, () => this.applySettings())
+        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
+            this.applySettings();
+        } else {
+            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
+        }
     }
 
     // #endregion Constructors (1)
@@ -525,7 +544,6 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Public Methods (1)
 
     public update(): void {
-        if (this._stateEngine.settingsRegistered.resolved !== true) return;
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
         this._renderingLogic.render();
     }
@@ -535,37 +553,47 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Private Methods (2)
 
     private applySettings() {
-        // TODO
-        this.ambientOcclusion = this._settings.scene.render.ambientOcclusion.value;
-        this.beautyRenderBlendingDuration = this._settings.scene.render.beautyRenderBlendingDuration.value;
-        this.beautyRenderDelay = this._settings.scene.render.beautyRenderDelay.value;
-        // TODO
-        this.blurSceneWhenBusy = this._settings.general.blurSceneWhenBusy.value;
-        this.clearAlpha = this._settings.scene.render.clearAlpha.value;
-        const c = this._converter.toColor(this._settings.scene.render.clearColor.value);
-        this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
-        // FIXME
-        this.duration = this._settings.scene.duration.value;
-        this.environmentMap = this._settings.scene.material.environmentMap.value;
-        this.environmentMapAsBackground = this._settings.scene.material.environmentMapAsBackground.value;
-        this.environmentMapResolution = this._settings.scene.material.environmentMapResolution.value;
-        // FIXME
-        this.fullscreen = this._settings.scene.fullscreen.value;
-        this.gridVisibility = this._settings.scene.gridVisibility.value;
-        // FIXME
-        // this.groundPlaneReflectionThreshold = this._settings.scene.groundPlaneReflectionThreshold.value;
-        // // FIXME
-        // this.groundPlaneReflectionVisibility = this._settings.scene.groundPlaneReflectionVisibility.value;
-        this.groundPlaneVisibility = this._settings.scene.groundPlaneVisibility.value;
-        // FIXME
-        this.lightHelper = this._settings.scene.lights.helper.value;
-        this.lightScene = this._settings.scene.lights.lightScene.value;
-        // TODO
-        this.pointSize = this._settings.rendering.pointSize.value;
-        this.shadows = this._settings.scene.render.shadows.value;
-        this.show = this._settings.scene.show.value;
-        // FIXME
-        //this.showSceneTransition = +this._settings.scene.showSceneTransition.value.replace('s', '') * 1000;
+        // as the environment map is the only thing that needs time to load, load it first
+        this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: any) => {
+
+            // return if a different env map was loaded
+            if(!e.name || (e.name && e.name !== this._settingsEngine.scene.material.environmentMap.value)) return;
+
+            this.environmentMapAsBackground = this._settingsEngine.scene.material.environmentMapAsBackground.value;
+            // TODO
+            this.ambientOcclusion = this._settingsEngine.scene.render.ambientOcclusion.value;
+            this.beautyRenderBlendingDuration = this._settingsEngine.scene.render.beautyRenderBlendingDuration.value;
+            this.beautyRenderDelay = this._settingsEngine.scene.render.beautyRenderDelay.value;
+            // TODO
+            this.blurSceneWhenBusy = this._settingsEngine.general.viewer.blurSceneWhenBusy.value;
+            this.clearAlpha = this._settingsEngine.scene.render.clearAlpha.value;
+            const c = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
+            this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
+            // FIXME
+            this.duration = this._settingsEngine.scene.duration.value;
+            // FIXME
+            this.fullscreen = this._settingsEngine.scene.fullscreen.value;
+            this.gridVisibility = this._settingsEngine.scene.gridVisibility.value;
+            // FIXME
+            // this.groundPlaneReflectionThreshold = this._settingsEngine.scene.groundPlaneReflectionThreshold.value;
+            // // FIXME
+            // this.groundPlaneReflectionVisibility = this._settingsEngine.scene.groundPlaneReflectionVisibility.value;
+            this.groundPlaneVisibility = this._settingsEngine.scene.groundPlaneVisibility.value;
+            // FIXME
+            this.lightHelper = this._settingsEngine.scene.lights.helper.value;
+            this.lightScene = this._settingsEngine.scene.lights.lightScene.value;
+            // TODO
+            this.pointSize = this._settingsEngine.rendering.pointSize.value;
+            this.shadows = this._settingsEngine.scene.render.shadows.value;
+            // this.show = this._settingsEngine.scene.show.value;
+            // FIXME
+            //this.showSceneTransition = +this._settingsEngine.scene.showSceneTransition.value.replace('s', '') * 1000;
+
+            this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
+        })
+        // set it like this to not trigger the loading
+        this._environmentMapResolution = this._settingsEngine.scene.material.environmentMapResolution.value;
+        this.environmentMap = this._settingsEngine.scene.material.environmentMap.value;
     }
 
     private init() {

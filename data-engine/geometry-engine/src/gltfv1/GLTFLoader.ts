@@ -1,9 +1,9 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 
-import { ACCESSOR_COMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as ACCESSORTYPE, IGLTF_v1 } from '@shapediver/viewer.data-engine.shared-types';
+import { ACCESSOR_COMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as ACCESSORTYPE, IGLTF_v1, IGLTF_v1_Material } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
-import { AttributeData, GeometryData, PrimitiveData } from '@shapediver/viewer.shared.types';
+import { AttributeData, GeometryData, MaterialData, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { container } from 'tsyringe';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 
@@ -11,10 +11,10 @@ export class GLTFLoader {
     // #region Properties (5)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _httpClient = container.resolve(HttpClient);
-    private readonly _uuidGenerator = container.resolve(UuidGenerator);
-    private readonly _logger = container.resolve(Logger);
-    private readonly _implementedExtensions = [''];
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _implementedExtensions = ['KHR_materials_common'];
 
     private _body!: ArrayBuffer;
     private _content!: IGLTF_v1;
@@ -133,6 +133,60 @@ export class GLTFLoader {
         return buffer.slice(bufferView.byteOffset!, bufferView.byteOffset! + byteLength);
     }
 
+
+    private async loadMaterial(materialName: string): Promise<MaterialData> {
+        if(!this._content.materials![materialName]) throw new Error('Material not available.')
+        const material: IGLTF_v1_Material = this._content.materials![materialName];
+        const materialData = new MaterialData();
+        if(material.name !== undefined) materialData.name = material.name;
+
+        if(material.extensions && material.extensions.KHR_materials_common) {
+            const technique = material.extensions.KHR_materials_common.technique;
+            if(technique && technique !== 'BLINN') this._logger.info('The technique ' + technique + ' is not supported. Trying to load the material either way.')
+            const values = material.extensions.KHR_materials_common.values;
+
+            if (values.hasOwnProperty('ambient')) 
+                this._logger.info('The value ambient was set for a material, but is not supported.')
+
+            if (values.hasOwnProperty('doubleSided')) 
+                materialData.side = values.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
+
+            if (values.hasOwnProperty('diffuse') && Array.isArray(values.diffuse)) {
+                materialData.color = vec4.fromValues(values.diffuse[0], values.diffuse[1], values.diffuse[2], values.diffuse[3]);
+                materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
+            } else if(values.hasOwnProperty('diffuse') && !Array.isArray(values.diffuse)) {
+                this._logger.info('The value diffuse was set for a material, but is not supported in that type.')
+                materialData.color = vec4.fromValues(0, 0, 0, 1);
+            } else {
+                materialData.color = vec4.fromValues(0, 0, 0, 1);
+            }
+
+            if (values.hasOwnProperty('emission') && Array.isArray(values.emission)) {
+                materialData.emissiveness = vec3.fromValues(values.emission[0], values.emission[1], values.emission[2]);
+            } else {
+                this._logger.info('The value emission was set for a material, but is not supported in that type.')
+            }
+
+            if (values.hasOwnProperty('shininess')) {
+                materialData.metalness = Math.min(1, values.shininess);
+                materialData.roughness = 1 - Math.min(1, values.shininess);
+            }
+
+            if (values.hasOwnProperty('transparency')) 
+                materialData.opacity = Math.max(0.0, Math.min(values.transparency, 1.0));
+
+            if (values.hasOwnProperty('transparent')) 
+                this._logger.info('The value transparent was set for a material, but is not supported.')
+
+            if (values.hasOwnProperty('_roughness'))
+                materialData.roughness = Math.min(1, Math.max(0, values.roughness));
+
+            if (values.hasOwnProperty('_metalness'))
+                materialData.metalness = Math.min(1, Math.max(0, values.metalness));
+        }
+        return materialData;
+    }
+
     private async loadMesh(meshName: string): Promise<TreeNode> {
         if (!this._content.meshes![meshName]) throw new Error('Mesh not available.')
         const mesh = this._content.meshes![meshName];
@@ -150,7 +204,11 @@ export class GLTFLoader {
             for (let attribute in primitive.attributes)
                 attributes[attribute] = await this.loadAccessor(primitive.attributes[attribute]);
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, 4, await this.loadAccessor(primitive.indices!)));
+            let material = null;
+            if(primitive.material)
+                material = await this.loadMaterial(primitive.material);
+
+            const geometry = new GeometryData(new PrimitiveData(attributes, 4, await this.loadAccessor(primitive.indices!), material));
             primitiveNode.data.push(geometry);
         }
         return meshNode;

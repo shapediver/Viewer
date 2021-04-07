@@ -1,6 +1,6 @@
 import { CAMERATYPE, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, StateEngine } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
 import * as THREE from 'three';
 import { container } from "tsyringe";
@@ -12,7 +12,8 @@ import { shader as normalShader } from "./shaders/normal";
 export class RenderingLogic {
     // #region Properties (11)
 
-    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
     private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _renderer: THREE.WebGLRenderer;
@@ -42,7 +43,6 @@ export class RenderingLogic {
             antialias: true,
             preserveDrawingBuffer: true,
             canvas: this._renderingEngine.canvas.canvasElement,
-
         });
         this._renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -87,10 +87,10 @@ export class RenderingLogic {
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let camera: THREE.Camera;
-        const cameraDefinition = this._renderingEngine.cameraEngine.getCamera()!.update(time);
+        const {position, target} = this._renderingEngine.cameraEngine.getCamera()!.update(time);
         if (this._renderingEngine.cameraEngine.getCamera()!.type === CAMERATYPE.ORTHOGRAPHIC) {
             const aspect = width / height;
-            const distance = vec3.distance(cameraDefinition.position, cameraDefinition.target) / 2;
+            const distance = vec3.distance(position, target) / 2;
             this._orthographicCamera.up.set(0, 0, 1);
             this._orthographicCamera.left = -distance * aspect;
             this._orthographicCamera.bottom = -distance;
@@ -98,8 +98,8 @@ export class RenderingLogic {
             this._orthographicCamera.top = distance;
             this._orthographicCamera.near = 0.01 * distance;
             this._orthographicCamera.far = 10000 * distance;
-            this._orthographicCamera.position.set(cameraDefinition.position[0], cameraDefinition.position[1], cameraDefinition.position[2]);
-            this._orthographicCamera.lookAt(cameraDefinition.target[0], cameraDefinition.target[1], cameraDefinition.target[2]);
+            this._orthographicCamera.position.set(position[0], position[1], position[2]);
+            this._orthographicCamera.lookAt(target[0], target[1], target[2]);
             this._orthographicCamera.updateProjectionMatrix();
             camera = this._orthographicCamera;
         } else {
@@ -110,8 +110,8 @@ export class RenderingLogic {
             this._perspectiveCamera.aspect = width / height;
             this._perspectiveCamera.far = fov < 10 ? fov * 100.0 * 100 * bs.radius : 100 * bs.radius;
             this._perspectiveCamera.near = fov < 10 ? fov * 100.0 * 0.1 * bs.radius : 0.1 * bs.radius;
-            this._perspectiveCamera.position.set(cameraDefinition.position[0], cameraDefinition.position[1], cameraDefinition.position[2]);
-            this._perspectiveCamera.lookAt(cameraDefinition.target[0], cameraDefinition.target[1], cameraDefinition.target[2]);
+            this._perspectiveCamera.position.set(position[0], position[1], position[2]);
+            this._perspectiveCamera.lookAt(target[0], target[1], target[2]);
             this._perspectiveCamera.updateProjectionMatrix();
             camera = this._perspectiveCamera;
         }
@@ -147,12 +147,15 @@ export class RenderingLogic {
             this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
 
             if (this._beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
                 this.deactivateBeautyRenderShaders();
                 this._noNeedToRender = true;
             }
         } else {
             this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
         }
+
+        if(!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
     }
 
     private deactivateBeautyRenderShaders() {

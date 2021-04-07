@@ -1,11 +1,16 @@
 import { Light } from "./Light";
 import { SpotLight as SpotLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { container } from "tsyringe";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
 
 export class SpotLight extends Light {
     // #region Properties (1)
 
     readonly #light: SpotLightLogic;
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)
 
@@ -37,7 +42,9 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public set angle(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.angle = value;
+        this.#logger.info(`Light (${this.#light.id}): angle was set to: ${value}`);
     }
 
     /**
@@ -53,7 +60,9 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public set decay(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.decay = value;
+        this.#logger.info(`Light (${this.#light.id}): decay was set to: ${value}`);
     }
 
     /**
@@ -69,7 +78,9 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public set distance(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.distance = value;
+        this.#logger.info(`Light (${this.#light.id}): distance was set to: ${value}`);
     }
 
     /**
@@ -85,7 +96,9 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public set penumbra(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#light.penumbra = value;
+        this.#logger.info(`Light (${this.#light.id}): penumbra was set to: ${value}`);
     }
 
     /**
@@ -101,7 +114,9 @@ export class SpotLight extends Light {
      * @param {vec3} value
      */
     public set position(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.position = value;
+        this.#logger.info(`Light (${this.#light.id}): position was set to: ${value}`);
     }
 
     /**
@@ -117,7 +132,9 @@ export class SpotLight extends Light {
      * @param {vec3} value
      */
     public set target(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#light.target = value;
+        this.#logger.info(`Light (${this.#light.id}): target was set to: ${value}`);
     }
 
     // #endregion Public Accessors (12)

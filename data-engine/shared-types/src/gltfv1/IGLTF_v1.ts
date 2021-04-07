@@ -18,7 +18,7 @@ export const ACCESSORTYPE = {
     MAT4: 16
 };
 
-interface IGLTF_v1_Accessor {
+export interface IGLTF_v1_Accessor {
     bufferView: string,
     byteOffset: number,
     byteStride?: number,
@@ -32,7 +32,7 @@ interface IGLTF_v1_Accessor {
     extras?: any
 }
 
-interface IGLTF_v1_Animation {
+export interface IGLTF_v1_Animation {
     channels?: {
         sampler: string,
         target: {
@@ -64,7 +64,7 @@ interface IGLTF_v1_Animation {
     extras?: any
 }
 
-interface IGLTF_v1_Asset {
+export interface IGLTF_v1_Asset {
     copyright?: string,
     generator?: string,
     premultipliedAlpha?: boolean,
@@ -79,7 +79,7 @@ interface IGLTF_v1_Asset {
     extras?: any
 }
 
-interface IGLTF_v1_Buffer {
+export interface IGLTF_v1_Buffer {
     byteLength?: number,
     type?: string,
     uri: string,
@@ -88,7 +88,7 @@ interface IGLTF_v1_Buffer {
     extras?: any
 }
 
-interface IGLTF_v1_BufferView {
+export interface IGLTF_v1_BufferView {
     buffer: string,
     byteLength?: number,
     byteOffset: number,
@@ -98,7 +98,7 @@ interface IGLTF_v1_BufferView {
     extras?: any
 }
 
-interface IGLTF_v1_Camera {
+export interface IGLTF_v1_Camera {
     perspective?: {
         aspectRatio?: number,
         yfov: number,
@@ -121,14 +121,14 @@ interface IGLTF_v1_Camera {
     extras?: any
 }
 
-interface IGLTF_v1_Image {
+export interface IGLTF_v1_Image {
     uri: string,
     name?: string,
     extensions?: { [id: string]: any },
     extras?: any
 }
 
-interface IGLTF_v1_Material {
+export interface IGLTF_v1_Material {
     technique?: string,
     values?: {
         [key: string]: number[] | string | number
@@ -138,7 +138,7 @@ interface IGLTF_v1_Material {
     extras?: any
 }
 
-interface IGLTF_v1_Mesh {
+export interface IGLTF_v1_Mesh {
     primitives?: {
         attributes?: {
             [key: string]: string
@@ -154,7 +154,7 @@ interface IGLTF_v1_Mesh {
     extras?: any
 }
 
-interface IGLTF_v1_Node {
+export interface IGLTF_v1_Node {
     children?: string[],
     meshes?: string[],
     skeletons?: string[],
@@ -170,7 +170,7 @@ interface IGLTF_v1_Node {
     extras?: any
 }
 
-interface IGLTF_v1_Program {
+export interface IGLTF_v1_Program {
     attributes?: string[],
     fragmentShader: string,
     vertexShader: string,
@@ -179,7 +179,7 @@ interface IGLTF_v1_Program {
     extras?: any
 }
 
-interface IGLTF_v1_Sampler {
+export interface IGLTF_v1_Sampler {
     magFilter?: number,
     minFilter?: number,
     wrapS?: number,
@@ -189,14 +189,14 @@ interface IGLTF_v1_Sampler {
     extras?: any
 }
 
-interface IGLTF_v1_Scene {
+export interface IGLTF_v1_Scene {
     nodes?: string[],
     name?: string,
     extensions?: { [id: string]: any },
     extras?: any
 }
 
-interface IGLTF_v1_Shader {
+export interface IGLTF_v1_Shader {
     type: number,
     uri: string,
     name?: string,
@@ -204,7 +204,7 @@ interface IGLTF_v1_Shader {
     extras?: any
 }
 
-interface IGLTF_v1_Skin {
+export interface IGLTF_v1_Skin {
     bindShapeMatrix?: number[],
     inverseBindMatrices: string,
     jointNames: string[],
@@ -213,7 +213,7 @@ interface IGLTF_v1_Skin {
     extras?: any
 }
 
-interface IGLTF_v1_Technique {
+export interface IGLTF_v1_Technique {
     parameters?: {
         count?: number,
         node?: string,
@@ -243,7 +243,7 @@ interface IGLTF_v1_Technique {
     extras?: any
 }
 
-interface IGLTF_v1_Texture {
+export interface IGLTF_v1_Texture {
     format?: number,
     internalFormat?: number,
     sampler: string,

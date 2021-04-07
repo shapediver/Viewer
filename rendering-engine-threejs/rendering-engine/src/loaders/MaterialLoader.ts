@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import { MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData } from '@shapediver/viewer.shared.types';
 import { vec4 } from 'gl-matrix';
-import { UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { container } from 'tsyringe';
 import { RenderingEngine } from '../RenderingEngine';
 
 export class MaterialLoader {
@@ -10,10 +8,11 @@ export class MaterialLoader {
 
     private readonly _defaultColor: vec4 = vec4.fromValues(0, 1, 0.9686, 1);
     private readonly _materialLibrary: THREE.MeshStandardMaterial[] = [];
-    private readonly _uuidGenerator: UuidGenerator = container.resolve(UuidGenerator);
 
     private _blending: number = 0.0;
     private _lightSizeUV: number = 0.025;
+
+    private _envMap: THREE.CubeTexture | null = null;
 
     // #endregion Properties (5)
 
@@ -26,6 +25,7 @@ export class MaterialLoader {
     // #region Public Methods (4)
 
     public assignEnvironmentMap(e: THREE.CubeTexture | null) {
+        this._envMap = e;
         for(let i = 0; i < this._materialLibrary.length; i++) {
             this._materialLibrary[i].envMap = e;
             this._materialLibrary[i].needsUpdate = true;
@@ -148,7 +148,7 @@ export class MaterialLoader {
 
             // emissiveIntensity
 
-            // envMap
+            material.envMap = this._envMap;
 
             // envMapIntensity
 

@@ -1,10 +1,15 @@
-import { ICameraControls, ICameraDefinition, PerspectiveCameraControls as PerspectiveCameraControlsLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { ICameraControls, PerspectiveCameraControls as PerspectiveCameraControlsLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
+import { container } from "tsyringe";
 
 export class PerspectiveCameraControls implements ICameraControls {
     // #region Properties (1)
 
     readonly #controls: PerspectiveCameraControlsLogic;
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
 
     // #endregion Properties (1)
 
@@ -35,7 +40,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set autoRotationSpeed(value: number) {
+        this.#inputValidator.validate(value, 'number');
         this.#controls.autoRotationSpeed = value;
+        this.#logger.info(`Camera Controls: autoRotationSpeed was set to: ${value}`);
     }
 
     /**
@@ -51,7 +58,10 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {{ min: vec3, max: vec3 }} value
      */
     public set cubePositionRestriction(value: { min: vec3, max: vec3 }) {
+        this.#inputValidator.validate(value.min, 'vec3');
+        this.#inputValidator.validate(value.max, 'vec3');
         this.#controls.cubePositionRestriction = value;
+        this.#logger.info(`Camera Controls: cubePositionRestriction was set to: ${value}`);
     }
 
     /**
@@ -67,7 +77,10 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {{ min: vec3, max: vec3 }} value
      */
     public set cubeTargetRestriction(value: { min: vec3, max: vec3 }) {
+        this.#inputValidator.validate(value.min, 'vec3');
+        this.#inputValidator.validate(value.max, 'vec3');
         this.#controls.cubeTargetRestriction = value;
+        this.#logger.info(`Camera Controls: cubeTargetRestriction was set to: ${value}`);
     }
 
     /**
@@ -83,7 +96,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set damping(value: number) {
+        this.#inputValidator.validate(value, 'positive');
         this.#controls.damping = value;
+        this.#logger.info(`Camera Controls: damping was set to: ${value}`);
     }
 
     /**
@@ -99,7 +114,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enableAutoRotation(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enableAutoRotation = value;
+        this.#logger.info(`Camera Controls: enableAutoRotation was set to: ${value}`);
     }
 
     /**
@@ -115,7 +132,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enableKeyPan(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enableKeyPan = value;
+        this.#logger.info(`Camera Controls: enableKeyPan was set to: ${value}`);
     }
 
     /**
@@ -131,7 +150,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enablePan(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enablePan = value;
+        this.#logger.info(`Camera Controls: enablePan was set to: ${value}`);
     }
 
     /**
@@ -147,7 +168,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enableRotation(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enableRotation = value;
+        this.#logger.info(`Camera Controls: enableRotation was set to: ${value}`);
     }
 
     /**
@@ -163,7 +186,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enableZoom(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enableZoom = value;
+        this.#logger.info(`Camera Controls: enableZoom was set to: ${value}`);
     }
 
     /**
@@ -179,7 +204,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {boolean} value
      */
     public set enabled(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
         this.#controls.enabled = value;
+        this.#logger.info(`Camera Controls: enabled was set to: ${value}`);
     }
 
     /**
@@ -195,7 +222,18 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {{ keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }} value
      */
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
+        this.#inputValidator.validate(value.keys.down, 'number');
+        this.#inputValidator.validate(value.keys.left, 'number');
+        this.#inputValidator.validate(value.keys.right, 'number');
+        this.#inputValidator.validate(value.keys.up, 'number');        
+        this.#inputValidator.validate(value.mouse.pan, 'number');
+        this.#inputValidator.validate(value.mouse.rotate, 'number');
+        this.#inputValidator.validate(value.mouse.zoom, 'number');
+        this.#inputValidator.validate(value.touch.pan, 'number');
+        this.#inputValidator.validate(value.touch.rotate, 'number');
+        this.#inputValidator.validate(value.touch.zoom, 'number');
         this.#controls.input = value;
+        this.#logger.info(`Camera Controls: input was set to: ${value}`);
     }
 
     /**
@@ -211,7 +249,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set keyPanSpeed(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.keyPanSpeed = value;
+        this.#logger.info(`Camera Controls: keyPanSpeed was set to: ${value}`);
     }
 
     /**
@@ -227,7 +267,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set movementSmoothness(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.movementSmoothness = value;
+        this.#logger.info(`Camera Controls: movementSmoothness was set to: ${value}`);
     }
 
     /**
@@ -243,7 +285,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set panSpeed(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.panSpeed = value;
+        this.#logger.info(`Camera Controls: panSpeed was set to: ${value}`);
     }
 
     /**
@@ -259,7 +303,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {vec3} value
      */
     public set position(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#controls.position = value;
+        this.#logger.info(`Camera Controls: position was set to: ${value}`);
     }
 
     /**
@@ -275,7 +321,12 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {{ minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }} value
      */
     public set rotationRestriction(value: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }) {
+        this.#inputValidator.validate(value.minPolarAngle, 'number');
+        this.#inputValidator.validate(value.maxPolarAngle, 'number');
+        this.#inputValidator.validate(value.minAzimuthAngle, 'number');
+        this.#inputValidator.validate(value.maxAzimuthAngle, 'number');
         this.#controls.rotationRestriction = value;
+        this.#logger.info(`Camera Controls: rotationRestriction was set to: ${value}`);
     }
 
     /**
@@ -291,7 +342,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set rotationSpeed(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.rotationSpeed = value;
+        this.#logger.info(`Camera Controls: rotationSpeed was set to: ${value}`);
     }
 
     /**
@@ -307,7 +360,10 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {{ center: vec3, radius: number }} value
      */
     public set spherePositionRestriction(value: { center: vec3, radius: number }) {
+        this.#inputValidator.validate(value.center, 'vec3');
+        this.#inputValidator.validate(value.radius, 'positive');
         this.#controls.spherePositionRestriction = value;
+        this.#logger.info(`Camera Controls: spherePositionRestriction was set to: ${value}`);
     }
 
     /**
@@ -323,7 +379,10 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {{ center: vec3, radius: number }} value
      */
     public set sphereTargetRestriction(value: { center: vec3, radius: number }) {
+        this.#inputValidator.validate(value.center, 'vec3');
+        this.#inputValidator.validate(value.radius, 'positive');
         this.#controls.sphereTargetRestriction = value;
+        this.#logger.info(`Camera Controls: sphereTargetRestriction was set to: ${value}`);
     }
 
     /**
@@ -339,7 +398,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {vec3} value
      */
     public set target(value: vec3) {
+        this.#inputValidator.validate(value, 'vec3');
         this.#controls.target = value;
+        this.#logger.info(`Camera Controls: target was set to: ${value}`);
     }
 
     /**
@@ -355,7 +416,10 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {{ minDistance: number, maxDistance: number }} value
      */
     public set zoomRestriction(value: { minDistance: number, maxDistance: number }) {
+        this.#inputValidator.validate(value.minDistance, 'number');
+        this.#inputValidator.validate(value.maxDistance, 'number');
         this.#controls.zoomRestriction = value;
+        this.#logger.info(`Camera Controls: zoomRestriction was set to: ${value}`);
     }
 
     /**
@@ -371,7 +435,9 @@ export class PerspectiveCameraControls implements ICameraControls {
      * @param {number} value
      */
     public set zoomSpeed(value: number) {
+        this.#inputValidator.validate(value, 'factor');
         this.#controls.zoomSpeed = value;
+        this.#logger.info(`Camera Controls: zoomSpeed was set to: ${value}`);
     }
 
     // #endregion Public Accessors (44)
@@ -380,13 +446,14 @@ export class PerspectiveCameraControls implements ICameraControls {
 
     /**
      * Update the camera with the delta time of the viewer.
-     * Normally, there should't be much reason to use this function.
+     * Normally, there shouldn't be much reason to use this function.
      * It is used internally in the rendering engine.
      * 
      * @param time the delta time
      * @returns 
      */
-    public update(time: number): ICameraDefinition {
+    public update(time: number): { position: vec3, target: vec3 } {
+        this.#inputValidator.validate(time, 'positive');
         return this.#controls.update(time);
     }
 

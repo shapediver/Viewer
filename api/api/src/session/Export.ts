@@ -1,8 +1,11 @@
 import { IExport, Export as ExportLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { container } from "tsyringe";
 
 export class Export implements IExport {
 
   readonly #export: ExportLogic;
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
 
   constructor(e: ExportLogic) {
     this.#export = e;
@@ -41,6 +44,8 @@ export class Export implements IExport {
    * @returns 
    */
   public async request(): Promise<any> {
-    return this.#export.request();
+    const r = this.#export.request();
+    this.#logger.info(`Export (${this.id}) requested.`);
+    return r;
   }
 }

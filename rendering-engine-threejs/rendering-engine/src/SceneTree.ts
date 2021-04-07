@@ -15,9 +15,9 @@ import { RenderingEngine } from './RenderingEngine';
 export class SceneTree {
     // #region Properties (7)
 
-    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _scene: THREE.Scene = new THREE.Scene();
-    private readonly _stateEngine: StateEngine = container.resolve(StateEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     private _boundingBox: Box = new Box();
     private _mainNode!: SDObject;

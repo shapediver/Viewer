@@ -12,7 +12,7 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 export class OutputLoader {
     // #region Properties (2)
 
-    private readonly _dataEngine: DataEngine;
+    private readonly _dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
     private readonly _outputNodes: { 
         [key: string]: {
             [key: string]: SessionTreeNode
@@ -28,9 +28,7 @@ export class OutputLoader {
      * 
      * @param _session the session for this output loader
      */
-    constructor(private readonly _session: SessionResponse) {
-        this._dataEngine = container.resolve(DataEngine);
-    }
+    constructor(private readonly _session: SessionResponse) {}
 
     // #endregion Constructors (1)
 

@@ -1,7 +1,7 @@
 import { mat4, vec3 } from 'gl-matrix';
 
 import { ICameraControls } from '../interface/ICameraControls';
-import { CAMERATYPE, ICameraDefinition } from '../../engine/interface/ICameraEngine';
+import { CAMERATYPE } from '../../engine/interface/ICameraEngine';
 import { CameraInterpolationManager } from './CameraInterpolationManager';
 import { ICameraControlsLogic } from '../interface/ICameraControlsLogic';
 import { ICameraControlsEventDistribution } from '../interface/ICameraControlsEventDistribution';
@@ -13,7 +13,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Properties (11)
 
     private readonly _cameraInterpolationManager: CameraInterpolationManager = new CameraInterpolationManager(this);
-    private readonly _eventEngine: EventEngine = container.resolve(EventEngine);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
     private _manualInteraction: boolean = false;
     private _manualInteractionMatrices: {
@@ -131,7 +131,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
 
     // #region Public Methods (10)
 
-    public animate(path: ICameraDefinition[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public animate(path: { position: vec3, target: vec3 }[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if(options && options.duration === 0) {
             this._position = path[path.length-1].position;
             this._target = path[path.length-1].target;
@@ -199,7 +199,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         this._cameraLogic.reset();
     }
 
-    public update(time: number): ICameraDefinition {
+    public update(time: number): { position: vec3, target: vec3 } {
         if (!this._enabled) 
             return { position: vec3.clone(this._position), target: vec3.clone(this._target) };
         let { position, target } = this._cameraLogic.restrict(this.getPosition(), this.getTarget());

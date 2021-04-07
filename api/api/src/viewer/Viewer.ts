@@ -1,9 +1,10 @@
 import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic, OrthographicCamera as OrthographicCameraLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
-import { IRenderingEngine, RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container, injectable } from "tsyringe";
 import { Camera } from "./camera/Camera";
@@ -19,10 +20,11 @@ import { SpotLight } from "./lights/SpotLight";
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Properties (25)
   readonly #renderingEngine: RenderingEngineThreejs;
-  readonly #performanceEvaluator: PerformanceEvaluator;
-  readonly #logger: Logger;
-  readonly #eventEngine: EventEngine;
-  
+  readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+
   readonly #cameras: {
     [key: string]: Camera
   } = {};
@@ -39,18 +41,12 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param type 
    * @param canvas 
    */
-  constructor(id: string, type: RENDERERTYPE, canvas: HTMLCanvasElement) {
-    this.#performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    this.#logger = <Logger>container.resolve(Logger);
-    this.#eventEngine = <EventEngine>container.resolve(EventEngine);
-    this.#renderingEngine = new RenderingEngineThreejs(id, canvas);
+  constructor(properties: { id: string, canvas: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }) {
+    this.#renderingEngine = new RenderingEngineThreejs(properties);
 
     // default camera
     const camera = this.createCamera(CAMERATYPE.PERSPECTIVE);
     this.assignCamera(camera.id);
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
   }
 
   // #endregion Constructors (1)
@@ -70,6 +66,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set ambientOcclusion(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.ambientOcclusion = value;
     this.#logger.info(`Viewer (${this.id}): ambientOcclusion was set to: ${value}`);
   }
@@ -87,6 +84,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public set beautyRenderBlendingDuration(value: number) {
+    this.#inputValidator.validate(value, 'positive');
     this.#renderingEngine.beautyRenderBlendingDuration = value;
     this.#logger.info(`Viewer (${this.id}): beautyRenderBlendingDuration was set to: ${value}`);
   }
@@ -104,6 +102,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public set beautyRenderDelay(value: number) {
+    this.#inputValidator.validate(value, 'positive');
     this.#renderingEngine.beautyRenderDelay = value;
     this.#logger.info(`Viewer (${this.id}): beautyRenderDelay was set to: ${value}`);
   }
@@ -121,6 +120,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set blurSceneWhenBusy(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.blurSceneWhenBusy = value;
     this.#logger.info(`Viewer (${this.id}): blurSceneWhenBusy was set to: ${value}`);
   }
@@ -138,6 +138,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public set clearAlpha(value: number) {
+    this.#inputValidator.validate(value, 'factor');
     this.#renderingEngine.clearAlpha = value;
     this.#logger.info(`Viewer (${this.id}): clearAlpha was set to: ${value}`);
   }
@@ -155,6 +156,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {vec3} value
    */
   public set clearColor(value: vec3) {
+    this.#inputValidator.validate(value, 'vec3');
     this.#renderingEngine.clearColor = value;
     this.#logger.info(`Viewer (${this.id}): clearColor was set to: ${value}`);
   }
@@ -172,6 +174,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public set duration(value: number) {
+    this.#inputValidator.validate(value, 'positive');
     this.#renderingEngine.duration = value;
     this.#logger.info(`Viewer (${this.id}): duration was set to: ${value}`);
   }
@@ -189,6 +192,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {string | string[]} value
    */
   public set environmentMap(value: string | string[]) {
+    this.#inputValidator.validate(value, 'cubeMap');
     this.#renderingEngine.environmentMap = value;
     this.#logger.info(`Viewer (${this.id}): environmentMap was set to: ${value}`);
   }
@@ -206,6 +210,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set environmentMapAsBackground(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.environmentMapAsBackground = value;
     this.#logger.info(`Viewer (${this.id}): environmentMapAsBackground was set to: ${value}`);
   }
@@ -223,6 +228,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {string} value
    */
   public set environmentMapResolution(value: string) {
+    this.#inputValidator.validate(value, 'string');
     this.#renderingEngine.environmentMapResolution = value;
     this.#logger.info(`Viewer (${this.id}): environmentMapResolution was set to: ${value}`);
   }
@@ -240,6 +246,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set fullscreen(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.fullscreen = value;
     this.#logger.info(`Viewer (${this.id}): fullscreen was set to: ${value}`);
   }
@@ -257,6 +264,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set gridVisibility(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.gridVisibility = value;
     this.#logger.info(`Viewer (${this.id}): gridVisibility was set to: ${value}`);
   }
@@ -306,6 +314,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set groundPlaneVisibility(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.groundPlaneVisibility = value;
     this.#logger.info(`Viewer (${this.id}): groundPlaneVisibility was set to: ${value}`);
   }
@@ -331,6 +340,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set lightHelper(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.lightHelper = value;
     this.#logger.info(`Viewer (${this.id}): lightHelper was set to: ${value}`);
   }
@@ -348,6 +358,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {string} value
    */
   public set lightScene(value: string) {
+    this.#inputValidator.validate(value, 'string');
     this.#renderingEngine.lightScene = value;
     this.#logger.info(`Viewer (${this.id}): lightScene was set to: ${value}`);
   }
@@ -365,6 +376,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public set pointSize(value: number) {
+    this.#inputValidator.validate(value, 'positive');
     this.#renderingEngine.pointSize = value;
     this.#logger.info(`Viewer (${this.id}): pointSize was set to: ${value}`);
   }
@@ -382,6 +394,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set shadows(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.shadows = value;
     this.#logger.info(`Viewer (${this.id}): shadows was set to: ${value}`);
   }
@@ -399,6 +412,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public set show(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.show = value;
     this.#logger.info(`Viewer (${this.id}): show was set to: ${value}`);
   }
@@ -423,8 +437,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param id the id of the camera
    */
   public assignCamera(id: string): void {
-    // MICHI START HERE
+    this.#inputValidator.validate(id, 'string');
     this.#renderingEngine.cameraEngine.assignCamera(id);
+    this.#logger.info(`Viewer (${this.id}): Camera with id ${id} assigned.`);
   }
 
   /**
@@ -435,6 +450,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public createPerspectiveCamera(id?: string): Camera {
+    this.#inputValidator.validate(id, 'string', false);
+    this.#logger.info(`Viewer (${this.id}): Perspective camera with id ${id} created.`);
     return this.createCamera(CAMERATYPE.PERSPECTIVE, id);
   }
 
@@ -446,6 +463,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public createOrthographicCamera(id?: string): Camera {
+    this.#inputValidator.validate(id, 'string', false);
+    this.#logger.info(`Viewer (${this.id}): Orthographic camera with id ${id} created.`);
     return this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
   }
 
@@ -458,8 +477,11 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public createCamera(type: CAMERATYPE, id?: string): Camera {
+    this.#inputValidator.validate(type, 'enum', true, Object.values(CAMERATYPE));
+    this.#inputValidator.validate(id, 'string', false);
     const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
     this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
+    this.#logger.info(`Viewer (${this.id}): ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
     return this.#cameras[cameraLogic.id];
   }
 
@@ -470,6 +492,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getCamera(id: string): Camera | null {
+    this.#inputValidator.validate(id, 'string');
     const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
     if(!cameraLogic) return null;
     if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
@@ -508,15 +531,19 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add an ambient light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addAmbientLight(color: vec3, intensity: number, id?: string): AmbientLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(color, intensity, id)
+  public addAmbientLight(properties: {color: vec3, intensity: number, id?: string}): AmbientLight {
+    this.#inputValidator.validate(properties.color, 'vec3');
+    this.#inputValidator.validate(properties.intensity, 'positive');
+    this.#inputValidator.validate(properties.id, 'string', false);
+    const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(properties)
     this.#lights[(<AbstractLight>lightLogic).id] = new AmbientLight(<AmbientLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Ambient light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <AmbientLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -524,19 +551,27 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add a directional light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param direction the directional of the light
-   * @param castShadow the option to cast shadow
-   * @param shadowMapResolution the resolution of the shadow map
-   * @param shadowMapBias the bias of the shadow map
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.direction the directional of the light
+   * @param properties.castShadow the option to cast shadow
+   * @param properties.shadowMapResolution the resolution of the shadow map
+   * @param properties.shadowMapBias the bias of the shadow map
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addDirectionalLight(color: vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapBias: number, id?: string): DirectionalLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(color, intensity, direction, castShadow, shadowMapResolution, shadowMapBias, id);
+  public addDirectionalLight(properties: {color: vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapBias: number, id?: string}): DirectionalLight {
+    this.#inputValidator.validate(properties.color, 'vec3');
+    this.#inputValidator.validate(properties.intensity, 'positive');
+    this.#inputValidator.validate(properties.id, 'string', false);
+    this.#inputValidator.validate(properties.direction, 'vec3');
+    this.#inputValidator.validate(properties.castShadow, 'boolean');
+    this.#inputValidator.validate(properties.shadowMapResolution, 'positive');
+    this.#inputValidator.validate(properties.shadowMapBias, 'number');
+    const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new DirectionalLight(<DirectionalLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Directional light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <DirectionalLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -544,16 +579,21 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add a hemisphere light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param groundColor the ground color of the light
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.groundColor the ground color of the light
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addHemisphereLight(color: vec3, intensity: number, groundColor: vec3, id?: string): HemisphereLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(color, intensity, groundColor, id);
+  public addHemisphereLight(properties: {color: vec3, intensity: number, groundColor: vec3, id?: string}): HemisphereLight {
+    this.#inputValidator.validate(properties.color, 'vec3');
+    this.#inputValidator.validate(properties.intensity, 'positive');
+    this.#inputValidator.validate(properties.id, 'string', false);
+    this.#inputValidator.validate(properties.groundColor, 'vec3');
+    const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new HemisphereLight(<HemisphereLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Hemisphere light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <HemisphereLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -561,18 +601,25 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add a point light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param position the position of the light
-   * @param distance the distance of the light radiance
-   * @param decay the decay of the light radiance
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.position the position of the light
+   * @param properties.distance the distance of the light radiance
+   * @param properties.decay the decay of the light radiance
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addPointLight(color: vec3, intensity: number, position: vec3, distance: number, decay: number, id?: string): PointLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addPointLight(color, intensity, position, distance, decay, id);
+  public addPointLight(properties: {color: vec3, intensity: number, position: vec3, distance: number, decay: number, id?: string}): PointLight {
+    this.#inputValidator.validate(properties.color, 'vec3');
+    this.#inputValidator.validate(properties.intensity, 'positive');
+    this.#inputValidator.validate(properties.id, 'string', false);
+    this.#inputValidator.validate(properties.position, 'vec3');
+    this.#inputValidator.validate(properties.distance, 'positive');
+    this.#inputValidator.validate(properties.decay, 'positive');
+    const lightLogic = this.#renderingEngine.lightEngine.addPointLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new PointLight(<PointLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Point light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <PointLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -580,21 +627,31 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Add a spot light with the specified properties to the current light scene.
    * An id can be provided. If not, a unique id will be created.
    * 
-   * @param color the color of the light
-   * @param intensity the intensity of the light
-   * @param position the position of the light
-   * @param target the target of the light
-   * @param distance the distance of the light radiance
-   * @param decay the decay of the light radiance
-   * @param angle the angle of the light cone
-   * @param penumbra the percentage of the cone that is part of the penmubra
-   * @param id the id of the light
+   * @param properties.color the color of the light
+   * @param properties.intensity the intensity of the light
+   * @param properties.position the position of the light
+   * @param properties.target the target of the light
+   * @param properties.distance the distance of the light radiance
+   * @param properties.decay the decay of the light radiance
+   * @param properties.angle the angle of the light cone
+   * @param properties.penumbra the percentage of the cone that is part of the penmubra
+   * @param properties.id the id of the light
    * @returns 
    */
-  public addSpotLight(color: vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, id?: string): SpotLight {
-    const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(color, intensity, position, target, distance, decay, angle, penumbra, id);
+  public addSpotLight(properties: {color: vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, id?: string}): SpotLight {
+    this.#inputValidator.validate(properties.color, 'vec3');
+    this.#inputValidator.validate(properties.intensity, 'positive');
+    this.#inputValidator.validate(properties.id, 'string', false);
+    this.#inputValidator.validate(properties.position, 'vec3');
+    this.#inputValidator.validate(properties.target, 'vec3');
+    this.#inputValidator.validate(properties.distance, 'positive');
+    this.#inputValidator.validate(properties.decay, 'positive');
+    this.#inputValidator.validate(properties.angle, 'positive');
+    this.#inputValidator.validate(properties.penumbra, 'positive');
+    const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(properties);
     this.#lights[(<AbstractLight>lightLogic).id] = new SpotLight(<SpotLightLogic>lightLogic);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): Spot light with id ${(<AbstractLight>lightLogic).id} created.`);
     return <SpotLight>this.#lights[(<AbstractLight>lightLogic).id];
   }
 
@@ -603,13 +660,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * An id can be provided. If not, a unique id will be created.
    * If the standard option is chosen, the default lights will be added from the start.
    * 
-   * @param id the id of the light scene
-   * @param standard the option to add the standard lights
+   * @param properties.id the id of the light scene
+   * @param properties.standard the option to add the standard lights
    * @returns 
    */
-  public createLightScene(id?: string, standard?: boolean): string {
-    const r = this.#renderingEngine.lightEngine.createLightScene(id, standard);
+  public createLightScene(properties: {id?: string, standard?: boolean}): string {
+    this.#inputValidator.validate(properties.id, 'string', false);
+    this.#inputValidator.validate(properties.standard, 'boolean', false);
+    const r = this.#renderingEngine.lightEngine.createLightScene(properties);
     this.update();
+    this.#logger.info(`Viewer (${this.id}): New light scene with id ${r} created.`);
     return r;
   }
 
@@ -620,8 +680,11 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public removeLightScene(id: string): boolean {
+    this.#inputValidator.validate(id, 'string');
     const r = this.#renderingEngine.lightEngine.removeLightScene(id);
     this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Light scene with id ${id} removed.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not remove light scene with id ${id}.`);
     return r;
   }
 
@@ -650,8 +713,11 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public removeLight(id: string): boolean {
+    this.#inputValidator.validate(id, 'string');
     const r = this.#renderingEngine.lightEngine.removeLight(id);
     this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Light with id ${id} removed.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not remove light with id ${id}.`);
     return r;
   }
 
@@ -662,8 +728,11 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public assignLightScene(id: string): boolean {
+    this.#inputValidator.validate(id, 'string');
     const r = this.#renderingEngine.lightEngine.assignLightScene(id);
     this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Assigned light scene with id ${id}.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not assign light scene with id ${id}.`);
     return r;
   }
 
@@ -674,6 +743,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getLight(id: string): Light {
+    this.#inputValidator.validate(id, 'string');
     if (!this.#lights[id]) {
       const lightLogic = this.#renderingEngine.lightEngine.getLight(id);
       switch (lightLogic.type) {

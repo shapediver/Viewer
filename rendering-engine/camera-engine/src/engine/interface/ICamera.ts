@@ -1,5 +1,6 @@
+import { vec3 } from 'gl-matrix';
 import { ICameraControls } from '../../controls/interface/ICameraControls';
-import { CAMERATYPE, ICameraDefinition } from './ICameraEngine';
+import { CAMERATYPE } from './ICameraEngine';
 
 export interface ICamera {
     // #region Properties (11)
@@ -9,9 +10,11 @@ export interface ICamera {
     readonly type: CAMERATYPE;
 
     autoAdjust: boolean;
-    cameraDefinition: ICameraDefinition;
+    position: vec3;
+    target: vec3;
     cameraMovementDuration: number;
-    default: ICameraDefinition;
+    defaultPosition: vec3;
+    defaultTarget: vec3;
     enableCameraControls: boolean;
     revertAtMouseUp: boolean;
     revertAtMouseUpDuration: number;
@@ -21,7 +24,10 @@ export interface ICamera {
 
     // #region Public Methods (1)
 
-    update(time: number): ICameraDefinition;
+    update(time: number): {
+        position: vec3,
+        target: vec3
+    };
 
     // #endregion Public Methods (1)
 }

@@ -15,7 +15,7 @@ Please see the explanation in the [template repository](https://github.com/shape
 import { container } from 'tsyringe';
 import { PerformanceEvaluator } from '@shapediver/viewer.shared.monitoring';
 
-const performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+const performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 
 performanceEvaluator.start('id');
 // do something to record
