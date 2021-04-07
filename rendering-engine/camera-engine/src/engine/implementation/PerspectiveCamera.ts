@@ -33,10 +33,10 @@ export class PerspectiveCamera extends AbstractCamera {
       this.target = target;
       this.fov = this._settingsEngine.camera.cameraTypes.perspective.fov.value;
     };
-    if(this._stateEngine.settingsRegistered.resolved === true) {
+    if(this._stateEngine.firstSettingsRegistered.resolved === true) {
       initSettings();
     } else {
-        this._stateEngine.settingsRegistered.then(() => initSettings());
+        this._stateEngine.firstSettingsRegistered.then(() => initSettings());
     }
   }
 

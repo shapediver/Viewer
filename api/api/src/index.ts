@@ -12,11 +12,12 @@ import { AbstractTreeNodeData, ITransformation, ITreeNodeData, Tree, TreeNode } 
 import { ThreejsData } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { CustomData, GeometryData, MaterialData, SessionData, SessionOutputData } from "@shapediver/viewer.shared.types";
 import { LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
+import { EVENTTYPE } from "@shapediver/viewer.shared.services";
 
 export const api: Api = <Api>container.resolve(Api);
 
 export {
-    RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL
+    RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE
 }
 
 export {

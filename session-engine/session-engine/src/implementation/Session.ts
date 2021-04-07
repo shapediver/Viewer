@@ -296,7 +296,7 @@ export class Session implements ISession {
                 return new SessionTreeNode();
             }
 
-            if (this._loadDefaultSettings && !(<StateEngine>container.resolve(StateEngine)).settingsRegistered.resolved) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config);
+            if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
             this._sessionResponse.adaptSession(sessionResponse);
 
             const parameters: { [key: string]: string } = {};

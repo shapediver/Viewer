@@ -30,10 +30,10 @@ export class OrthographicCamera extends AbstractCamera {
             this.position = position;
             this.target = target;
         };
-        if(this._stateEngine.settingsRegistered.resolved === true) {
+        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
             initSettings();
         } else {
-            this._stateEngine.settingsRegistered.then(() => initSettings());
+            this._stateEngine.firstSettingsRegistered.then(() => initSettings());
         }
     }
     

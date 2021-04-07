@@ -40,9 +40,10 @@ export class Session implements ISession {
     constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
         this.#node = new TreeNode(properties.id)
         this.#sessionEngine = new SessionEngine(properties);
+        this.#stateEngine.createCustomState(this.id + '_settings_registered');
 
         if(properties.loadDefaultSettings !== false)
-            this.#stateEngine.settingsRegistered.then(() => {
+            this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
                 this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
                 this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
                 this.#controlNames = this.#settingsEngine.general.parameters.controlNames.value;

@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import { container } from "tsyringe";
-import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE } from "@shapediver/viewer"
+import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, EVENTTYPE, LOGGINGLEVEL } from "@shapediver/viewer"
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 
@@ -30,6 +30,9 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
     performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
     performanceEvaluator.end('pageLoad_rendering');
     logger.info(performanceEvaluator.getEvaluationToString('pageLoad_rendering'));
+    await new Promise<void>((resolve) => {
+        api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+    })
 })();
 
 glTFv2Button.onclick = async () => {

@@ -147,6 +147,7 @@ export class RenderingLogic {
             this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
 
             if (this._beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
                 this.deactivateBeautyRenderShaders();
                 this._noNeedToRender = true;
             }

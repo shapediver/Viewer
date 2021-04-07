@@ -110,9 +110,9 @@ export class RenderingEngine implements IRenderingEngine {
         if(this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
 
         if(this._visibility === VISIBILITYMODE.SESSION) {
-            this._stateEngine.firstSessionInitialized.then(() => {
+            this._stateEngine.firstSessionLoaded.then(() => {
                 // check if there are settings
-                if(this._stateEngine.settingsRegistered.resolved === false) {
+                if(this._stateEngine.firstSettingsRegistered.resolved === false) {
                     this.show = true;
                 } else {
                     // wait for settings to load before showing the scene
@@ -124,10 +124,10 @@ export class RenderingEngine implements IRenderingEngine {
         }
 
         this._stateEngine.boundingBoxCreated.then(() => this.init());
-        if(this._stateEngine.settingsRegistered.resolved === true) {
+        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
             this.applySettings();
         } else {
-            this._stateEngine.settingsRegistered.then(() => this.applySettings());
+            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
         }
     }
 
@@ -544,7 +544,6 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Public Methods (1)
 
     public update(): void {
-        if (this._stateEngine.settingsRegistered.resolved !== true) return;
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
         this._renderingLogic.render();
     }

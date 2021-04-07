@@ -48,6 +48,7 @@ export enum PARAMETER {
 }
 
 export enum RENDERING {
+    BEAUTY_RENDERING_FINISHED = "rendering.beautyrenderingfinished"
     //RENDERING_FRAMERATE = "rendering.framerate",
 }
 
@@ -69,6 +70,7 @@ export enum UPDATE {
 export enum SESSION {
     SESSION_CREATED = "session.created",
     SESSION_INITIALIZED = "session.initialized",
+    SESSION_LOADED = "session.loaded",
     SESSION_CUSTOMIZED = "session.customized"
 }
 
@@ -94,4 +96,4 @@ export const EVENTTYPE = {
 };
 export type EVENTTYPE = typeof EVENTTYPE;
 
-export type MAIN_EVENTTYPE = typeof CAMERA | typeof ENVIRONMENTMAP | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof UPDATE | typeof VIEWER;
+export type MAINEVENTTYPE = typeof CAMERA | typeof ENVIRONMENTMAP | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof UPDATE | typeof VIEWER;

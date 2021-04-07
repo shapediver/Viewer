@@ -2,11 +2,11 @@ import { Tree } from "@shapediver/viewer.shared.node-tree";
 import { container, singleton } from "tsyringe";
 import { Session } from "./session/Session";
 import { Viewer } from "./viewer/Viewer";
-import { StateEngine, EventEngine, EVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services';
+import { StateEngine, EventEngine, EVENTTYPE, MAINEVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services';
 import { UuidGenerator, InputValidator } from '@shapediver/viewer.shared.utils';
 import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Logger, PerformanceEvaluator, LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
-import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine/dist/IRenderingEngine";
+import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 
 @singleton()
 export class Api {
@@ -28,9 +28,9 @@ export class Api {
   /**
    * @ignore
    */
-  constructor() { 
-    this.#stateEngine.settingsRegistered.then(() => {
-      switch(this.#settingsEngine.general.viewer.loggingLevel.value) {
+  constructor() {
+    this.#stateEngine.firstSettingsRegistered.then(() => {
+      switch (this.#settingsEngine.general.viewer.loggingLevel.value) {
         case 0:
           this.#logger.loggingLevel = LOGGINGLEVEL.ERROR;
           break;
@@ -143,6 +143,10 @@ export class Api {
     await session.init()
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session });
 
+    // await the settings loading of this session before resolving
+    if(properties && properties.loadDefaultSettings !== false && this.#stateEngine.getCustomState(sessionId + '_settings_registered').resolved === false)
+      await new Promise<void>((resolve) => this.#stateEngine.getCustomState(sessionId + '_settings_registered').then(() => resolve));
+    
     // save the session
     this.#sessions[sessionId] = session;
     container.registerInstance('session', session);
@@ -150,6 +154,9 @@ export class Api {
     // end the performance eval
     this.#performanceEvaluator.end('session_creation_' + sessionId);
     this.#logger.info(this.#performanceEvaluator.getEvaluationToString('session_creation_' + sessionId));
+
+
+    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session });
 
     return this.#sessions[sessionId];
   }
@@ -252,6 +259,27 @@ export class Api {
    */
   public update(): void {
     if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+  }
+
+  /**
+   * Adds an event listener.
+   * 
+   * @param type the type of event
+   * @param cb the callback
+   * @returns 
+   */
+  public addListener(type: string | MAINEVENTTYPE, cb: (event: any) => {}): string {
+    return this.#eventEngine.addListener(type, cb);
+  }
+
+  /**
+   * Removes an event listener.
+   * 
+   * @param id the id of the listener
+   * @returns 
+   */
+  public removeListener(id: string): boolean {
+    return this.#eventEngine.removeListener(id);
   }
 
   // #endregion Public Methods (7)

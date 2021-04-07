@@ -28,10 +28,10 @@ export class LightEngine implements ILightEngine {
 
     constructor() {
         this.createLightScene({ id: 'default', standard: true });
-        if(this._stateEngine.settingsRegistered.resolved === true) {
+        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
             this.setFromSettings();
         } else {
-            this._stateEngine.settingsRegistered.then(() => this.setFromSettings());
+            this._stateEngine.firstSettingsRegistered.then(() => this.setFromSettings());
         }
     }
 

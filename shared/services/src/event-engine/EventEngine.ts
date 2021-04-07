@@ -1,5 +1,5 @@
 import { container, singleton } from "tsyringe";
-import { EVENTTYPE, MAIN_EVENTTYPE } from "./EventTypes";
+import { EVENTTYPE, MAINEVENTTYPE } from "./EventTypes";
 import { IListener } from "./interfaces/IListener";
 import { ICallback } from "./interfaces/ICallback";
 import { IEvent } from "./interfaces/IEvent";
@@ -34,7 +34,7 @@ export class EventEngine {
 
     // #endregion Constructors (1)
 
-    private convertTypeToString(type: string | MAIN_EVENTTYPE): string {
+    private convertTypeToString(type: string | MAINEVENTTYPE): string {
         let typeString: string = '';
         if(typeof type === 'string') typeString = type;
 
@@ -59,7 +59,7 @@ export class EventEngine {
      * @param cb the callback that should be called
      * @returns an unique token to be able to remove the listener
      */
-    public addListener(type: string | MAIN_EVENTTYPE, cb: ICallback): string {
+    public addListener(type: string | MAINEVENTTYPE, cb: ICallback): string {
         const typeString: string = this.convertTypeToString(type);
         if(!typeString) return '';
         const token = this._uuidGenerator.create();
@@ -73,7 +73,7 @@ export class EventEngine {
      * @param type the type of the event
      * @param event the event to emit
      */
-    public emitEvent(type: string | MAIN_EVENTTYPE, event: IEvent): void {
+    public emitEvent(type: string | MAINEVENTTYPE, event: IEvent): void {
         const typeString: string = this.convertTypeToString(type);
 
         if (this._eventListeners[typeString] && this._eventListeners[typeString].length !== 0) 

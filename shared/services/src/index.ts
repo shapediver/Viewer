@@ -1,8 +1,8 @@
 import { EventEngine } from "./event-engine/EventEngine";
-import { EVENTTYPE } from "./event-engine/EventTypes";
+import { EVENTTYPE, MAINEVENTTYPE } from "./event-engine/EventTypes";
 
 export {
-  EventEngine, EVENTTYPE
+  EventEngine, EVENTTYPE, MAINEVENTTYPE
 }
 
 import { SettingsEngine } from "./settings-engine/implementation/SettingsEngine";
