@@ -27,9 +27,9 @@ export interface ISession {
     getOutputByName(name: string): IOutput[];
     getOutputs(): { [key: string]: IOutput; };
     
-    getParameter(id: string): IParameter | null;
-    getParameterById(id: string): IParameter | null;
-    getParameterByName(name: string): IParameter[];
-    getParameterByType(type: string): IParameter[];
-    getParameters(): { [key: string]: IParameter; };
+    getParameter(id: string): IParameter<any> | null;
+    getParameterById(id: string): IParameter<any> | null;
+    getParameterByName(name: string): IParameter<any>[];
+    getParameterByType(type: string): IParameter<any>[];
+    getParameters(): { [key: string]: IParameter<any>; };
 }

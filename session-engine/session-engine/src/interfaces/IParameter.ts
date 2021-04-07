@@ -1,4 +1,4 @@
-export interface IParameter {
+export interface IParameter<T> {
     // #region Properties (12)
 
     readonly choices?: string[];
@@ -13,7 +13,7 @@ export interface IParameter {
     readonly type: string;
     readonly visualization?: string;
 
-    value: string;
+    value: T;
 
     // #endregion Properties (12)
 }

@@ -5,7 +5,7 @@ import { TypeChecker } from "../type-check/TypeChecker";
 export type Types = 'string' | 'boolean' | 'function' |
                     'HTMLCanvasElement' | 'enum' | 
                     'number' | 'factor' | 'positive' |
-                    'vec3' | 'cubeMap' | 'stringArray' | 'object';
+                    'vec3' | 'cubeMap' | 'stringArray' | 'object' | 'file';
 
 @singleton()
 export class InputValidator {
@@ -58,6 +58,9 @@ export class InputValidator {
                 break;
             case 'object':
                 if(this._typeChecker.isTypeOf(value, 'object')) return;
+                break;
+            case 'file':
+                if(this._typeChecker.isTypeOf(value, 'string') || value instanceof File || value instanceof Blob) return;
                 break;
             default:
                 this._logger.error(`Invalid Input. The type ${stringLiteral} is not recognized.`);

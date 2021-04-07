@@ -11,8 +11,8 @@ import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitori
 (<any>window).LIGHTTYPE = LIGHTTYPE;
 (<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
 
-const modelViewUrl = 'https://model-view.shapediver.com';
-const ticket = 'de17094ce7307bdf6e1a6f4d8d7033789fb418cfe8bd8fb5e4e3b33918bdd260673835f3ab748e452b3850cc8a9ff729d5e6c35d6567b28b5db26f5e055a65b92aea7c48f3b08e1eb513f843fbae0676ffa2626ad814f6d0236c6760c337c5a732eb9d74968608a249baa842e2c4c60ee7caf664464c4301be19294bc536c342671d0a4d6bb4f038665aed08c140505d416a513d1828b9c8a9e6a3f4af692b88fee62b39229221cd8f8153ffb25c2114-0b2510faf0643cd2dd2c94d19dbe8c51';
+const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
+const ticket = 'affa36eb1031f3cd6175477dc4d76b785e2ca1c6a70c36adabc1d9547c11660a2957f4ba5e4f55a16225af626c2f25be90d944d355938fd35fc03daaaf9c56cbc85f0c6c7325aeb956145b3a030ad4aa217eefaf2d977b2815aefec5e87912ea1b731507ff24f9109cf74b0aa0eebcea9b9e7b3c807a-8b9959c9e647a0d633136750b78fbf61';
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
 const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');

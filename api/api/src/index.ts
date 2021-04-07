@@ -6,7 +6,7 @@ import { Api } from "./Api";
 import { Viewer } from "./viewer/Viewer";
 import { Output } from "./session/Output";
 import { Export } from "./session/Export";
-import { Parameter } from "./session/Parameter";
+import { AbstractParameter as Parameter } from "./session/AbstractParameter";
 import { Session } from "./session/Session";
 import { AbstractTreeNodeData, ITransformation, ITreeNodeData, Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ThreejsData } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";

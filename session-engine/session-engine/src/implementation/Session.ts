@@ -13,6 +13,8 @@ import { Parameter } from './Parameter';
 import { ISession } from '../interfaces/ISession';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 import { AxiosResponse } from 'axios';
+import { FileParameter } from '..';
+import { AbstractParameter } from './AbstractParameter';
 
 export class Session implements ISession {
     // #region Properties (17)
@@ -25,7 +27,7 @@ export class Session implements ISession {
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: Output; } = {};
     private readonly _outputsCreated: { [key: string]: Output; } = {};
-    private readonly _parameters: { [key: string]: Parameter; } = {};
+    private readonly _parameters: { [key: string]: AbstractParameter<any>; } = {};
     private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
     private readonly _ticket: string;
 
@@ -258,7 +260,7 @@ export class Session implements ISession {
     public getParametersAsString(): { [key: string]: string } {
         const parameters: { [key: string]: string } = {};
         for (let parameter in this._parameters)
-            parameters[parameter] = this._parameters[parameter].value;
+            parameters[parameter] = this._parameters[parameter] instanceof FileParameter ? '' : this._parameters[parameter].value;
         return parameters;
     }
 
@@ -285,8 +287,13 @@ export class Session implements ISession {
             if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
             this._sessionResponse.adaptSession(sessionResponse);
 
-            for (let parameterId in this._sessionResponse.parameters)
-                this._parameters[parameterId] = new Parameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+            for (let parameterId in this._sessionResponse.parameters) {
+                if(this._sessionResponse.parameters[parameterId].type.toLowerCase() === 'file') {
+                    this._parameters[parameterId] = new FileParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                } else {
+                    this._parameters[parameterId] = new Parameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                }
+            }
             for (let exportId in this._sessionResponse.exports)
                 this._exports[exportId] = new Export(this, exportId, this._sessionResponse.exports[exportId]);
             for (let outputId in this._sessionResponse.outputs)
@@ -344,6 +351,8 @@ export class Session implements ISession {
         try {
             let responseCustomize;
             try {
+                for (let parameter in parameters) 
+                    if(this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
                 responseCustomize = <ISessionResponse>(await this.sessionCommunication(this._sessionResponse.actions['customize'].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {

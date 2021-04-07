@@ -2,12 +2,17 @@ import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ISession, Session as SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { Export } from "./Export";
 import { Output } from "./Output";
-import { Parameter } from "./Parameter";
+import { AbstractParameter } from "./AbstractParameter";
 import { container, injectable } from "tsyringe";
 import { Viewer } from "../viewer/Viewer";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { Parameter as ParameterLogic, FileParameter as FileParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { FileParameter } from "./parameters/FileParameter";
+import { BooleanParameter } from "./parameters/BooleanParameter";
+import { NumberParameter } from "./parameters/NumberParameter";
+import { StringParameter } from "./parameters/StringParameter";
 
 @injectable()
 export class Session implements ISession {
@@ -18,10 +23,23 @@ export class Session implements ISession {
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #outputs: { [key: string]: Output; } = {};
-    readonly #parameters: { [key: string]: Parameter; } = {};
+    readonly #parameters: { [key: string]: AbstractParameter<any>; } = {};
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+
+    readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): AbstractParameter<any> => {
+        switch (parameterLogic.type.toLowerCase()) {
+            case 'file':
+                return new FileParameter(<FileParameterLogic>parameterLogic);
+            case 'bool':
+                return new BooleanParameter(<ParameterLogic>parameterLogic);
+            case 'float' || 'int' || 'even' || 'odd':
+                return new NumberParameter(<ParameterLogic>parameterLogic);
+            default:
+                return new StringParameter(<ParameterLogic>parameterLogic);
+        }
+    }
 
     #commitParameters: boolean = false;
     #commitSettings: boolean = false;
@@ -392,11 +410,11 @@ export class Session implements ISession {
      * @param id the id of the parameter
      * @returns 
      */
-    public getParameter(id: string): Parameter | null {
+    public getParameter(id: string): AbstractParameter<any> | null {
         this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameter(id);
         if(!parameterLogic) return null;
-        if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
+        if(!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
         return this.#parameters[id];
     }
 
@@ -406,11 +424,11 @@ export class Session implements ISession {
      * @param id the id of the parameter
      * @returns 
      */
-    public getParameterById(id: string): Parameter | null {
+    public getParameterById(id: string): AbstractParameter<any> | null {
         this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameterById(id);
         if(!parameterLogic) return null;
-        if(!this.#parameters[id]) this.#parameters[id] = new Parameter(parameterLogic);
+        if(!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
         return this.#parameters[id];
     }
 
@@ -420,12 +438,12 @@ export class Session implements ISession {
      * @param name the name of the parameters
      * @returns 
      */
-    public getParameterByName(name: string): Parameter[] {
+    public getParameterByName(name: string): AbstractParameter<any>[] {
         this.#inputValidator.validate(name, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByName(name);
-        const parameters: Parameter[] = [];
+        const parameters: AbstractParameter<any>[] = [];
         for(let i = 0; i < parameterLogic.length; i++){
-            if(!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = new Parameter(parameterLogic[i]);
+            if(!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = this.#parameterCreation(parameterLogic[i]);
             parameters.push(this.#parameters[parameterLogic[i].id]);
         }
         return parameters;
@@ -437,12 +455,12 @@ export class Session implements ISession {
      * @param type the type of the parameters
      * @returns 
      */
-    public getParameterByType(type: string): Parameter[] {
+    public getParameterByType(type: string): AbstractParameter<any>[] {
         this.#inputValidator.validate(type, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByType(type);
-        const parameters: Parameter[] = [];
+        const parameters: AbstractParameter<any>[] = [];
         for(let i = 0; i < parameterLogic.length; i++){
-            if(!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = new Parameter(parameterLogic[i]);
+            if(!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = this.#parameterCreation(parameterLogic[i]);
             parameters.push(this.#parameters[parameterLogic[i].id]);
         }
         return parameters;
@@ -454,11 +472,11 @@ export class Session implements ISession {
      * 
      * @returns 
      */
-    public getParameters(): { [key: string]: Parameter; } {    
+    public getParameters(): { [key: string]: AbstractParameter<any>; } {    
         const parameterLogic = this.#sessionEngine.getParameters();
-        const parameters: { [key: string]: Parameter; } = {};
+        const parameters: { [key: string]: AbstractParameter<any>; } = {};
         for(let e in parameterLogic){
-            if(!this.#parameters[parameterLogic[e].id]) this.#parameters[parameterLogic[e].id] = new Parameter(parameterLogic[e]);
+            if(!this.#parameters[parameterLogic[e].id]) this.#parameters[parameterLogic[e].id] = this.#parameterCreation(parameterLogic[e]);
             parameters[e] = this.#parameters[parameterLogic[e].id];
         }
         return parameters;

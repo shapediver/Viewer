@@ -22,4 +22,8 @@ export class HttpClient {
     public async post(url: string, data?: any, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
         return axios.post(url, data, config);
     };
+
+    public async put(url: string, data?: any, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
+        return axios.put(url, data, config);
+    };
 }
