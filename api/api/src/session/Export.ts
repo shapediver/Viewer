@@ -43,9 +43,8 @@ export class Export implements IExport {
    * 
    * @returns 
    */
-  public async request(): Promise<any> {
-    const r = this.#export.request();
+  public async request(parameters?: { [key: string]: string }): Promise<{ href: string, format: string, size: number } | null> {
     this.#logger.info(`Export (${this.id}) requested.`);
-    return r;
+    return await this.#export.request(parameters);
   }
 }

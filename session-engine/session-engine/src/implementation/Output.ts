@@ -1,5 +1,6 @@
 import { ISessionOutput, ISessionOutputContent } from "@shapediver/viewer.shared.types";
 import { IOutput } from "../interfaces/IOutput";
+import { Session } from "./Session";
 
 export class Output implements IOutput {
   // #region Properties (7)
@@ -18,6 +19,7 @@ export class Output implements IOutput {
   // #region Constructors (1)
 
   constructor(
+    private readonly _mySession: Session,
     private readonly _id: string,
     private readonly _outputDefinition: ISessionOutput
   ) {

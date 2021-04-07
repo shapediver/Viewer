@@ -12,9 +12,10 @@ import { Output } from './Output';
 import { Parameter } from './Parameter';
 import { ISession } from '../interfaces/ISession';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { AxiosResponse } from 'axios';
 
 export class Session implements ISession {
-    // #region Properties (18)
+    // #region Properties (17)
 
     private readonly _exports: { [key: string]: Export; } = {};
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
@@ -42,7 +43,7 @@ export class Session implements ISession {
     private _refreshBearerToken!: () => string;
     private _sessionResponse: SessionResponse;
 
-    // #endregion Properties (18)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
@@ -62,7 +63,7 @@ export class Session implements ISession {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (7)
+    // #region Public Accessors (8)
 
     public get bearerToken(): string | undefined {
         return this._bearerToken;
@@ -88,13 +89,17 @@ export class Session implements ISession {
         this._refreshBearerToken = value;
     }
 
+    public get sessionResponse(): SessionResponse {
+        return this._sessionResponse;
+    }
+
     public get ticket(): string {
         return this._ticket;
     }
 
-    // #endregion Public Accessors (7)
+    // #endregion Public Accessors (8)
 
-    // #region Public Methods (17)
+    // #region Public Methods (19)
 
     public createOutput(id: string): Output {
         if (this._outputs[id] || this._outputsCreated[id]) {
@@ -102,7 +107,7 @@ export class Session implements ISession {
             return this._outputs[id];
         }
 
-        this._outputsCreated[id] = new Output(id, { version: '1.0' });
+        this._outputsCreated[id] = new Output(this, id, { version: '1.0' });
         this._outputs[id] = this._outputsCreated[id];
         return this._outputs[id];
     }
@@ -118,11 +123,7 @@ export class Session implements ISession {
             this._sessionResponse.parameters[parameterId].value = this._parameters[parameterId].value;
         for (let outputId in this._outputsCreated)
             this._sessionResponse.outputs[outputId] = this._outputsCreated[outputId];
-
-        const parameters: { [key: string]: string } = {};
-        for (let parameter in this._sessionResponse.parameters)
-            parameters[parameter] = this._sessionResponse.parameters[parameter].value;
-        return this.customizeSession(parameters);
+        return this.customizeSession(this.getParametersAsString());
     }
 
     /**
@@ -254,6 +255,13 @@ export class Session implements ISession {
         return r;
     }
 
+    public getParametersAsString(): { [key: string]: string } {
+        const parameters: { [key: string]: string } = {};
+        for (let parameter in this._parameters)
+            parameters[parameter] = this._parameters[parameter].value;
+        return parameters;
+    }
+
     /**
      * Initializes the session with the ticket and modelViewUrl.
      * 
@@ -262,36 +270,14 @@ export class Session implements ISession {
     public async init(): Promise<SessionTreeNode> {
         if (this._initialized === true) {
             this._logger.error('Session already initialized.');
-            const parameters: { [key: string]: string } = {};
-            for (let parameter in this._sessionResponse.parameters)
-                parameters[parameter] = this._sessionResponse.parameters[parameter].value;
-            return this.loadOutputs(parameters, this._sessionResponse.outputs);
+            return this.loadOutputs(this.getParametersAsString(), this._sessionResponse.outputs);
         }
-
-        const headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
 
         try {
             let sessionResponse;
             try {
-                sessionResponse = <ISessionResponse>(await this._httpClient.post(this._modelViewUrl + "/ticket/" + this._ticket, null, { headers })).data;
+                sessionResponse = <ISessionResponse>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
             } catch (e) {
-                if (e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
-                    if (!this._refreshBearerToken) {
-                        this._logger.error('Session init failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
-                        return new SessionTreeNode();
-                    } else {
-                        const bearerToken = this.bearerToken;
-                        const newToken = this._refreshBearerToken();
-                        if (bearerToken === newToken) {
-                            this._logger.error('Session init failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
-                            return new SessionTreeNode();
-                        } else {
-                            this.bearerToken = newToken;
-                            return this.init();
-                        }
-                    }
-                }
-
                 this._logger.error('Session init failed.', e, e.response && e.response.status ? e.response.status : null);
                 return new SessionTreeNode();
             }
@@ -299,26 +285,54 @@ export class Session implements ISession {
             if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
             this._sessionResponse.adaptSession(sessionResponse);
 
-            const parameters: { [key: string]: string } = {};
-            for (let parameter in this._sessionResponse.parameters)
-                parameters[parameter] = this._sessionResponse.parameters[parameter].value;
-
             for (let parameterId in this._sessionResponse.parameters)
-                this._parameters[parameterId] = new Parameter(parameterId, this._sessionResponse.parameters[parameterId]);
+                this._parameters[parameterId] = new Parameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
             for (let exportId in this._sessionResponse.exports)
-                this._exports[exportId] = new Export(exportId, this._sessionResponse.exports[exportId]);
+                this._exports[exportId] = new Export(this, exportId, this._sessionResponse.exports[exportId]);
             for (let outputId in this._sessionResponse.outputs)
-                this._outputs[outputId] = new Output(outputId, this._sessionResponse.outputs[outputId]);
+                this._outputs[outputId] = new Output(this, outputId, this._sessionResponse.outputs[outputId]);
 
             this._initialized = true;
-            return this.loadOutputs(parameters, this._sessionResponse.outputs);
+            return this.loadOutputs(this.getParametersAsString(), this._sessionResponse.outputs);
         } catch (e) {
             this._logger.error('Something went wrong at session init.', e);
             return new SessionTreeNode();
         }
     }
 
-    // #endregion Public Methods (17)
+    public async sessionCommunication(href: string, method: string | 'post' | 'get', data: any, contentType?: string): Promise<AxiosResponse<any>> {
+        let headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
+        if (contentType) headers = Object.assign({ "Content-Type": contentType }, this._headers);
+
+        if (method !== 'post' && method !== 'get') throw new Error('Method ' + method + ' not recognized.');
+        try {
+            if (method === 'post') {
+                return await this._httpClient.post(href, null, { data, headers });
+            } else {
+                return await this._httpClient.get(href, { data, headers });
+            }
+        } catch (e) {
+            if (e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
+                if (!this._refreshBearerToken) {
+                    this._logger.error('Session request failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
+                    throw e;
+                } else {
+                    const bearerToken = this.bearerToken;
+                    const newToken = this._refreshBearerToken();
+                    if (bearerToken === newToken) {
+                        this._logger.error('Session request failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
+                        throw e;
+                    } else {
+                        this.bearerToken = newToken;
+                        return this.sessionCommunication(href, method, data, contentType);
+                    }
+                }
+            }
+            throw e;
+        }
+    }
+
+    // #endregion Public Methods (19)
 
     // #region Private Methods (3)
 
@@ -328,29 +342,12 @@ export class Session implements ISession {
             return new SessionTreeNode();
         }
         try {
-            let headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
-            headers = Object.assign({ "Content-Type": "application/json" }, this._headers);
             let responseCustomize;
             try {
-                responseCustomize = <ISessionResponse>(await this._httpClient.post(this._sessionResponse.actions['customize'].href!, null, { data: parameters, headers })).data;
+                responseCustomize = <ISessionResponse>(await this.sessionCommunication(this._sessionResponse.actions['customize'].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {
-                    if (e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
-                        if (!this._refreshBearerToken) {
-                            this._logger.error('Session customization failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
-                            return new SessionTreeNode();
-                        } else {
-                            const bearerToken = this.bearerToken;
-                            const newToken = this._refreshBearerToken();
-                            if (bearerToken === newToken) {
-                                this._logger.error('Session customization failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
-                                return new SessionTreeNode();
-                            } else {
-                                this.bearerToken = newToken;
-                                return this.customizeSession(parameters);
-                            }
-                        }
-                    } else if (e.response.status === 410) {
+                    if (e.response && e.response.status && e.response.status === 410) {
                         this._logger.info('Session customization failed. Session expired. Re-initializing session.');
                         this._initialized = false;
                         await this.init();
@@ -385,10 +382,16 @@ export class Session implements ISession {
             return node;
         }
         catch (e) {
-            if (e instanceof OutputDelayException) {
+            if (e instanceof OutputDelayException)
                 await this.timeout(e.delay);
-            }
-            return this.customizeSession(parameters);
+
+            let outputMapping: { [key: string]: string } = {};
+            for (let output in outputs)
+                outputMapping[output] = outputs[output].version;
+
+            let responseCache = (await this.sessionCommunication(this._sessionResponse.actions['cache'].href!, this._sessionResponse.actions['cache'].method!.toLowerCase(), outputMapping, 'application/json')).data;
+            this._sessionResponse.adaptSession(responseCache);
+            return await this.loadOutputs(parameters, outputs);
         }
     }
 

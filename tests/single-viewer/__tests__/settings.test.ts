@@ -427,7 +427,6 @@ describe('Settings Tests', () => {
             const api: typeof API = (<any>window).api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             const c: PerspectiveCamera = (<PerspectiveCamera><unknown>viewer.createPerspectiveCamera());
-            console.log(c.controls)
             const controls: PerspectiveCameraControls = (<PerspectiveCameraControls><unknown>(<PerspectiveCamera><unknown>c).controls);
             viewer.assignCamera(c.id)
             let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });

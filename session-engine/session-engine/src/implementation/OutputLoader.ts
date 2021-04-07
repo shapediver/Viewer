@@ -57,7 +57,7 @@ export class OutputLoader {
                 this._outputNodes[outputID] = {};
                 
             if(!this._outputNodes[outputID][outputs[outputID].version]) {
-                if(outputs[outputID].delay) {
+                if(outputs[outputID].hasOwnProperty('delay')) {
                     maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
                 } else {
                     // TODO check for overhead

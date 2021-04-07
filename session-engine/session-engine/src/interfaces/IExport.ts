@@ -5,7 +5,7 @@ export interface IExport {
     readonly name?: string;
     readonly type?: string;
 
-    request(): Promise<any>;
+    request(parameters?: { [key: string]: string }): Promise<{ href: string, format: string, size: number } | null>;
 
     // #endregion Properties (3)
 }
