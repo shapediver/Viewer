@@ -43,6 +43,7 @@ cp './scripts/utils/index.html' $PACKAGE_PATH
 # adjust package.json
 json -q -I -f $PACKAGE_PATH'package.json' -e 'this.name="@shapediver/viewer.'$SCOPE.$NAME'"'
 json -q -I -f $PACKAGE_PATH'package.json' -e 'this.description=""'
+json -q -I -f $PACKAGE_PATH'package.json' -e 'this.license="polyform-noncommercial-1.0.0"'
 json -q -I -f $PACKAGE_PATH'package.json' -e 'this.main="dist/index.js"'
 json -q -I -f $PACKAGE_PATH'package.json' -e 'this.typings="dist/index.d.ts"'
 json -q -I -f $PACKAGE_PATH'package.json' -e 'this.files=["dist"]'
