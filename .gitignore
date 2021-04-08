@@ -5,3 +5,4 @@ dist-prod
 lerna-debug.log
 .npmrc
 docs
+examples/simple/glTF-Sample-Models

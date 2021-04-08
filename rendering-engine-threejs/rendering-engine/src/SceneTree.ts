@@ -129,8 +129,8 @@ export class SceneTree {
         }
 
         const nodeIds: string[] = []
-        for (let i = 0; i < node.getNumberOfChildren(); i++) {
-            const child = node.getChildAt(i);
+        for (let i = 0; i < node.children.length; i++) {
+            const child = node.children[i];
             if(child) nodeIds.push(child.id)
         }
         const dataIds = node.data.map(d => d.id);
@@ -144,8 +144,8 @@ export class SceneTree {
         }
 
         // add new children and update the ones that have a different version
-        for (let i = 0, len = node.getNumberOfChildren(); i < len; i++) {
-            const nodeChild = node.getChildAt(i);
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
             if(!nodeChild) continue;
             const objChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === nodeChild.id);
 

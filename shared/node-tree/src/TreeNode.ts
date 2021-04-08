@@ -59,7 +59,17 @@ export class TreeNode {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (10)
+  // #region Public Accessors (12)
+
+  /**
+   * Getter children
+   * Use the methods @see addChild and @see removeChild for adding and removing from this array.
+   * 
+   * @return {TreeNode[]}
+   */
+  public get children(): TreeNode[] {
+    return this.#children;
+  }
 
   /**
    * Getter data
@@ -70,18 +80,18 @@ export class TreeNode {
   }
 
   /**
-   * Setter id
-   */
-  public set id(value: string) {
-    this.#id = value;
-  }
-
-  /**
    * Getter id
    * @return {string}
    */
   public get id(): string {
     return this.#id;
+  }
+
+  /**
+   * Setter id
+   */
+  public set id(value: string) {
+    this.#id = value;
   }
 
   /**
@@ -170,9 +180,9 @@ export class TreeNode {
     return matrix;
   }
 
-  // #endregion Public Accessors (10)
+  // #endregion Public Accessors (12)
 
-  // #region Public Methods (11)
+  // #region Public Methods (9)
 
   /**
    * Add a child from the children of this node.
@@ -239,23 +249,6 @@ export class TreeNode {
   }
 
   /**
-   * Getter child
-   * @return {TreeNode}
-   */
-  public getChildAt(index: number): TreeNode | null {
-    if (!this.#children[index]) return null;
-    return this.#children[index];
-  }
-
-  /**
-   * Get Number of children
-   * @return {number}
-   */
-  public getNumberOfChildren(): number {
-    return this.#children.length;
-  }
-
-  /**
    * Return the path to this node.
    */
   public getPath(): string {
@@ -318,5 +311,5 @@ export class TreeNode {
     this.#eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
-  // #endregion Public Methods (11)
+  // #endregion Public Methods (9)
 }

@@ -89,16 +89,16 @@ export class OutputLoader {
     // #region Private Methods (1)
 
     private assignMaterials(node: TreeNode) {
-        for (let m = 0; m < node.getNumberOfChildren(); m++) {
-            const outputNode = node.getChildAt(m);
+        for (let m = 0; m < node.children.length; m++) {
+            const outputNode = node.children[m];
             if (!outputNode) continue;
 
             const addMaterialToGeometry = (node: TreeNode, material: MaterialData) => {
                 for (let i = 0; i < node.data.length; i++)
                     if (node.data[i] instanceof GeometryData) 
                         (<GeometryData>node.data[i]).primitive.material = material;
-                for (let i = 0; i < node.getNumberOfChildren(); i++) {
-                    const child = node.getChildAt(i);
+                for (let i = 0; i < node.children.length; i++) {
+                    const child = node.children[i];
                     if (child) addMaterialToGeometry(child, material);
                 }
             };
@@ -114,8 +114,8 @@ export class OutputLoader {
                 // now we have id
                 // get material with it
                 
-                for (let n = 0; n < node.getNumberOfChildren(); n++) {
-                    const materialNode = node.getChildAt(n);
+                for (let n = 0; n < node.children.length; n++) {
+                    const materialNode = node.children[n];
                     if (!materialNode) continue;
 
                     if (materialNode.name === sessionOutputData.sessionOutput.material) {
@@ -124,8 +124,8 @@ export class OutputLoader {
                                 if (node.data[k] instanceof MaterialData)
                                     return <MaterialData>node.data[k];
                             
-                            for (let k = 0; k < node.getNumberOfChildren(); k++) {
-                                const child = node.getChildAt(i);
+                            for (let k = 0; k < node.children.length; k++) {
+                                const child = node.children[i];
                                 if(!child) continue;
                                 let material = getMaterialData(child);
                                 if (material) return material;

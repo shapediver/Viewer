@@ -46,8 +46,8 @@ export class Tree {
       return true;
     }
 
-    for (let i = 0; i < root.getNumberOfChildren(); i++) {
-      const child = root.getChildAt(i);
+    for (let i = 0; i < root.children.length; i++) {
+      const child = root.children[i];
       if (child && this.addNode(node, parent, child)) {
         return true;
       }
@@ -72,8 +72,8 @@ export class Tree {
     if (root.id === pathStart) {
       const shortenedPath = path.substr(pathStart.length + 1, path.length);
 
-      for (let i = 0; i < root.getNumberOfChildren(); i++) {
-        const child = root.getChildAt(i);
+      for (let i = 0; i < root.children.length; i++) {
+        const child = root.children[i];
         if (child && this.addNodeAtPath(node, shortenedPath, child)) {
           return true;
         }
@@ -94,8 +94,8 @@ export class Tree {
       return true;
     }
 
-    for (let i = 0; i < root.getNumberOfChildren(); i++) {
-      const child = root.getChildAt(i);
+    for (let i = 0; i < root.children.length; i++) {
+      const child = root.children[i];
       if (child && this.removeNode(node, child)) {
         return true;
       }
@@ -121,8 +121,8 @@ export class Tree {
       const shortenedPath = path.substr(pathStart.length + 1, path.length);
 
 
-      for (let i = 0; i < root.getNumberOfChildren(); i++) {
-        const child = root.getChildAt(i);
+      for (let i = 0; i < root.children.length; i++) {
+        const child = root.children[i];
         if (child && this.removeNodeAtPath(shortenedPath, child)) {
           return true;
         }

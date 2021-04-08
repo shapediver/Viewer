@@ -17,8 +17,8 @@ describe('scene graph engine - test', () => {
     const node = new TreeNode(name);
     tree.addNode(node, root);
 
-    expect(root.getNumberOfChildren()).toBe(1);
-    expect(root.getChildAt(0)!.name).toBe(name)
+    expect(root.children.length).toBe(1);
+    expect(root.children[0]!.name).toBe(name)
   });
 
   test('add multiple children', async () => {
@@ -27,8 +27,8 @@ describe('scene graph engine - test', () => {
     const result1 = tree.addNode(node1, root);
 
     expect(result1).toBe(true);
-    expect(root.getNumberOfChildren()).toBe(1);
-    const child1 = root.getChildAt(0);
+    expect(root.children.length).toBe(1);
+    const child1 = root.children[0];
     expect(child1!.name).toBe(name1);
 
     const name2 = 'test2';
@@ -36,8 +36,8 @@ describe('scene graph engine - test', () => {
     const result2 = tree.addNode(node2, node1);
 
     expect(result2).toBe(true);
-    expect(child1!.getNumberOfChildren()).toBe(1);
-    const child2 = child1!.getChildAt(0);
+    expect(child1!.children.length).toBe(1);
+    const child2 = child1!.children[0];
     expect(child2!.name).toBe(name2);
 
     const name3 = 'test3';
@@ -45,20 +45,20 @@ describe('scene graph engine - test', () => {
     const result3 = tree.addNode(node3, node2);
 
     expect(result3).toBe(true);
-    expect(child2!.getNumberOfChildren()).toBe(1);
-    const child3 = child2!.getChildAt(0);
+    expect(child2!.children.length).toBe(1);
+    const child3 = child2!.children[0];
     expect(child3!.name).toBe(name3);
-    expect(child3!.getNumberOfChildren()).toBe(0);
+    expect(child3!.children.length).toBe(0);
 
     const name4 = 'test4';
     const node4 = new TreeNode(name4);
     const result4 = tree.addNode(node4, node2);
 
     expect(result4).toBe(true);
-    expect(child2!.getNumberOfChildren()).toBe(2);
-    const child4 = child2!.getChildAt(1);
+    expect(child2!.children.length).toBe(2);
+    const child4 = child2!.children[1];
     expect(child4!.name).toBe(name4);
-    expect(child4!.getNumberOfChildren()).toBe(0);
+    expect(child4!.children.length).toBe(0);
   });
 
   test('add a child via path', async () => {
@@ -66,8 +66,8 @@ describe('scene graph engine - test', () => {
     const node = new TreeNode(name);
     tree.addNodeAtPath(node, root.getPath());
 
-    expect(root.getNumberOfChildren()).toBe(1);
-    expect(root.getChildAt(0)!.name).toBe(name)
+    expect(root.children.length).toBe(1);
+    expect(root.children[0]!.name).toBe(name)
   });
 
   test('add multiple children via path', async () => {
@@ -76,8 +76,8 @@ describe('scene graph engine - test', () => {
     const result1 = tree.addNodeAtPath(node1, root.getPath());
 
     expect(result1).toBe(true);
-    expect(root.getNumberOfChildren()).toBe(1);
-    const child1 = root.getChildAt(0);
+    expect(root.children.length).toBe(1);
+    const child1 = root.children[0];
     expect(child1!.name).toBe(name1);
 
     const name2 = 'test2';
@@ -85,8 +85,8 @@ describe('scene graph engine - test', () => {
     const result2 = tree.addNodeAtPath(node2, node1.getPath());
 
     expect(result2).toBe(true);
-    expect(child1!.getNumberOfChildren()).toBe(1);
-    const child2 = child1!.getChildAt(0);
+    expect(child1!.children.length).toBe(1);
+    const child2 = child1!.children[0];
     expect(child2!.name).toBe(name2);
 
     const name3 = 'test3';
@@ -94,20 +94,20 @@ describe('scene graph engine - test', () => {
     const result3 = tree.addNodeAtPath(node3, node2.getPath());
 
     expect(result3).toBe(true);
-    expect(child2!.getNumberOfChildren()).toBe(1);
-    const child3 = child2!.getChildAt(0);
+    expect(child2!.children.length).toBe(1);
+    const child3 = child2!.children[0];
     expect(child3!.name).toBe(name3);
-    expect(child3!.getNumberOfChildren()).toBe(0);
+    expect(child3!.children.length).toBe(0);
 
     const name4 = 'test4';
     const node4 = new TreeNode(name4);
     const result4 = tree.addNodeAtPath(node4, node2.getPath());
 
     expect(result4).toBe(true);
-    expect(child2!.getNumberOfChildren()).toBe(2);
-    const child4 = child2!.getChildAt(1);
+    expect(child2!.children.length).toBe(2);
+    const child4 = child2!.children[1];
     expect(child4!.name).toBe(name4);
-    expect(child4!.getNumberOfChildren()).toBe(0);
+    expect(child4!.children.length).toBe(0);
   });
 
   test('remove node', async () => {
@@ -229,7 +229,7 @@ describe('scene graph node - test', () => {
     node.addChild(new TreeNode('child4'));
     node.addChild(new TreeNode('child5'));
 
-    expect(node.getNumberOfChildren()).toBe(5)
+    expect(node.children.length).toBe(5)
   });
 
   test('having children', async () => {
@@ -246,7 +246,7 @@ describe('scene graph node - test', () => {
     node.addChild(child5);
     const child6 = new TreeNode('child6');
 
-    expect(node.getNumberOfChildren()).toBe(5);
+    expect(node.children.length).toBe(5);
 
     expect(node.hasChild(child1)).toBe(true);
     expect(node.hasChild(child2)).toBe(true);
@@ -270,7 +270,7 @@ describe('scene graph node - test', () => {
     node.addChild(child5);
     const child6 = new TreeNode('child6');
 
-    expect(node.getNumberOfChildren()).toBe(5);
+    expect(node.children.length).toBe(5);
 
     expect(node.hasChild(child1)).toBe(true);
     expect(node.hasChild(child2)).toBe(true);
@@ -282,7 +282,7 @@ describe('scene graph node - test', () => {
     node.removeChild(child1);
     node.removeChild(child2);
 
-    expect(node.getNumberOfChildren()).toBe(3);
+    expect(node.children.length).toBe(3);
     expect(node.hasChild(child1)).toBe(false);
     expect(node.hasChild(child2)).toBe(false);
     expect(node.hasChild(child3)).toBe(true);
@@ -292,7 +292,7 @@ describe('scene graph node - test', () => {
 
     node.addChild(child1);
 
-    expect(node.getNumberOfChildren()).toBe(4);
+    expect(node.children.length).toBe(4);
     expect(node.hasChild(child1)).toBe(true);
     expect(node.hasChild(child2)).toBe(false);
     expect(node.hasChild(child3)).toBe(true);
@@ -323,10 +323,10 @@ describe('scene graph node - test', () => {
     node.addChild(new TreeNode('child2'));
     new TreeNode('child3', node)
     const clonedNode = node.clone();
-    expect(node.getNumberOfChildren()).toEqual(clonedNode.getNumberOfChildren());
-    expect(node.getNumberOfChildren()).toEqual(3);
-    for (let i = 0; i < node.getNumberOfChildren(); i++)
-      expect(node.getChildAt(i)!.name).toEqual(clonedNode.getChildAt(i)!.name);
+    expect(node.children.length).toEqual(clonedNode.children.length);
+    expect(node.children.length).toEqual(3);
+    for (let i = 0; i < node.children.length; i++)
+      expect(node.children[i]!.name).toEqual(clonedNode.children[i]!.name);
 
   });
 
