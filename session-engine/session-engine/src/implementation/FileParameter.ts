@@ -38,7 +38,7 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
 
   public async upload() {
     if(!this.value) return;
-    const data = typeof this.value === 'string' ? new Blob([this.value], { type: 'text/plain' }) : this.value;
+    const data = new File([typeof this.value === 'string' ? new Blob([this.value], { type: 'text/plain' }) : this.value], 'airboat.obj');
     if(data.size === 0) {
       this._logger.error('Error uploading parameter ' + this.id + ': file size is 0.');
       return;
@@ -46,7 +46,7 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
 
     try {
       let uploadReply = (await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions['upload'].href!, this._mySession.sessionResponse.actions['upload'].method!.toLowerCase(), { [this.id]: { size: data.size, format: this.format![0] }}, 'application/json')).data;
-      await this._httpClient.put(uploadReply[this.id].href, data, { headers: {'Content-Type': this.format![0] }});
+      await this._httpClient.put(uploadReply[this.id].href, { data, headers: { 'Content-Type': this.format![0] }, });
       return uploadReply[this.id].id;
     } catch(e) {
       this._logger.error('Upload request failed.', e, e.response && e.response.status ? e.response.status : null);

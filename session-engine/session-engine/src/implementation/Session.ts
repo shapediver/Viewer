@@ -313,11 +313,7 @@ export class Session implements ISession {
 
         if (method !== 'post' && method !== 'get') throw new Error('Method ' + method + ' not recognized.');
         try {
-            if (method === 'post') {
-                return await this._httpClient.post(href, null, { data, headers });
-            } else {
-                return await this._httpClient.get(href, { data, headers });
-            }
+            return await this._httpClient[method](href, { data, headers });
         } catch (e) {
             if (e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
                 if (!this._refreshBearerToken) {

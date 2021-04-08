@@ -42,7 +42,7 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
      */
     public set value(value: File | Blob | string) {
         this.#inputValidator.validate(value, 'file');
-        this.#parameter.value = value + '';
+        this.#parameter.value = value;
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
     }
 

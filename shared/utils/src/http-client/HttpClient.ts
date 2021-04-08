@@ -15,15 +15,15 @@ export class HttpClient {
 
     public async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
         if (!this._cache[url])
-            this._cache[url] = axios.get(url, config);
+            this._cache[url] = axios(url, Object.assign({method: 'get', timeout: 30000}, config));
         return this._cache[url];
     };
 
-    public async post(url: string, data?: any, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
-        return axios.post(url, data, config);
+    public async post(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
+        return axios(url, Object.assign({method: 'post', timeout: 30000}, config));
     };
 
-    public async put(url: string, data?: any, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
-        return axios.put(url, data, config);
+    public async put(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
+        return axios(url, Object.assign({method: 'put', timeout: 30000}, config));
     };
 }
