@@ -10,18 +10,18 @@ The setup is built on `lerna` which is a package that is build for handling java
 
 ## 1. Setup
 ### Node / NPM
-You need to install a specific version of node (14.5.0) and npm (6.14.5). You can do this in any way you want to, but in the following steps we will explain how to do this with nvm.
+You need to install a specific version of node (15.14.0) and npm (7.7.6). You can do this in any way you want to, but in the following steps we will explain how to do this with nvm.
 
 First of all, download nvm ([windows](https://github.com/coreybutler/nvm-windows)/[unix](https://github.com/nvm-sh/nvm)/[mac](https://github.com/nvm-sh/nvm)).
 Once installed, just use the commands
 
-`nvm install 14.5.0`
+`nvm install 15.14.0`
 
 and
 
-`nvm use 14.5.0`
+`nvm use 15.14.0`
 
-This will install node (14.5.0) and the corresponding npm version (6.14.5).
+This will install node (15.14.0) and the corresponding npm version (7.7.6).
 
 ### GIT
 Make sure to have GIT installed on your system.
