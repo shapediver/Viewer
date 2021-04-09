@@ -4,7 +4,7 @@
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
-  "license": "ISC",
+  "license": "polyform-noncommercial-1.0.0",
   "main": "dist/index.js",
   "directories": {
     "test": "__tests__"

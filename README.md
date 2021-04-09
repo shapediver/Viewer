@@ -1,11 +1,12 @@
-![logo](https://d2tlksottdg9m1.cloudfront.net/production/assets/images/shapediver_logo_gradient.png "ShapeDiver")
-# Monorepo Template
+![logo](https://shapediver.com/imgs/logo-black.png "ShapeDiver")
+# Viewer
 
-This Repository is here to be used if you want to have multiple npm packages in one repository. These packages can be reliant on each other or completely separate.
+This Repository is the main repository for the Shapediver Viewer.
 
-The setup is built on `lerna` which is a package that is build for handling javascript monorepos. I extended some functionality and made create some further custom scripts for creating packages and building them. But trust me, there is no magic involved, mostly just creating a nice project setup.
+The end product is the package `@shapediver/viewer` which is the api.
+See the documentation on it [here](https://viewer.shapediver.com/v3/0.1.0/api/index.html).
 
-You can either add packages and libraries in the `packages` folder or in the `libs` folder, respectively. Please see below regarding custom scripts on how to do that.
+The setup is built on `lerna` which is a package that is build for handling javascript monorepos. I extended some functionality and made created some further custom scripts for creating packages and building them. But trust me, there is no magic involved, mostly just creating a nice project setup.
 
 ## 1. Setup
 ### Node / NPM
@@ -34,9 +35,8 @@ Just call `npm run init`
 
 ## 2. Creating Packages and Libraries
 
-In the root of the project, either call `npm run create-lib NAME` or `npm run create-package NAME`, depending on if you want to create a library or a package. Inside this call a `lerna` command is executed first and then some smaller file changes are done after.
-Your package name will be `@shapediver/SCOPE.NAME`. Where the scope is defined in the `scope.json` of the root directory. For why we use scopes, look [here](https://shapediver.atlassian.net/wiki/spaces/SS/pages/953352193/Naming+of+Github+Packages).
-
+In the root of the project, call `npm run create-package`. You will be prompted to add a scope and a name. Inside this call a `lerna` command is executed first and then some smaller file changes are done after.
+Your package name will be `@shapediver/viewer.SCOPE.NAME`. 
 
 ## 3. Bootstrapping
 
@@ -47,7 +47,7 @@ Therefore there are two scripts (one for normal dependencies, one for devDepende
 ### Example 1 - adding an external dependency
 
 Let's say we want to add the package `three` to a specific package `a_package`.
-Then the only thing we have to do is call `npm run add-dependency three @shapediver/test.a_package` in the root folder.
+Then the only thing we have to do is call `npm run add-dependency three @shapediver/viewer.test.a_package` in the root folder.
 This installs the package in the root and links it to `a_package`.
 
 In case you want `three` in all packages and libs you can call `npm run add-dependency three`.
@@ -55,7 +55,7 @@ In case you want `three` in all packages and libs you can call `npm run add-depe
 ### Example 2 - adding an internal dependency
 
 Now I want to add `a_package` to `another_package` (both are part of this repository).
-This works just similarly with `npm run add-dependency @shapediver/test.a_package @shapediver/test.another_package`.
+This works just similarly with `npm run add-dependency @shapediver/viewer.test.a_package @shapediver/viewer.test.another_package`.
 
 ## 4. Building
 
@@ -64,6 +64,7 @@ There are various build tasks for different scenarios in each package.
 | Usage | Description |
 | ------------- | ------------- |
 | `npm run build` | Builds just the current package. (folder: `dist`) |
+| `npm run build-current` | Builds all dependencies that are needed for the api package. (folder: `dist`) |
 | `npm run build-dep` | Builds this package and all internal dependencies that it has before that. (folder: `dist`) |
 | `npm run build-dev` | Builds this package and all internal dependencies with webpack and starts a http-server in watch mode. (folder: `dist-dev`, only for actual packages) |
 | `npm run build-prod` | Builds this package and all internal dependencies with webpack and puts them into a single file.  (folder: `dist-prod`, only for actual packages) |
@@ -91,49 +92,7 @@ Here just, replace `TOKEN` with you access token that you just created.
 
 Afterwards, just call `npm run publish` and follow the prompts.
 
-## 7. Example
-
-So this is the goal of our example. We want to create to packages, `package_a` and `package_b`, where `package_b` has a dependency on `package_a`. After, we want to publish both packages.
-
-First we create both packages:
-```bash
-npm run create-package package_a
-npm run create-package package_b
-```
-
-Then we add some extremely simple logic to the `index.ts` of `package_a`:
-```typescript
-const package_a = (): string => {
-  return 'Hello ShapeDiver!';
-};
-
-export default package_a;
-```
-
-Then we add a dependency of `package_a` to `package_b` to be able to use `package_a` there:
-```bash
-npm run add-dependency @shapediver/test.package_a @shapediver/test.package_b
-```
-
-In the `index.ts` of `package_b` we'll now also add some simple logic that uses `package_a`:
-```typescript
-import package_a from '@shapediver/test.package_a';
-
-const package_b = (): string => {
-  return 'What does package_a say? ' + package_a();
-};
-
-export default package_b;
-```
-
-Let's now build `package_b` with a command that builds also it's dependencies `npm run build-dep` (in the packages/test.package_b folder).
-
-Let's create a commit for our changes, we need this as for publishing, a tag is created on that commit.
-
-Now we want to publish the repository, therefore we just call `npm run publish` and follow the prompts there (please see the part about publishing a bit above).
-
-
-## 7. FAQ
+## 6. FAQ
 
 - I add a dependency, but in the typescript file, it still shows me an error. What is up with that?
 
