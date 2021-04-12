@@ -1,5 +1,4 @@
 import { CAMERATYPE, OrthographicCamera, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { EventEngine, EVENTTYPE, StateEngine } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
 import * as THREE from 'three';
@@ -8,25 +7,22 @@ import { RenderingEngine } from "./RenderingEngine";
 import { SceneTree } from "./SceneTree";
 import { main, entry } from "./shaders/PCSS";
 import { shader as normalShader } from "./shaders/normal";
+import { BeautyRenderer } from "./BeautyRenderer";
 
 export class RenderingLogic {
-    // #region Properties (11)
+    // #region Properties (8)
 
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _beautyRenderer: BeautyRenderer;
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _orthographicCameraThree: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
     private readonly _perspectiveCameraThree: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _renderer: THREE.WebGLRenderer;
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
-    private _beautyRenderingActive: boolean = false;
-    private _beautyRenderingDurationActive: number = 0;
-    private _beautyRenderingTimeout: NodeJS.Timeout | null = null;
     private _lastTime: number = 0;
-    private _lightSizeUVEnd = 0.15;
-    private _lightSizeUVStart = 0.025;
     private _noNeedToRender: boolean = false;
 
-    // #endregion Properties (11)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
@@ -52,18 +48,20 @@ export class RenderingLogic {
         this._renderer.setSize(this._renderingEngine.canvas.canvasElement.width, this._renderingEngine.canvas.canvasElement.height);
         this._renderer.setClearColor(new THREE.Color('#ffffff'), 1);
 
+        this._beautyRenderer = new BeautyRenderer(this._renderingEngine, this._renderer, this._renderingEngine.sceneTree.scene)
+
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
             this._noNeedToRender = false;
-            this.stopBeautyRenderCountdown();
+            this._beautyRenderer.stopBeautyRenderCountdown();
         })
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
-            this.startBeautyRenderCountdown();
+            this._beautyRenderer.startBeautyRenderCountdown();
         })
 
         window.onresize = () => this._noNeedToRender = false;
 
         this.animate(0);
-        this.startBeautyRenderCountdown();
+        this._beautyRenderer.startBeautyRenderCountdown();
     }
 
     // #endregion Constructors (1)
@@ -72,22 +70,16 @@ export class RenderingLogic {
 
     public render() {
         this._noNeedToRender = false;
-        this.startBeautyRenderCountdown();
+        this._beautyRenderer.startBeautyRenderCountdown();
     }
 
     // #endregion Public Methods (1)
 
-    // #region Private Methods (7)
-
-    private activateBeautyRenderShaders() {
-        this._renderer.shadowMap.type = THREE.PCFShadowMap;
-        this._renderer.shadowMap.needsUpdate = true;
-        this._renderingEngine.materialLoader.updateMaterials();
-    }
+    // #region Private Methods (3)
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let cameraThree: THREE.Camera;
-        const {position, target} = this._renderingEngine.cameraEngine.getCamera()!.update(time);
+        const { position, target } = this._renderingEngine.cameraEngine.getCamera()!.update(time);
         if (this._renderingEngine.cameraEngine.getCamera()!.type === CAMERATYPE.ORTHOGRAPHIC) {
             const camera = <OrthographicCamera>this._renderingEngine.cameraEngine.getCamera()!;
             const aspect = width / height;
@@ -136,68 +128,27 @@ export class RenderingLogic {
 
         if (this._noNeedToRender === true) return;
         if (this._renderingEngine.sceneTree.isEmpty()) return;
-        
+
         this._renderer.shadowMap.enabled = this._renderingEngine.shadows;
         this._renderingEngine.sceneTree.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         this._renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]), this._renderingEngine.clearAlpha);
         this._renderer.setSize(width, height);
 
         // beauty rendering is active
-        if (this._beautyRenderingActive) {
-            this._beautyRenderingDurationActive += deltaTime;
-            this.setShaderProperties();
-            this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
-
-            if (this._beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
+        if (this._beautyRenderer.beautyRenderingActive) {
+            this._beautyRenderer.beautyRenderingDurationActive += deltaTime;
+            this._beautyRenderer.render(deltaTime, camera, width, height);
+            if (this._beautyRenderer.beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
                 this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
-                this.deactivateBeautyRenderShaders();
+                this._beautyRenderer.deactivateBeautyRenderShaders();
                 this._noNeedToRender = true;
             }
         } else {
             this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera);
         }
 
-        if(!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
+        if (!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
     }
 
-    private deactivateBeautyRenderShaders() {
-        this._beautyRenderingTimeout = null;
-        this._beautyRenderingActive = false;
-        this._beautyRenderingDurationActive = 0;
-        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this._renderer.shadowMap.needsUpdate = true;
-        this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
-        this._renderingEngine.materialLoader.updateMaterials();
-    }
-
-    private setShaderProperties() {
-        const deltaTime = Math.min(this._beautyRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration)
-        const percentage = deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
-
-        if (percentage < 0.25) {
-            const percentageMapped = percentage / 0.25;
-            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
-
-        } else {
-            const percentageMapped = (percentage - 0.25) / (1 - 0.25);
-            // this._lightSizeUVStart -> this._lightSizeUVEnd
-            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
-        }
-    }
-
-    private startBeautyRenderCountdown() {
-        this._beautyRenderingTimeout = setTimeout(() => {
-            this._beautyRenderingActive = true;
-            this._beautyRenderingDurationActive = 0;
-            this.activateBeautyRenderShaders();
-        }, this._renderingEngine.beautyRenderDelay);
-    }
-
-    private stopBeautyRenderCountdown() {
-        if (this._beautyRenderingTimeout)
-            clearTimeout(this._beautyRenderingTimeout);
-        this.deactivateBeautyRenderShaders();
-    }
-
-    // #endregion Private Methods (7)
+    // #endregion Private Methods (3)
 }
