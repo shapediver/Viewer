@@ -1,7 +1,7 @@
-import { mat4, vec3 } from 'gl-matrix';
-import * as THREE from 'three';
+import { mat4, vec2, vec3 } from 'gl-matrix';
 import { ICameraControlsLogic } from '../../interface/ICameraControlsLogic';
 import { OrthographicCameraControls } from '../../..';
+import { OrthographicCamera } from '../../../engine/implementation/OrthographicCamera';
 
 export class CameraControlsLogic implements ICameraControlsLogic {
     // #region Properties (16)
@@ -12,7 +12,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         panSpeed: () => this._controls.panSpeed * this._settingsAdjustments.panSpeed,
         zoomSpeed: () => this._controls.zoomSpeed * this._settingsAdjustments.zoomSpeed,
     };
-    private _damping: any = {
+    private _damping = {
         rotation: {
             time: 0,
             duration: 0,
@@ -27,15 +27,15 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         pan: {
             time: 0,
             duration: 0,
-            offset: new THREE.Vector3()
+            offset: vec3.create()
         },
     };
     private _dollyDelta = 0;
     private _dollyEnd = 0;
     private _dollyStart = 0;
-    private _panDelta = new THREE.Vector2();
-    private _panEnd = new THREE.Vector2();
-    private _panStart = new THREE.Vector2();
+    private _panDelta = vec2.create();
+    private _panEnd = vec2.create();
+    private _panStart = vec2.create();
     private _settingsAdjustments = {
       damping: 1.0,
       movementSmoothness: 1.0,
@@ -59,56 +59,59 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
     // #region Public Methods (7)
 
-    public isWithinRestrictions(position: any, target: any): boolean {
+    public isWithinRestrictions(position: vec3, target: vec3): boolean {
         return true;
     }
 
-    public pan(x: any, y: any, active: boolean, touch: boolean): void {
+    public pan(x: number, y: number, active: boolean, touch: boolean): void {
         if (touch) {
             x = x / window.devicePixelRatio;
             y = y / window.devicePixelRatio;
           }
       
           if (!active) {
-            this._panStart.set(x, y);
-          } else {
-            this._panEnd.set(x, y);
-            this._panDelta.subVectors(this._panEnd, this._panStart);
-            if (this._panDelta.x === 0 && this._panDelta.y === 0) return;
-            this._panStart.copy(this._panEnd);
-      
-            let offset = this.panDeltaToOffset(this._panDelta.multiplyScalar(this._adjustedSettings.panSpeed() * (touch ? this._touchAdjustments.panSpeed : 1.0)));
-      
-            if (this._damping.pan.duration > 0) {
-              if (offset.x < 0) {
-                offset.x = Math.min(offset.x, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.x);
-              } else {
-                offset.x = Math.max(offset.x, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.x);
-              }
-              if (offset.y < 0) {
-                offset.y = Math.min(offset.y, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.y);
-              } else {
-                offset.y = Math.max(offset.y, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.y);
-              }
-              if (offset.z < 0) {
-                offset.z = Math.min(offset.z, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.z);
-              } else {
-                offset.z = Math.max(offset.z, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.z);
-              }
-            }
-      
-            let damping = 1 - Math.max(0.01, Math.min(0.99, this._adjustedSettings.damping()));
-            let framesOffsetX = (Math.log(1 / Math.abs(offset.x)) - 5 * Math.log(10)) / (Math.log(damping));
-            let framesOffsetY = (Math.log(1 / Math.abs(offset.y)) - 5 * Math.log(10)) / (Math.log(damping));
-            let framesOffsetZ = (Math.log(1 / Math.abs(offset.z)) - 5 * Math.log(10)) / (Math.log(damping));
-            this._damping.pan.time = 0;
-            this._damping.pan.duration = Math.max(framesOffsetX, Math.max(framesOffsetY, framesOffsetZ)) * 16.6666;
-            this._damping.pan.offset = offset.clone();
-      
-            this._damping.zoom.duration = 0;
+            this._panStart = vec2.fromValues(x, y);
+        } else {
+            this._panEnd = vec2.fromValues(x, y);
+            vec2.sub(this._panDelta, this._panEnd, this._panStart);
+            if (this._panDelta[0] === 0 && this._panDelta[1] === 0) return;
 
-            this._controls.applyTargetMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)), true);
-            this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)), true);
+            const adjustedPanSpeed = this._adjustedSettings.panSpeed() * (touch ? this._touchAdjustments.panSpeed : 1.0);
+            let offset = this.panDeltaToOffset(vec2.mul(vec2.create(), this._panDelta, vec2.fromValues(adjustedPanSpeed, adjustedPanSpeed)));
+
+            if (this._damping.pan.duration > 0) {
+              if (offset[0] < 0) {
+                  offset[0] = Math.min(offset[0], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[0]);
+              } else {
+                  offset[0] = Math.max(offset[0], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[0]);
+              }
+              if (offset[1] < 0) {
+                  offset[1] = Math.min(offset[1], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[1]);
+              } else {
+                  offset[1] = Math.max(offset[1], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[1]);
+              }
+              if (offset[2] < 0) {
+                  offset[2] = Math.min(offset[2], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[2]);
+              } else {
+                  offset[2] = Math.max(offset[2], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[2]);
+              }
+          }
+      
+          let damping = 1 - Math.max(0.01, Math.min(0.99, this._adjustedSettings.damping()));
+
+          let framesOffsetX = (Math.log(1 / Math.abs(offset[0])) - 5 * Math.log(10)) / (Math.log(damping));
+          let framesOffsetY = (Math.log(1 / Math.abs(offset[1])) - 5 * Math.log(10)) / (Math.log(damping));
+          let framesOffsetZ = (Math.log(1 / Math.abs(offset[2])) - 5 * Math.log(10)) / (Math.log(damping));
+          this._damping.pan.time = 0;
+          this._damping.pan.duration = Math.max(framesOffsetX, Math.max(framesOffsetY, framesOffsetZ)) * 16.6666;
+          this._damping.pan.offset = vec3.clone(offset);
+
+          this._damping.rotation.duration = 0;
+          this._damping.zoom.duration = 0;
+
+          const translateMat = mat4.fromTranslation(mat4.create(), offset);
+          this._controls.applyTargetMatrix(translateMat, true);
+          this._controls.applyPositionMatrix(translateMat, true);
         }
     }
 
@@ -128,15 +131,15 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             pan: {
               time: 0,
               duration: 0,
-              offset: new THREE.Vector3()
+              offset: vec3.create()
             },
           };
           this._dollyDelta = 0;
           this._dollyEnd = 0;
           this._dollyStart = 0;
-          this._panDelta = new THREE.Vector2();
-          this._panEnd = new THREE.Vector2();
-          this._panStart = new THREE.Vector2();
+          this._panDelta = vec2.create();
+          this._panEnd = vec2.create();
+          this._panStart = vec2.create();
     }
 
     public restrict(p: vec3, t: vec3): { position: vec3, target: vec3 } {
@@ -163,10 +166,11 @@ export class CameraControlsLogic implements ICameraControlsLogic {
               this._damping.pan.time += time;
       
               let frameSinceStart = this._damping.pan.time / 16.6666;
-              let offset = this._damping.pan.offset.clone().multiplyScalar(Math.pow(damping, frameSinceStart));
-      
-                this._controls.applyTargetMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)));
-                this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)));
+              let dampingFrames = Math.pow(damping, frameSinceStart);
+              let offset = vec3.multiply(vec3.create(), this._damping.pan.offset, vec3.fromValues(dampingFrames, dampingFrames, dampingFrames));
+              const translateMat = mat4.fromTranslation(mat4.create(), offset);
+              this._controls.applyTargetMatrix(translateMat);
+              this._controls.applyPositionMatrix(translateMat);
             }
         } else {
             this._damping.pan.time = 0;
@@ -186,12 +190,13 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 * (1 - delta);
 
       
-              let dir = new THREE.Vector3(),
-                offset = new THREE.Vector3();
-              dir.copy(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates())).sub(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates())).normalize();
-              offset.copy(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates()).clone().add(dir.multiplyScalar(newDistance)));
-              offset.sub(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates()));
-              this._controls.applyTargetMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)), true);
+              let dir = vec3.create(),
+                offset = vec3.create();
+                vec3.normalize(dir, vec3.subtract(dir, this._controls.getTargetWithManualUpdates(), this._controls.getPositionWithManualUpdates()));
+                vec3.add(offset, this._controls.getPositionWithManualUpdates(), vec3.multiply(offset, dir, vec3.fromValues(newDistance, newDistance, newDistance)))
+                vec3.subtract(offset, offset, this._controls.getTargetWithManualUpdates())
+                const translateMat = mat4.fromTranslation(mat4.create(), offset);
+                this._controls.applyTargetMatrix(translateMat, true);
       
             }
         } else {
@@ -199,7 +204,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         }
     }
 
-    public zoom(x: any, y: any, active: boolean, touch: boolean): void {
+    public zoom(x: number, y: number, active: boolean, touch: boolean): void {
         var distance = Math.sqrt(x * x + y * y);    
         if (touch) 
           distance = distance / window.devicePixelRatio;
@@ -228,15 +233,17 @@ export class CameraControlsLogic implements ICameraControlsLogic {
     
           this._damping.pan.duration = 0;
     
-          let newDistance = this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates()).distanceTo(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates()))
+          
+          let newDistance = vec3.distance(this._controls.getTargetWithManualUpdates(), this._controls.getPositionWithManualUpdates())
             * (1 - delta);
     
-          let dir = new THREE.Vector3(),
-            offset = new THREE.Vector3();
-          dir.copy(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates())).sub(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates())).normalize();
-          offset.copy(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates()).clone().add(dir.multiplyScalar(newDistance)));
-          offset.sub(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates()));
-            this._controls.applyTargetMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)), true);
+          let dir = vec3.create(),
+            offset = vec3.create();
+            vec3.normalize(dir, vec3.subtract(dir, this._controls.getTargetWithManualUpdates(), this._controls.getPositionWithManualUpdates()));
+            vec3.add(offset, this._controls.getPositionWithManualUpdates(), vec3.multiply(offset, dir, vec3.fromValues(newDistance, newDistance, newDistance)))
+            vec3.subtract(offset, offset, this._controls.getTargetWithManualUpdates())
+            const translateMat = mat4.fromTranslation(mat4.create(), offset);
+            this._controls.applyTargetMatrix(translateMat, true);
         }
     }
 
@@ -244,46 +251,30 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
     // #region Private Methods (7)
 
-    private convertGlMatrixToThreeMatrix(matrix: mat4): THREE.Matrix4 {
-        return new THREE.Matrix4().fromArray(matrix);
-    }
-
-    private convertGlVectorToThreeVector(vec: vec3): THREE.Vector3 {
-        return new THREE.Vector3(vec[0], vec[1], vec[2]);
-    }
-
-    private convertThreeMatrixToGlMatrix(matrix: THREE.Matrix4): mat4 {
-        return mat4.fromValues( matrix.toArray()[0], matrix.toArray()[1], matrix.toArray()[2], matrix.toArray()[3],
-                                matrix.toArray()[4], matrix.toArray()[5], matrix.toArray()[6], matrix.toArray()[7],
-                                matrix.toArray()[8], matrix.toArray()[9], matrix.toArray()[10], matrix.toArray()[11],
-                                matrix.toArray()[12], matrix.toArray()[13], matrix.toArray()[14], matrix.toArray()[15]);
-    }
-
-    private convertThreeVectorToGlVector(vec: THREE.Vector3): vec3 {
-        return vec3.fromValues(vec.x, vec.y, vec.z);
-    }
-
-    private panDeltaToOffset(panDelta: THREE.Vector2): THREE.Vector3 {
-        let offset = new THREE.Vector3();
-        let panOffset = new THREE.Vector3();
+    private panDeltaToOffset(panDelta: vec2): vec3 {
+        let offset = vec3.create();
+        let panOffset = vec3.create();
     
         // perspective
-        offset.copy(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates())).sub(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates()));
+        vec3.subtract(offset, this._controls.getPositionWithManualUpdates(), this._controls.getTargetWithManualUpdates())
     
+        const mat = mat4.targetTo(mat4.create(), this._controls.camera.position, this._controls.camera.target, vec3.fromValues(0, 0, 1));
+
+        const orthographicCamera: OrthographicCamera = <OrthographicCamera>this._controls.camera;
         // // we use only clientHeight here so aspect ratio does not distort speed
         // // left
-        // let v1 = new THREE.Vector3();
-        // v1.setFromMatrixColumn(this._controls.camera.matrix, 0); // get X column of objectMatrix
-        // v1.multiplyScalar(-(panDelta.x * (this._controls.camera.right - this._controls.camera.left) * 0.5 / this._controls.camera.zoom));
-        // panOffset.add(v1);
+        const v1 = vec3.fromValues(mat[0], mat[1], mat[2]);
+        const scalar1 = -(panDelta[0] * (orthographicCamera.right - orthographicCamera.left) * 0.5 / 1 /** orthographicCamera.zoom */);
+        vec3.multiply(v1, v1, vec3.fromValues(scalar1, scalar1, scalar1));
+        vec3.add(panOffset, panOffset, v1);
     
         // // up
-        // let v = new THREE.Vector3();
-        // v.setFromMatrixColumn(this._controls.camera.matrix, 1); // get Y column of objectMatrix
-        // v.multiplyScalar(panDelta.y * (this._controls.camera.right - this._controls.camera.left) * 0.5 / this._controls.camera.zoom);
-        // panOffset.add(v);
+        const v2 = vec3.fromValues(mat[4], mat[5], mat[6]);
+        const scalar2 = panDelta[1] * (orthographicCamera.right - orthographicCamera.left) * 0.5 / 1 /** orthographicCamera.zoom */;
+        vec3.multiply(v2, v2, vec3.fromValues(scalar2, scalar2, scalar2));
+        vec3.add(panOffset, panOffset, v2);
     
-        return panOffset.clone();
+        return vec3.clone(panOffset);
     }
 
     // #endregion Private Methods (7)

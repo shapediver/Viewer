@@ -1,25 +1,28 @@
 import { ICameraControls } from '../../controls/interface/ICameraControls';
 import { ICamera } from '../interface/ICamera';
-import { vec3 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 import { CAMERATYPE } from '../interface/ICameraEngine';
+import { AbstractCameraControls } from '../../controls/implementation/AbstractCameraControls';
 
 export abstract class AbstractCamera implements ICamera {
-    // #region Properties (11)
+    // #region Properties (13)
 
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
     private _defaultPosition: vec3 = vec3.create();
     private _defaultTarget: vec3 = vec3.create();
     private _enableCameraControls: boolean = true;
+    private _far: number = 1000;
+    private _near: number = 1;
     private _revertAtMouseUp: boolean = false;
     private _revertAtMouseUpDuration: number = 800;
     private _zoomExtentsFactor: number = 1;
 
-    protected _controls!: ICameraControls;
+    protected _controls!: AbstractCameraControls;
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
 
-    // #endregion Properties (11)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
@@ -27,7 +30,7 @@ export abstract class AbstractCamera implements ICamera {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (25)
+    // #region Public Accessors (27)
 
     /**
      * Getter autoAdjust
@@ -118,12 +121,44 @@ export abstract class AbstractCamera implements ICamera {
     }
 
     /**
+     * Getter far
+     * @return {number }
+     */
+    public get far(): number  {
+		return this._far;
+	}
+
+    /**
+     * Setter far
+     * @param {number } value
+     */
+    public set far(value: number ) {
+		this._far = value;
+	}
+
+    /**
        * Getter id
        * @return {string}
        */
     public get id(): string {
         return this._id;
     }
+
+    /**
+     * Getter near
+     * @return {number }
+     */
+    public get near(): number  {
+		return this._near;
+	}
+
+    /**
+     * Setter near
+     * @param {number } value
+     */
+    public set near(value: number ) {
+		this._near = value;
+	}
 
     /**
      * Getter position
@@ -215,7 +250,7 @@ export abstract class AbstractCamera implements ICamera {
         this._zoomExtentsFactor = value;
     }
 
-    // #endregion Public Accessors (25)
+    // #endregion Public Accessors (27)
 
     // #region Public Methods (1)
 
@@ -223,7 +258,10 @@ export abstract class AbstractCamera implements ICamera {
         position: vec3,
         target: vec3
     } {
-        return this._controls.update(time);
+        const { position, target } = this._controls.update(time);
+        this.position = vec3.clone(position);
+        this.target = vec3.clone(target);
+        return { position, target };
     }
 
     // #endregion Public Methods (1)

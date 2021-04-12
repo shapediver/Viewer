@@ -1,7 +1,8 @@
 import { mat4, vec3 } from 'gl-matrix'
+import { IGeometry } from './IGeometry';
 import { Sphere } from './Sphere';
 
-export class Box {
+export class Box implements IGeometry {
     // #region Properties (2)
 
     private _boundingSphere: Sphere = new Sphere();
@@ -61,6 +62,16 @@ export class Box {
 
     public clone(): Box {
         return new Box(vec3.clone(this.min), vec3.clone(this.max))
+    }
+
+    public containsPoint(point: vec3): boolean {
+        return false;
+        throw new Error('Method not implemented.');
+    }
+    
+    public clampPoint(point: vec3): vec3 {
+        return point;
+        throw new Error('Method not implemented.');
     }
 
     public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array): Box {

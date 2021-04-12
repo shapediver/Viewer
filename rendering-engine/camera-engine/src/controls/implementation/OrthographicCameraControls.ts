@@ -1,4 +1,4 @@
-import { CAMERATYPE } from "../..";
+import { CAMERATYPE, ICamera } from "../..";
 import { AbstractCameraControls } from "./AbstractCameraControls";
 
 import { CameraControlsEventDistribution as OrthographicCameraControlsEventDistribution } from './orthographic/CameraControlsEventDistribution';
@@ -22,8 +22,8 @@ export class OrthographicCameraControls extends AbstractCameraControls {
 
     // #region Constructors (1)
 
-    constructor(canvas: HTMLCanvasElement, enabled: boolean) {
-        super(canvas, enabled, CAMERATYPE.ORTHOGRAPHIC);
+    constructor(camera: ICamera, canvas: HTMLCanvasElement, enabled: boolean) {
+        super(camera, canvas, enabled, CAMERATYPE.ORTHOGRAPHIC);
         this._cameraLogic = new OrthographicCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrthographicCameraControlsEventDistribution(this, <OrthographicCameraControlsLogic>this._cameraLogic);
     }

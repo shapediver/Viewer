@@ -1,5 +1,5 @@
 import { mat4, vec3 } from "gl-matrix";
-import * as THREE from "three";
+import { ICamera } from "../../../engine/interface/ICamera";
 import { ICameraControlsUsage } from "../../interface/ICameraControlsUsage";
 import { ICameraInterpolation } from "../../interface/ICameraInterpolation";
 
@@ -18,38 +18,20 @@ export class CameraMultipleInterpolation implements ICameraInterpolation {
 
     // #region Constructors (1)
 
-    constructor(private readonly _cameraControls: ICameraControlsUsage, 
-        private readonly _path: { position: THREE.Vector3, target: THREE.Vector3 }[],
+    constructor(
+        private readonly _camera: ICamera, 
+        private readonly _cameraControls: ICameraControlsUsage, 
+        private readonly _path: { position: vec3, target: vec3 }[],
         private readonly _interpolationFunction: Function)
     {
         for(let i = 0; i < this._path.length; i++) {
-            this.end.position.x.push(this._path[i].position.x);
-            this.end.position.y.push(this._path[i].position.y);
-            this.end.position.z.push(this._path[i].position.z);
-            this.end.target.x.push(this._path[i].target.x);
-            this.end.target.y.push(this._path[i].target.y);
-            this.end.target.z.push(this._path[i].target.z);
+            this.end.position.x.push(this._path[i].position[0]);
+            this.end.position.y.push(this._path[i].position[1]);
+            this.end.position.z.push(this._path[i].position[2]);
+            this.end.target.x.push(this._path[i].target[0]);
+            this.end.target.y.push(this._path[i].target[1]);
+            this.end.target.z.push(this._path[i].target[2]);
         }
-    }
-
-        
-    private convertGlMatrixToThreeMatrix(matrix: mat4): THREE.Matrix4 {
-        return new THREE.Matrix4().fromArray(matrix);
-    }
-
-    private convertGlVectorToThreeVector(vec: vec3): THREE.Vector3 {
-        return new THREE.Vector3(vec[0], vec[1], vec[2]);
-    }
-
-    private convertThreeMatrixToGlMatrix(matrix: THREE.Matrix4): mat4 {
-        return mat4.fromValues( matrix.toArray()[0], matrix.toArray()[1], matrix.toArray()[2], matrix.toArray()[3],
-                                matrix.toArray()[4], matrix.toArray()[5], matrix.toArray()[6], matrix.toArray()[7],
-                                matrix.toArray()[8], matrix.toArray()[9], matrix.toArray()[10], matrix.toArray()[11],
-                                matrix.toArray()[12], matrix.toArray()[13], matrix.toArray()[14], matrix.toArray()[15]);
-    }
-
-    private convertThreeVectorToGlVector(vec: THREE.Vector3): vec3 {
-        return vec3.fromValues(vec.x, vec.y, vec.z);
     }
 
     // #endregion Constructors (1)
@@ -57,23 +39,27 @@ export class CameraMultipleInterpolation implements ICameraInterpolation {
     // #region Public Methods (3)
 
     public onComplete(value: { delta: number }): void {
-        let positionOffset = new THREE.Vector3(this._path[this._path.length-1].position.x, this._path[this._path.length-1].position.y, this._path[this._path.length-1].position.z).sub(this.convertGlVectorToThreeVector(this._cameraControls.position));
-        this._cameraControls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(positionOffset.x, positionOffset.y, positionOffset.z)));
-        let targetOffset = new THREE.Vector3(this._path[this._path.length-1].target.x, this._path[this._path.length-1].target.y, this._path[this._path.length-1].target.z).sub(this.convertGlVectorToThreeVector(this._cameraControls.target));
-        this._cameraControls.applyTargetMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(targetOffset.x, targetOffset.y, targetOffset.z)));
+        let positionOffset = vec3.subtract(vec3.create(), vec3.fromValues(this._path[this._path.length-1].position[0], this._path[this._path.length-1].position[1], this._path[this._path.length-1].position[2]), this._camera.position);
+        const translateMatP = mat4.fromTranslation(mat4.create(), positionOffset);
+        this._cameraControls.applyPositionMatrix(translateMatP);
+        let targetOffset = vec3.subtract(vec3.create(), vec3.fromValues(this._path[this._path.length-1].target[0], this._path[this._path.length-1].target[1], this._path[this._path.length-1].target[2]), this._camera.target);
+        const translateMatT = mat4.fromTranslation(mat4.create(), targetOffset);
+        this._cameraControls.applyTargetMatrix(translateMatT);
     }
 
     public onStop(value: { delta: number }): void {
     }
 
     public onUpdate(value: { delta: number }): void {
-        let p: THREE.Vector3 = new THREE.Vector3(this._interpolationFunction(this.end.position.x, value.delta), this._interpolationFunction(this.end.position.y, value.delta), this._interpolationFunction(this.end.position.z, value.delta));
-        let positionOffset = p.clone().sub(this.convertGlVectorToThreeVector(this._cameraControls.position));
-        this._cameraControls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(positionOffset.x, positionOffset.y, positionOffset.z)));
+        let p: vec3 = vec3.fromValues(this._interpolationFunction(this.end.position.x, value.delta), this._interpolationFunction(this.end.position.y, value.delta), this._interpolationFunction(this.end.position.z, value.delta));
+        let positionOffset = vec3.subtract(vec3.create(), p, this._camera.position);
+        const translateMatP = mat4.fromTranslation(mat4.create(), positionOffset);
+        this._cameraControls.applyPositionMatrix(translateMatP);
 
-        let t: THREE.Vector3 = new THREE.Vector3(this._interpolationFunction(this.end.target.x, value.delta), this._interpolationFunction(this.end.target.y, value.delta), this._interpolationFunction(this.end.target.z, value.delta));
-        let targetOffset = t.clone().sub(this.convertGlVectorToThreeVector(this._cameraControls.target));
-        this._cameraControls.applyTargetMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(targetOffset.x, targetOffset.y, targetOffset.z)));
+        let t: vec3 = vec3.fromValues(this._interpolationFunction(this.end.target.x, value.delta), this._interpolationFunction(this.end.target.y, value.delta), this._interpolationFunction(this.end.target.z, value.delta));
+        let targetOffset = vec3.subtract(vec3.create(), t, this._camera.target);
+        const translateMatT = mat4.fromTranslation(mat4.create(), targetOffset);
+        this._cameraControls.applyTargetMatrix(translateMatT);
     }
 
     // #endregion Public Methods (3)

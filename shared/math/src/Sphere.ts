@@ -1,7 +1,8 @@
-import { vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 import { Box } from './Box';
+import { IGeometry } from './IGeometry';
 
-export class Sphere {
+export class Sphere implements IGeometry {
     // #region Constructors (1)
 
     constructor(
@@ -31,7 +32,25 @@ export class Sphere {
 
     // #endregion Public Accessors (4)
 
-    // #region Public Methods (1)
+    // #region Public Methods (4)
+
+    public applyMatrix(matrix: mat4): Sphere {
+        throw new Error('Method not implemented.');
+    }
+
+    public clone(): Sphere {
+        throw new Error('Method not implemented.');
+    }
+
+    public containsPoint(point: vec3): boolean {
+        return false;
+        throw new Error('Method not implemented.');
+    }
+    
+    public clampPoint(point: vec3): vec3 {
+        return point;
+        throw new Error('Method not implemented.');
+    }
 
     public setFromBox(box: Box): Sphere {
         vec3.add(this.center, box.min, box.max);
@@ -40,5 +59,5 @@ export class Sphere {
         return this;
     }
 
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (4)
 }

@@ -199,42 +199,6 @@ export class OrthographicCameraControls implements ICameraControls {
     }
 
     /**
-     * The position of the camera
-     * @return {vec3}
-     */
-    public get position(): vec3 {
-        return this.#controls.position;
-    }
-
-    /**
-     * The position of the camera
-     * @param {vec3} value
-     */
-    public set position(value: vec3) {
-        this.#inputValidator.validate(value, 'vec3');
-        this.#controls.position = value;
-        this.#logger.info(`Camera Controls: position was set to: ${value}`);
-    }
-
-    /**
-     * The target of the camera
-     * @return {vec3}
-     */
-    public get target(): vec3 {
-        return this.#controls.target;
-    }
-
-    /**
-     * The target of the camera
-     * @param {vec3} value
-     */
-    public set target(value: vec3) {
-        this.#inputValidator.validate(value, 'vec3');
-        this.#controls.target = value;
-        this.#logger.info(`Camera Controls: target was set to: ${value}`);
-    }
-
-    /**
      * Speed of zooming
      * @return {number}
      */

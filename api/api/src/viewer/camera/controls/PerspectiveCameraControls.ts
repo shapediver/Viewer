@@ -291,24 +291,6 @@ export class PerspectiveCameraControls implements ICameraControls {
     }
 
     /**
-     * The position of the camera
-     * @return {vec3}
-     */
-    public get position(): vec3 {
-        return this.#controls.position;
-    }
-
-    /**
-     * The position of the camera
-     * @param {vec3} value
-     */
-    public set position(value: vec3) {
-        this.#inputValidator.validate(value, 'vec3');
-        this.#controls.position = value;
-        this.#logger.info(`Camera Controls: position was set to: ${value}`);
-    }
-
-    /**
      * Minimum and maximum polar and azimuth angle of the camera position with respect to the camera target, unit degree
      * @return {{ minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }}
      */
@@ -383,24 +365,6 @@ export class PerspectiveCameraControls implements ICameraControls {
         this.#inputValidator.validate(value.radius, 'positive');
         this.#controls.sphereTargetRestriction = value;
         this.#logger.info(`Camera Controls: sphereTargetRestriction was set to: ${value}`);
-    }
-
-    /**
-     * The target of the camera
-     * @return {vec3}
-     */
-    public get target(): vec3 {
-        return this.#controls.target;
-    }
-
-    /**
-     * The target of the camera
-     * @param {vec3} value
-     */
-    public set target(value: vec3) {
-        this.#inputValidator.validate(value, 'vec3');
-        this.#controls.target = value;
-        this.#logger.info(`Camera Controls: target was set to: ${value}`);
     }
 
     /**

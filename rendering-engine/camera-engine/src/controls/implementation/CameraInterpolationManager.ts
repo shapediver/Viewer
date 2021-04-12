@@ -1,4 +1,3 @@
-import * as THREE from "three";
 import { ICameraInterpolation } from "../interface/ICameraInterpolation";
 import { ICameraControls } from "../interface/ICameraControls";
 import { Tween, Easing, Interpolation } from "@tweenjs/tween.js";
@@ -6,6 +5,7 @@ import { CameraMultipleInterpolation } from "./interpolationMethods/CameraMultip
 import { CameraSphericalInterpolation } from "./interpolationMethods/CameraSphericalInterpolation";
 import { vec3 } from "gl-matrix";
 import { ICameraControlsUsage } from "../interface/ICameraControlsUsage";
+import { ICamera } from "../../engine/interface/ICamera";
 
 export class CameraInterpolationManager {
     // #region Properties (3)
@@ -53,7 +53,10 @@ export class CameraInterpolationManager {
 
     // #region Constructors (1)
 
-    constructor(private readonly _cameraControls: ICameraControlsUsage) {
+    constructor(
+        private readonly _camera: ICamera,
+        private readonly _cameraControls: ICameraControlsUsage
+        ) {
     }
 
     // #endregion Constructors (1)
@@ -63,20 +66,17 @@ export class CameraInterpolationManager {
     public active(): boolean {
         return this._tween ? true : false;
     }
-    private convertGlVectorToThreeVector(vec: vec3): THREE.Vector3 {
-        return new THREE.Vector3(vec[0], vec[1], vec[2]);
-    }
     /**
      * cameraTween
      */
     public interpolate(path: { position: vec3, target: vec3 }[], options: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function; } = {}) : Promise<boolean> 
     {
 
-        const newPath: { position: THREE.Vector3, target: THREE.Vector3 }[] = [];
+        const newPath: { position: vec3, target: vec3 }[] = [];
         for(let i = 0; i < path.length; i++)
             newPath.push({
-                position: this.convertGlVectorToThreeVector(path[i].position),
-                target: this.convertGlVectorToThreeVector(path[i].target),
+                position: path[i].position,
+                target: path[i].target,
             });
                 
 
@@ -90,7 +90,7 @@ export class CameraInterpolationManager {
             parsedOptions, 
             newPath.length === 2 ? 
                 this.getCameraInterpolation(newPath[0], newPath[1], parsedOptions.coordinates) :
-                new CameraMultipleInterpolation(this._cameraControls, newPath, parsedOptions.interpolation), 
+                new CameraMultipleInterpolation(this._camera, this._cameraControls, newPath, parsedOptions.interpolation), 
             () => { this._tween = null; }
         );
         return this._tween.start();
@@ -105,14 +105,14 @@ export class CameraInterpolationManager {
 
     // #region Private Methods (2)
 
-    private getCameraInterpolation(from: { position: THREE.Vector3, target: THREE.Vector3 }, to: { position: THREE.Vector3, target: THREE.Vector3 }, type: string) {
+    private getCameraInterpolation(from: { position: vec3, target: vec3 }, to: { position: vec3, target: vec3 }, type: string) {
         switch(type) {
             case 'spherical':
-                return new CameraSphericalInterpolation(this._cameraControls, from, to);
+                return new CameraSphericalInterpolation(this._camera, this._cameraControls, from, to);
             case 'cylindrical':
-                return new CameraSphericalInterpolation(this._cameraControls, from, to);
+                return new CameraSphericalInterpolation(this._camera, this._cameraControls, from, to);
             default:
-                return new CameraMultipleInterpolation(this._cameraControls, [from, to], Interpolation.CatmullRom);
+                return new CameraMultipleInterpolation(this._camera, this._cameraControls, [from, to], Interpolation.CatmullRom);
         }
     }
 

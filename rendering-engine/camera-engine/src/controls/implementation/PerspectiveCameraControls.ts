@@ -1,5 +1,5 @@
 import { vec3 } from "gl-matrix";
-import { CAMERATYPE } from "../..";
+import { CAMERATYPE, ICamera } from "../..";
 import { AbstractCameraControls } from "./AbstractCameraControls";
 
 import { CameraControlsEventDistribution as OrbitCameraControlsEventDistribution } from './orbit/CameraControlsEventDistribution';
@@ -32,8 +32,8 @@ export class PerspectiveCameraControls extends AbstractCameraControls {
 
     // #region Constructors (1)
 
-    constructor(canvas: HTMLCanvasElement, enabled: boolean) {
-        super(canvas, enabled, CAMERATYPE.PERSPECTIVE);
+    constructor(camera: ICamera, canvas: HTMLCanvasElement, enabled: boolean) {
+        super(camera, canvas, enabled, CAMERATYPE.PERSPECTIVE);
         this._cameraLogic = new OrbitCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
     }

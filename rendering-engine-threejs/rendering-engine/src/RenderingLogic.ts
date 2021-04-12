@@ -1,4 +1,4 @@
-import { CAMERATYPE, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { CAMERATYPE, OrthographicCamera, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { EventEngine, EVENTTYPE, StateEngine } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
@@ -14,8 +14,8 @@ export class RenderingLogic {
 
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _orthographicCamera: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
-    private readonly _perspectiveCamera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
+    private readonly _orthographicCameraThree: THREE.OrthographicCamera = new THREE.OrthographicCamera(1, 1, 1, 1, 1, 1);
+    private readonly _perspectiveCameraThree: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _renderer: THREE.WebGLRenderer;
 
     private _beautyRenderingActive: boolean = false;
@@ -86,36 +86,38 @@ export class RenderingLogic {
     }
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
-        let camera: THREE.Camera;
+        let cameraThree: THREE.Camera;
         const {position, target} = this._renderingEngine.cameraEngine.getCamera()!.update(time);
         if (this._renderingEngine.cameraEngine.getCamera()!.type === CAMERATYPE.ORTHOGRAPHIC) {
+            const camera = <OrthographicCamera>this._renderingEngine.cameraEngine.getCamera()!;
             const aspect = width / height;
             const distance = vec3.distance(position, target) / 2;
-            this._orthographicCamera.up.set(0, 0, 1);
-            this._orthographicCamera.left = -distance * aspect;
-            this._orthographicCamera.bottom = -distance;
-            this._orthographicCamera.right = distance * aspect;
-            this._orthographicCamera.top = distance;
-            this._orthographicCamera.near = 0.01 * distance;
-            this._orthographicCamera.far = 10000 * distance;
-            this._orthographicCamera.position.set(position[0], position[1], position[2]);
-            this._orthographicCamera.lookAt(target[0], target[1], target[2]);
-            this._orthographicCamera.updateProjectionMatrix();
-            camera = this._orthographicCamera;
+            this._orthographicCameraThree.up.set(0, 0, 1);
+            this._orthographicCameraThree.left = camera.left = -distance * aspect;
+            this._orthographicCameraThree.bottom = camera.bottom = -distance;
+            this._orthographicCameraThree.right = camera.right = distance * aspect;
+            this._orthographicCameraThree.top = camera.top = distance;
+            this._orthographicCameraThree.near = camera.near = 0.01 * distance;
+            this._orthographicCameraThree.far = camera.far = 10000 * distance;
+            this._orthographicCameraThree.position.set(position[0], position[1], position[2]);
+            this._orthographicCameraThree.lookAt(target[0], target[1], target[2]);
+            this._orthographicCameraThree.updateProjectionMatrix();
+            cameraThree = this._orthographicCameraThree;
         } else {
-            this._perspectiveCamera.up.set(0, 0, 1);
+            const camera = <PerspectiveCamera>this._renderingEngine.cameraEngine.getCamera()!;
+            this._perspectiveCameraThree.up.set(0, 0, 1);
             const fov = (<PerspectiveCamera>this._renderingEngine.cameraEngine.getCamera()).fov;
             const bs = this._renderingEngine.sceneTree.boundingBox.boundingSphere;
-            this._perspectiveCamera.fov = fov;
-            this._perspectiveCamera.aspect = width / height;
-            this._perspectiveCamera.far = fov < 10 ? fov * 100.0 * 100 * bs.radius : 100 * bs.radius;
-            this._perspectiveCamera.near = fov < 10 ? fov * 100.0 * 0.1 * bs.radius : 0.1 * bs.radius;
-            this._perspectiveCamera.position.set(position[0], position[1], position[2]);
-            this._perspectiveCamera.lookAt(target[0], target[1], target[2]);
-            this._perspectiveCamera.updateProjectionMatrix();
-            camera = this._perspectiveCamera;
+            this._perspectiveCameraThree.fov = camera.fov = fov;
+            this._perspectiveCameraThree.aspect = camera.aspect = width / height;
+            this._perspectiveCameraThree.far = camera.far = fov < 10 ? fov * 100.0 * 100 * bs.radius : 100 * bs.radius;
+            this._perspectiveCameraThree.near = camera.near = fov < 10 ? fov * 100.0 * 0.1 * bs.radius : 0.1 * bs.radius;
+            this._perspectiveCameraThree.position.set(position[0], position[1], position[2]);
+            this._perspectiveCameraThree.lookAt(target[0], target[1], target[2]);
+            this._perspectiveCameraThree.updateProjectionMatrix();
+            cameraThree = this._perspectiveCameraThree;
         }
-        return camera;
+        return cameraThree;
     }
 
     private animate(time: number): void {

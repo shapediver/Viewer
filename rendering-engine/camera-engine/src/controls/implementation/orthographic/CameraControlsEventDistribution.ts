@@ -163,7 +163,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
     // #region Private Methods (1)
 
-    private convertInput(event: MouseEvent | TouchEvent): { x: Number, y: Number } {
+    private convertInput(event: MouseEvent | TouchEvent): { x: number, y: number } {
         let aspect = window.innerWidth / window.innerHeight;
         if (event instanceof MouseEvent) {
             return {

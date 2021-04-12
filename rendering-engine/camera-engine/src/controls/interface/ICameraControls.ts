@@ -1,5 +1,4 @@
-import { IDomEventListener } from '@shapediver/viewer.shared.services';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 
 export interface ICameraControls {
     // #region Properties (4)
@@ -28,8 +27,6 @@ export interface ICameraControls {
 
 
     enabled: boolean;
-    position: vec3;
-    target: vec3;
 
     update(time: number): {
         position: vec3,

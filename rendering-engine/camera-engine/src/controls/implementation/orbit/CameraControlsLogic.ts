@@ -1,12 +1,12 @@
-import { mat4, vec3 } from 'gl-matrix';
-import * as THREE from 'three';
-import { PerspectiveCameraControls } from '../../..';
+import { mat4, quat, vec2, vec3 } from 'gl-matrix';
+import { Box, Sphere, Spherical } from '@shapediver/viewer.shared.math';
 
-import { ICameraControls } from '../../interface/ICameraControls';
 import { ICameraControlsLogic } from '../../interface/ICameraControlsLogic';
+import { PerspectiveCameraControls } from '../PerspectiveCameraControls';
+import { PerspectiveCamera } from '../../../engine/implementation/PerspectiveCamera';
 
 export class CameraControlsLogic implements ICameraControlsLogic {
-    // #region Properties (16)
+    // #region Properties (15)
 
     private _adjustedSettings = {
         autoRotationSpeed: () => this._controls.autoRotationSpeed * this._settingsAdjustments.autoRotationSpeed,
@@ -16,7 +16,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         rotationSpeed: () => this._controls.rotationSpeed * this._settingsAdjustments.rotationSpeed,
         zoomSpeed: () => this._controls.zoomSpeed * this._settingsAdjustments.zoomSpeed,
     };
-    private _damping: any = {
+    private _damping = {
         rotation: {
             time: 0,
             duration: 0,
@@ -31,20 +31,20 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         pan: {
             time: 0,
             duration: 0,
-            offset: new THREE.Vector3()
+            offset: vec3.create()
         },
     };
     private _dollyDelta = 0;
     private _dollyEnd = 0;
     private _dollyStart = 0;
-    private _panDelta = new THREE.Vector2();
-    private _panEnd = new THREE.Vector2();
-    private _panStart = new THREE.Vector2();
-    private _quat: THREE.Quaternion;
-    private _quatInverse: THREE.Quaternion;
-    private _rotateDelta = new THREE.Vector2();
-    private _rotateEnd = new THREE.Vector2();
-    private _rotateStart = new THREE.Vector2();
+    private _panDelta = vec2.create();
+    private _panEnd = vec2.create();
+    private _panStart = vec2.create();
+    private _quat: quat;
+    private _quatInverse: quat;
+    private _rotateDelta = vec2.create();
+    private _rotateEnd = vec2.create();
+    private _rotateStart = vec2.create();
     private _settingsAdjustments = {
         autoRotationSpeed: 2 * Math.PI / 60 / 60,
         damping: 1.0,
@@ -62,46 +62,29 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         zoomSpeed: 100.0,
     };
 
-    // #endregion Properties (16)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
     constructor(private readonly _controls: PerspectiveCameraControls) {
-        this._quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
-        this._quatInverse = this._quat.clone().inverse();
+        this._quat = quat.fromValues(-Math.sin(Math.PI / 4), 0, 0, Math.sin(Math.PI / 4));
+        this._quatInverse = quat.fromValues(Math.sin(Math.PI / 4), 0, 0, Math.sin(Math.PI / 4));
     }
 
     // #endregion Constructors (1)
 
     // #region Public Methods (7)
 
-    public isWithinRestrictions(position: any, target: any): boolean {
-        let pCubeSetting = {
-            min: this.convertGlVectorToThreeVector(this._controls.cubePositionRestriction.min),
-            max: this.convertGlVectorToThreeVector(this._controls.cubePositionRestriction.max),
-        },
-        pSphereSetting = {
-            center: this.convertGlVectorToThreeVector(this._controls.spherePositionRestriction.center),
-            radius: this._controls.spherePositionRestriction.radius,
-        };
-        let pBox = new THREE.Box3(new THREE.Vector3(pCubeSetting.min.x, pCubeSetting.min.y, pCubeSetting.min.z), new THREE.Vector3(pCubeSetting.max.x, pCubeSetting.max.y, pCubeSetting.max.z)),
-            pSphere = new THREE.Sphere(new THREE.Vector3(pSphereSetting.center.x, pSphereSetting.center.y, pSphereSetting.center.z), pSphereSetting.radius);
-
-        let tCubeSetting = {
-            min: this.convertGlVectorToThreeVector(this._controls.cubeTargetRestriction.min),
-            max: this.convertGlVectorToThreeVector(this._controls.cubeTargetRestriction.max),
-        },
-        tSphereSetting = {
-            center: this.convertGlVectorToThreeVector(this._controls.sphereTargetRestriction.center),
-            radius: this._controls.sphereTargetRestriction.radius,
-        };
-        let tBox = new THREE.Box3(new THREE.Vector3(tCubeSetting.min.x, tCubeSetting.min.y, tCubeSetting.min.z), new THREE.Vector3(tCubeSetting.max.x, tCubeSetting.max.y, tCubeSetting.max.z)),
-            tSphere = new THREE.Sphere(new THREE.Vector3(tSphereSetting.center.x, tSphereSetting.center.y, tSphereSetting.center.z), tSphereSetting.radius);
+    public isWithinRestrictions(position: vec3, target: vec3): boolean {
+        let pBox = new Box(this._controls.cubePositionRestriction.min, this._controls.cubePositionRestriction.max),
+            pSphere = new Sphere(this._controls.spherePositionRestriction.center, this._controls.spherePositionRestriction.radius),
+            tBox = new Box(this._controls.cubeTargetRestriction.min, this._controls.cubeTargetRestriction.max),
+            tSphere = new Sphere(this._controls.sphereTargetRestriction.center, this._controls.sphereTargetRestriction.radius);
 
         if (!(pBox.containsPoint(position) && pSphere.containsPoint(position))) return false;
         if (!(tBox.containsPoint(target) && tSphere.containsPoint(target))) return false;
 
-        let currentDistance = position.distanceTo(target);
+        let currentDistance = vec3.distance(position, target);
         if (currentDistance > this._controls.zoomRestriction.maxDistance || currentDistance < this._controls.zoomRestriction.minDistance) return false;
 
         let minPolarAngle = this._controls.rotationRestriction.minPolarAngle * (Math.PI / 180),
@@ -113,10 +96,10 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             maxAzimuthAngle !== Infinity ||
             minPolarAngle !== 0 ||
             maxPolarAngle !== 180) {
-            let offset = new THREE.Vector3();
-            offset.copy(position).sub(target);
-            offset.applyQuaternion(this._quat);
-            let spherical = new THREE.Spherical().setFromVector3(offset);
+            let offset = vec3.sub(vec3.create(), position, target);
+            vec3.transformQuat(offset, offset, this._quat);
+            const spherical = new Spherical().fromVec3(offset);
+
             if (spherical.theta < minAzimuthAngle ||
                 spherical.theta > maxAzimuthAngle ||
                 spherical.phi < minPolarAngle ||
@@ -128,54 +111,57 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         return true;
     }
 
-    public pan(x: any, y: any, active: boolean, touch: boolean): void {
+    public pan(x: number, y: number, active: boolean, touch: boolean): void {
         if (touch) {
             x = x / window.devicePixelRatio;
             y = y / window.devicePixelRatio;
         }
 
         if (!active) {
-            this._panStart.set(x, y);
+            this._panStart = vec2.fromValues(x, y);
         } else {
-            this._panEnd.set(x, y);
-            this._panDelta.subVectors(this._panEnd, this._panStart);
-            if (this._panDelta.x === 0 && this._panDelta.y === 0) return;
-            this._panStart.copy(this._panEnd);
+            this._panEnd = vec2.fromValues(x, y);
+            vec2.sub(this._panDelta, this._panEnd, this._panStart);
+            if (this._panDelta[0] === 0 && this._panDelta[1] === 0) return;
 
-            let offset = this.panDeltaToOffset(this._panDelta.multiplyScalar(this._adjustedSettings.panSpeed() * (touch ? this._touchAdjustments.panSpeed : 1.0)));
+            vec2.copy(this._panStart, this._panEnd);
+
+            const adjustedPanSpeed = this._adjustedSettings.panSpeed() * (touch ? this._touchAdjustments.panSpeed : 1.0);
+            let offset = this.panDeltaToOffset(vec2.mul(vec2.create(), this._panDelta, vec2.fromValues(adjustedPanSpeed, adjustedPanSpeed)));
 
             if (this._damping.pan.duration > 0) {
-                if (offset.x < 0) {
-                    offset.x = Math.min(offset.x, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.x);
+                if (offset[0] < 0) {
+                    offset[0] = Math.min(offset[0], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[0]);
                 } else {
-                    offset.x = Math.max(offset.x, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.x);
+                    offset[0] = Math.max(offset[0], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[0]);
                 }
-                if (offset.y < 0) {
-                    offset.y = Math.min(offset.y, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.y);
+                if (offset[1] < 0) {
+                    offset[1] = Math.min(offset[1], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[1]);
                 } else {
-                    offset.y = Math.max(offset.y, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.y);
+                    offset[1] = Math.max(offset[1], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[1]);
                 }
-                if (offset.z < 0) {
-                    offset.z = Math.min(offset.z, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.z);
+                if (offset[2] < 0) {
+                    offset[2] = Math.min(offset[2], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[2]);
                 } else {
-                    offset.z = Math.max(offset.z, this._adjustedSettings.movementSmoothness() * this._damping.pan.offset.z);
+                    offset[2] = Math.max(offset[2], this._adjustedSettings.movementSmoothness() * this._damping.pan.offset[2]);
                 }
             }
 
             let damping = 1 - Math.max(0.01, Math.min(0.99, this._adjustedSettings.damping()));
 
-            let framesOffsetX = (Math.log(1 / Math.abs(offset.x)) - 5 * Math.log(10)) / (Math.log(damping));
-            let framesOffsetY = (Math.log(1 / Math.abs(offset.y)) - 5 * Math.log(10)) / (Math.log(damping));
-            let framesOffsetZ = (Math.log(1 / Math.abs(offset.z)) - 5 * Math.log(10)) / (Math.log(damping));
+            let framesOffsetX = (Math.log(1 / Math.abs(offset[0])) - 5 * Math.log(10)) / (Math.log(damping));
+            let framesOffsetY = (Math.log(1 / Math.abs(offset[1])) - 5 * Math.log(10)) / (Math.log(damping));
+            let framesOffsetZ = (Math.log(1 / Math.abs(offset[2])) - 5 * Math.log(10)) / (Math.log(damping));
             this._damping.pan.time = 0;
             this._damping.pan.duration = Math.max(framesOffsetX, Math.max(framesOffsetY, framesOffsetZ)) * 16.6666;
-            this._damping.pan.offset = offset.clone();
+            this._damping.pan.offset = vec3.clone(offset);
 
             this._damping.rotation.duration = 0;
             this._damping.zoom.duration = 0;
 
-            this._controls.applyTargetMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)), true);
-            this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)), true);
+            const translateMat = mat4.fromTranslation(mat4.create(), offset);
+            this._controls.applyTargetMatrix(translateMat, true);
+            this._controls.applyPositionMatrix(translateMat, true);
         }
     }
 
@@ -195,67 +181,44 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             pan: {
                 time: 0,
                 duration: 0,
-                offset: new THREE.Vector3()
+                offset: vec3.create()
             },
         };
         this._dollyDelta = 0;
         this._dollyEnd = 0;
         this._dollyStart = 0;
-        this._panDelta = new THREE.Vector2();
-        this._panEnd = new THREE.Vector2();
-        this._panStart = new THREE.Vector2();
-        this._rotateDelta = new THREE.Vector2();
-        this._rotateEnd = new THREE.Vector2();
-        this._rotateStart = new THREE.Vector2();
+        this._panDelta = vec2.create();
+        this._panEnd = vec2.create();
+        this._panStart = vec2.create();
+        this._rotateDelta = vec2.create();
+        this._rotateEnd = vec2.create();
+        this._rotateStart = vec2.create();
     }
 
-    public restrict(p: vec3, t: vec3): { position: vec3, target: vec3 } {
-        let position = this.convertGlVectorToThreeVector(p);
-        let target = this.convertGlVectorToThreeVector(t);
-
-        // cube and sphere position restrictions
-        let pCubeSetting = {
-            min: this.convertGlVectorToThreeVector(this._controls.cubePositionRestriction.min),
-            max: this.convertGlVectorToThreeVector(this._controls.cubePositionRestriction.max),
-        },
-        pSphereSetting = {
-            center: this.convertGlVectorToThreeVector(this._controls.spherePositionRestriction.center),
-            radius: this._controls.spherePositionRestriction.radius,
-        };
-        let pBox = new THREE.Box3(new THREE.Vector3(pCubeSetting.min.x, pCubeSetting.min.y, pCubeSetting.min.z), new THREE.Vector3(pCubeSetting.max.x, pCubeSetting.max.y, pCubeSetting.max.z)),
-            pSphere = new THREE.Sphere(new THREE.Vector3(pSphereSetting.center.x, pSphereSetting.center.y, pSphereSetting.center.z), pSphereSetting.radius);
+    public restrict(position: vec3, target: vec3): { position: vec3, target: vec3 } {
+        let pBox = new Box(this._controls.cubePositionRestriction.min, this._controls.cubePositionRestriction.max),
+            pSphere = new Sphere(this._controls.spherePositionRestriction.center, this._controls.spherePositionRestriction.radius),
+            tBox = new Box(this._controls.cubeTargetRestriction.min, this._controls.cubeTargetRestriction.max),
+            tSphere = new Sphere(this._controls.sphereTargetRestriction.center, this._controls.sphereTargetRestriction.radius);
 
         if (!pBox.containsPoint(position))
-            pBox.clampPoint(position, position);
+            position = pBox.clampPoint(position);
 
         if (!pSphere.containsPoint(position))
-            pSphere.clampPoint(position, position);
-
-        // cube and sphere target restrictions
-        let tCubeSetting = {
-            min: this.convertGlVectorToThreeVector(this._controls.cubeTargetRestriction.min),
-            max: this.convertGlVectorToThreeVector(this._controls.cubeTargetRestriction.max),
-        },
-        tSphereSetting = {
-            center: this.convertGlVectorToThreeVector(this._controls.sphereTargetRestriction.center),
-            radius: this._controls.sphereTargetRestriction.radius,
-        };
-        let tBox = new THREE.Box3(new THREE.Vector3(tCubeSetting.min.x, tCubeSetting.min.y, tCubeSetting.min.z), new THREE.Vector3(tCubeSetting.max.x, tCubeSetting.max.y, tCubeSetting.max.z)),
-            tSphere = new THREE.Sphere(new THREE.Vector3(tSphereSetting.center.x, tSphereSetting.center.y, tSphereSetting.center.z), tSphereSetting.radius);
+            position = pSphere.clampPoint(position);
 
         if (!tBox.containsPoint(target))
-            tBox.clampPoint(target, target);
+            target = tBox.clampPoint(target);
 
         if (!tSphere.containsPoint(target))
-            tSphere.clampPoint(target, target);
+            target = tSphere.clampPoint(target);
 
         // zoom restrictions
-        let currentDistance = position.distanceTo(target);
+        let currentDistance = vec3.distance(position, target);
         if (currentDistance > this._controls.zoomRestriction.maxDistance || currentDistance < this._controls.zoomRestriction.minDistance) {
-            let direction = new THREE.Vector3();
-            direction.copy(position).sub(target).normalize();
+            let direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), position, target))
             let distance = Math.max(this._controls.zoomRestriction.minDistance, Math.min(this._controls.zoomRestriction.maxDistance, currentDistance));
-            position = target.clone().add(direction.multiplyScalar(distance));
+            vec3.add(position, vec3.multiply(position, direction, vec3.fromValues(distance, distance, distance)), target);
         }
 
         // angle restrictions
@@ -268,10 +231,11 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             maxAzimuthAngle !== Infinity ||
             minPolarAngle !== 0 ||
             maxPolarAngle !== 180) {
-            let offset = new THREE.Vector3();
-            offset.copy(position).sub(target);
-            offset.applyQuaternion(this._quat);
-            let spherical = new THREE.Spherical().setFromVector3(offset);
+            let offset = vec3.subtract(vec3.create(), position, target);
+            vec3.transformQuat(offset, offset, this._quat);
+
+            const spherical = new Spherical().fromVec3(offset);
+
             if (spherical.theta < minAzimuthAngle ||
                 spherical.theta > maxAzimuthAngle ||
                 spherical.phi < minPolarAngle ||
@@ -279,38 +243,34 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 spherical.theta = Math.max(minAzimuthAngle, Math.min(maxAzimuthAngle, spherical.theta));
                 spherical.phi = Math.max(minPolarAngle, Math.min(maxPolarAngle, spherical.phi));
                 spherical.makeSafe();
-
-                offset.setFromSpherical(spherical);
-                offset.applyQuaternion(this._quatInverse);
-                position = offset.add(target);
+                offset = spherical.toVec3();
+                vec3.transformQuat(offset, offset, this._quatInverse);
+                vec3.add(position, offset, target);
             }
         }
 
-        return {
-            position: this.convertThreeVectorToGlVector(position),
-            target: this.convertThreeVectorToGlVector(target)
-        }
+        return { position, target };
     }
 
-    public rotate(x: any, y: any, active: boolean, touch: boolean): void {
+    public rotate(x: number, y: number, active: boolean, touch: boolean): void {
         if (touch) {
             x = x / window.devicePixelRatio;
             y = y / window.devicePixelRatio;
         }
 
         if (!active) {
-            this._rotateStart.set(x, y);
+            this._rotateStart = vec2.fromValues(x, y)
         } else {
-            this._rotateEnd.set(x, y);
-            this._rotateDelta.subVectors(this._rotateEnd, this._rotateStart);
-            this._rotateStart.copy(this._rotateEnd);
+            this._rotateEnd = vec2.fromValues(x, y)
+            vec2.subtract(this._rotateDelta, this._rotateEnd, this._rotateStart)
+            vec2.copy(this._rotateStart, this._rotateEnd)
 
             if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return;
 
-            let spherical = new THREE.Spherical();
+            const spherical = new Spherical();
             let rotationSpeed = this._adjustedSettings.rotationSpeed() * (touch ? this._touchAdjustments.rotationSpeed : 1.0);
-            spherical.theta -= rotationSpeed * this._rotateDelta.x;
-            spherical.phi -= rotationSpeed * this._rotateDelta.y;
+            spherical.theta -= rotationSpeed * this._rotateDelta[0];
+            spherical.phi -= rotationSpeed * this._rotateDelta[1];
 
             if (this._damping.rotation.duration > 0) {
                 let thetaDelta = this._damping.rotation.theta - spherical.theta;
@@ -334,7 +294,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._damping.pan.duration = 0;
             this._damping.zoom.duration = 0;
 
-            this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)), true);
+            const translateMat = mat4.fromTranslation(mat4.create(), offset);
+            this._controls.applyPositionMatrix(translateMat, true);
         }
     }
 
@@ -355,9 +316,11 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 this._damping.pan.time += time;
 
                 let frameSinceStart = this._damping.pan.time / 16.6666;
-                let offset = this._damping.pan.offset.clone().multiplyScalar(Math.pow(damping, frameSinceStart));
-                this._controls.applyTargetMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)));
-                this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)));
+                let dampingFrames = Math.pow(damping, frameSinceStart);
+                let offset = vec3.multiply(vec3.create(), this._damping.pan.offset, vec3.fromValues(dampingFrames, dampingFrames, dampingFrames));
+                const translateMat = mat4.fromTranslation(mat4.create(), offset);
+                this._controls.applyTargetMatrix(translateMat);
+                this._controls.applyPositionMatrix(translateMat);
             }
         } else {
             this._damping.pan.time = 0;
@@ -371,11 +334,12 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 this._damping.rotation.time += time;
 
                 let frameSinceStart = this._damping.rotation.time / 16.6666;
-                let spherical = new THREE.Spherical();
+                let spherical = new Spherical();
                 spherical.theta = this._damping.rotation.theta * Math.pow(damping, frameSinceStart);
                 spherical.phi = this._damping.rotation.phi * Math.pow(damping, frameSinceStart);
                 let offset = this.rotationSphericalToOffset(spherical);
-                this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)));
+                const translateMat = mat4.fromTranslation(mat4.create(), offset);
+                this._controls.applyPositionMatrix(translateMat);
             }
         } else {
             this._damping.rotation.time = 0;
@@ -391,20 +355,22 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 let frameSinceStart = this._damping.zoom.time / 16.6666;
                 let delta = this._damping.zoom.delta * Math.pow(damping, frameSinceStart);
                 let offset = this.zoomDistanceToOffset(delta);
-                this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)));
+                const translateMat = mat4.fromTranslation(mat4.create(), offset);
+                this._controls.applyPositionMatrix(translateMat);
             }
         } else {
             this._damping.zoom.time = 0;
         }
 
         if (this._controls.enableAutoRotation) {
-            let spherical = new THREE.Spherical(1.0, 0.0, -this._adjustedSettings.autoRotationSpeed());
+            let spherical = new Spherical(1.0, 0.0, -this._adjustedSettings.autoRotationSpeed());
             let offset = this.rotationSphericalToOffset(spherical);
-            this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)));
+            const translateMat = mat4.fromTranslation(mat4.create(), offset);
+            this._controls.applyPositionMatrix(translateMat);
         }
     }
 
-    public zoom(x: any, y: any, active: boolean, touch: boolean): void {
+    public zoom(x: number, y: number, active: boolean, touch: boolean): void {
         var distance = Math.sqrt(x * x + y * y);
 
         if (touch)
@@ -437,71 +403,55 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._damping.pan.duration = 0;
 
             let offset = this.zoomDistanceToOffset(delta);
-            this._controls.applyPositionMatrix(this.convertThreeMatrixToGlMatrix(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)), true);
+            const translateMat = mat4.fromTranslation(mat4.create(), offset);
+            this._controls.applyPositionMatrix(translateMat, true);
         }
     }
 
     // #endregion Public Methods (7)
 
-    // #region Private Methods (7)
+    // #region Private Methods (3)
 
-    private convertGlMatrixToThreeMatrix(matrix: mat4): THREE.Matrix4 {
-        return new THREE.Matrix4().fromArray(matrix);
-    }
-
-    private convertGlVectorToThreeVector(vec: vec3): THREE.Vector3 {
-        return new THREE.Vector3(vec[0], vec[1], vec[2]);
-    }
-
-    private convertThreeMatrixToGlMatrix(matrix: THREE.Matrix4): mat4 {
-        return mat4.fromValues( matrix.toArray()[0], matrix.toArray()[1], matrix.toArray()[2], matrix.toArray()[3],
-                                matrix.toArray()[4], matrix.toArray()[5], matrix.toArray()[6], matrix.toArray()[7],
-                                matrix.toArray()[8], matrix.toArray()[9], matrix.toArray()[10], matrix.toArray()[11],
-                                matrix.toArray()[12], matrix.toArray()[13], matrix.toArray()[14], matrix.toArray()[15]);
-    }
-
-    private convertThreeVectorToGlVector(vec: THREE.Vector3): vec3 {
-        return vec3.fromValues(vec.x, vec.y, vec.z);
-    }
-
-    private panDeltaToOffset(panDelta: THREE.Vector2): THREE.Vector3 {
-        let offset = new THREE.Vector3();
-        let panOffset = new THREE.Vector3();
+    private panDeltaToOffset(panDelta: vec2): vec3 {
+        let offset = vec3.create();
+        let panOffset = vec3.create();
 
         // perspective
-        offset.copy(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates())).sub(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates()));
-        var targetDistance = offset.length();
+        vec3.subtract(offset, this._controls.getPositionWithManualUpdates(), this._controls.getTargetWithManualUpdates());
+        var targetDistance = vec3.length(offset);
 
-        // // half of the fov is center to top of screen
-        // targetDistance *= Math.tan(((this._controls.camera.fov / 2) * Math.PI) / 180.0);
+        // half of the fov is center to top of screen
+        targetDistance *= Math.tan((((<PerspectiveCamera>this._controls.camera).fov / 2) * Math.PI) / 180.0);
 
-        // // we use only clientHeight here so aspect ratio does not distort speed
-        // // left
-        // let v1 = new THREE.Vector3();
-        // v1.setFromMatrixColumn(this._controls.camera.matrix, 0); // get X column of objectMatrix
-        // v1.multiplyScalar(-(2 * panDelta.x * targetDistance));
-        // panOffset.add(v1);
+        // we use only clientHeight here so aspect ratio does not distort speed
+        // left
+        const mat = mat4.targetTo(mat4.create(), this._controls.camera.position, this._controls.camera.target, vec3.fromValues(0, 0, 1));
+
+        const v1 = vec3.fromValues(mat[0], mat[1], mat[2]);
+        const scalar1 = -(2 * panDelta[0] * targetDistance);
+        vec3.multiply(v1, v1, vec3.fromValues(scalar1, scalar1, scalar1));
+        vec3.add(panOffset, panOffset, v1);
 
         // // up
-        // let v = new THREE.Vector3();
-        // v.setFromMatrixColumn(this._controls.camera.matrix, 1); // get Y column of objectMatrix
-        // v.multiplyScalar((2 * panDelta.y * targetDistance));
-        // panOffset.add(v);
+        const v2 = vec3.fromValues(mat[4], mat[5], mat[6])
+        const scalar2 = 2 * panDelta[1] * targetDistance;
+        vec3.multiply(v2, v2, vec3.fromValues(scalar2, scalar2, scalar2));
+        vec3.add(panOffset, panOffset, v2);
 
-        return panOffset.clone();
+        return vec3.clone(panOffset);
     }
 
-    private rotationSphericalToOffset(s: THREE.Spherical): THREE.Vector3 {
-        let offset = new THREE.Vector3();
-        offset.copy(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates())).sub(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates()));
-        offset.applyQuaternion(this._quat);
-        let spherical = new THREE.Spherical().setFromVector3(offset);
+    private rotationSphericalToOffset(s: Spherical): vec3 {
+        let offset = vec3.create();
+        vec3.subtract(offset, this._controls.getPositionWithManualUpdates(), this._controls.getTargetWithManualUpdates());
+        vec3.transformQuat(offset, offset, this._quat);
+        let spherical = new Spherical().fromVec3(offset);
 
         spherical.theta += s.theta;
         spherical.phi += s.phi;
 
         let minAzimuthAngle = this._controls.rotationRestriction.minAzimuthAngle * (Math.PI / 180),
-            maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
+        maxAzimuthAngle = this._controls.rotationRestriction.maxAzimuthAngle * (Math.PI / 180);
 
         if (spherical.theta > Math.PI) {
             spherical.theta -= 2 * Math.PI;
@@ -516,18 +466,19 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         }
 
         spherical.makeSafe();
-        offset.setFromSpherical(spherical);
-        offset.applyQuaternion(this._quatInverse);
-        offset.add(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates()));
-        offset.sub(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates()));
-        return offset.clone();
+        offset = spherical.toVec3();
+        offset = vec3.transformQuat(vec3.create(), offset, this._quatInverse);
+        offset = vec3.add(vec3.create(), offset, this._controls.getTargetWithManualUpdates())
+        offset = vec3.subtract(vec3.create(), offset, this._controls.getPositionWithManualUpdates());
+        return vec3.clone(offset);
+
     }
 
-    private zoomDistanceToOffset(distance: number): THREE.Vector3 {
-        let offset = new THREE.Vector3();
-        offset.copy(this.convertGlVectorToThreeVector(this._controls.getPositionWithManualUpdates())).sub(this.convertGlVectorToThreeVector(this._controls.getTargetWithManualUpdates()));
-        return offset.clone().multiplyScalar(distance);
+    private zoomDistanceToOffset(distance: number): vec3 {
+        let offset = vec3.create();
+        vec3.subtract(offset, this._controls.getPositionWithManualUpdates(), this._controls.getTargetWithManualUpdates());
+        return vec3.multiply(vec3.create(), offset, vec3.fromValues(distance, distance, distance));
     }
 
-    // #endregion Private Methods (7)
+    // #endregion Private Methods (3)
 };

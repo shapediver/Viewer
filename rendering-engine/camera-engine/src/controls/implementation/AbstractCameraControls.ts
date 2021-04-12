@@ -8,11 +8,12 @@ import { ICameraControlsEventDistribution } from '../interface/ICameraControlsEv
 import { ICameraControlsUsage } from '../interface/ICameraControlsUsage';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
 import { container } from 'tsyringe';
+import { ICamera } from '../../engine/interface/ICamera';
 
 export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Properties (11)
 
-    private readonly _cameraInterpolationManager: CameraInterpolationManager = new CameraInterpolationManager(this);
+    private readonly _cameraInterpolationManager: CameraInterpolationManager;
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
     private _manualInteraction: boolean = false;
@@ -38,10 +39,12 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Constructors (1)
 
     constructor(
+        private _camera: ICamera,
         private _canvas: HTMLCanvasElement,
         private _enabled: boolean,
         type: CAMERATYPE
     ) {
+        this._cameraInterpolationManager = new CameraInterpolationManager(this._camera, this);
         this._manualInteractionMatrices = { position: [], target: [] };
         this._nonmanualInteractionMatrices = { position: [], target: [] };
     }
@@ -93,6 +96,22 @@ export class AbstractCameraControls implements ICameraControlsUsage {
             this._cameraLogic.reset();
         }
         this._enabled = value;
+    }
+
+    /**
+     * Getter camera
+     * @return {ICamera}
+     */
+    public get camera(): ICamera {
+        return this._camera;
+    }
+
+    /**
+     * Setter camera
+     * @param {ICamera} value
+     */
+    public set camera(value: ICamera) {
+        this._camera = value;
     }
 
     /**
