@@ -52,5 +52,7 @@ export interface IRenderingEngine {
      */
     update(): void;
 
+    getScreenshot(type?: string, encoderOptions?: number): string;
+
     // #endregion Public Methods (1)
 }

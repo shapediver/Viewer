@@ -18,20 +18,21 @@ import { PointLight } from "./lights/PointLight";
 import { SpotLight } from "./lights/SpotLight";
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
-  // #region Properties (25)
-  readonly #renderingEngine: RenderingEngineThreejs;
-  readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-  readonly #logger: Logger = <Logger>container.resolve(Logger);
-  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+  // #region Properties (7)
 
   readonly #cameras: {
     [key: string]: Camera
   } = {};
+  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #lights: {
     [key: string]: Light
   } = {};
-  // #endregion Properties (25)
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+  readonly #renderingEngine: RenderingEngineThreejs;
+
+  // #endregion Properties (7)
 
   // #region Constructors (1)
 
@@ -51,7 +52,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (42)
+  // #region Public Accessors (37)
 
   /**
    * Enable / Disable the ambient occlusion
@@ -417,115 +418,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#logger.info(`Viewer (${this.id}): show was set to: ${value}`);
   }
 
-  // #endregion Public Accessors (42)
+  // #endregion Public Accessors (37)
 
-  // #region Public Methods (11)
-
-
-  /**
-   * Update the viewer with the current changes of the scene tree.
-   */
-  public update(): void {
-    this.#renderingEngine.update();
-    this.#logger.info(`Viewer (${this.id}) was updated.`);
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
-  }
-
-  /**
-   * Assign the camera with the specified id to the viewer.
-   * 
-   * @param id the id of the camera
-   */
-  public assignCamera(id: string): void {
-    this.#inputValidator.validate(id, 'string');
-    this.#renderingEngine.cameraEngine.assignCamera(id);
-    this.#logger.info(`Viewer (${this.id}): Camera with id ${id} assigned.`);
-  }
-
-  /**
-   * Create a perspective camera.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
-  public createPerspectiveCamera(id?: string): Camera {
-    this.#inputValidator.validate(id, 'string', false);
-    this.#logger.info(`Viewer (${this.id}): Perspective camera with id ${id} created.`);
-    return this.createCamera(CAMERATYPE.PERSPECTIVE, id);
-  }
-
-  /**
-   * Create an orthographic camera.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
-  public createOrthographicCamera(id?: string): Camera {
-    this.#inputValidator.validate(id, 'string', false);
-    this.#logger.info(`Viewer (${this.id}): Orthographic camera with id ${id} created.`);
-    return this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
-  }
-
-  /**
-   * Create a camera with the specified type.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param type the type of the camera
-   * @param id the id of the camera
-   * @returns 
-   */
-  public createCamera(type: CAMERATYPE, id?: string): Camera {
-    this.#inputValidator.validate(type, 'enum', true, Object.values(CAMERATYPE));
-    this.#inputValidator.validate(id, 'string', false);
-    const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
-    this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
-    this.#logger.info(`Viewer (${this.id}): ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
-    return this.#cameras[cameraLogic.id];
-  }
-
-  /**
-   * Return the camera with the specified id.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
-  public getCamera(id: string): Camera | null {
-    this.#inputValidator.validate(id, 'string');
-    const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
-    if(!cameraLogic) return null;
-    if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
-    return this.#cameras[cameraLogic.id];
-  }
-
-  /**
-   * Return all camera as key-value pairs with the id of the camera being the key.
-   * 
-   * @returns 
-   */
-  public getCameras(): { [key: string]: Camera } {
-    const cameraLogic = this.#renderingEngine.cameraEngine.getCameras();
-    const cameras: { [key: string]: Camera; } = {};
-    for (let e in cameraLogic) {
-      if (!this.#cameras[cameraLogic[e].id]) this.#cameras[cameraLogic[e].id] = cameraLogic[e].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic[e]) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic[e]);
-      cameras[e] = this.#cameras[cameraLogic[e].id];
-    }
-    return cameras;
-  }
-
-  /**
-   * Return if the viewer has currently a camera assigned.
-   * 
-   * @returns 
-   */
-  public hasCamera(): boolean {
-    return this.#renderingEngine.cameraEngine.hasCamera();
-  }
-
-
-
-
+  // #region Public Methods (22)
 
   /**
    * Add an ambient light with the specified properties to the current light scene.
@@ -656,6 +551,49 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
+   * Assign the camera with the specified id to the viewer.
+   * 
+   * @param id the id of the camera
+   */
+  public assignCamera(id: string): void {
+    this.#inputValidator.validate(id, 'string');
+    this.#renderingEngine.cameraEngine.assignCamera(id);
+    this.#logger.info(`Viewer (${this.id}): Camera with id ${id} assigned.`);
+  }
+
+  /**
+   * Assign the light scene with the current id to the viewer.
+   * 
+   * @param id the id of the light scene 
+   * @returns 
+   */
+  public assignLightScene(id: string): boolean {
+    this.#inputValidator.validate(id, 'string');
+    const r = this.#renderingEngine.lightEngine.assignLightScene(id);
+    this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Assigned light scene with id ${id}.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not assign light scene with id ${id}.`);
+    return r;
+  }
+
+  /**
+   * Create a camera with the specified type.
+   * An id can be provided. If not, a unique id will be created.
+   * 
+   * @param type the type of the camera
+   * @param id the id of the camera
+   * @returns 
+   */
+  public createCamera(type: CAMERATYPE, id?: string): Camera {
+    this.#inputValidator.validate(type, 'enum', true, Object.values(CAMERATYPE));
+    this.#inputValidator.validate(id, 'string', false);
+    const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
+    this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
+    this.#logger.info(`Viewer (${this.id}): ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
+    return this.#cameras[cameraLogic.id];
+  }
+
+  /**
    * Create a new light scene.
    * An id can be provided. If not, a unique id will be created.
    * If the standard option is chosen, the default lights will be added from the start.
@@ -674,66 +612,58 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
-   * Remove the light scene with the specified id.
+   * Create an orthographic camera.
+   * An id can be provided. If not, a unique id will be created.
    * 
-   * @param id the id of the light scene
+   * @param id the id of the camera
    * @returns 
    */
-  public removeLightScene(id: string): boolean {
+  public createOrthographicCamera(id?: string): Camera {
+    this.#inputValidator.validate(id, 'string', false);
+    this.#logger.info(`Viewer (${this.id}): Orthographic camera with id ${id} created.`);
+    return this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
+  }
+
+  /**
+   * Create a perspective camera.
+   * An id can be provided. If not, a unique id will be created.
+   * 
+   * @param id the id of the camera
+   * @returns 
+   */
+  public createPerspectiveCamera(id?: string): Camera {
+    this.#inputValidator.validate(id, 'string', false);
+    this.#logger.info(`Viewer (${this.id}): Perspective camera with id ${id} created.`);
+    return this.createCamera(CAMERATYPE.PERSPECTIVE, id);
+  }
+
+  /**
+   * Return the camera with the specified id.
+   * 
+   * @param id the id of the camera
+   * @returns 
+   */
+  public getCamera(id: string): Camera | null {
     this.#inputValidator.validate(id, 'string');
-    const r = this.#renderingEngine.lightEngine.removeLightScene(id);
-    this.update();
-    if(r) this.#logger.info(`Viewer (${this.id}): Light scene with id ${id} removed.`);
-    if(!r) this.#logger.info(`Viewer (${this.id}): Could not remove light scene with id ${id}.`);
-    return r;
+    const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
+    if(!cameraLogic) return null;
+    if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
+    return this.#cameras[cameraLogic.id];
   }
 
   /**
-   * Return the id of the current light scene.
+   * Return all camera as key-value pairs with the id of the camera being the key.
    * 
    * @returns 
    */
-  public getLightScene(): string {
-    return this.#renderingEngine.lightEngine.getLightScene();
-  }
-
-  /**
-   * Return the ids of all light scene in an array.
-   * 
-   * @returns 
-   */
-  public getLightScenes(): string[] {
-    return this.#renderingEngine.lightEngine.getLightScenes();
-  }
-
-  /**
-   * Remove the light with the specified id from the current light scene.
-   * 
-   * @param id the id of the light
-   * @returns 
-   */
-  public removeLight(id: string): boolean {
-    this.#inputValidator.validate(id, 'string');
-    const r = this.#renderingEngine.lightEngine.removeLight(id);
-    this.update();
-    if(r) this.#logger.info(`Viewer (${this.id}): Light with id ${id} removed.`);
-    if(!r) this.#logger.info(`Viewer (${this.id}): Could not remove light with id ${id}.`);
-    return r;
-  }
-
-  /**
-   * Assign the light scene with the current id to the viewer.
-   * 
-   * @param id the id of the light scene 
-   * @returns 
-   */
-  public assignLightScene(id: string): boolean {
-    this.#inputValidator.validate(id, 'string');
-    const r = this.#renderingEngine.lightEngine.assignLightScene(id);
-    this.update();
-    if(r) this.#logger.info(`Viewer (${this.id}): Assigned light scene with id ${id}.`);
-    if(!r) this.#logger.info(`Viewer (${this.id}): Could not assign light scene with id ${id}.`);
-    return r;
+  public getCameras(): { [key: string]: Camera } {
+    const cameraLogic = this.#renderingEngine.cameraEngine.getCameras();
+    const cameras: { [key: string]: Camera; } = {};
+    for (let e in cameraLogic) {
+      if (!this.#cameras[cameraLogic[e].id]) this.#cameras[cameraLogic[e].id] = cameraLogic[e].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic[e]) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic[e]);
+      cameras[e] = this.#cameras[cameraLogic[e].id];
+    }
+    return cameras;
   }
 
   /**
@@ -767,7 +697,24 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     return this.#lights[id];
   }
 
-  
+  /**
+   * Return the id of the current light scene.
+   * 
+   * @returns 
+   */
+  public getLightScene(): string {
+    return this.#renderingEngine.lightEngine.getLightScene();
+  }
+
+  /**
+   * Return the ids of all light scene in an array.
+   * 
+   * @returns 
+   */
+  public getLightScenes(): string[] {
+    return this.#renderingEngine.lightEngine.getLightScenes();
+  }
+
   /**
    * Return all lights as key-value pairs with the id of the light being the key.
    * 
@@ -781,5 +728,67 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     return lights;
   }
 
-  // #endregion Public Methods (11)
+  /**
+   * Create a screenshot for the requested type and options.
+   * 
+   * @param type the type as string, default is 'image/png'
+   * @param quality the quality of the screenshot, default is 1
+   * @returns 
+   */
+  public getScreenshot(type?: string, quality?: number): string {
+    this.#inputValidator.validate(type, 'string', false);
+    this.#inputValidator.validate(quality, 'factor', false);
+    this.#logger.info(`Viewer (${this.id}): screenshot was requested`);
+    return this.#renderingEngine.getScreenshot(type, quality);
+  }
+
+  /**
+   * Return if the viewer has currently a camera assigned.
+   * 
+   * @returns 
+   */
+  public hasCamera(): boolean {
+    return this.#renderingEngine.cameraEngine.hasCamera();
+  }
+
+  /**
+   * Remove the light with the specified id from the current light scene.
+   * 
+   * @param id the id of the light
+   * @returns 
+   */
+  public removeLight(id: string): boolean {
+    this.#inputValidator.validate(id, 'string');
+    const r = this.#renderingEngine.lightEngine.removeLight(id);
+    this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Light with id ${id} removed.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not remove light with id ${id}.`);
+    return r;
+  }
+
+  /**
+   * Remove the light scene with the specified id.
+   * 
+   * @param id the id of the light scene
+   * @returns 
+   */
+  public removeLightScene(id: string): boolean {
+    this.#inputValidator.validate(id, 'string');
+    const r = this.#renderingEngine.lightEngine.removeLightScene(id);
+    this.update();
+    if(r) this.#logger.info(`Viewer (${this.id}): Light scene with id ${id} removed.`);
+    if(!r) this.#logger.info(`Viewer (${this.id}): Could not remove light scene with id ${id}.`);
+    return r;
+  }
+
+  /**
+   * Update the viewer with the current changes of the scene tree.
+   */
+  public update(): void {
+    this.#renderingEngine.update();
+    this.#logger.info(`Viewer (${this.id}) was updated.`);
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
+  }
+
+  // #endregion Public Methods (22)
 }

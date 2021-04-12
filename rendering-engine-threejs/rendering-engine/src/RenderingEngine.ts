@@ -29,6 +29,7 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _environmentMapLoader: EnvironmentMapLoader;
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _geometryLoader: GeometryLoader;
+    private readonly _id: string;
     private readonly _lightEngine: LightEngine;
     private readonly _lightLoader: LightLoader;
     private readonly _materialLoader: MaterialLoader;
@@ -36,7 +37,7 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _tree: Tree = <Tree>container.resolve(Tree);
-    private readonly _id: string;
+    private readonly _visibility: VISIBILITYMODE;
 
     private _ambientOcclusion: boolean = true;
     private _beautyRenderBlendingDuration: number = 1500;
@@ -63,7 +64,6 @@ export class RenderingEngine implements IRenderingEngine {
     private _sceneTree!: SceneTree;
     private _shadows: boolean = true;
     private _show: boolean = false;
-    private readonly _visibility: VISIBILITYMODE;
 
     // #endregion Properties (39)
 
@@ -133,7 +133,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (50)
+    // #region Public Accessors (46)
 
     /**
      * Getter ambientOcclusion
@@ -539,23 +539,26 @@ export class RenderingEngine implements IRenderingEngine {
         this._show = value;
     }
 
-    // #endregion Public Accessors (50)
+    // #endregion Public Accessors (46)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
+
+    public getScreenshot(type?: string, encoderOptions?: number): string {
+        return this._renderingLogic.getScreenshot(type, encoderOptions);
+    }
 
     public update(): void {
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
         this._renderingLogic.render();
     }
 
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (2)
 
     // #region Private Methods (2)
 
     private applySettings() {
         // as the environment map is the only thing that needs time to load, load it first
         this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: any) => {
-
             // return if a different env map was loaded
             if(!e.name || (e.name && e.name !== this._settingsEngine.scene.material.environmentMap.value)) return;
 

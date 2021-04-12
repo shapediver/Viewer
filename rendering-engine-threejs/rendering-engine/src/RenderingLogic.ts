@@ -66,16 +66,20 @@ export class RenderingLogic {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
+
+    public getScreenshot(type: string = 'image/png', encoderOptions: number = 1): string {
+        return this._renderer.domElement.toDataURL(type, encoderOptions);
+    }
 
     public render() {
         this._noNeedToRender = false;
         this._beautyRenderer.startBeautyRenderCountdown();
     }
 
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (2)
 
-    // #region Private Methods (3)
+    // #region Private Methods (2)
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let cameraThree: THREE.Camera;
@@ -150,5 +154,5 @@ export class RenderingLogic {
         if (!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
     }
 
-    // #endregion Private Methods (3)
+    // #endregion Private Methods (2)
 }
