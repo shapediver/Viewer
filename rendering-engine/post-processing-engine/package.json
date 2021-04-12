@@ -1,0 +1,36 @@
+{
+  "name": "@shapediver/viewer.rendering-engine.post-processing-engine",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "test": "bash ../../scripts/test.sh",
+    "check": "tsc --noEmit",
+    "build": "bash ../../scripts/build.sh",
+    "build-dep": "bash ../../scripts/build-dep.sh",
+    "build-dev": "bash ../../scripts/build-dev.sh",
+    "build-prod": "bash ../../scripts/build-prod.sh"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
