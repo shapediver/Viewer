@@ -8,8 +8,8 @@
         "outDir": "dist"
     },
     "exclude": [
-        "__tests__/**/*",
-        "node_modules/**/*",
+        "__tests__",
+        "node_modules",
         "dist",
         "dist-dev",
         "dist-prod"

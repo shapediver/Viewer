@@ -9,8 +9,8 @@
         "target": "ES2017"
     },
     "exclude": [
-        "__tests__/**/*",
-        "node_modules/**/*",
+        "__tests__",
+        "node_modules",
         "dist",
         "dist-dev",
         "dist-prod"
