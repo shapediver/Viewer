@@ -46,18 +46,13 @@ export class RenderingEngine implements IRenderingEngine {
     private _canvas!: Canvas;
     private _clearAlpha: number = 1.0;
     private _clearColor: vec3 = vec3.fromValues(1,1,1);
-    private _duration: number = 0;
     private _environmentMap: string | string[] = 'none';
     private _environmentMapAsBackground: boolean = false;
     private _environmentMapResolution: string = '1024';
-    private _fullscreen: boolean = false;
     private _grid!: THREE.GridHelper;
     private _gridVisibility: boolean = true;
     private _groundPlane!: THREE.Mesh;
-    // private _groundPlaneReflectionThreshold: number = 0.01;
-    // private _groundPlaneReflectionVisibility: boolean = false;
     private _groundPlaneVisibility: boolean = true;
-    private _lightHelper: boolean = false;
     private _lightScene: string = 'default';
     private _logoDivElement: HTMLDivElement;
     private _pointSize: number = 1.0;
@@ -248,22 +243,6 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     /**
-     * Getter duration
-     * @return {number}
-     */
-    public get duration(): number {
-        return this._duration;
-    }
-
-    /**
-     * Setter duration
-     * @param {number} value
-     */
-    public set duration(value: number) {
-        this._duration = value;
-    }
-
-    /**
      * Getter environmentMap
      * @return {string | string[]}
      */
@@ -319,22 +298,6 @@ export class RenderingEngine implements IRenderingEngine {
     public set environmentMapResolution(value: string) {
         this._environmentMapResolution = value;
         this._environmentMapLoader.load(this.environmentMap);
-    }
-
-    /**
-     * Getter fullscreen
-     * @return {boolean}
-     */
-    public get fullscreen(): boolean {
-        return this._fullscreen;
-    }
-
-    /**
-     * Setter fullscreen
-     * @param {boolean} value
-     */
-    public set fullscreen(value: boolean) {
-        this._fullscreen = value;
     }
 
     /**
@@ -425,22 +388,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public get lightEngine(): ILightEngine {
         return this._lightEngine;
-    }
-
-    /**
-     * Getter lightHelper
-     * @return {boolean}
-     */
-    public get lightHelper(): boolean {
-        return this._lightHelper;
-    }
-
-    /**
-     * Setter lightHelper
-     * @param {boolean} value
-     */
-    public set lightHelper(value: boolean) {
-        this._lightHelper = value;
     }
 
     /**
@@ -572,23 +519,12 @@ export class RenderingEngine implements IRenderingEngine {
             this.clearAlpha = this._settingsEngine.scene.render.clearAlpha.value;
             const c = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
             this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
-            // FIXME
-            this.duration = this._settingsEngine.scene.duration.value;
-            // FIXME
-            this.fullscreen = this._settingsEngine.scene.fullscreen.value;
             this.gridVisibility = this._settingsEngine.scene.gridVisibility.value;
-            // FIXME
-            // this.groundPlaneReflectionThreshold = this._settingsEngine.scene.groundPlaneReflectionThreshold.value;
-            // // FIXME
-            // this.groundPlaneReflectionVisibility = this._settingsEngine.scene.groundPlaneReflectionVisibility.value;
             this.groundPlaneVisibility = this._settingsEngine.scene.groundPlaneVisibility.value;
-            // FIXME
-            this.lightHelper = this._settingsEngine.scene.lights.helper.value;
             this.lightScene = this._settingsEngine.scene.lights.lightScene.value;
             // TODO
             this.pointSize = this._settingsEngine.rendering.pointSize.value;
             this.shadows = this._settingsEngine.scene.render.shadows.value;
-            // this.show = this._settingsEngine.scene.show.value;
             // FIXME
             //this.showSceneTransition = +this._settingsEngine.scene.showSceneTransition.value.replace('s', '') * 1000;
 

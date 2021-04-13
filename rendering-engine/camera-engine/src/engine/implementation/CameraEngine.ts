@@ -1,4 +1,4 @@
-import { DomEventEngine } from "@shapediver/viewer.shared.services";
+import { DomEventEngine, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { UuidGenerator } from "@shapediver/viewer.shared.utils";
 import { container, singleton } from "tsyringe";
 import { CAMERATYPE, ICameraEngine } from "../interface/ICameraEngine";
@@ -15,14 +15,34 @@ export class CameraEngine implements ICameraEngine {
         [key: string]: Camera
     } = {};
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-
+    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+  
     private _camera!: Camera;
 
     // #endregion Properties (3)
 
     // #region Constructors (1)
 
-    constructor(private readonly _canvas: Canvas, private readonly _domEventEngine: DomEventEngine) {}
+    constructor(private readonly _canvas: Canvas, private readonly _domEventEngine: DomEventEngine) {
+        if (this._stateEngine.firstSettingsRegistered.resolved === true) {
+            this.applySettings();
+        } else {
+            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
+        }
+    }
+
+    private applySettings() {
+        // 0 -> perspective
+        // 1 -> top
+        // 2 -> bottom
+        // 3 -> right
+        // 4 -> left
+        // 5 -> back
+        // 6 -> front
+        // FIXME
+        this._settingsEngine.camera.cameraTypes.active.value;
+    }
 
     // #endregion Constructors (1)
 

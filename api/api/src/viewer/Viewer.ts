@@ -163,24 +163,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
-   * Fade in / out duration
-   * @return {number}
-   */
-  public get duration(): number {
-    return this.#renderingEngine.duration;
-  }
-
-  /**
-   * Fade in / out duration
-   * @param {number} value
-   */
-  public set duration(value: number) {
-    this.#inputValidator.validate(value, 'positive');
-    this.#renderingEngine.duration = value;
-    this.#logger.info(`Viewer (${this.id}): duration was set to: ${value}`);
-  }
-
-  /**
    * Name of the environment map to use, or an array of 6 image URLs making up the cube mapped environment map (px, nx, pz, nz, py, ny)
    * @return {string | string[]}
    */
@@ -232,24 +214,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(value, 'string');
     this.#renderingEngine.environmentMapResolution = value;
     this.#logger.info(`Viewer (${this.id}): environmentMapResolution was set to: ${value}`);
-  }
-
-  /**
-   * Enable / Disable fullscreen mode
-   * @return {boolean}
-   */
-  public get fullscreen(): boolean {
-    return this.#renderingEngine.fullscreen;
-  }
-
-  /**
-   * Enable / Disable fullscreen mode
-   * @param {boolean} value
-   */
-  public set fullscreen(value: boolean) {
-    this.#inputValidator.validate(value, 'boolean');
-    this.#renderingEngine.fullscreen = value;
-    this.#logger.info(`Viewer (${this.id}): fullscreen was set to: ${value}`);
   }
 
   /**
@@ -326,24 +290,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public get id(): string {
     return this.#renderingEngine.id;
-  }
-
-  /**
-   * Show / Hide the light helpers
-   * @return {boolean}
-   */
-  public get lightHelper(): boolean {
-    return this.#renderingEngine.lightHelper;
-  }
-
-  /**
-   * Show / Hide the light helpers
-   * @param {boolean} value
-   */
-  public set lightHelper(value: boolean) {
-    this.#inputValidator.validate(value, 'boolean');
-    this.#renderingEngine.lightHelper = value;
-    this.#logger.info(`Viewer (${this.id}): lightHelper was set to: ${value}`);
   }
 
   /**

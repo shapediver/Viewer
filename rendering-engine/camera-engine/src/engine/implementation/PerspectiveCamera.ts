@@ -10,8 +10,6 @@ export class PerspectiveCamera extends AbstractCamera {
   // #region Properties (5)
 
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
-  private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-  private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
   private _aspect: number = 60;
   private _fov: number = 60;

@@ -21,7 +21,6 @@ export const DefaultSettings = {
         commitParameters: <ISetting<boolean>> new BooleanSetting(false, 'Use or don\'t commit mode for parameters'),
         commitSettings: <ISetting<boolean>> new BooleanSetting(false, 'Use or don\'t commit mode for settings'),
         scene: {
-            show: <ISetting<boolean>> new BooleanSetting(false, 'Show / hide the scene'),
             showSceneTransition: <ISetting<string>> new StringSetting('1s', ''),
             camera: {
                 autoAdjust: <ISetting<boolean>> new BooleanSetting(false, 'Enable / disable that the camera adjusts to geometry updates'),
@@ -30,7 +29,6 @@ export const DefaultSettings = {
                     perspective: {
                         default: <ISetting<{ position: vec3, target: vec3 }>> new CustomSetting({ position: vec3.create(), target: vec3.create() }, 'Default position and target for the perspective camera'),
                         fov: <ISetting<number>> new NumberSetting(45, 'Camera frustum vertical field of view angle, unit degree, interval [0,180]', (value: number) => value >= 0),
-                        controls: <ISetting<number>> new NumberSetting(0, 'Set camera control type', (value: number) => value === 0 || value === 1),
                     },
                     orthographic: {
                         default: <ISetting<{ position: vec3, target: vec3 }>> new CustomSetting({ position: vec3.create(), target: vec3.create() }, 'Default position and target for the orthographic camera')
@@ -65,8 +63,6 @@ export const DefaultSettings = {
                         panSpeed: <ISetting<number>> new NumberSetting(0.5, 'Speed of panning', (value: number) => value >= 0 && value <= 1),
                         zoomSpeed: <ISetting<number>> new NumberSetting(0.5, 'Speed of zooming', (value: number) => value >= 0 && value <= 1),
                     },
-                    fps: {
-                    },
                     orthographic: {
                         damping: <ISetting<number>> new NumberSetting(0.1, 'How much to damp camera movements by the user', (value: number) => value >= 0),
                         enableKeyPan: <ISetting<boolean>> new BooleanSetting(false, 'Enable / disable panning using the keyboard, also refer to enablePan'),
@@ -84,14 +80,9 @@ export const DefaultSettings = {
                 revertAtMouseUpDuration: <ISetting<number>> new NumberSetting(800, 'The duration of the transition of the revertAtMouseUp', (value: number) => value >= 0),
                 zoomExtentsFactor: <ISetting<number>> new NumberSetting(1, 'Factor to apply to the bounding box before zooming to extents', (value: number) => value > 0),
             },
-            duration: <ISetting<number>> new NumberSetting(0, 'Set fade in / fade out duration', (value: number) => value >= 0),
-            fullscreen: <ISetting<boolean>> new BooleanSetting(false, 'Enable / disable fullscreen mode'),
             gridVisibility: <ISetting<boolean>> new BooleanSetting(true, 'Show / hide the grid'),
-            groundPlaneReflectionThreshold: <ISetting<number>> new NumberSetting(0.01, 'Allows to control the distance to objects that are still reflected by the groundplane', (value: number) => value >= 0),
-            groundPlaneReflectionVisibility: <ISetting<boolean>> new BooleanSetting(false, 'Enable / disable the reflectivity of the groundplane'),
             groundPlaneVisibility: <ISetting<boolean>> new BooleanSetting(true, 'Show / hide the ground plane'),
             lights: {
-                helper: <ISetting<boolean>> new BooleanSetting(false, 'Show / hide the light helpers'),
                 lightScene: <ISetting<string>> new StringSetting('default'),
                 lightScenes: <ISetting<any>> new CustomSetting({}),
             },

@@ -25,17 +25,12 @@ export interface IRenderingEngine {
     blurSceneWhenBusy: boolean;
     clearAlpha: number;
     clearColor: vec3;
-    duration: number;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;
-    fullscreen: boolean;
     gridVisibility: boolean;
-    // groundPlaneReflectionThreshold: number;
-    // groundPlaneReflectionVisibility: boolean;
     groundPlaneVisibility: boolean;
     id: string;
-    lightHelper: boolean;
     lightScene: string;
     pointSize: number;
     shadows: boolean;

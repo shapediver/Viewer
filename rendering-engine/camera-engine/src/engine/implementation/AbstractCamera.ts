@@ -3,9 +3,14 @@ import { ICamera } from '../interface/ICamera';
 import { mat4, vec3 } from 'gl-matrix';
 import { CAMERATYPE } from '../interface/ICameraEngine';
 import { AbstractCameraControls } from '../../controls/implementation/AbstractCameraControls';
+import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services';
+import { container } from 'tsyringe';
 
 export abstract class AbstractCamera implements ICamera {
-    // #region Properties (13)
+    // #region Properties (15)
+
+    protected readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
@@ -22,11 +27,17 @@ export abstract class AbstractCamera implements ICamera {
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
 
-    // #endregion Properties (13)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, private readonly _type: CAMERATYPE) { }
+    constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {
+        if (this._stateEngine.firstSettingsRegistered.resolved === true) {
+            this.applySettings();
+        } else {
+            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
+        }
+    }
 
     // #endregion Constructors (1)
 
@@ -124,17 +135,17 @@ export abstract class AbstractCamera implements ICamera {
      * Getter far
      * @return {number }
      */
-    public get far(): number  {
-		return this._far;
-	}
+    public get far(): number {
+        return this._far;
+    }
 
     /**
      * Setter far
      * @param {number } value
      */
-    public set far(value: number ) {
-		this._far = value;
-	}
+    public set far(value: number) {
+        this._far = value;
+    }
 
     /**
        * Getter id
@@ -148,17 +159,17 @@ export abstract class AbstractCamera implements ICamera {
      * Getter near
      * @return {number }
      */
-    public get near(): number  {
-		return this._near;
-	}
+    public get near(): number {
+        return this._near;
+    }
 
     /**
      * Setter near
      * @param {number } value
      */
-    public set near(value: number ) {
-		this._near = value;
-	}
+    public set near(value: number) {
+        this._near = value;
+    }
 
     /**
      * Getter position
@@ -265,4 +276,17 @@ export abstract class AbstractCamera implements ICamera {
     }
 
     // #endregion Public Methods (1)
+
+    // #region Private Methods (1)
+
+    private applySettings() {
+        this.autoAdjust = this._settingsEngine.camera.autoAdjust.value;
+        this.cameraMovementDuration = this._settingsEngine.camera.cameraMovementDuration.value;
+        this.enableCameraControls = this._settingsEngine.camera.enableCameraControls.value;
+        this.revertAtMouseUp = this._settingsEngine.camera.revertAtMouseUp.value;
+        this.revertAtMouseUpDuration = this._settingsEngine.camera.revertAtMouseUpDuration.value;
+        this.zoomExtentsFactor = this._settingsEngine.camera.zoomExtentsFactor.value;
+    }
+
+    // #endregion Private Methods (1)
 }

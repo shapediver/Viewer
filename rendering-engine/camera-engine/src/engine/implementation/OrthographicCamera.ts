@@ -10,8 +10,6 @@ export class OrthographicCamera extends AbstractCamera {
     // #region Properties (7)
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     private _bottom: number = 100;
     private _left: number = 100;

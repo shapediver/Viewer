@@ -648,27 +648,6 @@ describe('Settings Tests', () => {
         expect(zoomSpeed).toBe(0.5);
     });
 
-
-    it('viewer.scene.duration', async () => {
-        const page = await getPage('temp');
-        const duration = await page.evaluate(async () => {
-            const api: typeof API = (<any>window).api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-            return viewer.duration;
-        });
-        expect(duration).toBe(0);
-    });
-    it('viewer.scene.fullscreen', async () => {
-        const page = await getPage('temp');
-        const fullscreen = await page.evaluate(async () => {
-            const api: typeof API = (<any>window).api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-            return viewer.fullscreen;
-        });
-        expect(fullscreen).toBe(false);
-    });
     it('viewer.scene.gridVisibility', async () => {
         const page = await getPage('temp');
         const gridVisibility = await page.evaluate(async () => {
@@ -679,12 +658,6 @@ describe('Settings Tests', () => {
         });
         expect(gridVisibility).toBe(true);
     });
-    it('viewer.scene.groundPlaneReflectionThreshold', async () => {
-        // TODO   
-    });
-    it('viewer.scene.groundPlaneReflectionVisibility', async () => {
-        // TODO   
-    });
     it('viewer.scene.groundPlaneVisibility', async () => {
         const page = await getPage('temp');
         const groundPlaneVisibility = await page.evaluate(async () => {
@@ -694,16 +667,6 @@ describe('Settings Tests', () => {
             return viewer.groundPlaneVisibility;
         });
         expect(groundPlaneVisibility).toBe(true);
-    });
-    it('viewer.scene.lights.helper', async () => {
-        const page = await getPage('temp');
-        const lightHelper = await page.evaluate(async () => {
-            const api: typeof API = (<any>window).api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-            return viewer.lightHelper;
-        });
-        expect(lightHelper).toBe(false);
     });
     it('viewer.scene.lights.lightScene', async () => {
         const page = await getPage('temp');

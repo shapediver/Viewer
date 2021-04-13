@@ -1,4 +1,6 @@
+import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
+import { container } from "tsyringe";
 import { CAMERATYPE, ICamera } from "../..";
 import { AbstractCameraControls } from "./AbstractCameraControls";
 
@@ -27,6 +29,8 @@ export class PerspectiveCameraControls extends AbstractCameraControls {
     private _sphereTargetRestriction: { center: vec3, radius: number } = { center: vec3.create(), radius: Infinity };
     private _zoomRestriction: { minDistance: number, maxDistance: number } = { minDistance: 0, maxDistance: Infinity };
     private _zoomSpeed: number = 0.5;
+    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     // #endregion Properties (19)
 
@@ -36,6 +40,34 @@ export class PerspectiveCameraControls extends AbstractCameraControls {
         super(camera, canvas, enabled, CAMERATYPE.PERSPECTIVE);
         this._cameraLogic = new OrbitCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
+        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
+            this.applySettings();
+        } else {
+            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
+        }
+    }
+
+    private applySettings() {
+        this.autoRotationSpeed = this._settingsEngine.cameraOrbitControls.autoRotationSpeed.value;
+        this.damping = this._settingsEngine.cameraOrbitControls.damping.value;
+        this.enableAutoRotation = this._settingsEngine.cameraOrbitControls.enableAutoRotation.value;
+        this.enableKeyPan = this._settingsEngine.cameraOrbitControls.enableKeyPan.value;
+        this.enablePan = this._settingsEngine.cameraOrbitControls.enablePan.value;
+        this.enableRotation = this._settingsEngine.cameraOrbitControls.enableRotation.value;
+        this.enableZoom = this._settingsEngine.cameraOrbitControls.enableZoom.value;
+        this.input = this._settingsEngine.cameraOrbitControls.input.value;
+        this.keyPanSpeed = this._settingsEngine.cameraOrbitControls.keyPanSpeed.value;
+        this.movementSmoothness = this._settingsEngine.cameraOrbitControls.movementSmoothness.value;
+        this.rotationSpeed = this._settingsEngine.cameraOrbitControls.rotationSpeed.value;
+        this.panSpeed = this._settingsEngine.cameraOrbitControls.panSpeed.value;
+        this.zoomSpeed = this._settingsEngine.cameraOrbitControls.zoomSpeed.value;
+
+        this.cubePositionRestriction = this._settingsEngine.cameraOrbitControls.restrictions.position.cube.value;
+        this.spherePositionRestriction = this._settingsEngine.cameraOrbitControls.restrictions.position.sphere.value;
+        this.cubeTargetRestriction = this._settingsEngine.cameraOrbitControls.restrictions.target.cube.value;
+        this.sphereTargetRestriction = this._settingsEngine.cameraOrbitControls.restrictions.target.sphere.value;
+        this.rotationRestriction = this._settingsEngine.cameraOrbitControls.restrictions.rotation.value;
+        this.zoomRestriction = this._settingsEngine.cameraOrbitControls.restrictions.zoom.value;
     }
 
     // #endregion Constructors (1)

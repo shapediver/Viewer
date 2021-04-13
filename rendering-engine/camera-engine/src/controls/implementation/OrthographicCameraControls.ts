@@ -1,3 +1,5 @@
+import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
+import { container } from "tsyringe";
 import { CAMERATYPE, ICamera } from "../..";
 import { AbstractCameraControls } from "./AbstractCameraControls";
 
@@ -18,6 +20,9 @@ export class OrthographicCameraControls extends AbstractCameraControls {
     private _panSpeed: number = 0.5;
     private _zoomSpeed: number = 0.5;
 
+    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+
     // #endregion Properties (9)
 
     // #region Constructors (1)
@@ -26,6 +31,23 @@ export class OrthographicCameraControls extends AbstractCameraControls {
         super(camera, canvas, enabled, CAMERATYPE.ORTHOGRAPHIC);
         this._cameraLogic = new OrthographicCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrthographicCameraControlsEventDistribution(this, <OrthographicCameraControlsLogic>this._cameraLogic);
+        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
+            this.applySettings();
+        } else {
+            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
+        }
+    }
+
+    private applySettings() {
+        this.damping = this._settingsEngine.cameraOrbitControls.damping.value;
+        this.enableKeyPan = this._settingsEngine.cameraOrbitControls.enableKeyPan.value;
+        this.enablePan = this._settingsEngine.cameraOrbitControls.enablePan.value;
+        this.enableZoom = this._settingsEngine.cameraOrbitControls.enableZoom.value;
+        this.input = this._settingsEngine.cameraOrbitControls.input.value;
+        this.keyPanSpeed = this._settingsEngine.cameraOrbitControls.keyPanSpeed.value;
+        this.movementSmoothness = this._settingsEngine.cameraOrbitControls.movementSmoothness.value;
+        this.panSpeed = this._settingsEngine.cameraOrbitControls.panSpeed.value;
+        this.zoomSpeed = this._settingsEngine.cameraOrbitControls.zoomSpeed.value;
     }
 
     // #endregion Constructors (1)
