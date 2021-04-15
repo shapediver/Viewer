@@ -38,6 +38,8 @@
   },
   "dependencies": {
     "@shapediver/viewer.shared.monitoring": "^0.2.2",
-    "@shapediver/viewer.shared.utils": "^0.2.2"
+    "@shapediver/viewer.shared.utils": "^0.2.2",
+    "gl-matrix": "^3.3.0",
+    "tsyringe": "^4.5.0"
   }
 }
