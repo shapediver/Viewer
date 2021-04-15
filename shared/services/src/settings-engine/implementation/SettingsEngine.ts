@@ -2,7 +2,10 @@ import { container, singleton } from 'tsyringe';
 import { EventEngine } from '../../event-engine/EventEngine';
 import { EVENTTYPE } from '../../event-engine/EventTypes';
 import { StateEngine } from '../../state-engine/StateEngine';
+import { ISetting } from '../interfaces/ISetting';
 import { DefaultSettings } from './DefaultSettings';
+import { SettingsConversion } from './shapedivernodemodule-viewersettings/SettingsConversion';
+import { AbstractSetting } from './types/AbstractSetting';
 
 type GeneralSettings = typeof DefaultSettings;
 type SceneSettings = typeof DefaultSettings.viewer.scene;
@@ -13,11 +16,13 @@ type LightSettings = typeof DefaultSettings.viewer.scene.lights;
 type MaterialSettings = typeof DefaultSettings.viewer.scene.material;
 type RenderingSettings = typeof DefaultSettings.viewer.scene.render;
 
+type SettingsObject = { [key: string]: ISetting<any> | SettingsObject };
+
 @singleton()
 export class SettingsEngine {
     // #region Properties (1)
 
-    private readonly _settings = DefaultSettings;
+    private readonly _defaultSettings = DefaultSettings;
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _sessionSettings = ['commitParameters', 'commitSettings', 'controlNames', 'controlOrder', 'parametersHidden'];
@@ -31,7 +36,7 @@ export class SettingsEngine {
      * @return {CameraSettings}
      */
     public get camera(): CameraSettings {
-		return this._settings.viewer.scene.camera;
+		return this._defaultSettings.viewer.scene.camera;
 	}
 
     /**
@@ -39,7 +44,7 @@ export class SettingsEngine {
      * @return {CameraOrbitControlsSettings}
      */
     public get cameraOrbitControls(): CameraOrbitControlsSettings {
-		return this._settings.viewer.scene.camera.controls.orbit;
+		return this._defaultSettings.viewer.scene.camera.controls.orbit;
 	}
 
     /**
@@ -47,7 +52,7 @@ export class SettingsEngine {
      * @return {CameraOrthographicControlsSettings}
      */
     public get cameraOrthographicControls(): CameraOrthographicControlsSettings {
-		return this._settings.viewer.scene.camera.controls.orthographic;
+		return this._defaultSettings.viewer.scene.camera.controls.orthographic;
 	}
 
     /**
@@ -55,7 +60,7 @@ export class SettingsEngine {
      * @return {GeneralSettings}
      */
     public get general(): GeneralSettings {
-		return this._settings;
+		return this._defaultSettings;
 	}
 
     /**
@@ -63,7 +68,7 @@ export class SettingsEngine {
      * @return {LightSettings}
      */
     public get lights(): LightSettings {
-		return this._settings.viewer.scene.lights;
+		return this._defaultSettings.viewer.scene.lights;
 	}
 
     /**
@@ -71,7 +76,7 @@ export class SettingsEngine {
      * @return {MaterialSettings}
      */
     public get material(): MaterialSettings {
-		return this._settings.viewer.scene.material;
+		return this._defaultSettings.viewer.scene.material;
 	}
 
     /**
@@ -79,7 +84,7 @@ export class SettingsEngine {
      * @return {RenderingSettings}
      */
     public get rendering(): RenderingSettings {
-		return this._settings.viewer.scene.render;
+		return this._defaultSettings.viewer.scene.render;
 	}
 
     /**
@@ -87,7 +92,7 @@ export class SettingsEngine {
      * @return {SceneSettings}
      */
     public get scene(): SceneSettings {
-		return this._settings.viewer.scene;
+		return this._defaultSettings.viewer.scene;
 	}
 
     private _fromJson(json: any, settings: any, sessionSettings: boolean = false) {
@@ -102,8 +107,28 @@ export class SettingsEngine {
     }
 
     public fromJson(json: any, sessionId: string) {
-        this._fromJson(json, this._settings, this._stateEngine.firstSettingsRegistered.resolved);
+        console.log(json)
+        const objJSON = json ? new SettingsConversion().convert(json, '2.0') : json;
+        this._fromJson(objJSON, this._defaultSettings, this._stateEngine.firstSettingsRegistered.resolved);
         this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
+    }
+    private _toJson(settings: SettingsObject, json: any) {
+        for (let s in settings) {
+            if(settings[s] instanceof AbstractSetting) {
+                json[s] = settings[s].value;
+            } else {
+                if(!json[s]) json[s] = {};
+                this._toJson(<SettingsObject>settings[s], json[s])
+            }
+        }
+    }
+
+    public toJson(): any {
+        const json = {};
+        this._toJson(this._defaultSettings, json);
+        const objJSON = new SettingsConversion().convert(json, '2.0');
+
+        console.log(json, objJSON)
     }
 
     // #endregion Public Accessors (8)

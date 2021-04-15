@@ -23,7 +23,7 @@ export class OrthographicCamera extends AbstractCamera {
     constructor(id: string, _canvas: HTMLCanvasElement) {
         super(id, CAMERATYPE.ORTHOGRAPHIC);
         this._controls = new OrthographicCameraControls(this, _canvas, true);
-        const initSettings = () => {
+        const applySettings = () => {
             let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.position);
             let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.target);
             if (vec3.equals(position, target)) {
@@ -33,11 +33,7 @@ export class OrthographicCamera extends AbstractCamera {
             this.position = position;
             this.target = target;
         };
-        if (this._stateEngine.firstSettingsRegistered.resolved === true) {
-            initSettings();
-        } else {
-            this._stateEngine.firstSettingsRegistered.then(() => initSettings());
-        }
+        this._stateEngine.firstSettingsRegistered.then(() => applySettings());
     }
 
     // #endregion Constructors (1)

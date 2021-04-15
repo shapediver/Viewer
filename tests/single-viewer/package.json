@@ -43,6 +43,6 @@
     "testEnvironment": "jsdom"
   },
   "dependencies": {
-    "@shapediver/viewer": "^0.1.0"
+    "@shapediver/viewer": "*"
   }
 }

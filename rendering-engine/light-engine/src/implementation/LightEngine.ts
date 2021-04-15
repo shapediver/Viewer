@@ -28,11 +28,7 @@ export class LightEngine implements ILightEngine {
 
     constructor() {
         this.createLightScene({ id: 'default', standard: true });
-        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
-            this.setFromSettings();
-        } else {
-            this._stateEngine.firstSettingsRegistered.then(() => this.setFromSettings());
-        }
+        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
     // #endregion Constructors (1)
@@ -122,7 +118,7 @@ export class LightEngine implements ILightEngine {
         return true;
     }
 
-    public setFromSettings(): void {
+    public applySettings(): void {
         const colorDecoder = (color: any): vec3 => {
             const c = this._converter.toColor(color);
             return vec3.fromValues(c[0], c[1], c[2]);

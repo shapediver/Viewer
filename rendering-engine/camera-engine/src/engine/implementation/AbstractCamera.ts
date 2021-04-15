@@ -32,11 +32,7 @@ export abstract class AbstractCamera implements ICamera {
     // #region Constructors (1)
 
     constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {
-        if (this._stateEngine.firstSettingsRegistered.resolved === true) {
-            this.applySettings();
-        } else {
-            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
-        }
+        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
     // #endregion Constructors (1)

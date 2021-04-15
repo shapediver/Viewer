@@ -16,7 +16,6 @@ export const DefaultSettings = {
     },
     viewer: {
         blurSceneWhenBusy: <ISetting<boolean>> new BooleanSetting(true, 'Blur or don\'t blur the scene while a process is busy'),
-        loggingLevel: <ISetting<number>> new NumberSetting(-1, 'Level of log messages shown on the console, allowed values: -1 (none), 0 (error), 1 (warn), 2 (info), 3 (debug)', (value: number) => value >= -1 && value <=3),
         showMessages: <ISetting<boolean>> new BooleanSetting(true, 'Show or don\'t show user messages in the viewport'),
         commitParameters: <ISetting<boolean>> new BooleanSetting(false, 'Use or don\'t commit mode for parameters'),
         commitSettings: <ISetting<boolean>> new BooleanSetting(false, 'Use or don\'t commit mode for settings'),

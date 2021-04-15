@@ -6,9 +6,10 @@ export {
 }
 
 import { SettingsEngine } from "./settings-engine/implementation/SettingsEngine";
+import { ISettingsUser } from "./settings-engine/interfaces/ISettingsUser";
 
 export {
-    SettingsEngine
+    SettingsEngine, ISettingsUser
 }
 
 import { StateEngine } from "./state-engine/StateEngine";

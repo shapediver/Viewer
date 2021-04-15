@@ -44,6 +44,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   constructor(properties: { id: string, canvas: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }) {
     this.#renderingEngine = new RenderingEngineThreejs(properties);
+    container.registerInstance('renderingEngine', this.#renderingEngine);
 
     // default camera
     const camera = this.createCamera(CAMERATYPE.PERSPECTIVE);
@@ -306,8 +307,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public set lightScene(value: string) {
     this.#inputValidator.validate(value, 'string');
-    this.#renderingEngine.lightScene = value;
-    this.#logger.info(`Viewer (${this.id}): lightScene was set to: ${value}`);
+    if(this.assignLightScene(value)) {
+      this.#renderingEngine.lightScene = value;
+      this.#logger.info(`Viewer (${this.id}): lightScene was set to: ${value}`);
+    }
   }
 
   /**
@@ -517,6 +520,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(id, 'string');
     const r = this.#renderingEngine.lightEngine.assignLightScene(id);
     this.update();
+    if(r) this.lightScene = id;
     if(r) this.#logger.info(`Viewer (${this.id}): Assigned light scene with id ${id}.`);
     if(!r) this.#logger.info(`Viewer (${this.id}): Could not assign light scene with id ${id}.`);
     return r;

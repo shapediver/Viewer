@@ -40,11 +40,7 @@ export class PerspectiveCameraControls extends AbstractCameraControls {
         super(camera, canvas, enabled, CAMERATYPE.PERSPECTIVE);
         this._cameraLogic = new OrbitCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
-        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
-            this.applySettings();
-        } else {
-            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
-        }
+        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
     private applySettings() {

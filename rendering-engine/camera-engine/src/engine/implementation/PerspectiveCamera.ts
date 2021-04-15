@@ -21,7 +21,7 @@ export class PerspectiveCamera extends AbstractCamera {
   constructor(id: string, _canvas: HTMLCanvasElement) {
     super(id, CAMERATYPE.PERSPECTIVE);
     this._controls = new PerspectiveCameraControls(this, _canvas, true);
-    const initSettings = () => {
+    const applySettings = () => {
       let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.position);
       let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target);
       if (vec3.equals(position, target)) {
@@ -32,11 +32,7 @@ export class PerspectiveCamera extends AbstractCamera {
       this.target = target;
       this.fov = this._settingsEngine.camera.cameraTypes.perspective.fov.value;
     };
-    if (this._stateEngine.firstSettingsRegistered.resolved === true) {
-      initSettings();
-    } else {
-      this._stateEngine.firstSettingsRegistered.then(() => initSettings());
-    }
+    this._stateEngine.firstSettingsRegistered.then(() => applySettings());
   }
 
   // #endregion Constructors (1)

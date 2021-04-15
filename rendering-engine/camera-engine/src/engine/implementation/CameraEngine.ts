@@ -25,11 +25,7 @@ export class CameraEngine implements ICameraEngine {
     // #region Constructors (1)
 
     constructor(private readonly _canvas: Canvas, private readonly _domEventEngine: DomEventEngine) {
-        if (this._stateEngine.firstSettingsRegistered.resolved === true) {
-            this.applySettings();
-        } else {
-            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
-        }
+        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
     private applySettings() {

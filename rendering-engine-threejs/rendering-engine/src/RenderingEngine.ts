@@ -2,7 +2,7 @@ import { vec3, vec4 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe'
 
-import { CameraEngine, ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { CameraEngine, CAMERATYPE, ICameraEngine, OrthographicCameraControls, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Tree } from '@shapediver/viewer.shared.node-tree';
 
@@ -119,11 +119,7 @@ export class RenderingEngine implements IRenderingEngine {
         }
 
         this._stateEngine.boundingBoxCreated.then(() => this.init());
-        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
-            this.applySettings();
-        } else {
-            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
-        }
+        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
     // #endregion Constructors (1)
@@ -594,6 +590,83 @@ export class RenderingEngine implements IRenderingEngine {
         let bs = bb.boundingSphere;
         this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
         this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+    }
+
+
+    public saveSettings() {
+        this._settingsEngine.general.viewer.blurSceneWhenBusy.value = this.blurSceneWhenBusy;
+        // FIXME
+        // this._settingsEngine.scene.showSceneTransition.value = (this.showSceneTransition / 1000) + 's';
+        this._settingsEngine.scene.gridVisibility.value = this.gridVisibility;
+        this._settingsEngine.scene.groundPlaneVisibility.value = this.groundPlaneVisibility;
+        this._settingsEngine.scene.lights.lightScene.value = this.lightScene;
+        this._settingsEngine.scene.material.environmentMapResolution.value = this.environmentMapResolution;
+        this._settingsEngine.scene.material.environmentMap.value = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
+        this._settingsEngine.scene.material.environmentMapAsBackground.value = this.environmentMapAsBackground;
+        this._settingsEngine.scene.render.ambientOcclusion.value = this.ambientOcclusion;
+        this._settingsEngine.scene.render.beautyRenderBlendingDuration.value = this.beautyRenderBlendingDuration;
+        this._settingsEngine.scene.render.beautyRenderDelay.value = this.beautyRenderDelay;
+        this._settingsEngine.scene.render.clearAlpha.value = this.clearAlpha;
+        this._settingsEngine.scene.render.clearColor.value = this.clearColor.toString();
+        this._settingsEngine.scene.render.pointSize.value = this.pointSize;
+        this._settingsEngine.scene.render.shadows.value = this.shadows;
+
+
+        const camera = this.cameraEngine.getCamera();
+        if(camera) {
+            this._settingsEngine.scene.camera.autoAdjust.value = camera.autoAdjust;
+            this._settingsEngine.scene.camera.cameraMovementDuration.value = camera.cameraMovementDuration;
+            this._settingsEngine.scene.camera.enableCameraControls.value = camera.enableCameraControls;
+            this._settingsEngine.scene.camera.revertAtMouseUp.value = camera.revertAtMouseUp;
+            this._settingsEngine.scene.camera.revertAtMouseUpDuration.value = camera.revertAtMouseUpDuration;
+            this._settingsEngine.scene.camera.zoomExtentsFactor.value = camera.zoomExtentsFactor;
+            
+            if(camera.type === CAMERATYPE.PERSPECTIVE) {
+                this._settingsEngine.scene.camera.cameraTypes.active.value = 0;
+                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.position = camera.defaultPosition;
+                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.target = camera.defaultTarget;
+                this._settingsEngine.scene.camera.cameraTypes.perspective.fov.value = (<PerspectiveCamera>camera).fov;
+
+                const controls = <PerspectiveCameraControls>camera.controls;
+                this._settingsEngine.scene.camera.controls.orbit.autoRotationSpeed.value = controls.autoRotationSpeed;
+                this._settingsEngine.scene.camera.controls.orbit.damping.value = controls.damping;
+                this._settingsEngine.scene.camera.controls.orbit.enableAutoRotation.value = controls.enableAutoRotation;
+                this._settingsEngine.scene.camera.controls.orbit.enableKeyPan.value = controls.enableKeyPan;
+                this._settingsEngine.scene.camera.controls.orbit.enablePan.value = controls.enablePan;
+                this._settingsEngine.scene.camera.controls.orbit.enableRotation.value = controls.enableRotation;
+                this._settingsEngine.scene.camera.controls.orbit.enableZoom.value = controls.enableZoom;
+                this._settingsEngine.scene.camera.controls.orbit.input.value = controls.input;
+                this._settingsEngine.scene.camera.controls.orbit.keyPanSpeed.value = controls.keyPanSpeed;
+                this._settingsEngine.scene.camera.controls.orbit.movementSmoothness.value = controls.movementSmoothness;
+                this._settingsEngine.scene.camera.controls.orbit.rotationSpeed.value = controls.rotationSpeed;
+                this._settingsEngine.scene.camera.controls.orbit.panSpeed.value = controls.panSpeed;
+                this._settingsEngine.scene.camera.controls.orbit.zoomSpeed.value = controls.zoomSpeed;
+
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.position.cube.value = controls.cubePositionRestriction;
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.position.sphere.value = controls.spherePositionRestriction;
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.target.cube.value = controls.cubePositionRestriction;
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.target.sphere.value = controls.spherePositionRestriction;
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.rotation.value = controls.rotationRestriction;
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.zoom.value = controls.zoomRestriction;
+
+            } else {
+                // TODO
+                this._settingsEngine.scene.camera.cameraTypes.active.value = 1;
+                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = camera.defaultPosition;
+                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target = camera.defaultTarget;
+                
+                const controls = <OrthographicCameraControls>camera.controls;
+                this._settingsEngine.scene.camera.controls.orbit.damping.value = controls.damping;
+                this._settingsEngine.scene.camera.controls.orbit.enableKeyPan.value = controls.enableKeyPan;
+                this._settingsEngine.scene.camera.controls.orbit.enablePan.value = controls.enablePan;
+                this._settingsEngine.scene.camera.controls.orbit.enableZoom.value = controls.enableZoom;
+                this._settingsEngine.scene.camera.controls.orbit.input.value = controls.input;
+                this._settingsEngine.scene.camera.controls.orbit.keyPanSpeed.value = controls.keyPanSpeed;
+                this._settingsEngine.scene.camera.controls.orbit.movementSmoothness.value = controls.movementSmoothness;
+                this._settingsEngine.scene.camera.controls.orbit.panSpeed.value = controls.panSpeed;
+                this._settingsEngine.scene.camera.controls.orbit.zoomSpeed.value = controls.zoomSpeed;
+            }
+        }
     }
 
     // #endregion Private Methods (2)

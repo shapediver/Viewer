@@ -38,7 +38,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer": "^0.1.0",
+    "@shapediver/viewer": "*",
     "reflect-metadata": "^0.1.13"
   }
 }

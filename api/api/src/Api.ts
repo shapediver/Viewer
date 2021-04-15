@@ -30,22 +30,6 @@ export class Api {
    */
   constructor() {
     this.#stateEngine.firstSettingsRegistered.then(() => {
-      switch (this.#settingsEngine.general.viewer.loggingLevel.value) {
-        case 0:
-          this.#logger.loggingLevel = LOGGINGLEVEL.ERROR;
-          break;
-        case 1:
-          this.#logger.loggingLevel = LOGGINGLEVEL.WARN;
-          break;
-        case 2:
-          this.#logger.loggingLevel = LOGGINGLEVEL.INFO;
-          break;
-        case 3:
-          this.#logger.loggingLevel = LOGGINGLEVEL.DEBUG;
-          break;
-        default:
-          this.#logger.loggingLevel = LOGGINGLEVEL.NONE;
-      }
       this.#logger.showMessages = this.#settingsEngine.general.viewer.showMessages.value;
     })
   }
@@ -95,6 +79,7 @@ export class Api {
   public set showMessages(value: boolean) {
     this.#inputValidator.validate(value, 'boolean');
     this.#logger.showMessages = value;
+    this.#settingsEngine.general.viewer.showMessages.value = this.#logger.showMessages;
     this.#logger.info(`ShowMessages was set to: ${value}`);
   }
 

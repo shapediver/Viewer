@@ -13,6 +13,7 @@ import { FileParameter } from "./parameters/FileParameter";
 import { BooleanParameter } from "./parameters/BooleanParameter";
 import { NumberParameter } from "./parameters/NumberParameter";
 import { StringParameter } from "./parameters/StringParameter";
+import { RenderingEngine } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 
 @injectable()
 export class Session implements ISession {
@@ -60,7 +61,7 @@ export class Session implements ISession {
         this.#sessionEngine = new SessionEngine(properties);
         this.#stateEngine.createCustomState(this.id + '_settings_registered');
 
-        if(properties.loadDefaultSettings !== false)
+        if (properties.loadDefaultSettings !== false)
             this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
                 this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
                 this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
@@ -260,7 +261,7 @@ export class Session implements ISession {
         this.#node = await this.#sessionEngine.customize();
         (<Tree>container.resolve(Tree)).addNode(this.#node);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
-        if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
         this.#logger.info(`Session (${this.id}): Session customized.`);
         return this.#node;
     }
@@ -274,8 +275,8 @@ export class Session implements ISession {
     public getExport(id: string): Export | null {
         this.#inputValidator.validate(id, 'string');
         const exportLogic = this.#sessionEngine.getExport(id);
-        if(!exportLogic) return null;
-        if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
+        if (!exportLogic) return null;
+        if (!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
         return this.#exports[id];
     }
 
@@ -288,8 +289,8 @@ export class Session implements ISession {
     public getExportById(id: string): Export | null {
         this.#inputValidator.validate(id, 'string');
         const exportLogic = this.#sessionEngine.getExportById(id);
-        if(!exportLogic) return null;
-        if(!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
+        if (!exportLogic) return null;
+        if (!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
         return this.#exports[id];
     }
 
@@ -303,8 +304,8 @@ export class Session implements ISession {
         this.#inputValidator.validate(name, 'string');
         const exportLogic = this.#sessionEngine.getExportByName(name);
         const exports: Export[] = [];
-        for(let i = 0; i < exportLogic.length; i++) {
-            if(!this.#exports[exportLogic[i].id]) this.#exports[exportLogic[i].id] = new Export(exportLogic[i]);
+        for (let i = 0; i < exportLogic.length; i++) {
+            if (!this.#exports[exportLogic[i].id]) this.#exports[exportLogic[i].id] = new Export(exportLogic[i]);
             exports.push(this.#exports[exportLogic[i].id]);
         }
         return exports;
@@ -320,8 +321,8 @@ export class Session implements ISession {
         this.#inputValidator.validate(type, 'string');
         const exportLogic = this.#sessionEngine.getExportByType(type);
         const exports: Export[] = [];
-        for(let i = 0; i < exportLogic.length; i++){
-            if(!this.#exports[exportLogic[i].id]) this.#exports[exportLogic[i].id] = new Export(exportLogic[i]);
+        for (let i = 0; i < exportLogic.length; i++) {
+            if (!this.#exports[exportLogic[i].id]) this.#exports[exportLogic[i].id] = new Export(exportLogic[i]);
             exports.push(this.#exports[exportLogic[i].id]);
         }
         return exports;
@@ -333,11 +334,11 @@ export class Session implements ISession {
      * 
      * @returns 
      */
-    public getExports(): { [key: string]: Export; } {        
+    public getExports(): { [key: string]: Export; } {
         const exportLogic = this.#sessionEngine.getExports();
         const exports: { [key: string]: Export; } = {};
-        for(let e in exportLogic) {
-            if(!this.#exports[exportLogic[e].id]) this.#exports[exportLogic[e].id] = new Export(exportLogic[e]);
+        for (let e in exportLogic) {
+            if (!this.#exports[exportLogic[e].id]) this.#exports[exportLogic[e].id] = new Export(exportLogic[e]);
             exports[e] = this.#exports[exportLogic[e].id];
         }
         return exports;
@@ -349,11 +350,11 @@ export class Session implements ISession {
      * @param id the id of the output
      * @returns 
      */
-    public getOutput(id: string): Output | null {        
+    public getOutput(id: string): Output | null {
         this.#inputValidator.validate(id, 'string');
         const outputLogic = this.#sessionEngine.getOutput(id);
-        if(!outputLogic) return null;
-        if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
+        if (!outputLogic) return null;
+        if (!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
         return this.#outputs[id];
     }
 
@@ -366,8 +367,8 @@ export class Session implements ISession {
     public getOutputById(id: string): Output | null {
         this.#inputValidator.validate(id, 'string');
         const outputLogic = this.#sessionEngine.getOutputById(id);
-        if(!outputLogic) return null;
-        if(!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
+        if (!outputLogic) return null;
+        if (!this.#outputs[id]) this.#outputs[id] = new Output(outputLogic);
         return this.#outputs[id];
     }
 
@@ -381,8 +382,8 @@ export class Session implements ISession {
         this.#inputValidator.validate(name, 'string');
         const outputLogic = this.#sessionEngine.getOutputByName(name);
         const outputs: Output[] = [];
-        for(let i = 0; i < outputLogic.length; i++) {
-            if(!this.#outputs[outputLogic[i].id]) this.#outputs[outputLogic[i].id] = new Output(outputLogic[i]);
+        for (let i = 0; i < outputLogic.length; i++) {
+            if (!this.#outputs[outputLogic[i].id]) this.#outputs[outputLogic[i].id] = new Output(outputLogic[i]);
             outputs.push(this.#outputs[outputLogic[i].id]);
         }
         return outputs;
@@ -394,11 +395,11 @@ export class Session implements ISession {
      * 
      * @returns 
      */
-    public getOutputs(): { [key: string]: Output; } {       
+    public getOutputs(): { [key: string]: Output; } {
         const outputLogic = this.#sessionEngine.getOutputs();
         const outputs: { [key: string]: Output; } = {};
-        for(let e in outputLogic){
-            if(!this.#outputs[outputLogic[e].id]) this.#outputs[outputLogic[e].id] = new Output(outputLogic[e]);
+        for (let e in outputLogic) {
+            if (!this.#outputs[outputLogic[e].id]) this.#outputs[outputLogic[e].id] = new Output(outputLogic[e]);
             outputs[e] = this.#outputs[outputLogic[e].id];
         }
         return outputs;
@@ -413,8 +414,8 @@ export class Session implements ISession {
     public getParameter(id: string): AbstractParameter<any> | null {
         this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameter(id);
-        if(!parameterLogic) return null;
-        if(!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
+        if (!parameterLogic) return null;
+        if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
         return this.#parameters[id];
     }
 
@@ -427,8 +428,8 @@ export class Session implements ISession {
     public getParameterById(id: string): AbstractParameter<any> | null {
         this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameterById(id);
-        if(!parameterLogic) return null;
-        if(!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
+        if (!parameterLogic) return null;
+        if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
         return this.#parameters[id];
     }
 
@@ -442,8 +443,8 @@ export class Session implements ISession {
         this.#inputValidator.validate(name, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByName(name);
         const parameters: AbstractParameter<any>[] = [];
-        for(let i = 0; i < parameterLogic.length; i++){
-            if(!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = this.#parameterCreation(parameterLogic[i]);
+        for (let i = 0; i < parameterLogic.length; i++) {
+            if (!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = this.#parameterCreation(parameterLogic[i]);
             parameters.push(this.#parameters[parameterLogic[i].id]);
         }
         return parameters;
@@ -459,8 +460,8 @@ export class Session implements ISession {
         this.#inputValidator.validate(type, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByType(type);
         const parameters: AbstractParameter<any>[] = [];
-        for(let i = 0; i < parameterLogic.length; i++){
-            if(!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = this.#parameterCreation(parameterLogic[i]);
+        for (let i = 0; i < parameterLogic.length; i++) {
+            if (!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = this.#parameterCreation(parameterLogic[i]);
             parameters.push(this.#parameters[parameterLogic[i].id]);
         }
         return parameters;
@@ -472,11 +473,11 @@ export class Session implements ISession {
      * 
      * @returns 
      */
-    public getParameters(): { [key: string]: AbstractParameter<any>; } {    
+    public getParameters(): { [key: string]: AbstractParameter<any>; } {
         const parameterLogic = this.#sessionEngine.getParameters();
         const parameters: { [key: string]: AbstractParameter<any>; } = {};
-        for(let e in parameterLogic){
-            if(!this.#parameters[parameterLogic[e].id]) this.#parameters[parameterLogic[e].id] = this.#parameterCreation(parameterLogic[e]);
+        for (let e in parameterLogic) {
+            if (!this.#parameters[parameterLogic[e].id]) this.#parameters[parameterLogic[e].id] = this.#parameterCreation(parameterLogic[e]);
             parameters[e] = this.#parameters[parameterLogic[e].id];
         }
         return parameters;
@@ -489,12 +490,48 @@ export class Session implements ISession {
      * 
      * @returns 
      */
-    public async init(): Promise<TreeNode>  {
+    public async init(): Promise<TreeNode> {
         this.#node = await this.#sessionEngine.init();
         (<Tree>container.resolve(Tree)).addNode(this.#node);
-        if(container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
         this.#logger.info(`Session (${this.id}): Session initialized.`);
         return this.#node;
+    }
+
+    /**
+     * Save the settings that are currently used for this session.
+     * If there is multiple viewers, the first one will be used for the settings.
+     * 
+     * @param viewerId the optional viewer id
+     */
+    public async saveSettings(viewerId?: string) {
+        this.#settingsEngine.general.viewer.commitParameters.value = this.#commitParameters;
+        this.#settingsEngine.general.viewer.commitSettings.value = this.#commitSettings;
+        this.#settingsEngine.general.parameters.controlNames.value = this.#controlNames;
+        this.#settingsEngine.general.parameters.controlOrder.value = this.#controlOrder;
+        this.#settingsEngine.general.parameters.parametersHidden.value = this.#controlHidden;
+
+        if (container.isRegistered('viewer')) {
+            const viewers = (<Viewer[]>container.resolveAll('viewer'));
+            let viewer;
+            for(let i = 0; i < viewers.length; i++) 
+                if(viewers[i].id === viewerId) 
+                    viewer = viewers[i];
+            if(!viewer) 
+                viewer = viewers[0];
+
+            const renderingEngines = (<RenderingEngine[]>container.resolveAll('renderingEngine'));
+            let renderingEngine: RenderingEngine;
+            for(let i = 0; i < renderingEngines.length; i++) 
+                if(renderingEngines[i].id === viewer.id) 
+                    renderingEngine = renderingEngines[i];
+
+            renderingEngine!.saveSettings();
+
+            const json = this.#settingsEngine.toJson();
+            // TODO
+            // this.#sessionEngine.saveSettings(json);
+        }
     }
 
     // #endregion Public Methods (17)

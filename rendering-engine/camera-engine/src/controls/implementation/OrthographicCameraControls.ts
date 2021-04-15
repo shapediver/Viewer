@@ -31,11 +31,7 @@ export class OrthographicCameraControls extends AbstractCameraControls {
         super(camera, canvas, enabled, CAMERATYPE.ORTHOGRAPHIC);
         this._cameraLogic = new OrthographicCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrthographicCameraControlsEventDistribution(this, <OrthographicCameraControlsLogic>this._cameraLogic);
-        if(this._stateEngine.firstSettingsRegistered.resolved === true) {
-            this.applySettings();
-        } else {
-            this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
-        }
+        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
     private applySettings() {
