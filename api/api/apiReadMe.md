@@ -250,8 +250,8 @@ This just works as it would be two independent sessions.
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 3.0.2.0
-* __Build date:__ 2021-04-15T06:32:18.883Z
+* __Version:__ 3.0.2.2
+* __Build date:__ 2021-04-15T08:47:40.888Z
 * __Branch:__ development
-* __Commit:__ d61a2e84795a015e71de60ff392c24f388b54905
+* __Commit:__ 834b59ebd06004bc07d6c122a1c3e20e31c23d35
 <!--- VERSION_END -->

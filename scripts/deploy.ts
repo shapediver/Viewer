@@ -1,76 +1,124 @@
 import AWS from 'aws-sdk';
 import * as fs from 'fs';
+
 const recursiveReadSync = require('recursive-readdir-sync');
 const { exec } = require("child_process");
-const packageJson = require('../api/api/package.json');
+const readline = require('readline');
 
 const execPromise = (cmd: string) => {
     return new Promise((resolve, reject) => {
-        exec(cmd, (error: any, stdout:any) => {
-            if(!error && typeof stdout === 'string') resolve(stdout.replace('\n', ''));
+        exec(cmd, (error: any, stdout: any) => {
+            if (error) throw new Error(error);
+            if (!error && typeof stdout === 'string') resolve(stdout.replace('\n', ''));
         });
     });
 }
 
 (async () => {
-    const git_commit: string = <string>await execPromise('git rev-parse HEAD');
-    const git_branch: string = <string>await execPromise('git branch --show-current');
-    if(!git_branch || !git_commit) throw new Error('Could not get git branch or commit for deployment.');
-    const timestamp = new Date().toISOString();
+    try {
+        /**
+         * How do we increment the version?
+         */
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        let version;
+        await new Promise<void>((resolve) => {
+            rl.question('Which part of the version would you like to increment? (major, minor, patch)\n', (answer: string) => {
+                if (answer === 'major' || answer === 'minor' || answer === 'patch') {
+                    version = answer;
+                } else {
+                    throw new Error('Invalid version, has to be major, minor or patch.')
+                }
+                rl.close();
+                resolve();
+            });
+        });
 
-    fs.writeFileSync('build_data.ts', 'export const build_data = ' + JSON.stringify({
-        build_version: '3.' + packageJson.version,
-        build_date: timestamp,
-        build_branch: git_branch,
-        build_commit: git_commit
-    }, null, 0) + ';');
+        const changes = await execPromise(`git status --porcelain`);
+        if(changes) {
+            throw new Error(`Please stage and commit your files first.\n${changes}`);
+        } else {
+            console.log(changes);
+        }
 
-    const readmeVersion = `\n## Version\n* __Version:__ ${'3.' + packageJson.version}\n* __Build date:__ ${timestamp}\n* __Branch:__ ${git_branch}\n* __Commit:__ ${git_commit}\n`
-    let readme = fs.readFileSync('./api/api/apiReadMe.md', 'utf8');
-    readme = readme.replace( readme.substring(readme.indexOf('<!--- VERSION_START -->') + '<!--- VERSION_START -->'.length, readme.indexOf('<!--- VERSION_END -->')), readmeVersion)
-    fs.writeFileSync('./api/api/apiReadMe.md', readme, 'utf8');
+        /**
+         * Increase the version
+         */
+        const packageJson = require('../api/api/package.json');
+        const versions: string[] = packageJson.version.split('.');
+        const newVersion =  (+versions[0] + (version === 'major' ? 1 : 0)) + '.' + 
+                            (+versions[1] + (version === 'minor' ? 1 : 0)) + '.' + 
+                            (+versions[2] + (version === 'patch' ? 1 : 0));
 
-    await execPromise('npm run doc');
-    const bucketName = 'shapediverviewer';
-    const prefix = 'v3/' + packageJson.version + '/';
-    const s3 = new AWS.S3({ maxRetries: 5 });
+        const git_commit: string = <string>await execPromise('git rev-parse HEAD');
+        const git_branch: string = <string>await execPromise('git branch --show-current');
+        if (!git_branch || !git_commit) throw new Error('Could not get git branch or commit for deployment.');
+        const timestamp = new Date().toISOString();
 
-    const directoryPathStatic = 'examples/static/dist-prod/';
-    const fileContentsStatic = <string[]>recursiveReadSync(directoryPathStatic);
-    fileContentsStatic.map(function (f, cb) {
-        s3.putObject({
-            Bucket: bucketName,
-            Key: prefix + 'static/' + f.substring(directoryPathStatic.length, f.length).replace(/\\/g, '/'),
-            Body: fs.readFileSync(f),
-            ACL: 'public-read',
-            ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
-        }, (err) => { if(err) console.log(err)} );
-    });
+        fs.writeFileSync('api/api/src/build_data.ts', 'export const build_data = ' + JSON.stringify({
+            build_version: '3.' + newVersion,
+            build_date: timestamp,
+            build_branch: git_branch,
+            build_commit: git_commit
+        }, null, 0) + ';');
 
-    const directoryPathApi = 'docs/';
-    const fileContentsApi = <string[]>recursiveReadSync(directoryPathApi);
-    fileContentsApi.map(function (f, cb) {
-        s3.putObject({
-            Bucket: bucketName,
-            Key: prefix + 'api/' + f.substring(directoryPathApi.length, f.length).replace(/\\/g, '/'),
-            Body: fs.readFileSync(f),
-            ACL: 'public-read',
-            ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain'
-        }, (err) => { if(err) console.log(err)} );
-    });
+        const readmeVersion = `\n## Version\n* __Version:__ ${'3.' + newVersion}\n* __Build date:__ ${timestamp}\n* __Branch:__ ${git_branch}\n* __Commit:__ ${git_commit}\n`
+        let readme = fs.readFileSync('./api/api/apiReadMe.md', 'utf8');
+        readme = readme.replace(readme.substring(readme.indexOf('<!--- VERSION_START -->') + '<!--- VERSION_START -->'.length, readme.indexOf('<!--- VERSION_END -->')), readmeVersion)
+        fs.writeFileSync('./api/api/apiReadMe.md', readme, 'utf8');
+        
+        console.log(await execPromise('npm run build-current'));
+        console.log(await execPromise('npm run doc'));
 
-    const directoryPathNormal = 'examples/simple/dist-prod/';
-    const fileContentsNormal = <string[]>recursiveReadSync(directoryPathNormal);
-    fileContentsNormal.map(function (f, cb) {
-        s3.putObject({
-            Bucket: bucketName,
-            Key: prefix + f.substring(directoryPathNormal.length, f.length).replace(/\\/g, '/'),
-            Body: fs.readFileSync(f),
-            ACL: 'public-read',
-            ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
-        }, (err) => { if(err) console.log(err)} );
-    });
+        console.log(await execPromise('git add .'));
+        console.log(await execPromise('git commit -m "automatic pre-publishing commit"'));
 
-    await execPromise(`git tag -a v${'3.' + packageJson.version} -m "deployed viewer version ${'3.' + packageJson.version}"`);
-    await execPromise(`git push origin v${'3.' + packageJson.version}`);
+        console.log(await execPromise(`lerna publish ${version} --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
+
+
+        const bucketName = 'shapediverviewer';
+        const prefix = 'v3/' + newVersion + '/';
+        const s3 = new AWS.S3({ maxRetries: 5 });
+
+        const directoryPathStatic = 'examples/static/dist-prod/';
+        const fileContentsStatic = <string[]>recursiveReadSync(directoryPathStatic);
+        fileContentsStatic.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefix + 'static/' + f.substring(directoryPathStatic.length, f.length).replace(/\\/g, '/'),
+                Body: fs.readFileSync(f),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        const directoryPathApi = 'docs/';
+        const fileContentsApi = <string[]>recursiveReadSync(directoryPathApi);
+        fileContentsApi.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefix + 'api/' + f.substring(directoryPathApi.length, f.length).replace(/\\/g, '/'),
+                Body: fs.readFileSync(f),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        const directoryPathNormal = 'examples/simple/dist-prod/';
+        const fileContentsNormal = <string[]>recursiveReadSync(directoryPathNormal);
+        fileContentsNormal.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefix + f.substring(directoryPathNormal.length, f.length).replace(/\\/g, '/'),
+                Body: fs.readFileSync(f),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        await execPromise(`git tag -a v${'3.' + newVersion} -m "deployed viewer version ${'3.' + newVersion}"`);
+        await execPromise(`git push origin v${'3.' + newVersion}`);
+
+    } catch (e) {
+        console.log(e)
+    }
 })()
