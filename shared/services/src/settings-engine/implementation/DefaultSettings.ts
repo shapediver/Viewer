@@ -6,6 +6,7 @@ import { StringSetting } from './types/StringSetting';
 import { vec3 } from 'gl-matrix';
 
 export const DefaultSettings = {
+    build_date: <ISetting<string>> new StringSetting('', ''),
     build_version: <ISetting<string>> new StringSetting('', ''),
     settings_version: <ISetting<string>> new StringSetting('2.0', ''),
 

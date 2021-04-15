@@ -34,10 +34,9 @@ export class Session implements ISession {
     private _bearerToken?: string;
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
-        "X-ShapeDiver-ViewerId": '125295ae-3955-46f1-8b41-c2ce046111ec', // TODO
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
-        "X-ShapeDiver-BuildVersion": '3.0.0.0', // TODO
-        "X-ShapeDiver-BuildDate": '2021-02-24T16:30:08.542Z', // TODO
+        "X-ShapeDiver-BuildVersion": '',
+        "X-ShapeDiver-BuildDate": ''
     }
 
     private _initialized: boolean = false;
@@ -53,11 +52,13 @@ export class Session implements ISession {
      * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
         this._id = properties.id;
         this._ticket = properties.ticket;
         this._modelViewUrl = properties.modelViewUrl;
         this._bearerToken = properties.bearerToken;
+        this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
+        this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
         this._loadDefaultSettings = properties.loadDefaultSettings || true;
         this._sessionResponse = new SessionResponse();
         this._outputLoader = new OutputLoader(this._sessionResponse);
@@ -101,7 +102,7 @@ export class Session implements ISession {
 
     // #endregion Public Accessors (8)
 
-    // #region Public Methods (19)
+    // #region Public Methods (20)
 
     public createOutput(id: string): Output {
         if (this._outputs[id] || this._outputsCreated[id]) {
@@ -307,10 +308,26 @@ export class Session implements ISession {
         }
     }
 
+    public async saveSettings(json: any): Promise<boolean> {
+        if(!this._sessionResponse.actions['configure']) {
+            this._logger.error('Session has to be in edit mode to be able to save the settings.');
+            return false;
+        }
+        try {
+            await this.sessionCommunication(this._sessionResponse.actions['configure'].href!, this._sessionResponse.actions['configure'].method!, json, 'application/json');
+            return true;
+        } catch (e) {
+            console.log(e)
+            this._logger.error('Saving of settings failed.', e, e.response && e.response.status ? e.response.status : null);
+            return false;
+        }
+    }
+
     public async sessionCommunication(href: string, method: string | 'post' | 'get', data: any, contentType?: string): Promise<AxiosResponse<any>> {
         let headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
         if (contentType) headers = Object.assign({ "Content-Type": contentType }, this._headers);
 
+        method = method.toLowerCase();
         if (method !== 'post' && method !== 'get') throw new Error('Method ' + method + ' not recognized.');
         try {
             return await this._httpClient[method](href, { data, headers });
@@ -335,7 +352,7 @@ export class Session implements ISession {
         }
     }
 
-    // #endregion Public Methods (19)
+    // #endregion Public Methods (20)
 
     // #region Private Methods (3)
 

@@ -6,6 +6,9 @@ import { PerspectiveCamera } from "../../../api/api/node_modules/@shapediver/vie
 import { getPage, screenshotCompare } from "./setup"
 
 describe('Settings Tests', () => {
+    it('build_date', async () => {
+        // TODO
+    });
     it('build_version', async () => {
         // TODO
     });

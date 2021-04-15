@@ -14,6 +14,7 @@ import { BooleanParameter } from "./parameters/BooleanParameter";
 import { NumberParameter } from "./parameters/NumberParameter";
 import { StringParameter } from "./parameters/StringParameter";
 import { RenderingEngine } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
+import { build_data } from "../build_data";
 
 @injectable()
 export class Session implements ISession {
@@ -58,7 +59,7 @@ export class Session implements ISession {
      */
     constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
         this.#node = new TreeNode(properties.id)
-        this.#sessionEngine = new SessionEngine(properties);
+        this.#sessionEngine = new SessionEngine(Object.assign({ buildDate: build_data.build_date, buildVersion: build_data.build_version }, properties));
         this.#stateEngine.createCustomState(this.id + '_settings_registered');
 
         if (properties.loadDefaultSettings !== false)
@@ -510,6 +511,9 @@ export class Session implements ISession {
         this.#settingsEngine.general.parameters.controlNames.value = this.#controlNames;
         this.#settingsEngine.general.parameters.controlOrder.value = this.#controlOrder;
         this.#settingsEngine.general.parameters.parametersHidden.value = this.#controlHidden;
+        this.#settingsEngine.general.build_version.value = build_data.build_version;
+        this.#settingsEngine.general.build_date.value = build_data.build_date;
+        this.#settingsEngine.general.settings_version.value = '2.0';
 
         if (container.isRegistered('viewer')) {
             const viewers = (<Viewer[]>container.resolveAll('viewer'));
@@ -529,8 +533,7 @@ export class Session implements ISession {
             renderingEngine!.saveSettings();
 
             const json = this.#settingsEngine.toJson();
-            // TODO
-            // this.#sessionEngine.saveSettings(json);
+            this.#sessionEngine.saveSettings(json);
         }
     }
 

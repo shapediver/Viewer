@@ -6,6 +6,8 @@ import { ISetting } from '../interfaces/ISetting';
 import { DefaultSettings } from './DefaultSettings';
 import { SettingsConversion } from './shapedivernodemodule-viewersettings/SettingsConversion';
 import { AbstractSetting } from './types/AbstractSetting';
+import { CustomSetting } from './types/CustomSetting';
+import { Vec3Setting } from './types/Vec3Setting';
 
 type GeneralSettings = typeof DefaultSettings;
 type SceneSettings = typeof DefaultSettings.viewer.scene;
@@ -115,7 +117,19 @@ export class SettingsEngine {
     private _toJson(settings: SettingsObject, json: any) {
         for (let s in settings) {
             if(settings[s] instanceof AbstractSetting) {
-                json[s] = settings[s].value;
+                if(settings[s] instanceof Vec3Setting) {
+                    json[s] = { x: settings[s].value[0] || 0, y: settings[s].value[1] || 0, z: settings[s].value[2] || 0 };
+                } else if (settings[s] instanceof CustomSetting) {
+                    json[s] = settings[s].value;
+                    if(settings[s].value.min) json[s].min = { x: settings[s].value.min[0] || 0, y: settings[s].value.min[1] || 0, z: settings[s].value.min[2] || 0 };
+                    if(settings[s].value.max) json[s].max = { x: settings[s].value.max[0] || 0, y: settings[s].value.max[1] || 0, z: settings[s].value.max[2] || 0 };
+                    if(settings[s].value.position) json[s].position = { x: settings[s].value.position[0] || 0, y: settings[s].value.position[1] || 0, z: settings[s].value.position[2] || 0 };
+                    if(settings[s].value.target) json[s].target = { x: settings[s].value.target[0] || 0, y: settings[s].value.target[1] || 0, z: settings[s].value.target[2] || 0 };
+                    if(settings[s].value.center) json[s].center = { x: settings[s].value.center[0] || 0, y: settings[s].value.center[1] || 0, z: settings[s].value.center[2] || 0 };
+                } else {
+                    json[s] = settings[s].value;
+                }
+
             } else {
                 if(!json[s]) json[s] = {};
                 this._toJson(<SettingsObject>settings[s], json[s])
@@ -126,9 +140,7 @@ export class SettingsEngine {
     public toJson(): any {
         const json = {};
         this._toJson(this._defaultSettings, json);
-        const objJSON = new SettingsConversion().convert(json, '2.0');
-
-        console.log(json, objJSON)
+        return new SettingsConversion().convert(json, '2.0');
     }
 
     // #endregion Public Accessors (8)

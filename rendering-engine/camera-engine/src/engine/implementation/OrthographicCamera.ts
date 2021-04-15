@@ -26,6 +26,8 @@ export class OrthographicCamera extends AbstractCamera {
         const applySettings = () => {
             let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.position);
             let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.target);
+            this.defaultPosition = vec3.clone(position);
+            this.defaultTarget = vec3.clone(target);
             if (vec3.equals(position, target)) {
                 position = vec3.fromValues(0, 1, 0);
                 target = vec3.create();

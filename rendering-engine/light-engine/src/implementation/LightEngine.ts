@@ -119,6 +119,8 @@ export class LightEngine implements ILightEngine {
     }
 
     public applySettings(): void {
+
+        // TODO also save light scenes
         const colorDecoder = (color: any): vec3 => {
             const c = this._converter.toColor(color);
             return vec3.fromValues(c[0], c[1], c[2]);
