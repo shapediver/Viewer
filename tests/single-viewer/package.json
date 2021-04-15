@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "keywords": [],
+  "private": true,
   "author": "Michael Oppitz <michael@shapediver.com>",
   "license": "polyform-noncommercial-1.0.0",
   "main": "dist/index.js",
