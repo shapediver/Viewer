@@ -71,5 +71,6 @@ const execPromise = (cmd: string) => {
         }, (err) => { if(err) console.log(err)} );
     });
 
-    const git_tag: string = <string>await execPromise(`git tag -a v${'3.' + packageJson.version} -m "deployed viewer version ${'3.' + packageJson.version}"`);
+    await execPromise(`git tag -a v${'3.' + packageJson.version} -m "deployed viewer version ${'3.' + packageJson.version}"`);
+    await execPromise(`git push origin v${'3.' + packageJson.version}`);
 })()
