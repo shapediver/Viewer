@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.camera-engine",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -37,11 +37,11 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.rendering-engine.canvas-engine": "^0.2.1",
-    "@shapediver/viewer.shared.math": "^0.2.1",
-    "@shapediver/viewer.shared.monitoring": "^0.2.1",
-    "@shapediver/viewer.shared.services": "^0.2.1",
-    "@shapediver/viewer.shared.utils": "^0.2.1",
+    "@shapediver/viewer.rendering-engine.canvas-engine": "^0.2.2",
+    "@shapediver/viewer.shared.math": "^0.2.2",
+    "@shapediver/viewer.shared.monitoring": "^0.2.2",
+    "@shapediver/viewer.shared.services": "^0.2.2",
+    "@shapediver/viewer.shared.utils": "^0.2.2",
     "@tweenjs/tween.js": "^18.6.4"
   }
 }
