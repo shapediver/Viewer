@@ -15,7 +15,7 @@ let viewer: Viewer, session: Session;
     api.update()
 }
 
-(<any>window).getParameters = (): { [key: string]: Parameter } => {
+(<any>window).getParameters = (): { [key: string]: Parameter<any> } => {
     return session.getParameters();
 }
 
