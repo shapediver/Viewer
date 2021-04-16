@@ -3,6 +3,126 @@
 
 ![logo](https://shapediver.com/imgs/logo-black.png "ShapeDiver")
 # Viewer API
+## Installation
+<details>
+
+### NPM installations
+
+First of all, you need to have a version of `npm` installed. We currently use version `7.7.6`, but any newer version should be fine.
+
+Then, let's call some `npm` tasks and install some dependencies. Go to an empty folder that you want to use and call these commands. Some might not be necessary for you if you are integrating the viewer into an existing setup.
+
+This command just initializes `npm` for this project and creates the `package.json` file that is needed.
+```bash
+npm init --yes
+```
+
+Then we install some development dependencies. The first one is `typescript`, as we are using TypeScript in this example, we also have to install the dependency for it.
+The next three are all dependencies for webpack, we get to that later on.
+```bash
+npm install --save-dev typescript webpack webpack-cli ts-loader
+```
+
+Then, we install the actual viewer dependency.
+```bash
+npm install --save @shapediver/viewer
+```
+
+### Adjusting Config Files
+
+First, we create a file called `tsconfig.json` in the root of the project and add this content to it.
+```json
+{
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "module": "es6",
+        "target": "es2015",
+        "moduleResolution": "node"
+    }
+}
+```
+
+Then, we create a `webpack.config.js` file in the root of the directory and again, add some content to it. Here the package `ts-loader` is used, as webpack normally doesn't work with TypeScript files.
+```javascript
+const path = require('path');
+
+module.exports = {
+  entry: './src/index.ts',
+  mode: 'production',
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+  },
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+};
+```
+
+### The First Example
+Let's now create our first example. For that we first need an HTML-Page on which we want to load our example. Therefore, we create an `index.html` file in the root of our project:
+```html
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ShapeDiver</title>
+</head>
+
+<body style="margin: 0px; overflow-y: hidden; ">
+    <div style="width: 100%; height: 100%;">
+        <canvas style="width: 100%; height: 100%;" id="canvas"></canvas>
+    </div>
+    <script type="module" src="./dist/bundle.js"></script>
+</body>
+
+</html>
+```
+This HTML-File only has a canvas in it and a script tag that will load our script once it is built.
+
+Now we create a `scr`-folder and add an `index.ts` file in it with the following contents:
+```typescript
+import "reflect-metadata"
+import { api } from "@shapediver/viewer"
+
+const modelViewUrl = ''; // PLEASE ADD YOUR MODEL VIEW URL HERE
+const ticket = ''; // PLEASE ADD YOUR TICKET HERE
+
+(async () => {
+    await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+    await api.createSession({ ticket, modelViewUrl });
+})();
+```
+This is already everything we need. We import `reflect-metadata` as this is need for some functionalities that we use. It should always be on top of the imports. Then we import the api from the viewer.
+
+Next we load a viewer by providing a canvas (we created one in the `index.html`) and then we load a session. Please note that you have to provide the necessary properties yourself here. See the comments in the example.
+
+### Build
+
+Now that we finished our example, we only need to build it to try it out. In our `package.json` we just need to add a small script for that. Currently there is only a `test` script in there, we now add a `build` script to make it look like this:
+```json
+"scripts": {
+  "build": "webpack",
+  "test": "echo \"Error: no test specified\" && exit 1"
+}
+```
+
+With this we now call the build command `npm run build` and see that a `dist` folder was created automatically.
+
+We are now done!
+
+To try this out, just create a simple [http-server](https://www.npmjs.com/package/http-server) in this folder and load the `index.html`.
+
+</details>
 
 ## Simple Examples
 <details>
