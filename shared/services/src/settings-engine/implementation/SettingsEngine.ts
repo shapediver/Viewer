@@ -109,11 +109,11 @@ export class SettingsEngine {
     }
 
     public fromJson(json: any, sessionId: string) {
-        console.log(json)
         const objJSON = json ? new SettingsConversion().convert(json, '2.0') : json;
         this._fromJson(objJSON, this._defaultSettings, this._stateEngine.firstSettingsRegistered.resolved);
         this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
     }
+    
     private _toJson(settings: SettingsObject, json: any) {
         for (let s in settings) {
             if(settings[s] instanceof AbstractSetting) {

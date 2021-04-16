@@ -317,7 +317,6 @@ export class Session implements ISession {
             await this.sessionCommunication(this._sessionResponse.actions['configure'].href!, this._sessionResponse.actions['configure'].method!, json, 'application/json');
             return true;
         } catch (e) {
-            console.log(e)
             this._logger.error('Saving of settings failed.', e, e.response && e.response.status ? e.response.status : null);
             return false;
         }
