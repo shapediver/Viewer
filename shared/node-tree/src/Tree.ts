@@ -1,3 +1,4 @@
+import { vec3 } from 'gl-matrix';
 import { singleton } from 'tsyringe'
 import { TreeNode } from './TreeNode';
 

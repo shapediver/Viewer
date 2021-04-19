@@ -15,21 +15,57 @@ export class Box implements IGeometry {
     // #region Constructors (1)
 
     constructor(
-        private _min: vec3 = vec3.create(), 
+        private _min: vec3 = vec3.create(),
         private _max: vec3 = vec3.create()
-        ) {}
+    ) { }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (5)
 
+    public intersect(origin: vec3, direction: vec3): number | null {
+        let tmin, tmax, txmin, txmax, tymin, tymax, tzmin, tzmax;
+
+        const invdirx = 1 / direction[0],
+            invdiry = 1 / direction[1],
+            invdirz = 1 / direction[2];
+
+        txmin = invdirx >= 0 ? (this.min[0] - origin[0]) * invdirx : (this.max[0] - origin[0]) * invdirx;
+        txmax = invdirx >= 0 ? (this.max[0] - origin[0]) * invdirx : (this.min[0] - origin[0]) * invdirx;
+        tmin = txmin;
+        tmax = txmax;
+
+        tymin = invdiry >= 0 ? (this.min[1] - origin[1]) * invdiry : (this.max[1] - origin[1]) * invdiry;
+        tymax = invdiry >= 0 ? (this.max[1] - origin[1]) * invdiry : (this.min[1] - origin[1]) * invdiry;
+
+        if ((tmin > tymax) || (tymin > tmax)) return null;
+
+        // These lines also handle the case where tmin or tmax is NaN
+        // (result of 0 * Infinity). x !== x returns true if x is NaN
+
+        if (tymin > tmin || tmin !== tmin) tmin = tymin;
+        if (tymax < tmax || tmax !== tmax) tmax = tymax;
+
+        tzmin = invdirz >= 0 ? (this.min[2] - origin[2]) * invdirz : (this.max[2] - origin[2]) * invdirz;
+        tzmax = invdirz >= 0 ? (this.max[2] - origin[2]) * invdirz : (this.min[2] - origin[2]) * invdirz;
+
+        if ((tmin > tzmax) || (tzmin > tmax)) return null;
+        if (tzmin > tmin || tmin !== tmin) tmin = tzmin;
+        if (tzmax < tmax || tmax !== tmax) tmax = tzmax;
+
+        //return point closest to the ray (positive side)
+        if (tmax < 0) return null;
+        return tmin >= 0 ? tmin : tmax;
+    };
+
+
     public get boundingSphere(): Sphere {
-        if(!(vec3.equals(this._boundingSphereState.min, this.min) && vec3.equals(this._boundingSphereState.max, this.max))) {
+        if (!(vec3.equals(this._boundingSphereState.min, this.min) && vec3.equals(this._boundingSphereState.max, this.max))) {
             this._boundingSphere.setFromBox(this);
             this._boundingSphereState = {
                 min: vec3.clone(this.min),
                 max: vec3.clone(this.max)
-            };        
+            };
         }
         return this._boundingSphere;
     }
@@ -68,7 +104,7 @@ export class Box implements IGeometry {
         return false;
         throw new Error('Method not implemented.');
     }
-    
+
     public clampPoint(point: vec3): vec3 {
         return point;
         throw new Error('Method not implemented.');
@@ -78,18 +114,18 @@ export class Box implements IGeometry {
         let minX = Infinity, minY = Infinity, minZ = Infinity;
         let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
-        for(let i = 0; i < array.length; i += 3) {
+        for (let i = 0; i < array.length; i += 3) {
             const x = array[i];
-            const y = array[i+1];
-            const z = array[i+2];
+            const y = array[i + 1];
+            const z = array[i + 2];
 
-            if ( x < minX ) minX = x;
-			if ( y < minY ) minY = y;
-			if ( z < minZ ) minZ = z;
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (z < minZ) minZ = z;
 
-			if ( x > maxX ) maxX = x;
-			if ( y > maxY ) maxY = y;
-			if ( z > maxZ ) maxZ = z;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+            if (z > maxZ) maxZ = z;
         }
 
         this.min = vec3.fromValues(minX, minY, minZ);
@@ -98,13 +134,13 @@ export class Box implements IGeometry {
     }
 
     public union(box: Box): Box {
-        if ( box.min[0] < this.min[0] ) this.min[0] = box.min[0];
-        if ( box.min[1] < this.min[1] ) this.min[1] = box.min[1];
-        if ( box.min[2] < this.min[2] ) this.min[2] = box.min[2];
+        if (box.min[0] < this.min[0]) this.min[0] = box.min[0];
+        if (box.min[1] < this.min[1]) this.min[1] = box.min[1];
+        if (box.min[2] < this.min[2]) this.min[2] = box.min[2];
 
-        if ( box.max[0] > this.max[0] ) this.max[0] = box.max[0];
-        if ( box.max[1] > this.max[1] ) this.max[1] = box.max[1];
-        if ( box.max[2] > this.max[2] ) this.max[2] = box.max[2];
+        if (box.max[0] > this.max[0]) this.max[0] = box.max[0];
+        if (box.max[1] > this.max[1]) this.max[1] = box.max[1];
+        if (box.max[2] > this.max[2]) this.max[2] = box.max[2];
         return this;
     }
 

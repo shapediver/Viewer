@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.data-engine.data-engine",
+  "name": "@shapediver/viewer.data-engine.html-element-anchor-engine",
   "version": "0.2.4",
   "description": "",
   "keywords": [],
@@ -12,9 +12,6 @@
   "files": [
     "dist"
   ],
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/shapediver"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shapediver/Viewer.git"
@@ -37,16 +34,14 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.data-engine.geometry-engine": "^0.2.4",
-    "@shapediver/viewer.data-engine.material-engine": "^0.2.4",
-    "@shapediver/viewer.data-engine.html-element-anchor-engine": "^0.2.4",
-    "@shapediver/viewer.sdtf.converter": "^0.2.4",
-    "@shapediver/viewer.sdtf.shared": "^0.2.4",
+    "@shapediver/viewer.shared.math": "^0.2.4",
     "@shapediver/viewer.shared.monitoring": "^0.2.4",
     "@shapediver/viewer.shared.node-tree": "^0.2.4",
     "@shapediver/viewer.shared.services": "^0.2.4",
     "@shapediver/viewer.shared.types": "^0.2.4",
+    "@shapediver/viewer.shared.utils": "^0.2.4",
     "gl-matrix": "^3.3.0",
     "tsyringe": "^4.5.0"
-  }
+  },
+  "devDependencies": {}
 }

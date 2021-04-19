@@ -3,18 +3,18 @@ import { Converter } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { CAMERATYPE } from "../interface/ICameraEngine";
 import { AbstractCamera } from "./AbstractCamera";
-import { vec3 } from "gl-matrix";
+import { mat4, vec2, vec3 } from "gl-matrix";
 import { PerspectiveCameraControls } from "../../controls/implementation/PerspectiveCameraControls";
 
 export class PerspectiveCamera extends AbstractCamera {
-  // #region Properties (5)
+  // #region Properties (3)
 
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
   private _aspect: number = 60;
   private _fov: number = 60;
 
-  // #endregion Properties (5)
+  // #endregion Properties (3)
 
   // #region Constructors (1)
 
@@ -74,4 +74,16 @@ export class PerspectiveCamera extends AbstractCamera {
   }
 
   // #endregion Public Accessors (4)
+
+  // #region Public Methods (1)
+
+  public project(pos: vec3): vec2 {
+    const m = mat4.targetTo(mat4.create(), this.position, this.target, vec3.fromValues(0, 0, 1));
+    const p = mat4.perspective(mat4.create(), this.fov / (180/Math.PI), this.aspect, this.near, this.far);
+    vec3.transformMat4(pos, pos, mat4.invert(m, m))
+    vec3.transformMat4(pos, pos, p)
+    return vec2.fromValues(pos[0], pos[1])
+  }
+
+  // #endregion Public Methods (1)
 }

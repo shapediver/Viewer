@@ -1,8 +1,8 @@
-import { vec3, vec4 } from 'gl-matrix';
+import { vec2, vec3, vec4 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe'
 
-import { CameraEngine, CAMERATYPE, ICameraEngine, OrthographicCameraControls, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { AbstractCamera, CameraEngine, CAMERATYPE, ICameraEngine, OrthographicCameraControls, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Tree } from '@shapediver/viewer.shared.node-tree';
 
@@ -18,6 +18,10 @@ import { Converter } from '@shapediver/viewer.shared.utils';
 import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader';
 import { GeometryLoader } from './loaders/GeometryLoader';
 import { LightLoader } from './loaders/LightLoader';
+import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader';
+import { ifError } from 'node:assert';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { GeometryData } from '@shapediver/viewer.shared.types';
 
 export class RenderingEngine implements IRenderingEngine {
     // #region Properties (39)
@@ -29,6 +33,7 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _environmentMapLoader: EnvironmentMapLoader;
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _geometryLoader: GeometryLoader;
+    private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
     private readonly _id: string;
     private readonly _lightEngine: LightEngine;
     private readonly _lightLoader: LightLoader;
@@ -71,6 +76,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._environmentMapLoader = new EnvironmentMapLoader(this);
         this._materialLoader = new MaterialLoader(this);
         this._geometryLoader = new GeometryLoader(this);
+        this._htmlElementAnchorLoader = new HTMLElementAnchorLoader(this);
         this._lightLoader = new LightLoader(this);
         this._visibility = properties.visibility;
 
@@ -305,6 +311,14 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     /**
+     * Getter htmlElementAnchorLoader
+     * @return {HTMLElementAnchorLoader}
+     */
+    public get htmlElementAnchorLoader(): HTMLElementAnchorLoader {
+        return this._htmlElementAnchorLoader;
+    }
+
+    /**
      * Getter gridVisibility
      * @return {boolean}
      */
@@ -495,6 +509,55 @@ export class RenderingEngine implements IRenderingEngine {
         this._renderingLogic.render();
     }
 
+    public trace(origin: vec3, direction: vec3, root: TreeNode = this._tree.root) {
+        const tracingData: { distance: number, data: GeometryData }[] = [];
+        const trace = (root: TreeNode) => {
+            for(let i = 0; i < root.data.length; i++) 
+              if(root.data[i] instanceof GeometryData) {
+                  const distance = (<GeometryData>root.data[i]).boundingBox.intersect(origin, direction);
+                  if(distance) tracingData.push({ distance, data: <GeometryData>root.data[i]})
+              }
+            for(let i = 0; i < root.children.length; i++)
+                trace(root.children[i]);
+        }
+        trace(root);
+
+        tracingData.sort((a: { distance: number, data: GeometryData }, b: { distance: number, data: GeometryData }) => {
+            return a.distance - b.distance;
+        })
+
+        return tracingData;
+    }
+
+    public convert3Dto2D(p: vec3): {
+        container: vec2, client: vec2, page: vec2, hidden: boolean
+    } {
+        const canvasPageCoordinates = this.canvas.canvasElement.getBoundingClientRect(),
+        width = this.canvas.canvasElement.width,
+        height = this.canvas.canvasElement.height;
+
+        const camera = this.cameraEngine.getCamera();
+        if(!camera) throw new Error('No camera is defined for this viewer.');
+
+        const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
+        const tracing = this.trace(camera.position, direction);
+        const pos: vec2 = (<AbstractCamera>camera).project(vec3.clone(p));
+
+        pos[0] = (pos[0] * (width / 2)) + (width / 2);
+        pos[1] = - (pos[1] * (height / 2)) + (height / 2);
+
+        // take care of correction by device pixel ratio
+        pos[0] = pos[0] / devicePixelRatio;
+        pos[1] = pos[1] / devicePixelRatio;
+
+        return {
+            hidden: tracing.length > 1 && tracing[0].distance > 0 && tracing[0].distance < Infinity && tracing[0].distance < vec3.distance(camera.position, p),
+            container: vec2.clone(pos),
+            client: vec2.fromValues(pos[0] + canvasPageCoordinates.left, pos[1] + canvasPageCoordinates.top),
+            page: vec2.fromValues(pos[0] + canvasPageCoordinates.left + window.pageXOffset, pos[1] + canvasPageCoordinates.top + window.pageYOffset)
+        };
+    }
+
     // #endregion Public Methods (2)
 
     // #region Private Methods (2)
@@ -513,8 +576,7 @@ export class RenderingEngine implements IRenderingEngine {
             // TODO
             this.blurSceneWhenBusy = this._settingsEngine.general.viewer.blurSceneWhenBusy.value;
             this.clearAlpha = this._settingsEngine.scene.render.clearAlpha.value;
-            const c = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
-            this.clearColor = vec3.fromValues(c[0], c[1], c[2]);
+            this.clearColor = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
             this.gridVisibility = this._settingsEngine.scene.gridVisibility.value;
             this.groundPlaneVisibility = this._settingsEngine.scene.groundPlaneVisibility.value;
             this.lightScene = this._settingsEngine.scene.lights.lightScene.value;

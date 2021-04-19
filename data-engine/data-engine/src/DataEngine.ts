@@ -6,10 +6,12 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Reader } from '@shapediver/viewer.sdtf.converter';
 import { TreeNodeConverter } from './TreeNodeConverter';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine';
 
 @singleton()
 export class DataEngine {
     private readonly _geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
+    private readonly _htmlElementAnchorEngine: HTMLElementAnchorEngine = <HTMLElementAnchorEngine>container.resolve(HTMLElementAnchorEngine);
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
@@ -18,12 +20,14 @@ export class DataEngine {
             this._logger.error('Invalid content was provided to data engine.');
             return new TreeNode();
         }
-        
+
         try {
             if (content.format === 'glb' || content.format === 'gltf') {
                 return await this._geometryEngine.loadContent(content);
             } else if (content.format === 'material') {
                 return await this._materialEngine.loadContent(content);
+            } else if (content.format === 'tag2d' || content.format === 'anchor') {
+                return await this._htmlElementAnchorEngine.loadContent(content);
             } else if (content.format === 'sdtf') {
                 const sdtfFile = await new Reader().readFromUri(content.href!);
                 if(!sdtfFile) return new TreeNode();

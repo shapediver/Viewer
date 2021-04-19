@@ -138,6 +138,8 @@ export class RenderingLogic {
         this._renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]), this._renderingEngine.clearAlpha);
         this._renderer.setSize(width, height);
 
+        this._renderingEngine.htmlElementAnchorLoader.adjustPositions()
+
         // beauty rendering is active
         if (this._beautyRenderer.beautyRenderingActive) {
             this._beautyRenderer.beautyRenderingDurationActive += deltaTime;

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { GeometryData, MaterialData } from '@shapediver/viewer.shared.types';
+import { GeometryData, HTMLElementAnchorData, MaterialData } from '@shapediver/viewer.shared.types';
 import { ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { SDObject } from './types/SDObject';
@@ -63,13 +63,12 @@ export class SceneTree {
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);
                 break;
             case data instanceof MaterialData:
-                // we only store it here to retrieve it for material assignment later on
-                // this._helper.addData(this.createMaterial(<SceneGraphMaterialData>data), dataChild);
                 break;
             case data instanceof AbstractLight:
                 this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild, this._scene, this._boundingBox);
-                // we only store it here to retrieve it for material assignment later on
-                // this._helper.addData(this.createMaterial(<SceneGraphMaterialData>data), dataChild);
+                break;
+            case data instanceof HTMLElementAnchorData:
+                this._renderingEngine.htmlElementAnchorLoader.load(<HTMLElementAnchorData>data);
                 break;
             default:
                 // if there is no valid conversion here, call the convertData of the implementation
