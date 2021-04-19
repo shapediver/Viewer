@@ -72,15 +72,15 @@ module.exports = {
 Let's now create our first example. For that we first need an HTML-Page on which we want to load our example. Therefore, we create an `index.html` file in the root of our project:
 ```html
 <!DOCTYPE html>
-<html>
+<html style="height: 100%">
 
 <head>
     <title>ShapeDiver</title>
 </head>
 
-<body style="margin: 0px; overflow-y: hidden; ">
+<body style="margin: 0px; overflow-y: hidden; height: 100%">
     <div style="width: 100%; height: 100%;">
-        <canvas style="width: 100%; height: 100%;" id="canvas"></canvas>
+        <canvas id="canvas" style="display: block"></canvas>
     </div>
     <script type="module" src="./dist/bundle.js"></script>
 </body>
