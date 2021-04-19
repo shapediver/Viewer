@@ -66,11 +66,6 @@ export class HTMLElementAnchorData extends AbstractTreeNodeData {
         if(data.alt) img.alt = data.alt;
     }
 
-    public sd(convert3Dto2D: (p: vec3) => vec2, ): void {
-        // get all necessary stuff, with update function
-
-    }
-
     /**
      * Creates a custom data node.
      * 

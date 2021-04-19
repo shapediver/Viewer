@@ -82,7 +82,7 @@ export class RenderingEngine implements IRenderingEngine {
 
         this._logoDivElement = document.createElement('div');
         this._logoDivElement.style.background = '#030531';
-        this._logoDivElement.style.position = 'absolute';
+        this._logoDivElement.style.position = 'relative';
         this._logoDivElement.style.height = '100%';
         this._logoDivElement.style.width = '100%';
         this._canvas.canvasElement.parentElement?.insertBefore(this._logoDivElement, this._canvas.canvasElement.parentElement?.firstChild);
