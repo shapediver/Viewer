@@ -121,10 +121,6 @@ export class LightEngine implements ILightEngine {
     public applySettings(): void {
 
         // TODO also save light scenes
-        const colorDecoder = (color: any): vec3 => {
-            const c = this._converter.toColor(color);
-            return vec3.fromValues(c[0], c[1], c[2]);
-        }
 
         for (let lightSceneId in this._settings.lightScenes.value) {
             const ls = new LightScene(lightSceneId);
@@ -133,20 +129,20 @@ export class LightEngine implements ILightEngine {
                 let l: AbstractLight;
                 switch (light.type) {
                     case 'directional':
-                        l = new DirectionalLight(colorDecoder(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.direction), light.properties.castShadow, 1024, -0.00175, lightId);
+                        l = new DirectionalLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.direction), light.properties.castShadow, 1024, -0.00175, lightId);
                         break;
                     case 'hemisphere':
-                        l = new HemisphereLight(colorDecoder(light.properties.skyColor), light.properties.intensity, colorDecoder(light.properties.groundColor), lightId);
+                        l = new HemisphereLight(this._converter.toColor(light.properties.skyColor), light.properties.intensity, this._converter.toColor(light.properties.groundColor), lightId);
                         break;
                     case 'point':
-                        l = new PointLight(colorDecoder(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), light.properties.distance, light.properties.decay, lightId);
+                        l = new PointLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), light.properties.distance, light.properties.decay, lightId);
                         break;
                     case 'spot':
-                        l = new SpotLight(colorDecoder(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), this._converter.toVec3(light.properties.target), light.properties.distance, light.properties.decay, light.properties.angle, light.properties.penumbra, lightId);
+                        l = new SpotLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), this._converter.toVec3(light.properties.target), light.properties.distance, light.properties.decay, light.properties.angle, light.properties.penumbra, lightId);
                         break;
                     case 'ambient':
                     default:
-                        l = new AmbientLight(colorDecoder(light.properties.color), light.properties.intensity, lightId);
+                        l = new AmbientLight(this._converter.toColor(light.properties.color), light.properties.intensity, lightId);
                 }
                 ls.addLight(l);
             }

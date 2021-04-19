@@ -5,4 +5,5 @@ export interface IGeometry {
     clampPoint(point: vec3): vec3;
     applyMatrix(matrix: mat4): IGeometry;
     clone(): IGeometry;
+    intersect(origin: vec3, direction: vec3): number | null;
 }

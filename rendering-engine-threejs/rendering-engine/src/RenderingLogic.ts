@@ -122,11 +122,11 @@ export class RenderingLogic {
         this._lastTime = time;
 
         if (!this._renderingEngine.cameraEngine.hasCamera()) return;
-        (<HTMLCanvasElement>document.getElementById('canvas')).width = window.innerWidth;
-        (<HTMLCanvasElement>document.getElementById('canvas')).height = window.innerHeight;
-        let width: number = window.innerWidth, height: number = window.innerHeight;
 
-        this._renderingEngine.logoDivElement.style.visibility = this._renderingEngine.show ? 'hidden' : 'visible';
+        let width = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientWidth;
+        let height = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientHeight;
+
+        this._renderingEngine.logoDivElement.style.display = this._renderingEngine.show ? 'none' : 'inherit';
 
         const camera = this.adjustCamera(deltaTime, width, height);
 
@@ -136,7 +136,26 @@ export class RenderingLogic {
         this._renderer.shadowMap.enabled = this._renderingEngine.shadows;
         this._renderingEngine.sceneTree.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         this._renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]), this._renderingEngine.clearAlpha);
-        this._renderer.setSize(width, height);
+        
+
+        const aspect = width / height;
+        let adjustedWidth = width,
+            adjustedHeight = height;
+        if(width > 1920 || height > 1080) {
+            if((width-1920) / aspect > (height-1080)) {
+                adjustedWidth = 1920;
+                adjustedHeight = 1920 / aspect;
+            } else {
+                adjustedWidth = 1080 * aspect;
+                adjustedHeight = 1080;
+            }
+        } 
+        this._renderer.setSize(adjustedWidth, adjustedHeight);
+
+        this._renderer.domElement.style.width = width + 'px';
+        this._renderer.domElement.style.height = height + 'px';
+
+        this._renderingEngine.htmlElementAnchorLoader.adjustPositions();
 
         // beauty rendering is active
         if (this._beautyRenderer.beautyRenderingActive) {

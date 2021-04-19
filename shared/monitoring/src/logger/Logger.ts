@@ -7,9 +7,9 @@ export enum LOGGINGLEVEL {
     WARN = 'warn',
     INFO = 'info',
     DEBUG = 'debug',
-    DEBUG_LOW = 'debug.low',
-    DEBUG_MEDIUM = 'debug.medium',
     DEBUG_HIGH = 'debug.high',
+    DEBUG_MEDIUM = 'debug.medium',
+    DEBUG_LOW = 'debug.low',
 }
 
 @singleton()
@@ -28,32 +28,72 @@ export class Logger {
      * @return {LOGGINGLEVEL}
      */
     public get loggingLevel(): LOGGINGLEVEL {
-		return this._loggingLevel;
-	}
+        return this._loggingLevel;
+    }
 
     /**
      * Setter loggingLevel
      * @param {LOGGINGLEVEL} value
      */
     public set loggingLevel(value: LOGGINGLEVEL) {
-		this._loggingLevel = value;
-	}
+        this._loggingLevel = value;
+    }
 
     /**
      * Getter showMessages
      * @return {boolean}
      */
     public get showMessages(): boolean {
-		return this._showMessages;
-	}
+        return this._showMessages;
+    }
 
     /**
      * Setter showMessages
      * @param {boolean} value
      */
     public set showMessages(value: boolean) {
-		this._showMessages = value;
-	}
+        this._showMessages = value;
+    }
+
+    private canLog(loggingLevel: LOGGINGLEVEL): boolean {
+        switch (this.loggingLevel) {
+            case LOGGINGLEVEL.ERROR:
+                if(loggingLevel === LOGGINGLEVEL.FATAL) return false;
+                if(loggingLevel === LOGGINGLEVEL.WARN) return false;
+                if(loggingLevel === LOGGINGLEVEL.INFO) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_HIGH) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
+            case LOGGINGLEVEL.FATAL:
+                if(loggingLevel === LOGGINGLEVEL.WARN) return false;
+                if(loggingLevel === LOGGINGLEVEL.INFO) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_HIGH) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
+            case LOGGINGLEVEL.WARN:
+                if(loggingLevel === LOGGINGLEVEL.INFO) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_HIGH) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
+            case LOGGINGLEVEL.INFO:
+                if(loggingLevel === LOGGINGLEVEL.DEBUG) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_HIGH) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
+            case LOGGINGLEVEL.DEBUG_HIGH:
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
+            case LOGGINGLEVEL.DEBUG_MEDIUM:
+                if(loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
+            case LOGGINGLEVEL.DEBUG_LOW:
+            case LOGGINGLEVEL.DEBUG:
+            default:
+                return true;
+        }
+    }
 
     // #endregion Public Accessors (4)
 
@@ -64,7 +104,7 @@ export class Logger {
      * @param msg the message
      */
     public debug(msg: string): void {
-        if((this.loggingLevel === LOGGINGLEVEL.DEBUG || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        if (this.canLog(LOGGINGLEVEL.DEBUG) && this.showMessages === true)
             console.debug('(DEBUG) ' + this.messageConstruction(msg));
     }
 
@@ -73,8 +113,8 @@ export class Logger {
      * @param msg the message
      */
     public debugHigh(msg: string): void {
-        if((this.loggingLevel === LOGGINGLEVEL.DEBUG_HIGH || this.loggingLevel === LOGGINGLEVEL.DEBUG || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
-            console.debug('(DEBUG_HIGH) ' + this.messageConstruction(msg));    
+        if (this.canLog(LOGGINGLEVEL.DEBUG_HIGH) && this.showMessages === true)
+            console.debug('(DEBUG_HIGH) ' + this.messageConstruction(msg));
     }
 
     /**
@@ -82,8 +122,8 @@ export class Logger {
      * @param msg the message
      */
     public debugLow(msg: string): void {
-        if((this.loggingLevel === LOGGINGLEVEL.DEBUG_LOW || this.loggingLevel === LOGGINGLEVEL.DEBUG || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
-            console.debug('(DEBUG_LOW) ' + this.messageConstruction(msg));    
+        if (this.canLog(LOGGINGLEVEL.DEBUG_LOW) && this.showMessages === true)
+            console.debug('(DEBUG_LOW) ' + this.messageConstruction(msg));
     }
 
     /**
@@ -91,8 +131,8 @@ export class Logger {
      * @param msg the message
      */
     public debugMedium(msg: string): void {
-        if((this.loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM || this.loggingLevel === LOGGINGLEVEL.DEBUG || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
-            console.debug('(DEBUG_MEDIUM) ' + this.messageConstruction(msg));    
+        if (this.canLog(LOGGINGLEVEL.DEBUG_MEDIUM) && this.showMessages === true)
+            console.debug('(DEBUG_MEDIUM) ' + this.messageConstruction(msg));
     }
 
     /**
@@ -100,11 +140,13 @@ export class Logger {
      * @param msg the message
      */
     public error(msg: string, error?: Error, httpError?: number): void {
-        if(httpError && error) {
+        if (httpError && error) {
             this.httpError(msg, error, httpError);
         } else {
-            if((this.loggingLevel === LOGGINGLEVEL.ERROR || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+            if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true) {
                 console.error('(ERROR) ' + this.messageConstruction(msg));
+                if(error) console.error(error);
+            }
         }
     }
 
@@ -113,7 +155,7 @@ export class Logger {
      * @param msg the message
      */
     public fatal(msg: string): void {
-        if((this.loggingLevel === LOGGINGLEVEL.FATAL || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        if (this.canLog(LOGGINGLEVEL.FATAL) && this.showMessages === true)
             console.error('(FATAL) ' + this.messageConstruction(msg));
     }
 
@@ -122,7 +164,7 @@ export class Logger {
      * @param msg the message
      */
     public info(msg: string): void {
-        if((this.loggingLevel === LOGGINGLEVEL.INFO || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        if (this.canLog(LOGGINGLEVEL.INFO) && this.showMessages === true)
             console.info('(INFO) ' + this.messageConstruction(msg));
     }
 
@@ -131,7 +173,7 @@ export class Logger {
      * @param msg the message
      */
     public warn(msg: string): void {
-        if((this.loggingLevel === LOGGINGLEVEL.WARN || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        if (this.canLog(LOGGINGLEVEL.WARN) && this.showMessages === true)
             console.warn('(WARN) ' + this.messageConstruction(msg));
     }
 
@@ -144,8 +186,8 @@ export class Logger {
      * @param msg the message
      */
     private httpError(msg: string, error: Error, httpError: number): void {
-        if(httpError.toString()[0] === '1') {
-            if((this.loggingLevel === LOGGINGLEVEL.INFO || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        if (httpError.toString()[0] === '1') {
+            if (this.canLog(LOGGINGLEVEL.INFO) && this.showMessages === true)
                 switch (httpError) {
                     case 100:
                         this.info(msg + '\n' + 'Http-Code ' + httpError + ': Continue. ' + error.message);
@@ -162,8 +204,8 @@ export class Logger {
                     default:
                         this.info(msg + '\n' + 'Http-Code ' + httpError + ': Unknown Informational Response. ' + error.message);
                 }
-        } else if(httpError.toString()[0] === '2') {
-            if((this.loggingLevel === LOGGINGLEVEL.INFO || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        } else if (httpError.toString()[0] === '2') {
+            if (this.canLog(LOGGINGLEVEL.INFO) && this.showMessages === true)
                 switch (httpError) {
                     case 200:
                         this.info(msg + '\n' + 'Http-Code ' + httpError + ': OK. ' + error.message);
@@ -198,8 +240,8 @@ export class Logger {
                     default:
                         this.info(msg + '\n' + 'Http-Code ' + httpError + ': Unknown Success Message. ' + error.message);
                 }
-        } else if(httpError.toString()[0] === '3') {
-            if((this.loggingLevel === LOGGINGLEVEL.WARN || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        } else if (httpError.toString()[0] === '3') {
+            if (this.canLog(LOGGINGLEVEL.WARN) && this.showMessages === true)
                 switch (httpError) {
                     case 300:
                         this.warn(msg + '\n' + 'Http-Code ' + httpError + ': Multiple Choices. ' + error.message);
@@ -231,8 +273,8 @@ export class Logger {
                     default:
                         this.warn(msg + '\n' + 'Http-Code ' + httpError + ': Unknown Redirection Error. ' + error.message);
                 }
-        } else if(httpError.toString()[0] === '4') {
-            if((this.loggingLevel === LOGGINGLEVEL.ERROR || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        } else if (httpError.toString()[0] === '4') {
+            if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true)
                 switch (httpError) {
                     case 400:
                         this.error(msg + '\n' + 'Http-Code ' + httpError + ': Bad Request. ' + error.message);
@@ -336,8 +378,8 @@ export class Logger {
                     default:
                         this.error(msg + '\n' + 'Http-Code ' + httpError + ': Unknown Client Error. ' + error.message);
                 }
-        } else if(httpError.toString()[0] === '5') {
-            if((this.loggingLevel === LOGGINGLEVEL.INFO || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+        } else if (httpError.toString()[0] === '5') {
+            if (this.canLog(LOGGINGLEVEL.INFO) && this.showMessages === true)
                 switch (httpError) {
                     case 500:
                         this.error(msg + '\n' + 'Http-Code ' + httpError + ': Internal Server Error. ' + error.message);
@@ -376,9 +418,9 @@ export class Logger {
                         this.error(msg + '\n' + 'Http-Code ' + httpError + ': Unknown Server Error. ' + error.message);
                 }
         } else {
-            if((this.loggingLevel === LOGGINGLEVEL.INFO || this.loggingLevel === LOGGINGLEVEL.NONE) && this.showMessages === true)
+            if (this.canLog(LOGGINGLEVEL.INFO) && this.showMessages === true)
                 this.error(msg + '\n' + 'Http-Code ' + httpError + ': Unknown Error Code. ' + error.message);
-        }    
+        }
     }
 
     private messageConstruction(msg: string): string {

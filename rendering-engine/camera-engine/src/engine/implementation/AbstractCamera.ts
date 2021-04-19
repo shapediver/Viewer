@@ -1,6 +1,6 @@
 import { ICameraControls } from '../../controls/interface/ICameraControls';
 import { ICamera } from '../interface/ICamera';
-import { mat4, vec3 } from 'gl-matrix';
+import { vec2, vec3 } from 'gl-matrix';
 import { CAMERATYPE } from '../interface/ICameraEngine';
 import { AbstractCameraControls } from '../../controls/implementation/AbstractCameraControls';
 import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services';
@@ -8,9 +8,6 @@ import { container } from 'tsyringe';
 
 export abstract class AbstractCamera implements ICamera {
     // #region Properties (15)
-
-    protected readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
@@ -22,6 +19,9 @@ export abstract class AbstractCamera implements ICamera {
     private _revertAtMouseUp: boolean = false;
     private _revertAtMouseUpDuration: number = 800;
     private _zoomExtentsFactor: number = 1;
+
+    protected readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     protected _controls!: AbstractCameraControls;
     protected _position: vec3 = vec3.create();
@@ -272,6 +272,12 @@ export abstract class AbstractCamera implements ICamera {
     }
 
     // #endregion Public Methods (1)
+
+    // #region Public Abstract Methods (1)
+
+    abstract project(p: vec3): vec2;
+
+    // #endregion Public Abstract Methods (1)
 
     // #region Private Methods (1)
 

@@ -5,10 +5,10 @@ import { singleton } from 'tsyringe';
 @singleton()
 export class Converter {
 
-    private tinyColorToVec3(color: TinyColor): vec4 {
-        if(color.r > 1 || color.b > 1 || color.g > 1 || color.a > 1)
-            return vec4.fromValues(color.r / 255, color.g / 255, color.b / 255, color.a / 255);
-        return vec4.fromValues(color.r, color.g, color.b, color.a);
+    private tinyColorToVec3(color: TinyColor): vec3 {
+        if(color.r > 1 || color.b > 1 || color.g > 1)
+            return vec3.fromValues(color.r / 255, color.g / 255, color.b / 255);
+        return vec3.fromValues(color.r, color.g, color.b);
     }
 
     /**
@@ -18,7 +18,7 @@ export class Converter {
      * @param color 
      * @param defColor 
      */
-    public toColor(color: any, defColor: vec4 = vec4.fromValues(1, 1, 1, 1)): vec4 {
+    public toColor(color: any, defColor: vec3 = vec3.fromValues(1, 1, 1)): vec3 {
         if (!color) return defColor;
 
         const tColor = new TinyColor(color);
@@ -108,6 +108,9 @@ export class Converter {
 
         if(((point.x || point.x === 0) && typeof point.x === 'number') && ((point.y || point.y === 0) && typeof point.y === 'number') && ((point.z || point.z === 0) && typeof point.z === 'number'))
             return vec3.fromValues(point.x, point.y, point.z);
+
+        if(((point.X || point.X === 0) && typeof point.X === 'number') && ((point.Y || point.Y === 0) && typeof point.Y === 'number') && ((point.Z || point.Z === 0) && typeof point.Z === 'number'))
+            return vec3.fromValues(point.X, point.Y, point.Z);
 
         return vec3.create();
     }
