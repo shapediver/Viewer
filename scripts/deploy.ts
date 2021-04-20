@@ -77,6 +77,7 @@ const execPromise = (cmd: string) => {
 
         const bucketName = 'shapediverviewer';
         const prefix = 'v3/' + newVersion + '/';
+        const prefixLatest = 'v3/latest/';
         const s3 = new AWS.S3({ maxRetries: 5 });
 
         const directoryPathStatic = 'examples/static/dist-prod/';
@@ -85,6 +86,36 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefix + 'static/' + f.substring(directoryPathStatic.length, f.length).replace(/\\/g, '/'),
+                Body: fs.readFileSync(f),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+            }, (err) => { if (err) console.log(err) });
+        });
+        fileContentsStatic.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + 'static/' + f.substring(directoryPathStatic.length, f.length).replace(/\\/g, '/'),
+                Body: fs.readFileSync(f),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        const directoryPathEmpty = 'examples/empty/dist-prod/';
+        const fileContentsEmpty = <string[]>recursiveReadSync(directoryPathEmpty);
+        fileContentsEmpty.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefix + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
+                Body: fs.readFileSync(f),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+            }, (err) => { if (err) console.log(err) });
+        });
+        fileContentsEmpty.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
                 Body: fs.readFileSync(f),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
@@ -102,6 +133,15 @@ const execPromise = (cmd: string) => {
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain'
             }, (err) => { if (err) console.log(err) });
         });
+        fileContentsApi.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + 'api/' + f.substring(directoryPathApi.length, f.length).replace(/\\/g, '/'),
+                Body: fs.readFileSync(f),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain'
+            }, (err) => { if (err) console.log(err) });
+        });
 
         const directoryPathNormal = 'examples/simple/dist-prod/';
         const fileContentsNormal = <string[]>recursiveReadSync(directoryPathNormal);
@@ -109,6 +149,15 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefix + f.substring(directoryPathNormal.length, f.length).replace(/\\/g, '/'),
+                Body: fs.readFileSync(f),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+            }, (err) => { if (err) console.log(err) });
+        });
+        fileContentsNormal.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + f.substring(directoryPathNormal.length, f.length).replace(/\\/g, '/'),
                 Body: fs.readFileSync(f),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'

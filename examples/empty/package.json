@@ -1,9 +1,9 @@
 {
-  "name": "@shapediver/viewer.tests.selenium",
+  "name": "@shapediver/viewer.examples.empty",
   "version": "0.0.0",
+  "private": true,
   "description": "",
   "keywords": [],
-  "private": true,
   "author": "Michael Oppitz <michael@shapediver.com>",
   "license": "polyform-noncommercial-1.0.0",
   "main": "dist/index.js",
@@ -13,15 +13,15 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/shapediver"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
   "scripts": {
-    "start": "npm start",
-    "test-script": "bash ../../scripts/test.sh",
-    "test-simple": "start-server-and-test 'http-server -c-1 --silent' 8080 'bash ../../scripts/test.sh'",
-    "test": "npm run build-prod && cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/selenium && npm run test-simple",
+    "test": "bash ../../scripts/test.sh",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
     "build-dep": "bash ../../scripts/build-dep.sh",
@@ -34,21 +34,17 @@
   "homepage": "https://github.com/shapediver/Viewer#readme",
   "typings": "dist/index.d.ts",
   "jest": {
-    "setupFilesAfterEnv": [
-      "./__tests__/setup.ts"
-    ],
-    "testPathIgnorePatterns": [
-      "setup.ts"
-    ],
-    "preset": "ts-jest",
-    "testEnvironment": "jsdom"
+    "preset": "jest-puppeteer",
+    "transform": {
+      "^.+\\.ts?$": "ts-jest"
+    }
   },
-  "devDependencies": {
+  "dependencies": {
     "@shapediver/viewer": "*",
-    "chromedriver": "^90.0.0",
+    "@shapediver/viewer.shared.monitoring": "*",
+    "@shapediver/viewer.data-engine.data-engine": "*",
     "gl-matrix": "^3.3.0",
-    "jest-image-snapshot": "^4.4.1",
-    "selenium-webdriver": "^4.0.0-beta.3",
+    "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"
   }
 }

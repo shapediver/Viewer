@@ -28,6 +28,8 @@ let viewer: Viewer, session: Session;
     return session.getExports();
 }
 
-// (<any>window).requestExport = (id: string): Promise<any> => {
-//     return session.getExport(id).request();
-// }
+(<any>window).requestExport = (id: string): Promise<any> => {
+    const exp = session.getExport(id);
+    if(!exp) return new Promise(() => null);
+    return exp.request();
+}

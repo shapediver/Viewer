@@ -1,16 +1,14 @@
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import webdriver, { ThenableWebDriver, WebDriver } from "selenium-webdriver";
-import chrome from "selenium-webdriver/chrome";
-import chromedriver from 'chromedriver';
+import webdriver, { WebDriver } from "selenium-webdriver";
+require('chromedriver');
 import { api as API} from "@shapediver/viewer"
 import { screenshotCompare } from "./setup";
 
 let driver: WebDriver;
 
 beforeAll(async () => {
-    chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
     driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
-    await driver.navigate().to('http://127.0.0.1:8080/dist-prod/index.html')
+    await driver.navigate().to('https://viewer.shapediver.com/v3/0.2.6/test/index.html')
 });
 
 afterAll(async () => {
@@ -27,7 +25,6 @@ describe('Selenium wiki page', () => {
 
 
     test('simple api test', async () => {
-
         // DO SOMETHING WITH THE API
         await driver.executeAsyncScript(async (cb: any) => {
             const api: typeof API = (<any>window).api; 
