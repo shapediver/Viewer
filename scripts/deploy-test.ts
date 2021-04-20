@@ -5,9 +5,8 @@ const recursiveReadSync = require('recursive-readdir-sync');
 
 (async () => {
     try {
-        const packageJson = require('../api/api/package.json');
         const bucketName = 'shapediverviewer';
-        const prefix = 'v3/' + packageJson.version + '/';
+        const prefixLatest = 'v3/latest/';
         const s3 = new AWS.S3({ maxRetries: 5 });
 
         const directoryPathEmpty = 'examples/empty/dist-prod/';
@@ -15,7 +14,7 @@ const recursiveReadSync = require('recursive-readdir-sync');
         fileContentsEmpty.map(function (f, cb) {
             s3.putObject({
                 Bucket: bucketName,
-                Key: prefix + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
+                Key: prefixLatest + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
                 Body: fs.readFileSync(f),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'

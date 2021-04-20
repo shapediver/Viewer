@@ -8,7 +8,7 @@ let driver: WebDriver;
 
 beforeAll(async () => {
     driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
-    await driver.navigate().to('https://viewer.shapediver.com/v3/0.2.6/test/index.html')
+    await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
 });
 
 afterAll(async () => {
