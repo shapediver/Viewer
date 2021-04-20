@@ -1,0 +1,54 @@
+{
+  "name": "@shapediver/viewer.tests.selenium",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [],
+  "private": true,
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "start": "npm start",
+    "test-script": "bash ../../scripts/test.sh",
+    "test-simple": "start-server-and-test 'http-server -c-1 --silent' 8080 'bash ../../scripts/test.sh'",
+    "test": "npm run build-prod && npm run test-simple",
+    "check": "tsc --noEmit",
+    "build": "bash ../../scripts/build.sh",
+    "build-dep": "bash ../../scripts/build-dep.sh",
+    "build-dev": "bash ../../scripts/build-dev.sh",
+    "build-prod": "bash ../../scripts/build-prod.sh"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "jest": {
+    "setupFilesAfterEnv": [
+      "./__tests__/setup.ts"
+    ],
+    "testPathIgnorePatterns": [
+      "setup.ts"
+    ],
+    "preset": "ts-jest",
+    "testEnvironment": "jsdom"
+  },
+  "devDependencies": {
+    "@shapediver/viewer": "*",
+    "chromedriver": "^90.0.0",
+    "gl-matrix": "^3.3.0",
+    "jest-image-snapshot": "^4.4.1",
+    "selenium-webdriver": "^4.0.0-beta.3",
+    "tsyringe": "^4.5.0"
+  }
+}
