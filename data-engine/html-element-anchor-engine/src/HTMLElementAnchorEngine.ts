@@ -2,7 +2,7 @@ import { container, singleton } from "tsyringe"
 import { HTMLElementAnchorData, ISessionOutputContent } from "@shapediver/viewer.shared.types";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
-import { Converter } from "../../../shared/services/node_modules/@shapediver/viewer.shared.utils/dist";
+import { Converter } from "@shapediver/viewer.shared.utils";
 import { vec3, vec4 } from "gl-matrix";
 import { Box } from "@shapediver/viewer.shared.math";
 
