@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.tests.selenium",
+  "name": "@shapediver/viewer.tests.settings",
   "version": "0.0.0",
   "description": "",
   "keywords": [],
@@ -20,8 +20,8 @@
   "scripts": {
     "start": "npm start",
     "test-script": "bash ../../scripts/test.sh",
-    "test-simple": "start-server-and-test 'http-server -c-1 --silent' 8080 'bash ../../scripts/test.sh'",
-    "test": "npm run build-prod && cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/selenium && npm run test-simple",
+    "test-browserstack": "cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/settings && PORT=browserstack npm run test-script",
+    "test": "cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/settings && npm run test-script",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
     "build-dep": "bash ../../scripts/build-dep.sh",
@@ -35,10 +35,7 @@
   "typings": "dist/index.d.ts",
   "jest": {
     "setupFilesAfterEnv": [
-      "./__tests__/setup.ts"
-    ],
-    "testPathIgnorePatterns": [
-      "setup.ts"
+      "../general/src/setup.ts"
     ],
     "preset": "ts-jest",
     "testEnvironment": "jsdom"

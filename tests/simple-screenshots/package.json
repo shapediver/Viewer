@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.tests.single-viewer",
+  "name": "@shapediver/viewer.tests.simple-screenshots",
   "version": "0.0.0",
   "description": "",
   "keywords": [],
@@ -13,9 +13,6 @@
   "files": [
     "dist"
   ],
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/shapediver"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shapediver/Viewer.git"
@@ -23,8 +20,8 @@
   "scripts": {
     "start": "npm start",
     "test-script": "bash ../../scripts/test.sh",
-    "test-simple": "start-server-and-test 'http-server -c-1 --silent' 8080 'bash ../../scripts/test.sh'",
-    "test": "npm run build-prod && npm run test-simple",
+    "test-browserstack": "cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/simple-screenshots && PORT=browserstack npm run test-script",
+    "test": "cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/simple-screenshots && npm run test-script",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
     "build-dep": "bash ../../scripts/build-dep.sh",
@@ -37,14 +34,18 @@
   "homepage": "https://github.com/shapediver/Viewer#readme",
   "typings": "dist/index.d.ts",
   "jest": {
-    "setupFilesAfterEnv": ["./__tests__/setup.ts"],
-    "testPathIgnorePatterns": ["setup.ts"],
+    "setupFilesAfterEnv": [
+      "../general/src/setup.ts"
+    ],
     "preset": "ts-jest",
     "testEnvironment": "jsdom"
   },
-  "dependencies": {
+  "devDependencies": {
     "@shapediver/viewer": "*",
+    "chromedriver": "^90.0.0",
     "gl-matrix": "^3.3.0",
+    "jest-image-snapshot": "^4.4.1",
+    "selenium-webdriver": "^4.0.0-beta.3",
     "tsyringe": "^4.5.0"
   }
 }

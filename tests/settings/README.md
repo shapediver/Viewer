@@ -1,11 +1,11 @@
-# `single-viewer`
+# `settings`
 
 > TODO: description
 
 ## Usage
 
 ```
-const singleViewer = require('single-viewer');
+const settings = require('settings');
 
 // TODO: DEMONSTRATE API
 ```
