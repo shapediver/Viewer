@@ -48,6 +48,7 @@
     "@shapediver/viewer.shared.services": "^0.2.11",
     "@shapediver/viewer.shared.types": "^0.2.11",
     "@shapediver/viewer.shared.utils": "^0.2.11",
+    "@shapediver/viewer.shared.math": "^0.2.11",
     "gl-matrix": "^3.3.0",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"

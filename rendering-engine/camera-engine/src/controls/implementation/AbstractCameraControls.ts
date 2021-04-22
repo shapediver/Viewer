@@ -155,7 +155,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
             this._position = path[path.length-1].position;
             this._target = path[path.length-1].target;
             return new Promise<boolean>(resolve => resolve(true));
-        } 
+        }
     
         this._manualInteraction = false;
         this._manualInteractionMatrices = { position: [], target: [] };

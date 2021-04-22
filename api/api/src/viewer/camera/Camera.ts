@@ -3,14 +3,15 @@ import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Box } from "@shapediver/viewer.shared.math";
 export abstract class Camera implements ICamera {
-    // #region Properties (2)
+    // #region Properties (3)
 
     readonly #camera: ICamera;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
-    // #endregion Properties (2)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
@@ -234,7 +235,27 @@ export abstract class Camera implements ICamera {
 
     // #endregion Public Abstract Accessors (1)
 
-    // #region Public Methods (1)
+    // #region Public Methods (4)
+
+    public animate(path: { position: vec3; target: vec3; }[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        // TODO check, doc, etc
+        return this.#camera.animate(path, options);
+    }
+
+    public reset(options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        // TODO check, doc, etc
+        return this.#camera.reset(options);    
+    }
+
+    public set(position: vec3, target: vec3, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        // TODO check, doc, etc
+        return this.#camera.set(position, target, options);      
+    }
+    
+    public zoomTo(zoomTarget: string[] | Box | null, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        // TODO check, doc, etc
+        return this.#camera.zoomTo(zoomTarget, options);  
+    }
 
     /**
      * Update the camera with the delta time of the viewer.
@@ -252,5 +273,5 @@ export abstract class Camera implements ICamera {
         return this.#camera.controls.update(time);
     }
 
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (4)
 }

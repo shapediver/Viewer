@@ -5,6 +5,7 @@ import { CAMERATYPE } from "../interface/ICameraEngine";
 import { AbstractCamera } from "./AbstractCamera";
 import { mat4, vec2, vec3 } from "gl-matrix";
 import { OrthographicCameraControls } from "../../controls/implementation/OrthographicCameraControls";
+import { Box } from "@shapediver/viewer.shared.math";
 
 export class OrthographicCamera extends AbstractCamera {
   // #region Properties (5)
@@ -108,7 +109,12 @@ export class OrthographicCamera extends AbstractCamera {
 
   // #endregion Public Accessors (8)
 
-  // #region Public Methods (1)
+  // #region Public Methods (2)
+
+  public getZoomPositionAndTarget(zoomTarget: Box | string[] | null): { position: vec3; target: vec3; } {
+   // TODO  
+   throw new Error("Method not implemented.");
+  }
 
   public project(pos: vec3): vec2 {
     const m = mat4.targetTo(mat4.create(), this.position, this.target, vec3.fromValues(0, 0, 1));
@@ -118,5 +124,5 @@ export class OrthographicCamera extends AbstractCamera {
     return vec2.fromValues(pos[0], pos[1])
   }
 
-  // #endregion Public Methods (1)
+  // #endregion Public Methods (2)
 }
