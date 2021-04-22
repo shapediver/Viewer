@@ -87,7 +87,7 @@ float PCSS(sampler2D shadowMap, vec4 coords) {
 `;
 
 export const entry = `
-
+// PCSS implementation
 vec2 texelSize = vec2( 1.0 ) / shadowMapSize;
 float dx = texelSize.x;
 float dy = texelSize.y;

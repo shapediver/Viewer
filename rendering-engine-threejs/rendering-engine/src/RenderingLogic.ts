@@ -28,8 +28,10 @@ export class RenderingLogic {
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
         let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
-        shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
-        shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
+        if(!shader.includes('PCSS implementation')) {
+            shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
+            shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
+        }
         THREE.ShaderChunk.shadowmap_pars_fragment = shader;
         THREE.ShaderChunk.normalmap_pars_fragment = normalShader;
 
