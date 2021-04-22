@@ -1,4 +1,5 @@
 import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
+import { Converter } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
 import { CAMERATYPE, ICamera } from "../..";
@@ -29,6 +30,7 @@ export class PerspectiveCameraControls extends AbstractCameraControls {
     private _sphereTargetRestriction: { center: vec3, radius: number } = { center: vec3.create(), radius: Infinity };
     private _zoomRestriction: { minDistance: number, maxDistance: number } = { minDistance: 0, maxDistance: Infinity };
     private _zoomSpeed: number = 0.5;
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
@@ -58,10 +60,22 @@ export class PerspectiveCameraControls extends AbstractCameraControls {
         this.panSpeed = this._settingsEngine.cameraOrbitControls.panSpeed.value;
         this.zoomSpeed = this._settingsEngine.cameraOrbitControls.zoomSpeed.value;
 
-        this.cubePositionRestriction = this._settingsEngine.cameraOrbitControls.restrictions.position.cube.value;
-        this.spherePositionRestriction = this._settingsEngine.cameraOrbitControls.restrictions.position.sphere.value;
-        this.cubeTargetRestriction = this._settingsEngine.cameraOrbitControls.restrictions.target.cube.value;
-        this.sphereTargetRestriction = this._settingsEngine.cameraOrbitControls.restrictions.target.sphere.value;
+        this.cubePositionRestriction = { 
+            min: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.position.cube.value.min),
+            max: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.position.cube.value.max)
+        };
+        this.spherePositionRestriction = { 
+            center: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.position.sphere.value.center),
+            radius: this._settingsEngine.cameraOrbitControls.restrictions.position.sphere.value.radius
+        };
+        this.cubeTargetRestriction = { 
+            min: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.target.cube.value.min),
+            max: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.target.cube.value.max)
+        };
+        this.sphereTargetRestriction = { 
+            center: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.target.sphere.value.center),
+            radius: this._settingsEngine.cameraOrbitControls.restrictions.target.sphere.value.radius
+        };
         this.rotationRestriction = this._settingsEngine.cameraOrbitControls.restrictions.rotation.value;
         this.zoomRestriction = this._settingsEngine.cameraOrbitControls.restrictions.zoom.value;
     }
