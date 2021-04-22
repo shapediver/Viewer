@@ -1,4 +1,4 @@
-import { IParameter, Parameter as ParameterLogic, FileParameter as FileParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { IParameter, Parameter as ParameterLogic, FileParameter as FileParameterLogic, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 
 export abstract class AbstractParameter<T> implements IParameter<T> {
 
@@ -86,9 +86,9 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
 
   /**
    * The type of the parameter.
-   * @return {string}
+   * @return {PARAMETERTYPE}
    */
-  public get type(): string {
+  public get type(): PARAMETERTYPE {
     return this.#parameter.type;
   }
 
@@ -106,9 +106,9 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
 
   /**
    * The visualization description of the parameter.
-   * @return {string | undefined}
+   * @return {PARAMETERVISUALIZATION | undefined}
    */
-  public get visualization(): string | undefined {
+  public get visualization(): PARAMETERVISUALIZATION | undefined {
     return this.#parameter.visualization;
   }
 }

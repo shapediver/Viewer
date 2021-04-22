@@ -1,5 +1,5 @@
 import { ISessionParameter } from "@shapediver/viewer.shared.types";
-import { IParameter } from "../interfaces/IParameter";
+import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "../interfaces/IParameter";
 import { Session } from "./Session";
 
 export class AbstractParameter<T> implements IParameter<T> {
@@ -13,8 +13,8 @@ export class AbstractParameter<T> implements IParameter<T> {
     private readonly _min?: string;
     private readonly _name?: string;
     private readonly _note?: string;
-    private readonly _type: string;
-    private readonly _visualization?: string;
+    private readonly _type: PARAMETERTYPE;
+    private readonly _visualization?: PARAMETERVISUALIZATION;
 
     protected _value!: T;
 
@@ -36,8 +36,8 @@ export class AbstractParameter<T> implements IParameter<T> {
         this._min = this._parameterDefinition.min;
         this._name = this._parameterDefinition.name;
         this._note = this._parameterDefinition.note;
-        this._type = this._parameterDefinition.type;
-        this._visualization = this._parameterDefinition.visualization;
+        this._type = <PARAMETERTYPE>this._parameterDefinition.type;
+        this._visualization = <PARAMETERVISUALIZATION | undefined> this._parameterDefinition.visualization;
     }
 
     // #endregion Constructors (1)
@@ -118,9 +118,9 @@ export class AbstractParameter<T> implements IParameter<T> {
 
     /**
      * Getter type
-     * @return {string}
+     * @return {PARAMETERTYPE}
      */
-    public get type(): string {
+    public get type(): PARAMETERTYPE {
 		return this._type;
     }
 
@@ -142,9 +142,9 @@ export class AbstractParameter<T> implements IParameter<T> {
 
     /**
      * Getter visualization
-     * @return {string | undefined}
+     * @return {PARAMETERVISUALIZATION | undefined}
      */
-    public get visualization(): string | undefined {
+    public get visualization(): PARAMETERVISUALIZATION | undefined {
 		return this._visualization;
     }
 

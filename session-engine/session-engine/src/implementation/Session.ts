@@ -15,6 +15,7 @@ import { Logger } from '@shapediver/viewer.shared.monitoring';
 import { AxiosResponse } from 'axios';
 import { FileParameter } from '..';
 import { AbstractParameter } from './AbstractParameter';
+import { PARAMETERTYPE } from '../interfaces/IParameter';
 
 export class Session implements ISession {
     // #region Properties (17)
@@ -289,7 +290,7 @@ export class Session implements ISession {
             this._sessionResponse.adaptSession(sessionResponse);
 
             for (let parameterId in this._sessionResponse.parameters) {
-                if(this._sessionResponse.parameters[parameterId].type.toLowerCase() === 'file') {
+                if(this._sessionResponse.parameters[parameterId].type === PARAMETERTYPE.FILE) {
                     this._parameters[parameterId] = new FileParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
                 } else {
                     this._parameters[parameterId] = new Parameter(this, parameterId, this._sessionResponse.parameters[parameterId]);

@@ -1,5 +1,5 @@
 import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { ISession, Session as SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
+import { ISession, PARAMETERTYPE, Session as SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { Export } from "./Export";
 import { Output } from "./Output";
 import { AbstractParameter } from "./AbstractParameter";
@@ -31,12 +31,12 @@ export class Session implements ISession {
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): AbstractParameter<any> => {
-        switch (parameterLogic.type.toLowerCase()) {
-            case 'file':
+        switch (parameterLogic.type) {
+            case PARAMETERTYPE.FILE:
                 return new FileParameter(<FileParameterLogic>parameterLogic);
-            case 'bool':
+            case PARAMETERTYPE.BOOL:
                 return new BooleanParameter(<ParameterLogic>parameterLogic);
-            case 'float' || 'int' || 'even' || 'odd':
+            case PARAMETERTYPE.FLOAT || PARAMETERTYPE.EVEN || PARAMETERTYPE.ODD || PARAMETERTYPE.INT:
                 return new NumberParameter(<ParameterLogic>parameterLogic);
             default:
                 return new StringParameter(<ParameterLogic>parameterLogic);

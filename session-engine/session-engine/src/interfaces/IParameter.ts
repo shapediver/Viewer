@@ -1,3 +1,26 @@
+
+export enum PARAMETERTYPE {
+    FLOAT = 'Float',
+    INT = 'Int',
+    EVEN = 'Even',
+    ODD = 'Odd',
+    STRING = 'String',
+    COLOR = 'Color',
+    STRINGLIST = 'StringList',
+    BOOL = 'Bool',
+    TIME = 'Time',
+    FILE = 'File'
+}
+
+export enum PARAMETERVISUALIZATION {
+    SLIDER = 'slider',
+    SEQUENCE = 'sequence',
+    CYCLE = 'cycle',
+    DROPDOWN = 'dropdown',
+    CHECKLIST = 'checklist',
+    CLOCK = 'color',
+    CALENDAR = 'calendar' 
+}
 export interface IParameter<T> {
     // #region Properties (12)
 
@@ -10,8 +33,8 @@ export interface IParameter<T> {
     readonly min?: string;
     readonly name?: string;
     readonly note?: string;
-    readonly type: string;
-    readonly visualization?: string;
+    readonly type: PARAMETERTYPE;
+    readonly visualization?: PARAMETERVISUALIZATION;
 
     value: T;
 

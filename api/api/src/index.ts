@@ -13,15 +13,20 @@ import { ThreejsData } from "@shapediver/viewer.rendering-engine-threejs.renderi
 import { CustomData, GeometryData, MaterialData, SessionData, SessionOutputData } from "@shapediver/viewer.shared.types";
 import { LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
 import { EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { FileParameter } from "./session/parameters/FileParameter";
+import { BooleanParameter } from "./session/parameters/BooleanParameter";
+import { NumberParameter } from "./session/parameters/NumberParameter";
+import { StringParameter } from "./session/parameters/StringParameter";
+import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 
 export const api: Api = <Api>container.resolve(Api);
 
 export {
-    RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE
+    RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION
 }
 
 export {
-    Api, Session, Viewer, Parameter, Export, Output
+    Api, Session, Viewer, Parameter, BooleanParameter, FileParameter, NumberParameter, StringParameter, Export, Output
 }
 
 export {
