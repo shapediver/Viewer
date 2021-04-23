@@ -10,7 +10,7 @@ import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-en
 
 @singleton()
 export class Api {
-  // #region Properties (7)
+  // #region Properties (8)
 
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -21,7 +21,7 @@ export class Api {
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #viewers: { [key: string]: Viewer } = {};
 
-  // #endregion Properties (7)
+  // #endregion Properties (8)
 
   // #region Constructors (1)
 
@@ -85,10 +85,21 @@ export class Api {
 
   // #endregion Public Accessors (5)
 
-  // #region Public Methods (7)
+  // #region Public Methods (10)
 
   /**
-   * Create a session with the provided ticket and modelViewUrl.
+   * Adds an event listener.
+   * 
+   * @param type the type of event
+   * @param cb the callback
+   * @returns 
+   */
+  public addListener(type: string | MAINEVENTTYPE, cb: (event: any) => {}): string {
+    return this.#eventEngine.addListener(type, cb);
+  }
+
+  /**
+   * Create and initialize a session with the provided ticket and modelViewUrl.
    * An id can be provided. This id can be used to retrieve this object later on.
    * In the case no id has been provided, a unique one will be generated.
    * 
@@ -104,7 +115,30 @@ export class Api {
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, id?: string }): Promise<Session> {
+  public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, id?: string }): Promise<Session> {
+    const session = this.createSession(properties);
+
+    // initialized the session
+    await session.init(properties && properties.loadDefaultSettings ? properties.loadDefaultSettings : true)
+    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session });
+    return session;
+  }
+
+  /**
+   * Create a session with the provided ticket and modelViewUrl.
+   * An id can be provided. This id can be used to retrieve this object later on.
+   * In the case no id has been provided, a unique one will be generated.
+   * 
+   * A bearerToken can be provided (JWT).
+   * 
+   * @param properties.ticket the ticket of a session
+   * @param properties.modelViewUrl the modelViewUrl of the session
+   * @param properties.bearerToken the bearerToken of the session
+   * @param properties.loadDefaultSettings the bearerToken of the session
+   * @param properties.id the unique id the session should have
+   * @returns 
+   */
+  public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, id?: string }): Session {
     // input validation
     this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.ticket, 'string');
@@ -124,14 +158,6 @@ export class Api {
     const session = new Session(Object.assign({}, properties, { id: sessionId }));
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
 
-    // initialized the session
-    await session.init()
-    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session });
-
-    // await the settings loading of this session before resolving
-    if(properties && properties.loadDefaultSettings !== false && this.#stateEngine.getCustomState(sessionId + '_settings_registered').resolved === false)
-      await new Promise<void>((resolve) => this.#stateEngine.getCustomState(sessionId + '_settings_registered').then(() => resolve));
-    
     // save the session
     this.#sessions[sessionId] = session;
     container.registerInstance('session', session);
@@ -140,10 +166,7 @@ export class Api {
     this.#performanceEvaluator.end('session_creation_' + sessionId);
     this.#logger.info(this.#performanceEvaluator.getEvaluationToString('session_creation_' + sessionId));
 
-
-    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session });
-
-    return this.#sessions[sessionId];
+    return session;
   }
 
   /**
@@ -159,7 +182,7 @@ export class Api {
    * @param properties.id the unique id the session should have 
    * @returns 
    */
-  public async createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Promise<Viewer> {
+  public createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Viewer {
     // input validation
     this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.type, 'enum', false, Object.values(RENDERERTYPE));
@@ -239,25 +262,6 @@ export class Api {
   }
 
   /**
-   * Update all viewers.
-   * The viewers are updated with all current changes in the scene tree.
-   */
-  public update(): void {
-    if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
-  }
-
-  /**
-   * Adds an event listener.
-   * 
-   * @param type the type of event
-   * @param cb the callback
-   * @returns 
-   */
-  public addListener(type: string | MAINEVENTTYPE, cb: (event: any) => {}): string {
-    return this.#eventEngine.addListener(type, cb);
-  }
-
-  /**
    * Removes an event listener.
    * 
    * @param id the id of the listener
@@ -267,5 +271,13 @@ export class Api {
     return this.#eventEngine.removeListener(id);
   }
 
-  // #endregion Public Methods (7)
+  /**
+   * Update all viewers.
+   * The viewers are updated with all current changes in the scene tree.
+   */
+  public update(): void {
+    if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+  }
+
+  // #endregion Public Methods (10)
 }

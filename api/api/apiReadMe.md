@@ -98,8 +98,8 @@ const modelViewUrl = ''; // PLEASE ADD YOUR MODEL VIEW URL HERE
 const ticket = ''; // PLEASE ADD YOUR TICKET HERE
 
 (async () => {
-    await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-    await api.createSession({ ticket, modelViewUrl });
+    api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+    await api.createAndInitializeSession({ ticket, modelViewUrl });
 })();
 ```
 This is already everything we need. We import `reflect-metadata` as this is need for some functionalities that we use. It should always be on top of the imports. Then we import the api from the viewer.
@@ -136,10 +136,10 @@ import "reflect-metadata"
 import { api, RENDERERTYPE } from "@shapediver/viewer"
 
 // From the api let's create a session with a ticket and a modelview url
-const session = await api.createSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession'});
+const session = await api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession'});
 
 // From the api let's also create a viewer on our canvas
-const viewer = await api.createViewer({ canvas: CANVAS, id: 'myViewer' });
+const viewer = api.createViewer({ canvas: CANVAS, id: 'myViewer' });
 ```
 
 That's it, with that we have loaded a session and created a viewer on a canvas.
@@ -208,7 +208,7 @@ So let's just look at how the scene tree looks after we create a single session.
 
 ```typescript
 // From the api let's create a session with a ticket and a modelview url
-const session = await api.createSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession'})
+const session = await api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession'})
 ```
 With this call, our scene tree now change as a node was added automatically. Let's assume, the session has two outputs with one content each. Then the scene tree will look like this:
 
@@ -333,13 +333,13 @@ Let's create three different sessions.
 
 ```typescript
 // From the api let's create the first session
-const session1 = api.createSession({ ticket: 'MY_TICKET1', modelViewUrl: 'MY_MODELVIEW_URL1', id: 'mySession1'})
+const session1 = api.createAndInitializeSession({ ticket: 'MY_TICKET1', modelViewUrl: 'MY_MODELVIEW_URL1', id: 'mySession1'})
 
 // Also the second
-const session2 = api.createSession({ ticket: 'MY_TICKET2', modelViewUrl: 'MY_MODELVIEW_URL2', id: 'mySession2'})
+const session2 = api.createAndInitializeSession({ ticket: 'MY_TICKET2', modelViewUrl: 'MY_MODELVIEW_URL2', id: 'mySession2'})
 
 // And the third
-const session3 = api.createSession({ ticket: 'MY_TICKET3', modelViewUrl: 'MY_MODELVIEW_URL3', id: 'mySession3'})
+const session3 = api.createAndInitializeSession({ ticket: 'MY_TICKET3', modelViewUrl: 'MY_MODELVIEW_URL3', id: 'mySession3'})
 
 // Now just wait for all of them to load 
 await Promise.all([ session1, session2, session3 ]);
@@ -355,10 +355,10 @@ It is also possible to create the same session multiple times.
 
 ```typescript
 // From the api let's create the first session
-const session = api.createSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession1'})
+const session = api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession1'})
 
 // Also the second
-const sameSession = api.createSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession2'})
+const sameSession = api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession2'})
 
 // Now just wait for all of them to load 
 await Promise.all([ session, sameSession ]);

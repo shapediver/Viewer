@@ -18,18 +18,13 @@ import { build_data } from "../build_data";
 
 @injectable()
 export class Session implements ISession {
-    // #region Properties (15)
+    // #region Properties (16)
 
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     readonly #exports: { [key: string]: Export; } = {};
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #outputs: { [key: string]: Output; } = {};
-    readonly #parameters: { [key: string]: AbstractParameter<any>; } = {};
-    readonly #sessionEngine: SessionEngine;
-    readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-
     readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): AbstractParameter<any> => {
         switch (true) {
             case parameterLogic.type === PARAMETERTYPE.FILE:
@@ -43,14 +38,19 @@ export class Session implements ISession {
         }
     }
 
+    readonly #parameters: { [key: string]: AbstractParameter<any>; } = {};
+    readonly #sessionEngine: SessionEngine;
+    readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+
     #commitParameters: boolean = false;
     #commitSettings: boolean = false;
+    #controlHidden: string[] = [];
     #controlNames: string[] = [];
     #controlOrder: string[] = [];
     #node: TreeNode;
-    #controlHidden: string[] = [];
 
-    // #endregion Properties (15)
+    // #endregion Properties (16)
 
     // #region Constructors (1)
 
@@ -74,12 +74,12 @@ export class Session implements ISession {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (18)
-    
+    // #region Public Accessors (20)
+
     /**
      * If the session has an author ticket.
      */
-     public get authorTicket(): boolean | undefined {
+    public get authorTicket(): boolean | undefined {
         return this.#sessionEngine.authorTicket;
     }
 
@@ -142,6 +142,24 @@ export class Session implements ISession {
         this.#inputValidator.validate(value, 'boolean');
         this.#commitSettings = value;
         this.#logger.info(`Session (${this.id}): commitSettings was set to: ${value}`);
+    }
+
+    /**
+     * The controlHidden setting of the session.
+     * @return {string[]}
+     */
+    public get controlHidden(): string[] {
+        return this.#controlHidden;
+    }
+
+    /**
+     * The controlHidden setting of the session.
+     * @param {string[]} value
+     */
+    public set controlHidden(value: string[]) {
+        this.#inputValidator.validate(value, 'stringArray');
+        this.#controlHidden = value;
+        this.#logger.info(`Session (${this.id}): controlHidden was set to: ${value}`);
     }
 
     /**
@@ -213,24 +231,6 @@ export class Session implements ISession {
     }
 
     /**
-     * The controlHidden setting of the session.
-     * @return {string[]}
-     */
-    public get controlHidden(): string[] {
-        return this.#controlHidden;
-    }
-
-    /**
-     * The controlHidden setting of the session.
-     * @param {string[]} value
-     */
-    public set controlHidden(value: string[]) {
-        this.#inputValidator.validate(value, 'stringArray');
-        this.#controlHidden = value;
-        this.#logger.info(`Session (${this.id}): controlHidden was set to: ${value}`);
-    }
-
-    /**
      * The callback to refresh the bearer token.
      * This callback will be executed, 
      * once a session request fails due to an invalid bearer token.
@@ -249,9 +249,9 @@ export class Session implements ISession {
         return this.#sessionEngine.ticket;
     }
 
-    // #endregion Public Accessors (18)
+    // #endregion Public Accessors (20)
 
-    // #region Public Methods (17)
+    // #region Public Methods (19)
 
     /**
      * Create a new output with the specified id.
@@ -507,14 +507,26 @@ export class Session implements ISession {
      * 
      * @returns 
      */
-    public async init(): Promise<TreeNode> {
+    public async init(loadDefaultSettings: boolean = true): Promise<TreeNode> {
         this.#node = await this.#sessionEngine.init();
         (<Tree>container.resolve(Tree)).addNode(this.#node);
         if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
         this.#logger.info(`Session (${this.id}): Session initialized.`);
+        this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
+
+        // await the settings loading of this session before resolving
+        if (loadDefaultSettings !== false && this.#stateEngine.getCustomState(this.id + '_settings_registered').resolved === false)
+            await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => resolve));
+
         return this.#node;
     }
 
+    /**
+     * Save the parameters that are currently used for this session as default parameters.
+     * This only works when this session was created with an author ticket.
+     * 
+     * @returns 
+     */
     public async saveDefaultParameters() {
         const response = await this.#sessionEngine.saveDefaultParameters();
         this.#logger.info(`Session (${this.id}): ${response ? 'Saved default parameters.' : 'Could not save default parameters.'}`);
@@ -524,7 +536,8 @@ export class Session implements ISession {
     /**
      * Save the settings that are currently used for this session.
      * If there is multiple viewers, the first one will be used for the settings.
-     * 
+     * This only works when this session was created with an author ticket.
+     *
      * @param viewerId the optional viewer id
      */
     public async saveSettings(viewerId?: string): Promise<boolean> {
@@ -540,16 +553,16 @@ export class Session implements ISession {
         if (container.isRegistered('viewer')) {
             const viewers = (<Viewer[]>container.resolveAll('viewer'));
             let viewer;
-            for(let i = 0; i < viewers.length; i++) 
-                if(viewers[i].id === viewerId) 
+            for (let i = 0; i < viewers.length; i++)
+                if (viewers[i].id === viewerId)
                     viewer = viewers[i];
-            if(!viewer) 
+            if (!viewer)
                 viewer = viewers[0];
 
             const renderingEngines = (<RenderingEngine[]>container.resolveAll('renderingEngine'));
             let renderingEngine: RenderingEngine;
-            for(let i = 0; i < renderingEngines.length; i++) 
-                if(renderingEngines[i].id === viewer.id) 
+            for (let i = 0; i < renderingEngines.length; i++)
+                if (renderingEngines[i].id === viewer.id)
                     renderingEngine = renderingEngines[i];
 
             renderingEngine!.saveSettings();
@@ -564,5 +577,5 @@ export class Session implements ISession {
         return false;
     }
 
-    // #endregion Public Methods (17)
+    // #endregion Public Methods (19)
 }
