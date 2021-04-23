@@ -36,7 +36,7 @@ export class AbstractParameter<T> implements IParameter<T> {
         this._min = this._parameterDefinition.min;
         this._name = this._parameterDefinition.name;
         this._note = this._parameterDefinition.note;
-        this._type = <PARAMETERTYPE>this._parameterDefinition.type;
+        this._type = <PARAMETERTYPE>this._parameterDefinition.type.toLowerCase();
         this._visualization = <PARAMETERVISUALIZATION | undefined> this._parameterDefinition.visualization;
     }
 

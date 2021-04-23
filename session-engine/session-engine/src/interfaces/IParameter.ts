@@ -1,15 +1,15 @@
 
 export enum PARAMETERTYPE {
-    FLOAT = 'Float',
-    INT = 'Int',
-    EVEN = 'Even',
-    ODD = 'Odd',
-    STRING = 'String',
-    COLOR = 'Color',
-    STRINGLIST = 'StringList',
-    BOOL = 'Bool',
-    TIME = 'Time',
-    FILE = 'File'
+    FLOAT = 'float',
+    INT = 'int',
+    EVEN = 'even',
+    ODD = 'odd',
+    STRING = 'string',
+    COLOR = 'color',
+    STRINGLIST = 'stringlist',
+    BOOL = 'bool',
+    TIME = 'time',
+    FILE = 'file'
 }
 
 export enum PARAMETERVISUALIZATION {

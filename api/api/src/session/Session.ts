@@ -31,12 +31,12 @@ export class Session implements ISession {
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): AbstractParameter<any> => {
-        switch (parameterLogic.type) {
-            case PARAMETERTYPE.FILE:
+        switch (true) {
+            case parameterLogic.type === PARAMETERTYPE.FILE:
                 return new FileParameter(<FileParameterLogic>parameterLogic);
-            case PARAMETERTYPE.BOOL:
+            case parameterLogic.type === PARAMETERTYPE.BOOL:
                 return new BooleanParameter(<ParameterLogic>parameterLogic);
-            case PARAMETERTYPE.FLOAT || PARAMETERTYPE.EVEN || PARAMETERTYPE.ODD || PARAMETERTYPE.INT:
+            case parameterLogic.type === PARAMETERTYPE.FLOAT || parameterLogic.type === PARAMETERTYPE.EVEN || parameterLogic.type === PARAMETERTYPE.ODD || parameterLogic.type === PARAMETERTYPE.INT:
                 return new NumberParameter(<ParameterLogic>parameterLogic);
             default:
                 return new StringParameter(<ParameterLogic>parameterLogic);
