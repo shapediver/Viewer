@@ -18,7 +18,7 @@ import { AbstractParameter } from './AbstractParameter';
 import { PARAMETERTYPE } from '../interfaces/IParameter';
 
 export class Session implements ISession {
-    // #region Properties (17)
+    // #region Properties (18)
 
     private readonly _exports: { [key: string]: Export; } = {};
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
@@ -32,6 +32,7 @@ export class Session implements ISession {
     private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
     private readonly _ticket: string;
 
+    private _authorTicket?: boolean;
     private _bearerToken?: string;
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
@@ -45,7 +46,7 @@ export class Session implements ISession {
     private _refreshBearerToken!: () => string;
     private _sessionResponse: SessionResponse;
 
-    // #endregion Properties (17)
+    // #endregion Properties (18)
 
     // #region Constructors (1)
 
@@ -67,43 +68,91 @@ export class Session implements ISession {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (8)
+    // #region Public Accessors (10)
 
+    /**
+     * Getter authorTicket
+     * @return {boolean | undefined}
+     */
+    public get authorTicket(): boolean | undefined {
+		return this._authorTicket;
+	}
+
+    /**
+     * Setter authorTicket
+     * @param {boolean | undefined} value
+     */
+    public set authorTicket(value: boolean | undefined) {
+		this._authorTicket = value;
+	}
+
+    /**
+     * Getter bearerToken
+     * @return {string | undefined}
+     */
     public get bearerToken(): string | undefined {
         return this._bearerToken;
     }
 
+    /**
+     * Setter bearerToken
+     * @param {string | undefined} value
+     */
     public set bearerToken(value: string | undefined) {
         this._bearerToken = value;
     }
 
+    /**
+     * Getter id
+     * @return {string}
+     */
     public get id(): string {
         return this._id;
     }
 
+    /**
+     * Getter initialized
+     * @return {boolean}
+     */
     public get initialized(): boolean {
         return this._initialized;
     }
 
+    /**
+     * Getter modelViewUrl
+     * @return {string}
+     */
     public get modelViewUrl(): string {
         return this._modelViewUrl;
     }
 
+    /**
+     * Setter refreshBearerToken
+     * @param {() => string} value
+     */
     public set refreshBearerToken(value: () => string) {
         this._refreshBearerToken = value;
     }
 
+    /**
+     * Getter sessionResponse
+     * @return {SessionResponse}
+     */
     public get sessionResponse(): SessionResponse {
         return this._sessionResponse;
     }
 
+    /**
+     * Getter ticket
+     * @return {string}
+     */
     public get ticket(): string {
         return this._ticket;
     }
 
-    // #endregion Public Accessors (8)
+    // #endregion Public Accessors (10)
 
-    // #region Public Methods (20)
+    // #region Public Methods (21)
 
     public createOutput(id: string): Output {
         if (this._outputs[id] || this._outputsCreated[id]) {
@@ -289,6 +338,8 @@ export class Session implements ISession {
             if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
             this._sessionResponse.adaptSession(sessionResponse);
 
+            this._authorTicket = !!(this._sessionResponse.actions['defaultparam'] && this._sessionResponse.actions['configure']);
+
             for (let parameterId in this._sessionResponse.parameters) {
                 if(this._sessionResponse.parameters[parameterId].type === PARAMETERTYPE.FILE) {
                     this._parameters[parameterId] = new FileParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
@@ -306,6 +357,20 @@ export class Session implements ISession {
         } catch (e) {
             this._logger.error('Something went wrong at session init.', e);
             return new SessionTreeNode();
+        }
+    }
+
+    public async saveDefaultParameters(): Promise<boolean> {
+        if(!this._sessionResponse.actions['defaultparam']) {
+            this._logger.error('Session has to be in edit mode to be able to save the settings.');
+            return false;
+        }
+        try {
+            await this.sessionCommunication(this._sessionResponse.actions['defaultparam'].href!, this._sessionResponse.actions['defaultparam'].method!, this.getParametersAsString(), 'application/json');
+            return true;
+        } catch (e) {
+            this._logger.error('Saving of default parameters failed.', e, e.response && e.response.status ? e.response.status : null);
+            return false;
         }
     }
 
@@ -352,7 +417,7 @@ export class Session implements ISession {
         }
     }
 
-    // #endregion Public Methods (20)
+    // #endregion Public Methods (21)
 
     // #region Private Methods (3)
 

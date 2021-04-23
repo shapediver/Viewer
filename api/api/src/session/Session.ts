@@ -75,6 +75,22 @@ export class Session implements ISession {
     // #endregion Constructors (1)
 
     // #region Public Accessors (18)
+    
+    /**
+     * If the session has an author ticket.
+     */
+     public get authorTicket(): boolean | undefined {
+        return this.#sessionEngine.authorTicket;
+    }
+
+    /**
+     * If the session has an author ticket.
+     */
+    public set authorTicket(value: boolean | undefined) {
+        this.#inputValidator.validate(value, 'boolean', false);
+        this.#sessionEngine.authorTicket = value;
+        this.#logger.info(`Session (${this.id}): authorTicket was set to: ${value}`);
+    }
 
     /**
      * The bearerToken of the session.
@@ -499,13 +515,19 @@ export class Session implements ISession {
         return this.#node;
     }
 
+    public async saveDefaultParameters() {
+        const response = await this.#sessionEngine.saveDefaultParameters();
+        this.#logger.info(`Session (${this.id}): ${response ? 'Saved default parameters.' : 'Could not save default parameters.'}`);
+        return response;
+    }
+
     /**
      * Save the settings that are currently used for this session.
      * If there is multiple viewers, the first one will be used for the settings.
      * 
      * @param viewerId the optional viewer id
      */
-    public async saveSettings(viewerId?: string) {
+    public async saveSettings(viewerId?: string): Promise<boolean> {
         this.#settingsEngine.general.viewer.commitParameters.value = this.#commitParameters;
         this.#settingsEngine.general.viewer.commitSettings.value = this.#commitSettings;
         this.#settingsEngine.general.parameters.controlNames.value = this.#controlNames;
@@ -533,8 +555,13 @@ export class Session implements ISession {
             renderingEngine!.saveSettings();
 
             const json = this.#settingsEngine.toJson();
-            this.#sessionEngine.saveSettings(json);
+            const response = await this.#sessionEngine.saveSettings(json);
+            this.#logger.info(`Session (${this.id}): ${response ? 'Saved settings.' : 'Could not save settings.'}`);
+            return response;
         }
+
+        this.#logger.warn(`Session (${this.id}): Could not save settings, no viewer initialized.`);
+        return false;
     }
 
     // #endregion Public Methods (17)

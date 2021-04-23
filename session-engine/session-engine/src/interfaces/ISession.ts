@@ -7,6 +7,7 @@ export interface ISession {
     id: string;
     ticket: string;
     modelViewUrl: string;
+    authorTicket?: boolean;
     bearerToken?: string;
     initialized: boolean;
 
