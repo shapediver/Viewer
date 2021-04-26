@@ -18,7 +18,7 @@ describe('light-engine', () => {
     });
 
     it('addAmbientLight properties', async () => {
-        const l = lightEngine.addAmbientLight({ color: [0, 0, 0], intensity: 0.2, id: 'test'});
+        const l = lightEngine.addAmbientLight({ color: '#000000', intensity: 0.2, id: 'test'});
         expect(l.color[0]).toBe(0)
         expect(l.color[1]).toBe(0)
         expect(l.color[2]).toBe(0)
@@ -54,7 +54,7 @@ describe('light-engine', () => {
     });
 
     it('addDirectionalLight properties', async () => {
-        const l = lightEngine.addDirectionalLight({ color: [0, 0, 0], intensity: 0.2, id: 'test', direction: [1, 0, 0], castShadow: true, shadowMapBias: 0.1, shadowMapResolution: 16});
+        const l = lightEngine.addDirectionalLight({ color: '#000000', intensity: 0.2, id: 'test', direction: [1, 0, 0], castShadow: true, shadowMapBias: 0.1, shadowMapResolution: 16});
         expect(l.color[0]).toBe(0)
         expect(l.color[1]).toBe(0)
         expect(l.color[2]).toBe(0)
@@ -94,7 +94,7 @@ describe('light-engine', () => {
     });
 
     it('addHemisphereLight properties', async () => {
-        const l = lightEngine.addHemisphereLight({ color: [0, 0, 0], intensity: 0.2, id: 'test', groundColor: [0, 0, 0]});
+        const l = lightEngine.addHemisphereLight({ color: '#000000', intensity: 0.2, id: 'test', groundColor: '#000000'});
         expect(l.color[0]).toBe(0)
         expect(l.color[1]).toBe(0)
         expect(l.color[2]).toBe(0)
@@ -132,7 +132,7 @@ describe('light-engine', () => {
     });
 
     it('addPointLight properties', async () => {
-        const l = lightEngine.addPointLight({ color: [0, 0, 0], intensity: 0.2, id: 'test', position: [1,1,1], distance: 2, decay: 5});
+        const l = lightEngine.addPointLight({ color: '#000000', intensity: 0.2, id: 'test', position: [1,1,1], distance: 2, decay: 5});
         expect(l.color[0]).toBe(0)
         expect(l.color[1]).toBe(0)
         expect(l.color[2]).toBe(0)
@@ -177,7 +177,7 @@ describe('light-engine', () => {
     });
 
     it('addSpotLight properties', async () => {
-        const l = lightEngine.addSpotLight({ color: [0, 0, 0], intensity: 0.2, id: 'test', position: [1,1,1], target: [2,2,2], distance: 2, decay: 5, angle: 3, penumbra: 4});
+        const l = lightEngine.addSpotLight({ color: '#000000', intensity: 0.2, id: 'test', position: [1,1,1], target: [2,2,2], distance: 2, decay: 5, angle: 3, penumbra: 4});
         expect(l.color[0]).toBe(0)
         expect(l.color[1]).toBe(0)
         expect(l.color[2]).toBe(0)
