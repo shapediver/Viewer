@@ -29,7 +29,7 @@ export class NumberParameter extends AbstractParameter<number> {
         return new Proxy(this, {
             get: (target: NumberParameter, property: keyof NumberParameter, receiver: any) => {
                 if (property === 'value') return +this.#parameter.value;
-                return target[property];
+                return this.#parameter[property];
             },
             set: (target: NumberParameter, property: keyof NumberParameter, value: any, receiver: any) => {
                 if(property === 'value') {
@@ -37,6 +37,12 @@ export class NumberParameter extends AbstractParameter<number> {
                     this.#parameter.value = value + '';
                     target[property] = value;
                     this.#logger.info(`Parameter (${target.id}) was set to: ${value}`);
+                    return true;
+                } else if (property === 'name') {
+                    this.#inputValidator.validate(value, 'string');
+                    this.#parameter.name = value;
+                    target[property] = value;
+                    this.#logger.info(`Parameter (${target.id}) name was set to: ${value}`);
                     return true;
                 } else {
                     return false;

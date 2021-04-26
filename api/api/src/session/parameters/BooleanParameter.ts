@@ -29,7 +29,7 @@ export class BooleanParameter extends AbstractParameter<boolean> {
         return new Proxy(this, {
             get: (target: BooleanParameter, property: keyof BooleanParameter, receiver: any) => {
                 if (property === 'value') (this.#parameter.value === "true");
-                return target[property];
+                return this.#parameter[property];
             },
             set: (target: BooleanParameter, property: keyof BooleanParameter, value: any, receiver: any) => {
                 if(property === 'value') {
@@ -37,6 +37,12 @@ export class BooleanParameter extends AbstractParameter<boolean> {
                     this.#parameter.value = value + '';
                     target[property] = value;
                     this.#logger.info(`Parameter (${target.id}) was set to: ${value}`);
+                    return true;
+                } else if (property === 'name') {
+                    this.#inputValidator.validate(value, 'string');
+                    this.#parameter.name = value;
+                    target[property] = value;
+                    this.#logger.info(`Parameter (${target.id}) name was set to: ${value}`);
                     return true;
                 } else {
                     return false;
