@@ -28,13 +28,21 @@ export class Session implements ISession {
     readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): AbstractParameter<any> => {
         switch (true) {
             case parameterLogic.type === PARAMETERTYPE.FILE:
-                return new FileParameter(<FileParameterLogic>parameterLogic);
+                let handlerFP: ProxyHandler<FileParameter> = {};
+                let paramFP = new FileParameter(<FileParameterLogic>parameterLogic, handlerFP);
+                return new Proxy(paramFP, handlerFP);
             case parameterLogic.type === PARAMETERTYPE.BOOL:
-                return new BooleanParameter(<ParameterLogic>parameterLogic);
+                let handlerBP: ProxyHandler<BooleanParameter> = {};
+                let paramBP = new BooleanParameter(<ParameterLogic>parameterLogic, handlerBP);
+                return new Proxy(paramBP, handlerBP);
             case parameterLogic.type === PARAMETERTYPE.FLOAT || parameterLogic.type === PARAMETERTYPE.EVEN || parameterLogic.type === PARAMETERTYPE.ODD || parameterLogic.type === PARAMETERTYPE.INT:
-                return new NumberParameter(<ParameterLogic>parameterLogic);
+                let handlerNP: ProxyHandler<NumberParameter> = {};
+                let paramNP = new NumberParameter(<ParameterLogic>parameterLogic, handlerNP);
+                return new Proxy(paramNP, handlerNP);
             default:
-                return new StringParameter(<ParameterLogic>parameterLogic);
+                let handlerSP: ProxyHandler<StringParameter> = {};
+                let paramSP = new StringParameter(<ParameterLogic>parameterLogic, handlerSP);
+                return new Proxy(paramSP, handlerSP);
         }
     }
 

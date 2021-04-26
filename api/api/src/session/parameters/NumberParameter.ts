@@ -21,12 +21,12 @@ export class NumberParameter extends AbstractParameter<number> {
      * @ignore
      * @param p 
      */
-    constructor(p: ParameterLogic) {
+    constructor(p: ParameterLogic, handler: ProxyHandler<NumberParameter> = {}) {
         super(p);
         this.#parameter = p;
         this.value = +this.#parameter.value;
 
-        return new Proxy(this, {
+        Object.assign(handler, {
             get: (target: NumberParameter, property: keyof NumberParameter, receiver: any) => {
                 if (property === 'value') return +this.#parameter.value;
                 return this.#parameter[property];

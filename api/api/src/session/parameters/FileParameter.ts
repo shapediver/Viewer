@@ -21,12 +21,12 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
      * @ignore
      * @param p 
      */
-    constructor(p: FileParameterLogic) {
+    constructor(p: FileParameterLogic, handler: ProxyHandler<FileParameter> = {}) {
         super(p);
         this.#parameter = p;
         this.value = this.#parameter.value;
 
-        return new Proxy(this, {
+        Object.assign(handler, {
             get: (target: FileParameter, property: keyof FileParameter, receiver: any) => {
                 if (property === 'value') return this.#parameter.value;
                 return this.#parameter[property];

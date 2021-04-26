@@ -21,12 +21,12 @@ export class StringParameter extends AbstractParameter<string> {
      * @ignore
      * @param p 
      */
-    constructor(p: ParameterLogic) {
+    constructor(p: ParameterLogic, handler: ProxyHandler<StringParameter> = {}) {
         super(p);
         this.#parameter = p;
         this.value = this.#parameter.value;
 
-        return new Proxy(this, {
+        Object.assign(handler, {
             get: (target: StringParameter, property: keyof StringParameter, receiver: any) => {
                 if (property === 'value') return this.#parameter.value;
                 return this.#parameter[property];

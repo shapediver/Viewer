@@ -21,12 +21,12 @@ export class BooleanParameter extends AbstractParameter<boolean> {
      * @ignore
      * @param p 
      */
-    constructor(p: ParameterLogic) {
+    constructor(p: ParameterLogic, handler: ProxyHandler<BooleanParameter> = {}) {
         super(p);
         this.#parameter = p;
         this.value = (this.#parameter.value === "true");
 
-        return new Proxy(this, {
+        Object.assign(handler, {
             get: (target: BooleanParameter, property: keyof BooleanParameter, receiver: any) => {
                 if (property === 'value') (this.#parameter.value === "true");
                 return this.#parameter[property];
