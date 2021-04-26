@@ -5,10 +5,8 @@ import { singleton } from 'tsyringe';
 @singleton()
 export class Converter {
 
-    private tinyColorToVec3(color: TinyColor): vec3 {
-        if(color.r > 1 || color.b > 1 || color.g > 1)
-            return vec3.fromValues(color.r / 255, color.g / 255, color.b / 255);
-        return vec3.fromValues(color.r, color.g, color.b);
+    private tinyColorToString(color: TinyColor): string {
+        return color.toHexString();
     }
 
     /**
@@ -18,13 +16,13 @@ export class Converter {
      * @param color 
      * @param defColor 
      */
-    public toColor(color: any, defColor: vec3 = vec3.fromValues(1, 1, 1)): vec3 {
-        if (!color) return defColor;
+    public toColor(color: any, defColorString: string = '#ffffff'): string {
+        if (!color) return defColorString;
 
         const tColor = new TinyColor(color);
 
         if(color instanceof TinyColor)
-            return this.tinyColorToVec3(tColor);
+            return this.tinyColorToString(tColor);
 
         // check if we got a number
         if (typeof color === 'number') {
@@ -34,13 +32,13 @@ export class Converter {
             else if (cl < 6) cs = cs.padStart(6, '0');
             else if (cl < 8) cs = cs.padEnd(8, '0');
             let tc = new TinyColor(cs);
-            return tc.isValid ? this.tinyColorToVec3(tc) : defColor;
+            return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // check if the input is a THREE.Color
         if (color.isColor && typeof color.getHexString == 'function') {
             let tc = new TinyColor(color.getHexString());
-            return tc.isValid ? this.tinyColorToVec3(tc) : defColor;
+            return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // check for array of numbers
@@ -53,7 +51,7 @@ export class Converter {
                 }
             }
             if (!isRGBArray)
-                return defColor;
+                return defColorString;
 
             let tc = new TinyColor({
                 r: Math.max(0, Math.min(color[0], 255)),
@@ -66,14 +64,14 @@ export class Converter {
                     tc.setAlpha(Math.max(0, Math.min(a, 255)) / 255);
                 }
             }
-            return tc.isValid ? this.tinyColorToVec3(tc) : defColor;
+            return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // if we got something other than a string, check if
         // tinycolor can work with it
         if (typeof color !== 'string') {
             let tc = new TinyColor(color);
-            return tc.isValid ? this.tinyColorToVec3(tc) : defColor;
+            return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // tinycolor doesn't like 0x
@@ -82,24 +80,24 @@ export class Converter {
         // if we got no alpha value, add full opacity
         if (tmpColor.match(/^#[a-f0-9]{6}$/i) !== null) {
             let tc = new TinyColor(tmpColor + 'ff');
-            return tc.isValid ? this.tinyColorToVec3(tc) : defColor;
+            return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // standard case
         if (tmpColor.match(/^#[a-f0-9]{8}$/i) !== null) {
             let tc = new TinyColor(tmpColor);
-            return tc.isValid ? this.tinyColorToVec3(tc) : defColor;
+            return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // correct number which have the alpha value defined as a single hex digit
         if (tmpColor.match(/^#[a-f0-9]{7}$/i) !== null) {
             let tc = new TinyColor(tmpColor.slice(0, 7) + '0' + tmpColor.slice(-1));
-            return tc.isValid ? this.tinyColorToVec3(tc) : defColor;
+            return tc.isValid ? this.tinyColorToString(tc) : defColorString;
         }
 
         // check if tinycolor understands the string
         let tc = new TinyColor(tmpColor);
-        return tc.isValid ? this.tinyColorToVec3(tc) : defColor;
+        return tc.isValid ? this.tinyColorToString(tc) : defColorString;
     }
 
     public toVec3(point: any): vec3 {

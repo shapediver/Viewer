@@ -28,7 +28,7 @@ export class LightLoader {
         if (light instanceof AmbientLight) {
             const threeLight: THREE.AmbientLight = converted.children[0] instanceof THREE.AmbientLight ? (<THREE.AmbientLight>converted.children[0]) : new THREE.AmbientLight();
             if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.color = new THREE.Color(light.color);
             threeLight.intensity = light.intensity;
         }
         
@@ -37,7 +37,7 @@ export class LightLoader {
             if (converted.children.length === 0) converted.add(threeLight);
             scene.add(threeLight.target);
 
-            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.color = new THREE.Color(light.color);
             threeLight.intensity = light.intensity;
 
             const bs: Sphere = boundingBox.boundingSphere;
@@ -65,15 +65,15 @@ export class LightLoader {
         if (light instanceof HemisphereLight) {
             const threeLight: THREE.HemisphereLight = converted.children[0] instanceof THREE.HemisphereLight ? (<THREE.HemisphereLight>converted.children[0]) : new THREE.HemisphereLight();
             if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.color = new THREE.Color(light.color);
             threeLight.intensity = light.intensity;
-            threeLight.groundColor = new THREE.Color(light.groundColor[0], light.groundColor[1], light.groundColor[2]);
+            threeLight.groundColor = new THREE.Color(light.groundColor);
         }
         
         if (light instanceof PointLight) {
             const threeLight: THREE.PointLight = converted.children[0] instanceof THREE.PointLight ? (<THREE.PointLight>converted.children[0]) : new THREE.PointLight();
             if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
+            threeLight.color = new THREE.Color(light.color);
             threeLight.intensity = light.intensity;
             threeLight.distance = light.distance;
             threeLight.decay = light.decay;
@@ -83,7 +83,7 @@ export class LightLoader {
         if (light instanceof SpotLight) {
             console.log(light)
             const threeLight: THREE.SpotLight = converted.children[0] instanceof THREE.SpotLight ? (<THREE.SpotLight>converted.children[0]) : 
-            new THREE.SpotLight(new THREE.Color(light.color[0], light.color[1], light.color[2]), light.intensity, vec3.distance(light.position, light.target), light.angle, light.penumbra, light.decay)
+            new THREE.SpotLight(new THREE.Color(light.color), light.intensity, vec3.distance(light.position, light.target), light.angle, light.penumbra, light.decay)
             if (converted.children.length === 0) converted.add(threeLight);
             scene.add(threeLight.target);
             threeLight.position.set(light.position[0], light.position[1], light.position[2]);

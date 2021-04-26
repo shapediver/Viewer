@@ -24,7 +24,7 @@ export interface IRenderingEngine {
     beautyRenderDelay: number;
     blurSceneWhenBusy: boolean;
     clearAlpha: number;
-    clearColor: vec3;
+    clearColor: string | number | vec3;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;

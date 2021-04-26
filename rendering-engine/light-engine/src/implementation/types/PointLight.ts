@@ -7,7 +7,7 @@ export class PointLight extends AbstractLight {
   // #region Constructors (1)
 
   constructor(
-    color: vec3 = vec3.fromValues(1, 1, 1),
+    color: string = '#ffffff',
     intensity: number = 0.5,
     private _position: vec3 = vec3.fromValues(0, 0, 0),
     private _distance: number = 0,

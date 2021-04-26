@@ -7,9 +7,9 @@ export class HemisphereLight extends AbstractLight {
     // #region Constructors (1)
 
     constructor(
-        color: vec3 = vec3.fromValues(1, 1, 1),
+        color: string = '#ffffff',
         intensity: number = 0.5,
-        private _groundColor: vec3 = vec3.fromValues(1, 1, 1),
+        private _groundColor: string = '#ffffff',
         name?: string
     ) {
         super(color, intensity, LIGHTTYPE.HEMISPHERE, name);
@@ -21,17 +21,17 @@ export class HemisphereLight extends AbstractLight {
 
     /**
      * Getter groundColor
-     * @return {vec3}
+     * @return {string}
      */
-    public get groundColor(): vec3 {
+    public get groundColor(): string {
         return this._groundColor;
     }
 
     /**
      * Setter groundColor
-     * @param {vec3} value
+     * @param {string} value
      */
-    public set groundColor(value: vec3) {
+    public set groundColor(value: string) {
         this._groundColor = value;
         this.updateVersion();
     }

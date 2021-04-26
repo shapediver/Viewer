@@ -19,7 +19,6 @@ import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader';
 import { GeometryLoader } from './loaders/GeometryLoader';
 import { LightLoader } from './loaders/LightLoader';
 import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader';
-import { ifError } from 'node:assert';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { GeometryData } from '@shapediver/viewer.shared.types';
 
@@ -50,7 +49,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _blurSceneWhenBusy: boolean = true;
     private _canvas!: Canvas;
     private _clearAlpha: number = 1.0;
-    private _clearColor: vec3 = vec3.fromValues(1,1,1);
+    private _clearColor: string = '#ffffff';
     private _environmentMap: string | string[] = 'none';
     private _environmentMapAsBackground: boolean = false;
     private _environmentMapResolution: string = '1024';
@@ -102,7 +101,7 @@ export class RenderingEngine implements IRenderingEngine {
 
         this._sceneTree = new SceneTree(this);
 
-        (<SceneTree>this._sceneTree).scene.background = new THREE.Color(0xffffff);
+        (<SceneTree>this._sceneTree).scene.background = new THREE.Color('#ffffff');
 
         this._renderingLogic = new RenderingLogic(this);
         
@@ -230,17 +229,17 @@ export class RenderingEngine implements IRenderingEngine {
 
     /**
      * Getter clearColor
-     * @return {vec3}
+     * @return {string}
      */
-    public get clearColor(): vec3 {
+    public get clearColor(): string {
         return this._clearColor;
     }
 
     /**
      * Setter clearColor
-     * @param {vec3} value
+     * @param {string} value
      */
-    public set clearColor(value: vec3) {
+    public set clearColor(value: string) {
         this._clearColor = value;
     }
 
@@ -669,7 +668,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._settingsEngine.scene.render.beautyRenderBlendingDuration.value = this.beautyRenderBlendingDuration;
         this._settingsEngine.scene.render.beautyRenderDelay.value = this.beautyRenderDelay;
         this._settingsEngine.scene.render.clearAlpha.value = this.clearAlpha;
-        this._settingsEngine.scene.render.clearColor.value = this.clearColor.toString();
+        this._settingsEngine.scene.render.clearColor.value = this.clearColor;
         this._settingsEngine.scene.render.pointSize.value = this.pointSize;
         this._settingsEngine.scene.render.shadows.value = this.shadows;
 

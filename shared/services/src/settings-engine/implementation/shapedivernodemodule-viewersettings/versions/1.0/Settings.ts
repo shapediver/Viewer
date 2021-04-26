@@ -27,7 +27,7 @@ export class Settings extends BaseSettings {
     
             ambientOcclusion: new Setting(true, (v:any) => true),
             autoRotateSpeed: new Setting(0.0, (v:any) => true),
-            backgroundColor: new Setting('0xffffffff', (v:any) => true),
+            backgroundColor: new Setting('#ffffff', (v:any) => true),
             bumpAmplitude: new Setting(1.0, (v:any) => true),
             camera: new Setting({
                 position: new Setting({ x: 0, y: 0, z: 0 }, (v:any) => true),

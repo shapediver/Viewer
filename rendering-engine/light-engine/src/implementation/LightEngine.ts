@@ -35,31 +35,31 @@ export class LightEngine implements ILightEngine {
 
     // #region Public Methods (14)
 
-    public addAmbientLight(properties: {color?: vec3, intensity?: number, id?: string}): AmbientLight {
+    public addAmbientLight(properties: {color?: string, intensity?: number, id?: string}): AmbientLight {
         const light = new AmbientLight(properties.color, properties.intensity, properties.id);
         this._currentLightScene.addLight(light);
         return light;
     }
 
-    public addDirectionalLight(properties: {color?: vec3, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, id?: string}): DirectionalLight {
+    public addDirectionalLight(properties: {color?: string, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, id?: string}): DirectionalLight {
         const light = new DirectionalLight(properties.color, properties.intensity, properties.direction, properties.castShadow, properties.shadowMapResolution, properties.shadowMapBias, properties.id);
         this._currentLightScene.addLight(light);
         return light;
     }
 
-    public addHemisphereLight(properties: {color?: vec3, intensity?: number, groundColor?: vec3, id?: string}): HemisphereLight {
+    public addHemisphereLight(properties: {color?: string, intensity?: number, groundColor?: string, id?: string}): HemisphereLight {
         const light = new HemisphereLight(properties.color, properties.intensity, properties.groundColor, properties.id);
         this._currentLightScene.addLight(light);
         return light;
     }
 
-    public addPointLight(properties: {color?: vec3, intensity?: number, position?: vec3, distance?: number, decay?: number, id?: string}): PointLight {
+    public addPointLight(properties: {color?: string, intensity?: number, position?: vec3, distance?: number, decay?: number, id?: string}): PointLight {
         const light = new PointLight(properties.color, properties.intensity, properties.position, properties.distance, properties.decay, properties.id);
         this._currentLightScene.addLight(light);
         return light;
     }
 
-    public addSpotLight(properties: {color?: vec3, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, id?: string}): SpotLight {
+    public addSpotLight(properties: {color?: string, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, id?: string}): SpotLight {
         const light = new SpotLight(properties.color, properties.intensity, properties.position, properties.target, properties.distance, properties.decay, properties.angle, properties.penumbra, properties.id);
         this._currentLightScene.addLight(light);
         return light;
@@ -75,9 +75,9 @@ export class LightEngine implements ILightEngine {
         if (!properties.id || this._lightScenes[properties.id]) properties.id = this._uuidGenerator.create();
         const lightScene = new LightScene(properties.id);
         if (properties.standard === true) {
-            lightScene.addLight(new AmbientLight(vec3.fromValues(1, 1, 1), 0.5, 'ambient0'));
-            lightScene.addLight(new DirectionalLight(vec3.fromValues(1, 1, 1), 0.75, vec3.fromValues(.5774, -.5774, .5774), true, 1024, -0.00175, 'directional0'));
-            lightScene.addLight(new DirectionalLight(vec3.fromValues(1, 1, 1), 0.35, vec3.fromValues(.25, -1, 1), false, 1024, -0.00175, 'directional1'));
+            lightScene.addLight(new AmbientLight('#ffffff', 0.5, 'ambient0'));
+            lightScene.addLight(new DirectionalLight('#ffffff', 0.75, vec3.fromValues(.5774, -.5774, .5774), true, 1024, -0.00175, 'directional0'));
+            lightScene.addLight(new DirectionalLight('#ffffff', 0.35, vec3.fromValues(.25, -1, 1), false, 1024, -0.00175, 'directional1'));
         }
         this._lightScenes[properties.id] = lightScene;
         this._currentLightScene = lightScene;

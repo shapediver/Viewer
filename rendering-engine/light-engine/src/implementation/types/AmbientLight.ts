@@ -7,7 +7,7 @@ export class AmbientLight extends AbstractLight {
     // #region Constructors (1)
 
     constructor(
-        color: vec3 = vec3.fromValues(1, 1, 1),
+        color: string = '#ffffff',
         intensity: number = 0.5,
         name?: string
     ) {

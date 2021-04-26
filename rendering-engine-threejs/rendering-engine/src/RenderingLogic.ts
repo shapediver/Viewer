@@ -137,7 +137,7 @@ export class RenderingLogic {
 
         this._renderer.shadowMap.enabled = this._renderingEngine.shadows;
         this._renderingEngine.sceneTree.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
-        this._renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor[0], this._renderingEngine.clearColor[1], this._renderingEngine.clearColor[2]), this._renderingEngine.clearAlpha);
+        this._renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor), this._renderingEngine.clearAlpha);
         
 
         const aspect = width / height;

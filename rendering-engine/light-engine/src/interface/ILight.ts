@@ -12,7 +12,7 @@ export enum LIGHTTYPE {
 export interface ILight {
   // #region Properties (5)
 
-  color: vec3,
+  color: string | number | vec3,
   intensity: number,
   name?: string
   type: LIGHTTYPE,

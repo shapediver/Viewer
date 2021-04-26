@@ -15,6 +15,7 @@ import { NumberParameter } from "./parameters/NumberParameter";
 import { StringParameter } from "./parameters/StringParameter";
 import { RenderingEngine } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { build_data } from "../build_data";
+import { ColorParameter } from "./parameters/ColorParameter";
 
 @injectable()
 export class Session implements ISession {
@@ -35,6 +36,10 @@ export class Session implements ISession {
                 let handlerBP: ProxyHandler<BooleanParameter> = {};
                 let paramBP = new BooleanParameter(<ParameterLogic>parameterLogic, handlerBP);
                 return new Proxy(paramBP, handlerBP);
+            case parameterLogic.type === PARAMETERTYPE.COLOR:
+                let handlerCP: ProxyHandler<ColorParameter> = {};
+                let paramCP = new ColorParameter(<ParameterLogic>parameterLogic, handlerCP);
+                return new Proxy(paramCP, handlerCP);
             case parameterLogic.type === PARAMETERTYPE.FLOAT || parameterLogic.type === PARAMETERTYPE.EVEN || parameterLogic.type === PARAMETERTYPE.ODD || parameterLogic.type === PARAMETERTYPE.INT:
                 let handlerNP: ProxyHandler<NumberParameter> = {};
                 let paramNP = new NumberParameter(<ParameterLogic>parameterLogic, handlerNP);

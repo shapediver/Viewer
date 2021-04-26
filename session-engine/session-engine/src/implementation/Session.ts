@@ -311,7 +311,7 @@ export class Session implements ISession {
     public getParametersAsString(): { [key: string]: string } {
         const parameters: { [key: string]: string } = {};
         for (let parameter in this._parameters)
-            parameters[parameter] = this._parameters[parameter] instanceof FileParameter ? '' : this._parameters[parameter].value;
+            parameters[parameter] = this._parameters[parameter] instanceof FileParameter ? '' : this._parameters[parameter].type === PARAMETERTYPE.COLOR ? (<string>this._parameters[parameter].value).replace('#', '0x') + 'ff' : this._parameters[parameter].value;
         return parameters;
     }
 
@@ -431,6 +431,7 @@ export class Session implements ISession {
             try {
                 for (let parameter in parameters) 
                     if(this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
+                console.log(parameters)
                 responseCustomize = <ISessionResponse>(await this.sessionCommunication(this._sessionResponse.actions['customize'].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {

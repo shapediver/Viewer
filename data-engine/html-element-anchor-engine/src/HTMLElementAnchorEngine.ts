@@ -71,7 +71,7 @@ export class HTMLElementAnchorEngine {
                         this._logger.warn('One of the specified Tag2D elements did not have all necessary properties.');
                         return;
                     }
-                    node.data.push(new HTMLElementAnchorData(this._converter.toVec3(element.location), { color: this._converter.toColor(element.color, vec3.fromValues(0, 0, 0)), text: element.text }, 'text'));
+                    node.data.push(new HTMLElementAnchorData(this._converter.toVec3(element.location), { color: this._converter.toColor(element.color, '#000000'), text: element.text }, 'text'));
                 });
             } else if (content.format === 'anchor') {
                 data.forEach((element: Anchor) => {
@@ -105,7 +105,7 @@ export class HTMLElementAnchorEngine {
                         node.data.push(new HTMLElementAnchorData(
                             this._converter.toVec3(element.location),
                             {
-                                color: this._converter.toColor(textData.color, vec3.fromValues(0, 0, 0)),
+                                color: this._converter.toColor(textData.color, '#000000'),
                                 text: textData.text,
                                 hidden: textData.hidden,
                                 textAlign: textData.textAlign,

@@ -16,7 +16,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     // #region Constructors (1)
 
     constructor(
-        private _color: vec3,
+        private _color: string,
         private _intensity: number,
         private readonly _type: LIGHTTYPE,
         private _name?: string
@@ -28,11 +28,11 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     // #region Public Accessors (9)
 
-    public get color(): vec3 {
+    public get color(): string {
         return this._color;
     }
 
-    public set color(value: vec3) {
+    public set color(value: string) {
         this._color = value;
         this.updateVersion();
     }

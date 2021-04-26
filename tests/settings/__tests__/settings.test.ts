@@ -99,9 +99,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             expect(settings.ambientOcclusion).toBe(true);
             expect(settings.beautyRenderDelay).toBe(50);
             expect(settings.beautyRenderBlendingDuration).toBe(1500);
-            expect(settings.clearColor[0]).toBe(1);
-            expect(settings.clearColor[1]).toBe(1);
-            expect(settings.clearColor[2]).toBe(1);            
+            expect(settings.clearColor).toBe('#ffffff');         
             expect(settings.clearAlpha).toBe(1);
             expect(settings.pointSize).toBe(1);
             expect(settings.shadows).toBe(true);

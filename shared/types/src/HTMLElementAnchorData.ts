@@ -21,7 +21,7 @@ interface AnchorDataImage {
 interface AnchorDataText {
     // #region Properties (5)
 
-    color: vec3,
+    color: string | number | vec3,
     hidden?: boolean,
     position?: {
         horizontal?: string,

@@ -141,6 +141,7 @@ export class Logger {
      */
     public error(msg: string, error?: Error, httpError?: number): void {
         if (httpError && error) {
+            if(error) console.error(error);
             this.httpError(msg, error, httpError);
         } else {
             if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true) {

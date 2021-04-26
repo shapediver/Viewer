@@ -1,7 +1,7 @@
 import { ILight, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
 
@@ -9,6 +9,7 @@ export abstract class Light implements ILight {
     // #region Properties (1)
 
     readonly #light: ILight;
+    readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
@@ -31,16 +32,16 @@ export abstract class Light implements ILight {
     /**
      * The color of the light
      */
-    public get color(): vec3 {
+    public get color(): string | number | vec3 {
         return this.#light.color;
     }
 
     /**
      * The color of the light
      */
-    public set color(value: vec3) {
-        this.#inputValidator.validate(value, 'vec3');
-        this.#light.color = value;
+    public set color(value: string | number | vec3) {
+        this.#inputValidator.validate(value, 'color');
+        this.#light.color = this.#converter.toColor(value);
         this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): color was set to: ${value}`);
     }
 
