@@ -3,6 +3,7 @@ import { Box, Sphere } from '@shapediver/viewer.shared.math';
 import { AbstractLight, AmbientLight, DirectionalLight, HemisphereLight, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine';
 import { SDObject } from '../types/SDObject';
 import { RenderingEngine } from '../RenderingEngine';
+import { vec3 } from 'gl-matrix';
 
 export class LightLoader {
     // #region Constructors (1)
@@ -80,15 +81,11 @@ export class LightLoader {
         }
         
         if (light instanceof SpotLight) {
-            const threeLight: THREE.SpotLight = converted.children[0] instanceof THREE.SpotLight ? (<THREE.SpotLight>converted.children[0]) : new THREE.SpotLight();
+            console.log(light)
+            const threeLight: THREE.SpotLight = converted.children[0] instanceof THREE.SpotLight ? (<THREE.SpotLight>converted.children[0]) : 
+            new THREE.SpotLight(new THREE.Color(light.color[0], light.color[1], light.color[2]), light.intensity, vec3.distance(light.position, light.target), light.angle, light.penumbra, light.decay)
             if (converted.children.length === 0) converted.add(threeLight);
             scene.add(threeLight.target);
-            threeLight.color = new THREE.Color(light.color[0], light.color[1], light.color[2]);
-            threeLight.intensity = light.intensity;
-            threeLight.distance = light.distance;
-            threeLight.angle = light.angle;
-            threeLight.penumbra = light.penumbra;
-            threeLight.decay = light.decay;
             threeLight.position.set(light.position[0], light.position[1], light.position[2]);
             threeLight.target.position.set(light.target[0], light.target[1], light.target[2]);
         }
