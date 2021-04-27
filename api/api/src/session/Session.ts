@@ -1,5 +1,5 @@
 import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { ISession, PARAMETERTYPE, Session as SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
+import { IParameter, ISession, PARAMETERTYPE, Session as SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { Export } from "./Export";
 import { Output } from "./Output";
 import { AbstractParameter } from "./parameters/objects/AbstractParameter";
@@ -16,6 +16,11 @@ import { StringParameter } from "./parameters/objects/StringParameter";
 import { RenderingEngine } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { build_data } from "../build_data";
 import { ColorParameter } from "./parameters/objects/ColorParameter";
+import { BooleanParameterDTO } from "./parameters/dtos/BooleanParameterDTO";
+import { FileParameterDTO } from "./parameters/dtos/FileParameterDTO";
+import { ColorParameterDTO } from "./parameters/dtos/ColorParameterDTO";
+import { NumberParameterDTO } from "./parameters/dtos/NumberParameterDTO";
+import { StringParameterDTO } from "./parameters/dtos/StringParameterDTO";
 
 @injectable()
 export class Session implements ISession {
@@ -26,22 +31,45 @@ export class Session implements ISession {
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #outputs: { [key: string]: Output; } = {};
-    readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): AbstractParameter<any> => {
+    readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): {
+        object: AbstractParameter<any>,
+        dto: IParameter<any> 
+     } => {
         switch (true) {
             case parameterLogic.type === PARAMETERTYPE.FILE:
-                return new FileParameter(<FileParameterLogic>parameterLogic);
+                return {
+                    object: new FileParameter(<FileParameterLogic>parameterLogic),
+                    dto: new FileParameterDTO(<FileParameterLogic>parameterLogic)
+                };
             case parameterLogic.type === PARAMETERTYPE.BOOL:
-                return new BooleanParameter(<ParameterLogic>parameterLogic);
+                return {
+                    object: new BooleanParameter(<ParameterLogic>parameterLogic),
+                    dto: new BooleanParameterDTO(<ParameterLogic>parameterLogic)
+                };
             case parameterLogic.type === PARAMETERTYPE.COLOR:
-                return new ColorParameter(<ParameterLogic>parameterLogic);
+                return {
+                    object: new ColorParameter(<ParameterLogic>parameterLogic),
+                    dto: new ColorParameterDTO(<ParameterLogic>parameterLogic)
+                };
             case parameterLogic.type === PARAMETERTYPE.FLOAT || parameterLogic.type === PARAMETERTYPE.EVEN || parameterLogic.type === PARAMETERTYPE.ODD || parameterLogic.type === PARAMETERTYPE.INT:
-                return new NumberParameter(<ParameterLogic>parameterLogic);
+                return {
+                    object: new NumberParameter(<ParameterLogic>parameterLogic),
+                    dto: new NumberParameterDTO(<ParameterLogic>parameterLogic)
+                };
             default:
-                return new StringParameter(<ParameterLogic>parameterLogic);
+                return {
+                    object: new StringParameter(<ParameterLogic>parameterLogic),
+                    dto: new StringParameterDTO(<ParameterLogic>parameterLogic)
+                };
         }
     }
 
-    readonly #parameters: { [key: string]: AbstractParameter<any>; } = {};
+    readonly #parameters: { 
+        [key: string]: {
+            object: AbstractParameter<any>,
+            dto: IParameter<any>
+        } 
+    } = {};
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -386,12 +414,12 @@ export class Session implements ISession {
      * @param id the id of the parameter
      * @returns 
      */
-    public getParameter(id: string): AbstractParameter<any> | null {
+    public getParameter(id: string): IParameter<any> | null {
         this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameter(id);
         if (!parameterLogic) return null;
         if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
-        return this.#parameters[id];
+        return this.#returnDTOs ? this.#parameters[id].dto : this.#parameters[id].object;
     }
 
     /**
@@ -400,12 +428,12 @@ export class Session implements ISession {
      * @param id the id of the parameter
      * @returns 
      */
-    public getParameterById(id: string): AbstractParameter<any> | null {
+    public getParameterById(id: string): IParameter<any> | null {
         this.#inputValidator.validate(id, 'string');
         const parameterLogic = this.#sessionEngine.getParameterById(id);
         if (!parameterLogic) return null;
         if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
-        return this.#parameters[id];
+        return this.#returnDTOs ? this.#parameters[id].dto : this.#parameters[id].object;
     }
 
     /**
@@ -414,13 +442,13 @@ export class Session implements ISession {
      * @param name the name of the parameters
      * @returns 
      */
-    public getParameterByName(name: string): AbstractParameter<any>[] {
+    public getParameterByName(name: string): IParameter<any>[] {
         this.#inputValidator.validate(name, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByName(name);
-        const parameters: AbstractParameter<any>[] = [];
+        const parameters: IParameter<any>[] = [];
         for (let i = 0; i < parameterLogic.length; i++) {
             if (!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = this.#parameterCreation(parameterLogic[i]);
-            parameters.push(this.#parameters[parameterLogic[i].id]);
+            parameters.push(this.#returnDTOs ? this.#parameters[parameterLogic[i].id].dto : this.#parameters[parameterLogic[i].id].object);
         }
         return parameters;
     }
@@ -431,13 +459,13 @@ export class Session implements ISession {
      * @param type the type of the parameters
      * @returns 
      */
-    public getParameterByType(type: string): AbstractParameter<any>[] {
+    public getParameterByType(type: string): IParameter<any>[] {
         this.#inputValidator.validate(type, 'string');
         const parameterLogic = this.#sessionEngine.getParameterByType(type);
-        const parameters: AbstractParameter<any>[] = [];
+        const parameters: IParameter<any>[] = [];
         for (let i = 0; i < parameterLogic.length; i++) {
             if (!this.#parameters[parameterLogic[i].id]) this.#parameters[parameterLogic[i].id] = this.#parameterCreation(parameterLogic[i]);
-            parameters.push(this.#parameters[parameterLogic[i].id]);
+            parameters.push(this.#returnDTOs ? this.#parameters[parameterLogic[i].id].dto : this.#parameters[parameterLogic[i].id].object);
         }
         return parameters;
     }
@@ -448,12 +476,12 @@ export class Session implements ISession {
      * 
      * @returns 
      */
-    public getParameters(): { [key: string]: AbstractParameter<any>; } {
+    public getParameters(): { [key: string]: IParameter<any>; } {
         const parameterLogic = this.#sessionEngine.getParameters();
-        const parameters: { [key: string]: AbstractParameter<any>; } = {};
+        const parameters: { [key: string]: IParameter<any>; } = {};
         for (let e in parameterLogic) {
             if (!this.#parameters[parameterLogic[e].id]) this.#parameters[parameterLogic[e].id] = this.#parameterCreation(parameterLogic[e]);
-            parameters[e] = this.#parameters[parameterLogic[e].id];
+            parameters[e] = this.#returnDTOs ? this.#parameters[parameterLogic[e].id].dto : this.#parameters[parameterLogic[e].id].object;
         }
         return parameters;
     }
@@ -513,7 +541,7 @@ export class Session implements ISession {
                 controlNames[p] = parameters[p].displayName!;
         this.#settingsEngine.general.parameters.controlNames.value = controlNames;
 
-        const parametersOrdered: AbstractParameter<any>[] = [];
+        const parametersOrdered: IParameter<any>[] = [];
         for (let p in parameters) parametersOrdered.push(parameters[p]);
         parametersOrdered.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
         this.#settingsEngine.general.parameters.controlOrder.value = parametersOrdered.map((value) => { return value.id; });
@@ -566,7 +594,8 @@ export class Session implements ISession {
         const parameterLogic = this.#sessionEngine.getParameterById(id);
         if (!parameterLogic) return false;
         if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
-        this.#parameters[id].value = value;
+        this.#parameters[id].object.value = value;
+        this.#parameters[id].dto.value = value;
         return true;
     }
 
@@ -583,7 +612,8 @@ export class Session implements ISession {
         const parameterLogic = this.#sessionEngine.getParameterById(id);
         if (!parameterLogic) return false;
         if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
-        this.#parameters[id].displayName = displayName;
+        this.#parameters[id].object.displayName = displayName;
+        this.#parameters[id].dto.displayName = displayName;
         return true;
     }
 
@@ -600,7 +630,8 @@ export class Session implements ISession {
         const parameterLogic = this.#sessionEngine.getParameterById(id);
         if (!parameterLogic) return false;
         if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
-        this.#parameters[id].hidden = hidden;
+        this.#parameters[id].object.hidden = hidden;
+        this.#parameters[id].dto.hidden = hidden;
         return true;
     }
 
@@ -617,7 +648,8 @@ export class Session implements ISession {
         const parameterLogic = this.#sessionEngine.getParameterById(id);
         if (!parameterLogic) return false;
         if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
-        this.#parameters[id].order = order;
+        this.#parameters[id].object.order = order;
+        this.#parameters[id].dto.order = order;
         return true;
     }
 
