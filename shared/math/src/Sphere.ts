@@ -71,13 +71,11 @@ export class Sphere implements IGeometry {
     }
 
     public containsPoint(point: vec3): boolean {
-        return false;
-        throw new Error('Method not implemented.');
+        return ( vec3.squaredDistance(point, this.center ) <= ( this.radius * this.radius ) );
     }
     
     public clampPoint(point: vec3): vec3 {
         return point;
-        throw new Error('Method not implemented.');
     }
 
     public setFromBox(box: Box): Sphere {

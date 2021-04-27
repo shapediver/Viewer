@@ -3,7 +3,6 @@ import { BooleanSetting } from './types/BooleanSetting';
 import { CustomSetting } from './types/CustomSetting';
 import { NumberSetting } from './types/NumberSetting';
 import { StringSetting } from './types/StringSetting';
-import { vec3 } from 'gl-matrix';
 
 export const DefaultSettings = {
     build_date: <ISetting<string>> new StringSetting('', ''),
@@ -27,11 +26,11 @@ export const DefaultSettings = {
                 cameraMovementDuration: <ISetting<number>> new NumberSetting(800, 'Default duration of camera movements', (value: number) => value >= 0),
                 cameraTypes: {
                     perspective: {
-                        default: <ISetting<{ position: vec3, target: vec3 }>> new CustomSetting({ position: vec3.create(), target: vec3.create() }, 'Default position and target for the perspective camera'),
+                        default: <ISetting<{ position: { x: number, y: number, z: number }, target: { x: number, y: number, z: number } }>> new CustomSetting({ position: { x: 0, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } }, 'Default position and target for the perspective camera'),
                         fov: <ISetting<number>> new NumberSetting(45, 'Camera frustum vertical field of view angle, unit degree, interval [0,180]', (value: number) => value >= 0),
                     },
                     orthographic: {
-                        default: <ISetting<{ position: vec3, target: vec3 }>> new CustomSetting({ position: vec3.create(), target: vec3.create() }, 'Default position and target for the orthographic camera')
+                        default: <ISetting<{ position: { x: number, y: number, z: number }, target: { x: number, y: number, z: number } }>> new CustomSetting({ position: { x: 0, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } }, 'Default position and target for the orthographic camera')
                     },
                     active: <ISetting<number>> new NumberSetting(0, 'Set camera type', (value: number) => value >= 0 && value <=6),
                 },
@@ -49,12 +48,12 @@ export const DefaultSettings = {
                         movementSmoothness: <ISetting<number>> new NumberSetting(0.5, 'How much to the current movement is affected by the previous one', (value: number) => value >= 0 && value <= 1),
                         restrictions: {
                             position: {
-                                cube: <ISetting<{min: vec3, max: vec3}>> new CustomSetting({ min: vec3.fromValues(-Infinity, -Infinity, -Infinity), max: vec3.fromValues(Infinity, Infinity, Infinity) }, 'Restriction of the camera position inside a cube, minimum and maximum corner of the cube'),
-                                sphere: <ISetting<{center: vec3, radius: number}>> new CustomSetting({ center: vec3.create(), radius: Infinity }, 'Restriction of the camera position inside a sphere, center and radius of the sphere'),
+                                cube: <ISetting<{min: { x: number, y: number, z: number }, max: { x: number, y: number, z: number }}>> new CustomSetting({ min: { x: -Infinity, y: -Infinity, z: -Infinity }, max: { x: Infinity, y: Infinity, z: Infinity } }, 'Restriction of the camera position inside a cube, minimum and maximum corner of the cube'),
+                                sphere: <ISetting<{center: { x: number, y: number, z: number }, radius: number}>> new CustomSetting({ center: { x: 0, y: 0, z: 0 }, radius: Infinity }, 'Restriction of the camera position inside a sphere, center and radius of the sphere'),
                             },
                             target: {
-                                cube: <ISetting<{min: vec3, max: vec3}>> new CustomSetting({ min: vec3.fromValues(-Infinity, -Infinity, -Infinity), max: vec3.fromValues(Infinity, Infinity, Infinity) }, 'Restriction of the camera target inside a cube, minimum and maximum corner of the cube'),
-                                sphere: <ISetting<{center: vec3, radius: number}>> new CustomSetting({ center: vec3.create(), radius: Infinity }, 'Restriction of the camera target inside a sphere, center and radius of the sphere'),
+                                cube: <ISetting<{min: { x: number, y: number, z: number }, max: { x: number, y: number, z: number }}>> new CustomSetting({ min: { x: -Infinity, y: -Infinity, z: -Infinity }, max: { x: Infinity, y: Infinity, z: Infinity } }, 'Restriction of the camera target inside a cube, minimum and maximum corner of the cube'),
+                                sphere: <ISetting<{center: { x: number, y: number, z: number }, radius: number}>> new CustomSetting({ center: { x: 0, y: 0, z: 0 }, radius: Infinity }, 'Restriction of the camera target inside a sphere, center and radius of the sphere'),
                             },
                             rotation: <ISetting<{minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number}>> new CustomSetting({ minPolarAngle: 0, maxPolarAngle: 180, minAzimuthAngle: -Infinity, maxAzimuthAngle: Infinity }, 'Minimum and maximum polar and azimuth angle of the camera position with respect to the camera target, unit degree'),
                             zoom: <ISetting<{minDistance: number, maxDistance: number}>> new CustomSetting({ minDistance: 0, maxDistance: Infinity }, 'Minimum and maximum distance between camera position and target'),

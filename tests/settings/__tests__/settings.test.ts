@@ -63,7 +63,6 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     showMessages: api.showMessages,
                     commitParameters: session.commitParameters,
                     commitSettings: session.commitSettings,
-                    show: viewer.show,
                     gridVisibility: viewer.gridVisibility,
                     groundPlaneVisibility: viewer.groundPlaneVisibility,
                     lightScene: viewer.lightScene,
@@ -90,7 +89,6 @@ for (let c = 0; c < allCapabilities.length; c++) {
             expect(settings.showMessages).toBe(true);
             expect(settings.commitParameters).toBe(false);
             expect(settings.commitSettings).toBe(false);
-            expect(settings.show).toBe(false);
             expect(settings.gridVisibility).toBe(true);
             expect(settings.groundPlaneVisibility).toBe(true);
             expect(settings.lightScene).toBe('default');
@@ -152,12 +150,12 @@ for (let c = 0; c < allCapabilities.length; c++) {
             expect(settings.revertAtMouseUp).toBe(false);
             expect(settings.revertAtMouseUpDuration).toBe(800);
             expect(settings.zoomExtentsFactor).toBe(1);
-            expect(settings.defaultPosition[0]).toBe(0);
-            expect(settings.defaultPosition[1]).toBe(0);
-            expect(settings.defaultPosition[2]).toBe(0);
-            expect(settings.defaultTarget[0]).toBe(0);
-            expect(settings.defaultTarget[1]).toBe(0);
-            expect(settings.defaultTarget[2]).toBe(0);
+            expect(settings.defaultPosition[0]).toBeCloseTo(58.03696, 4);
+            expect(settings.defaultPosition[1]).toBeCloseTo(-290.11590, 4);
+            expect(settings.defaultPosition[2]).toBeCloseTo(87.67756, 4);
+            expect(settings.defaultTarget[0]).toBeCloseTo(0, 4);
+            expect(settings.defaultTarget[1]).toBeCloseTo(7, 4);
+            expect(settings.defaultTarget[2]).toBeCloseTo(-3.25, 4);
             expect(settings.fov).toBe(45);
             expect(settings.autoRotationSpeed).toBe(0);
             expect(settings.damping).toBe(0.1);

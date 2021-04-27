@@ -3,8 +3,9 @@ import { Converter } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { CAMERATYPE } from "../interface/ICameraEngine";
 import { AbstractCamera } from "./AbstractCamera";
-import { mat4, vec2, vec3 } from "gl-matrix";
+import { mat4, quat, vec2, vec3 } from "gl-matrix";
 import { PerspectiveCameraControls } from "../../controls/implementation/PerspectiveCameraControls";
+import { Box, Plane } from "@shapediver/viewer.shared.math";
 
 export class PerspectiveCamera extends AbstractCamera {
   // #region Properties (3)
@@ -77,9 +78,98 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #region Public Methods (1)
 
-  public project(pos: vec3): vec2 {
-    const m = mat4.targetTo(mat4.create(), this.position, this.target, vec3.fromValues(0, 0, 1));
-    const p = mat4.perspective(mat4.create(), this.fov / (180/Math.PI), this.aspect, this.near, this.far);
+
+  public getZoomPositionAndTarget(zoomTarget: string[] | Box | null): { position: vec3, target: vec3 } {
+
+    let box: Box;
+
+    // Part 1 - calculate the bounding box that we should zoom to
+    if (!zoomTarget) {
+      // complete scene
+      box = this._boundingBox;
+    } else if (zoomTarget instanceof Box) {
+      // specified Box
+      box = zoomTarget;
+    } else {
+      // TODO scene paths
+      box = this._boundingBox;
+    }
+    const target = vec3.fromValues((box.max[0] - box.min[0]) / 2, (box.max[1] - box.min[1]) / 2, (box.max[2] - box.min[2]) / 2);
+
+    // extend box by the factor
+    const boxDir = vec3.subtract(vec3.create(), box.max, target)
+    vec3.multiply(boxDir, boxDir, vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
+    box = new Box(vec3.subtract(vec3.create(), target, boxDir), vec3.add(vec3.create(), target, boxDir))
+
+    const direction = vec3.subtract(vec3.create(), target, this.position);
+
+    let cross = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), vec3.fromValues(0, 0, 1), direction));
+    let up = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), cross, direction));
+
+    let position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-1, -1, -1)));
+
+    let points = [];
+    points.push(vec3.fromValues(box.min[0], box.min[1], box.min[2]));
+    points.push(vec3.fromValues(box.min[0], box.min[1], box.max[2]));
+    points.push(vec3.fromValues(box.min[0], box.max[1], box.min[2]));
+    points.push(vec3.fromValues(box.min[0], box.max[1], box.max[2]));
+    points.push(vec3.fromValues(box.max[0], box.min[1], box.min[2]));
+    points.push(vec3.fromValues(box.max[0], box.min[1], box.max[2]));
+    points.push(vec3.fromValues(box.max[0], box.max[1], box.min[2]));
+    points.push(vec3.fromValues(box.max[0], box.max[1], box.max[2]));
+
+    let fovDown = vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, (this.fov / 2) * (Math.PI / 180)));
+    let fovUp = vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, -(this.fov / 2) * (Math.PI / 180)));
+
+    let hFoV = 2 * Math.atan(Math.tan(this.fov * Math.PI / 180 / 2) * this.aspect);
+    let fovRight = vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, hFoV / 2));
+    let fovLeft = vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, -hFoV / 2));
+
+    let planeCross = new Plane(vec3.clone(cross), 0);
+    planeCross.setFromNormalAndCoplanarPoint(vec3.clone(cross), vec3.clone(target));
+
+    let planeUp = new Plane(vec3.fromValues(0, 0, 1), 0);
+    planeUp.setFromNormalAndCoplanarPoint(vec3.clone(up), vec3.clone(target));
+
+    let distanceCamera = 0.0;
+    for (let i = 0; i < points.length; i++) {
+
+      let projected = planeCross.clampPoint(points[i]);
+      let toP = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), projected, position));
+
+      if (vec3.dot(direction, fovDown) > vec3.dot(direction, toP)) {
+        const currentDir = vec3.multiply(vec3.create(), vec3.dot(fovDown, toP) > vec3.dot(fovUp, toP) ? fovDown : fovUp, vec3.fromValues(-1, -1, -1));
+        const distance = planeUp.intersect(projected, currentDir)
+        if (distance) {
+          const cameraPoint = vec3.add(vec3.create(), vec3.multiply(vec3.create(), currentDir, vec3.fromValues(distance, distance, distance)), projected);
+          distanceCamera = Math.max(distanceCamera, vec3.distance(target, cameraPoint));
+        }
+      }
+
+      projected = planeUp.clampPoint(points[i]);
+
+      if (vec3.dot(direction, fovRight) > vec3.dot(direction, toP)) {
+
+        const currentDir = vec3.multiply(vec3.create(), vec3.dot(fovRight, toP) > vec3.dot(fovLeft, toP) ? fovLeft : fovUp, vec3.fromValues(-1, -1, -1));
+        const distance = planeCross.intersect(projected, currentDir)
+        if (distance) {
+          const cameraPoint = vec3.add(vec3.create(), vec3.multiply(vec3.create(), currentDir, vec3.fromValues(distance, distance, distance)), projected);
+          distanceCamera = Math.max(distanceCamera, vec3.distance(target, cameraPoint));
+        }
+      }
+    }
+
+    position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-distanceCamera, -distanceCamera, -distanceCamera)));
+  
+    return {
+      position, target
+    }
+  }
+
+
+  public project(pos: vec3, position = this.position, target = this.target): vec2 {
+    const m = mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
+    const p = mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), this.aspect, this.near, this.far);
     vec3.transformMat4(pos, pos, mat4.invert(m, m))
     vec3.transformMat4(pos, pos, p)
     return vec2.fromValues(pos[0], pos[1])

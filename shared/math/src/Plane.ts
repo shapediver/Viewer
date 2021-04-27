@@ -1,0 +1,92 @@
+import { mat4, vec3 } from "gl-matrix";
+import { IGeometry } from "./IGeometry";
+
+export class Plane implements IGeometry {
+
+    // #region Constructors (1)
+
+    constructor(private _normal: vec3 = vec3.fromValues(1,0,0), private _constant: number = 0) {}
+
+    // #endregion Constructors (1)
+
+    // #region Public Accessors (4)
+
+    /**
+     * Getter constant
+     * @return {number}
+     */
+    public get constant(): number {
+		return this._constant;
+	}
+
+    /**
+     * Setter constant
+     * @param {number} value
+     */
+    public set constant(value: number) {
+		this._constant = value;
+	}
+
+    /**
+     * Getter normal
+     * @return {vec3}
+     */
+    public get normal(): vec3 {
+		return this._normal;
+	}
+
+    /**
+     * Setter normal
+     * @param {vec3} value
+     */
+    public set normal(value: vec3) {
+		this._normal = value;
+	}
+
+    // #endregion Public Accessors (4)
+
+    // #region Public Methods (7)
+
+    public applyMatrix(matrix: mat4): IGeometry {
+        throw new Error("Method not implemented.");
+    }
+
+    public clampPoint(point: vec3): vec3 {
+        const d = -this.distanceToPoint(point);
+        return vec3.add(vec3.create(), vec3.multiply(vec3.create(), this.normal, vec3.fromValues(d, d, d)), point);
+    }
+
+    public clone(): IGeometry {
+        return new Plane(this._normal, this._constant);
+    }
+
+    public containsPoint(point: vec3): boolean {
+        throw new Error("Method not implemented.");
+    }
+
+    public distanceToPoint(point: vec3): number {
+        return vec3.dot(this.normal, point) + this.constant;
+    }
+
+    public intersect(origin: vec3, direction: vec3): number | null {
+		const denominator = vec3.dot(this.normal, direction);
+		if (denominator === 0) {
+			// line is coplanar, return origin
+			if (this.distanceToPoint( origin ) === 0) return 0;
+			// Null is preferable to undefined since undefined means.... it is undefined
+			return null;
+		}
+		const t = - (vec3.dot(origin, this.normal) + this.constant) / denominator;
+		if ( t < 0 ) return null;
+
+        return t; //vec3.add(vec3.create(), vec3.multiply(vec3.create(), direction, vec3.fromValues(t,t,t)), origin);
+    }
+
+    public setFromNormalAndCoplanarPoint(normal: vec3, point: vec3): Plane {
+        vec3.copy(this.normal, normal);
+		this.constant = -vec3.dot(point, this.normal);
+		return this;
+    }
+
+    // #endregion Public Methods (7)
+}

@@ -1,11 +1,12 @@
 import { ICameraInterpolation } from "../interface/ICameraInterpolation";
 import { ICameraControls } from "../interface/ICameraControls";
-import { Tween, Easing, Interpolation } from "@tweenjs/tween.js";
+import * as TWEEN from "@tweenjs/tween.js";
 import { CameraMultipleInterpolation } from "./interpolationMethods/CameraMultipleInterpolation";
 import { CameraSphericalInterpolation } from "./interpolationMethods/CameraSphericalInterpolation";
 import { vec3 } from "gl-matrix";
 import { ICameraControlsUsage } from "../interface/ICameraControlsUsage";
 import { ICamera } from "../../engine/interface/ICamera";
+import { CameraLinearInterpolation } from "./interpolationMethods/CameraLinearInterpolation";
 
 export class CameraInterpolationManager {
     // #region Properties (3)
@@ -13,11 +14,11 @@ export class CameraInterpolationManager {
 
     private TweenWrapper = class {
         private _properties: { delta: 0 } = { delta: 0 };
-        private _tween!: Tween<{  delta: number }>;
+        private _tween!: TWEEN.Tween<{  delta: number }>;
         private _resolve!: Function;
 
         constructor(options: {default: boolean, duration: number, easing: (amount: number) => number, coordinates: string, interpolation: Function }, cb: ICameraInterpolation, onComplete: Function) {
-            this._tween = new Tween(this._properties);
+            this._tween = new TWEEN.Tween(this._properties);
             this._tween.easing(options.easing);            
             this._tween.to({ delta: 1.0 }, options.duration);
 
@@ -107,12 +108,14 @@ export class CameraInterpolationManager {
 
     private getCameraInterpolation(from: { position: vec3, target: vec3 }, to: { position: vec3, target: vec3 }, type: string) {
         switch(type) {
+            case 'linear':
+                return new CameraLinearInterpolation(this._camera, this._cameraControls, from, to);
             case 'spherical':
                 return new CameraSphericalInterpolation(this._camera, this._cameraControls, from, to);
             case 'cylindrical':
                 return new CameraSphericalInterpolation(this._camera, this._cameraControls, from, to);
             default:
-                return new CameraMultipleInterpolation(this._camera, this._cameraControls, [from, to], Interpolation.CatmullRom);
+                return new CameraMultipleInterpolation(this._camera, this._cameraControls, [from, to], TWEEN.Interpolation.CatmullRom);
         }
     }
 
@@ -122,9 +125,9 @@ export class CameraInterpolationManager {
         return {
             default: options.default || false,
             duration: options.duration && options.duration >= 0 ? options.duration : 0,
-            easing: Easing.Quartic.InOut,// TODO typeof options.easing === 'string' ? Easing[<typeof Easing>options.easing] TWEEN.Easing.Quartic.InOut : typeof options.easing === 'function' ? options.easing : TWEEN.Easing.Quartic.InOut,
+            easing: TWEEN.Easing.Quartic.InOut,// TODO typeof options.easing === 'string' ? Easing[<typeof Easing>options.easing] TWEEN.Easing.Quartic.InOut : typeof options.easing === 'function' ? options.easing : TWEEN.Easing.Quartic.InOut,
             coordinates: options.coordinates !== 'spherical' && options.coordinates !== 'linear' && options.coordinates !== 'cylindrical' ? 'cylindrical' : options.coordinates, 
-            interpolation: Interpolation.CatmullRom// TODO this._globalUtils.typeCheck(options.interpolation, 'string') ? this._globalUtils.getAtPath(TWEEN.Interpolation, options.interpolation) || TWEEN.Interpolation.CatmullRom : typeof options.interpolation === 'function' ? options.interpolation : TWEEN.Interpolation.CatmullRom
+            interpolation: TWEEN.Interpolation.CatmullRom// TODO this._globalUtils.typeCheck(options.interpolation, 'string') ? this._globalUtils.getAtPath(TWEEN.Interpolation, options.interpolation) || TWEEN.Interpolation.CatmullRom : typeof options.interpolation === 'function' ? options.interpolation : TWEEN.Interpolation.CatmullRom
         };
     }
 

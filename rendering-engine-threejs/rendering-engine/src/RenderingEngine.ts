@@ -684,8 +684,8 @@ export class RenderingEngine implements IRenderingEngine {
             
             if(camera.type === CAMERATYPE.PERSPECTIVE) {
                 this._settingsEngine.scene.camera.cameraTypes.active.value = 0;
-                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.position = camera.defaultPosition;
-                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.target = camera.defaultTarget;
+                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2]};
+                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2]};
                 this._settingsEngine.scene.camera.cameraTypes.perspective.fov.value = (<PerspectiveCamera>camera).fov;
 
                 const controls = <PerspectiveCameraControls>camera.controls;
@@ -703,29 +703,42 @@ export class RenderingEngine implements IRenderingEngine {
                 this._settingsEngine.scene.camera.controls.orbit.panSpeed.value = controls.panSpeed;
                 this._settingsEngine.scene.camera.controls.orbit.zoomSpeed.value = controls.zoomSpeed;
 
-                this._settingsEngine.scene.camera.controls.orbit.restrictions.position.cube.value = controls.cubePositionRestriction;
-                this._settingsEngine.scene.camera.controls.orbit.restrictions.position.sphere.value = controls.spherePositionRestriction;
-                this._settingsEngine.scene.camera.controls.orbit.restrictions.target.cube.value = controls.cubePositionRestriction;
-                this._settingsEngine.scene.camera.controls.orbit.restrictions.target.sphere.value = controls.spherePositionRestriction;
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.position.cube.value = {
+                    min: { x: controls.cubePositionRestriction.min[0], y: controls.cubePositionRestriction.min[1], z: controls.cubePositionRestriction.min[2] },
+                    max: { x: controls.cubePositionRestriction.max[0], y: controls.cubePositionRestriction.max[1], z: controls.cubePositionRestriction.max[2] },
+                };
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.position.sphere.value = {
+                    center: { x: controls.spherePositionRestriction.center[0], y: controls.spherePositionRestriction.center[1], z: controls.spherePositionRestriction.center[2] },
+                    radius: controls.spherePositionRestriction.radius,
+                };
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.target.cube.value = {
+                    min: { x: controls.cubeTargetRestriction.min[0], y: controls.cubeTargetRestriction.min[1], z: controls.cubeTargetRestriction.min[2] },
+                    max: { x: controls.cubeTargetRestriction.max[0], y: controls.cubeTargetRestriction.max[1], z: controls.cubeTargetRestriction.max[2] },
+                };
+                this._settingsEngine.scene.camera.controls.orbit.restrictions.target.sphere.value = {
+                    center: { x: controls.sphereTargetRestriction.center[0], y: controls.sphereTargetRestriction.center[1], z: controls.sphereTargetRestriction.center[2] },
+                    radius: controls.sphereTargetRestriction.radius,
+                };
                 this._settingsEngine.scene.camera.controls.orbit.restrictions.rotation.value = controls.rotationRestriction;
                 this._settingsEngine.scene.camera.controls.orbit.restrictions.zoom.value = controls.zoomRestriction;
 
             } else {
                 // TODO
                 this._settingsEngine.scene.camera.cameraTypes.active.value = 1;
-                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = camera.defaultPosition;
-                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target = camera.defaultTarget;
+                
+                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2]};
+                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2]};
                 
                 const controls = <OrthographicCameraControls>camera.controls;
-                this._settingsEngine.scene.camera.controls.orbit.damping.value = controls.damping;
-                this._settingsEngine.scene.camera.controls.orbit.enableKeyPan.value = controls.enableKeyPan;
-                this._settingsEngine.scene.camera.controls.orbit.enablePan.value = controls.enablePan;
-                this._settingsEngine.scene.camera.controls.orbit.enableZoom.value = controls.enableZoom;
-                this._settingsEngine.scene.camera.controls.orbit.input.value = controls.input;
-                this._settingsEngine.scene.camera.controls.orbit.keyPanSpeed.value = controls.keyPanSpeed;
-                this._settingsEngine.scene.camera.controls.orbit.movementSmoothness.value = controls.movementSmoothness;
-                this._settingsEngine.scene.camera.controls.orbit.panSpeed.value = controls.panSpeed;
-                this._settingsEngine.scene.camera.controls.orbit.zoomSpeed.value = controls.zoomSpeed;
+                this._settingsEngine.scene.camera.controls.orthographic.damping.value = controls.damping;
+                this._settingsEngine.scene.camera.controls.orthographic.enableKeyPan.value = controls.enableKeyPan;
+                this._settingsEngine.scene.camera.controls.orthographic.enablePan.value = controls.enablePan;
+                this._settingsEngine.scene.camera.controls.orthographic.enableZoom.value = controls.enableZoom;
+                this._settingsEngine.scene.camera.controls.orthographic.input.value = controls.input;
+                this._settingsEngine.scene.camera.controls.orthographic.keyPanSpeed.value = controls.keyPanSpeed;
+                this._settingsEngine.scene.camera.controls.orthographic.movementSmoothness.value = controls.movementSmoothness;
+                this._settingsEngine.scene.camera.controls.orthographic.panSpeed.value = controls.panSpeed;
+                this._settingsEngine.scene.camera.controls.orthographic.zoomSpeed.value = controls.zoomSpeed;
             }
         }
     }

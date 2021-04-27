@@ -1,19 +1,21 @@
 import { ICameraControls } from '../../controls/interface/ICameraControls';
 import { ICamera } from '../interface/ICamera';
-import { vec2, vec3 } from 'gl-matrix';
+import { mat4, quat, vec2, vec3 } from 'gl-matrix';
 import { CAMERATYPE } from '../interface/ICameraEngine';
 import { AbstractCameraControls } from '../../controls/implementation/AbstractCameraControls';
-import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services';
+import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services';
 import { container } from 'tsyringe';
+import { Box } from '@shapediver/viewer.shared.math';
 
 export abstract class AbstractCamera implements ICamera {
-    // #region Properties (15)
+    // #region Properties (17)
 
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
     private _defaultPosition: vec3 = vec3.create();
     private _defaultTarget: vec3 = vec3.create();
     private _enableCameraControls: boolean = true;
+    private _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private _far: number = 1000;
     private _near: number = 1;
     private _revertAtMouseUp: boolean = false;
@@ -23,16 +25,18 @@ export abstract class AbstractCamera implements ICamera {
     protected readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
+    protected _boundingBox: Box = new Box();
     protected _controls!: AbstractCameraControls;
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
 
-    // #endregion Properties (15)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
     constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {
         this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
+        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (bb: any) => this._boundingBox = bb.clone());
     }
 
     // #endregion Constructors (1)
@@ -259,7 +263,39 @@ export abstract class AbstractCamera implements ICamera {
 
     // #endregion Public Accessors (27)
 
-    // #region Public Methods (1)
+    // #region Public Methods (5)
+
+    public animate(path: { position: vec3; target: vec3; }[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        if (path.length === 0) return Promise.resolve(false);
+
+        if(!this._controls.isWithinRestrictions(path[path.length-1].position, path[path.length-1].target)) 
+            return Promise.resolve(false);
+        
+        if (!options) options = {};
+        options.duration = options.duration! >= 0 ? options.duration : this.cameraMovementDuration;
+    
+        return this._controls.animate(path, options);
+    }
+
+    public reset(options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        if(vec3.equals(vec3.create(), this.defaultPosition) && vec3.equals(vec3.create(), this.defaultTarget)) {
+            return this.zoomTo(null, options);
+        } else {
+            return this.set(vec3.clone(this.defaultPosition), vec3.clone(this.defaultTarget), options);
+        }
+    }
+
+    public set(position: vec3, target: vec3, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        if (!this._controls.isWithinRestrictions(position, target))
+            return Promise.resolve(false);
+        
+        if (!options) options = {};
+        options.duration = options.duration! >= 0 ? options.duration : this.cameraMovementDuration;
+
+        return this._controls.animate([
+            { position: vec3.clone(this.position), target: vec3.clone(this.target) },
+            { position, target }], options );
+    }
 
     public update(time: number): {
         position: vec3,
@@ -271,13 +307,19 @@ export abstract class AbstractCamera implements ICamera {
         return { position, target };
     }
 
-    // #endregion Public Methods (1)
+    public zoomTo(zoomTarget: string[] | Box | null, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        const { position, target} = this.getZoomPositionAndTarget(zoomTarget)
+        return this.set(position, target, options);
+    }
 
-    // #region Public Abstract Methods (1)
+    // #endregion Public Methods (5)
 
+    // #region Public Abstract Methods (2)
+
+    abstract getZoomPositionAndTarget(zoomTarget: string[] | Box | null): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
 
-    // #endregion Public Abstract Methods (1)
+    // #endregion Public Abstract Methods (2)
 
     // #region Private Methods (1)
 
