@@ -19,7 +19,7 @@ import { ColorParameter } from "./parameters/objects/ColorParameter";
 
 @injectable()
 export class Session implements ISession {
-    // #region Properties (16)
+    // #region Properties (14)
 
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     readonly #exports: { [key: string]: Export; } = {};
@@ -51,7 +51,7 @@ export class Session implements ISession {
     #node: TreeNode;
     #returnDTOs: boolean = false;
 
-    // #endregion Properties (16)
+    // #endregion Properties (14)
 
     // #region Constructors (1)
 
@@ -68,26 +68,25 @@ export class Session implements ISession {
             this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
                 this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
                 this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
-                
+
                 // TODO also exports
                 const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
-                for(let k in controlNames)
+                for (let k in controlNames)
                     this.getParameter(k)!.displayName = controlNames[k];
 
                 const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
-                for(let i = 0; i < controlOrder.length; i++)
+                for (let i = 0; i < controlOrder.length; i++)
                     this.getParameter(controlOrder[i])!.order = i;
 
-                
                 const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
-                for(let i = 0; i < parametersHidden.length; i++)
+                for (let i = 0; i < parametersHidden.length; i++)
                     this.getParameter(parametersHidden[i])!.hidden = true;
             })
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (20)
+    // #region Public Accessors (14)
 
     /**
      * If the session has an author ticket.
@@ -208,9 +207,9 @@ export class Session implements ISession {
         return this.#sessionEngine.ticket;
     }
 
-    // #endregion Public Accessors (20)
+    // #endregion Public Accessors (14)
 
-    // #region Public Methods (19)
+    // #region Public Methods (23)
 
     /**
      * Create a new output with the specified id.
@@ -476,7 +475,7 @@ export class Session implements ISession {
         // await the settings loading of this session before resolving
         if (loadDefaultSettings !== false && this.#stateEngine.getCustomState(this.id + '_settings_registered').resolved === false)
             await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => resolve));
-            
+
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
 
         return this.#node;
@@ -508,20 +507,20 @@ export class Session implements ISession {
         // TODO also exports
         const parameters = this.getParameters();
 
-        const controlNames: {[key: string]: string} = {};
-        for(let p in parameters)
-            if(parameters[p].displayName)
+        const controlNames: { [key: string]: string } = {};
+        for (let p in parameters)
+            if (parameters[p].displayName)
                 controlNames[p] = parameters[p].displayName!;
         this.#settingsEngine.general.parameters.controlNames.value = controlNames;
 
         const parametersOrdered: AbstractParameter<any>[] = [];
-        for(let p in parameters) parametersOrdered.push(parameters[p]);
-        parametersOrdered.sort((a, b) => ((a.order || -1) - (b.order || -1)));
+        for (let p in parameters) parametersOrdered.push(parameters[p]);
+        parametersOrdered.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
         this.#settingsEngine.general.parameters.controlOrder.value = parametersOrdered.map((value) => { return value.id; });
 
         const parametersHidden: string[] = [];
-        for(let p in parameters)
-            if(parameters[p].hidden) parametersHidden.push(p);
+        for (let p in parameters)
+            if (parameters[p].hidden) parametersHidden.push(p);
         this.#settingsEngine.general.parameters.parametersHidden.value = parametersHidden;
 
         this.#settingsEngine.general.build_version.value = build_data.build_version;
@@ -555,5 +554,72 @@ export class Session implements ISession {
         return false;
     }
 
-    // #endregion Public Methods (19)
+    /**
+     * Changes the value property of the parameter with the specified id.
+     * 
+     * @param id the id of the parameter
+     * @param value the value property of the parameter
+     * @returns 
+     */
+    public updateParameter(id: string, value: any): boolean {
+        this.#inputValidator.validate(id, 'string');
+        const parameterLogic = this.#sessionEngine.getParameterById(id);
+        if (!parameterLogic) return false;
+        if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
+        this.#parameters[id].value = value;
+        return true;
+    }
+
+    /**
+     * Changes the displayName property of the parameter with the specified id.
+     * 
+     * @param id the id of the parameter
+     * @param displayName the displayName property of the parameter
+     * @returns 
+     */
+    public updateParameterDisplayName(id: string, displayName: string): boolean {
+        this.#inputValidator.validate(id, 'string');
+        this.#inputValidator.validate(displayName, 'string');
+        const parameterLogic = this.#sessionEngine.getParameterById(id);
+        if (!parameterLogic) return false;
+        if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
+        this.#parameters[id].displayName = displayName;
+        return true;
+    }
+
+    /**
+     * Changes the hidden property of the parameter with the specified id.
+     * 
+     * @param id the id of the parameter
+     * @param hidden the hidden property of the parameter
+     * @returns 
+     */
+    public updateParameterHidden(id: string, hidden: boolean): boolean {
+        this.#inputValidator.validate(id, 'string');
+        this.#inputValidator.validate(hidden, 'boolean');
+        const parameterLogic = this.#sessionEngine.getParameterById(id);
+        if (!parameterLogic) return false;
+        if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
+        this.#parameters[id].hidden = hidden;
+        return true;
+    }
+
+    /**
+     * Changes the order property of the parameter with the specified id.
+     * 
+     * @param id the id of the parameter
+     * @param order the order property of the parameter
+     * @returns 
+     */
+    public updateParameterOrder(id: string, order: number): boolean {
+        this.#inputValidator.validate(id, 'string');
+        this.#inputValidator.validate(order, 'number');
+        const parameterLogic = this.#sessionEngine.getParameterById(id);
+        if (!parameterLogic) return false;
+        if (!this.#parameters[id]) this.#parameters[id] = this.#parameterCreation(parameterLogic);
+        this.#parameters[id].order = order;
+        return true;
+    }
+
+    // #endregion Public Methods (23)
 }
