@@ -29,25 +29,15 @@ export class Session implements ISession {
     readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): AbstractParameter<any> => {
         switch (true) {
             case parameterLogic.type === PARAMETERTYPE.FILE:
-                let handlerFP: ProxyHandler<FileParameter> = {};
-                let paramFP = new FileParameter(<FileParameterLogic>parameterLogic, handlerFP);
-                return new Proxy(paramFP, handlerFP);
+                return new FileParameter(<FileParameterLogic>parameterLogic);
             case parameterLogic.type === PARAMETERTYPE.BOOL:
-                let handlerBP: ProxyHandler<BooleanParameter> = {};
-                let paramBP = new BooleanParameter(<ParameterLogic>parameterLogic, handlerBP);
-                return new Proxy(paramBP, handlerBP);
+                return new BooleanParameter(<ParameterLogic>parameterLogic);
             case parameterLogic.type === PARAMETERTYPE.COLOR:
-                let handlerCP: ProxyHandler<ColorParameter> = {};
-                let paramCP = new ColorParameter(<ParameterLogic>parameterLogic, handlerCP);
-                return new Proxy(paramCP, handlerCP);
+                return new ColorParameter(<ParameterLogic>parameterLogic);
             case parameterLogic.type === PARAMETERTYPE.FLOAT || parameterLogic.type === PARAMETERTYPE.EVEN || parameterLogic.type === PARAMETERTYPE.ODD || parameterLogic.type === PARAMETERTYPE.INT:
-                let handlerNP: ProxyHandler<NumberParameter> = {};
-                let paramNP = new NumberParameter(<ParameterLogic>parameterLogic, handlerNP);
-                return new Proxy(paramNP, handlerNP);
+                return new NumberParameter(<ParameterLogic>parameterLogic);
             default:
-                let handlerSP: ProxyHandler<StringParameter> = {};
-                let paramSP = new StringParameter(<ParameterLogic>parameterLogic, handlerSP);
-                return new Proxy(paramSP, handlerSP);
+                return new StringParameter(<ParameterLogic>parameterLogic);
         }
     }
 
