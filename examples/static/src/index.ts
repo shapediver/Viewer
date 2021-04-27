@@ -27,7 +27,7 @@ let viewer: Viewer, session: Session;
 }
 
 (<any>window).changeParameter = async (id: string, value: any): Promise<void> => {
-    session.getParameter(id)!.value = value;
+    session.updateParameter(id, value);
     await session.customize();
 }
 
