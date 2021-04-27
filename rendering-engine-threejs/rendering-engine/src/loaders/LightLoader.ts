@@ -81,7 +81,6 @@ export class LightLoader {
         }
         
         if (light instanceof SpotLight) {
-            console.log(light)
             const threeLight: THREE.SpotLight = converted.children[0] instanceof THREE.SpotLight ? (<THREE.SpotLight>converted.children[0]) : 
             new THREE.SpotLight(new THREE.Color(light.color), light.intensity, vec3.distance(light.position, light.target), light.angle, light.penumbra, light.decay)
             if (converted.children.length === 0) converted.add(threeLight);
