@@ -62,6 +62,7 @@ export class Session implements ISession {
     #controlNames: string[] = [];
     #controlOrder: string[] = [];
     #node: TreeNode;
+    #returnDTOs: boolean = false;
 
     // #endregion Properties (16)
 
@@ -70,10 +71,11 @@ export class Session implements ISession {
     /**
      * @ignore
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, returnDTOs?: boolean }) {
         this.#node = new TreeNode(properties.id)
         this.#sessionEngine = new SessionEngine(Object.assign({ buildDate: build_data.build_date, buildVersion: build_data.build_version }, properties));
         this.#stateEngine.createCustomState(this.id + '_settings_registered');
+        this.#returnDTOs = properties.returnDTOs || false;
 
         if (properties.loadDefaultSettings !== false)
             this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {

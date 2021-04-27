@@ -115,7 +115,7 @@ export class Api {
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, id?: string }): Promise<Session> {
+  public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, returnDTOs?: boolean, id?: string }): Promise<Session> {
     const session = this.createSession(properties);
 
     // initialized the session
@@ -138,13 +138,14 @@ export class Api {
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, id?: string }): Session {
+  public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, returnDTOs?: boolean, id?: string }): Session {
     // input validation
     this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.ticket, 'string');
     this.#inputValidator.validate(properties.modelViewUrl, 'string');
     this.#inputValidator.validate(properties.bearerToken, 'string', false);
     this.#inputValidator.validate(properties.loadDefaultSettings, 'boolean', false);
+    this.#inputValidator.validate(properties.returnDTOs, 'boolean', false);
     this.#inputValidator.validate(properties.id, 'string', false);
 
     // check if the given id is valid
