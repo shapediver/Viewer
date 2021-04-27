@@ -3,150 +3,158 @@ import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "../interfaces
 import { Session } from "./Session";
 
 export class AbstractParameter<T> implements IParameter<T> {
-    // #region Properties (11)
+  // #region Properties (11)
 
-    private readonly _choices?: string[];
-    private readonly _decimalplaces?: string;
-    private readonly _defval: string;
-    private readonly _format?: string[];
-    private readonly _max?: string;
-    private readonly _min?: string;
-    private readonly _name?: string;
-    private readonly _note?: string;
-    private readonly _type: PARAMETERTYPE;
-    private readonly _visualization?: PARAMETERVISUALIZATION;
+  private readonly _choices?: string[];
+  private readonly _decimalplaces?: string;
+  private readonly _defval: string;
+  private readonly _format?: string[];
+  private readonly _max?: string;
+  private readonly _min?: string;
+  private readonly _note?: string;
+  private readonly _type: PARAMETERTYPE;
+  private readonly _visualization?: PARAMETERVISUALIZATION;
 
-    protected _value!: T;
+  private _name?: string;
 
-    // #endregion Properties (11)
+  protected _value!: T;
 
-    // #region Constructors (1)
+  // #endregion Properties (11)
 
-    constructor(
-        protected readonly _mySession: Session,
-        private readonly _id: string, 
-        private readonly _parameterDefinition: ISessionParameter
-        )
-    {
-        this._choices = this._parameterDefinition.choices;
-        this._decimalplaces = this._parameterDefinition.decimalplaces;
-        this._defval = this._parameterDefinition.defval;
-        this._format = this._parameterDefinition.format;
-        this._max = this._parameterDefinition.max;
-        this._min = this._parameterDefinition.min;
-        this._name = this._parameterDefinition.name;
-        this._note = this._parameterDefinition.note;
-        this._type = <PARAMETERTYPE>this._parameterDefinition.type.toLowerCase();
-        this._visualization = <PARAMETERVISUALIZATION | undefined> this._parameterDefinition.visualization;
-    }
+  // #region Constructors (1)
 
-    // #endregion Constructors (1)
+  constructor(
+    protected readonly _mySession: Session,
+    private readonly _id: string,
+    private readonly _parameterDefinition: ISessionParameter
+  ) {
+    this._choices = this._parameterDefinition.choices;
+    this._decimalplaces = this._parameterDefinition.decimalplaces;
+    this._defval = this._parameterDefinition.defval;
+    this._format = this._parameterDefinition.format;
+    this._max = this._parameterDefinition.max;
+    this._min = this._parameterDefinition.min;
+    this._name = this._parameterDefinition.name;
+    this._note = this._parameterDefinition.note;
+    this._type = <PARAMETERTYPE>this._parameterDefinition.type.toLowerCase();
+    this._visualization = <PARAMETERVISUALIZATION | undefined>this._parameterDefinition.visualization;
+  }
 
-    // #region Public Accessors (13)
+  // #endregion Constructors (1)
 
-    /**
-     * Getter choices
-     * @return {string[] | undefined}
-     */
-    public get choices(): string[] | undefined {
-		return this._choices;
-    }
+  // #region Public Accessors (14)
 
-    /**
-     * Getter decimalplaces
-     * @return {string | undefined}
-     */
-    public get decimalplaces(): string | undefined {
-		return this._decimalplaces;
-    }
+  /**
+   * Getter choices
+   * @return {string[] | undefined}
+   */
+  public get choices(): string[] | undefined {
+    return this._choices;
+  }
 
-    /**
-     * Getter defval
-     * @return {string}
-     */
-    public get defval(): string {
-		return this._defval;
-    }
+  /**
+   * Getter decimalplaces
+   * @return {string | undefined}
+   */
+  public get decimalplaces(): string | undefined {
+    return this._decimalplaces;
+  }
 
-    /**
-     * Getter format
-     * @return {string[] | undefined}
-     */
-    public get format(): string[] | undefined {
-		return this._format;
-    }
+  /**
+   * Getter defval
+   * @return {string}
+   */
+  public get defval(): string {
+    return this._defval;
+  }
 
-    /**
-     * Getter id
-     * @return {string}
-     */
-    public get id(): string {
-		return this._id;
-    }
+  /**
+   * Getter format
+   * @return {string[] | undefined}
+   */
+  public get format(): string[] | undefined {
+    return this._format;
+  }
 
-    /**
-     * Getter max
-     * @return {string | undefined}
-     */
-    public get max(): string | undefined {
-		return this._max;
-    }
+  /**
+   * Getter id
+   * @return {string}
+   */
+  public get id(): string {
+    return this._id;
+  }
 
-    /**
-     * Getter min
-     * @return {string | undefined}
-     */
-    public get min(): string | undefined {
-		return this._min;
-    }
+  /**
+   * Getter max
+   * @return {string | undefined}
+   */
+  public get max(): string | undefined {
+    return this._max;
+  }
 
-    /**
-     * Getter name
-     * @return {string | undefined}
-     */
-    public get name(): string | undefined {
-		return this._name;
-    }
+  /**
+   * Getter min
+   * @return {string | undefined}
+   */
+  public get min(): string | undefined {
+    return this._min;
+  }
 
-    /**
-     * Getter note
-     * @return {string | undefined}
-     */
-    public get note(): string | undefined {
-		return this._note;
-    }
+  /**
+   * Getter name
+   * @return {string | undefined}
+   */
+  public get name(): string | undefined {
+    return this._name;
+  }
 
-    /**
-     * Getter type
-     * @return {PARAMETERTYPE}
-     */
-    public get type(): PARAMETERTYPE {
-		return this._type;
-    }
+  /**
+   * Setter name
+   * @param {string | undefined} value
+   */
+  public set name(value: string | undefined) {
+    this._name = value;
+  }
 
-    /**
-     * Getter value
-     * @return {T}
-     */
-    public get value(): T {
-		return this._value;
-	}
+  /**
+   * Getter note
+   * @return {string | undefined}
+   */
+  public get note(): string | undefined {
+    return this._note;
+  }
 
-    /**
-     * Setter value
-     * @param {T} value
-     */
-    public set value(value: T) {
-        this._value = value;
-	  }
+  /**
+   * Getter type
+   * @return {PARAMETERTYPE}
+   */
+  public get type(): PARAMETERTYPE {
+    return this._type;
+  }
 
-    /**
-     * Getter visualization
-     * @return {PARAMETERVISUALIZATION | undefined}
-     */
-    public get visualization(): PARAMETERVISUALIZATION | undefined {
-		return this._visualization;
-    }
+  /**
+   * Getter value
+   * @return {T}
+   */
+  public get value(): T {
+    return this._value;
+  }
 
-    // #endregion Public Accessors (13)
+  /**
+   * Setter value
+   * @param {T} value
+   */
+  public set value(value: T) {
+    this._value = value;
+  }
+
+  /**
+   * Getter visualization
+   * @return {PARAMETERVISUALIZATION | undefined}
+   */
+  public get visualization(): PARAMETERVISUALIZATION | undefined {
+    return this._visualization;
+  }
+
+  // #endregion Public Accessors (14)
 }

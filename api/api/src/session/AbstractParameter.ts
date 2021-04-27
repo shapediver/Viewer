@@ -1,8 +1,13 @@
 import { IParameter, Parameter as ParameterLogic, FileParameter as FileParameterLogic, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
+import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { container } from "tsyringe";
 
 export abstract class AbstractParameter<T> implements IParameter<T> {
 
   readonly #parameter: ParameterLogic | FileParameterLogic;
+  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
 
   /**
    * @ignore
@@ -74,6 +79,16 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
    */
   public get name(): string | undefined {
     return this.#parameter.name;
+  }
+
+  /**
+   * The name of the parameter.
+   * @param {string | undefined} value
+   */
+  public set name(value: string | undefined) {
+    this.#inputValidator.validate(value, 'string');
+    this.#parameter.name = value;
+    this.#logger.info(`Parameter (${this.id}) name was set to: ${value}`);
   }
 
   /**
