@@ -29,7 +29,7 @@ export class StringParameter extends AbstractParameter<string> {
         return new Proxy(this, {
             get: (target: StringParameter, property: keyof StringParameter, receiver: any) => {
                 if (property === 'value') return this.#parameter.value;
-                return this.#parameter[property];
+                return target[property];
             },
             set: (target: StringParameter, property: keyof StringParameter, value: any, receiver: any) => {
                 if(property === 'value') {
@@ -37,12 +37,6 @@ export class StringParameter extends AbstractParameter<string> {
                     this.#parameter.value = value;
                     target[property] = value;
                     this.#logger.info(`Parameter (${target.id}) was set to: ${value}`);
-                    return true;
-                } else if (property === 'name') {
-                    this.#inputValidator.validate(value, 'string');
-                    this.#parameter.name = value;
-                    target[property] = value;
-                    this.#logger.info(`Parameter (${target.id}) name was set to: ${value}`);
                     return true;
                 } else {
                     return false;

@@ -44,6 +44,26 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
     this.type = this.#parameter.type;
     this.visualization = this.#parameter.visualization;
     this.name = this.#parameter.name;
+
+    return new Proxy(this, {
+      get: (target: AbstractParameter<T>, property: keyof AbstractParameter<T>, receiver: any) => {
+        return this.#parameter[property];
+      },
+      set: (target: AbstractParameter<T>, property: keyof AbstractParameter<T>, value: any, receiver: any) => {
+        if (property === 'value') {
+          target[property] = value;
+          return true;
+        } else if (property === 'name') {
+          this.#inputValidator.validate(value, 'string');
+          this.#parameter.name = value;
+          target[property] = value;
+          this.#logger.info(`Parameter (${target.id}) name was set to: ${value}`);
+          return true;
+        } else {
+          return false;
+        }
+      }
+    });
   }
 
   // #endregion Constructors (1)
