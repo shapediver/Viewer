@@ -101,13 +101,13 @@ export class Box implements IGeometry {
     }
 
     public containsPoint(point: vec3): boolean {
-        return false;
-        throw new Error('Method not implemented.');
+        return point[0] < this.min[0] || point[0] > this.max[0] ||
+            point[1] < this.min[1] || point[1] > this.max[1] ||
+            point[2] < this.min[2] || point[2] > this.max[2] ? false : true;
     }
 
     public clampPoint(point: vec3): vec3 {
         return point;
-        throw new Error('Method not implemented.');
     }
 
     public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array): Box {

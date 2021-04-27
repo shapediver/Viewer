@@ -248,8 +248,9 @@ export abstract class Camera implements ICamera {
     }
 
     public set(position: vec3, target: vec3, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+        
         // TODO check, doc, etc
-        return this.#camera.set(position, target, options);      
+        return this.#camera.set(vec3.fromValues(position[0], position[1], position[2]), vec3.fromValues(target[0], target[1], target[2]), options);      
     }
     
     public zoomTo(zoomTarget: string[] | Box | null, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {

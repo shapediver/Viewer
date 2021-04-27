@@ -8,6 +8,7 @@ import { SceneTree } from "./SceneTree";
 import { main, entry } from "./shaders/PCSS";
 import { shader as normalShader } from "./shaders/normal";
 import { BeautyRenderer } from "./BeautyRenderer";
+import * as TWEEN from "@tweenjs/tween.js";
 
 export class RenderingLogic {
     // #region Properties (8)
@@ -120,6 +121,7 @@ export class RenderingLogic {
 
     private animate(time: number): void {
         requestAnimationFrame((time: number) => this.animate(time));
+        TWEEN.update(time);
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
 
