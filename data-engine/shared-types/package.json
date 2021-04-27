@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.shared-types",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -37,8 +37,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.monitoring": "^0.2.21",
-    "@shapediver/viewer.shared.services": "^0.2.21",
+    "@shapediver/viewer.shared.monitoring": "^0.2.22",
+    "@shapediver/viewer.shared.services": "^0.2.22",
     "gl-matrix": "^3.3.0",
     "tsyringe": "^4.5.0"
   }
