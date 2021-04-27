@@ -10,7 +10,7 @@ let viewer: Viewer, session: Session;
 (<any>window).sceneTree = api.sceneTree;
 (<any>window).api = api;
 
-(<any>window).init = async (ticket: string, modelViewUrl: string): Promise<void> => {
+(<any>window).init = async (ticket: string, modelViewUrl: string, token): Promise<void> => {
     session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
     api.update()
 }
