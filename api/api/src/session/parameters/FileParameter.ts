@@ -11,8 +11,6 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
-    value: File | Blob | string;
-
     // #endregion Properties (1)
 
     // #region Constructors (1)
@@ -24,26 +22,29 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
     constructor(p: FileParameterLogic) {
         super(p);
         this.#parameter = p;
-        this.value = this.#parameter.value;
-
-        return new Proxy(this, {
-            get: (target: FileParameter, property: keyof FileParameter, receiver: any) => {
-                if (property === 'value') return this.#parameter.value;
-                return target[property];
-            },
-            set: (target: FileParameter, property: keyof FileParameter, value: any, receiver: any) => {
-                if(property === 'value') {
-                    this.#inputValidator.validate(value, 'file');
-                    this.#parameter.value = value;
-                    target[property] = value;
-                    this.#logger.info(`Parameter (${target.id}) was set to: ${value}`);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
     }
 
     // #endregion Constructors (1)
+
+    // #region Public Accessors (2)
+
+    /**
+     * The value of the parameter.
+     * @return {File | Blob | string}
+     */
+    public get value(): File | Blob | string {
+        return this.#parameter.value;
+    }
+
+    /**
+     * The value of the parameter.
+     * @param {File | Blob | string} value
+     */
+    public set value(value: File | Blob | string) {
+        this.#inputValidator.validate(value, 'file');
+        this.#parameter.value = value;
+        this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
+    }
+
+    // #endregion Public Accessors (2)
 }

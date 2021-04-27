@@ -11,8 +11,6 @@ export class StringParameter extends AbstractParameter<string> {
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
-    value: string;
-
     // #endregion Properties (1)
 
     // #region Constructors (1)
@@ -24,26 +22,29 @@ export class StringParameter extends AbstractParameter<string> {
     constructor(p: ParameterLogic) {
         super(p);
         this.#parameter = p;
-        this.value = this.#parameter.value;
-
-        return new Proxy(this, {
-            get: (target: StringParameter, property: keyof StringParameter, receiver: any) => {
-                if (property === 'value') return this.#parameter.value;
-                return target[property];
-            },
-            set: (target: StringParameter, property: keyof StringParameter, value: any, receiver: any) => {
-                if(property === 'value') {
-                    this.#inputValidator.validate(value, 'string');
-                    this.#parameter.value = value;
-                    target[property] = value;
-                    this.#logger.info(`Parameter (${target.id}) was set to: ${value}`);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
     }
 
     // #endregion Constructors (1)
+
+    // #region Public Accessors (2)
+
+    /**
+     * The value of the parameter.
+     * @return {string}
+     */
+    public get value(): string {
+        return this.#parameter.value;
+    }
+
+    /**
+     * The value of the parameter.
+     * @param {string} value
+     */
+    public set value(value: string) {
+        this.#inputValidator.validate(value, 'string');
+        this.#parameter.value = value;
+        this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
+    }
+
+    // #endregion Public Accessors (2)
 }

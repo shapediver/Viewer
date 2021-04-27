@@ -1,31 +1,8 @@
 import { IParameter, Parameter as ParameterLogic, FileParameter as FileParameterLogic, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
-import { Logger } from "@shapediver/viewer.shared.monitoring";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
 
 export abstract class AbstractParameter<T> implements IParameter<T> {
-  // #region Properties (12)
 
   readonly #parameter: ParameterLogic | FileParameterLogic;
-  readonly choices?: string[] | undefined;
-  readonly decimalplaces?: string | undefined;
-  readonly defval: string;
-  readonly format?: string[] | undefined;
-  readonly id: string;
-  readonly max?: string | undefined;
-  readonly min?: string | undefined;
-  readonly note?: string | undefined;
-  readonly type: PARAMETERTYPE;
-  readonly visualization?: PARAMETERVISUALIZATION | undefined;
-
-  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-  readonly #logger: Logger = <Logger>container.resolve(Logger);
-
-  name?: string | undefined;
-
-  // #endregion Properties (12)
-
-  // #region Constructors (1)
 
   /**
    * @ignore
@@ -33,53 +10,105 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
    */
   constructor(p: ParameterLogic | FileParameterLogic) {
     this.#parameter = p;
-    this.choices = this.#parameter.choices;
-    this.decimalplaces = this.#parameter.decimalplaces;
-    this.defval = this.#parameter.defval;
-    this.format = this.#parameter.format;
-    this.id = this.#parameter.id;
-    this.max = this.#parameter.max;
-    this.min = this.#parameter.min;
-    this.note = this.#parameter.note;
-    this.type = this.#parameter.type;
-    this.visualization = this.#parameter.visualization;
-    this.name = this.#parameter.name;
-
-    return new Proxy(this, {
-      get: (target: AbstractParameter<T>, property: keyof AbstractParameter<T>, receiver: any) => {
-        return this.#parameter[property];
-      },
-      set: (target: AbstractParameter<T>, property: keyof AbstractParameter<T>, value: any, receiver: any) => {
-        if (property === 'value') {
-          target[property] = value;
-          return true;
-        } else if (property === 'name') {
-          this.#inputValidator.validate(value, 'string');
-          this.#parameter.name = value;
-          target[property] = value;
-          this.#logger.info(`Parameter (${target.id}) name was set to: ${value}`);
-          return true;
-        } else {
-          return false;
-        }
-      }
-    });
   }
 
-  // #endregion Constructors (1)
+  /**
+   * The possible choices.
+   * @return {string[] | undefined}
+   */
+  public get choices(): string[] | undefined {
+    return this.#parameter.choices;
+  }
 
-  // #region Public Abstract Accessors (2)
+  /**
+   * The number of decimal places.
+   * @return {string | undefined}
+   */
+  public get decimalplaces(): string | undefined {
+    return this.#parameter.decimalplaces;
+  }
+
+  /**
+   * The default value of the parameter.
+   * @return {string}
+   */
+  public get defval(): string {
+    return this.#parameter.defval;
+  }
+
+  /**
+   * The format of the parameter.
+   * @return {string[] | undefined}
+   */
+  public get format(): string[] | undefined {
+    return this.#parameter.format;
+  }
+
+  /**
+   * The id of the parameter.
+   * @return {string}
+   */
+  public get id(): string {
+    return this.#parameter.id;
+  }
+
+  /**
+   * The maximum value of the parameter.
+   * @return {string | undefined}
+   */
+  public get max(): string | undefined {
+    return this.#parameter.max;
+  }
+
+  /**
+   * The minimum value of the parameter.
+   * @return {string | undefined}
+   */
+  public get min(): string | undefined {
+    return this.#parameter.min;
+  }
+
+  /**
+   * The name of the parameter.
+   * @return {string | undefined}
+   */
+  public get name(): string | undefined {
+    return this.#parameter.name;
+  }
+
+  /**
+   * The description of the parameter.
+   * @return {string | undefined}
+   */
+  public get note(): string | undefined {
+    return this.#parameter.note;
+  }
+
+  /**
+   * The type of the parameter.
+   * @return {PARAMETERTYPE}
+   */
+  public get type(): PARAMETERTYPE {
+    return this.#parameter.type;
+  }
 
   /**
    * The value of the parameter.
    * @return {T}
    */
   public abstract get value(): T;
+
   /**
    * The value of the parameter.
    * @param {T} value
    */
   public abstract set value(value: T);
 
-  // #endregion Public Abstract Accessors (2)
+  /**
+   * The visualization description of the parameter.
+   * @return {PARAMETERVISUALIZATION | undefined}
+   */
+  public get visualization(): PARAMETERVISUALIZATION | undefined {
+    return this.#parameter.visualization;
+  }
 }

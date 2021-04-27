@@ -11,8 +11,6 @@ export class BooleanParameter extends AbstractParameter<boolean> {
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
-    value: boolean;
-
     // #endregion Properties (1)
 
     // #region Constructors (1)
@@ -24,26 +22,29 @@ export class BooleanParameter extends AbstractParameter<boolean> {
     constructor(p: ParameterLogic) {
         super(p);
         this.#parameter = p;
-        this.value = (this.#parameter.value === "true");
-
-        return new Proxy(this, {
-            get: (target: BooleanParameter, property: keyof BooleanParameter, receiver: any) => {
-                if (property === 'value') (this.#parameter.value === "true");
-                return target[property];
-            },
-            set: (target: BooleanParameter, property: keyof BooleanParameter, value: any, receiver: any) => {
-                if(property === 'value') {
-                    this.#inputValidator.validate(value, 'boolean');
-                    this.#parameter.value = value + '';
-                    target[property] = value;
-                    this.#logger.info(`Parameter (${target.id}) was set to: ${value}`);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
     }
 
     // #endregion Constructors (1)
+
+    // #region Public Accessors (2)
+
+    /**
+     * The value of the parameter.
+     * @return {boolean}
+     */
+    public get value(): boolean {
+        return (this.#parameter.value === "true");
+    }
+
+    /**
+     * The value of the parameter.
+     * @param {boolean} value
+     */
+    public set value(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
+        this.#parameter.value = value + '';
+        this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
+    }
+
+    // #endregion Public Accessors (2)
 }
