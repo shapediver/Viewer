@@ -1,10 +1,10 @@
-import { AbstractParameter } from "../AbstractParameter";
+import { AbstractParameter } from "./AbstractParameter";
 import { Parameter as ParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class StringParameter extends AbstractParameter<string> {
+export class BooleanParameter extends AbstractParameter<boolean> {
     // #region Properties (1)
 
     readonly #parameter: ParameterLogic;
@@ -30,19 +30,19 @@ export class StringParameter extends AbstractParameter<string> {
 
     /**
      * The value of the parameter.
-     * @return {string}
+     * @return {boolean}
      */
-    public get value(): string {
-        return this.#parameter.value;
+    public get value(): boolean {
+        return (this.#parameter.value === "true");
     }
 
     /**
      * The value of the parameter.
-     * @param {string} value
+     * @param {boolean} value
      */
-    public set value(value: string) {
-        this.#inputValidator.validate(value, 'string');
-        this.#parameter.value = value;
+    public set value(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
+        this.#parameter.value = value + '';
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
     }
 

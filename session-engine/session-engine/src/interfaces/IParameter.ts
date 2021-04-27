@@ -36,6 +36,10 @@ export interface IParameter<T> {
     readonly type: PARAMETERTYPE;
     readonly visualization?: PARAMETERVISUALIZATION;
 
+    hidden: boolean;
+    displayName?: string;
+    order?: number;
+
     value: T;
 
     // #endregion Properties (12)

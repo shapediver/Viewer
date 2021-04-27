@@ -12,7 +12,7 @@ export const DefaultSettings = {
 
     parameters: {
         controlOrder: <ISetting<string[]>> new CustomSetting([], ''),
-        controlNames: <ISetting<string[]>> new CustomSetting([], ''),
+        controlNames: <ISetting<{ [key: string]: string }>> new CustomSetting({}, ''),
         parametersHidden: <ISetting<string[]>> new CustomSetting([], ''),
     },
     viewer: {

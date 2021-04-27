@@ -4,10 +4,15 @@ import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
 export abstract class AbstractParameter<T> implements IParameter<T> {
+  // #region Properties (6)
 
-  readonly #parameter: ParameterLogic | FileParameterLogic;
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #parameter: ParameterLogic | FileParameterLogic;
+
+  // #endregion Properties (6)
+
+  // #region Constructors (1)
 
   /**
    * @ignore
@@ -16,6 +21,10 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   constructor(p: ParameterLogic | FileParameterLogic) {
     this.#parameter = p;
   }
+
+  // #endregion Constructors (1)
+
+  // #region Public Accessors (18)
 
   /**
    * The possible choices.
@@ -42,12 +51,48 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   }
 
   /**
+     * Getter displayName
+     * @return {string | undefined}
+     */
+  public get displayName(): string | undefined {
+		return this.#parameter.displayName;
+	}
+
+  /**
+     * Setter displayName
+     * @param {string | undefined} value
+     */
+  public set displayName(value: string | undefined) {
+    this.#inputValidator.validate(value, 'string', false);
+    this.#parameter.displayName = value;
+    this.#logger.info(`Parameter (${this.id}) displayName was set to: ${value}`);
+	}
+
+  /**
    * The format of the parameter.
    * @return {string[] | undefined}
    */
   public get format(): string[] | undefined {
     return this.#parameter.format;
   }
+
+  /**
+     * Getter hidden
+     * @return {boolean}
+     */
+  public get hidden(): boolean {
+		return this.#parameter.hidden;
+	}
+
+  /**
+     * Setter hidden
+     * @param {boolean} value
+     */
+  public set hidden(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
+    this.#parameter.hidden = value;
+    this.#logger.info(`Parameter (${this.id}) hidden was set to: ${value}`);
+	}
 
   /**
    * The id of the parameter.
@@ -82,22 +127,30 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   }
 
   /**
-   * The name of the parameter.
-   * @param {string | undefined} value
-   */
-  public set name(value: string | undefined) {
-    this.#inputValidator.validate(value, 'string');
-    this.#parameter.name = value;
-    this.#logger.info(`Parameter (${this.id}) name was set to: ${value}`);
-  }
-
-  /**
    * The description of the parameter.
    * @return {string | undefined}
    */
   public get note(): string | undefined {
     return this.#parameter.note;
   }
+
+  /**
+     * Getter order
+     * @return {number | undefined}
+     */
+  public get order(): number | undefined {
+		return this.#parameter.order;
+	}
+
+  /**
+     * Setter order
+     * @param {number | undefined} value
+     */
+  public set order(value: number | undefined) {
+    this.#inputValidator.validate(value, 'number', false);
+    this.#parameter.order = value;
+    this.#logger.info(`Parameter (${this.id}) order was set to: ${value}`);
+	}
 
   /**
    * The type of the parameter.
@@ -108,22 +161,27 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   }
 
   /**
-   * The value of the parameter.
-   * @return {T}
-   */
-  public abstract get value(): T;
-
-  /**
-   * The value of the parameter.
-   * @param {T} value
-   */
-  public abstract set value(value: T);
-
-  /**
    * The visualization description of the parameter.
    * @return {PARAMETERVISUALIZATION | undefined}
    */
   public get visualization(): PARAMETERVISUALIZATION | undefined {
     return this.#parameter.visualization;
   }
+
+  // #endregion Public Accessors (18)
+
+  // #region Public Abstract Accessors (2)
+
+  /**
+   * The value of the parameter.
+   * @return {T}
+   */
+  public abstract get value(): T;
+  /**
+   * The value of the parameter.
+   * @param {T} value
+   */
+  public abstract set value(value: T);
+
+  // #endregion Public Abstract Accessors (2)
 }

@@ -3,7 +3,7 @@ import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "../interfaces
 import { Session } from "./Session";
 
 export class AbstractParameter<T> implements IParameter<T> {
-  // #region Properties (11)
+  // #region Properties (14)
 
   private readonly _choices?: string[];
   private readonly _decimalplaces?: string;
@@ -11,15 +11,18 @@ export class AbstractParameter<T> implements IParameter<T> {
   private readonly _format?: string[];
   private readonly _max?: string;
   private readonly _min?: string;
+  private readonly _name?: string;
   private readonly _note?: string;
   private readonly _type: PARAMETERTYPE;
   private readonly _visualization?: PARAMETERVISUALIZATION;
 
-  private _name?: string;
+  private _displayName?: string;
+  private _hidden: boolean;
+  private _order?: number;
 
   protected _value!: T;
 
-  // #endregion Properties (11)
+  // #endregion Properties (14)
 
   // #region Constructors (1)
 
@@ -38,11 +41,13 @@ export class AbstractParameter<T> implements IParameter<T> {
     this._note = this._parameterDefinition.note;
     this._type = <PARAMETERTYPE>this._parameterDefinition.type.toLowerCase();
     this._visualization = <PARAMETERVISUALIZATION | undefined>this._parameterDefinition.visualization;
+
+    this._hidden = false;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (14)
+  // #region Public Accessors (20)
 
   /**
    * Getter choices
@@ -69,12 +74,44 @@ export class AbstractParameter<T> implements IParameter<T> {
   }
 
   /**
+     * Getter displayName
+     * @return {string | undefined}
+     */
+  public get displayName(): string | undefined {
+		return this._displayName;
+	}
+
+  /**
+     * Setter displayName
+     * @param {string | undefined} value
+     */
+  public set displayName(value: string | undefined) {
+		this._displayName = value;
+	}
+
+  /**
    * Getter format
    * @return {string[] | undefined}
    */
   public get format(): string[] | undefined {
     return this._format;
   }
+
+  /**
+     * Getter hidden
+     * @return {boolean}
+     */
+  public get hidden(): boolean {
+		return this._hidden;
+	}
+
+  /**
+     * Setter hidden
+     * @param {boolean} value
+     */
+  public set hidden(value: boolean) {
+		this._hidden = value;
+	}
 
   /**
    * Getter id
@@ -109,20 +146,28 @@ export class AbstractParameter<T> implements IParameter<T> {
   }
 
   /**
-   * Setter name
-   * @param {string | undefined} value
-   */
-  public set name(value: string | undefined) {
-    this._name = value;
-  }
-
-  /**
    * Getter note
    * @return {string | undefined}
    */
   public get note(): string | undefined {
     return this._note;
   }
+
+  /**
+     * Getter order
+     * @return {number | undefined}
+     */
+  public get order(): number | undefined {
+		return this._order;
+	}
+
+  /**
+     * Setter order
+     * @param {number | undefined} value
+     */
+  public set order(value: number | undefined) {
+		this._order = value;
+	}
 
   /**
    * Getter type
@@ -156,5 +201,5 @@ export class AbstractParameter<T> implements IParameter<T> {
     return this._visualization;
   }
 
-  // #endregion Public Accessors (14)
+  // #endregion Public Accessors (20)
 }

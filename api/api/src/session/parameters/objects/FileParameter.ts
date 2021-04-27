@@ -1,4 +1,4 @@
-import { AbstractParameter } from "../AbstractParameter";
+import { AbstractParameter } from "./AbstractParameter";
 import { FileParameter as FileParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";

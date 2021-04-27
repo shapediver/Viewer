@@ -2,20 +2,20 @@ import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ISession, PARAMETERTYPE, Session as SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { Export } from "./Export";
 import { Output } from "./Output";
-import { AbstractParameter } from "./AbstractParameter";
+import { AbstractParameter } from "./parameters/objects/AbstractParameter";
 import { container, injectable } from "tsyringe";
 import { Viewer } from "../viewer/Viewer";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { Parameter as ParameterLogic, FileParameter as FileParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
-import { FileParameter } from "./parameters/FileParameter";
-import { BooleanParameter } from "./parameters/BooleanParameter";
-import { NumberParameter } from "./parameters/NumberParameter";
-import { StringParameter } from "./parameters/StringParameter";
+import { FileParameter } from "./parameters/objects/FileParameter";
+import { BooleanParameter } from "./parameters/objects/BooleanParameter";
+import { NumberParameter } from "./parameters/objects/NumberParameter";
+import { StringParameter } from "./parameters/objects/StringParameter";
 import { RenderingEngine } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { build_data } from "../build_data";
-import { ColorParameter } from "./parameters/ColorParameter";
+import { ColorParameter } from "./parameters/objects/ColorParameter";
 
 @injectable()
 export class Session implements ISession {
@@ -48,9 +48,6 @@ export class Session implements ISession {
 
     #commitParameters: boolean = false;
     #commitSettings: boolean = false;
-    #controlHidden: string[] = [];
-    #controlNames: string[] = [];
-    #controlOrder: string[] = [];
     #node: TreeNode;
     #returnDTOs: boolean = false;
 
@@ -71,9 +68,20 @@ export class Session implements ISession {
             this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
                 this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
                 this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
-                this.#controlNames = this.#settingsEngine.general.parameters.controlNames.value;
-                this.#controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
-                this.#controlHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
+                
+                // TODO also exports
+                const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
+                for(let k in controlNames)
+                    this.getParameter(k)!.displayName = controlNames[k];
+
+                const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
+                for(let i = 0; i < controlOrder.length; i++)
+                    this.getParameter(controlOrder[i])!.order = i;
+
+                
+                const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
+                for(let i = 0; i < parametersHidden.length; i++)
+                    this.getParameter(parametersHidden[i])!.hidden = true;
             })
     }
 
@@ -147,60 +155,6 @@ export class Session implements ISession {
         this.#inputValidator.validate(value, 'boolean');
         this.#commitSettings = value;
         this.#logger.info(`Session (${this.id}): commitSettings was set to: ${value}`);
-    }
-
-    /**
-     * The controlHidden setting of the session.
-     * @return {string[]}
-     */
-    public get controlHidden(): string[] {
-        return this.#controlHidden;
-    }
-
-    /**
-     * The controlHidden setting of the session.
-     * @param {string[]} value
-     */
-    public set controlHidden(value: string[]) {
-        this.#inputValidator.validate(value, 'stringArray');
-        this.#controlHidden = value;
-        this.#logger.info(`Session (${this.id}): controlHidden was set to: ${value}`);
-    }
-
-    /**
-     * The controlNames setting of the session.
-     * @return {string[]}
-     */
-    public get controlNames(): string[] {
-        return this.#controlNames;
-    }
-
-    /**
-     * The controlNames setting of the session.
-     * @param {string[]} value
-     */
-    public set controlNames(value: string[]) {
-        this.#inputValidator.validate(value, 'stringArray');
-        this.#controlNames = value;
-        this.#logger.info(`Session (${this.id}): controlNames was set to: ${value}`);
-    }
-
-    /**
-     * The controlOrder setting of the session.
-     * @return {string[]}
-     */
-    public get controlOrder(): string[] {
-        return this.#controlOrder;
-    }
-
-    /**
-     * The controlOrder setting of the session.
-     * @param {string[]} value
-     */
-    public set controlOrder(value: string[]) {
-        this.#inputValidator.validate(value, 'stringArray');
-        this.#controlOrder = value;
-        this.#logger.info(`Session (${this.id}): controlOrder was set to: ${value}`);
     }
 
     /**
@@ -550,9 +504,26 @@ export class Session implements ISession {
     public async saveSettings(viewerId?: string): Promise<boolean> {
         this.#settingsEngine.general.viewer.commitParameters.value = this.#commitParameters;
         this.#settingsEngine.general.viewer.commitSettings.value = this.#commitSettings;
-        this.#settingsEngine.general.parameters.controlNames.value = this.#controlNames;
-        this.#settingsEngine.general.parameters.controlOrder.value = this.#controlOrder;
-        this.#settingsEngine.general.parameters.parametersHidden.value = this.#controlHidden;
+
+        // TODO also exports
+        const parameters = this.getParameters();
+
+        const controlNames: {[key: string]: string} = {};
+        for(let p in parameters)
+            if(parameters[p].displayName)
+                controlNames[p] = parameters[p].displayName!;
+        this.#settingsEngine.general.parameters.controlNames.value = controlNames;
+
+        const parametersOrdered: AbstractParameter<any>[] = [];
+        for(let p in parameters) parametersOrdered.push(parameters[p]);
+        parametersOrdered.sort((a, b) => ((a.order || -1) - (b.order || -1)));
+        this.#settingsEngine.general.parameters.controlOrder.value = parametersOrdered.map((value) => { return value.id; });
+
+        const parametersHidden: string[] = [];
+        for(let p in parameters)
+            if(parameters[p].hidden) parametersHidden.push(p);
+        this.#settingsEngine.general.parameters.parametersHidden.value = parametersHidden;
+
         this.#settingsEngine.general.build_version.value = build_data.build_version;
         this.#settingsEngine.general.build_date.value = build_data.build_date;
         this.#settingsEngine.general.settings_version.value = '2.0';

@@ -1,17 +1,19 @@
-import { AbstractParameter } from "../AbstractParameter";
+import { AbstractParameter } from "./AbstractParameter";
 import { Parameter as ParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
+import { vec3 } from "gl-matrix";
 
-export class BooleanParameter extends AbstractParameter<boolean> {
-    // #region Properties (1)
+export class ColorParameter extends AbstractParameter<string | number | vec3> {
+    // #region Properties (4)
 
-    readonly #parameter: ParameterLogic;
+    readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #parameter: ParameterLogic;
 
-    // #endregion Properties (1)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -30,19 +32,20 @@ export class BooleanParameter extends AbstractParameter<boolean> {
 
     /**
      * The value of the parameter.
-     * @return {boolean}
+     * @return {string | vec3 | number}
      */
-    public get value(): boolean {
-        return (this.#parameter.value === "true");
+    public get value(): string | vec3 | number {
+        return this.#parameter.value;
     }
 
     /**
      * The value of the parameter.
-     * @param {boolean} value
+     * @param {string | vec3 | number} value
      */
-    public set value(value: boolean) {
-        this.#inputValidator.validate(value, 'boolean');
-        this.#parameter.value = value + '';
+    public set value(value: string | vec3 | number) {
+        this.#inputValidator.validate(value, 'color');
+        const colorString = this.#converter.toColor(value);
+        this.#parameter.value = colorString;
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
     }
 
