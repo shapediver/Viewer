@@ -19,7 +19,7 @@ let viewer: Viewer, session: Session;
     return session.getParameters();
 }
 
-(<any>window).changeParameter = async (id: string, value: string): Promise<void> => {
+(<any>window).changeParameter = async (id: string, value: any): Promise<void> => {
     session.getParameter(id)!.value = value;
     await session.customize();
 }
