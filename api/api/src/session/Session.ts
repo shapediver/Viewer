@@ -522,6 +522,8 @@ export class Session implements ISession {
         // await the settings loading of this session before resolving
         if (loadDefaultSettings !== false && this.#stateEngine.getCustomState(this.id + '_settings_registered').resolved === false)
             await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => resolve));
+            
+        this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
 
         return this.#node;
     }

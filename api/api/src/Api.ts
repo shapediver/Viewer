@@ -117,10 +117,7 @@ export class Api {
    */
   public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, returnDTOs?: boolean, id?: string }): Promise<Session> {
     const session = this.createSession(properties);
-
-    // initialized the session
     await session.init(properties && properties.loadDefaultSettings ? properties.loadDefaultSettings : true)
-    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session });
     return session;
   }
 
