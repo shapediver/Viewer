@@ -349,7 +349,7 @@ export class Session implements ISession {
             this._authorTicket = !!(this._sessionResponse.actions['defaultparam'] && this._sessionResponse.actions['configure']);
 
             for (let parameterId in this._sessionResponse.parameters) {
-                switch (this._sessionResponse.parameters[parameterId].type) {
+                switch (this._sessionResponse.parameters[parameterId].type.toLowerCase()) {
                     case PARAMETERTYPE.BOOL:
                         this._parameters[parameterId] = new BooleanParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
                         break;
