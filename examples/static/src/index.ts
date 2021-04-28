@@ -31,6 +31,12 @@ let viewer: Viewer, session: Session;
     await session.customize();
 }
 
+(<any>window).changeParameters = async ( parameterDictionary: { [key: string]: any } ): Promise<void> => {
+    for(let param in parameterDictionary)
+        session.updateParameter(param, parameterDictionary[param]);
+    await session.customize();
+}
+
 (<any>window).getExports = (): { [key: string]: Export } => {
     return session.getExports();
 }
