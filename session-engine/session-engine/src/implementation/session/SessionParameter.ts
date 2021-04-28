@@ -1,4 +1,4 @@
-import { ISessionParameter } from "../interfaces/ISessionParameter";
+import { ISessionParameter } from "../../interfaces/session/ISessionParameter";
 
 export class SessionParameter implements ISessionParameter {
   // #region Properties (1)

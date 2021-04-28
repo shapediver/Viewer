@@ -1,11 +1,11 @@
-import { ISessionOutputContent } from "./ISessionOutputContent";
+import { IContent } from "@shapediver/viewer.shared.types";
 
 export interface ISessionOutput {
     // #region Properties (7)
 
     bbmax?: number[];
     bbmin?: number[];
-    content?: ISessionOutputContent[];
+    content?: IContent[];
     delay?: number;
     material?: string;
     name?: string;

@@ -1,8 +1,8 @@
 import { Logger } from "@shapediver/viewer.shared.monitoring";
-import { ISessionExport } from "@shapediver/viewer.shared.types";
 import { HttpClient } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { IExport } from "../interfaces/IExport";
+import { ISessionExport } from "../interfaces/session/ISessionExport";
 import { Session } from "./Session";
 
 export class Export implements IExport {

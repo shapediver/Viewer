@@ -1,5 +1,5 @@
 import { container, singleton } from 'tsyringe';
-import { CustomData, ISessionOutputContent } from '@shapediver/viewer.shared.types';
+import { CustomData, IContent } from '@shapediver/viewer.shared.types';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
@@ -15,7 +15,7 @@ export class DataEngine {
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-    public async loadContent(content: ISessionOutputContent): Promise<TreeNode> {
+    public async loadContent(content: IContent): Promise<TreeNode> {
         if(!content || (content && !content.format)) {
             this._logger.error('Invalid content was provided to data engine.');
             return new TreeNode();

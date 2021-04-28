@@ -1,4 +1,4 @@
-import { ISessionOutputContent } from "@shapediver/viewer.shared.types";
+import { IContent } from "@shapediver/viewer.shared.types";
 
 export interface IOutput {
     // #region Properties (8)
@@ -10,7 +10,7 @@ export interface IOutput {
     readonly material?: string;
     readonly name?: string;
 
-    content?: ISessionOutputContent[];
+    content?: IContent[];
     version: string;
 
     // #endregion Properties (8)

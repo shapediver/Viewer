@@ -1,5 +1,5 @@
 
-import { ISessionOutput } from "../interfaces/ISessionOutput";
+import { ISessionOutput } from "../../interfaces/session/ISessionOutput";
 import { SessionOutputContent } from "./SessionOutputContent";
 
 export class SessionOutput implements ISessionOutput {

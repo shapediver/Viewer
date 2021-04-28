@@ -1,6 +1,6 @@
-import { ISessionOutputContent } from "../interfaces/ISessionOutputContent";
+import { IContent } from "@shapediver/viewer.shared.types";
 
-export class SessionOutputContent implements ISessionOutputContent {
+export class SessionOutputContent implements IContent {
   // #region Properties (5)
 
   constructor(

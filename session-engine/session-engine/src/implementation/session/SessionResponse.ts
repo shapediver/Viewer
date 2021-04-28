@@ -1,8 +1,8 @@
-import { ISessionResponse } from '../interfaces/ISessionResponse';
-import { ISessionAction } from '../interfaces/ISessionAction';
-import { ISessionExport } from '../interfaces/ISessionExport';
-import { ISessionOutput } from '../interfaces/ISessionOutput';
-import { ISessionParameter } from '../interfaces/ISessionParameter';
+import { ISessionResponse } from '../../interfaces/session/ISessionResponse';
+import { ISessionAction } from '../../interfaces/session/ISessionAction';
+import { ISessionExport } from '../../interfaces/session/ISessionExport';
+import { ISessionOutput } from '../../interfaces/session/ISessionOutput';
+import { ISessionParameter } from '../../interfaces/session/ISessionParameter';
 import { SessionAction } from './SessionAction';
 import { SessionExport } from './SessionExport';
 import { SessionOutput } from './SessionOutput';

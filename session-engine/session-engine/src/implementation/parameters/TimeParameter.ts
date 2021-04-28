@@ -1,5 +1,5 @@
-import { ISessionParameter } from "@shapediver/viewer.shared.types";
 import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../../interfaces/IParameter";
+import { ISessionParameter } from "../../interfaces/session/ISessionParameter";
 import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
 

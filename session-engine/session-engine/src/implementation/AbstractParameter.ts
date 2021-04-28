@@ -1,5 +1,5 @@
-import { ISessionParameter } from "@shapediver/viewer.shared.types";
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "../interfaces/IParameter";
+import { ISessionParameter } from "../interfaces/session/ISessionParameter";
 import { Session } from "./Session";
 
 export abstract class AbstractParameter<T> implements IParameter<T> {

@@ -1,5 +1,4 @@
-
-export interface ISessionOutputContent {
+export interface IContent {
     // #region Properties (5)
 
     converted?: any;

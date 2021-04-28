@@ -1,4 +1,4 @@
-import { ISessionAction } from "../interfaces/ISessionAction";
+import { ISessionAction } from "../../interfaces/session/ISessionAction";
 
 export class SessionAction implements ISessionAction {
   // #region Constructors (1)

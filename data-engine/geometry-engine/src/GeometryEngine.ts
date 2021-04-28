@@ -3,7 +3,7 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { GLTFLoader as GLTF_v1Loader } from './gltfv1/GLTFLoader';
 import { GLTFLoader as GLTF_v2Loader } from './gltfv2/GLTFLoader';
 import { container, singleton } from 'tsyringe';
-import { ISessionOutputContent } from '@shapediver/viewer.shared.types';
+import { IContent } from '@shapediver/viewer.shared.types';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 
 @singleton()
@@ -28,7 +28,7 @@ export class GeometryEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ISessionOutputContent): Promise<TreeNode> {
+    public async loadContent(content: IContent): Promise<TreeNode> {
         const node = new TreeNode('geometry');
         
         if(!content || (content && !content.href)) {

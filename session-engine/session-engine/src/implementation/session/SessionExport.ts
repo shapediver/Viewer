@@ -1,4 +1,4 @@
-import { ISessionExport } from "../interfaces/ISessionExport";
+import { ISessionExport } from "../../interfaces/session/ISessionExport";
 
 export class SessionExport implements ISessionExport {
   // #region Constructors (1)

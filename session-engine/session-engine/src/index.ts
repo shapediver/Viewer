@@ -15,9 +15,15 @@ import { FloatParameter } from './implementation/parameters/FloatParameter';
 import { EvenParameter } from './implementation/parameters/EvenParameter';
 import { ColorParameter } from './implementation/parameters/ColorParameter';
 import { FileParameter } from "./implementation/parameters/FileParameter"
+import { SessionOutputData } from "./implementation/SessionOutputData"
+import { SessionData } from "./implementation/SessionData"
 
 export {
   Session, Output, Export, PARAMETERTYPE, PARAMETERVISUALIZATION
+}
+
+export {
+  SessionData, SessionOutputData
 }
 
 export {

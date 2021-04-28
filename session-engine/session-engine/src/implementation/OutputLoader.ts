@@ -1,13 +1,14 @@
 import { container } from 'tsyringe';
 
-import {
-    SessionResponse, ISessionOutput, ISessionOutputContent, SessionOutputData, MaterialData, GeometryData, CustomData
-} from '@shapediver/viewer.shared.types';
+import { MaterialData, GeometryData, CustomData, IContent } from '@shapediver/viewer.shared.types';
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 
 import { OutputDelayException } from './OutputDelayException';
 import { SessionTreeNode } from './SessionTreeNode';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
+import { SessionResponse } from './session/SessionResponse';
+import { ISessionOutput } from '../interfaces/session/ISessionOutput';
+import { SessionOutputData } from './SessionOutputData';
 
 export class OutputLoader {
     // #region Properties (2)
@@ -170,7 +171,7 @@ export class OutputLoader {
      * @param content the content definition
      * @returns promise with a scene graph node
      */
-    public async loadContent(name: string, content: ISessionOutputContent): Promise<SessionTreeNode> {
+    public async loadContent(name: string, content: IContent): Promise<SessionTreeNode> {
         const contentNode = new SessionTreeNode(name);
         contentNode.addChild(await this._dataEngine.loadContent(content));
         return contentNode;

@@ -1,6 +1,6 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { ISessionOutput } from '../interfaces/session/ISessionOutput';
 
-import { ISessionOutput } from './interfaces/ISessionOutput';
 
 export class SessionOutputData extends AbstractTreeNodeData {
     // #region Constructors (1)

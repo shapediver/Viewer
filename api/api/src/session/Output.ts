@@ -1,5 +1,5 @@
 import { IOutput, Output as OutputLogic } from "@shapediver/viewer.session-engine.session-engine";
-import { ISessionOutputContent } from "@shapediver/viewer.shared.types";
+import { IContent } from "@shapediver/viewer.shared.types";
 import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
@@ -33,17 +33,17 @@ export class Output implements IOutput {
 
   /**
    * Items of this asset - the geometries and materials to be added to the scene.
-   * @return {ISessionOutputContent[] | undefined}
+   * @return {IContent[] | undefined}
    */
-  public get content(): ISessionOutputContent[] | undefined {
+  public get content(): IContent[] | undefined {
     return this.#output.content;
   }
 
   /**
   * Items of this asset - the geometries and materials to be added to the scene
-  * @param {ISessionOutputContent[] | undefined} value
+  * @param {IContent[] | undefined} value
   */
-  public set content(value: ISessionOutputContent[] | undefined) {
+  public set content(value: IContent[] | undefined) {
     // TODO input validation
     this.#output.content = value;
     this.#logger.info(`Output (${this.id}): content was set to: ${value}`);

@@ -1,6 +1,5 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
-
-import { ISessionResponse } from './interfaces/ISessionResponse';
+import { ISessionResponse } from '../interfaces/session/ISessionResponse';
 
 export class SessionData extends AbstractTreeNodeData {
     // #region Constructors (1)

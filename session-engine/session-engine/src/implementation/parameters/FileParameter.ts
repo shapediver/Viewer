@@ -1,10 +1,10 @@
 import { Logger } from "@shapediver/viewer.shared.monitoring";
-import { ISessionParameter } from "@shapediver/viewer.shared.types";
 import { container } from "tsyringe";
 import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
 import { HttpClient } from '@shapediver/viewer.shared.utils';
 import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../..";
+import { ISessionParameter } from "../../interfaces/session/ISessionParameter";
 
 export class FileParameter extends AbstractParameter<File | Blob | string> {
   // #region Properties (4)

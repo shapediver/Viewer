@@ -1,5 +1,3 @@
-import { ISessionResponse, SessionResponse, ISessionOutput, SessionData, ISessionOutputContent, ISessionParameter, ISessionExport } from '@shapediver/viewer.shared.types';
-
 import { OutputDelayException } from './OutputDelayException';
 import { OutputLoader } from './OutputLoader';
 import { SessionTreeNode } from './SessionTreeNode';
@@ -24,6 +22,10 @@ import { FloatParameter } from './parameters/FloatParameter';
 import { EvenParameter } from './parameters/EvenParameter';
 import { ColorParameter } from './parameters/ColorParameter';
 import { FileParameter } from './parameters/FileParameter';
+import { SessionResponse } from './session/SessionResponse';
+import { ISessionResponse } from '../interfaces/session/ISessionResponse';
+import { SessionData } from './SessionData';
+import { ISessionOutput } from '../interfaces/session/ISessionOutput';
 
 export class Session implements ISession {
     // #region Properties (18)

@@ -1,5 +1,6 @@
-import { ISessionOutput, ISessionOutputContent } from "@shapediver/viewer.shared.types";
+import { IContent } from "@shapediver/viewer.shared.types";
 import { IOutput } from "../interfaces/IOutput";
+import { ISessionOutput } from "../interfaces/session/ISessionOutput";
 import { Session } from "./Session";
 
 export class Output implements IOutput {
@@ -11,7 +12,7 @@ export class Output implements IOutput {
   private readonly _material?: string;
   private readonly _name?: string;
 
-  private _content?: ISessionOutputContent[];
+  private _content?: IContent[];
   private _version: string;
 
   // #endregion Properties (7)
@@ -54,17 +55,17 @@ export class Output implements IOutput {
 
   /**
    * Getter content
-   * @return {ISessionOutputContent[] | undefined}
+   * @return {IContent[] | undefined}
    */
-  public get content(): ISessionOutputContent[] | undefined {
+  public get content(): IContent[] | undefined {
     return this._content;
   }
 
   /**
   * Setter content
-  * @param {ISessionOutputContent[] | undefined} value
+  * @param {IContent[] | undefined} value
   */
-  public set content(value: ISessionOutputContent[] | undefined) {
+  public set content(value: IContent[] | undefined) {
     this._content = value;
   }
 
