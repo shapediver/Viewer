@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.data-engine",
-  "version": "0.2.24",
+  "version": "0.2.25",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -37,15 +37,15 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.data-engine.geometry-engine": "^0.2.24",
-    "@shapediver/viewer.data-engine.html-element-anchor-engine": "^0.2.24",
-    "@shapediver/viewer.data-engine.material-engine": "^0.2.24",
-    "@shapediver/viewer.sdtf.converter": "^0.2.24",
-    "@shapediver/viewer.sdtf.shared": "^0.2.24",
-    "@shapediver/viewer.shared.monitoring": "^0.2.24",
-    "@shapediver/viewer.shared.node-tree": "^0.2.24",
-    "@shapediver/viewer.shared.services": "^0.2.24",
-    "@shapediver/viewer.shared.types": "^0.2.24",
+    "@shapediver/viewer.data-engine.geometry-engine": "^0.2.25",
+    "@shapediver/viewer.data-engine.html-element-anchor-engine": "^0.2.25",
+    "@shapediver/viewer.data-engine.material-engine": "^0.2.25",
+    "@shapediver/viewer.sdtf.converter": "^0.2.25",
+    "@shapediver/viewer.sdtf.shared": "^0.2.25",
+    "@shapediver/viewer.shared.monitoring": "^0.2.25",
+    "@shapediver/viewer.shared.node-tree": "^0.2.25",
+    "@shapediver/viewer.shared.services": "^0.2.25",
+    "@shapediver/viewer.shared.types": "^0.2.25",
     "gl-matrix": "^3.3.0",
     "tsyringe": "^4.5.0"
   }
