@@ -1,5 +1,5 @@
 import { container, singleton } from 'tsyringe';
-import { CustomData, IContent } from '@shapediver/viewer.shared.types';
+import { CustomData } from '@shapediver/viewer.shared.types';
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine';
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
@@ -7,6 +7,7 @@ import { Reader } from '@shapediver/viewer.sdtf.converter';
 import { TreeNodeConverter } from './TreeNodeConverter';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine';
+import { ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
 
 @singleton()
 export class DataEngine {
@@ -15,7 +16,7 @@ export class DataEngine {
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-    public async loadContent(content: IContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
         if(!content || (content && !content.format)) {
             this._logger.error('Invalid content was provided to data engine.');
             return new TreeNode();

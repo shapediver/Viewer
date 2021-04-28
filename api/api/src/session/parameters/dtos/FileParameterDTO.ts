@@ -9,7 +9,6 @@ export class FileParameterDTO implements IParameter<File | Blob | string> {
     readonly format: string[];
     readonly max: number;
     readonly name: string;
-    readonly note?: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.BUTTON;
 
@@ -28,7 +27,6 @@ export class FileParameterDTO implements IParameter<File | Blob | string> {
         this.format = p.format;
         this.max = p.max;
         this.name = p.name;
-        this.note = p.note;
         this.type = p.type;
         this.visualization = p.visualization;
         this.hidden = p.hidden;

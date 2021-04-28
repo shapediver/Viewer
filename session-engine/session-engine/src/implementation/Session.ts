@@ -22,10 +22,9 @@ import { FloatParameter } from './parameters/FloatParameter';
 import { EvenParameter } from './parameters/EvenParameter';
 import { ColorParameter } from './parameters/ColorParameter';
 import { FileParameter } from './parameters/FileParameter';
-import { SessionResponse } from './session/SessionResponse';
-import { ISessionResponse } from '../interfaces/session/ISessionResponse';
 import { SessionData } from './SessionData';
-import { ISessionOutput } from '../interfaces/session/ISessionOutput';
+import { ShapeDiverResponseBase as ShapeDiverResponse } from "@shapediver/api.geometry-api-dto-v1"
+import { mergeResponses } from './SessionResponseConverter';
 
 export class Session implements ISession {
     // #region Properties (18)
@@ -54,7 +53,7 @@ export class Session implements ISession {
     private _initialized: boolean = false;
     private _loadDefaultSettings: boolean = true;
     private _refreshBearerToken!: () => string;
-    private _sessionResponse: SessionResponse;
+    private _sessionResponse!: ShapeDiverResponse;
 
     // #endregion Properties (18)
 
@@ -72,8 +71,7 @@ export class Session implements ISession {
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
         this._loadDefaultSettings = properties.loadDefaultSettings || true;
-        this._sessionResponse = new SessionResponse();
-        this._outputLoader = new OutputLoader(this._sessionResponse);
+        this._outputLoader = new OutputLoader();
     }
 
     // #endregion Constructors (1)
@@ -146,9 +144,9 @@ export class Session implements ISession {
 
     /**
      * Getter sessionResponse
-     * @return {SessionResponse}
+     * @return {ShapeDiverResponse}
      */
-    public get sessionResponse(): SessionResponse {
+    public get sessionResponse(): ShapeDiverResponse {
         return this._sessionResponse;
     }
 
@@ -170,7 +168,7 @@ export class Session implements ISession {
             return this._outputs[id];
         }
 
-        this._outputsCreated[id] = new Output(this, id, { version: '1.0' });
+        this._outputsCreated[id] = new Output(this, id, { version: '1.0', id, name: '', dependency: [] });
         this._outputs[id] = this._outputsCreated[id];
         return this._outputs[id];
     }
@@ -182,10 +180,10 @@ export class Session implements ISession {
      * @returns promise with a scene graph node
      */
     public async customize(): Promise<SessionTreeNode> {
-        for (let parameterId in this._parameters)
-            this._sessionResponse.parameters[parameterId].value = this._parameters[parameterId].value;
-        for (let outputId in this._outputsCreated)
-            this._sessionResponse.outputs[outputId] = this._outputsCreated[outputId];
+        // for (let parameterId in this._parameters)
+        //     this._sessionResponse.parameters[parameterId].value = this._parameters[parameterId].value;
+        // for (let outputId in this._outputsCreated)
+        //     this._sessionResponse.outputs[outputId] = this._outputsCreated[outputId];
         return this.customizeSession(this.getParametersAsString());
     }
 
@@ -333,22 +331,22 @@ export class Session implements ISession {
     public async init(): Promise<SessionTreeNode> {
         if (this._initialized === true) {
             this._logger.error('Session already initialized.');
-            return this.loadOutputs(this.getParametersAsString(), this._sessionResponse.outputs);
+            return this.loadOutputs(this.getParametersAsString());
         }
 
         try {
             let sessionResponse;
             try {
-                sessionResponse = <ISessionResponse>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
+                sessionResponse = <ShapeDiverResponse>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
             } catch (e) {
                 this._logger.error('Session init failed.', e, e.response && e.response.status ? e.response.status : null);
                 return new SessionTreeNode();
             }
 
             if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
-            this._sessionResponse.adaptSession(sessionResponse);
+            this._sessionResponse = mergeResponses(this._sessionResponse, sessionResponse);
 
-            this._authorTicket = !!(this._sessionResponse.actions['defaultparam'] && this._sessionResponse.actions['configure']);
+            this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
 
             for (let parameterId in this._sessionResponse.parameters) {
                 switch (this._sessionResponse.parameters[parameterId].type.toLowerCase()) {
@@ -389,7 +387,7 @@ export class Session implements ISession {
                 this._outputs[outputId] = new Output(this, outputId, this._sessionResponse.outputs[outputId]);
 
             this._initialized = true;
-            return this.loadOutputs(this.getParametersAsString(), this._sessionResponse.outputs);
+            return this.loadOutputs(this.getParametersAsString());
         } catch (e) {
             this._logger.error('Something went wrong at session init.', e);
             return new SessionTreeNode();
@@ -397,12 +395,12 @@ export class Session implements ISession {
     }
 
     public async saveDefaultParameters(): Promise<boolean> {
-        if (!this._sessionResponse.actions['defaultparam']) {
+        if (!this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0]) {
             this._logger.error('Session has to be in edit mode to be able to save the settings.');
             return false;
         }
         try {
-            await this.sessionCommunication(this._sessionResponse.actions['defaultparam'].href!, this._sessionResponse.actions['defaultparam'].method!, this.getParametersAsString(), 'application/json');
+            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].method!, this.getParametersAsString(), 'application/json');
             return true;
         } catch (e) {
             this._logger.error('Saving of default parameters failed.', e, e.response && e.response.status ? e.response.status : null);
@@ -411,12 +409,12 @@ export class Session implements ISession {
     }
 
     public async saveSettings(json: any): Promise<boolean> {
-        if (!this._sessionResponse.actions['configure']) {
+        if (!this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]) {
             this._logger.error('Session has to be in edit mode to be able to save the settings.');
             return false;
         }
         try {
-            await this.sessionCommunication(this._sessionResponse.actions['configure'].href!, this._sessionResponse.actions['configure'].method!, json, 'application/json');
+            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].method!, json, 'application/json');
             return true;
         } catch (e) {
             this._logger.error('Saving of settings failed.', e, e.response && e.response.status ? e.response.status : null);
@@ -467,7 +465,8 @@ export class Session implements ISession {
             try {
                 for (let parameter in parameters)
                     if (this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
-                responseCustomize = <ISessionResponse>(await this.sessionCommunication(this._sessionResponse.actions['customize'].href!, 'post', parameters, 'application/json')).data;
+                console.log(parameters);
+                responseCustomize = <ShapeDiverResponse>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {
                     if (e.response && e.response.status && e.response.status === 410) {
@@ -481,9 +480,12 @@ export class Session implements ISession {
                 this._logger.error('Session customization failed.', e, e.response && e.response.status ? e.response.status : null);
                 return new SessionTreeNode();
             }
+            this._sessionResponse = mergeResponses(this._sessionResponse, responseCustomize);
 
-            this._sessionResponse.adaptSession(responseCustomize);
-            return this.loadOutputs(parameters, this._sessionResponse.outputs);
+            // TODO actually adapt
+            for (let outputId in this._sessionResponse.outputs)
+                this._outputs[outputId] = new Output(this, outputId, this._sessionResponse.outputs[outputId]);
+            return this.loadOutputs(parameters);
         } catch (e) {
             this._logger.error('Something went wrong at session customization.', e);
             return new SessionTreeNode();
@@ -498,9 +500,10 @@ export class Session implements ISession {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    private async loadOutputs(parameters: { [key: string]: string }, outputs: { [key: string]: ISessionOutput; }): Promise<SessionTreeNode> {
+    private async loadOutputs(parameters: { [key: string]: string }, outputs?: { [key: string]: Output; }): Promise<SessionTreeNode> {
         try {
-            const node = await this._outputLoader.loadOutputs(outputs);
+            const o = outputs ? outputs : Object.assign({}, this._outputs, this._outputsCreated)
+            const node = await this._outputLoader.loadOutputs(this._sessionResponse, o);
             node.data.push(new SessionData(this._sessionResponse));
             return node;
         }
@@ -512,8 +515,8 @@ export class Session implements ISession {
             for (let output in outputs)
                 outputMapping[output] = outputs[output].version;
 
-            let responseCache = (await this.sessionCommunication(this._sessionResponse.actions['cache'].href!, this._sessionResponse.actions['cache'].method!.toLowerCase(), outputMapping, 'application/json')).data;
-            this._sessionResponse.adaptSession(responseCache);
+            let responseCache = (await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].method!.toLowerCase()!, outputMapping, 'application/json')).data;
+            this._sessionResponse = mergeResponses(this._sessionResponse, responseCache);
             return await this.loadOutputs(parameters, outputs);
         }
     }

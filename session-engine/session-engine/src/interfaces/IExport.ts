@@ -1,11 +1,9 @@
+import { ShapeDiverResponseExportPart } from "@shapediver/api.geometry-api-dto-v1";
+
 export interface IExport {
-    // #region Properties (3)
+    // #region Public Methods (1)
 
-    readonly id: string;
-    readonly name?: string;
-    readonly type?: string;
+    request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExportPart | null>;
 
-    request(parameters?: { [key: string]: string }): Promise<{ href: string, format: string, size: number } | null>;
-
-    // #endregion Properties (3)
+    // #endregion Public Methods (1)
 }

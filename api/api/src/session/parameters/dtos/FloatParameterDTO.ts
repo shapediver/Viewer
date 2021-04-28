@@ -10,7 +10,6 @@ export class FloatParameterDTO implements IParameter<number> {
     readonly max: number;
     readonly min: number;
     readonly name: string;
-    readonly note?: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.DIAL | PARAMETERVISUALIZATION.SLIDER;
 
@@ -30,7 +29,6 @@ export class FloatParameterDTO implements IParameter<number> {
         this.max = p.max;
         this.min = p.min;
         this.name = p.name;
-        this.note = p.note;
         this.type = p.type;
         this.visualization = p.visualization;
         this.hidden = p.hidden;

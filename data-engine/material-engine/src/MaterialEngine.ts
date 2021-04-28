@@ -2,9 +2,10 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { container, singleton } from 'tsyringe';
 import { HttpClient, ImageLoader } from '@shapediver/viewer.shared.utils';
-import { MapData, MaterialData, IContent, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
+import { MapData, MaterialData, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
 import { vec2, vec3, vec4 } from 'gl-matrix';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1';
 
 interface IPresetMaterialDefinition {
     // #region Properties (13)
@@ -73,7 +74,7 @@ export class MaterialEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-    public async loadContent(content: IContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
         const node = new TreeNode('material');
     
         if(!content) {

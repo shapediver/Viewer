@@ -1,5 +1,5 @@
+import { ShapeDiverResponseParameter } from "@shapediver/api.geometry-api-dto-v1";
 import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../../interfaces/IParameter";
-import { ISessionParameter } from "../../interfaces/session/ISessionParameter";
 import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
 
@@ -14,7 +14,7 @@ export class FloatParameter extends AbstractParameter<number> {
 
     // #region Constructors (1)
 
-    constructor(mySession: Session, id: string, parameterDefinition: ISessionParameter) {
+    constructor(mySession: Session, id: string, parameterDefinition: ShapeDiverResponseParameter) {
         super(mySession, id, parameterDefinition, +parameterDefinition.defval);
         this._max = +parameterDefinition.max!;
         this._min = +parameterDefinition.min!;

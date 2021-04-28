@@ -1,15 +1,14 @@
+import { ShapeDiverResponseBase, ShapeDiverResponseExport, ShapeDiverResponseExportDefinition, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportPart, ShapeDiverResponseExportResult } from "@shapediver/api.geometry-api-dto-v1";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { HttpClient } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { IExport } from "../interfaces/IExport";
-import { ISessionExport } from "../interfaces/session/ISessionExport";
 import { Session } from "./Session";
+import { mergeResponses } from "./SessionResponseConverter";
 
-export class Export implements IExport {
+export class Export implements IExport, ShapeDiverResponseExport {
   // #region Properties (2)
 
-  private _name?: string;
-  private _type?: string;
   private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
@@ -20,15 +19,44 @@ export class Export implements IExport {
   constructor(
     private readonly _mySession: Session,
     private readonly _id: string,
-    private readonly _exportDefinition: ISessionExport
-  ) {
-    this._name = this._exportDefinition.name;
-    this._type = this._exportDefinition.type;
-  }
+    private readonly _exportDefinition: ShapeDiverResponseExport | ShapeDiverResponseExportDefinition
+  ) { }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (3)
+  // #region Public Accessors (11)
+
+  /**
+   * Getter result
+   * @return {ShapeDiverResponseExportPart[] | undefined}
+   */
+  public get content(): ShapeDiverResponseExportPart[] | undefined {
+    return (<ShapeDiverResponseExport>this._exportDefinition).content;
+  }
+
+  /**
+   * Getter delay
+   * @return {number | undefined}
+   */
+  public get delay(): number | undefined {
+    return (<ShapeDiverResponseExport>this._exportDefinition).delay;
+  }
+
+  /**
+   * Getter dependency
+   * @return {string[]}
+   */
+  public get dependency(): string[] {
+    return this._exportDefinition.dependency;
+  }
+
+  /**
+   * Getter filename
+   * @return {string | undefined}
+   */
+  public get filename(): string | undefined {
+    return (<ShapeDiverResponseExport>this._exportDefinition).filename;
+  }
 
   /**
    * Getter id
@@ -39,52 +67,89 @@ export class Export implements IExport {
   }
 
   /**
-   * Getter name
+   * Getter msg
    * @return {string | undefined}
    */
-  public get name(): string | undefined {
-    return this._name;
+  public get msg(): string | undefined {
+    return (<ShapeDiverResponseExport>this._exportDefinition).msg;
+  }
+
+  /**
+   * Getter name
+   * @return {string}
+   */
+  public get name(): string {
+    return this._exportDefinition.name;
+  }
+
+  /**
+   * Getter result
+   * @return {ShapeDiverResponseExportResult | undefined}
+   */
+  public get result(): ShapeDiverResponseExportResult | undefined {
+    return (<ShapeDiverResponseExport>this._exportDefinition).result;
   }
 
   /**
    * Getter type
-   * @return {string | undefined}
+   * @return {ShapeDiverResponseExportDefinitionType}
    */
-  public get type(): string | undefined {
-    return this._type;
+  public get type(): ShapeDiverResponseExportDefinitionType {
+    return this._exportDefinition.type;
   }
 
-  // #endregion Public Accessors (3)
+  /**
+   * Getter uid
+   * @return {string | undefined}
+   */
+  public get uid(): string | undefined {
+    return this._exportDefinition.uid;
+  }
 
-  public async request(parameters: { [key: string]: string } = {}): Promise<{ href: string, format: string, size: number } | null> {
+  /**
+   * Getter version
+   * @return {string | undefined}
+   */
+  public get version(): string | undefined {
+    return (<ShapeDiverResponseExport>this._exportDefinition).version;
+  }
 
+  // #endregion Public Accessors (11)
+
+  // #region Public Methods (1)
+
+  public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExportPart | null> {
     const currentParameters = this._mySession.getParametersAsString();
     const exportParameters: { [key: string]: string } = {}
 
     for (let parameter in currentParameters)
       exportParameters[parameter] = parameters[parameter] || currentParameters[parameter];
     try {
-      let exportReply = (await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions['export'].href!, this._mySession.sessionResponse.actions['export'].method!.toLowerCase(), { exports: { id: this.id }, parameters }, 'application/json')).data;
-      let exportResult = exportReply.exports[this.id];
-      this._mySession.sessionResponse.adaptSession({actions: exportReply.actions});
-      if (exportResult.hasOwnProperty('delay')) {
-        await this.timeout(exportResult.delay);
-        exportResult = await this.cacheRequest(exportResult.version);
+      let exportReply = <ShapeDiverResponseBase>(await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this._mySession.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.id }, parameters }, 'application/json')).data;
+      let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.id];
+      mergeResponses(this._mySession.sessionResponse, { version: this._mySession.sessionResponse.version, actions: exportReply.actions });
+      if ('delay' in exportResult) {
+        await this.timeout(exportResult.delay!);
+        exportResult = (await this.cacheRequest(exportResult.version!))!;
       }
-      return exportResult.content[0];
+      return exportResult.content![0];
     } catch (e) {
       this._logger.error('Export request failed.', e, e.response && e.response.status ? e.response.status : null);
       return null;
     }
   }
 
-  private async cacheRequest(version: string): Promise<{ href: string, format: string, size: number } | null> { 
+  // #endregion Public Methods (1)
+
+  // #region Private Methods (2)
+
+  private async cacheRequest(version: string): Promise<ShapeDiverResponseExport | null> {
     try {
-      let exportCacheReply = (await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions['export-cache'].href!, this._mySession.sessionResponse.actions['export-cache'].method!.toLowerCase(), {[this.id]: version}, 'application/json')).data;
-      let exportCacheResult = exportCacheReply.exports[this.id];
-      if (exportCacheResult.hasOwnProperty('delay')) {
-        await this.timeout(exportCacheResult.delay);
-        exportCacheResult = await this.cacheRequest(version);
+      let exportCacheReply = <ShapeDiverResponseBase>(await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].href!, this._mySession.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].method!.toLowerCase()!, { [this.id]: version }, 'application/json')).data;
+      let exportCacheResult = <ShapeDiverResponseExport>exportCacheReply.exports![this.id];
+      if ('delay' in exportCacheResult) {
+        await this.timeout(exportCacheResult.delay!);
+        exportCacheResult = (await this.cacheRequest(version))!;
       }
       return exportCacheResult;
     } catch (e) {
@@ -103,4 +168,5 @@ export class Export implements IExport {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // #endregion Private Methods (2)
 }

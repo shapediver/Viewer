@@ -1,14 +1,14 @@
 import { container } from 'tsyringe';
 
-import { MaterialData, GeometryData, CustomData, IContent } from '@shapediver/viewer.shared.types';
+import { MaterialData, GeometryData } from '@shapediver/viewer.shared.types';
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 
 import { OutputDelayException } from './OutputDelayException';
 import { SessionTreeNode } from './SessionTreeNode';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { SessionResponse } from './session/SessionResponse';
-import { ISessionOutput } from '../interfaces/session/ISessionOutput';
 import { SessionOutputData } from './SessionOutputData';
+import { ShapeDiverResponseBase as ShapeDiverResponse, ShapeDiverResponseOutput, ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1"
+import { Output } from './Output';
 
 export class OutputLoader {
     // #region Properties (2)
@@ -29,7 +29,7 @@ export class OutputLoader {
      * 
      * @param _session the session for this output loader
      */
-    constructor(private readonly _session: SessionResponse) {}
+    constructor() {}
 
     // #endregion Constructors (1)
 
@@ -42,8 +42,9 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(outputs: { [key: string]: ISessionOutput; }): Promise<SessionTreeNode> {
-        const node = new SessionTreeNode(this._session.name);
+    public async loadOutputs(session: ShapeDiverResponse, outputs?: { [key: string]: Output; }): Promise<SessionTreeNode> {
+        console.log(outputs)
+        const node = new SessionTreeNode(session.name);
         let currentNodes: { 
             [key: string]: {
                 [key: string]: Promise<SessionTreeNode>
@@ -155,7 +156,7 @@ export class OutputLoader {
      * @param output the output definition
      * @returns promise with a scene graph node
      */
-    private async loadOutput(id: string, output: ISessionOutput): Promise<SessionTreeNode> {
+    private async loadOutput(id: string, output: ShapeDiverResponseOutput): Promise<SessionTreeNode> {
         const outputNode = new SessionTreeNode(id);
         outputNode.data.push(new SessionOutputData(output));
         if(output.content)
@@ -171,7 +172,7 @@ export class OutputLoader {
      * @param content the content definition
      * @returns promise with a scene graph node
      */
-    public async loadContent(name: string, content: IContent): Promise<SessionTreeNode> {
+    public async loadContent(name: string, content: ShapeDiverResponseOutputPart): Promise<SessionTreeNode> {
         const contentNode = new SessionTreeNode(name);
         contentNode.addChild(await this._dataEngine.loadContent(content));
         return contentNode;

@@ -1,8 +1,8 @@
 import { IOutput, Output as OutputLogic } from "@shapediver/viewer.session-engine.session-engine";
-import { IContent } from "@shapediver/viewer.shared.types";
 import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
 
 export class Output implements IOutput {
 
@@ -33,17 +33,17 @@ export class Output implements IOutput {
 
   /**
    * Items of this asset - the geometries and materials to be added to the scene.
-   * @return {IContent[] | undefined}
+   * @return {ShapeDiverResponseOutputPart[] | undefined}
    */
-  public get content(): IContent[] | undefined {
+  public get content(): ShapeDiverResponseOutputPart[] | undefined {
     return this.#output.content;
   }
 
   /**
   * Items of this asset - the geometries and materials to be added to the scene
-  * @param {IContent[] | undefined} value
+  * @param {ShapeDiverResponseOutputPart[] | undefined} value
   */
-  public set content(value: IContent[] | undefined) {
+  public set content(value: ShapeDiverResponseOutputPart[] | undefined) {
     // TODO input validation
     this.#output.content = value;
     this.#logger.info(`Output (${this.id}): content was set to: ${value}`);

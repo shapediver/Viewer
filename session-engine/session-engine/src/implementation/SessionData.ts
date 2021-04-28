@@ -1,11 +1,11 @@
+import { ShapeDiverResponseBase as ShapeDiverResponse } from '@shapediver/api.geometry-api-dto-v1';
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { ISessionResponse } from '../interfaces/session/ISessionResponse';
 
 export class SessionData extends AbstractTreeNodeData {
     // #region Constructors (1)
 
     constructor( 
-        private _session: ISessionResponse,
+        private _session: ShapeDiverResponse,
         id?: string
     ) {
         super(id);
@@ -19,7 +19,7 @@ export class SessionData extends AbstractTreeNodeData {
      * Getter session
      * @return {ISession}
      */
-    public get session(): ISessionResponse {
+    public get session(): ShapeDiverResponse {
 		return this._session;
 	}
 
@@ -27,7 +27,7 @@ export class SessionData extends AbstractTreeNodeData {
      * Setter session
      * @param {ISession} value
      */
-    public set session(value: ISessionResponse) {
+    public set session(value: ShapeDiverResponse) {
 		this._session = value;
 	}
 

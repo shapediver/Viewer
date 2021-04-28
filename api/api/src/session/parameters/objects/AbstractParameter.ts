@@ -85,15 +85,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   public get name(): string {
     return this.#parameter.name;
   }
-
-  /**
-   * The description of the parameter.
-   * @return {string | undefined}
-   */
-  public get note(): string | undefined {
-    return this.#parameter.note;
-  }
-
+  
   /**
      * Getter order
      * @return {number | undefined}

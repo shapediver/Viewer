@@ -4,14 +4,9 @@ import { CustomData } from "./CustomData";
 import { AttributeData, GeometryData, PrimitiveData } from "./GeometryData";
 import { MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE, TEXTURE_FILTERING, TEXTURE_WRAPPING } from "./MaterialData";
 import { HTMLElementAnchorData } from "./HTMLElementAnchorData";
-import { IContent } from "./IContent";
 
 export {
   ISDObject, SD_RENDERINGTYPE
-}
-
-export {
-  IContent
 }
 
 export {

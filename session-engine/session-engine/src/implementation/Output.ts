@@ -1,18 +1,10 @@
-import { IContent } from "@shapediver/viewer.shared.types";
-import { IOutput } from "../interfaces/IOutput";
-import { ISessionOutput } from "../interfaces/session/ISessionOutput";
+import { ShapeDiverResponseOutput, ShapeDiverResponseOutputChunk, ShapeDiverResponseOutputDefinition, ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
 import { Session } from "./Session";
 
-export class Output implements IOutput {
+export class Output implements ShapeDiverResponseOutput {
   // #region Properties (7)
 
-  private readonly _bbmax?: number[];
-  private readonly _bbmin?: number[];
-  private readonly _delay?: number;
-  private readonly _material?: string;
-  private readonly _name?: string;
-
-  private _content?: IContent[];
+  private _content?: ShapeDiverResponseOutputPart[];
   private _version: string;
 
   // #endregion Properties (7)
@@ -22,27 +14,22 @@ export class Output implements IOutput {
   constructor(
     private readonly _mySession: Session,
     private readonly _id: string,
-    private readonly _outputDefinition: ISessionOutput
+    private readonly _outputDefinition: ShapeDiverResponseOutput | ShapeDiverResponseOutputDefinition
   ) {
-    this._bbmax = this._outputDefinition.bbmax;
-    this._bbmin = this._outputDefinition.bbmin;
-    this._delay = this._outputDefinition.delay;
-    this._material = this._outputDefinition.material;
-    this._name = this._outputDefinition.name;
-    this._content = this._outputDefinition.content;
-    this._version = this._outputDefinition.version;
+    this._content = (<ShapeDiverResponseOutput>this._outputDefinition).content;
+    this._version = (<ShapeDiverResponseOutput>this._outputDefinition).version;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (10)
+  // #region Public Accessors (14)
 
   /**
    * Getter bbmax
    * @return {number[] | undefined}
    */
   public get bbmax(): number[] | undefined {
-    return this._bbmax;
+    return (<ShapeDiverResponseOutput>this._outputDefinition).bbmax;
   }
 
   /**
@@ -50,22 +37,30 @@ export class Output implements IOutput {
    * @return {number[] | undefined}
    */
   public get bbmin(): number[] | undefined {
-    return this._bbmin;
+    return (<ShapeDiverResponseOutput>this._outputDefinition).bbmin;
+  }
+
+  /**
+   * Getter chunks
+   * @return {ShapeDiverResponseOutputChunk[] | undefined}
+   */
+  public get chunks(): ShapeDiverResponseOutputChunk[] | undefined {
+    return this._outputDefinition.chunks;
   }
 
   /**
    * Getter content
-   * @return {IContent[] | undefined}
+   * @return {ShapeDiverResponseOutputPart[] | undefined}
    */
-  public get content(): IContent[] | undefined {
+  public get content(): ShapeDiverResponseOutputPart[] | undefined {
     return this._content;
   }
 
   /**
   * Setter content
-  * @param {IContent[] | undefined} value
+  * @param {ShapeDiverResponseOutputPart[] | undefined} value
   */
-  public set content(value: IContent[] | undefined) {
+  public set content(value: ShapeDiverResponseOutputPart[] | undefined) {
     this._content = value;
   }
 
@@ -74,7 +69,15 @@ export class Output implements IOutput {
    * @return {number | undefined}
    */
   public get delay(): number | undefined {
-    return this._delay;
+    return (<ShapeDiverResponseOutput>this._outputDefinition).delay;
+  }
+
+  /**
+   * Getter dependency
+   * @return {string[]}
+   */
+  public get dependency(): string[] {
+    return this._outputDefinition.dependency;
   }
 
   /**
@@ -90,15 +93,31 @@ export class Output implements IOutput {
    * @return {string | undefined}
    */
   public get material(): string | undefined {
-    return this._material;
+    return this._outputDefinition.material;
+  }
+
+  /**
+   * Getter msg
+   * @return {string | undefined}
+   */
+  public get msg(): string | undefined {
+    return (<ShapeDiverResponseOutput>this._outputDefinition).msg;
   }
 
   /**
    * Getter name
+   * @return {string}
+   */
+  public get name(): string {
+    return this._outputDefinition.name;
+  }
+
+  /**
+   * Getter uid
    * @return {string | undefined}
    */
-  public get name(): string | undefined {
-    return this._name;
+  public get uid(): string | undefined {
+    return this._outputDefinition.uid;
   }
 
   /**
@@ -117,5 +136,5 @@ export class Output implements IOutput {
     this._version = value;
   }
 
-  // #endregion Public Accessors (10)
+  // #endregion Public Accessors (14)
 }

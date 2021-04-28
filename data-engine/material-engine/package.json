@@ -37,6 +37,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "@shapediver/api.geometry-api-dto-v1": "^1.0.3",
     "@shapediver/viewer.data-engine.shared-types": "^0.2.27",
     "@shapediver/viewer.shared.monitoring": "^0.2.27",
     "@shapediver/viewer.shared.node-tree": "^0.2.27",

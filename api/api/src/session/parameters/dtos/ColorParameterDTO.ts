@@ -8,7 +8,6 @@ export class ColorParameterDTO implements IParameter<string | number | vec3> {
     readonly defval: string;
     readonly id: string;
     readonly name: string;
-    readonly note?: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.SWATCH;
 
@@ -25,7 +24,6 @@ export class ColorParameterDTO implements IParameter<string | number | vec3> {
         this.defval = p.defval;
         this.id = p.id;
         this.name = p.name;
-        this.note = p.note;
         this.type = p.type;
         this.visualization = p.visualization;
         this.hidden = p.hidden;

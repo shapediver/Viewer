@@ -7,7 +7,6 @@ export class BooleanParameterDTO implements IParameter<boolean> {
     readonly defval: boolean;
     readonly id: string;
     readonly name: string;
-    readonly note?: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.TOGGLE;
 
@@ -24,7 +23,6 @@ export class BooleanParameterDTO implements IParameter<boolean> {
         this.defval = p.defval;
         this.id = p.id;
         this.name = p.name;
-        this.note = p.note;
         this.type = p.type;
         this.visualization = p.visualization;
         this.hidden = p.hidden;

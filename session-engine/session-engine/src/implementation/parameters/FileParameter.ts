@@ -4,7 +4,7 @@ import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
 import { HttpClient } from '@shapediver/viewer.shared.utils';
 import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../..";
-import { ISessionParameter } from "../../interfaces/session/ISessionParameter";
+import { ShapeDiverResponseParameter } from "@shapediver/api.geometry-api-dto-v1";
 
 export class FileParameter extends AbstractParameter<File | Blob | string> {
   // #region Properties (4)
@@ -18,7 +18,7 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
 
   // #region Constructors (1)
 
-  constructor(mySession: Session, id: string, parameterDefinition: ISessionParameter) {
+  constructor(mySession: Session, id: string, parameterDefinition: ShapeDiverResponseParameter) {
     super(mySession, id, parameterDefinition, parameterDefinition.defval);
     this._format = parameterDefinition.format!;
     this._max = +parameterDefinition.max!;
@@ -81,7 +81,7 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
     }
 
     try {
-      let uploadReply = (await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions['upload'].href!, this._mySession.sessionResponse.actions['upload'].method!.toLowerCase(), { [this.id]: { size: data.size, format: this.format![0] } }, 'application/json')).data;
+      let uploadReply = (await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions?.filter(v => v.name === 'upload')[0].href!, this._mySession.sessionResponse.actions?.filter(v => v.name === 'upload')[0].method!.toLowerCase()!, { [this.id]: { size: data.size, format: this.format![0] } }, 'application/json')).data;
       await this._httpClient.put(uploadReply[this.id].href, { data, headers: { 'Content-Type': this.format![0] }, });
       return uploadReply[this.id].id;
     } catch (e) {

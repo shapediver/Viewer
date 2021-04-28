@@ -8,7 +8,6 @@ export class StringParameterDTO implements IParameter<string> {
     readonly id: string;
     readonly max: number;
     readonly name: string;
-    readonly note?: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.TEXT;
 
@@ -26,7 +25,6 @@ export class StringParameterDTO implements IParameter<string> {
         this.id = p.id;
         this.max = p.max;
         this.name = p.name;
-        this.note = p.note;
         this.type = p.type;
         this.visualization = p.visualization;
         this.hidden = p.hidden;

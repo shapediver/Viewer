@@ -1,13 +1,11 @@
+import { ShapeDiverResponseParameter, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "../interfaces/IParameter";
-import { ISessionParameter } from "../interfaces/session/ISessionParameter";
 import { Session } from "./Session";
 
 export abstract class AbstractParameter<T> implements IParameter<T> {
-  // #region Properties (9)
+  // #region Properties (7)
 
   private readonly _defval: T;
-  private readonly _name: string;
-  private readonly _note?: string;
 
   private _displayName?: string;
   private _hidden: boolean;
@@ -18,28 +16,27 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
 
   protected _value!: T;
 
-  // #endregion Properties (9)
+  // #endregion Properties (7)
 
   // #region Constructors (1)
 
   constructor(
     protected readonly _mySession: Session,
     private readonly _id: string,
-    private readonly _parameterDefinition: ISessionParameter,
+    private readonly _parameterDefinition: ShapeDiverResponseParameter,
     defval: T
   ) {
     this._defval = defval;
     this._value = defval;
-    this._name = this._parameterDefinition.name!;
+
     this._type = <PARAMETERTYPE>this._parameterDefinition.type.toLowerCase();
     this._visualization = <PARAMETERVISUALIZATION>this._parameterDefinition.visualization;
-
     this._hidden = false;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (12)
+  // #region Public Accessors (15)
 
   /**
    * Getter defval
@@ -63,6 +60,14 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
    */
   public set displayName(value: string | undefined) {
     this._displayName = value;
+  }
+
+  /**
+   * Getter group
+   * @return {ShapeDiverResponseParameterGroup | undefined}
+   */
+  public get group(): ShapeDiverResponseParameterGroup | undefined {
+    return this._parameterDefinition.group;
   }
 
   /**
@@ -94,15 +99,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
    * @return {string}
    */
   public get name(): string {
-    return this._name;
-  }
-
-  /**
-   * Getter note
-   * @return {string | undefined}
-   */
-  public get note(): string | undefined {
-    return this._note;
+    return this._parameterDefinition.name;
   }
 
   /**
@@ -122,6 +119,22 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   }
 
   /**
+   * Getter structure
+   * @return {ShapeDiverResponseParameterStructure | undefined}
+   */
+  public get structure(): ShapeDiverResponseParameterStructure | undefined {
+    return this._parameterDefinition.structure;
+  }
+
+  /**
+   * Getter tooltip
+   * @return {string | undefined}
+   */
+  public get tooltip(): string | undefined {
+    return this._parameterDefinition.tooltip;
+  }
+
+  /**
    * Getter value
    * @return {T}
    */
@@ -137,7 +150,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
     this._value = value;
   }
 
-  // #endregion Public Accessors (12)
+  // #endregion Public Accessors (15)
 
   // #region Public Abstract Accessors (2)
 

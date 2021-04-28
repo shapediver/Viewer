@@ -1,10 +1,11 @@
 import { container, singleton } from "tsyringe"
-import { HTMLElementAnchorData, IContent } from "@shapediver/viewer.shared.types";
+import { HTMLElementAnchorData } from "@shapediver/viewer.shared.types";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { Converter } from "@shapediver/viewer.shared.utils";
 import { vec3, vec4 } from "gl-matrix";
 import { Box } from "@shapediver/viewer.shared.math";
+import { ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
 
 
 interface Tag2D {
@@ -58,7 +59,7 @@ export class HTMLElementAnchorEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-    public async loadContent(content: IContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
         try {
 
 

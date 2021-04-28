@@ -8,7 +8,6 @@ export class StringListParameterDTO implements IParameter<string> {
     readonly choices: string[];
     readonly id: string;
     readonly name: string;
-    readonly note?: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.SEQUENCE | PARAMETERVISUALIZATION.CYCLE | PARAMETERVISUALIZATION.DROPDOWN | PARAMETERVISUALIZATION.CHECKLIST;
 
@@ -26,7 +25,6 @@ export class StringListParameterDTO implements IParameter<string> {
         this.choices = p.choices;
         this.id = p.id;
         this.name = p.name;
-        this.note = p.note;
         this.type = p.type;
         this.visualization = p.visualization;
         this.hidden = p.hidden;

@@ -7,7 +7,6 @@ export class TimeParameterDTO implements IParameter<string> {
     readonly defval: string;
     readonly id: string;
     readonly name: string;
-    readonly note?: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.CLOCK | PARAMETERVISUALIZATION.CALENDAR;
 
@@ -24,7 +23,6 @@ export class TimeParameterDTO implements IParameter<string> {
         this.defval = p.defval;
         this.id = p.id;
         this.name = p.name;
-        this.note = p.note;
         this.type = p.type;
         this.visualization = p.visualization;
         this.hidden = p.hidden;
