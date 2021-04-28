@@ -1,10 +1,10 @@
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { StringListParameter as StringListParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 
-export class StringListParameterDTO implements IParameter<number> {
+export class StringListParameterDTO implements IParameter<string> {
     // #region Properties (13)
 
-    readonly defval: number;
+    readonly defval: string;
     readonly choices: string[];
     readonly id: string;
     readonly name: string;
@@ -15,7 +15,7 @@ export class StringListParameterDTO implements IParameter<number> {
     displayName?: string;
     hidden: boolean;
     order?: number;
-    value: number;
+    value: string;
 
     // #endregion Properties (13)
 

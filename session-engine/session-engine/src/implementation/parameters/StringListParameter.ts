@@ -3,7 +3,7 @@ import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../../interfaces/IParamet
 import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
 
-export class StringListParameter extends AbstractParameter<number> {
+export class StringListParameter extends AbstractParameter<string> {
     // #region Properties (1)
 
     private readonly _choices: string[];
@@ -13,7 +13,7 @@ export class StringListParameter extends AbstractParameter<number> {
     // #region Constructors (1)
 
     constructor(mySession: Session, id: string, parameterDefinition: ISessionParameter) {
-        super(mySession, id, parameterDefinition, +parameterDefinition.defval);
+        super(mySession, id, parameterDefinition, parameterDefinition.defval);
         this._choices = parameterDefinition.choices!;
     }
 
@@ -54,7 +54,7 @@ export class StringListParameter extends AbstractParameter<number> {
      * @return {string}
      */
     public toString(): string {
-        return this._value + '';
+        return this._value;
     }
 
     // #endregion Public Methods (1)

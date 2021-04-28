@@ -465,7 +465,6 @@ export class Session implements ISession {
             try {
                 for (let parameter in parameters)
                     if (this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
-                console.log(parameters)
                 responseCustomize = <ISessionResponse>(await this.sessionCommunication(this._sessionResponse.actions['customize'].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {
