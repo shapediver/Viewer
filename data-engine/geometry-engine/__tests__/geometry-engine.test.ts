@@ -21,7 +21,7 @@ describe('geometry-engine', () => {
 
     it('empty object', async () => {
         try {
-            const r = await geometryEngine.loadContent({})
+            const r = await geometryEngine.loadContent({ format: '' })
             expect(r).not.toBeDefined();
         } catch (e) {
             expect(e).toBeInstanceOf(Error)

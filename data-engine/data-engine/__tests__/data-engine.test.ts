@@ -21,7 +21,7 @@ describe('data-engine', () => {
 
     it('empty object', async () => {
         try {
-            const r = await dataEngine.loadContent({})
+            const r = await dataEngine.loadContent({ format: '' })
             expect(r).not.toBeDefined();
         } catch (e) {
             expect(e).toBeInstanceOf(Error)

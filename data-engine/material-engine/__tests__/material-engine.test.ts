@@ -21,7 +21,7 @@ describe('material-engine', () => {
 
     it('empty object', async () => {
         try {
-            const r = await materialEngine.loadContent({})
+            const r = await materialEngine.loadContent({ format: '' })
             expect(r).not.toBeDefined();
         } catch (e) {
             expect(e).toBeInstanceOf(Error)
@@ -30,7 +30,7 @@ describe('material-engine', () => {
 
     it('empty data', async () => {
         try {
-            const r = await materialEngine.loadContent({ data: { } })
+            const r = await materialEngine.loadContent({  format: '', data: { } })
             expect(r).not.toBeDefined();
         } catch (e) {
             expect(e).toBeInstanceOf(Error)
@@ -39,7 +39,7 @@ describe('material-engine', () => {
 
     it('data version invalid', async () => {
         try {
-            const r = await materialEngine.loadContent({ data: { version: '4.0' } })
+            const r = await materialEngine.loadContent({ format: '', data: { version: '4.0' } })
             expect(r).not.toBeDefined();
         } catch (e) {
             expect(e).toBeInstanceOf(Error)
@@ -48,7 +48,7 @@ describe('material-engine', () => {
 
     it('data version valid', async () => {
         try {
-            const r = await materialEngine.loadContent({ data: { version: '1.0' } })
+            const r = await materialEngine.loadContent({ format: '', data: { version: '1.0' } })
             expect(r).toBeDefined();
         } catch (e) {
             expect(e).not.toBeDefined();
@@ -58,7 +58,7 @@ describe('material-engine', () => {
     
     it('data version valid', async () => {
         try {
-            const r = await materialEngine.loadContent({ data: { version: '2.0' } })
+            const r = await materialEngine.loadContent({ format: '', data: { version: '2.0' } })
             expect(r).toBeDefined();
         } catch (e) {
             expect(e).not.toBeDefined();
@@ -68,7 +68,7 @@ describe('material-engine', () => {
     
     it('data version valid', async () => {
         try {
-            const r = await materialEngine.loadContent({ data: { version: '2.0' } })
+            const r = await materialEngine.loadContent({  format: '', data: { version: '2.0' } })
             expect(r).toBeDefined();
         } catch (e) {
             expect(e).not.toBeDefined();
