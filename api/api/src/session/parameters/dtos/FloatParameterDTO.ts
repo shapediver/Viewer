@@ -1,30 +1,34 @@
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
-import { StringParameter as StringParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { FloatParameter as FloatParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 
-export class StringParameterDTO implements IParameter<string> {
-    // #region Properties (11)
+export class FloatParameterDTO implements IParameter<number> {
+    // #region Properties (13)
 
-    readonly defval: string;
+    readonly decimalplaces: number;
+    readonly defval: number;
     readonly id: string;
     readonly max: number;
+    readonly min: number;
     readonly name: string;
     readonly note?: string;
     readonly type: PARAMETERTYPE;
-    readonly visualization: PARAMETERVISUALIZATION.TEXT;
+    readonly visualization: PARAMETERVISUALIZATION.DIAL | PARAMETERVISUALIZATION.SLIDER;
 
     displayName?: string;
     hidden: boolean;
     order?: number;
-    value: string;
+    value: number;
 
-    // #endregion Properties (11)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
-    constructor(p: StringParameterLogic) {
+    constructor(p: FloatParameterLogic) {
         this.defval = p.defval;
         this.id = p.id;
+        this.decimalplaces = p.decimalplaces;
         this.max = p.max;
+        this.min = p.min;
         this.name = p.name;
         this.note = p.note;
         this.type = p.type;

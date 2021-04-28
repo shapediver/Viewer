@@ -1,5 +1,5 @@
 import { AbstractParameter } from "./AbstractParameter";
-import { Parameter as ParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { BooleanParameter as BooleanParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
@@ -7,7 +7,7 @@ import { container } from "tsyringe";
 export class BooleanParameter extends AbstractParameter<boolean> {
     // #region Properties (1)
 
-    readonly #parameter: ParameterLogic;
+    readonly #parameter: BooleanParameterLogic;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
@@ -19,7 +19,7 @@ export class BooleanParameter extends AbstractParameter<boolean> {
      * @ignore
      * @param p 
      */
-    constructor(p: ParameterLogic) {
+    constructor(p: BooleanParameterLogic) {
         super(p);
         this.#parameter = p;
     }
@@ -33,7 +33,7 @@ export class BooleanParameter extends AbstractParameter<boolean> {
      * @return {boolean}
      */
     public get value(): boolean {
-        return (this.#parameter.value === "true");
+        return this.#parameter.value;
     }
 
     /**
@@ -42,7 +42,7 @@ export class BooleanParameter extends AbstractParameter<boolean> {
      */
     public set value(value: boolean) {
         this.#inputValidator.validate(value, 'boolean');
-        this.#parameter.value = value + '';
+        this.#parameter.value = value;
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
     }
 

@@ -1,5 +1,5 @@
 import { AbstractParameter } from "./AbstractParameter";
-import { Parameter as ParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { ColorParameter as ColorParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
@@ -11,7 +11,7 @@ export class ColorParameter extends AbstractParameter<string | number | vec3> {
     readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #parameter: ParameterLogic;
+    readonly #parameter: ColorParameterLogic;
 
     // #endregion Properties (4)
 
@@ -21,7 +21,7 @@ export class ColorParameter extends AbstractParameter<string | number | vec3> {
      * @ignore
      * @param p 
      */
-    constructor(p: ParameterLogic) {
+    constructor(p: ColorParameterLogic) {
         super(p);
         this.#parameter = p;
     }

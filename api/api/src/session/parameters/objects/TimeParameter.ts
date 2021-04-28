@@ -1,15 +1,15 @@
 import { AbstractParameter } from "./AbstractParameter";
-import { StringParameter as StringParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { TimeParameter as TimeParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class StringParameter extends AbstractParameter<string> {
+export class TimeParameter extends AbstractParameter<string> {
     // #region Properties (3)
 
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #parameter: StringParameterLogic;
+    readonly #parameter: TimeParameterLogic;
 
     // #endregion Properties (3)
 
@@ -19,7 +19,7 @@ export class StringParameter extends AbstractParameter<string> {
      * @ignore
      * @param p 
      */
-    constructor(p: StringParameterLogic) {
+    constructor(p: TimeParameterLogic) {
         super(p);
         this.#parameter = p;
     }
@@ -27,14 +27,6 @@ export class StringParameter extends AbstractParameter<string> {
     // #endregion Constructors (1)
 
     // #region Public Accessors (3)
-
-    /**
-     * Getter max
-     * @return {number}
-     */
-    public get max(): number {
-        return this.#parameter.max;
-    }
 
     /**
      * The value of the parameter.

@@ -5,13 +5,13 @@ import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
 export class FileParameter extends AbstractParameter<File | Blob | string> {
-    // #region Properties (1)
+    // #region Properties (3)
 
-    readonly #parameter: FileParameterLogic;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #parameter: FileParameterLogic;
 
-    // #endregion Properties (1)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
@@ -26,7 +26,23 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+    // #region Public Accessors (4)
+
+    /**
+   * Getter format
+   * @return {string[]}
+   */
+    public get format(): string[] {
+        return this.#parameter.format;
+    }
+
+    /**
+   * Getter max
+   * @return {number}
+   */
+    public get max(): number {
+        return this.#parameter.max;
+    }
 
     /**
      * The value of the parameter.
@@ -46,5 +62,5 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
     }
 
-    // #endregion Public Accessors (2)
+    // #endregion Public Accessors (4)
 }

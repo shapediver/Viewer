@@ -1,16 +1,16 @@
-import { IParameter, Parameter as ParameterLogic, FileParameter as FileParameterLogic, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
+import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
 export abstract class AbstractParameter<T> implements IParameter<T> {
-  // #region Properties (6)
+  // #region Properties (3)
 
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
-  readonly #parameter: ParameterLogic | FileParameterLogic;
+  readonly #parameter: IParameter<T>;
 
-  // #endregion Properties (6)
+  // #endregion Properties (3)
 
   // #region Constructors (1)
 
@@ -18,50 +18,34 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
    * @ignore
    * @param p 
    */
-  constructor(p: ParameterLogic | FileParameterLogic) {
+  constructor(p: IParameter<T>) {
     this.#parameter = p;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (18)
-
-  /**
-   * The possible choices.
-   * @return {string[] | undefined}
-   */
-  public get choices(): string[] | undefined {
-    return this.#parameter.choices;
-  }
-
-  /**
-   * The number of decimal places.
-   * @return {string | undefined}
-   */
-  public get decimalplaces(): string | undefined {
-    return this.#parameter.decimalplaces;
-  }
+  // #region Public Accessors (12)
 
   /**
    * The default value of the parameter.
-   * @return {string}
+   * @return {T}
    */
-  public get defval(): string {
+  public get defval(): T {
     return this.#parameter.defval;
   }
 
   /**
-     * Getter displayName
-     * @return {string | undefined}
-     */
+   * Getter displayName
+   * @return {string | undefined}
+   */
   public get displayName(): string | undefined {
 		return this.#parameter.displayName;
 	}
 
   /**
-     * Setter displayName
-     * @param {string | undefined} value
-     */
+   * Setter displayName
+   * @param {string | undefined} value
+   */
   public set displayName(value: string | undefined) {
     this.#inputValidator.validate(value, 'string', false);
     this.#parameter.displayName = value;
@@ -69,17 +53,9 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
 	}
 
   /**
-   * The format of the parameter.
-   * @return {string[] | undefined}
+   * Getter hidden
+   * @return {boolean}
    */
-  public get format(): string[] | undefined {
-    return this.#parameter.format;
-  }
-
-  /**
-     * Getter hidden
-     * @return {boolean}
-     */
   public get hidden(): boolean {
 		return this.#parameter.hidden;
 	}
@@ -103,26 +79,10 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   }
 
   /**
-   * The maximum value of the parameter.
-   * @return {string | undefined}
-   */
-  public get max(): string | undefined {
-    return this.#parameter.max;
-  }
-
-  /**
-   * The minimum value of the parameter.
-   * @return {string | undefined}
-   */
-  public get min(): string | undefined {
-    return this.#parameter.min;
-  }
-
-  /**
    * The name of the parameter.
-   * @return {string | undefined}
+   * @return {string}
    */
-  public get name(): string | undefined {
+  public get name(): string {
     return this.#parameter.name;
   }
 
@@ -162,13 +122,13 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
 
   /**
    * The visualization description of the parameter.
-   * @return {PARAMETERVISUALIZATION | undefined}
+   * @return {PARAMETERVISUALIZATION}
    */
-  public get visualization(): PARAMETERVISUALIZATION | undefined {
+  public get visualization(): PARAMETERVISUALIZATION  {
     return this.#parameter.visualization;
   }
 
-  // #endregion Public Accessors (18)
+  // #endregion Public Accessors (12)
 
   // #region Public Abstract Accessors (2)
 

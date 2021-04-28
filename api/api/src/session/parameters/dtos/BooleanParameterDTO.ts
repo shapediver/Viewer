@@ -1,31 +1,28 @@
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
-import { Parameter as ParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { BooleanParameter as BooleanParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 
 export class BooleanParameterDTO implements IParameter<boolean> {
-    readonly choices?: string[] | undefined;
-    readonly decimalplaces?: string | undefined;
-    readonly defval: string;
-    readonly format?: string[] | undefined;
+    // #region Properties (10)
+
+    readonly defval: boolean;
     readonly id: string;
-    readonly max?: string | undefined;
-    readonly min?: string | undefined;
-    readonly name?: string | undefined;
-    readonly note?: string | undefined;
+    readonly name: string;
+    readonly note?: string;
     readonly type: PARAMETERTYPE;
-    readonly visualization?: PARAMETERVISUALIZATION | undefined;
+    readonly visualization: PARAMETERVISUALIZATION.TOGGLE;
+
+    displayName?: string;
     hidden: boolean;
-    displayName?: string | undefined;
-    order?: number | undefined;
+    order?: number;
     value: boolean;
-    
-    constructor(p: ParameterLogic) {
-        this.choices = p.choices;
-        this.decimalplaces = p.decimalplaces;
+
+    // #endregion Properties (10)
+
+    // #region Constructors (1)
+
+    constructor(p: BooleanParameterLogic) {
         this.defval = p.defval;
-        this.format = p.format;
         this.id = p.id;
-        this.max = p.max;
-        this.min = p.min;
         this.name = p.name;
         this.note = p.note;
         this.type = p.type;
@@ -33,6 +30,8 @@ export class BooleanParameterDTO implements IParameter<boolean> {
         this.hidden = p.hidden;
         this.displayName = p.displayName;
         this.order = p.order;
-        this.value = (p.value === "true");
+        this.value = p.value;
     }
+
+    // #endregion Constructors (1)
 }

@@ -1,16 +1,15 @@
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
-import { StringParameter as StringParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { TimeParameter as TimeParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 
-export class StringParameterDTO implements IParameter<string> {
+export class TimeParameterDTO implements IParameter<string> {
     // #region Properties (11)
 
     readonly defval: string;
     readonly id: string;
-    readonly max: number;
     readonly name: string;
     readonly note?: string;
     readonly type: PARAMETERTYPE;
-    readonly visualization: PARAMETERVISUALIZATION.TEXT;
+    readonly visualization: PARAMETERVISUALIZATION.CLOCK | PARAMETERVISUALIZATION.CALENDAR;
 
     displayName?: string;
     hidden: boolean;
@@ -21,10 +20,9 @@ export class StringParameterDTO implements IParameter<string> {
 
     // #region Constructors (1)
 
-    constructor(p: StringParameterLogic) {
+    constructor(p: TimeParameterLogic) {
         this.defval = p.defval;
         this.id = p.id;
-        this.max = p.max;
         this.name = p.name;
         this.note = p.note;
         this.type = p.type;

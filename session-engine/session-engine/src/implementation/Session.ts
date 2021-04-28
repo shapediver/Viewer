@@ -9,13 +9,21 @@ import { container } from 'tsyringe';
 import { SettingsEngine, SystemInfo, StateEngine } from '@shapediver/viewer.shared.services';
 import { Export } from './Export';
 import { Output } from './Output';
-import { Parameter } from './Parameter';
 import { ISession } from '../interfaces/ISession';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 import { AxiosResponse } from 'axios';
-import { FileParameter } from '..';
 import { AbstractParameter } from './AbstractParameter';
-import { PARAMETERTYPE } from '../interfaces/IParameter';
+import { IParameter, PARAMETERTYPE } from '../interfaces/IParameter';
+import { BooleanParameter } from './parameters/BooleanParameter';
+import { StringParameter } from './parameters/StringParameter';
+import { TimeParameter } from './parameters/TimeParameter';
+import { StringListParameter } from './parameters/StringListParameter';
+import { OddParameter } from './parameters/OddParameter';
+import { IntParameter } from './parameters/IntParameter';
+import { FloatParameter } from './parameters/FloatParameter';
+import { EvenParameter } from './parameters/EvenParameter';
+import { ColorParameter } from './parameters/ColorParameter';
+import { FileParameter } from './parameters/FileParameter';
 
 export class Session implements ISession {
     // #region Properties (18)
@@ -75,16 +83,16 @@ export class Session implements ISession {
      * @return {boolean | undefined}
      */
     public get authorTicket(): boolean | undefined {
-		return this._authorTicket;
-	}
+        return this._authorTicket;
+    }
 
     /**
      * Setter authorTicket
      * @param {boolean | undefined} value
      */
     public set authorTicket(value: boolean | undefined) {
-		this._authorTicket = value;
-	}
+        this._authorTicket = value;
+    }
 
     /**
      * Getter bearerToken
@@ -266,7 +274,7 @@ export class Session implements ISession {
      * Getter parameter
      * @return {Parameter}
      */
-    public getParameter(id: string): Parameter | null {
+    public getParameter(id: string): IParameter<any> | null {
         const p = this._parameters[id];
         if (!p) {
             this._logger.error('Parameter with this id does not exist.');
@@ -275,12 +283,12 @@ export class Session implements ISession {
         return p;
     }
 
-    public getParameterById(id: string): Parameter | null {
+    public getParameterById(id: string): IParameter<any> | null {
         return this.getParameter(id);
     }
 
-    public getParameterByName(name: string): Parameter[] {
-        const parameters: Parameter[] = [];
+    public getParameterByName(name: string): IParameter<any>[] {
+        const parameters: IParameter<any>[] = [];
         for (let parameterId in this._parameters) {
             if (name === this._parameters[parameterId].name)
                 parameters.push(this._parameters[parameterId])
@@ -288,8 +296,8 @@ export class Session implements ISession {
         return parameters;
     }
 
-    public getParameterByType(type: string): Parameter[] {
-        const parameters: Parameter[] = [];
+    public getParameterByType(type: string): IParameter<any>[] {
+        const parameters: IParameter<any>[] = [];
         for (let parameterId in this._parameters) {
             if (type === this._parameters[parameterId].type)
                 parameters.push(this._parameters[parameterId])
@@ -301,8 +309,8 @@ export class Session implements ISession {
      * Getter parameters
      * @return {{ [key: string]: Parameter; }}
      */
-    public getParameters(): { [key: string]: Parameter; } {
-        const r: { [key: string]: Parameter } = {};
+    public getParameters(): { [key: string]: IParameter<any>; } {
+        const r: { [key: string]: IParameter<any> } = {};
         for (let p in this._parameters)
             r[p] = this._parameters[p];
         return r;
@@ -311,7 +319,7 @@ export class Session implements ISession {
     public getParametersAsString(): { [key: string]: string } {
         const parameters: { [key: string]: string } = {};
         for (let parameter in this._parameters)
-            parameters[parameter] = this._parameters[parameter] instanceof FileParameter ? '' : this._parameters[parameter].type === PARAMETERTYPE.COLOR ? (<string>this._parameters[parameter].value).replace('#', '0x') + (this._parameters[parameter].value.length >= 9 ? '' : 'ff' ) : this._parameters[parameter].value;
+            parameters[parameter] = this._parameters[parameter].toString();
         return parameters;
     }
 
@@ -341,10 +349,36 @@ export class Session implements ISession {
             this._authorTicket = !!(this._sessionResponse.actions['defaultparam'] && this._sessionResponse.actions['configure']);
 
             for (let parameterId in this._sessionResponse.parameters) {
-                if(this._sessionResponse.parameters[parameterId].type === PARAMETERTYPE.FILE) {
-                    this._parameters[parameterId] = new FileParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                } else {
-                    this._parameters[parameterId] = new Parameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                switch (this._sessionResponse.parameters[parameterId].type) {
+                    case PARAMETERTYPE.BOOL:
+                        this._parameters[parameterId] = new BooleanParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.COLOR:
+                        this._parameters[parameterId] = new ColorParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.EVEN:
+                        this._parameters[parameterId] = new EvenParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.FILE:
+                        this._parameters[parameterId] = new FileParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.FLOAT:
+                        this._parameters[parameterId] = new FloatParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.INT:
+                        this._parameters[parameterId] = new IntParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.ODD:
+                        this._parameters[parameterId] = new OddParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.STRINGLIST:
+                        this._parameters[parameterId] = new StringListParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.TIME:
+                        this._parameters[parameterId] = new TimeParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
+                        break;
+                    default:
+                        this._parameters[parameterId] = new StringParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
                 }
             }
             for (let exportId in this._sessionResponse.exports)
@@ -361,7 +395,7 @@ export class Session implements ISession {
     }
 
     public async saveDefaultParameters(): Promise<boolean> {
-        if(!this._sessionResponse.actions['defaultparam']) {
+        if (!this._sessionResponse.actions['defaultparam']) {
             this._logger.error('Session has to be in edit mode to be able to save the settings.');
             return false;
         }
@@ -375,7 +409,7 @@ export class Session implements ISession {
     }
 
     public async saveSettings(json: any): Promise<boolean> {
-        if(!this._sessionResponse.actions['configure']) {
+        if (!this._sessionResponse.actions['configure']) {
             this._logger.error('Session has to be in edit mode to be able to save the settings.');
             return false;
         }
@@ -429,8 +463,9 @@ export class Session implements ISession {
         try {
             let responseCustomize;
             try {
-                for (let parameter in parameters) 
-                    if(this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
+                for (let parameter in parameters)
+                    if (this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
+                console.log(parameters)
                 responseCustomize = <ISessionResponse>(await this.sessionCommunication(this._sessionResponse.actions['customize'].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {

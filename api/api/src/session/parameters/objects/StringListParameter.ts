@@ -1,15 +1,15 @@
 import { AbstractParameter } from "./AbstractParameter";
-import { StringParameter as StringParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { StringListParameter as StringListParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class StringParameter extends AbstractParameter<string> {
+export class StringListParameter extends AbstractParameter<number> {
     // #region Properties (3)
 
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #parameter: StringParameterLogic;
+    readonly #parameter: StringListParameterLogic;
 
     // #endregion Properties (3)
 
@@ -19,40 +19,40 @@ export class StringParameter extends AbstractParameter<string> {
      * @ignore
      * @param p 
      */
-    constructor(p: StringParameterLogic) {
+    constructor(p: StringListParameterLogic) {
         super(p);
         this.#parameter = p;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (3)
+    // #region Public Accessors (5)
 
     /**
-     * Getter max
-     * @return {number}
+     * Getter choices
+     * @return {string[]}
      */
-    public get max(): number {
-        return this.#parameter.max;
+     public get choices(): string[] {
+        return this.#parameter.choices;
     }
 
     /**
      * The value of the parameter.
-     * @return {string}
+     * @return {number}
      */
-    public get value(): string {
+    public get value(): number {
         return this.#parameter.value;
     }
 
     /**
      * The value of the parameter.
-     * @param {string} value
+     * @param {number} value
      */
-    public set value(value: string) {
-        this.#inputValidator.validate(value, 'string');
+    public set value(value: number) {
+        this.#inputValidator.validate(value, 'number');
         this.#parameter.value = value;
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
     }
 
-    // #endregion Public Accessors (3)
+    // #endregion Public Accessors (5)
 }

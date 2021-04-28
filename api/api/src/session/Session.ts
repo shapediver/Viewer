@@ -8,19 +8,38 @@ import { Viewer } from "../viewer/Viewer";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
-import { Parameter as ParameterLogic, FileParameter as FileParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
-import { FileParameter } from "./parameters/objects/FileParameter";
-import { BooleanParameter } from "./parameters/objects/BooleanParameter";
-import { NumberParameter } from "./parameters/objects/NumberParameter";
-import { StringParameter } from "./parameters/objects/StringParameter";
 import { RenderingEngine } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { build_data } from "../build_data";
-import { ColorParameter } from "./parameters/objects/ColorParameter";
+import { BooleanParameter } from "./parameters/objects/BooleanParameter";
 import { BooleanParameterDTO } from "./parameters/dtos/BooleanParameterDTO";
-import { FileParameterDTO } from "./parameters/dtos/FileParameterDTO";
+import { BooleanParameter as BooleanParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { ColorParameter as ColorParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { EvenParameter as EvenParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { FileParameter as FileParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { FloatParameter as FloatParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { IntParameter as IntParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { OddParameter as OddParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { StringListParameter as StringListParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { StringParameter as StringParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { TimeParameter as TimeParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { ColorParameterDTO } from "./parameters/dtos/ColorParameterDTO";
-import { NumberParameterDTO } from "./parameters/dtos/NumberParameterDTO";
+import { EvenParameterDTO } from "./parameters/dtos/EvenParameterDTO";
+import { FileParameterDTO } from "./parameters/dtos/FileParameterDTO";
+import { FloatParameterDTO } from "./parameters/dtos/FloatParameterDTO";
+import { IntParameterDTO } from "./parameters/dtos/IntParameterDTO";
+import { OddParameterDTO } from "./parameters/dtos/OddParameterDTO";
+import { StringListParameterDTO } from "./parameters/dtos/StringListParameterDTO";
 import { StringParameterDTO } from "./parameters/dtos/StringParameterDTO";
+import { TimeParameterDTO } from "./parameters/dtos/TimeParameterDTO";
+import { ColorParameter } from "./parameters/objects/ColorParameter";
+import { EvenParameter } from "./parameters/objects/EvenParameter";
+import { FileParameter } from "./parameters/objects/FileParameter";
+import { FloatParameter } from "./parameters/objects/FloatParameter";
+import { IntParameter } from "./parameters/objects/IntParameter";
+import { OddParameter } from "./parameters/objects/OddParameter";
+import { StringListParameter } from "./parameters/objects/StringListParameter";
+import { TimeParameter } from "./parameters/objects/TimeParameter";
+import { StringParameter } from "./parameters/objects/StringParameter";
 
 @injectable()
 export class Session implements ISession {
@@ -31,44 +50,70 @@ export class Session implements ISession {
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #outputs: { [key: string]: Output; } = {};
-    readonly #parameterCreation = (parameterLogic: ParameterLogic | FileParameterLogic): {
+    readonly #parameterCreation = (parameterLogic: IParameter<any>): {
         object: AbstractParameter<any>,
-        dto: IParameter<any> 
-     } => {
-        switch (true) {
-            case parameterLogic.type === PARAMETERTYPE.FILE:
+        dto: IParameter<any>
+    } => {
+        switch (parameterLogic.type) {
+            case PARAMETERTYPE.BOOL:
+                return {
+                    object: new BooleanParameter(<BooleanParameterLogic>parameterLogic),
+                    dto: new BooleanParameterDTO(<BooleanParameterLogic>parameterLogic)
+                };
+            case PARAMETERTYPE.COLOR:
+                return {
+                    object: new ColorParameter(<ColorParameterLogic>parameterLogic),
+                    dto: new ColorParameterDTO(<ColorParameterLogic>parameterLogic)
+                };
+            case PARAMETERTYPE.EVEN:
+                return {
+                    object: new EvenParameter(<EvenParameterLogic>parameterLogic),
+                    dto: new EvenParameterDTO(<EvenParameterLogic>parameterLogic)
+                };
+            case PARAMETERTYPE.FILE:
                 return {
                     object: new FileParameter(<FileParameterLogic>parameterLogic),
                     dto: new FileParameterDTO(<FileParameterLogic>parameterLogic)
                 };
-            case parameterLogic.type === PARAMETERTYPE.BOOL:
+            case PARAMETERTYPE.FLOAT:
                 return {
-                    object: new BooleanParameter(<ParameterLogic>parameterLogic),
-                    dto: new BooleanParameterDTO(<ParameterLogic>parameterLogic)
+                    object: new FloatParameter(<FloatParameterLogic>parameterLogic),
+                    dto: new FloatParameterDTO(<FloatParameterLogic>parameterLogic)
                 };
-            case parameterLogic.type === PARAMETERTYPE.COLOR:
+            case PARAMETERTYPE.INT:
                 return {
-                    object: new ColorParameter(<ParameterLogic>parameterLogic),
-                    dto: new ColorParameterDTO(<ParameterLogic>parameterLogic)
+                    object: new IntParameter(<IntParameterLogic>parameterLogic),
+                    dto: new IntParameterDTO(<IntParameterLogic>parameterLogic)
                 };
-            case parameterLogic.type === PARAMETERTYPE.FLOAT || parameterLogic.type === PARAMETERTYPE.EVEN || parameterLogic.type === PARAMETERTYPE.ODD || parameterLogic.type === PARAMETERTYPE.INT:
+            case PARAMETERTYPE.ODD:
                 return {
-                    object: new NumberParameter(<ParameterLogic>parameterLogic),
-                    dto: new NumberParameterDTO(<ParameterLogic>parameterLogic)
+                    object: new OddParameter(<OddParameterLogic>parameterLogic),
+                    dto: new OddParameterDTO(<OddParameterLogic>parameterLogic)
+                };
+
+            case PARAMETERTYPE.STRINGLIST:
+                return {
+                    object: new StringListParameter(<StringListParameterLogic>parameterLogic),
+                    dto: new StringListParameterDTO(<StringListParameterLogic>parameterLogic)
+                };
+            case PARAMETERTYPE.TIME:
+                return {
+                    object: new TimeParameter(<TimeParameterLogic>parameterLogic),
+                    dto: new TimeParameterDTO(<TimeParameterLogic>parameterLogic)
                 };
             default:
                 return {
-                    object: new StringParameter(<ParameterLogic>parameterLogic),
-                    dto: new StringParameterDTO(<ParameterLogic>parameterLogic)
+                    object: new StringParameter(<StringParameterLogic>parameterLogic),
+                    dto: new StringParameterDTO(<StringParameterLogic>parameterLogic)
                 };
         }
     }
 
-    readonly #parameters: { 
+    readonly #parameters: {
         [key: string]: {
             object: AbstractParameter<any>,
             dto: IParameter<any>
-        } 
+        }
     } = {};
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);

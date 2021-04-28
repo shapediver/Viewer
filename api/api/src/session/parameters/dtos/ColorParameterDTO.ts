@@ -1,32 +1,29 @@
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
-import { Parameter as ParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { ColorParameter as ColorParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { vec3 } from "gl-matrix";
 
 export class ColorParameterDTO implements IParameter<string | number | vec3> {
-    readonly choices?: string[] | undefined;
-    readonly decimalplaces?: string | undefined;
+    // #region Properties (11)
+
     readonly defval: string;
-    readonly format?: string[] | undefined;
     readonly id: string;
-    readonly max?: string | undefined;
-    readonly min?: string | undefined;
-    readonly name?: string | undefined;
-    readonly note?: string | undefined;
+    readonly name: string;
+    readonly note?: string;
     readonly type: PARAMETERTYPE;
-    readonly visualization?: PARAMETERVISUALIZATION | undefined;
+    readonly visualization: PARAMETERVISUALIZATION.SWATCH;
+
+    displayName?: string;
     hidden: boolean;
-    displayName?: string | undefined;
-    order?: number | undefined;
+    order?: number;
     value: string | number | vec3;
-    
-    constructor(p: ParameterLogic) {
-        this.choices = p.choices;
-        this.decimalplaces = p.decimalplaces;
+
+    // #endregion Properties (11)
+
+    // #region Constructors (1)
+
+    constructor(p: ColorParameterLogic) {
         this.defval = p.defval;
-        this.format = p.format;
         this.id = p.id;
-        this.max = p.max;
-        this.min = p.min;
         this.name = p.name;
         this.note = p.note;
         this.type = p.type;
@@ -36,4 +33,6 @@ export class ColorParameterDTO implements IParameter<string | number | vec3> {
         this.order = p.order;
         this.value = p.value;
     }
+
+    // #endregion Constructors (1)
 }

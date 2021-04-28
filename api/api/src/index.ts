@@ -12,11 +12,17 @@ import { ThreejsData } from "@shapediver/viewer.rendering-engine-threejs.renderi
 import { CustomData, GeometryData, MaterialData, SessionData, SessionOutputData } from "@shapediver/viewer.shared.types";
 import { LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
 import { EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { IParameter as Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { FileParameter } from "./session/parameters/objects/FileParameter";
 import { BooleanParameter } from "./session/parameters/objects/BooleanParameter";
-import { NumberParameter } from "./session/parameters/objects/NumberParameter";
+import { ColorParameter } from "./session/parameters/objects/ColorParameter";
+import { EvenParameter } from "./session/parameters/objects/EvenParameter";
+import { FloatParameter } from "./session/parameters/objects/FloatParameter";
+import { IntParameter } from "./session/parameters/objects/IntParameter";
+import { OddParameter } from "./session/parameters/objects/OddParameter";
+import { StringListParameter } from "./session/parameters/objects/StringListParameter";
 import { StringParameter } from "./session/parameters/objects/StringParameter";
-import { IParameter as Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
+import { TimeParameter } from "./session/parameters/objects/TimeParameter";
 
 export const api: Api = <Api>container.resolve(Api);
 
@@ -25,7 +31,8 @@ export {
 }
 
 export {
-    Api, Session, Viewer, Parameter, BooleanParameter, FileParameter, NumberParameter, StringParameter, Export, Output
+    Api, Session, Viewer, Parameter, Export, Output,
+    BooleanParameter, ColorParameter, EvenParameter, FileParameter, FloatParameter, IntParameter, OddParameter, StringListParameter, StringParameter, TimeParameter
 }
 
 export {
