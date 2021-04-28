@@ -1,1 +1,1 @@
-export interface IOutput { }
+export interface IOutput {}

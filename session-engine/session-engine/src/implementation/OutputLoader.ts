@@ -43,7 +43,6 @@ export class OutputLoader {
      * @returns promise with a scene graph node
      */
     public async loadOutputs(session: ShapeDiverResponse, outputs?: { [key: string]: Output; }): Promise<SessionTreeNode> {
-        console.log(outputs)
         const node = new SessionTreeNode(session.name);
         let currentNodes: { 
             [key: string]: {

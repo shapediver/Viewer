@@ -4,7 +4,6 @@ import { HttpClient } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { IExport } from "../interfaces/IExport";
 import { Session } from "./Session";
-import { mergeResponses } from "./SessionResponseConverter";
 
 export class Export implements IExport, ShapeDiverResponseExport {
   // #region Properties (2)
@@ -19,7 +18,7 @@ export class Export implements IExport, ShapeDiverResponseExport {
   constructor(
     private readonly _mySession: Session,
     private readonly _id: string,
-    private readonly _exportDefinition: ShapeDiverResponseExport | ShapeDiverResponseExportDefinition
+    private _exportDefinition: ShapeDiverResponseExport | ShapeDiverResponseExportDefinition
   ) { }
 
   // #endregion Constructors (1)
@@ -116,7 +115,7 @@ export class Export implements IExport, ShapeDiverResponseExport {
 
   // #endregion Public Accessors (11)
 
-  // #region Public Methods (1)
+  // #region Public Methods (2)
 
   public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExportPart | null> {
     const currentParameters = this._mySession.getParametersAsString();
@@ -127,7 +126,7 @@ export class Export implements IExport, ShapeDiverResponseExport {
     try {
       let exportReply = <ShapeDiverResponseBase>(await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this._mySession.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.id }, parameters }, 'application/json')).data;
       let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.id];
-      mergeResponses(this._mySession.sessionResponse, { version: this._mySession.sessionResponse.version, actions: exportReply.actions });
+      this._mySession.mergeResponses(this._mySession.sessionResponse, { version: this._mySession.sessionResponse.version, actions: exportReply.actions });
       if ('delay' in exportResult) {
         await this.timeout(exportResult.delay!);
         exportResult = (await this.cacheRequest(exportResult.version!))!;
@@ -139,7 +138,11 @@ export class Export implements IExport, ShapeDiverResponseExport {
     }
   }
 
-  // #endregion Public Methods (1)
+  public update(value: ShapeDiverResponseExport | ShapeDiverResponseExportDefinition): void {
+    this._exportDefinition = value;
+  }
+
+  // #endregion Public Methods (2)
 
   // #region Private Methods (2)
 

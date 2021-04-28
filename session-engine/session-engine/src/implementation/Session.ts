@@ -24,7 +24,6 @@ import { ColorParameter } from './parameters/ColorParameter';
 import { FileParameter } from './parameters/FileParameter';
 import { SessionData } from './SessionData';
 import { ShapeDiverResponseBase as ShapeDiverResponse } from "@shapediver/api.geometry-api-dto-v1"
-import { mergeResponses } from './SessionResponseConverter';
 
 export class Session implements ISession {
     // #region Properties (18)
@@ -344,47 +343,9 @@ export class Session implements ISession {
             }
 
             if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
-            this._sessionResponse = mergeResponses(this._sessionResponse, sessionResponse);
+            this._sessionResponse = this.mergeResponses(this._sessionResponse, sessionResponse, this._parameters, this._outputs, this._exports);
 
             this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
-
-            for (let parameterId in this._sessionResponse.parameters) {
-                switch (this._sessionResponse.parameters[parameterId].type.toLowerCase()) {
-                    case PARAMETERTYPE.BOOL:
-                        this._parameters[parameterId] = new BooleanParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.COLOR:
-                        this._parameters[parameterId] = new ColorParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.EVEN:
-                        this._parameters[parameterId] = new EvenParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.FILE:
-                        this._parameters[parameterId] = new FileParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.FLOAT:
-                        this._parameters[parameterId] = new FloatParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.INT:
-                        this._parameters[parameterId] = new IntParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.ODD:
-                        this._parameters[parameterId] = new OddParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.STRINGLIST:
-                        this._parameters[parameterId] = new StringListParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.TIME:
-                        this._parameters[parameterId] = new TimeParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                        break;
-                    default:
-                        this._parameters[parameterId] = new StringParameter(this, parameterId, this._sessionResponse.parameters[parameterId]);
-                }
-            }
-            for (let exportId in this._sessionResponse.exports)
-                this._exports[exportId] = new Export(this, exportId, this._sessionResponse.exports[exportId]);
-            for (let outputId in this._sessionResponse.outputs)
-                this._outputs[outputId] = new Output(this, outputId, this._sessionResponse.outputs[outputId]);
 
             this._initialized = true;
             return this.loadOutputs(this.getParametersAsString());
@@ -465,7 +426,6 @@ export class Session implements ISession {
             try {
                 for (let parameter in parameters)
                     if (this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
-                console.log(parameters);
                 responseCustomize = <ShapeDiverResponse>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {
@@ -480,11 +440,7 @@ export class Session implements ISession {
                 this._logger.error('Session customization failed.', e, e.response && e.response.status ? e.response.status : null);
                 return new SessionTreeNode();
             }
-            this._sessionResponse = mergeResponses(this._sessionResponse, responseCustomize);
-
-            // TODO actually adapt
-            for (let outputId in this._sessionResponse.outputs)
-                this._outputs[outputId] = new Output(this, outputId, this._sessionResponse.outputs[outputId]);
+            this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);
             return this.loadOutputs(parameters);
         } catch (e) {
             this._logger.error('Something went wrong at session customization.', e);
@@ -516,7 +472,7 @@ export class Session implements ISession {
                 outputMapping[output] = outputs[output].version;
 
             let responseCache = (await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].method!.toLowerCase()!, outputMapping, 'application/json')).data;
-            this._sessionResponse = mergeResponses(this._sessionResponse, responseCache);
+            this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCache, this._parameters, this._outputs, this._exports);
             return await this.loadOutputs(parameters, outputs);
         }
     }
@@ -529,6 +485,120 @@ export class Session implements ISession {
      */
     private async timeout(ms: number): Promise<any> {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    public mergeResponses(r1: ShapeDiverResponse, r2: ShapeDiverResponse, parameters?: { [key: string]: AbstractParameter<any>; }, outputs?: { [key: string]: Output; }, exports?: { [key: string]: Export; }): ShapeDiverResponse {
+        if (!r1)
+            r1 = { version: r2.version };
+
+        // convert version
+        if (r2.version)
+            r1.version = r2.version;
+
+        // convert version
+        if (r2.collection)
+            r1.collection = r2.collection;
+
+        // merge actions
+        if (r2.actions) {
+            for (let i = 0, len = r2.actions.length; i < len; i++) {
+                r1.actions = r1.actions || [];
+                if (r1.actions.findIndex((value) => value.name === r2.actions![i].name) === -1)
+                    r1.actions.push(r2.actions[i])
+            }
+        }
+
+        // merge templates
+        if (r2.templates) {
+            for (let i = 0, len = r2.templates.length; i < len; i++) {
+                r1.templates = r1.templates || [];
+                if (r1.templates.findIndex((value) => value.name === r2.actions![i].name) === -1)
+                    r1.templates.push(r2.templates[i])
+            }
+        }
+
+        // convert config
+        if (r2.config && !r1.config)
+            r1.config = r2.config;
+
+        // convert name
+        if (r2.name && !r1.name)
+            r1.name = r2.name;
+
+        // convert parameters
+        if (r2.parameters) {
+            for (let parameterId in r2.parameters) {
+                r1.parameters = r1.parameters || {};
+                r1.parameters[parameterId] = r2.parameters[parameterId];
+            }
+        }
+
+        // convert outputs
+        if (r2.outputs) {
+            for (let outputId in r2.outputs) {
+                r1.outputs = r1.outputs || {};
+                r1.outputs[outputId] = r2.outputs[outputId];
+                if ('version' in r2.outputs[outputId] || !('version' in r1.outputs[outputId]))
+                    r1.outputs[outputId] = r2.outputs[outputId];
+            }
+        }
+
+        // convert exports
+        if (r2.exports) {
+            for (let exportId in r2.exports) {
+                r1.exports = r1.exports || {};
+                if ('version' in r2.exports[exportId] || !('version' in r1.exports[exportId]))
+                    r1.exports[exportId] = r2.exports[exportId];
+            }
+        }
+
+        if (parameters) {
+            for (let parameterId in r1.parameters) {
+                switch (r1.parameters[parameterId].type.toLowerCase()) {
+                    case PARAMETERTYPE.BOOL:
+                        parameters[parameterId] = new BooleanParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.COLOR:
+                        parameters[parameterId] = new ColorParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.EVEN:
+                        parameters[parameterId] = new EvenParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.FILE:
+                        parameters[parameterId] = new FileParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.FLOAT:
+                        parameters[parameterId] = new FloatParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.INT:
+                        parameters[parameterId] = new IntParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.ODD:
+                        parameters[parameterId] = new OddParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.STRINGLIST:
+                        parameters[parameterId] = new StringListParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.TIME:
+                        parameters[parameterId] = new TimeParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    default:
+                        parameters[parameterId] = new StringParameter(this, parameterId, r1.parameters[parameterId]);
+                }
+            }
+        }
+
+        if (exports) {
+            for (let exportId in r1.exports)
+                exports[exportId] = new Export(this, exportId, r1.exports[exportId]);
+        }
+
+        if (outputs) {
+            for (let outputId in r1.outputs)
+                outputs[outputId] = new Output(this, outputId, r1.outputs[outputId]);
+        }
+
+        return r1;
     }
 
     // #endregion Private Methods (3)

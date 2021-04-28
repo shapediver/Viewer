@@ -23,7 +23,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   constructor(
     protected readonly _mySession: Session,
     private readonly _id: string,
-    private readonly _parameterDefinition: ShapeDiverResponseParameter,
+    private _parameterDefinition: ShapeDiverResponseParameter,
     defval: T
   ) {
     this._defval = defval;
@@ -36,7 +36,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (15)
+  // #region Public Accessors (14)
 
   /**
    * Getter defval
@@ -150,7 +150,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
     this._value = value;
   }
 
-  // #endregion Public Accessors (15)
+  // #endregion Public Accessors (14)
 
   // #region Public Abstract Accessors (2)
 
@@ -166,6 +166,14 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   public abstract get visualization(): PARAMETERVISUALIZATION;
 
   // #endregion Public Abstract Accessors (2)
+
+  // #region Public Methods (1)
+
+  public update(value: ShapeDiverResponseParameter): void {
+    this._parameterDefinition = value;
+  }
+
+  // #endregion Public Methods (1)
 
   // #region Public Abstract Methods (1)
 

@@ -1,20 +1,21 @@
 import { ShapeDiverResponseOutput, ShapeDiverResponseOutputChunk, ShapeDiverResponseOutputDefinition, ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
+import { IOutput } from "../interfaces/IOutput";
 import { Session } from "./Session";
 
-export class Output implements ShapeDiverResponseOutput {
-  // #region Properties (7)
+export class Output implements IOutput, ShapeDiverResponseOutput {
+  // #region Properties (2)
 
   private _content?: ShapeDiverResponseOutputPart[];
   private _version: string;
 
-  // #endregion Properties (7)
+  // #endregion Properties (2)
 
   // #region Constructors (1)
 
   constructor(
     private readonly _mySession: Session,
     private readonly _id: string,
-    private readonly _outputDefinition: ShapeDiverResponseOutput | ShapeDiverResponseOutputDefinition
+    private _outputDefinition: ShapeDiverResponseOutput | ShapeDiverResponseOutputDefinition
   ) {
     this._content = (<ShapeDiverResponseOutput>this._outputDefinition).content;
     this._version = (<ShapeDiverResponseOutput>this._outputDefinition).version;
@@ -137,4 +138,14 @@ export class Output implements ShapeDiverResponseOutput {
   }
 
   // #endregion Public Accessors (14)
+
+  // #region Public Methods (1)
+
+  public update(value: ShapeDiverResponseOutput | ShapeDiverResponseOutputDefinition): void {
+    this._outputDefinition = value;
+    if('version' in value) this.version = value.version;
+    if('content' in value) this.content = value.content;
+  }
+
+  // #endregion Public Methods (1)
 }

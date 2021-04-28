@@ -1,4 +1,3 @@
-
 export enum PARAMETERTYPE {
     FLOAT = 'float',
     INT = 'int',
