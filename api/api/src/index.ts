@@ -23,6 +23,12 @@ import { OddParameter } from "./session/parameters/objects/OddParameter";
 import { StringListParameter } from "./session/parameters/objects/StringListParameter";
 import { StringParameter } from "./session/parameters/objects/StringParameter";
 import { TimeParameter } from "./session/parameters/objects/TimeParameter";
+import { SBitmapParameter } from "./session/parameters/objects/SBitmapParameter";
+import { SCurveParameter } from "./session/parameters/objects/SCurveParameter";
+import { SIntegerParameter } from "./session/parameters/objects/SIntegerParameter";
+import { SNumberParameter } from "./session/parameters/objects/SNumberParameter";
+import { SStringParameter } from "./session/parameters/objects/SStringParameter";
+import { SParameter } from "./session/parameters/objects/SParameter";
 
 export const api: Api = <Api>container.resolve(Api);
 
@@ -32,7 +38,8 @@ export {
 
 export {
     Api, Session, Viewer, Parameter, Export, Output,
-    BooleanParameter, ColorParameter, EvenParameter, FileParameter, FloatParameter, IntParameter, OddParameter, StringListParameter, StringParameter, TimeParameter
+    BooleanParameter, ColorParameter, EvenParameter, FileParameter, FloatParameter, IntParameter, OddParameter, StringListParameter, StringParameter, TimeParameter,
+    SBitmapParameter, SCurveParameter, SIntegerParameter, SNumberParameter, SStringParameter, SParameter
 }
 
 export {
