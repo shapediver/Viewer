@@ -2,7 +2,7 @@ import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { container } from "tsyringe";
 import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
-import { HttpClient } from '@shapediver/viewer.shared.utils';
+import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../..";
 import { ShapeDiverResponseParameter } from "@shapediver/api.geometry-api-dto-v1";
 
@@ -13,6 +13,7 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
   private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
   private readonly _max: number;
+  private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
   // #endregion Properties (4)
 
@@ -74,6 +75,7 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
 
   public async upload() {
     if (!this.value) return;
+    if (typeof this.value === 'string' && this.value.length === 36 && this._uuidGenerator.validate(this.value)) return this.value;
     const data = new File([typeof this.value === 'string' ? new Blob([this.value], { type: 'text/plain' }) : this.value], 'airboat.obj');
     if (data.size === 0) {
       this._logger.error('Error uploading parameter ' + this.id + ': file size is 0.');
