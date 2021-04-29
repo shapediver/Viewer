@@ -24,6 +24,12 @@ import { ColorParameter } from './parameters/ColorParameter';
 import { FileParameter } from './parameters/FileParameter';
 import { SessionData } from './SessionData';
 import { ShapeDiverResponseBase as ShapeDiverResponse } from "@shapediver/api.geometry-api-dto-v1"
+import { SBitmapParameter } from './parameters/SBitmapParameter';
+import { SCurveParameter } from './parameters/SCurveParameter';
+import { SIntegerParameter } from './parameters/SIntegerParameter';
+import { SNumberParameter } from './parameters/SNumberParameter';
+import { SStringParameter } from './parameters/SStringParameter';
+import { SParameter } from './parameters/SParameter';
 
 export class Session implements ISession {
     // #region Properties (18)
@@ -344,7 +350,7 @@ export class Session implements ISession {
 
             if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
             this._sessionResponse = this.mergeResponses(this._sessionResponse, sessionResponse, this._parameters, this._outputs, this._exports);
-
+            console.log(this._sessionResponse)
             this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
 
             this._initialized = true;
@@ -554,7 +560,7 @@ export class Session implements ISession {
 
         if (parameters) {
             for (let parameterId in r1.parameters) {
-                switch (r1.parameters[parameterId].type.toLowerCase()) {
+                switch (r1.parameters[parameterId].type) {
                     case PARAMETERTYPE.BOOL:
                         parameters[parameterId] = new BooleanParameter(this, parameterId, r1.parameters[parameterId]);
                         break;
@@ -581,6 +587,24 @@ export class Session implements ISession {
                         break;
                     case PARAMETERTYPE.TIME:
                         parameters[parameterId] = new TimeParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.SBITMAP:
+                        parameters[parameterId] = new SBitmapParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.SCURVE:
+                        parameters[parameterId] = new SCurveParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.SINTEGER:
+                        parameters[parameterId] = new SIntegerParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.SNUMBER:
+                        parameters[parameterId] = new SNumberParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.SSTRING:
+                        parameters[parameterId] = new SStringParameter(this, parameterId, r1.parameters[parameterId]);
+                        break;
+                    case PARAMETERTYPE.SBOOL || PARAMETERTYPE.SBOX || PARAMETERTYPE.SBREP || PARAMETERTYPE.SCIRCLE || PARAMETERTYPE.SCOLOR || PARAMETERTYPE.SDOMAIN || PARAMETERTYPE.SDOMAIN2D || PARAMETERTYPE.SLINE || PARAMETERTYPE.SMESH || PARAMETERTYPE.SPLANE || PARAMETERTYPE.SPOINT || PARAMETERTYPE.SRECTANGLE || PARAMETERTYPE.SSUBDIV || PARAMETERTYPE.SSURFACE || PARAMETERTYPE.STIME || PARAMETERTYPE.SVECTOR:
+                        parameters[parameterId] = new SParameter(this, parameterId, r1.parameters[parameterId]);
                         break;
                     default:
                         parameters[parameterId] = new StringParameter(this, parameterId, r1.parameters[parameterId]);

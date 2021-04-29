@@ -1,16 +1,37 @@
 import { ShapeDiverResponseParameterGroup, ShapeDiverResponseParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
 export enum PARAMETERTYPE {
-    FLOAT = 'float',
-    INT = 'int',
-    EVEN = 'even',
-    ODD = 'odd',
-    STRING = 'string',
-    COLOR = 'color',
-    STRINGLIST = 'stringlist',
-    BOOL = 'bool',
-    TIME = 'time',
-    FILE = 'file'
+    FLOAT = 'Float',
+    INT = 'Int',
+    EVEN = 'Even',
+    ODD = 'Odd',
+    STRING = 'String',
+    COLOR = 'Color',
+    STRINGLIST = 'StringList',
+    BOOL = 'Bool',
+    TIME = 'Time',
+    FILE = 'File',
+    SNUMBER = 'sNumber',
+    SINTEGER = 'sInteger',
+    SSTRING = 'sString',
+    SCOLOR = 'sColor',
+    SBOOL = 'sBool',
+    STIME = 'sTime',
+    SBITMAP = 'sBitmap',
+    SDOMAIN = 'sDomain',
+    SDOMAIN2D = 'sDomain2D',
+    SPOINT = 'sPoint',
+    SLINE = 'sLine',
+    SVECTOR = 'sVector',
+    SBOX = 'sBox',
+    SPLANE = 'sPlane',
+    SRECTANGLE = 'sRectangle',
+    SCURVE = 'sCurve',
+    SCIRCLE = 'sCircle',
+    SMESH = 'sMesh',
+    SSURFACE = 'sSurface',
+    SBREP = 'sBrep',
+    SSUBDIV = 'sSubdiv'
 }
 
 export enum PARAMETERVISUALIZATION {

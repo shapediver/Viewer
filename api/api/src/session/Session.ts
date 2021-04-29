@@ -22,6 +22,12 @@ import { OddParameter as OddParameterLogic } from "@shapediver/viewer.session-en
 import { StringListParameter as StringListParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { StringParameter as StringParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { TimeParameter as TimeParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { SBitmapParameter as SBitmapParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { SCurveParameter as SCurveParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { SIntegerParameter as SIntegerParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { SNumberParameter as SNumberParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { SStringParameter as SStringParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { SParameter as SParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { ColorParameterDTO } from "./parameters/dtos/ColorParameterDTO";
 import { EvenParameterDTO } from "./parameters/dtos/EvenParameterDTO";
 import { FileParameterDTO } from "./parameters/dtos/FileParameterDTO";
@@ -40,6 +46,18 @@ import { OddParameter } from "./parameters/objects/OddParameter";
 import { StringListParameter } from "./parameters/objects/StringListParameter";
 import { TimeParameter } from "./parameters/objects/TimeParameter";
 import { StringParameter } from "./parameters/objects/StringParameter";
+import { SBitmapParameter } from "./parameters/objects/SBitmapParameter";
+import { SBitmapParameterDTO } from "./parameters/dtos/SBitmapParameterDTO";
+import { SCurveParameter } from "./parameters/objects/SCurveParameter";
+import { SCurveParameterDTO } from "./parameters/dtos/SCurveParameterDTO";
+import { SIntegerParameter } from "./parameters/objects/SIntegerParameter";
+import { SIntegerParameterDTO } from "./parameters/dtos/SIntegerParameterDTO";
+import { SNumberParameter } from "./parameters/objects/SNumberParameter";
+import { SNumberParameterDTO } from "./parameters/dtos/SNumberParameterDTO";
+import { SStringParameter } from "./parameters/objects/SStringParameter";
+import { SStringParameterDTO } from "./parameters/dtos/SStringParameterDTO";
+import { SParameter } from "./parameters/objects/SParameter";
+import { SParameterDTO } from "./parameters/dtos/SParameterDTO";
 
 @injectable()
 export class Session implements ISession {
@@ -101,6 +119,42 @@ export class Session implements ISession {
                     object: new TimeParameter(<TimeParameterLogic>parameterLogic),
                     dto: new TimeParameterDTO(<TimeParameterLogic>parameterLogic)
                 };
+            case PARAMETERTYPE.SBITMAP:
+                return {
+                    object: new SBitmapParameter(<SBitmapParameterLogic>parameterLogic),
+                    dto: new SBitmapParameterDTO(<SBitmapParameterLogic>parameterLogic)
+                };
+                break;
+            case PARAMETERTYPE.SCURVE:
+                return {
+                    object: new SCurveParameter(<SCurveParameterLogic>parameterLogic),
+                    dto: new SCurveParameterDTO(<SCurveParameterLogic>parameterLogic)
+                };
+                break;
+            case PARAMETERTYPE.SINTEGER:
+                return {
+                    object: new SIntegerParameter(<SIntegerParameterLogic>parameterLogic),
+                    dto: new SIntegerParameterDTO(<SIntegerParameterLogic>parameterLogic)
+                };
+                break;
+            case PARAMETERTYPE.SNUMBER:
+                return {
+                    object: new SNumberParameter(<SNumberParameterLogic>parameterLogic),
+                    dto: new SNumberParameterDTO(<SNumberParameterLogic>parameterLogic)
+                };
+                break;
+            case PARAMETERTYPE.SSTRING:
+                return {
+                    object: new SStringParameter(<SStringParameterLogic>parameterLogic),
+                    dto: new SStringParameterDTO(<SStringParameterLogic>parameterLogic)
+                };
+                break;
+            case PARAMETERTYPE.SBOOL || PARAMETERTYPE.SBOX || PARAMETERTYPE.SBREP || PARAMETERTYPE.SCIRCLE || PARAMETERTYPE.SCOLOR || PARAMETERTYPE.SDOMAIN || PARAMETERTYPE.SDOMAIN2D || PARAMETERTYPE.SLINE || PARAMETERTYPE.SMESH || PARAMETERTYPE.SPLANE || PARAMETERTYPE.SPOINT || PARAMETERTYPE.SRECTANGLE || PARAMETERTYPE.SSUBDIV || PARAMETERTYPE.SSURFACE || PARAMETERTYPE.STIME || PARAMETERTYPE.SVECTOR:
+                return {
+                    object: new SParameter(<SParameterLogic>parameterLogic),
+                    dto: new SParameterDTO(<SParameterLogic>parameterLogic)
+                };
+                break;
             default:
                 return {
                     object: new StringParameter(<StringParameterLogic>parameterLogic),

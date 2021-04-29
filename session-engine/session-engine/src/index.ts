@@ -17,6 +17,12 @@ import { ColorParameter } from './implementation/parameters/ColorParameter';
 import { FileParameter } from "./implementation/parameters/FileParameter"
 import { SessionOutputData } from "./implementation/SessionOutputData"
 import { SessionData } from "./implementation/SessionData"
+import { SParameter } from "./implementation/parameters/SParameter"
+import { SStringParameter } from "./implementation/parameters/SStringParameter"
+import { SNumberParameter } from "./implementation/parameters/SNumberParameter"
+import { SIntegerParameter } from "./implementation/parameters/SIntegerParameter"
+import { SCurveParameter } from "./implementation/parameters/SCurveParameter"
+import { SBitmapParameter } from "./implementation/parameters/SBitmapParameter"
 
 export {
   Session, Output, Export, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION
@@ -27,7 +33,8 @@ export {
 }
 
 export {
-  BooleanParameter, StringParameter, TimeParameter, StringListParameter, OddParameter, IntParameter, FloatParameter, EvenParameter, ColorParameter, FileParameter
+  BooleanParameter, StringParameter, TimeParameter, StringListParameter, OddParameter, IntParameter, FloatParameter, EvenParameter, ColorParameter, FileParameter,
+  SBitmapParameter, SCurveParameter, SIntegerParameter, SNumberParameter, SParameter, SStringParameter
 }
 
 export {
