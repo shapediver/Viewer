@@ -145,15 +145,18 @@ export class Session implements ISession {
                 // TODO also exports
                 const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
                 for (let k in controlNames)
-                    this.getParameter(k)!.displayName = controlNames[k];
+                    if(this.getParameters()[k])
+                        this.getParameter(k)!.displayName = controlNames[k];
 
                 const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
                 for (let i = 0; i < controlOrder.length; i++)
-                    this.getParameter(controlOrder[i])!.order = i;
+                    if(this.getParameters()[controlOrder[i]])
+                        this.getParameter(controlOrder[i])!.order = i;
 
                 const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
                 for (let i = 0; i < parametersHidden.length; i++)
-                    this.getParameter(parametersHidden[i])!.hidden = true;
+                    if(this.getParameters()[parametersHidden[i]])
+                        this.getParameter(parametersHidden[i])!.hidden = true;
             })
     }
 

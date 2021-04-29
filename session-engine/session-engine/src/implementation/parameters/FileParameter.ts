@@ -66,9 +66,9 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
   // #region Public Methods (2)
 
   /**
-     * Convert the current value to string
-     * @return {string}
-     */
+   * Convert the current value to string
+   * @return {string}
+   */
   public toString(): string {
     return '';
   }

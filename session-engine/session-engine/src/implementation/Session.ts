@@ -538,7 +538,7 @@ export class Session implements ISession {
             for (let outputId in r2.outputs) {
                 r1.outputs = r1.outputs || {};
                 r1.outputs[outputId] = r2.outputs[outputId];
-                if ('version' in r2.outputs[outputId] || !('version' in r1.outputs[outputId]))
+                if ('version' in r2.outputs[outputId] || !(r1.outputs[outputId] && 'version' in r1.outputs[outputId]))
                     r1.outputs[outputId] = r2.outputs[outputId];
             }
         }
@@ -547,7 +547,7 @@ export class Session implements ISession {
         if (r2.exports) {
             for (let exportId in r2.exports) {
                 r1.exports = r1.exports || {};
-                if ('version' in r2.exports[exportId] || !('version' in r1.exports[exportId]))
+                if ('version' in r2.exports[exportId] || !(r1.exports[exportId] && 'version' in r1.exports[exportId]))
                     r1.exports[exportId] = r2.exports[exportId];
             }
         }
