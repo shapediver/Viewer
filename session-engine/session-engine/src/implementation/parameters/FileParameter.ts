@@ -76,7 +76,7 @@ export class FileParameter extends AbstractParameter<File | Blob | string> {
   public async upload() {
     if (!this.value) return;
     if (typeof this.value === 'string' && this.value.length === 36 && this._uuidGenerator.validate(this.value)) return this.value;
-    const data = new File([typeof this.value === 'string' ? new Blob([this.value], { type: 'text/plain' }) : this.value], 'airboat.obj');
+    const data = new File([typeof this.value === 'string' ? new Blob([this.value], { type: 'text/plain' }) : this.value], 'upload');
     if (data.size === 0) {
       this._logger.error('Error uploading parameter ' + this.id + ': file size is 0.');
       return;
