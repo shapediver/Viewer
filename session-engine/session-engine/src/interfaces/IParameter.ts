@@ -1,3 +1,5 @@
+import { ShapeDiverResponseParameterGroup, ShapeDiverResponseParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
+
 export enum PARAMETERTYPE {
     FLOAT = 'float',
     INT = 'int',
@@ -32,11 +34,14 @@ export interface IParameter<T> {
     readonly decimalplaces?: number;
     readonly defval: T;
     readonly format?: string[];
+    readonly group?: ShapeDiverResponseParameterGroup;
     readonly id: string;
     readonly max?: number;
     readonly min?: number;
     readonly name: string;
     readonly note?: string;
+    readonly structure?: ShapeDiverResponseParameterStructure;
+    readonly tooltip?: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION;
 

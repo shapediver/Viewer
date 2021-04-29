@@ -1,5 +1,6 @@
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { FileParameter as FileParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
 export class FileParameterDTO implements IParameter<File | Blob | string> {
     // #region Properties (10)
@@ -11,6 +12,9 @@ export class FileParameterDTO implements IParameter<File | Blob | string> {
     readonly name: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.BUTTON;
+    readonly group?: ParameterGroup;
+    readonly structure?: ParameterStructure;
+    readonly tooltip?: string;
 
     displayName?: string;
     hidden: boolean;
@@ -29,6 +33,10 @@ export class FileParameterDTO implements IParameter<File | Blob | string> {
         this.name = p.name;
         this.type = p.type;
         this.visualization = p.visualization;
+        this.group = p.group;
+        this.structure = p.structure;
+        this.tooltip = p.tooltip;
+        
         this.hidden = p.hidden;
         this.displayName = p.displayName;
         this.order = p.order;

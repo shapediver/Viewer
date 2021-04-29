@@ -2,7 +2,7 @@ import { IOutput, Output as OutputLogic } from "@shapediver/viewer.session-engin
 import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
-import { ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
+import { ShapeDiverResponseOutputPart as OutputPart, ShapeDiverResponseOutputChunk as OutputChunk } from "@shapediver/api.geometry-api-dto-v1";
 
 export class Output implements IOutput {
 
@@ -13,6 +13,42 @@ export class Output implements IOutput {
   // #region Public Accessors (16)
   constructor(o: OutputLogic) {
     this.#output = o;
+  }
+
+  /**
+   * The chunks of the output.
+   * 
+   * @return {OutputChunk[] | undefined}
+   */
+   public get chunks(): OutputChunk[] | undefined {
+    return this.#output.chunks;
+  }
+
+  /**
+   * The dependency of the output.
+   * 
+   * @return {string[]}
+   */
+   public get dependency(): string[] {
+    return this.#output.dependency;
+  }
+
+  /**
+   * The msg of the output.
+   * 
+   * @return {string | undefined}
+   */
+  public get msg(): string | undefined {
+    return this.#output.msg;
+  }
+
+  /**
+   * The uid of the output.
+   * 
+   * @return {string | undefined}
+   */
+  public get uid(): string | undefined {
+    return this.#output.uid;
   }
 
   /**
@@ -33,17 +69,17 @@ export class Output implements IOutput {
 
   /**
    * Items of this asset - the geometries and materials to be added to the scene.
-   * @return {ShapeDiverResponseOutputPart[] | undefined}
+   * @return {OutputPart[] | undefined}
    */
-  public get content(): ShapeDiverResponseOutputPart[] | undefined {
+  public get content(): OutputPart[] | undefined {
     return this.#output.content;
   }
 
   /**
   * Items of this asset - the geometries and materials to be added to the scene
-  * @param {ShapeDiverResponseOutputPart[] | undefined} value
+  * @param {OutputPart[] | undefined} value
   */
-  public set content(value: ShapeDiverResponseOutputPart[] | undefined) {
+  public set content(value: OutputPart[] | undefined) {
     // TODO input validation
     this.#output.content = value;
     this.#logger.info(`Output (${this.id}): content was set to: ${value}`);

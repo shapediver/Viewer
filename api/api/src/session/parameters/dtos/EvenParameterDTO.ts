@@ -1,5 +1,6 @@
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { EvenParameter as EvenParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
 export class EvenParameterDTO implements IParameter<number> {
     // #region Properties (13)
@@ -11,6 +12,9 @@ export class EvenParameterDTO implements IParameter<number> {
     readonly name: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.SLIDER;
+    readonly group?: ParameterGroup;
+    readonly structure?: ParameterStructure;
+    readonly tooltip?: string;
 
     displayName?: string;
     hidden: boolean;
@@ -29,6 +33,10 @@ export class EvenParameterDTO implements IParameter<number> {
         this.name = p.name;
         this.type = p.type;
         this.visualization = p.visualization;
+        this.group = p.group;
+        this.structure = p.structure;
+        this.tooltip = p.tooltip;
+        
         this.hidden = p.hidden;
         this.displayName = p.displayName;
         this.order = p.order;

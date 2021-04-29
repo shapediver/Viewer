@@ -1,3 +1,4 @@
+import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
@@ -24,7 +25,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (12)
+  // #region Public Accessors (14)
 
   /**
    * The default value of the parameter.
@@ -51,6 +52,14 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
     this.#parameter.displayName = value;
     this.#logger.info(`Parameter (${this.id}) displayName was set to: ${value}`);
 	}
+
+  /**
+   * Getter group
+   * @return {ParameterGroup | undefined}
+   */
+  public get group(): ParameterGroup | undefined {
+    return this.#parameter.group;
+  }
 
   /**
    * Getter hidden
@@ -85,7 +94,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
   public get name(): string {
     return this.#parameter.name;
   }
-  
+
   /**
      * Getter order
      * @return {number | undefined}
@@ -105,6 +114,22 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
 	}
 
   /**
+   * Getter structure
+   * @return {ParameterStructure | undefined}
+   */
+  public get structure(): ParameterStructure | undefined {
+    return this.#parameter.structure;
+  }
+
+  /**
+   * Getter tooltip
+   * @return {string | undefined}
+   */
+  public get tooltip(): string | undefined {
+    return this.#parameter.tooltip;
+  }
+
+  /**
    * The type of the parameter.
    * @return {PARAMETERTYPE}
    */
@@ -120,7 +145,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
     return this.#parameter.visualization;
   }
 
-  // #endregion Public Accessors (12)
+  // #endregion Public Accessors (14)
 
   // #region Public Abstract Accessors (2)
 

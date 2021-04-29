@@ -1,5 +1,6 @@
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
 import { BooleanParameter as BooleanParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
 export class BooleanParameterDTO implements IParameter<boolean> {
     // #region Properties (10)
@@ -9,6 +10,9 @@ export class BooleanParameterDTO implements IParameter<boolean> {
     readonly name: string;
     readonly type: PARAMETERTYPE;
     readonly visualization: PARAMETERVISUALIZATION.TOGGLE;
+    readonly group?: ParameterGroup;
+    readonly structure?: ParameterStructure;
+    readonly tooltip?: string;
 
     displayName?: string;
     hidden: boolean;
@@ -25,6 +29,10 @@ export class BooleanParameterDTO implements IParameter<boolean> {
         this.name = p.name;
         this.type = p.type;
         this.visualization = p.visualization;
+        this.group = p.group;
+        this.structure = p.structure;
+        this.tooltip = p.tooltip;
+        
         this.hidden = p.hidden;
         this.displayName = p.displayName;
         this.order = p.order;
