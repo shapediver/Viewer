@@ -2,7 +2,7 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { HttpClient, ImageLoader, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
 
-import { ACCESSOR_COMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
+import { ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
@@ -66,7 +66,7 @@ export class GLTFLoader {
             this._content = JSON.parse(contentDecoded);
     
             // create body
-            this._body = binaryGeometry.slice(this.BINARY_EXTENSION_HEADER_LENGTH + header.contentLength, header.length);
+            this._body = binaryGeometry.slice(this.BINARY_EXTENSION_HEADER_LENGTH + header.contentLength + 8, header.length);
         } else {
             this._content = JSON.parse(new TextDecoder().decode(axiosResponse.data));
 

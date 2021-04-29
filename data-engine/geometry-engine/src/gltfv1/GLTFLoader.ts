@@ -1,7 +1,7 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 
-import { ACCESSOR_COMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as ACCESSORTYPE, IGLTF_v1, IGLTF_v1_Material } from '@shapediver/viewer.data-engine.shared-types';
+import { ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as ACCESSORTYPE, IGLTF_v1, IGLTF_v1_Material } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MaterialData, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { container } from 'tsyringe';
