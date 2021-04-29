@@ -29,7 +29,7 @@ export abstract class AbstractParameter<T> implements IParameter<T> {
     this._defval = defval;
     this._value = defval;
 
-    this._type = <PARAMETERTYPE>this._parameterDefinition.type.toLowerCase();
+    this._type = <PARAMETERTYPE>this._parameterDefinition.type;
     this._visualization = <PARAMETERVISUALIZATION>this._parameterDefinition.visualization;
     this._hidden = false;
   }
