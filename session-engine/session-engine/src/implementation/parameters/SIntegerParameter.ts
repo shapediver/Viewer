@@ -3,7 +3,7 @@ import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../..";
 import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
 
-export class SIntegerParameter extends AbstractParameter<number> {
+export class SIntegerParameter extends AbstractParameter<string> {
     // #region Properties (3)
 
     private readonly _max: number;
@@ -14,7 +14,7 @@ export class SIntegerParameter extends AbstractParameter<number> {
     // #region Constructors (1)
 
     constructor(mySession: Session, id: string, parameterDefinition: ShapeDiverResponseParameter) {
-        super(mySession, id, parameterDefinition, +parameterDefinition.defval);
+        super(mySession, id, parameterDefinition, parameterDefinition.defval);
         this._max = +parameterDefinition.max!;
         this._min = +parameterDefinition.min!;
     }

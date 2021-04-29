@@ -4,7 +4,7 @@ import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class SNumberParameter extends AbstractParameter<number> {
+export class SNumberParameter extends AbstractParameter<string> {
     // #region Properties (3)
 
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -54,18 +54,18 @@ export class SNumberParameter extends AbstractParameter<number> {
 
     /**
      * The value of the parameter.
-     * @return {number}
+     * @return {string}
      */
-    public get value(): number {
+    public get value(): string {
         return this.#parameter.value;
     }
 
     /**
      * The value of the parameter.
-     * @param {number} value
+     * @param {string} value
      */
-    public set value(value: number) {
-        this.#inputValidator.validate(value, 'number');
+    public set value(value: string) {
+        this.#inputValidator.validate(value, 'string');
         this.#parameter.value = value;
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
     }

@@ -2,10 +2,10 @@ import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/v
 import { SIntegerParameter as SIntegerParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
-export class SIntegerParameterDTO implements IParameter<number> {
+export class SIntegerParameterDTO implements IParameter<string> {
     // #region Properties (13)
 
-    readonly defval: number;
+    readonly defval: string;
     readonly id: string;
     readonly max: number;
     readonly min: number;
@@ -19,7 +19,7 @@ export class SIntegerParameterDTO implements IParameter<number> {
     displayName?: string;
     hidden: boolean;
     order?: number;
-    value: number;
+    value: string;
 
     // #endregion Properties (13)
 

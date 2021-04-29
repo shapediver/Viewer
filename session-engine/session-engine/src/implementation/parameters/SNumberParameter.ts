@@ -3,7 +3,7 @@ import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../..";
 import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
 
-export class SNumberParameter extends AbstractParameter<number> {
+export class SNumberParameter extends AbstractParameter<string> {
     // #region Properties (3)
 
     private readonly _decimalplaces: number;
@@ -15,7 +15,7 @@ export class SNumberParameter extends AbstractParameter<number> {
     // #region Constructors (1)
 
     constructor(mySession: Session, id: string, parameterDefinition: ShapeDiverResponseParameter) {
-        super(mySession, id, parameterDefinition, +parameterDefinition.defval);
+        super(mySession, id, parameterDefinition, parameterDefinition.defval);
         this._max = +parameterDefinition.max!;
         this._min = +parameterDefinition.min!;
         this._decimalplaces = +parameterDefinition.decimalplaces!;

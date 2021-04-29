@@ -2,10 +2,10 @@ import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/v
 import { SBitmapParameter as SBitmapParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
-export class SBitmapParameterDTO implements IParameter<File | Blob | string> {
+export class SBitmapParameterDTO implements IParameter<string> {
     // #region Properties (10)
 
-    readonly defval: File | Blob | string;
+    readonly defval: string;
     readonly id: string;
     readonly format: string[];
     readonly max: number;
@@ -19,7 +19,7 @@ export class SBitmapParameterDTO implements IParameter<File | Blob | string> {
     displayName?: string;
     hidden: boolean;
     order?: number;
-    value: File | Blob | string;
+    value: string;
 
     // #endregion Properties (10)
 

@@ -2,11 +2,11 @@ import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/v
 import { SNumberParameter as SNumberParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
-export class SNumberParameterDTO implements IParameter<number> {
+export class SNumberParameterDTO implements IParameter<string> {
     // #region Properties (13)
 
     readonly decimalplaces: number;
-    readonly defval: number;
+    readonly defval: string;
     readonly id: string;
     readonly max: number;
     readonly min: number;
@@ -20,7 +20,7 @@ export class SNumberParameterDTO implements IParameter<number> {
     displayName?: string;
     hidden: boolean;
     order?: number;
-    value: number;
+    value: string;
 
     // #endregion Properties (13)
 

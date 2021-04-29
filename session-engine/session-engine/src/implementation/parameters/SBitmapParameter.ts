@@ -3,7 +3,7 @@ import { PARAMETERTYPE, PARAMETERVISUALIZATION } from "../..";
 import { AbstractParameter } from "../AbstractParameter";
 import { Session } from "../Session";
 
-export class SBitmapParameter extends AbstractParameter<string | File | Blob> {
+export class SBitmapParameter extends AbstractParameter<string> {
     // #region Properties (3)
 
     private readonly _max: number;

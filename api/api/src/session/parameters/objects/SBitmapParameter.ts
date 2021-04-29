@@ -4,7 +4,7 @@ import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class SBitmapParameter extends AbstractParameter<File | Blob | string> {
+export class SBitmapParameter extends AbstractParameter<string> {
     // #region Properties (3)
 
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -46,17 +46,17 @@ export class SBitmapParameter extends AbstractParameter<File | Blob | string> {
 
     /**
      * The value of the parameter.
-     * @return {File | Blob | string}
+     * @return {string}
      */
-    public get value(): File | Blob | string {
+    public get value(): string {
         return this.#parameter.value;
     }
 
     /**
      * The value of the parameter.
-     * @param {File | Blob | string} value
+     * @param {string} value
      */
-    public set value(value: File | Blob | string) {
+    public set value(value: string) {
         this.#inputValidator.validate(value, 'file');
         this.#parameter.value = value;
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);
