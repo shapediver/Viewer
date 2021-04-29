@@ -12,7 +12,7 @@ import { ThreejsData } from "@shapediver/viewer.rendering-engine-threejs.renderi
 import { CustomData, GeometryData, MaterialData } from "@shapediver/viewer.shared.types";
 import { LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
 import { EVENTTYPE } from "@shapediver/viewer.shared.services";
-import { IParameter as Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION, SessionData, SessionOutputData } from "@shapediver/viewer.session-engine.session-engine";
+import { EXPORTTYPE, IParameter as Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION, SessionData, SessionOutputData } from "@shapediver/viewer.session-engine.session-engine";
 import { FileParameter } from "./session/parameters/objects/FileParameter";
 import { BooleanParameter } from "./session/parameters/objects/BooleanParameter";
 import { ColorParameter } from "./session/parameters/objects/ColorParameter";
@@ -27,7 +27,7 @@ import { TimeParameter } from "./session/parameters/objects/TimeParameter";
 export const api: Api = <Api>container.resolve(Api);
 
 export {
-    RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION
+    RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION
 }
 
 export {

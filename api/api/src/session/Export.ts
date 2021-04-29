@@ -1,5 +1,5 @@
 import { ShapeDiverResponseExportPart } from "@shapediver/api.geometry-api-dto-v1";
-import { IExport, Export as ExportLogic } from "@shapediver/viewer.session-engine.session-engine";
+import { IExport, Export as ExportLogic, EXPORTTYPE } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { container } from "tsyringe";
 
@@ -33,10 +33,10 @@ export class Export implements IExport {
   /**
    * The type of the export.
    * 
-   * @return {string | undefined}
+   * @return {EXPORTTYPE}
    */
-  public get type(): string | undefined {
-    return this.#export.type;
+  public get type(): EXPORTTYPE {
+    return <EXPORTTYPE><unknown>this.#export.type;
   }
 
   /**

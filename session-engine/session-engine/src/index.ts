@@ -1,7 +1,7 @@
 import { Export } from "./implementation/Export"
 import { Output } from "./implementation/Output"
 import { Session } from "./implementation/Session"
-import { IExport } from "./interfaces/IExport"
+import { EXPORTTYPE, IExport } from "./interfaces/IExport"
 import { IOutput } from "./interfaces/IOutput"
 import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "./interfaces/IParameter"
 import { ISession } from "./interfaces/ISession"
@@ -19,7 +19,7 @@ import { SessionOutputData } from "./implementation/SessionOutputData"
 import { SessionData } from "./implementation/SessionData"
 
 export {
-  Session, Output, Export, PARAMETERTYPE, PARAMETERVISUALIZATION
+  Session, Output, Export, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION
 }
 
 export {
