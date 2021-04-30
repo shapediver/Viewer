@@ -350,7 +350,6 @@ export class Session implements ISession {
 
             if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
             this._sessionResponse = this.mergeResponses(this._sessionResponse, sessionResponse, this._parameters, this._outputs, this._exports);
-            console.log(this._sessionResponse)
             this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
 
             this._initialized = true;
@@ -432,7 +431,6 @@ export class Session implements ISession {
             try {
                 for (let parameter in parameters)
                     if (this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
-                console.log(parameters)
                 responseCustomize = <ShapeDiverResponse>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {
@@ -463,9 +461,9 @@ export class Session implements ISession {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    private async loadOutputs(parameters: { [key: string]: string }, outputs?: { [key: string]: Output; }): Promise<SessionTreeNode> {
+    private async loadOutputs(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
+        const o = Object.assign({}, this._outputs, this._outputsCreated);
         try {
-            const o = outputs ? outputs : Object.assign({}, this._outputs, this._outputsCreated)
             const node = await this._outputLoader.loadOutputs(this._sessionResponse, o);
             node.data.push(new SessionData(this._sessionResponse));
             return node;
@@ -475,12 +473,12 @@ export class Session implements ISession {
                 await this.timeout(e.delay);
 
             let outputMapping: { [key: string]: string } = {};
-            for (let output in outputs)
-                outputMapping[output] = outputs[output].version;
+            for (let output in o)
+                outputMapping[output] = o[output].version;
 
             let responseCache = (await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].method!.toLowerCase()!, outputMapping, 'application/json')).data;
             this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCache, this._parameters, this._outputs, this._exports);
-            return await this.loadOutputs(parameters, outputs);
+            return await this.loadOutputs(parameters);
         }
     }
 
@@ -536,7 +534,7 @@ export class Session implements ISession {
         if (r2.parameters) {
             for (let parameterId in r2.parameters) {
                 r1.parameters = r1.parameters || {};
-                r1.parameters[parameterId] = r2.parameters[parameterId];
+                r1.parameters[parameterId] = r1.parameters[parameterId] || r2.parameters[parameterId];
             }
         }
 
@@ -544,7 +542,6 @@ export class Session implements ISession {
         if (r2.outputs) {
             for (let outputId in r2.outputs) {
                 r1.outputs = r1.outputs || {};
-                r1.outputs[outputId] = r2.outputs[outputId];
                 if ('version' in r2.outputs[outputId] || !(r1.outputs[outputId] && 'version' in r1.outputs[outputId]))
                     r1.outputs[outputId] = r2.outputs[outputId];
             }
@@ -561,6 +558,7 @@ export class Session implements ISession {
 
         if (parameters) {
             for (let parameterId in r1.parameters) {
+                if(parameters[parameterId]) continue;
                 switch (r1.parameters[parameterId].type) {
                     case PARAMETERTYPE.BOOL:
                         parameters[parameterId] = new BooleanParameter(this, parameterId, r1.parameters[parameterId]);
