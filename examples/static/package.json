@@ -24,7 +24,6 @@
     "test": "bash ../../scripts/test.sh",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
-    "build-watch": "bash ../../scripts/build-watch.sh",
     "build-dep": "bash ../../scripts/build-dep.sh",
     "build-dev": "bash ../../scripts/build-dev.sh",
     "build-prod": "bash ../../scripts/build-prod.sh"
