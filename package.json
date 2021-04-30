@@ -47,6 +47,7 @@
     "build": "lerna run build --stream",
     "build-watch": "lerna run build-watch --stream --parallel",
     "build-dep": "lerna run build-dep",
+    "build-prod": "lerna run build-prod --stream",
     "build-current": "cd ./api/api && npm run build-dep && cd ../../",
     "deploy": "ts-node ./scripts/deploy.ts"
   }
