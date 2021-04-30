@@ -1,4 +1,4 @@
-import { ShapeDiverResponseExportPart, ShapeDiverResponseExportResult as ExportResult } from "@shapediver/api.geometry-api-dto-v1";
+import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinition, ShapeDiverResponseExportPart, ShapeDiverResponseExportResult as ExportResult } from "@shapediver/api.geometry-api-dto-v1";
 import { IExport, Export as ExportLogic, EXPORTTYPE } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { container } from "tsyringe";
@@ -129,7 +129,7 @@ export class Export implements IExport {
    * 
    * @returns 
    */
-  public async request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExportPart | null> {
+  public async request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport | ShapeDiverResponseExportDefinition | null> {
     this.#logger.info(`Export (${this.id}) requested.`);
     return await this.#export.request(parameters);
   }

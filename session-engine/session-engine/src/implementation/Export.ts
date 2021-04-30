@@ -117,21 +117,21 @@ export class Export implements IExport, ShapeDiverResponseExport {
 
   // #region Public Methods (2)
 
-  public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExportPart | null> {
+  public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport | ShapeDiverResponseExportDefinition | null> {
     const currentParameters = this._mySession.getParametersAsString();
     const exportParameters: { [key: string]: string } = {}
 
     for (let parameter in currentParameters)
       exportParameters[parameter] = parameters[parameter] || currentParameters[parameter];
     try {
-      let exportReply = <ShapeDiverResponseBase>(await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this._mySession.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.id }, parameters }, 'application/json')).data;
-      let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.id];
+      let exportReply = <ShapeDiverResponseBase>(await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this._mySession.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.id }, parameters: exportParameters }, 'application/json')).data;
+      let exportResult = <ShapeDiverResponseExport | ShapeDiverResponseExportDefinition>exportReply.exports![this.id];
       this._mySession.mergeResponses(this._mySession.sessionResponse, { version: this._mySession.sessionResponse.version, actions: exportReply.actions });
       if ('delay' in exportResult) {
         await this.timeout(exportResult.delay!);
         exportResult = (await this.cacheRequest(exportResult.version!))!;
       }
-      return exportResult.content![0];
+      return exportResult;
     } catch (e) {
       this._logger.error('Export request failed.', e, e.response && e.response.status ? e.response.status : null);
       return null;
@@ -146,7 +146,7 @@ export class Export implements IExport, ShapeDiverResponseExport {
 
   // #region Private Methods (2)
 
-  private async cacheRequest(version: string): Promise<ShapeDiverResponseExport | null> {
+  private async cacheRequest(version: string): Promise<ShapeDiverResponseExport | ShapeDiverResponseExportDefinition | null> {
     try {
       let exportCacheReply = <ShapeDiverResponseBase>(await this._mySession.sessionCommunication(this._mySession.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].href!, this._mySession.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].method!.toLowerCase()!, { [this.id]: version }, 'application/json')).data;
       let exportCacheResult = <ShapeDiverResponseExport>exportCacheReply.exports![this.id];

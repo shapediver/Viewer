@@ -1,4 +1,4 @@
-import { ShapeDiverResponseExportPart } from "@shapediver/api.geometry-api-dto-v1";
+import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinition } from "@shapediver/api.geometry-api-dto-v1";
 
 export enum EXPORTTYPE {
     EMAIL = 'email',
@@ -10,7 +10,7 @@ export enum EXPORTTYPE {
 export interface IExport {
     // #region Public Methods (1)
 
-    request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExportPart | null>;
+    request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport | ShapeDiverResponseExportDefinition | null>;
 
     // #endregion Public Methods (1)
 }
