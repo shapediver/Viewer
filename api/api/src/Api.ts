@@ -7,6 +7,7 @@ import { UuidGenerator, InputValidator } from '@shapediver/viewer.shared.utils';
 import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Logger, PerformanceEvaluator, LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
 import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { build_data } from "./build_data";
 
 @singleton()
 export class Api {
@@ -32,6 +33,7 @@ export class Api {
     this.#stateEngine.firstSettingsRegistered.then(() => {
       this.#logger.showMessages = this.#settingsEngine.general.viewer.showMessages.value;
     })
+    this.#logger.info(`Viewer version: ${build_data.build_version}`);
   }
 
   // #endregion Constructors (1)
