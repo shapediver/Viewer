@@ -74,9 +74,7 @@ const execPromise = (cmd: string) => {
 
         console.log(await execPromise(`lerna publish ${version} --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
 
-        console.log(await execPromise('cd examples/static && npm run build-prod && cd ../..'));
-        console.log(await execPromise('cd examples/simple && npm run build-prod && cd ../..'));
-        console.log(await execPromise('cd examples/empty && npm run build-prod && cd ../..'));
+        console.log(await execPromise('npm run build-prod'));
 
         const bucketName = 'shapediverviewer';
         const prefix = 'v3/' + newVersion + '/';

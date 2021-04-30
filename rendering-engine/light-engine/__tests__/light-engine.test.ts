@@ -10,18 +10,14 @@ describe('light-engine', () => {
 
     it('addAmbientLight', async () => {
         const l = lightEngine.addAmbientLight({});
-        expect(l.color[0]).toBe(1)
-        expect(l.color[1]).toBe(1)
-        expect(l.color[2]).toBe(1)
+        expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.id.length).toBe(36)
     });
 
     it('addAmbientLight properties', async () => {
         const l = lightEngine.addAmbientLight({ color: '#000000', intensity: 0.2, id: 'test'});
-        expect(l.color[0]).toBe(0)
-        expect(l.color[1]).toBe(0)
-        expect(l.color[2]).toBe(0)
+        expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.name).toBe('test')
     });
@@ -40,9 +36,7 @@ describe('light-engine', () => {
     
     it('addDirectionalLight', async () => {
         const l = lightEngine.addDirectionalLight({});
-        expect(l.color[0]).toBe(1)
-        expect(l.color[1]).toBe(1)
-        expect(l.color[2]).toBe(1)
+        expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.direction[0]).toBe(-1)
         expect(l.direction[1]).toBe(0)
@@ -55,9 +49,7 @@ describe('light-engine', () => {
 
     it('addDirectionalLight properties', async () => {
         const l = lightEngine.addDirectionalLight({ color: '#000000', intensity: 0.2, id: 'test', direction: [1, 0, 0], castShadow: true, shadowMapBias: 0.1, shadowMapResolution: 16});
-        expect(l.color[0]).toBe(0)
-        expect(l.color[1]).toBe(0)
-        expect(l.color[2]).toBe(0)
+        expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.direction[0]).toBe(1)
         expect(l.direction[1]).toBe(0)
@@ -83,25 +75,17 @@ describe('light-engine', () => {
     
     it('addHemisphereLight', async () => {
         const l = lightEngine.addHemisphereLight({});
-        expect(l.color[0]).toBe(1)
-        expect(l.color[1]).toBe(1)
-        expect(l.color[2]).toBe(1)
+        expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
-        expect(l.groundColor[0]).toBe(1)
-        expect(l.groundColor[1]).toBe(1)
-        expect(l.groundColor[2]).toBe(1)
+        expect(l.groundColor).toBe('#ffffff')
         expect(l.id.length).toBe(36)
     });
 
     it('addHemisphereLight properties', async () => {
         const l = lightEngine.addHemisphereLight({ color: '#000000', intensity: 0.2, id: 'test', groundColor: '#000000'});
-        expect(l.color[0]).toBe(0)
-        expect(l.color[1]).toBe(0)
-        expect(l.color[2]).toBe(0)
+        expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
-        expect(l.groundColor[0]).toBe(0)
-        expect(l.groundColor[1]).toBe(0)
-        expect(l.groundColor[2]).toBe(0)
+        expect(l.groundColor).toBe('#000000')
         expect(l.name).toBe('test')
     });
 
@@ -119,9 +103,7 @@ describe('light-engine', () => {
         
     it('addPointLight', async () => {
         const l = lightEngine.addPointLight({});
-        expect(l.color[0]).toBe(1)
-        expect(l.color[1]).toBe(1)
-        expect(l.color[2]).toBe(1)
+        expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.position[0]).toBe(0)
         expect(l.position[1]).toBe(0)
@@ -133,9 +115,7 @@ describe('light-engine', () => {
 
     it('addPointLight properties', async () => {
         const l = lightEngine.addPointLight({ color: '#000000', intensity: 0.2, id: 'test', position: [1,1,1], distance: 2, decay: 5});
-        expect(l.color[0]).toBe(0)
-        expect(l.color[1]).toBe(0)
-        expect(l.color[2]).toBe(0)
+        expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.position[0]).toBe(1)
         expect(l.position[1]).toBe(1)
@@ -159,9 +139,7 @@ describe('light-engine', () => {
             
     it('addSpotLight', async () => {
         const l = lightEngine.addSpotLight({});
-        expect(l.color[0]).toBe(1)
-        expect(l.color[1]).toBe(1)
-        expect(l.color[2]).toBe(1)
+        expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.position[0]).toBe(-1)
         expect(l.position[1]).toBe(0)
@@ -178,9 +156,7 @@ describe('light-engine', () => {
 
     it('addSpotLight properties', async () => {
         const l = lightEngine.addSpotLight({ color: '#000000', intensity: 0.2, id: 'test', position: [1,1,1], target: [2,2,2], distance: 2, decay: 5, angle: 3, penumbra: 4});
-        expect(l.color[0]).toBe(0)
-        expect(l.color[1]).toBe(0)
-        expect(l.color[2]).toBe(0)
+        expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.position[0]).toBe(1)
         expect(l.position[1]).toBe(1)

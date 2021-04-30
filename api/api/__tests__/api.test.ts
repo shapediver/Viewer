@@ -1,4 +1,0 @@
-describe('api', () => {
-    it('', async () => {
-    });
-})

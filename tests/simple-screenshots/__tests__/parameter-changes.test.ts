@@ -7,13 +7,13 @@ import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilitie
 
 for(let c = 0; c < allCapabilities.length; c++) {
     const capabilities = Object.assign({ 'name': 'selenium_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
-    let name = 'simple_screenshot';
+    let name = 'parameter_change';
 
     if(process.env.PORT !== 'browserstack') {
-        name = 'simple_screenshot';
+        name = 'parameter_change';
         c = allCapabilities.length;
     } else {
-        name = 'simple_screenshot ' + ((allCapabilities[c] as DesktopCapabilities).os ? 
+        name = 'parameter_change ' + ((allCapabilities[c] as DesktopCapabilities).os ? 
         (<DesktopCapabilities>capabilities).os + ' ' + (<DesktopCapabilities>capabilities).os_version + ' ' + (<DesktopCapabilities>capabilities).browserName + ' ' + (<DesktopCapabilities>capabilities).browser_version : 
         (<MobileCapabilities>capabilities).device + ' ' + (<MobileCapabilities>capabilities).os_version);
     }
@@ -37,9 +37,8 @@ for(let c = 0; c < allCapabilities.length; c++) {
         afterAll(async () => {
             await driver.quit();
         });
-        
+
         test(name, async () => {
-            // DO SOMETHING WITH THE API
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
@@ -49,9 +48,20 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 })
                 cb();
             });
-            
-            // TAKE A SCREENSHOT
-            await screenshotCompare(await driver.takeScreenshot(), name);
+
+            for(let i = 2; i <= 10; i++) {
+                await driver.executeAsyncScript(async (i: number, cb: any) => {
+                    const api: typeof API = (<any>window).api; 
+                    const session = Object.values(api.getSessions())[0];
+                    session.updateParameter('de76cade-0cea-47b1-879e-1a0b717910e1', i);
+                    await session.customize();
+                    await new Promise<void>((resolve) => {
+                        api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    })
+                    cb();
+                }, i);
+                await screenshotCompare(await driver.takeScreenshot(), name+'_'+i);
+            }
         });
     });
 }

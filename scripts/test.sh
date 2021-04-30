@@ -1,1 +1,1 @@
-jest ./__tests__
+jest ./__tests__ --passWithNoTests
