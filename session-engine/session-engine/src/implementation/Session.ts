@@ -12,6 +12,7 @@ import { Logger } from '@shapediver/viewer.shared.monitoring';
 import { AxiosResponse } from 'axios';
 import { AbstractParameter } from './AbstractParameter';
 import { IParameter, PARAMETERTYPE } from '../interfaces/IParameter';
+import { EXPORTTYPE } from '../interfaces/IExport';
 import { BooleanParameter } from './parameters/BooleanParameter';
 import { StringParameter } from './parameters/StringParameter';
 import { TimeParameter } from './parameters/TimeParameter';
@@ -613,7 +614,8 @@ export class Session implements ISession {
 
         if (exports) {
             for (let exportId in r1.exports)
-                exports[exportId] = new Export(this, exportId, r1.exports[exportId]);
+                if((<any>Object).values(EXPORTTYPE).includes(<string>r1.exports[exportId].type))
+                    exports[exportId] = new Export(this, exportId, r1.exports[exportId]);
         }
 
         if (outputs) {

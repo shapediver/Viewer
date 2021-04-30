@@ -2,8 +2,7 @@ import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinition } from "@s
 
 export enum EXPORTTYPE {
     EMAIL = 'email',
-    DOWNLOAD = 'download',
-    SHAPEWAYS = 'shapeways'
+    DOWNLOAD = 'download'
 }
 
 
