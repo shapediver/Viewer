@@ -20,7 +20,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
     let driver: WebDriver;
     describe('device testing', () => {
-        beforeAll(async () => {
+        beforeEach(async () => {
             console.log(name)
 
             if(process.env.PORT !== 'browserstack') {
@@ -34,7 +34,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.manage().setTimeouts( { implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT } );
         });
         
-        afterAll(async () => {
+        afterEach(async () => {
             await driver.quit();
         });
         
