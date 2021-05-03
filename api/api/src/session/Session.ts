@@ -58,11 +58,13 @@ import { SStringParameter } from "./parameters/objects/SStringParameter";
 import { SStringParameterDTO } from "./parameters/dtos/SStringParameterDTO";
 import { SParameter } from "./parameters/objects/SParameter";
 import { SParameterDTO } from "./parameters/dtos/SParameterDTO";
+import { Api } from "../Api";
 
 @injectable()
 export class Session implements ISession {
     // #region Properties (14)
 
+    readonly #api: Api = <Api>container.resolve(Api);
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     readonly #exports: { [key: string]: Export; } = {};
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -177,6 +179,8 @@ export class Session implements ISession {
     #commitSettings: boolean = false;
     #node: TreeNode;
     #returnDTOs: boolean = false;
+    #primarySession: boolean = false;
+    #primarySessionRequest: boolean = false;
 
     // #endregion Properties (14)
 
@@ -185,13 +189,18 @@ export class Session implements ISession {
     /**
      * @ignore
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, returnDTOs?: boolean }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean }, callbacks: any) {
         this.#node = new TreeNode(properties.id)
         this.#sessionEngine = new SessionEngine(Object.assign({ buildDate: build_data.build_date, buildVersion: build_data.build_version }, properties));
         this.#stateEngine.createCustomState(this.id + '_settings_registered');
         this.#returnDTOs = properties.returnDTOs || false;
 
-        if (properties.loadDefaultSettings !== false)
+        this.#primarySessionRequest = properties.primarySession !== false;
+        if (this.#primarySessionRequest === true) {
+            if(this.#stateEngine.primarySessionLoaded.resolved === false) {
+                this.#primarySession = true;
+            }
+
             this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
                 this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
                 this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
@@ -212,6 +221,34 @@ export class Session implements ISession {
                     if(this.getParameters()[parametersHidden[i]])
                         this.getParameter(parametersHidden[i])!.hidden = true;
             })
+        }
+        
+        callbacks.setAsPrimary = async () => {
+            this.#primarySession = true;
+            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
+            this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.#primarySession);
+            await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve();}));
+            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
+            this.#api.update();
+        }
+
+        callbacks.close = async (): Promise<boolean> => {
+            const closeResult = await this.#sessionEngine.close();
+            (<Tree>container.resolve(Tree)).removeNode(this.#node);
+            this.#api.update();
+            
+            if(this.#primarySession) {
+                this.#stateEngine.primarySessionLoaded.reset();
+                this.#stateEngine.primarySettingsRegistered.reset();
+                this.#settingsEngine.reset();
+                this.#stateEngine.primarySettingsRegistered.reset();
+            }
+    
+            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, {});
+    
+            if(!closeResult) this.#logger.warn(`Session (${this.id}): Was not able to close session completely, please disregard this session.`);
+            return closeResult;
+        }   
     }
 
     // #endregion Constructors (1)
@@ -303,6 +340,22 @@ export class Session implements ISession {
     }
 
     /**
+     * If the session is the primary session.
+     * @return {boolean}
+     */
+    public get primarySession(): boolean {
+        return this.#primarySession;
+    }
+
+    /**
+     * If the session requests to be the primary session.
+     * @return {boolean}
+     */
+    public get primarySessionRequest(): boolean {
+        return this.#primarySessionRequest;
+    }
+
+    /**
      * The modelViewUrl of the session.
      * @return {string}
      */
@@ -339,7 +392,7 @@ export class Session implements ISession {
 
     // #endregion Public Accessors (14)
 
-    // #region Public Methods (23)
+    // #region Public Methods (24)
 
     /**
      * Create a new output with the specified id.
@@ -366,7 +419,7 @@ export class Session implements ISession {
         this.#node = await this.#sessionEngine.customize();
         (<Tree>container.resolve(Tree)).addNode(this.#node);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
-        if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+        this.#api.update();
         this.#logger.info(`Session (${this.id}): Session customized.`);
         return this.#node;
     }
@@ -595,19 +648,17 @@ export class Session implements ISession {
      * 
      * @returns 
      */
-    public async init(loadDefaultSettings: boolean = true): Promise<TreeNode> {
+    public async init(): Promise<TreeNode> {
         this.#node = await this.#sessionEngine.init();
         (<Tree>container.resolve(Tree)).addNode(this.#node);
-        if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
         this.#logger.info(`Session (${this.id}): Session initialized.`);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
 
-        // await the settings loading of this session before resolving
-        if (loadDefaultSettings !== false && this.#stateEngine.getCustomState(this.id + '_settings_registered').resolved === false)
-            await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => resolve));
+        this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.#primarySession);
+        await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve();}));
 
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
-
+        this.#api.update();
         return this.#node;
     }
 
@@ -657,14 +708,10 @@ export class Session implements ISession {
         this.#settingsEngine.general.build_date.value = build_data.build_date;
         this.#settingsEngine.general.settings_version.value = '2.0';
 
-        if (container.isRegistered('viewer')) {
-            const viewers = (<Viewer[]>container.resolveAll('viewer'));
-            let viewer;
-            for (let i = 0; i < viewers.length; i++)
-                if (viewers[i].id === viewerId)
-                    viewer = viewers[i];
+        if (Object.values(this.#api.getViewers()).length !== 0) {
+            let viewer = viewerId ? this.#api.getViewers()[viewerId] : null;
             if (!viewer)
-                viewer = viewers[0];
+                viewer = Object.values(this.#api.getViewers())[0];
 
             const renderingEngines = (<RenderingEngine[]>container.resolveAll('renderingEngine'));
             let renderingEngine: RenderingEngine;
@@ -755,5 +802,5 @@ export class Session implements ISession {
         return true;
     }
 
-    // #endregion Public Methods (23)
+    // #endregion Public Methods (24)
 }

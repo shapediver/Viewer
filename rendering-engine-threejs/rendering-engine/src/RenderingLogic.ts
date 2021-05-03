@@ -107,10 +107,11 @@ export class RenderingLogic {
             this._perspectiveCameraThree.up.set(0, 0, 1);
             const fov = (<PerspectiveCamera>this._renderingEngine.cameraEngine.getCamera()).fov;
             const bs = this._renderingEngine.sceneTree.boundingBox.boundingSphere;
+            const radius = bs.radius > 0 ? bs.radius : 2;
             this._perspectiveCameraThree.fov = camera.fov = fov;
             this._perspectiveCameraThree.aspect = camera.aspect = width / height;
-            this._perspectiveCameraThree.far = camera.far = fov < 10 ? fov * 100.0 * 100 * bs.radius : 100 * bs.radius;
-            this._perspectiveCameraThree.near = camera.near = fov < 10 ? fov * 100.0 * 0.1 * bs.radius : 0.1 * bs.radius;
+            this._perspectiveCameraThree.far = camera.far = fov < 10 ? fov * 100.0 * 100 * radius : 100 * radius;
+            this._perspectiveCameraThree.near = camera.near = fov < 10 ? fov * 100.0 * 0.1 * radius : 0.1 * radius;
             this._perspectiveCameraThree.position.set(position[0], position[1], position[2]);
             this._perspectiveCameraThree.lookAt(target[0], target[1], target[2]);
             this._perspectiveCameraThree.updateProjectionMatrix();
@@ -135,7 +136,6 @@ export class RenderingLogic {
         const camera = this.adjustCamera(deltaTime, width, height);
 
         if (this._noNeedToRender === true) return;
-        if (this._renderingEngine.sceneTree.isEmpty()) return;
 
         this._renderer.shadowMap.enabled = this._renderingEngine.shadows;
         this._renderingEngine.sceneTree.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;

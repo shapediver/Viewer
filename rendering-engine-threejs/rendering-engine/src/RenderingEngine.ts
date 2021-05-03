@@ -21,6 +21,7 @@ import { LightLoader } from './loaders/LightLoader';
 import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { GeometryData } from '@shapediver/viewer.shared.types';
+import { Box } from '@shapediver/viewer.shared.math';
 
 export class RenderingEngine implements IRenderingEngine {
     // #region Properties (39)
@@ -53,9 +54,11 @@ export class RenderingEngine implements IRenderingEngine {
     private _environmentMap: string | string[] = 'none';
     private _environmentMapAsBackground: boolean = false;
     private _environmentMapResolution: string = '1024';
+    private _gridObject!: SDObject;
     private _grid!: THREE.GridHelper;
     private _gridVisibility: boolean = true;
     private _groundPlane!: THREE.Mesh;
+    private _groundPlaneObject!: SDObject;
     private _groundPlaneVisibility: boolean = true;
     private _lightScene: string = 'default';
     private _logoDivElement: HTMLDivElement;
@@ -104,27 +107,46 @@ export class RenderingEngine implements IRenderingEngine {
         (<SceneTree>this._sceneTree).scene.background = new THREE.Color('#ffffff');
 
         this._renderingLogic = new RenderingLogic(this);
-        
+
+        this._gridObject = new SDObject('grid', '');
+        this._grid = new THREE.GridHelper();
+        (<THREE.Material>this._grid.material).opacity = 0.15;
+        (<THREE.Material>this._grid.material).transparent = true;
+        this._grid.rotateX(Math.PI / 2);
+        this._grid.visible = this.gridVisibility;
+        this._gridObject.add(this._grid);
+        this._sceneTree.scene.add(this._gridObject);
+
+        this._groundPlaneObject = new SDObject('grid', '');
+        let mat = new MaterialData();
+        mat.color = vec4.fromValues(0.8274, 0.8274, 0.8274, 1);
+        mat.side = MATERIAL_SIDE.FRONT;
+        mat.roughness = 1;
+        mat.metalness = 0;
+        this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(), this._materialLoader.load(mat));
+        this._groundPlane.receiveShadow = true;
+        this._groundPlane.visible = this.groundPlaneVisibility;
+        this._groundPlaneObject.add(this._groundPlane);
+        this._sceneTree.scene.add(this._groundPlaneObject);
+
+        let eps = 0.005;
+        this._grid.position.set(0, 0, -eps);
+        this._groundPlane.position.set(0, 0, -eps);
+
         this._stateEngine.createCustomState(this.id + '_settings_loaded');
 
-        if(this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
+        if (this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
 
-        if(this._visibility === VISIBILITYMODE.SESSION) {
-            this._stateEngine.firstSessionLoaded.then(() => {
-                // check if there are settings
-                if(this._stateEngine.firstSettingsRegistered.resolved === false) {
+        if (this._visibility === VISIBILITYMODE.SESSION) {
+            this._stateEngine.primarySessionLoaded.then(() => {
+                // wait for settings to load before showing the scene
+                this._stateEngine.getCustomState(this.id + '_settings_loaded').then(() => {
+                    this.changeSceneExtents(this._sceneTree.boundingBox);
                     this.show = true;
-                } else {
-                    // wait for settings to load before showing the scene
-                    this._stateEngine.getCustomState(this.id + '_settings_loaded').then(() => {
-                        this.show = true;
-                    })
-                }
+                })
             })
         }
-
-        this._stateEngine.boundingBoxCreated.then(() => this.init());
-        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
+        this._stateEngine.primarySettingsRegistered.then(() => this.applySettings());
     }
 
     // #endregion Constructors (1)
@@ -330,41 +352,9 @@ export class RenderingEngine implements IRenderingEngine {
      * @param {boolean} value
      */
     public set gridVisibility(value: boolean) {
-        if(this._grid) this._grid.visible = value;
+        if (this._grid) this._grid.visible = value;
         this._gridVisibility = value;
     }
-
-    // /**
-    //  * Getter groundPlaneReflectionThreshold
-    //  * @return {number}
-    //  */
-    // public get groundPlaneReflectionThreshold(): number {
-    //     return this._groundPlaneReflectionThreshold;
-    // }
-
-    // /**
-    //  * Setter groundPlaneReflectionThreshold
-    //  * @param {number} value
-    //  */
-    // public set groundPlaneReflectionThreshold(value: number) {
-    //     this._groundPlaneReflectionThreshold = value;
-    // }
-
-    // /**
-    //  * Getter groundPlaneReflectionVisibility
-    //  * @return {boolean}
-    //  */
-    // public get groundPlaneReflectionVisibility(): boolean {
-    //     return this._groundPlaneReflectionVisibility;
-    // }
-
-    // /**
-    //  * Setter groundPlaneReflectionVisibility
-    //  * @param {boolean} value
-    //  */
-    // public set groundPlaneReflectionVisibility(value: boolean) {
-    //     this._groundPlaneReflectionVisibility = value;
-    // }
 
     /**
      * Getter groundPlaneVisibility
@@ -379,7 +369,7 @@ export class RenderingEngine implements IRenderingEngine {
      * @param {boolean} value
      */
     public set groundPlaneVisibility(value: boolean) {
-        if(this._groundPlane) this._groundPlane.visible = value;
+        if (this._groundPlane) this._groundPlane.visible = value;
         this._groundPlaneVisibility = value;
     }
 
@@ -499,101 +489,10 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #region Public Methods (2)
 
-    public getScreenshot(type?: string, encoderOptions?: number): string {
-        return this._renderingLogic.getScreenshot(type, encoderOptions);
-    }
+    public changeSceneExtents(bb: Box) {
+        if (vec3.equals(bb.min, vec3.create()) && vec3.equals(bb.max, vec3.create()))
+            bb = new Box(vec3.fromValues(-10, -10, -10), vec3.fromValues(10, 10, 10));
 
-    public update(): void {
-        this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
-        this._renderingLogic.render();
-    }
-
-    public trace(origin: vec3, direction: vec3, root: TreeNode = this._tree.root) {
-        const tracingData: { distance: number, data: GeometryData }[] = [];
-        const trace = (root: TreeNode) => {
-            for(let i = 0; i < root.data.length; i++) 
-              if(root.data[i] instanceof GeometryData) {
-                  const distance = (<GeometryData>root.data[i]).boundingBox.intersect(origin, direction);
-                  if(distance) tracingData.push({ distance, data: <GeometryData>root.data[i]})
-              }
-            for(let i = 0; i < root.children.length; i++)
-                trace(root.children[i]);
-        }
-        trace(root);
-
-        tracingData.sort((a: { distance: number, data: GeometryData }, b: { distance: number, data: GeometryData }) => {
-            return a.distance - b.distance;
-        })
-
-        return tracingData;
-    }
-
-    public convert3Dto2D(p: vec3): {
-        container: vec2, client: vec2, page: vec2, hidden: boolean
-    } {
-        const canvasPageCoordinates = this.canvas.canvasElement.getBoundingClientRect(),
-        width = this.canvas.canvasElement.width,
-        height = this.canvas.canvasElement.height;
-
-        const camera = this.cameraEngine.getCamera();
-        if(!camera) throw new Error('No camera is defined for this viewer.');
-
-        const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
-        const tracing = this.trace(camera.position, direction);
-        const pos: vec2 = (<AbstractCamera>camera).project(vec3.clone(p));
-
-        pos[0] = (pos[0] * (width / 2)) + (width / 2);
-        pos[1] = - (pos[1] * (height / 2)) + (height / 2);
-
-        // take care of correction by device pixel ratio
-        pos[0] = pos[0] / devicePixelRatio;
-        pos[1] = pos[1] / devicePixelRatio;
-
-        return {
-            hidden: tracing.length > 1 && tracing[0].distance > 0 && tracing[0].distance < Infinity && tracing[0].distance < vec3.distance(camera.position, p),
-            container: vec2.clone(pos),
-            client: vec2.fromValues(pos[0] + canvasPageCoordinates.left, pos[1] + canvasPageCoordinates.top),
-            page: vec2.fromValues(pos[0] + canvasPageCoordinates.left + window.pageXOffset, pos[1] + canvasPageCoordinates.top + window.pageYOffset)
-        };
-    }
-
-    // #endregion Public Methods (2)
-
-    // #region Private Methods (2)
-
-    private applySettings() {
-        // as the environment map is the only thing that needs time to load, load it first
-        this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: any) => {
-            // return if a different env map was loaded
-            if(!e.name || (e.name && e.name !== this._settingsEngine.scene.material.environmentMap.value)) return;
-
-            this.environmentMapAsBackground = this._settingsEngine.scene.material.environmentMapAsBackground.value;
-            // TODO
-            this.ambientOcclusion = this._settingsEngine.scene.render.ambientOcclusion.value;
-            this.beautyRenderBlendingDuration = this._settingsEngine.scene.render.beautyRenderBlendingDuration.value;
-            this.beautyRenderDelay = this._settingsEngine.scene.render.beautyRenderDelay.value;
-            // TODO
-            this.blurSceneWhenBusy = this._settingsEngine.general.viewer.blurSceneWhenBusy.value;
-            this.clearAlpha = this._settingsEngine.scene.render.clearAlpha.value;
-            this.clearColor = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
-            this.gridVisibility = this._settingsEngine.scene.gridVisibility.value;
-            this.groundPlaneVisibility = this._settingsEngine.scene.groundPlaneVisibility.value;
-            this.lightScene = this._settingsEngine.scene.lights.lightScene.value;
-            // TODO
-            this.pointSize = this._settingsEngine.rendering.pointSize.value;
-            this.shadows = this._settingsEngine.scene.render.shadows.value;
-            // FIXME
-            //this.showSceneTransition = +this._settingsEngine.scene.showSceneTransition.value.replace('s', '') * 1000;
-
-            this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
-        })
-        // set it like this to not trigger the loading
-        this._environmentMapResolution = this._settingsEngine.scene.material.environmentMapResolution.value;
-        this.environmentMap = this._settingsEngine.scene.material.environmentMap.value;
-    }
-
-    private init() {
-        let bb = this._sceneTree.boundingBox;
         let sceneExtents = vec3.distance(bb.min, bb.max);
 
         /**
@@ -625,27 +524,15 @@ export class RenderingEngine implements IRenderingEngine {
         /**
          * magic end
          */
-
-        const gridObject = new SDObject('grid', '');
+        this._gridObject.remove(this._grid);
         this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
         (<THREE.Material>this._grid.material).opacity = 0.15;
         (<THREE.Material>this._grid.material).transparent = true;
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this.gridVisibility;
-        gridObject.add(this._grid);
-        this._sceneTree.scene.add(gridObject);
+        this._gridObject.add(this._grid);
 
-        const groundPlaneObject = new SDObject('grid', '');
-        let mat = new MaterialData();
-        mat.color = vec4.fromValues(0.8274, 0.8274, 0.8274, 1);
-        mat.side = MATERIAL_SIDE.FRONT;
-        mat.roughness = 1;
-        mat.metalness = 0;
-        this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2), this._materialLoader.load(mat));
-        this._groundPlane.receiveShadow = true;
-        this._groundPlane.visible = this.groundPlaneVisibility;
-        groundPlaneObject.add(this._groundPlane);
-        this._sceneTree.scene.add(groundPlaneObject);
+        this._groundPlane.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
 
         let eps = 0.005;
         let bs = bb.boundingSphere;
@@ -653,6 +540,110 @@ export class RenderingEngine implements IRenderingEngine {
         this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
     }
 
+    public reset() {
+        this.changeSceneExtents(this._sceneTree.boundingBox)
+        if(this._visibility === VISIBILITYMODE.SESSION) this.show = false;
+        this._stateEngine.getCustomState(this.id + '_settings_loaded').reset();
+    }
+
+    public getScreenshot(type?: string, encoderOptions?: number): string {
+        return this._renderingLogic.getScreenshot(type, encoderOptions);
+    }
+
+    public update(): void {
+        this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
+        this._renderingLogic.render();
+    }
+
+    public trace(origin: vec3, direction: vec3, root: TreeNode = this._tree.root) {
+        const tracingData: { distance: number, data: GeometryData }[] = [];
+        const trace = (root: TreeNode) => {
+            for (let i = 0; i < root.data.length; i++)
+                if (root.data[i] instanceof GeometryData) {
+                    const distance = (<GeometryData>root.data[i]).boundingBox.intersect(origin, direction);
+                    if (distance) tracingData.push({ distance, data: <GeometryData>root.data[i] })
+                }
+            for (let i = 0; i < root.children.length; i++)
+                trace(root.children[i]);
+        }
+        trace(root);
+
+        tracingData.sort((a: { distance: number, data: GeometryData }, b: { distance: number, data: GeometryData }) => {
+            return a.distance - b.distance;
+        })
+
+        return tracingData;
+    }
+
+    public convert3Dto2D(p: vec3): {
+        container: vec2, client: vec2, page: vec2, hidden: boolean
+    } {
+        const canvasPageCoordinates = this.canvas.canvasElement.getBoundingClientRect(),
+            width = this.canvas.canvasElement.width,
+            height = this.canvas.canvasElement.height;
+
+        const camera = this.cameraEngine.getCamera();
+        if (!camera) throw new Error('No camera is defined for this viewer.');
+
+        const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
+        const tracing = this.trace(camera.position, direction);
+        const pos: vec2 = (<AbstractCamera>camera).project(vec3.clone(p));
+
+        pos[0] = (pos[0] * (width / 2)) + (width / 2);
+        pos[1] = - (pos[1] * (height / 2)) + (height / 2);
+
+        // take care of correction by device pixel ratio
+        pos[0] = pos[0] / devicePixelRatio;
+        pos[1] = pos[1] / devicePixelRatio;
+
+        return {
+            hidden: tracing.length > 1 && tracing[0].distance > 0 && tracing[0].distance < Infinity && tracing[0].distance < vec3.distance(camera.position, p),
+            container: vec2.clone(pos),
+            client: vec2.fromValues(pos[0] + canvasPageCoordinates.left, pos[1] + canvasPageCoordinates.top),
+            page: vec2.fromValues(pos[0] + canvasPageCoordinates.left + window.pageXOffset, pos[1] + canvasPageCoordinates.top + window.pageYOffset)
+        };
+    }
+
+    // #endregion Public Methods (2)
+
+    // #region Private Methods (2)
+
+    private applySettings() {
+
+        // as the environment map is the only thing that needs time to load, load it first
+        const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: any) => {
+            // return if a different env map was loaded
+            if (!e.name || (e.name && e.name !== this._settingsEngine.scene.material.environmentMap.value)) return;
+
+            this.environmentMapAsBackground = this._settingsEngine.scene.material.environmentMapAsBackground.value;
+            // TODO
+            this.ambientOcclusion = this._settingsEngine.scene.render.ambientOcclusion.value;
+            this.beautyRenderBlendingDuration = this._settingsEngine.scene.render.beautyRenderBlendingDuration.value;
+            this.beautyRenderDelay = this._settingsEngine.scene.render.beautyRenderDelay.value;
+            // TODO
+            this.blurSceneWhenBusy = this._settingsEngine.general.viewer.blurSceneWhenBusy.value;
+            this.clearAlpha = this._settingsEngine.scene.render.clearAlpha.value;
+            this.clearColor = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
+            this.gridVisibility = this._settingsEngine.scene.gridVisibility.value;
+            this.groundPlaneVisibility = this._settingsEngine.scene.groundPlaneVisibility.value;
+            this.lightScene = this._settingsEngine.scene.lights.lightScene.value;
+            // TODO
+            this.pointSize = this._settingsEngine.rendering.pointSize.value;
+            this.shadows = this._settingsEngine.scene.render.shadows.value;
+            // FIXME
+            //this.showSceneTransition = +this._settingsEngine.scene.showSceneTransition.value.replace('s', '') * 1000;
+
+            this._eventEngine.removeListener(token);
+            (<LightEngine>this.lightEngine).applySettings();
+            (<CameraEngine>this.cameraEngine).applySettings();
+            this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
+            this.update();
+        })
+
+        // set it like this to not trigger the loading
+        this._environmentMapResolution = this._settingsEngine.scene.material.environmentMapResolution.value;
+        this.environmentMap = this._settingsEngine.scene.material.environmentMap.value;
+    }
 
     public saveSettings() {
         this._settingsEngine.general.viewer.blurSceneWhenBusy.value = this.blurSceneWhenBusy;
@@ -674,18 +665,18 @@ export class RenderingEngine implements IRenderingEngine {
 
 
         const camera = this.cameraEngine.getCamera();
-        if(camera) {
+        if (camera) {
             this._settingsEngine.scene.camera.autoAdjust.value = camera.autoAdjust;
             this._settingsEngine.scene.camera.cameraMovementDuration.value = camera.cameraMovementDuration;
             this._settingsEngine.scene.camera.enableCameraControls.value = camera.enableCameraControls;
             this._settingsEngine.scene.camera.revertAtMouseUp.value = camera.revertAtMouseUp;
             this._settingsEngine.scene.camera.revertAtMouseUpDuration.value = camera.revertAtMouseUpDuration;
             this._settingsEngine.scene.camera.zoomExtentsFactor.value = camera.zoomExtentsFactor;
-            
-            if(camera.type === CAMERATYPE.PERSPECTIVE) {
+
+            if (camera.type === CAMERATYPE.PERSPECTIVE) {
                 this._settingsEngine.scene.camera.cameraTypes.active.value = 0;
-                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2]};
-                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2]};
+                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] };
+                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] };
                 this._settingsEngine.scene.camera.cameraTypes.perspective.fov.value = (<PerspectiveCamera>camera).fov;
 
                 const controls = <PerspectiveCameraControls>camera.controls;
@@ -725,10 +716,10 @@ export class RenderingEngine implements IRenderingEngine {
             } else {
                 // TODO
                 this._settingsEngine.scene.camera.cameraTypes.active.value = 1;
-                
-                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2]};
-                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2]};
-                
+
+                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] };
+                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] };
+
                 const controls = <OrthographicCameraControls>camera.controls;
                 this._settingsEngine.scene.camera.controls.orthographic.damping.value = controls.damping;
                 this._settingsEngine.scene.camera.controls.orthographic.enableKeyPan.value = controls.enableKeyPan;

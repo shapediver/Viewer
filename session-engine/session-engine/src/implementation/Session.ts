@@ -56,10 +56,11 @@ export class Session implements ISession {
         "X-ShapeDiver-BuildDate": ''
     }
 
+    private _closed: boolean = false;
     private _initialized: boolean = false;
-    private _loadDefaultSettings: boolean = true;
     private _refreshBearerToken!: () => string;
     private _sessionResponse!: ShapeDiverResponse;
+    private _settingsConfig: any = {};
 
     // #endregion Properties (18)
 
@@ -69,14 +70,13 @@ export class Session implements ISession {
      * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string, loadDefaultSettings?: boolean }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string, primarySession?: boolean }) {
         this._id = properties.id;
         this._ticket = properties.ticket;
         this._modelViewUrl = properties.modelViewUrl;
         this._bearerToken = properties.bearerToken;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
-        this._loadDefaultSettings = properties.loadDefaultSettings || true;
         this._outputLoader = new OutputLoader();
     }
 
@@ -141,6 +141,14 @@ export class Session implements ISession {
     }
 
     /**
+     * Getter settingsConfig
+     * @return {any}
+     */
+    public get settingsConfig(): any {
+        return this._settingsConfig;
+    }
+
+    /**
      * Setter refreshBearerToken
      * @param {() => string} value
      */
@@ -166,7 +174,7 @@ export class Session implements ISession {
 
     // #endregion Public Accessors (10)
 
-    // #region Public Methods (21)
+    // #region Public Methods (23)
 
     public createOutput(id: string): Output {
         if (this._outputs[id] || this._outputsCreated[id]) {
@@ -186,11 +194,20 @@ export class Session implements ISession {
      * @returns promise with a scene graph node
      */
     public async customize(): Promise<SessionTreeNode> {
-        // for (let parameterId in this._parameters)
-        //     this._sessionResponse.parameters[parameterId].value = this._parameters[parameterId].value;
-        // for (let outputId in this._outputsCreated)
-        //     this._sessionResponse.outputs[outputId] = this._outputsCreated[outputId];
         return this.customizeSession(this.getParametersAsString());
+    }
+
+    public async close(): Promise<boolean> {
+        this._closed = true;
+        if (this._initialized) {
+            try {
+                await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'close')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'close')[0].method!, null, 'application/json');
+            } catch (e) {
+                this._logger.error('Session closing failed.', e, e.response && e.response.status ? e.response.status : null);
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -349,7 +366,7 @@ export class Session implements ISession {
                 return new SessionTreeNode();
             }
 
-            if (this._loadDefaultSettings) (<SettingsEngine>container.resolve(SettingsEngine)).fromJson(sessionResponse.config, this.id);
+            this._settingsConfig = sessionResponse.config;
             this._sessionResponse = this.mergeResponses(this._sessionResponse, sessionResponse, this._parameters, this._outputs, this._exports);
             this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
 
@@ -359,138 +376,6 @@ export class Session implements ISession {
             this._logger.error('Something went wrong at session init.', e);
             return new SessionTreeNode();
         }
-    }
-
-    public async saveDefaultParameters(): Promise<boolean> {
-        if (!this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0]) {
-            this._logger.error('Session has to be in edit mode to be able to save the settings.');
-            return false;
-        }
-        try {
-            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].method!, this.getParametersAsString(), 'application/json');
-            return true;
-        } catch (e) {
-            this._logger.error('Saving of default parameters failed.', e, e.response && e.response.status ? e.response.status : null);
-            return false;
-        }
-    }
-
-    public async saveSettings(json: any): Promise<boolean> {
-        if (!this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]) {
-            this._logger.error('Session has to be in edit mode to be able to save the settings.');
-            return false;
-        }
-        try {
-            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].method!, json, 'application/json');
-            return true;
-        } catch (e) {
-            this._logger.error('Saving of settings failed.', e, e.response && e.response.status ? e.response.status : null);
-            return false;
-        }
-    }
-
-    public async sessionCommunication(href: string, method: string | 'post' | 'get', data: any, contentType?: string): Promise<AxiosResponse<any>> {
-        let headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
-        if (contentType) headers = Object.assign({ "Content-Type": contentType }, this._headers);
-
-        method = method.toLowerCase();
-        if (method !== 'post' && method !== 'get') throw new Error('Method ' + method + ' not recognized.');
-        try {
-            return await this._httpClient[method](href, { data, headers });
-        } catch (e) {
-            if (e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
-                if (!this._refreshBearerToken) {
-                    this._logger.error('Session request failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
-                    throw e;
-                } else {
-                    const bearerToken = this.bearerToken;
-                    const newToken = this._refreshBearerToken();
-                    if (bearerToken === newToken) {
-                        this._logger.error('Session request failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
-                        throw e;
-                    } else {
-                        this.bearerToken = newToken;
-                        return this.sessionCommunication(href, method, data, contentType);
-                    }
-                }
-            }
-            throw e;
-        }
-    }
-
-    // #endregion Public Methods (21)
-
-    // #region Private Methods (3)
-
-    private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
-        if (this._initialized === false) {
-            this._logger.error('Session not initialized.');
-            return new SessionTreeNode();
-        }
-        try {
-            let responseCustomize;
-            try {
-                for (let parameter in parameters)
-                    if (this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
-                responseCustomize = <ShapeDiverResponse>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
-            } catch (e) {
-                if (e.response && e.response.status) {
-                    if (e.response && e.response.status && e.response.status === 410) {
-                        this._logger.info('Session customization failed. Session expired. Re-initializing session.');
-                        this._initialized = false;
-                        await this.init();
-                        return this.customizeSession(parameters);
-                    }
-                }
-
-                this._logger.error('Session customization failed.', e, e.response && e.response.status ? e.response.status : null);
-                return new SessionTreeNode();
-            }
-            this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);
-            return this.loadOutputs(parameters);
-        } catch (e) {
-            this._logger.error('Something went wrong at session customization.', e);
-            return new SessionTreeNode();
-        }
-    }
-
-    /**
-     * Load the outputs and return the scene graph node of the result.
-     * In case the outputs have a delay property, another customization request with the parameter set is sent.
-     * 
-     * @param parameters the parameter set to update the session 
-     * @param outputs the outputs to load
-     * @returns promise with a scene graph node
-     */
-    private async loadOutputs(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
-        const o = Object.assign({}, this._outputs, this._outputsCreated);
-        try {
-            const node = await this._outputLoader.loadOutputs(this._sessionResponse, o);
-            node.data.push(new SessionData(this._sessionResponse));
-            return node;
-        }
-        catch (e) {
-            if (e instanceof OutputDelayException)
-                await this.timeout(e.delay);
-
-            let outputMapping: { [key: string]: string } = {};
-            for (let output in o)
-                outputMapping[output] = o[output].version;
-
-            let responseCache = (await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].method!.toLowerCase()!, outputMapping, 'application/json')).data;
-            this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCache, this._parameters, this._outputs, this._exports);
-            return await this.loadOutputs(parameters);
-        }
-    }
-
-    /**
-     * Returns a promise that resolves after the amount of milliseconds provided.
-     * 
-     * @param ms the milliseconds
-     * @returns promise that resolve after specified milliseconds
-     */
-    private async timeout(ms: number): Promise<any> {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     public mergeResponses(r1: ShapeDiverResponse, r2: ShapeDiverResponse, parameters?: { [key: string]: AbstractParameter<any>; }, outputs?: { [key: string]: Output; }, exports?: { [key: string]: Export; }): ShapeDiverResponse {
@@ -624,6 +509,138 @@ export class Session implements ISession {
         }
 
         return r1;
+    }
+
+    public async saveDefaultParameters(): Promise<boolean> {
+        if (!this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0]) {
+            this._logger.error('Session has to be in edit mode to be able to save the settings.');
+            return false;
+        }
+        try {
+            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].method!, this.getParametersAsString(), 'application/json');
+            return true;
+        } catch (e) {
+            this._logger.error('Saving of default parameters failed.', e, e.response && e.response.status ? e.response.status : null);
+            return false;
+        }
+    }
+
+    public async saveSettings(json: any): Promise<boolean> {
+        if (!this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]) {
+            this._logger.error('Session has to be in edit mode to be able to save the settings.');
+            return false;
+        }
+        try {
+            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].method!, json, 'application/json');
+            return true;
+        } catch (e) {
+            this._logger.error('Saving of settings failed.', e, e.response && e.response.status ? e.response.status : null);
+            return false;
+        }
+    }
+
+    public async sessionCommunication(href: string, method: string | 'post' | 'get', data: any, contentType?: string): Promise<AxiosResponse<any>> {
+        let headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
+        if (contentType) headers = Object.assign({ "Content-Type": contentType }, this._headers);
+
+        method = method.toLowerCase();
+        if (method !== 'post' && method !== 'get') throw new Error('Method ' + method + ' not recognized.');
+        try {
+            return await this._httpClient[method](href, { data, headers });
+        } catch (e) {
+            if (e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
+                if (!this._refreshBearerToken) {
+                    this._logger.error('Session request failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.');
+                    throw e;
+                } else {
+                    const bearerToken = this.bearerToken;
+                    const newToken = this._refreshBearerToken();
+                    if (bearerToken === newToken) {
+                        this._logger.error('Session request failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.');
+                        throw e;
+                    } else {
+                        this.bearerToken = newToken;
+                        return this.sessionCommunication(href, method, data, contentType);
+                    }
+                }
+            }
+            throw e;
+        }
+    }
+
+    // #endregion Public Methods (23)
+
+    // #region Private Methods (3)
+
+    private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
+        if (this._initialized === false) {
+            this._logger.error('Session not initialized.');
+            return new SessionTreeNode();
+        }
+        try {
+            let responseCustomize;
+            try {
+                for (let parameter in parameters)
+                    if (this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
+                responseCustomize = <ShapeDiverResponse>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
+            } catch (e) {
+                if (e.response && e.response.status) {
+                    if (e.response && e.response.status && e.response.status === 410 && !this._closed) {
+                        this._logger.info('Session customization failed. Session expired. Re-initializing session.');
+                        this._initialized = false;
+                        await this.init();
+                        return this.customizeSession(parameters);
+                    }
+                }
+
+                this._logger.error('Session customization failed.', e, e.response && e.response.status ? e.response.status : null);
+                return new SessionTreeNode();
+            }
+            this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);
+            return this.loadOutputs(parameters);
+        } catch (e) {
+            this._logger.error('Something went wrong at session customization.', e);
+            return new SessionTreeNode();
+        }
+    }
+
+    /**
+     * Load the outputs and return the scene graph node of the result.
+     * In case the outputs have a delay property, another customization request with the parameter set is sent.
+     * 
+     * @param parameters the parameter set to update the session 
+     * @param outputs the outputs to load
+     * @returns promise with a scene graph node
+     */
+    private async loadOutputs(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
+        const o = Object.assign({}, this._outputs, this._outputsCreated);
+        try {
+            const node = await this._outputLoader.loadOutputs(this._sessionResponse, o);
+            node.data.push(new SessionData(this._sessionResponse));
+            return node;
+        }
+        catch (e) {
+            if (e instanceof OutputDelayException)
+                await this.timeout(e.delay);
+
+            let outputMapping: { [key: string]: string } = {};
+            for (let output in o)
+                outputMapping[output] = o[output].version;
+
+            let responseCache = (await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].method!.toLowerCase()!, outputMapping, 'application/json')).data;
+            this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCache, this._parameters, this._outputs, this._exports);
+            return await this.loadOutputs(parameters);
+        }
+    }
+
+    /**
+     * Returns a promise that resolves after the amount of milliseconds provided.
+     * 
+     * @param ms the milliseconds
+     * @returns promise that resolve after specified milliseconds
+     */
+    private async timeout(ms: number): Promise<any> {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     // #endregion Private Methods (3)

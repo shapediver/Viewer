@@ -46,7 +46,7 @@ export interface IRenderingEngine {
      * @param root the root node 
      */
     update(): void;
-
+    reset(): void;
     getScreenshot(type?: string, encoderOptions?: number): string;
 
     // #endregion Public Methods (1)

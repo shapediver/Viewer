@@ -17,6 +17,7 @@ export class Api {
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+  readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
   readonly #sessions: { [key: string]: Session } = {};
   readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -30,7 +31,7 @@ export class Api {
    * @ignore
    */
   constructor() {
-    this.#stateEngine.firstSettingsRegistered.then(() => {
+    this.#stateEngine.primarySettingsRegistered.then(() => {
       this.#logger.showMessages = this.#settingsEngine.general.viewer.showMessages.value;
     })
     this.#logger.info(`Viewer version: ${build_data.build_version}`);
@@ -87,7 +88,7 @@ export class Api {
 
   // #endregion Public Accessors (5)
 
-  // #region Public Methods (10)
+  // #region Public Methods (11)
 
   /**
    * Adds an event listener.
@@ -98,6 +99,47 @@ export class Api {
    */
   public addListener(type: string | MAINEVENTTYPE, cb: (event: any) => {}): string {
     return this.#eventEngine.addListener(type, cb);
+  }
+
+  /**
+   * Closes the session with the specified id.
+   * The geometry will be removed and the settings will be reset (if this session was used for the settings).
+   * The session cannot be used further.
+   * 
+   * @param id the id of the session
+   * @returns 
+   */
+  public async closeSession(id: string): Promise<boolean> {
+    this.#inputValidator.validate(id, 'string');
+    if(!this.#sessions[id]) {
+      this.#logger.info(`Session with id ${id} was not registered`);
+      return false;
+    }
+    const result = await this.#sessionCallbacks[id].close();
+
+    if(this.#sessions[id].primarySession) {
+      for(let v in this.#viewers)
+        this.#viewers[v].reset();
+    }
+    this.update();
+
+    (<any>this.#sessionCallbacks[id]) = undefined;
+    delete this.#sessionCallbacks[id];
+    (<any>this.#sessions[id]) = undefined;
+    delete this.#sessions[id];
+
+    this.#logger.info(`Session (${id}): Session closed.`);
+
+    for(let s in this.#sessions) {
+      const session = this.#sessions[s];
+      if(session.primarySessionRequest) {
+        await this.#sessionCallbacks[s].setAsPrimary();
+        this.#logger.info(`Session (${s}): Initializing settings.`);
+        break;
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -113,13 +155,29 @@ export class Api {
    * @param properties.ticket the ticket of a session
    * @param properties.modelViewUrl the modelViewUrl of the session
    * @param properties.bearerToken the bearerToken of the session
-   * @param properties.loadDefaultSettings the bearerToken of the session
+   * @param properties.primarySession the bearerToken of the session
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, returnDTOs?: boolean, id?: string }): Promise<Session> {
+  public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean, id?: string }): Promise<Session> {
+    // input validation
+    this.#inputValidator.validate(properties, 'object');
+    this.#inputValidator.validate(properties.ticket, 'string');
+    this.#inputValidator.validate(properties.modelViewUrl, 'string');
+    this.#inputValidator.validate(properties.bearerToken, 'string', false);
+    this.#inputValidator.validate(properties.primarySession, 'boolean', false);
+    this.#inputValidator.validate(properties.returnDTOs, 'boolean', false);
+    this.#inputValidator.validate(properties.id, 'string', false);
+    
+    // check if the given id is valid
+    const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    if (this.#sessions[sessionId]) {
+      this.#logger.error('Session with this id already exists.');
+      throw new Error('Session with this id already exists.');
+    }
+
     const session = this.createSession(properties);
-    await session.init(properties && properties.loadDefaultSettings ? properties.loadDefaultSettings : true)
+    await session.init();
     return session;
   }
 
@@ -133,34 +191,38 @@ export class Api {
    * @param properties.ticket the ticket of a session
    * @param properties.modelViewUrl the modelViewUrl of the session
    * @param properties.bearerToken the bearerToken of the session
-   * @param properties.loadDefaultSettings the bearerToken of the session
+   * @param properties.primarySession the bearerToken of the session
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, loadDefaultSettings?: boolean, returnDTOs?: boolean, id?: string }): Session {
+  public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean, id?: string }): Session {
     // input validation
     this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.ticket, 'string');
     this.#inputValidator.validate(properties.modelViewUrl, 'string');
     this.#inputValidator.validate(properties.bearerToken, 'string', false);
-    this.#inputValidator.validate(properties.loadDefaultSettings, 'boolean', false);
+    this.#inputValidator.validate(properties.primarySession, 'boolean', false);
     this.#inputValidator.validate(properties.returnDTOs, 'boolean', false);
     this.#inputValidator.validate(properties.id, 'string', false);
 
     // check if the given id is valid
     const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.#sessions[sessionId]) this.#logger.error('Session with this id already exists.');
+    if (this.#sessions[sessionId]) {
+      this.#logger.error('Session with this id already exists.');
+      throw new Error('Session with this id already exists.');
+    }
 
     // start the performance eval
     this.#performanceEvaluator.start('session_creation_' + sessionId);
 
     // create the actual session 
-    const session = new Session(Object.assign({}, properties, { id: sessionId }));
+    let sessionCallbacks = {};
+    const session = new Session(Object.assign({}, properties, { id: sessionId }), sessionCallbacks);
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
 
     // save the session
     this.#sessions[sessionId] = session;
-    container.registerInstance('session', session);
+    this.#sessionCallbacks[sessionId] = sessionCallbacks;
 
     // end the performance eval
     this.#performanceEvaluator.end('session_creation_' + sessionId);
@@ -203,7 +265,6 @@ export class Api {
 
     // save the viewer
     this.#viewers[viewerId] = viewer;
-    container.registerInstance('viewer', viewer);
 
     // update the viewer with the current scene tree
     viewer.update();
@@ -276,8 +337,9 @@ export class Api {
    * The viewers are updated with all current changes in the scene tree.
    */
   public update(): void {
-    if (container.isRegistered('viewer')) (<Viewer[]>container.resolveAll('viewer')).forEach(v => v.update());
+    for(let v in this.#viewers)
+      this.#viewers[v].update();
   }
 
-  // #endregion Public Methods (10)
+  // #endregion Public Methods (11)
 }

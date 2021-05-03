@@ -71,7 +71,8 @@ export enum SESSION {
     SESSION_CREATED = "session.created",
     SESSION_INITIALIZED = "session.initialized",
     SESSION_LOADED = "session.loaded",
-    SESSION_CUSTOMIZED = "session.customized"
+    SESSION_CUSTOMIZED = "session.customized",
+    SESSION_CLOSED = "session.closed"
 }
 
 export enum VIEWER {

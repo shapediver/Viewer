@@ -28,7 +28,6 @@ export class LightEngine implements ILightEngine {
 
     constructor() {
         this.createLightScene({ id: 'default', standard: true });
-        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
     // #endregion Constructors (1)

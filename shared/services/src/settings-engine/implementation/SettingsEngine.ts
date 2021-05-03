@@ -4,6 +4,7 @@ import { EVENTTYPE } from '../../event-engine/EventTypes';
 import { StateEngine } from '../../state-engine/StateEngine';
 import { ISetting } from '../interfaces/ISetting';
 import { DefaultSettings } from './DefaultSettings';
+import { Settings_2_0 } from './shapedivernodemodule-viewersettings/main';
 import { SettingsConversion } from './shapedivernodemodule-viewersettings/SettingsConversion';
 import { AbstractSetting } from './types/AbstractSetting';
 import { CustomSetting } from './types/CustomSetting';
@@ -108,10 +109,10 @@ export class SettingsEngine {
         }
     }
 
-    public fromJson(json: any, sessionId: string) {
+    public fromJson(json: any, sessionId: string, loadAsPrimary: boolean = false) {
         const objJSON = json ? new SettingsConversion().convert(json, '2.0') : json;
-        this._fromJson(objJSON, this._defaultSettings, this._stateEngine.firstSettingsRegistered.resolved);
-        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
+        this._fromJson(objJSON, this._defaultSettings, loadAsPrimary);
+        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId, loadAsPrimary });
     }
     
     private _toJson(settings: SettingsObject, json: any) {
@@ -141,6 +142,23 @@ export class SettingsEngine {
         const json = {};
         this._toJson(this._defaultSettings, json);
         return new SettingsConversion().convert(json, '2.0');
+    }
+
+    private _reset(settings: any) {
+        for (let s in settings) {
+            if(settings[s] instanceof AbstractSetting) {
+                settings[s].value = settings[s].default;
+            } else {
+                this._reset(settings[s]);
+            }
+        }
+    }
+
+    public reset() {
+        this._reset(this._defaultSettings);
+        const objJSON = new SettingsConversion().convert(new Settings_2_0().toJSON(), '2.0');
+        this._fromJson(objJSON, this._defaultSettings, true);
+        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { loadAsPrimary: true });
     }
 
     // #endregion Public Accessors (8)

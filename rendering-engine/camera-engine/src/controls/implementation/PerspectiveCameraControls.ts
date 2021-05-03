@@ -42,10 +42,9 @@ export class PerspectiveCameraControls extends AbstractCameraControls {
         super(camera, canvas, enabled, CAMERATYPE.PERSPECTIVE);
         this._cameraLogic = new OrbitCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
-        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
-    private applySettings() {
+    public applySettings() {
         this.autoRotationSpeed = this._settingsEngine.cameraOrbitControls.autoRotationSpeed.value;
         this.damping = this._settingsEngine.cameraOrbitControls.damping.value;
         this.enableAutoRotation = this._settingsEngine.cameraOrbitControls.enableAutoRotation.value;

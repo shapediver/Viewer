@@ -31,10 +31,9 @@ export class OrthographicCameraControls extends AbstractCameraControls {
         super(camera, canvas, enabled, CAMERATYPE.ORTHOGRAPHIC);
         this._cameraLogic = new OrthographicCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrthographicCameraControlsEventDistribution(this, <OrthographicCameraControlsLogic>this._cameraLogic);
-        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
     }
 
-    private applySettings() {
+    public applySettings() {
         this.damping = this._settingsEngine.cameraOrbitControls.damping.value;
         this.enableKeyPan = this._settingsEngine.cameraOrbitControls.enableKeyPan.value;
         this.enablePan = this._settingsEngine.cameraOrbitControls.enablePan.value;

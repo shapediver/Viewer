@@ -14,7 +14,7 @@ let viewer: Viewer, session: Session;
     ticket: string, 
     modelViewUrl: string, 
     bearerToken?: string, 
-    loadDefaultSettings?: boolean, 
+    primarySession?: boolean, 
     returnDTOs?: boolean, 
     id?: string 
 }): Promise<void> => {

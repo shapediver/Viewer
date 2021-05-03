@@ -24,11 +24,9 @@ export class CameraEngine implements ICameraEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _canvas: Canvas, private readonly _domEventEngine: DomEventEngine) {
-        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
-    }
+    constructor(private readonly _canvas: Canvas, private readonly _domEventEngine: DomEventEngine) { }
 
-    private applySettings() {
+    public applySettings() {
         // 0 -> perspective
         // 1 -> top
         // 2 -> bottom
@@ -38,6 +36,8 @@ export class CameraEngine implements ICameraEngine {
         // 6 -> front
         // FIXME
         this._settingsEngine.camera.cameraTypes.active.value;
+        for (let c in this._cameras)
+            this._cameras[c].applySettings();
     }
 
     // #endregion Constructors (1)

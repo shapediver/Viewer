@@ -47,7 +47,7 @@ export class SceneTree {
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public convertData(data: ITreeNodeData, obj: SDObject, realObject: TreeNode): void {
+    public convertData(data: ITreeNodeData, obj: SDObject, realObject: TreeNode): Box {
         let dataChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
 
         if (!dataChild)
@@ -57,8 +57,7 @@ export class SceneTree {
 
         switch (true) {
             case data instanceof GeometryData:
-                this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, realObject, this._boundingBox);
-                break;
+                return this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, realObject);
             case data instanceof ThreejsData:
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);
                 break;
@@ -74,10 +73,12 @@ export class SceneTree {
                 // if there is no valid conversion here, call the convertData of the implementation
                 break;
         }
+        return new Box();
     }
 
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
+        this._boundingBox = new Box();
 
         this._renderingEngine.geometryLoader.emptyGeometryCache();
         if (!this._mainNode) {
@@ -86,6 +87,7 @@ export class SceneTree {
         }
 
         this.updateNode(root, this._mainNode);
+        this._boundingBox = root.boundingBox.clone();
 
         const lightScene = lightEngine.getLightSceneObject();
         const lightSceneChildren = <SDObject[]>this._mainNode.children.filter(oc => lightScene.node.id === (<SDObject>oc).SDid);
@@ -122,9 +124,11 @@ export class SceneTree {
      */
     private updateNode(node: TreeNode, obj: SDObject) {
         obj.applyTransformation(node.nodeMatrix);
+        node.boundingBox = new Box();
 
         for (let i = 0, len = node.data.length; i < len; i++) {
-            this.convertData(node.data[i], obj, node);
+            const bb = this.convertData(node.data[i], obj, node);
+            node.boundingBox.union(bb)
         }
 
         const nodeIds: string[] = []
@@ -137,10 +141,8 @@ export class SceneTree {
         const childrenToRemove = obj.children.filter(oc => (!nodeIds.includes((<SDObject>oc).SDid)) && !(dataIds.includes((<SDObject>oc).SDid) && dataVersions.includes((<SDObject>oc).SDversion)));
 
         // remove children that are not anymore in there
-        for (const objChild of childrenToRemove) {
-            // TODO BB removal
+        for (const objChild of childrenToRemove) 
             obj.remove(objChild);
-        }
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.children.length; i < len; i++) {
@@ -155,6 +157,7 @@ export class SceneTree {
             } else if (objChild.SDversion !== nodeChild.version) {
                 this.updateNode(nodeChild, objChild);
             }
+            node.boundingBox.union(nodeChild.boundingBox);
         }
     }
 

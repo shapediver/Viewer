@@ -22,20 +22,6 @@ export class PerspectiveCamera extends AbstractCamera {
   constructor(id: string, _canvas: HTMLCanvasElement) {
     super(id, CAMERATYPE.PERSPECTIVE);
     this._controls = new PerspectiveCameraControls(this, _canvas, true);
-    const applySettings = () => {
-      let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.position);
-      let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target);
-      this.defaultPosition = vec3.clone(position);
-      this.defaultTarget = vec3.clone(target);
-      if (vec3.equals(position, target)) {
-        position = vec3.fromValues(0, 1, 0);
-        target = vec3.create();
-      }
-      this.position = position;
-      this.target = target;
-      this.fov = this._settingsEngine.camera.cameraTypes.perspective.fov.value;
-    };
-    this._stateEngine.firstSettingsRegistered.then(() => applySettings());
   }
 
   // #endregion Constructors (1)
@@ -76,11 +62,31 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #endregion Public Accessors (4)
 
-  // #region Public Methods (1)
+  // #region Public Methods (3)
 
+  public applySettings() {
+    this.autoAdjust = this._settingsEngine.camera.autoAdjust.value;
+    this.cameraMovementDuration = this._settingsEngine.camera.cameraMovementDuration.value;
+    this.enableCameraControls = this._settingsEngine.camera.enableCameraControls.value;
+    this.revertAtMouseUp = this._settingsEngine.camera.revertAtMouseUp.value;
+    this.revertAtMouseUpDuration = this._settingsEngine.camera.revertAtMouseUpDuration.value;
+    this.zoomExtentsFactor = this._settingsEngine.camera.zoomExtentsFactor.value;
+
+    let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.position);
+    let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target);
+    this.defaultPosition = vec3.clone(position);
+    this.defaultTarget = vec3.clone(target);
+    if (vec3.equals(position, target)) {
+      position = vec3.fromValues(0, 1, 0);
+      target = vec3.create();
+    }
+    this.position = position;
+    this.target = target;
+    this.fov = this._settingsEngine.camera.cameraTypes.perspective.fov.value;
+    (<PerspectiveCameraControls>this._controls).applySettings();
+  }
 
   public getZoomPositionAndTarget(zoomTarget: string[] | Box | null): { position: vec3, target: vec3 } {
-
     let box: Box;
 
     // Part 1 - calculate the bounding box that we should zoom to
@@ -133,7 +139,6 @@ export class PerspectiveCamera extends AbstractCamera {
 
     let distanceCamera = 0.0;
     for (let i = 0; i < points.length; i++) {
-
       let projected = planeCross.clampPoint(points[i]);
       let toP = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), projected, position));
 
@@ -149,7 +154,6 @@ export class PerspectiveCamera extends AbstractCamera {
       projected = planeUp.clampPoint(points[i]);
 
       if (vec3.dot(direction, fovRight) > vec3.dot(direction, toP)) {
-
         const currentDir = vec3.multiply(vec3.create(), vec3.dot(fovRight, toP) > vec3.dot(fovLeft, toP) ? fovLeft : fovUp, vec3.fromValues(-1, -1, -1));
         const distance = planeCross.intersect(projected, currentDir)
         if (distance) {
@@ -166,7 +170,6 @@ export class PerspectiveCamera extends AbstractCamera {
     }
   }
 
-
   public project(pos: vec3, position = this.position, target = this.target): vec2 {
     const m = mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
     const p = mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), this.aspect, this.near, this.far);
@@ -175,5 +178,5 @@ export class PerspectiveCamera extends AbstractCamera {
     return vec2.fromValues(pos[0], pos[1])
   }
 
-  // #endregion Public Methods (1)
+  // #endregion Public Methods (3)
 }

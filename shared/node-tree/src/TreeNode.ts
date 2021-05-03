@@ -4,6 +4,7 @@ import { container } from 'tsyringe'
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { ITreeNodeData } from './interfaces/ITreeNodeData';
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
+import { Box } from '@shapediver/viewer.shared.math';
 
 export interface ITransformation {
   // #region Properties (3)
@@ -16,7 +17,7 @@ export interface ITransformation {
 }
 
 export class TreeNode {
-  // #region Properties (9)
+  // #region Properties (10)
 
   readonly #children: TreeNode[] = [];
   readonly #data: ITreeNodeData[] = [];
@@ -24,12 +25,13 @@ export class TreeNode {
   readonly #name: string = '';
   readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
+  #boundingBox: Box = new Box();
   #id: string;
   #parent: TreeNode | null = null;
   #transformations: ITransformation[] = [];
   #version: string;
 
-  // #endregion Properties (9)
+  // #endregion Properties (10)
 
   // #region Constructors (1)
 
@@ -59,7 +61,23 @@ export class TreeNode {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (12)
+  // #region Public Accessors (14)
+
+  /**
+   * Getter boundingBox
+   * @return {Box}
+   */
+  public get boundingBox(): Box {
+    return this.#boundingBox;
+  }
+
+  /**
+   * Setter boundingBox
+   * @param {Box} value
+   */
+  public set boundingBox(value: Box) {
+    this.#boundingBox = value;
+  }
 
   /**
    * Getter children
@@ -180,7 +198,7 @@ export class TreeNode {
     return matrix;
   }
 
-  // #endregion Public Accessors (12)
+  // #endregion Public Accessors (14)
 
   // #region Public Methods (9)
 

@@ -35,7 +35,6 @@ export abstract class AbstractCamera implements ICamera {
     // #region Constructors (1)
 
     constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {
-        this._stateEngine.firstSettingsRegistered.then(() => this.applySettings());
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (bb: any) => this._boundingBox = bb.clone());
     }
 
@@ -318,19 +317,7 @@ export abstract class AbstractCamera implements ICamera {
 
     abstract getZoomPositionAndTarget(zoomTarget: string[] | Box | null): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
+    abstract applySettings(): void;
 
     // #endregion Public Abstract Methods (2)
-
-    // #region Private Methods (1)
-
-    private applySettings() {
-        this.autoAdjust = this._settingsEngine.camera.autoAdjust.value;
-        this.cameraMovementDuration = this._settingsEngine.camera.cameraMovementDuration.value;
-        this.enableCameraControls = this._settingsEngine.camera.enableCameraControls.value;
-        this.revertAtMouseUp = this._settingsEngine.camera.revertAtMouseUp.value;
-        this.revertAtMouseUpDuration = this._settingsEngine.camera.revertAtMouseUpDuration.value;
-        this.zoomExtentsFactor = this._settingsEngine.camera.zoomExtentsFactor.value;
-    }
-
-    // #endregion Private Methods (1)
 }

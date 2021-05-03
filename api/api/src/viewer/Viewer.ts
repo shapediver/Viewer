@@ -18,22 +18,22 @@ import { PointLight } from "./lights/PointLight";
 import { SpotLight } from "./lights/SpotLight";
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
-  // #region Properties (7)
+  // #region Properties (8)
 
   readonly #cameras: {
     [key: string]: Camera
   } = {};
+  readonly #converter: Converter = <Converter>container.resolve(Converter);
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #lights: {
     [key: string]: Light
   } = {};
   readonly #logger: Logger = <Logger>container.resolve(Logger);
-  readonly #converter: Converter = <Converter>container.resolve(Converter);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #renderingEngine: RenderingEngineThreejs;
 
-  // #endregion Properties (7)
+  // #endregion Properties (8)
 
   // #region Constructors (1)
 
@@ -54,7 +54,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (37)
+  // #region Public Accessors (31)
 
   /**
    * Enable / Disable the ambient occlusion
@@ -236,38 +236,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#logger.info(`Viewer (${this.id}): gridVisibility was set to: ${value}`);
   }
 
-  // /**
-  //  * Allows to control the distance to objects that are still reflected by the groundplane
-  //  * @return {number}
-  //  */
-  // public get groundPlaneReflectionThreshold(): number {
-  //   return this.#renderingEngine.groundPlaneReflectionThreshold;
-  // }
-
-  // /**
-  //  * Allows to control the distance to objects that are still reflected by the groundplane
-  //  * @param {number} value
-  //  */
-  // public set groundPlaneReflectionThreshold(value: number) {
-  //   this.#renderingEngine.groundPlaneReflectionThreshold = value;
-  // }
-
-  // /**
-  //  * Enable / Disable the reflectivity of the groundplane
-  //  * @return {boolean}
-  //  */
-  // public get groundPlaneReflectionVisibility(): boolean {
-  //   return this.#renderingEngine.groundPlaneReflectionVisibility;
-  // }
-
-  // /**
-  //  * Enable / Disable the reflectivity of the groundplane
-  //  * @param {boolean} value
-  //  */
-  // public set groundPlaneReflectionVisibility(value: boolean) {
-  //   this.#renderingEngine.groundPlaneReflectionVisibility = value;
-  // }
-
   /**
    * Show / Hide the ground plane
    * @return {boolean}
@@ -368,9 +336,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#logger.info(`Viewer (${this.id}): show was set to: ${value}`);
   }
 
-  // #endregion Public Accessors (37)
+  // #endregion Public Accessors (31)
 
-  // #region Public Methods (22)
+  // #region Public Methods (23)
 
   /**
    * Add an ambient light with the specified properties to the current light scene.
@@ -737,6 +705,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     return r;
   }
 
+  public reset(): void {
+    this.#renderingEngine.reset();
+  }
+
   /**
    * Update the viewer with the current changes of the scene tree.
    */
@@ -746,5 +718,5 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
   }
 
-  // #endregion Public Methods (22)
+  // #endregion Public Methods (23)
 }

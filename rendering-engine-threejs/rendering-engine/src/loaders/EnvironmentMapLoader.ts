@@ -114,7 +114,7 @@ export class EnvironmentMapLoader {
     // #region Private Methods (2)
 
     private assignEnvironmentMap(name: string) {
-        if(!this._environmentMaps[name]) return;
+        if(name in this._environmentMaps === false) return;
         this._environmentMapName = name;
         this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name]);
     }

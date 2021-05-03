@@ -148,6 +148,8 @@ export class BeautyRenderer {
     public render(time: number, camera: THREE.Camera, width: number, height: number) {
         if (!this._initialized) this.initialize(camera, width, height);
         const percentage = this.setShaderProperties();
+        this._ssaaPass.clearColor = this._renderer.getClearColor(new THREE.Color());
+        this._ssaaPass.clearAlpha = this._renderer.getClearAlpha();
 
         const saoIntensity = this._saoPass.params.saoIntensity;
         this._saoPass.params.saoIntensity = percentage * saoIntensity;

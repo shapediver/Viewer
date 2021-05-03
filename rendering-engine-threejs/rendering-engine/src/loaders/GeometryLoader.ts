@@ -21,8 +21,7 @@ export class GeometryLoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-     public load(geometry: GeometryData, parent: SDObject, realObject: TreeNode, boundingBox: Box): void {
-        boundingBox.union(geometry.boundingBox.clone().applyMatrix(realObject.worldMatrix));
+     public load(geometry: GeometryData, parent: SDObject, realObject: TreeNode): Box {
         if (this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS]) {
             // if already in geo cache
 
@@ -89,6 +88,7 @@ export class GeometryLoader {
             geometry.convertedObjects.push(obj)
             parent.add(obj);
         }
+        return geometry.boundingBox.clone().applyMatrix(realObject.worldMatrix);
     }
 
     public loadGeometry(primitive: PrimitiveData): THREE.BufferGeometry {
