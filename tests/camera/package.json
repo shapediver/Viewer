@@ -1,0 +1,50 @@
+{
+  "name": "@shapediver/viewer.tests.camera",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [],
+  "private": true,
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "start": "npm start",
+    "test-script": "bash ../../scripts/test.sh",
+    "test-browserstack": "cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/camera && PORT=browserstack npm run test-script",
+    "test": "cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/camera && npm run test-script",
+    "check": "tsc --noEmit",
+    "build": "bash ../../scripts/build.sh",
+    "build-watch": "bash ../../scripts/build-watch.sh",
+    "build-dep": "bash ../../scripts/build-dep.sh"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "jest": {
+    "setupFilesAfterEnv": [
+      "../general/src/setup.ts"
+    ],
+    "preset": "ts-jest",
+    "testEnvironment": "jsdom"
+  },
+  "devDependencies": {
+    "@shapediver/viewer": "*",
+    "chromedriver": "^90.0.0",
+    "gl-matrix": "^3.3.0",
+    "jest-image-snapshot": "^4.4.1",
+    "selenium-webdriver": "^4.0.0-beta.3",
+    "tsyringe": "^4.5.0"
+  }
+}

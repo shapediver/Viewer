@@ -237,24 +237,83 @@ export abstract class Camera implements ICamera {
 
     // #region Public Methods (4)
 
-    public animate(path: { position: vec3; target: vec3; }[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
-        // TODO check, doc, etc
+    /**
+     * Let the camera follow a path from different position and target pairs to another.
+     * 
+     * @param path the defined path
+     * @param options various options to be adjusted
+     * @returns 
+     */
+    public animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string; duration?: number; default?: boolean; coordinates?: string; interpolation?: string; }): Promise<boolean> {
+        for(let i = 0; i < path.length; i++) {
+            this.#inputValidator.validate(path[i].position, 'vec3');
+            this.#inputValidator.validate(path[i].target, 'vec3');
+        }
+        this.#inputValidator.validate(options, 'object');
+        if(options) this.#inputValidator.validate(options.easing, 'string', false);
+        if(options) this.#inputValidator.validate(options.duration, 'number', false);
+        if(options) this.#inputValidator.validate(options.default, 'boolean', false);
+        if(options) this.#inputValidator.validate(options.coordinates, 'string', false);
+        if(options) this.#inputValidator.validate(options.interpolation, 'string', false);
+        this.#logger.error(`Camera ${this.id}: Starting camera path animation.`);
         return this.#camera.animate(path, options);
     }
 
-    public reset(options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
-        // TODO check, doc, etc
+    /**
+     * Reset the camera to its default position and target.
+     * 
+     * @param options various options to be adjusted
+     * @returns 
+     */
+    public reset(options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
+        this.#inputValidator.validate(options, 'object');
+        if(options) this.#inputValidator.validate(options.easing, 'string', false);
+        if(options) this.#inputValidator.validate(options.duration, 'number', false);
+        if(options) this.#inputValidator.validate(options.coordinates, 'string', false);
+        if(options) this.#inputValidator.validate(options.interpolation, 'string', false);
+        this.#logger.error(`Camera ${this.id}: Resetting position and target.`);
         return this.#camera.reset(options);    
     }
 
-    public set(position: vec3, target: vec3, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
-        
-        // TODO check, doc, etc
+    /**
+     * Set the camera to its a specific position and target.
+     * 
+     * @param options various options to be adjusted
+     * @returns 
+     */
+    public set(position: vec3, target: vec3, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
+        this.#inputValidator.validate(position, 'vec3');
+        this.#inputValidator.validate(target, 'vec3');
+        this.#inputValidator.validate(options, 'object');
+        if(options) this.#inputValidator.validate(options.easing, 'string', false);
+        if(options) this.#inputValidator.validate(options.duration, 'number', false);
+        if(options) this.#inputValidator.validate(options.coordinates, 'string', false);
+        if(options) this.#inputValidator.validate(options.interpolation, 'string', false);
+        this.#logger.error(`Camera ${this.id}: Setting position to ${position} and target to ${target}.`);
         return this.#camera.set(vec3.fromValues(position[0], position[1], position[2]), vec3.fromValues(target[0], target[1], target[2]), options);      
     }
     
-    public zoomTo(zoomTarget: string[] | Box | null, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
-        // TODO check, doc, etc
+    /**
+     * Zoom in on a specific part of the scene, or the whole scene (default).
+     * 
+     * @param zoomTarget the target to zoom to
+     * @param options various options to be adjusted
+     * @returns 
+     */
+    public zoomTo(zoomTarget: string[] | Box | null, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
+        if(zoomTarget) {
+            if(Array.isArray(zoomTarget)) {
+                 this.#inputValidator.validate(zoomTarget, 'stringArray');
+            } else if(!(zoomTarget instanceof Box)) {
+                this.#logger.error(`Camera ${this.id}: The specified zoom target does not have a valid type`);
+                return Promise.resolve(false);
+            }
+        }
+        if(options) this.#inputValidator.validate(options.easing, 'string', false);
+        if(options) this.#inputValidator.validate(options.duration, 'number', false);
+        if(options) this.#inputValidator.validate(options.coordinates, 'string', false);
+        if(options) this.#inputValidator.validate(options.interpolation, 'string', false);
+        this.#logger.error(`Camera ${this.id}: Zooming in.`);
         return this.#camera.zoomTo(zoomTarget, options);  
     }
 

@@ -25,14 +25,11 @@ export interface ICamera {
 
     // #region Public Methods (6)
 
-    animate(path: { position: vec3, target: vec3 }[], options: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
-    reset(options: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
-    set(position: vec3, target: vec3, options: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
-    update(time: number): {
-        position: vec3,
-        target: vec3
-    };
-    zoomTo(zoomTarget: string[] | Box | null, options: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    animate(path: { position: vec3, target: vec3 }[], options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    reset(options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    set(position: vec3, target: vec3, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    update(time: number): { position: vec3, target: vec3 };
+    zoomTo(zoomTarget: string[] | Box | null, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
 
     // #endregion Public Methods (6)
 }

@@ -264,7 +264,7 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Public Methods (5)
 
-    public animate(path: { position: vec3; target: vec3; }[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if (path.length === 0) return Promise.resolve(false);
 
         if(!this._controls.isWithinRestrictions(path[path.length-1].position, path[path.length-1].target)) 
@@ -276,7 +276,7 @@ export abstract class AbstractCamera implements ICamera {
         return this._controls.animate(path, options);
     }
 
-    public reset(options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public reset(options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if(vec3.equals(vec3.create(), this.defaultPosition) && vec3.equals(vec3.create(), this.defaultTarget)) {
             return this.zoomTo(null, options);
         } else {
@@ -284,7 +284,7 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    public set(position: vec3, target: vec3, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public set(position: vec3, target: vec3, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if (!this._controls.isWithinRestrictions(position, target))
             return Promise.resolve(false);
         
@@ -306,7 +306,7 @@ export abstract class AbstractCamera implements ICamera {
         return { position, target };
     }
 
-    public zoomTo(zoomTarget: string[] | Box | null, options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public zoomTo(zoomTarget: string[] | Box | null, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         const { position, target} = this.getZoomPositionAndTarget(zoomTarget)
         return this.set(position, target, options);
     }
