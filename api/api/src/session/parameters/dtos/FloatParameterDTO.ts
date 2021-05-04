@@ -2,7 +2,7 @@ import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/v
 import { FloatParameter as FloatParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
-export class FloatParameterDTO implements IParameter<number> {
+export class FloatParameterDTO implements IParameter<number | string> {
     // #region Properties (13)
 
     readonly decimalplaces: number;
@@ -20,7 +20,7 @@ export class FloatParameterDTO implements IParameter<number> {
     displayName?: string;
     hidden: boolean;
     order?: number;
-    value: number;
+    value: number | string;
 
     // #endregion Properties (13)
 

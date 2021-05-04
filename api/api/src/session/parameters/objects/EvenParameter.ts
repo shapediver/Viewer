@@ -4,7 +4,7 @@ import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class EvenParameter extends AbstractParameter<number> {
+export class EvenParameter extends AbstractParameter<number | string> {
     // #region Properties (3)
 
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -46,17 +46,18 @@ export class EvenParameter extends AbstractParameter<number> {
 
     /**
      * The value of the parameter.
-     * @return {number}
+     * @return {number | string}
      */
-    public get value(): number {
+    public get value(): number | string {
         return this.#parameter.value;
     }
 
     /**
      * The value of the parameter.
-     * @param {number} value
+     * @param {number | string} value
      */
-    public set value(value: number) {
+    public set value(value: number | string) {
+        if(typeof value === 'string') value = +value;
         this.#inputValidator.validate(value, 'number');
         this.#parameter.value = value;
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);

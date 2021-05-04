@@ -4,7 +4,7 @@ import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class BooleanParameter extends AbstractParameter<boolean> {
+export class BooleanParameter extends AbstractParameter<boolean | string> {
     // #region Properties (1)
 
     readonly #parameter: BooleanParameterLogic;
@@ -30,17 +30,18 @@ export class BooleanParameter extends AbstractParameter<boolean> {
 
     /**
      * The value of the parameter.
-     * @return {boolean}
+     * @return {boolean | string}
      */
-    public get value(): boolean {
+    public get value(): boolean | string {
         return this.#parameter.value;
     }
 
     /**
      * The value of the parameter.
-     * @param {boolean} value
+     * @param {boolean | string} value
      */
-    public set value(value: boolean) {
+    public set value(value: boolean | string) {
+        if(typeof value === 'string') value = value === 'true';
         this.#inputValidator.validate(value, 'boolean');
         this.#parameter.value = value;
         this.#logger.info(`Parameter (${this.id}) was set to: ${value}`);

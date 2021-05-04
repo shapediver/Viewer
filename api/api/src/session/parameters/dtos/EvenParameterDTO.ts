@@ -2,7 +2,7 @@ import { IParameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "@shapediver/v
 import { EvenParameter as EvenParameterLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseParameterGroup as ParameterGroup, ShapeDiverResponseParameterStructure as ParameterStructure } from "@shapediver/api.geometry-api-dto-v1";
 
-export class EvenParameterDTO implements IParameter<number> {
+export class EvenParameterDTO implements IParameter<number | string> {
     // #region Properties (13)
 
     readonly defval: number;
@@ -19,7 +19,7 @@ export class EvenParameterDTO implements IParameter<number> {
     displayName?: string;
     hidden: boolean;
     order?: number;
-    value: number;
+    value: number | string;
 
     // #endregion Properties (13)
 
