@@ -29,6 +29,7 @@ export class TreeNode {
   #id: string;
   #parent: TreeNode | null = null;
   #transformations: ITransformation[] = [];
+  #excludeViewers: string[] = [];
   #version: string;
 
   // #endregion Properties (10)
@@ -95,6 +96,22 @@ export class TreeNode {
    */
   public get data(): ITreeNodeData[] {
     return this.#data;
+  }
+  
+  /**
+   * Getter excludeViewers
+   * @return {string[]}
+   */
+   public get excludeViewers(): string[] {
+    return this.#excludeViewers;
+  }
+
+  /**
+   * Setter excludeViewers
+   * @param {string[]} value
+   */
+  public set excludeViewers(value: string[]) {
+    this.#excludeViewers = value;
   }
 
   /**

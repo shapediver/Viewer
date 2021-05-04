@@ -183,7 +183,7 @@ export class Api {
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean, id?: string }): Promise<Session> {
+  public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean, id?: string, excludeViewers?: string[] }): Promise<Session> {
     // input validation
     this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.ticket, 'string');
@@ -191,6 +191,7 @@ export class Api {
     this.#inputValidator.validate(properties.bearerToken, 'string', false);
     this.#inputValidator.validate(properties.primarySession, 'boolean', false);
     this.#inputValidator.validate(properties.returnDTOs, 'boolean', false);
+    this.#inputValidator.validate(properties.excludeViewers, 'stringArray', false);
     this.#inputValidator.validate(properties.id, 'string', false);
     
     // check if the given id is valid
@@ -219,7 +220,7 @@ export class Api {
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean, id?: string }): Session {
+  public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean, id?: string, excludeViewers?: string[] }): Session {
     // input validation
     this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.ticket, 'string');
@@ -227,6 +228,7 @@ export class Api {
     this.#inputValidator.validate(properties.bearerToken, 'string', false);
     this.#inputValidator.validate(properties.primarySession, 'boolean', false);
     this.#inputValidator.validate(properties.returnDTOs, 'boolean', false);
+    this.#inputValidator.validate(properties.excludeViewers, 'stringArray', false);
     this.#inputValidator.validate(properties.id, 'string', false);
 
     // check if the given id is valid

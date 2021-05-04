@@ -123,6 +123,8 @@ export class SceneTree {
      * @param obj the current type object
      */
     private updateNode(node: TreeNode, obj: SDObject) {
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
         obj.applyTransformation(node.nodeMatrix);
         node.boundingBox = new Box();
 

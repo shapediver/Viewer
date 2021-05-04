@@ -181,6 +181,7 @@ export class Session implements ISession {
     #returnDTOs: boolean = false;
     #primarySession: boolean = false;
     #primarySessionRequest: boolean = false;
+    #excludeViewers: string[] = [];
 
     // #endregion Properties (14)
 
@@ -189,11 +190,12 @@ export class Session implements ISession {
     /**
      * @ignore
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean }, callbacks: any) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, returnDTOs?: boolean, excludeViewers?: string[] }, callbacks: any) {
         this.#node = new TreeNode(properties.id)
         this.#sessionEngine = new SessionEngine(Object.assign({ buildDate: build_data.build_date, buildVersion: build_data.build_version }, properties));
         this.#stateEngine.createCustomState(this.id + '_settings_registered');
         this.#returnDTOs = properties.returnDTOs || false;
+        this.#excludeViewers = properties.excludeViewers || [];
 
         this.#primarySessionRequest = properties.primarySession !== false;
         if (this.#primarySessionRequest === true) {
@@ -418,6 +420,7 @@ export class Session implements ISession {
         (<Tree>container.resolve(Tree)).removeNode(this.#node);
         this.#node = await this.#sessionEngine.customize();
         (<Tree>container.resolve(Tree)).addNode(this.#node);
+        this.#node.excludeViewers = this.#excludeViewers;
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
         this.#api.update();
         this.#logger.info(`Session (${this.id}): Session customized.`);
@@ -651,6 +654,7 @@ export class Session implements ISession {
     public async init(): Promise<TreeNode> {
         this.#node = await this.#sessionEngine.init();
         (<Tree>container.resolve(Tree)).addNode(this.#node);
+        this.#node.excludeViewers = this.#excludeViewers;
         this.#logger.info(`Session (${this.id}): Session initialized.`);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
 
