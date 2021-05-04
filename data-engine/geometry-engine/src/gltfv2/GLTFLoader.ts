@@ -251,7 +251,7 @@ export class GLTFLoader {
             for (let i = 0, len = mesh.primitives.length; i < len; i++)
                 meshNode.addChild(await this.loadPrimitive(mesh.primitives, i));
 
-        // TODO weights
+        // weights https://shapediver.atlassian.net/browse/SS-2944
         return meshNode;
     }
 
@@ -291,7 +291,7 @@ export class GLTFLoader {
             }
         }
 
-        // TODO camera, skin, weights
+        // camera, skin, weights https://shapediver.atlassian.net/browse/SS-2944
         return nodeDef;
     }
 
@@ -315,8 +315,7 @@ export class GLTFLoader {
             material = await this.loadMaterial(primitive.material);
         
         primitiveNode.data.push(new GeometryData(new PrimitiveData(attributes, primitive.mode, indices, material)));
-        // TODO targets
-
+        // targets https://shapediver.atlassian.net/browse/SS-2944
         return primitiveNode;
     }
 

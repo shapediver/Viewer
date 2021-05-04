@@ -61,7 +61,7 @@ export class OutputLoader {
                 if(outputs[outputID].delay) {
                     maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
                 } else {
-                    // TODO check for overhead
+                    // check for overhead https://shapediver.atlassian.net/browse/SS-2958
                     currentNodes[outputID][outputs[outputID].version] = this.loadOutput(outputID, outputs[outputID]);
                     promises.push(currentNodes[outputID][outputs[outputID].version]);
                 }

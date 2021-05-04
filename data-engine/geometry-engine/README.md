@@ -1,11 +1,1 @@
-# `geometry-engine`
-
-> TODO: description
-
-## Usage
-
-```
-const geometryEngine = require('geometry-engine');
-
-// TODO: DEMONSTRATE API
-```
+# `@shapediver/viewer.data-engine.geometry-engine`

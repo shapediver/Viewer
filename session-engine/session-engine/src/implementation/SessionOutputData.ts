@@ -36,7 +36,7 @@ export class SessionOutputData extends AbstractTreeNodeData {
     // #region Public Methods (1)
 
     public clone(): ITreeNodeData {
-        // TODO real deep copy
+        // real deep copy https://shapediver.atlassian.net/browse/SS-2959
         return new SessionOutputData(this.sessionOutput, this._id);
     }
 

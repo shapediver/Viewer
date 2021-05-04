@@ -62,9 +62,9 @@ export class Api {
 
   /**
    * The scene tree.
-   * Please see TODO for more information.
    */
   public get sceneTree(): Tree {
+    // https://shapediver.atlassian.net/browse/SS-2861
     return <Tree>container.resolve(Tree);
   }
 

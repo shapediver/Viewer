@@ -34,7 +34,7 @@ export class CameraEngine implements ICameraEngine {
         // 4 -> left
         // 5 -> back
         // 6 -> front
-        // FIXME
+        // https://shapediver.atlassian.net/browse/SS-2948
         this._settingsEngine.camera.cameraTypes.active.value;
         for (let c in this._cameras)
             this._cameras[c].applySettings();

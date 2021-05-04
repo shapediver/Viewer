@@ -350,7 +350,7 @@ export class Settings extends BaseSettings {
         (this._settings.viewer.scene.groundPlaneVisibility as ISetting<any>).value = oldSettings.showGroundPlane.value;
         (this._settings.viewer.scene.render.shadows as ISetting<any>).value = oldSettings.showShadows.value;
         
-        // TODO: replace the '1' with the enum, as soon as build process is fixed
+        // https://shapediver.atlassian.net/browse/SS-2948: replace the '1' with the enum, as soon as build process is fixed
         if(oldSettings.topView.value)
             (this._settings.viewer.scene.camera.cameraTypes.active as ISetting<any>).value = 1;
         (this._settings.viewer.scene.camera.zoomExtentsFactor as ISetting<any>).value = oldSettings.zoomExtentFactor.value;
@@ -410,11 +410,11 @@ export class Settings extends BaseSettings {
         (oldSettings.settings.showGrid as ISetting<any>).value = this._settings.viewer.scene.gridVisibility.value;
         (oldSettings.settings.showGroundPlane as ISetting<any>).value = this._settings.viewer.scene.groundPlaneVisibility.value;
         (oldSettings.settings.showShadows as ISetting<any>).value = this._settings.viewer.scene.render.shadows.value;
-        // TODO: replace the '1' with the enum, as soon as build process is fixed
+        // https://shapediver.atlassian.net/browse/SS-2948: replace the '1' with the enum, as soon as build process is fixed
         (oldSettings.settings.topView as ISetting<any>).value = this._settings.viewer.scene.camera.cameraTypes.active.value === 1;
         (oldSettings.settings.zoomExtentFactor as ISetting<any>).value = this._settings.viewer.scene.camera.zoomExtentsFactor.value;
         (oldSettings.settings.zoomSpeed as ISetting<any>).value = this._settings.viewer.scene.camera.controls.orbit.zoomSpeed.value;
-        // TODO compute backgroundColor (used by viewer v1) from clearAlpha and clearColor, requires tinycolor helper functionality
+        // https://shapediver.atlassian.net/browse/SS-2955 compute backgroundColor (used by viewer v1) from clearAlpha and clearColor, requires tinycolor helper functionality
         //let tc = TO_TINY_COLOR(this._settings.viewer.scene.render.clearColor.value);
         //tc.setAlpha(this._settings.viewer.scene.render.clearAlpha.value);
         //(oldSettings.settings.backgroundColor as ISetting<any>).value = '0x' + tc.toHex8();

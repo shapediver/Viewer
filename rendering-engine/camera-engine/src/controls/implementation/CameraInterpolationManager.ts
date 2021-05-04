@@ -121,13 +121,13 @@ export class CameraInterpolationManager {
 
     private optionsParser(options: { default?: boolean, duration?: number, easing?: string|Function, coordinates?: string, interpolation?: string|Function} ): {default: boolean, duration: number, easing: (amount: number) => number, coordinates: string, interpolation: Function }
     {
-
+        // https://shapediver.atlassian.net/browse/SS-2947
         return {
             default: options.default || false,
             duration: options.duration && options.duration >= 0 ? options.duration : 0,
-            easing: TWEEN.Easing.Quartic.InOut,// TODO typeof options.easing === 'string' ? Easing[<typeof Easing>options.easing] TWEEN.Easing.Quartic.InOut : typeof options.easing === 'function' ? options.easing : TWEEN.Easing.Quartic.InOut,
+            easing: TWEEN.Easing.Quartic.InOut,// typeof options.easing === 'string' ? Easing[<typeof Easing>options.easing] TWEEN.Easing.Quartic.InOut : typeof options.easing === 'function' ? options.easing : TWEEN.Easing.Quartic.InOut,
             coordinates: options.coordinates !== 'spherical' && options.coordinates !== 'linear' && options.coordinates !== 'cylindrical' ? 'cylindrical' : options.coordinates, 
-            interpolation: TWEEN.Interpolation.CatmullRom// TODO this._globalUtils.typeCheck(options.interpolation, 'string') ? this._globalUtils.getAtPath(TWEEN.Interpolation, options.interpolation) || TWEEN.Interpolation.CatmullRom : typeof options.interpolation === 'function' ? options.interpolation : TWEEN.Interpolation.CatmullRom
+            interpolation: TWEEN.Interpolation.CatmullRom// this._globalUtils.typeCheck(options.interpolation, 'string') ? this._globalUtils.getAtPath(TWEEN.Interpolation, options.interpolation) || TWEEN.Interpolation.CatmullRom : typeof options.interpolation === 'function' ? options.interpolation : TWEEN.Interpolation.CatmullRom
         };
     }
 

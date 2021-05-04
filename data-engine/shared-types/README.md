@@ -1,11 +1,1 @@
-# `shared-types`
-
-> TODO: description
-
-## Usage
-
-```
-const sharedTypes = require('shared-types');
-
-// TODO: DEMONSTRATE API
-```
+# `@shapediver/viewer.data-engine.shared-types`

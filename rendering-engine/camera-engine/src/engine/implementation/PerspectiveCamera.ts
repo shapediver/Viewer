@@ -97,7 +97,7 @@ export class PerspectiveCamera extends AbstractCamera {
       // specified Box
       box = zoomTarget;
     } else {
-      // TODO scene paths
+      // scene paths https://shapediver.atlassian.net/browse/SS-2951
       box = this._boundingBox;
     }
     const target = vec3.fromValues((box.max[0] - box.min[0]) / 2, (box.max[1] - box.min[1]) / 2, (box.max[2] - box.min[2]) / 2);

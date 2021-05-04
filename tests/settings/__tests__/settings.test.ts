@@ -45,12 +45,12 @@ for (let c = 0; c < allCapabilities.length; c++) {
         });
 
         it('settings', async () => {
-            // TODO build_date
-            // TODO build_version
-            // TODO settings_version
-            // TODO viewer.blurSceneWhenBusy
-            // TODO viewer.scene.showSceneTransition
-            // TODO viewer.scene.camera.active
+            // https://shapediver.atlassian.net/browse/SS-2955 build_date
+            // https://shapediver.atlassian.net/browse/SS-2955 build_version
+            // https://shapediver.atlassian.net/browse/SS-2955 settings_version
+            // https://shapediver.atlassian.net/browse/SS-2955 viewer.blurSceneWhenBusy
+            // https://shapediver.atlassian.net/browse/SS-2955 viewer.scene.showSceneTransition
+            // https://shapediver.atlassian.net/browse/SS-2955 viewer.scene.camera.active
             const settings: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
@@ -79,7 +79,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
                 });
             });
-            // TODO
+            // https://shapediver.atlassian.net/browse/SS-2955
             // expect(Array.isArray(settings.controlOrder)).toBe(true);
             // expect(settings.controlOrder.length).toBe(11);
             // expect(Object.values(settings.controlNames)[0]).toBe('COLOR');

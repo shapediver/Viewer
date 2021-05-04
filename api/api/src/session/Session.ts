@@ -207,7 +207,7 @@ export class Session implements ISession {
                 this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
                 this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
 
-                // TODO also exports
+                // https://shapediver.atlassian.net/browse/SS-2943
                 const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
                 for (let k in controlNames)
                     if(this.getParameters()[k])
@@ -689,7 +689,7 @@ export class Session implements ISession {
         this.#settingsEngine.general.viewer.commitParameters.value = this.#commitParameters;
         this.#settingsEngine.general.viewer.commitSettings.value = this.#commitSettings;
 
-        // TODO also exports
+        // https://shapediver.atlassian.net/browse/SS-2943
         const parameters = this.getParameters();
 
         const controlNames: { [key: string]: string } = {};

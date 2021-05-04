@@ -224,7 +224,7 @@ export class HTMLElementAnchorData extends AbstractTreeNodeData {
      * Clones the scene graph data.
      */
     public clone(): ITreeNodeData {
-        // TODO real deep copy + test
+        // https://shapediver.atlassian.net/browse/SS-2959 real deep copy + test
         return new HTMLElementAnchorData(this.location, this.data, this.format, this.hideable, this.viewers, this.intersectionTarget, this.id);
     }
 

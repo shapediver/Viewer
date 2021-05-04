@@ -153,7 +153,7 @@ export class BeautyRenderer {
 
         const saoIntensity = this._saoPass.params.saoIntensity;
         this._saoPass.params.saoIntensity = percentage * saoIntensity;
-        // TODO if passes changed, adapt
+        // if passes changed, adapt https://shapediver.atlassian.net/browse/SS-2954
         this._renderPass.camera = camera;
         this._saoPass.camera = camera;
         this._ssaaPass.camera = camera;

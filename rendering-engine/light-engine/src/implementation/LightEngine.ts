@@ -119,7 +119,7 @@ export class LightEngine implements ILightEngine {
 
     public applySettings(): void {
 
-        // TODO also save light scenes
+        // https://shapediver.atlassian.net/browse/SS-2952
 
         for (let lightSceneId in this._settings.lightScenes.value) {
             const ls = new LightScene(lightSceneId);

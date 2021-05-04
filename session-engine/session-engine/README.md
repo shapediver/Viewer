@@ -1,11 +1,1 @@
-# `session-engine`
-
-> TODO: description
-
-## Usage
-
-```
-const sessionEngine = require('session-engine');
-
-// TODO: DEMONSTRATE API
-```
+# `@shapediver/viewer.session-engine.session-engine`

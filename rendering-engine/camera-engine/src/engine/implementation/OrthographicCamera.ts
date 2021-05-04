@@ -121,7 +121,7 @@ export class OrthographicCamera extends AbstractCamera {
    }
 
    public getZoomPositionAndTarget(zoomTarget: Box | string[] | null): { position: vec3; target: vec3; } {
-      // TODO  
+      // https://shapediver.atlassian.net/browse/SS-2950  
       throw new Error("Method not implemented.");
    }
 

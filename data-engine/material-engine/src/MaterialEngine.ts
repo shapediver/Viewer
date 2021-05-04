@@ -82,7 +82,7 @@ export class MaterialEngine {
             return node;
         }
 
-        // TODO other formats
+        // other formats https://shapediver.atlassian.net/browse/SS-2946
 
         const material = new MaterialData();
         node.data.push(material);
@@ -92,7 +92,7 @@ export class MaterialEngine {
                 await this.loadPresetMaterial(content.data.materialpreset, material);
 
             if (content.data.materialType && content.data.materialType !== 'standard') {
-                // TODO gem material
+                // gem material https://shapediver.atlassian.net/browse/SS-2946
             } else {
                 if (content.data.version) {
                     if(content.data.version === '1.0')
@@ -225,7 +225,7 @@ export class MaterialEngine {
                 image = await this._imageLoader.load(texture.href!);  
             // } else {
             //     image = await this._imageLoader.load();  
-            //     // TODO canvas
+            //     // canvas https://shapediver.atlassian.net/browse/SS-2946
             // }
         } catch (e) {
             this._logger.error('Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
@@ -358,7 +358,7 @@ export class MaterialEngine {
             if(map) material.alphaMap = map;
         }
 
-        // TODO line material
+        // line material https://shapediver.atlassian.net/browse/SS-2946
     }
 
  
@@ -400,18 +400,18 @@ export class MaterialEngine {
         if(data.alphaThreshold || data.alphaThreshold === 0)
             material.alphaCutoff = data.alphaThreshold;
 
-        // TODO
+        // https://shapediver.atlassian.net/browse/SS-2946
         // if(data.shadowOpacity)
         //     material.shadowOpacity = data.shadowOpacity;
 
-        // TODO
+        // https://shapediver.atlassian.net/browse/SS-2946
         // if(data.lightReflectivity)
         //     material.lightReflectivity = data.lightReflectivity;
 
         if(data.bumpAmplitude || data.bumpAmplitude === 0)
             material.bumpScale = data.bumpAmplitude;
 
-        // TODO threeDNoise
+        // threeDNoise https://shapediver.atlassian.net/browse/SS-2946
 
         if(data.bitmaptexture) {
             const map = await this.loadMapWithProperties(data.bitmaptexture);
@@ -443,7 +443,7 @@ export class MaterialEngine {
             if(map) material.alphaMap = map;
         }
 
-        // TODO line material
+        // line material https://shapediver.atlassian.net/browse/SS-2946
     }
 
     private async loadPresetMaterial(preset: number, material: MaterialData) {

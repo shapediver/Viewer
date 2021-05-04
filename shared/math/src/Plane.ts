@@ -48,6 +48,7 @@ export class Plane implements IGeometry {
     // #region Public Methods (7)
 
     public applyMatrix(matrix: mat4): IGeometry {
+        // https://shapediver.atlassian.net/browse/SS-2960
         throw new Error("Method not implemented.");
     }
 
@@ -61,6 +62,7 @@ export class Plane implements IGeometry {
     }
 
     public containsPoint(point: vec3): boolean {
+        // https://shapediver.atlassian.net/browse/SS-2960
         throw new Error("Method not implemented.");
     }
 

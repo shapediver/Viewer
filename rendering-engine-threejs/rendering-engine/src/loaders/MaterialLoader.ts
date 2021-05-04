@@ -288,7 +288,7 @@ export class MaterialLoader {
         })();
 
         texture.center = new THREE.Vector2(map.center[0], map.center[1]);
-        // TODO color
+        // color https://shapediver.atlassian.net/browse/SS-2953
         // texture.color = new THREE.Color(map.color[0], map.color[1], map.color[2]);
         texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
         texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);

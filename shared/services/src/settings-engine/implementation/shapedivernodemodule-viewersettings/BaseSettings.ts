@@ -79,7 +79,6 @@ export abstract class BaseSettings implements ISettings {
                 if (settingChildren.length !== 0 && settingChildren[0] instanceof Setting) {
                     this._fromJSON(settingsJSON[s], iterable[s].value);
                 } else {
-                    // TODO SS-1484 do type checks
                     if(settingsJSON[s] !== undefined) iterable[s].value = settingsJSON[s];
                 }
             } else {

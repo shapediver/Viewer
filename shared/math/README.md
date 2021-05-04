@@ -1,11 +1,1 @@
-# `math`
-
-> TODO: description
-
-## Usage
-
-```
-const math = require('math');
-
-// TODO: DEMONSTRATE API
-```
+# `@shapediver/viewer.shared.math`

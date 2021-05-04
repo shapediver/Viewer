@@ -1,11 +1,1 @@
-# `light-engine`
-
-> TODO: description
-
-## Usage
-
-```
-const lightEngine = require('light-engine');
-
-// TODO: DEMONSTRATE API
-```
+# `@shapediver/viewer.rendering-engine.light-engine`

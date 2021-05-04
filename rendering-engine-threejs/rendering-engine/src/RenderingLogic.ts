@@ -59,12 +59,12 @@ export class RenderingLogic {
         this._beautyRenderer = new BeautyRenderer(this._renderingEngine, this._renderer, this._renderingEngine.sceneTree.scene)
 
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
-            // TODO, add viewer id, could be another one
+            // https://shapediver.atlassian.net/browse/SS-2956, add viewer id, could be another one
             this._noNeedToRender = false;
             this._beautyRenderer.stopBeautyRenderCountdown();
         })
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
-            // TODO, add viewer id, could be another one
+            // https://shapediver.atlassian.net/browse/SS-2956, add viewer id, could be another one
             this._beautyRenderer.startBeautyRenderCountdown();
         })
 

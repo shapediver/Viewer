@@ -526,7 +526,7 @@ export class RenderingEngine implements IRenderingEngine {
         let sceneExtents = vec3.distance(bb.min, bb.max);
 
         /**
-         * TODO evaluate this magic
+         * https://shapediver.atlassian.net/browse/SS-2961 evaluate this magic
          * 
          * magic begin
          */
@@ -626,7 +626,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     public saveSettings() {
         this._settingsEngine.general.viewer.blurSceneWhenBusy.value = this.blurSceneWhenBusy;
-        // FIXME
+        // https://shapediver.atlassian.net/browse/SS-2955
         // this._settingsEngine.scene.showSceneTransition.value = (this.showSceneTransition / 1000) + 's';
         this._settingsEngine.scene.gridVisibility.value = this.gridVisibility;
         this._settingsEngine.scene.groundPlaneVisibility.value = this.groundPlaneVisibility;
@@ -692,7 +692,7 @@ export class RenderingEngine implements IRenderingEngine {
                 this._settingsEngine.scene.camera.controls.orbit.restrictions.zoom.value = controls.zoomRestriction;
 
             } else {
-                // TODO
+                // https://shapediver.atlassian.net/browse/SS-2955
                 this._settingsEngine.scene.camera.cameraTypes.active.value = 1;
 
                 this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] };
@@ -748,21 +748,21 @@ export class RenderingEngine implements IRenderingEngine {
             if (!e.name || (e.name && e.name !== this._settingsEngine.scene.material.environmentMap.value)) return;
 
             this.environmentMapAsBackground = this._settingsEngine.scene.material.environmentMapAsBackground.value;
-            // TODO
+            // https://shapediver.atlassian.net/browse/SS-2955
             this.ambientOcclusion = this._settingsEngine.scene.render.ambientOcclusion.value;
             this.beautyRenderBlendingDuration = this._settingsEngine.scene.render.beautyRenderBlendingDuration.value;
             this.beautyRenderDelay = this._settingsEngine.scene.render.beautyRenderDelay.value;
-            // TODO
+            // https://shapediver.atlassian.net/browse/SS-2955
             this.blurSceneWhenBusy = this._settingsEngine.general.viewer.blurSceneWhenBusy.value;
             this.clearAlpha = this._settingsEngine.scene.render.clearAlpha.value;
             this.clearColor = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
             this.gridVisibility = this._settingsEngine.scene.gridVisibility.value;
             this.groundPlaneVisibility = this._settingsEngine.scene.groundPlaneVisibility.value;
             this.lightScene = this._settingsEngine.scene.lights.lightScene.value;
-            // TODO
+            // https://shapediver.atlassian.net/browse/SS-2955
             this.pointSize = this._settingsEngine.rendering.pointSize.value;
             this.shadows = this._settingsEngine.scene.render.shadows.value;
-            // FIXME
+            // https://shapediver.atlassian.net/browse/SS-2955
             //this.showSceneTransition = +this._settingsEngine.scene.showSceneTransition.value.replace('s', '') * 1000;
             this._eventEngine.removeListener(token);
             (<LightEngine>this.lightEngine).applySettings();

@@ -183,6 +183,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     }
 
     public applyUpMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void {
+        // https://shapediver.atlassian.net/browse/SS-2949
         throw new Error("Method not implemented.");
     }
 

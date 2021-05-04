@@ -80,7 +80,7 @@ export class Output implements IOutput {
   * @param {OutputPart[] | undefined} value
   */
   public set content(value: OutputPart[] | undefined) {
-    // TODO input validation
+    // https://shapediver.atlassian.net/browse/SS-2942
     this.#output.content = value;
     this.#logger.info(`Output (${this.id}): content was set to: ${value}`);
   }

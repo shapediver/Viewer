@@ -57,7 +57,7 @@ export enum GEOMETRYTYPEHINT {
   VECTOR3F = 'geometry.vector3f',
 }
 
-// TODO
+// https://shapediver.atlassian.net/browse/SS-2957
 export enum RHINOTYPEHINT {
   TEMP = 'temp'
 }

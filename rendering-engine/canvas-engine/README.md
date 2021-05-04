@@ -1,11 +1,1 @@
-# `canvas-engine`
-
-> TODO: description
-
-## Usage
-
-```
-const canvasEngine = require('canvas-engine');
-
-// TODO: DEMONSTRATE API
-```
+# `@shapediver/viewer.rendering-engine.canvas-engine`

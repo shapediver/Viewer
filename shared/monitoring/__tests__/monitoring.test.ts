@@ -14,8 +14,6 @@ describe('logger - test', () => {
         logger.info('a message')
     });
 
-    // TODO to be expanded when there is more than console logging
-
 })
 
 jest.setTimeout(100000);
