@@ -575,8 +575,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param id the id of the camera
    * @returns 
    */
-  public getCamera(id: string): Camera | null {
-    this.#inputValidator.validate(id, 'string');
+  public getCamera(id?: string): Camera | null {
+    this.#inputValidator.validate(id, 'string', false);
     const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
     if(!cameraLogic) return null;
     if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
