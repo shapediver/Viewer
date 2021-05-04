@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
 import * as fs from 'fs';
+import pako from 'pako';
 
 const recursiveReadSync = require('recursive-readdir-sync');
 const { exec } = require("child_process");
@@ -28,9 +29,11 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefixLatest + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
     } catch (e) {

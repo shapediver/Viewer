@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
 import * as fs from 'fs';
+import pako from 'pako';
 
 const recursiveReadSync = require('recursive-readdir-sync');
 const { exec } = require("child_process");
@@ -87,18 +88,22 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefix + 'static/' + f.substring(directoryPathStatic.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
         fileContentsStatic.map(function (f, cb) {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefixLatest + 'static/' + f.substring(directoryPathStatic.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
 
@@ -108,18 +113,22 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefix + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
         fileContentsEmpty.map(function (f, cb) {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefixLatest + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
 
@@ -129,18 +138,22 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefix + 'api/' + f.substring(directoryPathApi.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
         fileContentsApi.map(function (f, cb) {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefixLatest + 'api/' + f.substring(directoryPathApi.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
 
@@ -150,18 +163,22 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefix + f.substring(directoryPathNormal.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
         fileContentsNormal.map(function (f, cb) {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefixLatest + f.substring(directoryPathNormal.length, f.length).replace(/\\/g, '/'),
-                Body: fs.readFileSync(f),
+                Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain'
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
 
