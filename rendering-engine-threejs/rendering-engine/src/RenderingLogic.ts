@@ -20,6 +20,8 @@ export class RenderingLogic {
     private readonly _renderer: THREE.WebGLRenderer;
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
+    private _width: number = 0;
+    private _height: number = 0;
     private _lastTime: number = 0;
     private _noNeedToRender: boolean = false;
 
@@ -36,6 +38,9 @@ export class RenderingLogic {
         THREE.ShaderChunk.shadowmap_pars_fragment = shader;
         THREE.ShaderChunk.normalmap_pars_fragment = normalShader;
 
+        this._width = this._renderingEngine.canvas.canvasElement.width;
+        this._height = this._renderingEngine.canvas.canvasElement.height;
+
         this._renderer = new THREE.WebGLRenderer({
             alpha: true,
             depth: false,
@@ -48,7 +53,7 @@ export class RenderingLogic {
         this._renderer.shadowMap.enabled = true;
         this._renderer.shadowMap.needsUpdate = true;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this._renderer.setSize(this._renderingEngine.canvas.canvasElement.width, this._renderingEngine.canvas.canvasElement.height);
+        this._renderer.setSize(this._width, this._height);
         this._renderer.setClearColor(new THREE.Color('#ffffff'), 1);
 
         this._beautyRenderer = new BeautyRenderer(this._renderingEngine, this._renderer, this._renderingEngine.sceneTree.scene)
@@ -63,7 +68,9 @@ export class RenderingLogic {
             this._beautyRenderer.startBeautyRenderCountdown();
         })
 
-        window.onresize = () => this._noNeedToRender = false;
+        window.onresize = () => { this.render(); };
+        this._renderingEngine.canvas.canvasElement.onresize = () => { this.render(); };
+        this._renderingEngine.canvas.canvasElement.parentElement!.onresize = () => { this.render(); };
 
         this.animate(0);
         this._beautyRenderer.startBeautyRenderCountdown();
@@ -122,6 +129,10 @@ export class RenderingLogic {
         return cameraThree;
     }
 
+    public resize(width: number, height: number) {
+        this._width = width, this._height = height;
+    }
+
     private animate(time: number): void {
         if(this._renderingEngine.closed) return;
         requestAnimationFrame((time: number) => this.animate(time));
@@ -131,8 +142,11 @@ export class RenderingLogic {
 
         if (!this._renderingEngine.cameraEngine.hasCamera()) return;
 
-        let width = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientWidth;
-        let height = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientHeight;
+        let width = this._width, height = this._height;
+        if(this._renderingEngine.automaticResizing) {
+            width = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientWidth;
+            height = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientHeight;
+        }
 
         this._renderingEngine.logoDivElement.style.display = this._renderingEngine.show ? 'none' : 'inherit';
 

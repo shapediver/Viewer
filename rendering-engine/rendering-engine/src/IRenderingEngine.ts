@@ -21,6 +21,7 @@ export interface IRenderingEngine {
 
 
     ambientOcclusion: boolean;
+    automaticResizing: boolean;
     beautyRenderDelay: number;
     blurSceneWhenBusy: boolean;
     clearAlpha: number;
@@ -47,6 +48,7 @@ export interface IRenderingEngine {
      */
     update(): void;
     reset(): void;
+    resize(width: number, height: number): void;
     getScreenshot(type?: string, encoderOptions?: number): string;
 
     // #endregion Public Methods (1)

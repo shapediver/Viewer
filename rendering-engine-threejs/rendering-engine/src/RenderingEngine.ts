@@ -24,7 +24,7 @@ import { GeometryData } from '@shapediver/viewer.shared.types';
 import { Box } from '@shapediver/viewer.shared.math';
 
 export class RenderingEngine implements IRenderingEngine {
-    // #region Properties (39)
+    // #region Properties (41)
 
     private readonly _cameraEngine: CameraEngine;
     private readonly _canvasEngine: CanvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
@@ -45,6 +45,7 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _visibility: VISIBILITYMODE;
 
     private _ambientOcclusion: boolean = true;
+    private _automaticResizing: boolean = true;
     private _beautyRenderBlendingDuration: number = 1500;
     private _beautyRenderDelay: number = 50;
     private _blurSceneWhenBusy: boolean = true;
@@ -55,8 +56,8 @@ export class RenderingEngine implements IRenderingEngine {
     private _environmentMap: string | string[] = 'none';
     private _environmentMapAsBackground: boolean = false;
     private _environmentMapResolution: string = '1024';
-    private _gridObject!: SDObject;
     private _grid!: THREE.GridHelper;
+    private _gridObject!: SDObject;
     private _gridVisibility: boolean = true;
     private _groundPlane!: THREE.Mesh;
     private _groundPlaneObject!: SDObject;
@@ -68,7 +69,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _shadows: boolean = true;
     private _show: boolean = false;
 
-    // #endregion Properties (39)
+    // #endregion Properties (41)
 
     // #region Constructors (1)
 
@@ -156,7 +157,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (46)
+    // #region Public Accessors (44)
 
     /**
      * Getter ambientOcclusion
@@ -172,6 +173,22 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set ambientOcclusion(value: boolean) {
         this._ambientOcclusion = value;
+    }
+
+    /**
+     * Getter automaticResizing
+     * @return {boolean}
+     */
+    public get automaticResizing(): boolean {
+        return this._automaticResizing;
+    }
+
+    /**
+     * Setter automaticResizing
+     * @param {boolean} value
+     */
+    public set automaticResizing(value: boolean) {
+        this._automaticResizing = value;
     }
 
     /**
@@ -345,14 +362,6 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     /**
-     * Getter htmlElementAnchorLoader
-     * @return {HTMLElementAnchorLoader}
-     */
-    public get htmlElementAnchorLoader(): HTMLElementAnchorLoader {
-        return this._htmlElementAnchorLoader;
-    }
-
-    /**
      * Getter gridVisibility
      * @return {boolean}
      */
@@ -384,6 +393,14 @@ export class RenderingEngine implements IRenderingEngine {
     public set groundPlaneVisibility(value: boolean) {
         if (this._groundPlane) this._groundPlane.visible = value;
         this._groundPlaneVisibility = value;
+    }
+
+    /**
+     * Getter htmlElementAnchorLoader
+     * @return {HTMLElementAnchorLoader}
+     */
+    public get htmlElementAnchorLoader(): HTMLElementAnchorLoader {
+        return this._htmlElementAnchorLoader;
     }
 
     /**
@@ -498,9 +515,9 @@ export class RenderingEngine implements IRenderingEngine {
         this._show = value;
     }
 
-    // #endregion Public Accessors (46)
+    // #endregion Public Accessors (44)
 
-    // #region Public Methods (2)
+    // #region Public Methods (9)
 
     public changeSceneExtents(bb: Box) {
         if (vec3.equals(bb.min, vec3.create()) && vec3.equals(bb.max, vec3.create()))
@@ -553,39 +570,14 @@ export class RenderingEngine implements IRenderingEngine {
         this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
     }
 
-    public reset() {
-        this.changeSceneExtents(this._sceneTree.boundingBox)
-        if(this._visibility === VISIBILITYMODE.SESSION) this.show = false;
-        this._stateEngine.getCustomState(this.id + '_settings_loaded').reset();
-    }
-
-    public getScreenshot(type?: string, encoderOptions?: number): string {
-        return this._renderingLogic.getScreenshot(type, encoderOptions);
-    }
-
-    public update(): void {
-        this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
-        this._renderingLogic.render();
-    }
-
-    public trace(origin: vec3, direction: vec3, root: TreeNode = this._tree.root) {
-        const tracingData: { distance: number, data: GeometryData }[] = [];
-        const trace = (root: TreeNode) => {
-            for (let i = 0; i < root.data.length; i++)
-                if (root.data[i] instanceof GeometryData) {
-                    const distance = (<GeometryData>root.data[i]).boundingBox.intersect(origin, direction);
-                    if (distance) tracingData.push({ distance, data: <GeometryData>root.data[i] })
-                }
-            for (let i = 0; i < root.children.length; i++)
-                trace(root.children[i]);
-        }
-        trace(root);
-
-        tracingData.sort((a: { distance: number, data: GeometryData }, b: { distance: number, data: GeometryData }) => {
-            return a.distance - b.distance;
-        })
-
-        return tracingData;
+    public async close(): Promise<boolean> {
+        this._closed = true;
+        this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);
+        this._canvas.canvasElement.parentNode?.removeChild(this._htmlElementAnchorLoader.parentDiv);
+        this._canvas.reset();
+        this._domEventEngine.removeAllDomEventListener();
+        this._domEventEngine.dispose();
+        return true;
     }
 
     public convert3Dto2D(p: vec3): {
@@ -617,54 +609,19 @@ export class RenderingEngine implements IRenderingEngine {
         };
     }
 
-    // #endregion Public Methods (2)
-
-    // #region Private Methods (2)
-
-    private applySettings() {
-
-        // as the environment map is the only thing that needs time to load, load it first
-        const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: any) => {
-            // return if a different env map was loaded
-            if (!e.name || (e.name && e.name !== this._settingsEngine.scene.material.environmentMap.value)) return;
-
-            this.environmentMapAsBackground = this._settingsEngine.scene.material.environmentMapAsBackground.value;
-            // TODO
-            this.ambientOcclusion = this._settingsEngine.scene.render.ambientOcclusion.value;
-            this.beautyRenderBlendingDuration = this._settingsEngine.scene.render.beautyRenderBlendingDuration.value;
-            this.beautyRenderDelay = this._settingsEngine.scene.render.beautyRenderDelay.value;
-            // TODO
-            this.blurSceneWhenBusy = this._settingsEngine.general.viewer.blurSceneWhenBusy.value;
-            this.clearAlpha = this._settingsEngine.scene.render.clearAlpha.value;
-            this.clearColor = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
-            this.gridVisibility = this._settingsEngine.scene.gridVisibility.value;
-            this.groundPlaneVisibility = this._settingsEngine.scene.groundPlaneVisibility.value;
-            this.lightScene = this._settingsEngine.scene.lights.lightScene.value;
-            // TODO
-            this.pointSize = this._settingsEngine.rendering.pointSize.value;
-            this.shadows = this._settingsEngine.scene.render.shadows.value;
-            // FIXME
-            //this.showSceneTransition = +this._settingsEngine.scene.showSceneTransition.value.replace('s', '') * 1000;
-            this._eventEngine.removeListener(token);
-            (<LightEngine>this.lightEngine).applySettings();
-            (<CameraEngine>this.cameraEngine).applySettings();
-            this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
-            this.update();
-        })
-
-        // set it like this to not trigger the loading
-        this._environmentMapResolution = this._settingsEngine.scene.material.environmentMapResolution.value;
-        this.environmentMap = this._settingsEngine.scene.material.environmentMap.value;
+    public getScreenshot(type?: string, encoderOptions?: number): string {
+        return this._renderingLogic.getScreenshot(type, encoderOptions);
     }
 
-    public async close(): Promise<boolean> {
-        this._closed = true;
-        this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);
-        this._canvas.canvasElement.parentNode?.removeChild(this._htmlElementAnchorLoader.parentDiv);
-        this._canvas.reset();
-        this._domEventEngine.removeAllDomEventListener();
-        this._domEventEngine.dispose();
-        return true;
+    public reset() {
+        this.changeSceneExtents(this._sceneTree.boundingBox)
+        if(this._visibility === VISIBILITYMODE.SESSION) this.show = false;
+        this._stateEngine.getCustomState(this.id + '_settings_loaded').reset();
+    }
+
+    public resize(width: number, height: number): void {
+        this._renderingLogic.resize(width, height);
+        this._renderingLogic.render();
     }
 
     public saveSettings() {
@@ -684,7 +641,6 @@ export class RenderingEngine implements IRenderingEngine {
         this._settingsEngine.scene.render.clearColor.value = this.clearColor;
         this._settingsEngine.scene.render.pointSize.value = this.pointSize;
         this._settingsEngine.scene.render.shadows.value = this.shadows;
-
 
         const camera = this.cameraEngine.getCamera();
         if (camera) {
@@ -756,5 +712,69 @@ export class RenderingEngine implements IRenderingEngine {
         }
     }
 
-    // #endregion Private Methods (2)
+    public trace(origin: vec3, direction: vec3, root: TreeNode = this._tree.root) {
+        const tracingData: { distance: number, data: GeometryData }[] = [];
+        const trace = (root: TreeNode) => {
+            for (let i = 0; i < root.data.length; i++)
+                if (root.data[i] instanceof GeometryData) {
+                    const distance = (<GeometryData>root.data[i]).boundingBox.intersect(origin, direction);
+                    if (distance) tracingData.push({ distance, data: <GeometryData>root.data[i] })
+                }
+            for (let i = 0; i < root.children.length; i++)
+                trace(root.children[i]);
+        }
+        trace(root);
+
+        tracingData.sort((a: { distance: number, data: GeometryData }, b: { distance: number, data: GeometryData }) => {
+            return a.distance - b.distance;
+        })
+
+        return tracingData;
+    }
+
+    public update(): void {
+        this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
+        this._renderingLogic.render();
+    }
+
+    // #endregion Public Methods (9)
+
+    // #region Private Methods (1)
+
+    private applySettings() {
+        // as the environment map is the only thing that needs time to load, load it first
+        const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: any) => {
+            // return if a different env map was loaded
+            if (!e.name || (e.name && e.name !== this._settingsEngine.scene.material.environmentMap.value)) return;
+
+            this.environmentMapAsBackground = this._settingsEngine.scene.material.environmentMapAsBackground.value;
+            // TODO
+            this.ambientOcclusion = this._settingsEngine.scene.render.ambientOcclusion.value;
+            this.beautyRenderBlendingDuration = this._settingsEngine.scene.render.beautyRenderBlendingDuration.value;
+            this.beautyRenderDelay = this._settingsEngine.scene.render.beautyRenderDelay.value;
+            // TODO
+            this.blurSceneWhenBusy = this._settingsEngine.general.viewer.blurSceneWhenBusy.value;
+            this.clearAlpha = this._settingsEngine.scene.render.clearAlpha.value;
+            this.clearColor = this._converter.toColor(this._settingsEngine.scene.render.clearColor.value);
+            this.gridVisibility = this._settingsEngine.scene.gridVisibility.value;
+            this.groundPlaneVisibility = this._settingsEngine.scene.groundPlaneVisibility.value;
+            this.lightScene = this._settingsEngine.scene.lights.lightScene.value;
+            // TODO
+            this.pointSize = this._settingsEngine.rendering.pointSize.value;
+            this.shadows = this._settingsEngine.scene.render.shadows.value;
+            // FIXME
+            //this.showSceneTransition = +this._settingsEngine.scene.showSceneTransition.value.replace('s', '') * 1000;
+            this._eventEngine.removeListener(token);
+            (<LightEngine>this.lightEngine).applySettings();
+            (<CameraEngine>this.cameraEngine).applySettings();
+            this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
+            this.update();
+        })
+
+        // set it like this to not trigger the loading
+        this._environmentMapResolution = this._settingsEngine.scene.material.environmentMapResolution.value;
+        this.environmentMap = this._settingsEngine.scene.material.environmentMap.value;
+    }
+
+    // #endregion Private Methods (1)
 }
