@@ -147,7 +147,11 @@ export class RenderingEngine implements IRenderingEngine {
                 })
             })
         }
-        this._stateEngine.primarySettingsRegistered.then(() => setTimeout(() => this.applySettings(), 0));
+        if(this._stateEngine.primarySettingsRegistered.resolved) {
+            this._stateEngine.primarySettingsRegistered.then(() => setTimeout(() => this.applySettings(), 0));
+        } else {
+            this._stateEngine.primarySettingsRegistered.then(() => this.applySettings());
+        }
     }
 
     // #endregion Constructors (1)
