@@ -78,6 +78,7 @@ export enum SESSION {
 export enum VIEWER {
     VIEWER_CREATED = "viewer.created",
     VIEWER_UPDATED = "viewer.updated",
+    VIEWER_CLOSED = "viewer.closed"
 }
 
 export const EVENTTYPE = { 

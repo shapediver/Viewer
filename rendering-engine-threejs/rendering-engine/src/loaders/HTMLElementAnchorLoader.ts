@@ -13,6 +13,10 @@ export class HTMLElementAnchorLoader {
         this._renderingEngine.canvas.canvasElement.parentNode?.appendChild(this._parentDiv);
     }
 
+    public get parentDiv(): HTMLDivElement {
+        return this._parentDiv;
+    }
+
     public load(anchor: HTMLElementAnchorData): void {
         const htmlElement = anchor.createViewerHtmlElement(this._renderingEngine.id);
         if (!htmlElement) return;

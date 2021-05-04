@@ -54,10 +54,12 @@ export class RenderingLogic {
         this._beautyRenderer = new BeautyRenderer(this._renderingEngine, this._renderer, this._renderingEngine.sceneTree.scene)
 
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
+            // TODO, add viewer id, could be another one
             this._noNeedToRender = false;
             this._beautyRenderer.stopBeautyRenderCountdown();
         })
         this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
+            // TODO, add viewer id, could be another one
             this._beautyRenderer.startBeautyRenderCountdown();
         })
 
@@ -121,6 +123,7 @@ export class RenderingLogic {
     }
 
     private animate(time: number): void {
+        if(this._renderingEngine.closed) return;
         requestAnimationFrame((time: number) => this.animate(time));
         TWEEN.update(time);
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;

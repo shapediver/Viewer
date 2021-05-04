@@ -51,6 +51,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _canvas!: Canvas;
     private _clearAlpha: number = 1.0;
     private _clearColor: string = '#ffffff';
+    private _closed: boolean = false;
     private _environmentMap: string | string[] = 'none';
     private _environmentMapAsBackground: boolean = false;
     private _environmentMapResolution: string = '1024';
@@ -146,7 +147,7 @@ export class RenderingEngine implements IRenderingEngine {
                 })
             })
         }
-        this._stateEngine.primarySettingsRegistered.then(() => this.applySettings());
+        this._stateEngine.primarySettingsRegistered.then(() => setTimeout(() => this.applySettings(), 0));
     }
 
     // #endregion Constructors (1)
@@ -263,6 +264,14 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set clearColor(value: string) {
         this._clearColor = value;
+    }
+
+    /**
+     * Getter closed
+     * @return {boolean}
+     */
+    public get closed(): boolean {
+        return this._closed;
     }
 
     /**
@@ -632,7 +641,6 @@ export class RenderingEngine implements IRenderingEngine {
             this.shadows = this._settingsEngine.scene.render.shadows.value;
             // FIXME
             //this.showSceneTransition = +this._settingsEngine.scene.showSceneTransition.value.replace('s', '') * 1000;
-
             this._eventEngine.removeListener(token);
             (<LightEngine>this.lightEngine).applySettings();
             (<CameraEngine>this.cameraEngine).applySettings();
@@ -643,6 +651,16 @@ export class RenderingEngine implements IRenderingEngine {
         // set it like this to not trigger the loading
         this._environmentMapResolution = this._settingsEngine.scene.material.environmentMapResolution.value;
         this.environmentMap = this._settingsEngine.scene.material.environmentMap.value;
+    }
+
+    public async close(): Promise<boolean> {
+        this._closed = true;
+        this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);
+        this._canvas.canvasElement.parentNode?.removeChild(this._htmlElementAnchorLoader.parentDiv);
+        this._canvas.reset();
+        this._domEventEngine.removeAllDomEventListener();
+        this._domEventEngine.dispose();
+        return true;
     }
 
     public saveSettings() {

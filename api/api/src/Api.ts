@@ -21,6 +21,7 @@ export class Api {
   readonly #sessions: { [key: string]: Session } = {};
   readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+  readonly #viewerCallbacks: { [key: string]: { [key: string]: () => any } } = {};
   readonly #viewers: { [key: string]: Viewer } = {};
 
   // #endregion Properties (8)
@@ -143,6 +144,29 @@ export class Api {
   }
 
   /**
+   * Closes the viewer with the specified id.
+   * 
+   * @param id the id of the viewer
+   * @returns 
+   */
+   public async closeViewer(id: string): Promise<boolean> {
+    this.#inputValidator.validate(id, 'string');
+    if(!this.#viewers[id]) {
+      this.#logger.info(`Viewer with id ${id} was not registered`);
+      return false;
+    }
+    const result = await this.#viewerCallbacks[id].close();
+
+    (<any>this.#viewerCallbacks[id]) = undefined;
+    delete this.#viewerCallbacks[id];
+    (<any>this.#viewers[id]) = undefined;
+    delete this.#viewers[id];
+
+    this.#logger.info(`Viewer (${id}): Viewer closed.`);
+    return result;
+  }
+
+  /**
    * Create and initialize a session with the provided ticket and modelViewUrl.
    * An id can be provided. This id can be used to retrieve this object later on.
    * In the case no id has been provided, a unique one will be generated.
@@ -260,11 +284,13 @@ export class Api {
     this.#performanceEvaluator.start('viewer_creation_' + viewerId);
 
     // create the actual viewer
-    const viewer = new Viewer({ id: viewerId, canvas: properties.canvas, visibility: properties.visibility || VISIBILITYMODE.SESSION, type: properties.type || RENDERERTYPE.STANDARD });
+    let viewerCallbacks = {};
+    const viewer = new Viewer({ id: viewerId, canvas: properties.canvas, visibility: properties.visibility || VISIBILITYMODE.SESSION, type: properties.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
     // save the viewer
     this.#viewers[viewerId] = viewer;
+    this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
     // update the viewer with the current scene tree
     viewer.update();

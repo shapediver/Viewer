@@ -43,13 +43,21 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param type 
    * @param canvas 
    */
-  constructor(properties: { id: string, canvas: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }) {
+  constructor(properties: { id: string, canvas: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }, callbacks: any) {
     this.#renderingEngine = new RenderingEngineThreejs(properties);
     container.registerInstance('renderingEngine', this.#renderingEngine);
 
     // default camera
     const camera = this.createCamera(CAMERATYPE.PERSPECTIVE);
     this.assignCamera(camera.id);
+
+    callbacks.close = async (): Promise<boolean> => {
+      const closeResult = await this.#renderingEngine.close();
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, {});
+
+      if(!closeResult) this.#logger.warn(`Viewer (${this.id}): Was not able to close viewer completely, please disregard this viewer.`);
+      return closeResult;
+  } 
   }
 
   // #endregion Constructors (1)

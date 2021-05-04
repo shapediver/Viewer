@@ -36,6 +36,11 @@ export class DomEventEngine {
             delete this._domEventListeners[id];
     }
 
+    public removeAllDomEventListener(): void {
+        for(let id in this._domEventListeners)
+            delete this._domEventListeners[id];
+    }
+
     // #endregion Public Accessors (1)
 
     // #region Public Methods (1)

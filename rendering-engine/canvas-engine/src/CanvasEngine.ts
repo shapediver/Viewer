@@ -35,7 +35,7 @@ export class CanvasEngine {
             const canvasElement = (<HTMLCanvasElement>canvasDefinition);
             if (!canvasElement.id)
                 canvasElement.id = this._uuidGenerator.create();
-            this._canvasDictionary[canvasElement.id] = new Canvas(canvasElement.id, canvasElement);
+            this._canvasDictionary[canvasElement.id] = new Canvas(canvasElement.id, canvasDefinition, canvasElement);
             return this._canvasDictionary[canvasElement.id];
         }
 
@@ -48,17 +48,17 @@ export class CanvasEngine {
 
             if (canvasElement instanceof HTMLCanvasElement) {
                 // id of a canvas was provided
-                this._canvasDictionary[id] = new Canvas(id, canvasElement);
+                this._canvasDictionary[id] = new Canvas(id, canvasDefinition, canvasElement);
                 return this._canvasDictionary[id];
             } else if(!canvasElement) {
                 // no HTMLElement could be found, create Canvas with the id
-                this._canvasDictionary[id] = new Canvas(id);
+                this._canvasDictionary[id] = new Canvas(id, canvasDefinition);
                 return this._canvasDictionary[id];
             }
         }
 
         const id = this._uuidGenerator.create();
-        this._canvasDictionary[id] = new Canvas(id);
+        this._canvasDictionary[id] = new Canvas(id, canvasDefinition);
         return this._canvasDictionary[id];
     }
 
