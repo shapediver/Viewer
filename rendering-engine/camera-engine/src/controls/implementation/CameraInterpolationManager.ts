@@ -7,6 +7,7 @@ import { vec3 } from "gl-matrix";
 import { ICameraControlsUsage } from "../interface/ICameraControlsUsage";
 import { ICamera } from "../../engine/interface/ICamera";
 import { CameraLinearInterpolation } from "./interpolationMethods/CameraLinearInterpolation";
+import { CameraCylindricalInterpolation } from "./interpolationMethods/CameraCylindricalInterpolation";
 
 export class CameraInterpolationManager {
     // #region Properties (3)
@@ -113,7 +114,7 @@ export class CameraInterpolationManager {
             case 'spherical':
                 return new CameraSphericalInterpolation(this._camera, this._cameraControls, from, to);
             case 'cylindrical':
-                return new CameraSphericalInterpolation(this._camera, this._cameraControls, from, to);
+                return new CameraCylindricalInterpolation(this._camera, this._cameraControls, from, to);
             default:
                 return new CameraMultipleInterpolation(this._camera, this._cameraControls, [from, to], TWEEN.Interpolation.CatmullRom);
         }

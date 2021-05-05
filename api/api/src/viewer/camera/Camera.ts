@@ -255,7 +255,7 @@ export abstract class Camera implements ICamera {
         if(options) this.#inputValidator.validate(options.default, 'boolean', false);
         if(options) this.#inputValidator.validate(options.coordinates, 'string', false);
         if(options) this.#inputValidator.validate(options.interpolation, 'string', false);
-        this.#logger.error(`Camera ${this.id}: Starting camera path animation.`);
+        this.#logger.info(`Camera ${this.id}: Starting camera path animation.`);
         return this.#camera.animate(path, options);
     }
 
@@ -271,7 +271,7 @@ export abstract class Camera implements ICamera {
         if(options) this.#inputValidator.validate(options.duration, 'number', false);
         if(options) this.#inputValidator.validate(options.coordinates, 'string', false);
         if(options) this.#inputValidator.validate(options.interpolation, 'string', false);
-        this.#logger.error(`Camera ${this.id}: Resetting position and target.`);
+        this.#logger.info(`Camera ${this.id}: Resetting position and target.`);
         return this.#camera.reset(options);    
     }
 
@@ -289,7 +289,7 @@ export abstract class Camera implements ICamera {
         if(options) this.#inputValidator.validate(options.duration, 'number', false);
         if(options) this.#inputValidator.validate(options.coordinates, 'string', false);
         if(options) this.#inputValidator.validate(options.interpolation, 'string', false);
-        this.#logger.error(`Camera ${this.id}: Setting position to ${position} and target to ${target}.`);
+        this.#logger.info(`Camera ${this.id}: Setting position to ${position} and target to ${target}.`);
         return this.#camera.set(vec3.fromValues(position[0], position[1], position[2]), vec3.fromValues(target[0], target[1], target[2]), options);      
     }
     
@@ -313,7 +313,7 @@ export abstract class Camera implements ICamera {
         if(options) this.#inputValidator.validate(options.duration, 'number', false);
         if(options) this.#inputValidator.validate(options.coordinates, 'string', false);
         if(options) this.#inputValidator.validate(options.interpolation, 'string', false);
-        this.#logger.error(`Camera ${this.id}: Zooming in.`);
+        this.#logger.info(`Camera ${this.id}: Zooming in.`);
         return this.#camera.zoomTo(zoomTarget, options);  
     }
 

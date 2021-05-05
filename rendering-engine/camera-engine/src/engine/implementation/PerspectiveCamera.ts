@@ -91,22 +91,23 @@ export class PerspectiveCamera extends AbstractCamera {
     // Part 1 - calculate the bounding box that we should zoom to
     if (!zoomTarget) {
       // complete scene
-      box = this._boundingBox;
+      box = this._boundingBox.clone();
     } else if (zoomTarget instanceof Box) {
       // specified Box
       box = zoomTarget;
     } else {
       // scene paths https://shapediver.atlassian.net/browse/SS-2951
-      box = this._boundingBox;
+      box = this._boundingBox.clone();
     }
-    const target = vec3.fromValues((box.max[0] - box.min[0]) / 2, (box.max[1] - box.min[1]) / 2, (box.max[2] - box.min[2]) / 2);
+
+    let target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
 
     // extend box by the factor
     const boxDir = vec3.subtract(vec3.create(), box.max, target)
     vec3.multiply(boxDir, boxDir, vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
     box = new Box(vec3.subtract(vec3.create(), target, boxDir), vec3.add(vec3.create(), target, boxDir))
 
-    const direction = vec3.subtract(vec3.create(), target, this.position);
+    const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), target, this.position));
 
     let cross = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), vec3.fromValues(0, 0, 1), direction));
     let up = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), cross, direction));
@@ -151,9 +152,10 @@ export class PerspectiveCamera extends AbstractCamera {
       }
 
       projected = planeUp.clampPoint(points[i]);
+      toP = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), projected, position));
 
       if (vec3.dot(direction, fovRight) > vec3.dot(direction, toP)) {
-        const currentDir = vec3.multiply(vec3.create(), vec3.dot(fovRight, toP) > vec3.dot(fovLeft, toP) ? fovLeft : fovUp, vec3.fromValues(-1, -1, -1));
+        const currentDir = vec3.multiply(vec3.create(), vec3.dot(fovRight, toP) > vec3.dot(fovLeft, toP) ? fovRight : fovLeft, vec3.fromValues(-1, -1, -1));
         const distance = planeCross.intersect(projected, currentDir)
         if (distance) {
           const cameraPoint = vec3.add(vec3.create(), vec3.multiply(vec3.create(), currentDir, vec3.fromValues(distance, distance, distance)), projected);
