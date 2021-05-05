@@ -35,7 +35,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
         });
         
         afterEach(async () => {
-            await driver.quit();
+            await driver.close();
         });
         
         test(name + '_positioning', async () => {
