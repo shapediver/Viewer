@@ -149,6 +149,7 @@ export class RenderingLogic {
         }
 
         this._renderingEngine.logoDivElement.style.display = this._renderingEngine.show ? 'none' : 'inherit';
+        this._renderingEngine.canvas.canvasElement.style.display = !this._renderingEngine.show ? 'none' : 'inherit';
 
         const camera = this.adjustCamera(deltaTime, width, height);
 
