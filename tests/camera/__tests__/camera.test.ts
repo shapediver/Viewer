@@ -222,7 +222,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer');
-                await viewer.getCamera()!.zoomTo(null, {});
+                await viewer.getCamera()!.zoomTo();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
