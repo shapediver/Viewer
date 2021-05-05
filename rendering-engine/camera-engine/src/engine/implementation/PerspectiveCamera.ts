@@ -76,17 +76,16 @@ export class PerspectiveCamera extends AbstractCamera {
     let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target);
     this.defaultPosition = vec3.clone(position);
     this.defaultTarget = vec3.clone(target);
-    if (vec3.equals(position, target)) {
-      position = vec3.fromValues(0, 1, 0);
-      target = vec3.create();
-    }
+    if (vec3.equals(position, target))
+      this.zoomTo([], { duration: 0 });
+      
     this.position = position;
     this.target = target;
     this.fov = this._settingsEngine.camera.cameraTypes.perspective.fov.value;
     (<PerspectiveCameraControls>this._controls).applySettings();
   }
 
-  public getZoomPositionAndTarget(zoomTarget: string[] | Box | null): { position: vec3, target: vec3 } {
+  public getZoomPositionAndTarget(zoomTarget?: string[] | Box): { position: vec3, target: vec3 } {
     let box: Box;
 
     // Part 1 - calculate the bounding box that we should zoom to

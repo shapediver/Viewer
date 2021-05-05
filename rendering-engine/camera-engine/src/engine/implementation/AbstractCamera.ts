@@ -278,7 +278,7 @@ export abstract class AbstractCamera implements ICamera {
 
     public reset(options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if(vec3.equals(vec3.create(), this.defaultPosition) && vec3.equals(vec3.create(), this.defaultTarget)) {
-            return this.zoomTo(null, options);
+            return this.zoomTo([], options);
         } else {
             return this.set(vec3.clone(this.defaultPosition), vec3.clone(this.defaultTarget), options);
         }
@@ -306,7 +306,7 @@ export abstract class AbstractCamera implements ICamera {
         return { position, target };
     }
 
-    public zoomTo(zoomTarget: string[] | Box | null, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public zoomTo(zoomTarget?: string[] | Box, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         const { position, target} = this.getZoomPositionAndTarget(zoomTarget)
         return this.set(position, target, options);
     }
@@ -315,7 +315,7 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Public Abstract Methods (2)
 
-    abstract getZoomPositionAndTarget(zoomTarget: string[] | Box | null): { position: vec3; target: vec3; };
+    abstract getZoomPositionAndTarget(zoomTarget?: string[] | Box): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
     abstract applySettings(): void;
 

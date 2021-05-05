@@ -111,16 +111,15 @@ export class OrthographicCamera extends AbstractCamera {
       let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.target);
       this.defaultPosition = vec3.clone(position);
       this.defaultTarget = vec3.clone(target);
-      if (vec3.equals(position, target)) {
-         position = vec3.fromValues(0, 1, 0);
-         target = vec3.create();
-      }
+      if (vec3.equals(position, target))
+         this.zoomTo([], { duration: 0 });
+
       this.position = position;
       this.target = target;
       (<OrthographicCameraControls>this._controls).applySettings();
    }
 
-   public getZoomPositionAndTarget(zoomTarget: Box | string[] | null): { position: vec3; target: vec3; } {
+   public getZoomPositionAndTarget(zoomTarget?: Box | string[]): { position: vec3; target: vec3; } {
       // https://shapediver.atlassian.net/browse/SS-2950  
       throw new Error("Method not implemented.");
    }

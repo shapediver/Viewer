@@ -300,7 +300,7 @@ export abstract class Camera implements ICamera {
      * @param options various options to be adjusted
      * @returns 
      */
-    public zoomTo(zoomTarget: string[] | Box | null, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
+    public zoomTo(zoomTarget?: string[] | Box, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         if(zoomTarget) {
             if(Array.isArray(zoomTarget)) {
                  this.#inputValidator.validate(zoomTarget, 'stringArray');

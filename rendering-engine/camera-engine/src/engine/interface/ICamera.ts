@@ -29,7 +29,7 @@ export interface ICamera {
     reset(options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
     set(position: vec3, target: vec3, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
     update(time: number): { position: vec3, target: vec3 };
-    zoomTo(zoomTarget: string[] | Box | null, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    zoomTo(zoomTarget?: string[] | Box, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
 
     // #endregion Public Methods (6)
 }
