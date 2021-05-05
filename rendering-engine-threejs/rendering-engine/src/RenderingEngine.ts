@@ -625,6 +625,8 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     public saveSettings() {
+        (<LightEngine>this.lightEngine).saveSettings();
+
         this._settingsEngine.general.viewer.blurSceneWhenBusy.value = this.blurSceneWhenBusy;
         // https://shapediver.atlassian.net/browse/SS-2955
         // this._settingsEngine.scene.showSceneTransition.value = (this.showSceneTransition / 1000) + 's';

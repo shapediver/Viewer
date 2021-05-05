@@ -1,6 +1,5 @@
 import { container, singleton } from "tsyringe"
 import { vec3 } from "gl-matrix";
-import { ILight, ILightEngine } from "..";
 import { AmbientLight } from "./types/AmbientLight";
 import { DirectionalLight } from "./types/DirectionalLight";
 import { HemisphereLight } from "./types/HemisphereLight";
@@ -10,17 +9,18 @@ import { UuidGenerator, Converter } from '@shapediver/viewer.shared.utils';
 import { StateEngine, SettingsEngine } from "@shapediver/viewer.shared.services"
 import { LightScene } from "./LightScene";
 import { AbstractLight } from "./AbstractLight";
+import { ILightEngine } from "../interface/ILightEngine";
+import { ILight, LIGHTTYPE } from "../interface/ILight";
 
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
 
     private _currentLightScene!: LightScene;
     private _lightScenes: { [key: string]: LightScene; } = {};
-    private _settings = (<SettingsEngine>container.resolve(SettingsEngine)).lights;
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
     // #endregion Properties (6)
 
@@ -117,29 +117,108 @@ export class LightEngine implements ILightEngine {
         return true;
     }
 
+    public saveSettings() {
+        this._settingsEngine.lights.lightScene.value = this.getLightScene();
+        const converted: {
+            [key: string]: {
+                id: string,
+                lights: {
+                    [key: string]: {
+                        id: string, 
+                        type: LIGHTTYPE,
+                        properties: any
+                    }
+                }
+            }
+        } = {};
+        for(let lightSceneId in this._lightScenes) {
+            const lightScene = this._lightScenes[lightSceneId];
+            converted[lightSceneId] = {
+                id: lightSceneId,
+                lights: {}
+            };
+            for(let lightId in lightScene.lights) {
+                const light = lightScene.lights[lightId];
+                const lightReference = light.name || light.id;
+                converted[lightSceneId].lights[lightReference] = {
+                    id: lightReference,
+                    type: light.type,
+                    properties: {}
+                }
+                switch (light.type) {
+                    case LIGHTTYPE.DIRECTIONAL:
+                        converted[lightSceneId].lights[lightReference].properties = {
+                            color: light.color,
+                            intensity: light.intensity,
+                            direction: { x: (<DirectionalLight>light).direction[0], y: (<DirectionalLight>light).direction[1], z: (<DirectionalLight>light).direction[2] },
+                            castShadow: (<DirectionalLight>light).castShadow,
+                            shadowMapResolution: (<DirectionalLight>light).shadowMapResolution,
+                            shadowMapBias: (<DirectionalLight>light).shadowMapBias
+                        }
+                        break;
+                    case LIGHTTYPE.HEMISPHERE:
+                        converted[lightSceneId].lights[lightReference].properties = {
+                            skyColor: light.color,
+                            intensity: light.intensity,
+                            groundColor: (<HemisphereLight>light).groundColor
+                        }
+                        break;
+                    case LIGHTTYPE.POINT:
+                        converted[lightSceneId].lights[lightReference].properties = {
+                            color: light.color,
+                            intensity: light.intensity,
+                            position: { x: (<PointLight>light).position[0], y: (<PointLight>light).position[1], z: (<PointLight>light).position[2] },
+                            distance: (<PointLight>light).distance,
+                            decay: (<PointLight>light).decay
+                        }
+                        break;
+                    case LIGHTTYPE.SPOT:
+                        converted[lightSceneId].lights[lightReference].properties = {
+                            color: light.color,
+                            intensity: light.intensity,
+                            position: { x: (<SpotLight>light).position[0], y: (<SpotLight>light).position[1], z: (<SpotLight>light).position[2] },
+                            target: { x: (<SpotLight>light).target[0], y: (<SpotLight>light).target[1], z: (<SpotLight>light).target[2] },
+                            distance: (<SpotLight>light).distance,
+                            decay: (<SpotLight>light).decay,
+                            angle: (<SpotLight>light).angle,
+                            penumbra: (<SpotLight>light).penumbra
+                        }
+                        break;
+                    case LIGHTTYPE.AMBIENT:
+                    default:
+                        converted[lightSceneId].lights[lightReference].properties = {
+                            color: light.color,
+                            intensity: light.intensity
+                        }
+                }
+            }
+        }
+        this._settingsEngine.lights.lightScenes.value = converted;
+    }
+
     public applySettings(): void {
+        this._lightScenes = {};
 
-        // https://shapediver.atlassian.net/browse/SS-2952
-
-        for (let lightSceneId in this._settings.lightScenes.value) {
+        console.log(this._settingsEngine.lights.lightScenes.value)
+        for (let lightSceneId in this._settingsEngine.lights.lightScenes.value) {
             const ls = new LightScene(lightSceneId);
-            for (let lightId in this._settings.lightScenes.value[lightSceneId].lights) {
-                const light = this._settings.lightScenes.value[lightSceneId].lights[lightId];
+            for (let lightId in this._settingsEngine.lights.lightScenes.value[lightSceneId].lights) {
+                const light = this._settingsEngine.lights.lightScenes.value[lightSceneId].lights[lightId];
                 let l: AbstractLight;
                 switch (light.type) {
-                    case 'directional':
+                    case LIGHTTYPE.DIRECTIONAL:
                         l = new DirectionalLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.direction), light.properties.castShadow, 1024, -0.00175, lightId);
                         break;
-                    case 'hemisphere':
+                    case LIGHTTYPE.HEMISPHERE:
                         l = new HemisphereLight(this._converter.toColor(light.properties.skyColor), light.properties.intensity, this._converter.toColor(light.properties.groundColor), lightId);
                         break;
-                    case 'point':
+                    case LIGHTTYPE.POINT:
                         l = new PointLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), light.properties.distance, light.properties.decay, lightId);
                         break;
-                    case 'spot':
+                    case LIGHTTYPE.SPOT:
                         l = new SpotLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), this._converter.toVec3(light.properties.target), light.properties.distance, light.properties.decay, light.properties.angle, light.properties.penumbra, lightId);
                         break;
-                    case 'ambient':
+                    case LIGHTTYPE.AMBIENT:
                     default:
                         l = new AmbientLight(this._converter.toColor(light.properties.color), light.properties.intensity, lightId);
                 }
@@ -148,8 +227,11 @@ export class LightEngine implements ILightEngine {
             this._lightScenes[ls.id] = ls;
         }
 
-        if (this._settings.lightScene.value)
-            this.assignLightScene(this._settings.lightScene.value)
+        if (!this.getLightScenes().includes('default'))
+            this.createLightScene({ id: 'default', standard: true });
+
+        if (this._settingsEngine.lights.lightScene.value)
+            this.assignLightScene(this._settingsEngine.lights.lightScene.value)
     }
 
     // #endregion Public Methods (14)

@@ -376,6 +376,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addAmbientLight(properties: { color: string | number | vec3, intensity: number, id?: string }): AmbientLight {
+    this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.color, 'color');
     this.#inputValidator.validate(properties.intensity, 'positive');
     this.#inputValidator.validate(properties.id, 'string', false);
@@ -401,6 +402,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addDirectionalLight(properties: { color: string | number | vec3, intensity: number, direction: vec3, castShadow: boolean, shadowMapResolution: number, shadowMapBias: number, id?: string }): DirectionalLight {
+    this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.color, 'color');
     this.#inputValidator.validate(properties.intensity, 'positive');
     this.#inputValidator.validate(properties.id, 'string', false);
@@ -427,6 +429,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addHemisphereLight(properties: { color: string | number | vec3, intensity: number, groundColor: string | number | vec3, id?: string }): HemisphereLight {
+    this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.color, 'color');
     this.#inputValidator.validate(properties.intensity, 'positive');
     this.#inputValidator.validate(properties.id, 'string', false);
@@ -452,6 +455,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addPointLight(properties: { color: string | number | vec3, intensity: number, position: vec3, distance: number, decay: number, id?: string }): PointLight {
+    this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.color, 'color');
     this.#inputValidator.validate(properties.intensity, 'positive');
     this.#inputValidator.validate(properties.id, 'string', false);
@@ -482,6 +486,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addSpotLight(properties: { color: string | number | vec3, intensity: number, position: vec3, target: vec3, distance: number, decay: number, angle: number, penumbra: number, id?: string }): SpotLight {
+    this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.color, 'color');
     this.#inputValidator.validate(properties.intensity, 'positive');
     this.#inputValidator.validate(properties.id, 'string', false);
