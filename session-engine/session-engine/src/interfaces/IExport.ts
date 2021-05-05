@@ -9,6 +9,10 @@ export enum EXPORTTYPE {
 export interface IExport {
     // #region Public Methods (1)
 
+    hidden: boolean;
+    displayName?: string;
+    order?: number;
+
     request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport | ShapeDiverResponseExportDefinition | null>;
 
     // #endregion Public Methods (1)

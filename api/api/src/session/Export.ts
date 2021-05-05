@@ -1,11 +1,13 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinition, ShapeDiverResponseExportPart, ShapeDiverResponseExportResult as ExportResult } from "@shapediver/api.geometry-api-dto-v1";
 import { IExport, Export as ExportLogic, EXPORTTYPE } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
 export class Export implements IExport {
   // #region Properties (2)
 
+  readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #export: ExportLogic;
   readonly #logger: Logger = <Logger>container.resolve(Logger);
 
@@ -49,6 +51,24 @@ export class Export implements IExport {
   }
 
   /**
+   * Getter displayName
+   * @return {string | undefined}
+   */
+   public get displayName(): string | undefined {
+		return this.#export.displayName;
+	}
+
+  /**
+   * Setter displayName
+   * @param {string | undefined} value
+   */
+  public set displayName(value: string | undefined) {
+    this.#inputValidator.validate(value, 'string', false);
+    this.#export.displayName = value;
+    this.#logger.info(`Parameter (${this.id}) displayName was set to: ${value}`);
+	}
+
+  /**
    * The filename of the export.
    * 
    * @return {string | undefined}
@@ -56,6 +76,24 @@ export class Export implements IExport {
   public get filename(): string | undefined {
     return this.#export.filename;
   }
+
+  /**
+   * Getter hidden
+   * @return {boolean}
+   */
+  public get hidden(): boolean {
+		return this.#export.hidden;
+	}
+
+  /**
+     * Setter hidden
+     * @param {boolean} value
+     */
+  public set hidden(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
+    this.#export.hidden = value;
+    this.#logger.info(`Parameter (${this.id}) hidden was set to: ${value}`);
+	}
 
   /**
    * The id of the export.
@@ -83,6 +121,24 @@ export class Export implements IExport {
   public get name(): string | undefined {
     return this.#export.name;
   }
+
+  /**
+     * Getter order
+     * @return {number | undefined}
+     */
+  public get order(): number | undefined {
+		return this.#export.order;
+	}
+
+  /**
+     * Setter order
+     * @param {number | undefined} value
+     */
+  public set order(value: number | undefined) {
+    this.#inputValidator.validate(value, 'number', false);
+    this.#export.order = value;
+    this.#logger.info(`Parameter (${this.id}) order was set to: ${value}`);
+	}
 
   /**
    * The result of the export.

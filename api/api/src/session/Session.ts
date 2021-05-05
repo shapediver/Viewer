@@ -207,21 +207,29 @@ export class Session implements ISession {
                 this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
                 this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
 
-                // https://shapediver.atlassian.net/browse/SS-2943
                 const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
-                for (let k in controlNames)
+                for (let k in controlNames) {
                     if(this.getParameters()[k])
                         this.getParameter(k)!.displayName = controlNames[k];
+                    if(this.getExports()[k])
+                        this.getExport(k)!.displayName = controlNames[k];
+                }
 
                 const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
-                for (let i = 0; i < controlOrder.length; i++)
+                for (let i = 0; i < controlOrder.length; i++) {
                     if(this.getParameters()[controlOrder[i]])
                         this.getParameter(controlOrder[i])!.order = i;
+                    if(this.getExports()[controlOrder[i]])
+                        this.getExport(controlOrder[i])!.order = i;
+                }
 
                 const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
-                for (let i = 0; i < parametersHidden.length; i++)
+                for (let i = 0; i < parametersHidden.length; i++) {
                     if(this.getParameters()[parametersHidden[i]])
-                        this.getParameter(parametersHidden[i])!.hidden = true;
+                        this.getParameter(parametersHidden[i])!.hidden = true;                
+                    if(this.getExports()[parametersHidden[i]])
+                        this.getExport(parametersHidden[i])!.hidden = true;       
+                }
             })
         }
         
@@ -689,24 +697,30 @@ export class Session implements ISession {
         this.#settingsEngine.general.viewer.commitParameters.value = this.#commitParameters;
         this.#settingsEngine.general.viewer.commitSettings.value = this.#commitSettings;
 
-        // https://shapediver.atlassian.net/browse/SS-2943
         const parameters = this.getParameters();
+        const exports = this.getExports();
 
-        const controlNames: { [key: string]: string } = {};
+        const displayNames: { [key: string]: string } = {};
         for (let p in parameters)
             if (parameters[p].displayName)
-                controlNames[p] = parameters[p].displayName!;
-        this.#settingsEngine.general.parameters.controlNames.value = controlNames;
+                displayNames[p] = parameters[p].displayName!;
+        for (let e in exports)
+            if (exports[e].displayName)
+                displayNames[e] = exports[e].displayName!;
+        this.#settingsEngine.general.parameters.controlNames.value = displayNames;
 
-        const parametersOrdered: IParameter<any>[] = [];
-        for (let p in parameters) parametersOrdered.push(parameters[p]);
-        parametersOrdered.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
-        this.#settingsEngine.general.parameters.controlOrder.value = parametersOrdered.map((value) => { return value.id; });
+        const ordered: (IParameter<any>|Export)[] = [];
+        for (let p in parameters) ordered.push(parameters[p]);
+        for (let e in exports) ordered.push(exports[e]);
+        ordered.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
+        this.#settingsEngine.general.parameters.controlOrder.value = ordered.map((value) => { return value.id; });
 
-        const parametersHidden: string[] = [];
+        const hidden: string[] = [];
         for (let p in parameters)
-            if (parameters[p].hidden) parametersHidden.push(p);
-        this.#settingsEngine.general.parameters.parametersHidden.value = parametersHidden;
+            if (parameters[p].hidden) hidden.push(p);
+        for (let e in exports)
+            if (exports[e].hidden) hidden.push(e);
+        this.#settingsEngine.general.parameters.parametersHidden.value = hidden;
 
         this.#settingsEngine.general.build_version.value = build_data.build_version;
         this.#settingsEngine.general.build_date.value = build_data.build_date;

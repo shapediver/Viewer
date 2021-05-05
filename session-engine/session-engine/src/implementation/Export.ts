@@ -11,6 +11,10 @@ export class Export implements IExport, ShapeDiverResponseExport {
   private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
+  private _displayName?: string;
+  private _hidden: boolean;
+  private _order?: number;
+
   // #endregion Properties (2)
 
   // #region Constructors (1)
@@ -19,7 +23,9 @@ export class Export implements IExport, ShapeDiverResponseExport {
     private readonly _mySession: Session,
     private readonly _id: string,
     private _exportDefinition: ShapeDiverResponseExport | ShapeDiverResponseExportDefinition
-  ) { }
+  ) {    
+    this._hidden = false;
+  }
 
   // #endregion Constructors (1)
 
@@ -50,11 +56,43 @@ export class Export implements IExport, ShapeDiverResponseExport {
   }
 
   /**
+   * Getter displayName
+   * @return {string | undefined}
+   */
+  public get displayName(): string | undefined {
+    return this._displayName;
+  }
+
+  /**
+   * Setter displayName
+   * @param {string | undefined} value
+   */
+  public set displayName(value: string | undefined) {
+    this._displayName = value;
+  }
+
+  /**
    * Getter filename
    * @return {string | undefined}
    */
   public get filename(): string | undefined {
     return (<ShapeDiverResponseExport>this._exportDefinition).filename;
+  }
+
+  /**
+   * Getter hidden
+   * @return {boolean}
+   */
+  public get hidden(): boolean {
+    return this._hidden;
+  }
+
+  /**
+   * Setter hidden
+   * @param {boolean} value
+   */
+  public set hidden(value: boolean) {
+    this._hidden = value;
   }
 
   /**
@@ -81,6 +119,22 @@ export class Export implements IExport, ShapeDiverResponseExport {
     return this._exportDefinition.name;
   }
 
+  /**
+   * Getter order
+   * @return {number | undefined}
+   */
+  public get order(): number | undefined {
+    return this._order;
+  }
+
+  /**
+   * Setter order
+   * @param {number | undefined} value
+   */
+  public set order(value: number | undefined) {
+    this._order = value;
+  }
+  
   /**
    * Getter result
    * @return {ShapeDiverResponseExportResult | undefined}
