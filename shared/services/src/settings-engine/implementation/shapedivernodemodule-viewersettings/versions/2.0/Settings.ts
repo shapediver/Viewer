@@ -414,10 +414,7 @@ export class Settings extends BaseSettings {
         (oldSettings.settings.topView as ISetting<any>).value = this._settings.viewer.scene.camera.cameraTypes.active.value === 1;
         (oldSettings.settings.zoomExtentFactor as ISetting<any>).value = this._settings.viewer.scene.camera.zoomExtentsFactor.value;
         (oldSettings.settings.zoomSpeed as ISetting<any>).value = this._settings.viewer.scene.camera.controls.orbit.zoomSpeed.value;
-        // https://shapediver.atlassian.net/browse/SS-2955 compute backgroundColor (used by viewer v1) from clearAlpha and clearColor, requires tinycolor helper functionality
-        //let tc = TO_TINY_COLOR(this._settings.viewer.scene.render.clearColor.value);
-        //tc.setAlpha(this._settings.viewer.scene.render.clearAlpha.value);
-        //(oldSettings.settings.backgroundColor as ISetting<any>).value = '0x' + tc.toHex8();
+        (oldSettings.settings.backgroundColor as ISetting<any>).value = this._settings.viewer.scene.render.clearColor.value;
 
         return oldSettings;
     }

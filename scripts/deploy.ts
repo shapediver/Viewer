@@ -107,12 +107,12 @@ const execPromise = (cmd: string) => {
             }, (err) => { if (err) console.log(err) });
         });
 
-        const directoryPathEmpty = 'examples/empty/dist-prod/';
-        const fileContentsEmpty = <string[]>recursiveReadSync(directoryPathEmpty);
-        fileContentsEmpty.map(function (f, cb) {
+        const directoryPathTest = 'examples/test/dist-prod/';
+        const fileContentsTest = <string[]>recursiveReadSync(directoryPathTest);
+        fileContentsTest.map(function (f, cb) {
             s3.putObject({
                 Bucket: bucketName,
-                Key: prefix + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
+                Key: prefix + 'test/' + f.substring(directoryPathTest.length, f.length).replace(/\\/g, '/'),
                 Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
@@ -120,10 +120,10 @@ const execPromise = (cmd: string) => {
                 ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
-        fileContentsEmpty.map(function (f, cb) {
+        fileContentsTest.map(function (f, cb) {
             s3.putObject({
                 Bucket: bucketName,
-                Key: prefixLatest + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
+                Key: prefixLatest + 'test/' + f.substring(directoryPathTest.length, f.length).replace(/\\/g, '/'),
                 Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',

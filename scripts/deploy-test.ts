@@ -17,18 +17,18 @@ const execPromise = (cmd: string) => {
 (async () => {
     try {
         console.log(await execPromise('npm run build-current'));
-        console.log(await execPromise('cd examples/empty && npm run build-prod && cd ../..'));
+        console.log(await execPromise('cd examples/test && npm run build-prod && cd ../..'));
 
         const bucketName = 'shapediverviewer';
         const prefixLatest = 'v3/latest/';
         const s3 = new AWS.S3({ maxRetries: 5 });
 
-        const directoryPathEmpty = 'examples/empty/dist-prod/';
-        const fileContentsEmpty = <string[]>recursiveReadSync(directoryPathEmpty);
-        fileContentsEmpty.map(function (f, cb) {
+        const directoryPathTest = 'examples/test/dist-prod/';
+        const fileContentsTest = <string[]>recursiveReadSync(directoryPathTest);
+        fileContentsTest.map(function (f, cb) {
             s3.putObject({
                 Bucket: bucketName,
-                Key: prefixLatest + 'test/' + f.substring(directoryPathEmpty.length, f.length).replace(/\\/g, '/'),
+                Key: prefixLatest + 'test/' + f.substring(directoryPathTest.length, f.length).replace(/\\/g, '/'),
                 Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',

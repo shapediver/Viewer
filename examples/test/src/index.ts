@@ -1,5 +1,7 @@
 import "reflect-metadata"
 import * as SD from "@shapediver/viewer"
+import { SettingsEngine } from "@shapediver/viewer.shared.services"
+import { container } from "tsyringe";
 
 (<any>window).RENDERERTYPE = SD.RENDERERTYPE;
 (<any>window).CAMERATYPE = SD.CAMERATYPE;
@@ -13,3 +15,5 @@ import * as SD from "@shapediver/viewer"
 
 (<any>window).api = SD.api;
 (<any>window).sceneTree = SD.api.sceneTree;
+
+(<any>window).settingsEngine = container.resolve(SettingsEngine);

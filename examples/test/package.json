@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.examples.empty",
+  "name": "@shapediver/viewer.examples.test",
   "version": "0.0.0",
   "private": true,
   "description": "",
@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@shapediver/viewer": "*",
+    "@shapediver/viewer.shared.services": "*",
     "gl-matrix": "^3.3.0",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"

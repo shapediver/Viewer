@@ -122,11 +122,6 @@ export class SettingsEngine {
                     json[s] = { x: settings[s].value[0] || 0, y: settings[s].value[1] || 0, z: settings[s].value[2] || 0 };
                 } else if (settings[s] instanceof CustomSetting) {
                     json[s] = settings[s].value;
-                    if(settings[s].value.min) json[s].min = { x: settings[s].value.min[0] || 0, y: settings[s].value.min[1] || 0, z: settings[s].value.min[2] || 0 };
-                    if(settings[s].value.max) json[s].max = { x: settings[s].value.max[0] || 0, y: settings[s].value.max[1] || 0, z: settings[s].value.max[2] || 0 };
-                    if(settings[s].value.position) json[s].position = { x: settings[s].value.position[0] || 0, y: settings[s].value.position[1] || 0, z: settings[s].value.position[2] || 0 };
-                    if(settings[s].value.target) json[s].target = { x: settings[s].value.target[0] || 0, y: settings[s].value.target[1] || 0, z: settings[s].value.target[2] || 0 };
-                    if(settings[s].value.center) json[s].center = { x: settings[s].value.center[0] || 0, y: settings[s].value.center[1] || 0, z: settings[s].value.center[2] || 0 };
                 } else {
                     json[s] = settings[s].value;
                 }
