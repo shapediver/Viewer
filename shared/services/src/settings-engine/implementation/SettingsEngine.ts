@@ -156,5 +156,22 @@ export class SettingsEngine {
         this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { loadAsPrimary: true });
     }
 
+    private _deconstruct(settings: any, deconstructed: any, parentName: string) {
+        for (let s in settings) {
+            if (settings[s].isSetting === true) {
+                // @ts-ignore
+                deconstructed[parentName ? parentName + '.' + s : '' + s] = settings[s].value;
+            } else {
+                this._deconstruct(settings[s], deconstructed, parentName ? parentName + '.' + s : '' + s)
+            }
+        }
+    }
+
+    public deconstruct(): any {
+        let deconstructed = {};
+        this._deconstruct(this.general, deconstructed, '');
+        return deconstructed;
+    }
+
     // #endregion Public Accessors (8)
 }

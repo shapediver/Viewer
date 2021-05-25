@@ -709,10 +709,13 @@ export class Session implements ISession {
                 displayNames[e] = exports[e].displayName!;
         this.#settingsEngine.general.parameters.controlNames.value = displayNames;
 
-        const ordered: (IParameter<any>|Export)[] = [];
+        let ordered: (IParameter<any>|Export)[] = [];
         for (let p in parameters) ordered.push(parameters[p]);
         for (let e in exports) ordered.push(exports[e]);
         ordered.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
+        let zeros = ordered.filter(x => x.order === 0);
+        ordered = ordered.filter(( el ) => { return !zeros.includes( el ); });
+        ordered = zeros.concat(ordered);
         this.#settingsEngine.general.parameters.controlOrder.value = ordered.map((value) => { return value.id; });
 
         const hidden: string[] = [];
