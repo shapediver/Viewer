@@ -21,8 +21,6 @@ for(let c = 0; c < allCapabilities.length; c++) {
     let driver: WebDriver;
     describe('device testing', () => {
         beforeEach(async () => {
-            console.log(name)
-
             if(process.env.PORT !== 'browserstack') {
                 driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
             } else {

@@ -199,7 +199,6 @@ export class LightEngine implements ILightEngine {
     public applySettings(): void {
         this._lightScenes = {};
 
-        console.log(this._settingsEngine.lights.lightScenes.value)
         for (let lightSceneId in this._settingsEngine.lights.lightScenes.value) {
             const ls = new LightScene(lightSceneId);
             for (let lightId in this._settingsEngine.lights.lightScenes.value[lightSceneId].lights) {

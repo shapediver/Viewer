@@ -4,6 +4,7 @@ import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATY
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 import { SettingsEngine } from "@shapediver/viewer.shared.services";
+import { vec3 } from "gl-matrix";
 
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;
@@ -88,9 +89,22 @@ glTFv2Button.onclick = async () => {
     viewer.groundPlaneVisibility = true;
     viewer.environmentMap = 'none';
 
+    const lights = viewer.getLights();
+    console.log(lights)
+    for(let l in lights) {
+        viewer.removeLight(l)
+    }
+    viewer.addAmbientLight({color: '#ffffff', intensity: 0.5, id: 'ambient0'});
+    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, id: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175});
+    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, id: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175});
     await session.saveSettings();
 };
 
+
+(<any>window).saveSettings = async () => {
+    const session = api.getSession('mySession');
+    await session.saveSettings();
+};
 
 // (<any>window).sceneTree = api.sceneTree;
 // (<any>window).api = api;
