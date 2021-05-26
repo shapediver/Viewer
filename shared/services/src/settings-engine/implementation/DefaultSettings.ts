@@ -20,7 +20,6 @@ export const DefaultSettings = {
         commitParameters: <ISetting<boolean>> new BooleanSetting(false, 'Use or don\'t commit mode for parameters'),
         commitSettings: <ISetting<boolean>> new BooleanSetting(false, 'Use or don\'t commit mode for settings'),
         scene: {
-            showSceneTransition: <ISetting<string>> new StringSetting('1s', ''),
             camera: {
                 autoAdjust: <ISetting<boolean>> new BooleanSetting(false, 'Enable / disable that the camera adjusts to geometry updates'),
                 cameraMovementDuration: <ISetting<number>> new NumberSetting(800, 'Default duration of camera movements', (value: number) => value >= 0),

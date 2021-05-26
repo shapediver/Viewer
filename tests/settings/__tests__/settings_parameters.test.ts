@@ -46,7 +46,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createAndInitializeSession({  id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['parameters.controlNames']).toStrictEqual({ 
@@ -58,7 +58,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession');
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayName = 'THE LENGTH';
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });            
             expect(settings2['parameters.controlNames']).toStrictEqual({ 
@@ -71,7 +71,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession');
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayName = undefined;
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });     
             expect(settings3['parameters.controlNames']).toStrictEqual({ 
@@ -86,7 +86,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createAndInitializeSession({  id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['parameters.controlOrder']).toStrictEqual([
@@ -109,7 +109,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession');
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 9;
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 10;
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });            
             expect(settings2['parameters.controlOrder']).toStrictEqual([
@@ -132,7 +132,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession');
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 10;
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 9;
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });     
             expect(settings3['parameters.controlOrder']).toStrictEqual([
@@ -157,7 +157,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createAndInitializeSession({  id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['parameters.parametersHidden']).toStrictEqual([
@@ -177,7 +177,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession');
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = false;
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });            
             expect(settings2['parameters.parametersHidden']).toStrictEqual([
@@ -196,7 +196,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession');
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = true;
-                session.saveSettings();
+                await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });     
             expect(settings3['parameters.parametersHidden']).toStrictEqual([

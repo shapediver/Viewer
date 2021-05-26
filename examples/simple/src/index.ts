@@ -1,17 +1,19 @@
 import "reflect-metadata"
 import { container } from "tsyringe";
-import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, EVENTTYPE, LOGGINGLEVEL } from "@shapediver/viewer"
+import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, EVENTTYPE, LOGGINGLEVEL, PerspectiveCamera } from "@shapediver/viewer"
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
+import { SettingsEngine } from "@shapediver/viewer.shared.services";
 
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;
 
-const ticket = 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8';
+const ticket = 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e';
 const ticket2 = '8392f2ab5231da0d1b634ef6eb849be4c6e79c0e84456ca19fe03a4d1078fd02428704e23ee9b51e691ffb60550ea8f91493fa669ac900f86061e755441cf3da11c21d81dacf7975ba024ce9b604f2de708895dcdf4d4a17ca885516399e29111fc6d7f22e8ef1000651f56c91b4841a5527cb3d228b-0c9680ec95458327deab37e9fc1a432c-60d25599bc8a340ddf70ffff0dca331d';
 const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
 const bearerToken = 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczpcL1wvZGV2LWFwcC5zaGFwZWRpdmVyLmNvbVwvYXBpXC92MVwvdG9rZW5zIiwic3ViIjoiNGFjMDVjZDYtZmQ3Yy00NzAxLWIyNjAtNTRlYjdjYTc1ZGUwIiwiYXVkIjoiNWE5NzcxNjgtZjQ5ZC00M2VhLTgwNjMtYzg5Y2M5MDQyMzM1IiwiZXhwIjoxNjE5NTM1MzYwLCJzY29wZSI6Imdyb3VwLm93bmVyIGdyb3VwLmV4cG9ydCBncm91cC52aWV3IiwiaWF0IjoxNjE5NTMxNzYwfQ.bWn3V7cu_0TVtZskVmOt341RKWAZ0LWlVaQDx_vWbRO-XwvwpC96wCOiUVMuRMTMxjcqCRfe9jm9AVUF15fBus4DTCO_mdYYsWqW4lsta3YNC8GYr0k4UZW1hWpli4WarCiaViqg6uWSISiCn4-ypYsfAtiGBpwcVfTFSzvm8lCzokMKqRhFXW2W8SAxCrJzRLUQtmShPeXAxqwayEl65HKwasYucVDRASXGeZr_y648rOn0hNsvQKXZZiUE3x62LCeG6tSAYenLFM6u5KQPfZiSwa0xDeByNWlmRLweBxZ0dMnye-9XTVuqQQPiwm9t0qOVe6FYf_hWC27ubmnWfw';
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
+(<any>window).settingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
 const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
 const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
@@ -42,6 +44,53 @@ glTFv2Button.onclick = async () => {
     api.sceneTree.addNode(node);
     api.update()
 }
+
+(<any>window).resetSettings = async () => {
+    const session = api.getSession('mySession');
+    session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayName = 'COLOR';
+    
+    session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.order = 0;
+    session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.order = 1;
+    session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.order = 2;
+    session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.order = 3;
+    session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.order = 4;
+    session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.order = 5;
+    session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.order = 6;
+    session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.order = 7;
+    session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.order = 8;
+    session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 9;
+    session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 10;
+    
+    session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = true;
+    session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.hidden = true;
+    session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.hidden = true;
+    session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.hidden = true;
+    session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.hidden = true;
+    session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.hidden = true;
+    session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.hidden = false;
+    session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.hidden = true;
+    session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.hidden = true;
+    session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.hidden = true;
+    session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.hidden = false;
+
+    const viewer = api.getViewer('myViewer');
+    viewer.blurSceneWhenBusy = true;
+    const camera = viewer.getCamera();
+    camera!.autoAdjust = false;
+    camera!.cameraMovementDuration = 800;
+    camera!.defaultPosition = [58.03696060180664, -290.11590576171875, 87.67756652832031];
+    camera!.defaultTarget = [0, 7, -3.25];
+    (<PerspectiveCamera>camera!).fov = 45;
+    (<PerspectiveCamera>camera!).controls.autoRotationSpeed = 0;
+    (<PerspectiveCamera>camera!).controls.damping = 0.1;
+    viewer.environmentMap = 'none';
+    viewer.gridVisibility = true;
+    viewer.groundPlaneVisibility = true;
+    viewer.environmentMap = 'none';
+
+    await session.saveSettings();
+};
+
 
 // (<any>window).sceneTree = api.sceneTree;
 // (<any>window).api = api;

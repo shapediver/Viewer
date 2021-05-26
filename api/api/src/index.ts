@@ -29,6 +29,10 @@ import { SIntegerParameter } from "./session/parameters/objects/SIntegerParamete
 import { SNumberParameter } from "./session/parameters/objects/SNumberParameter";
 import { SStringParameter } from "./session/parameters/objects/SStringParameter";
 import { SParameter } from "./session/parameters/objects/SParameter";
+import { PerspectiveCameraControls } from "./viewer/camera/controls/PerspectiveCameraControls";
+import { OrthographicCamera } from "./viewer/camera/OrthographicCamera";
+import { PerspectiveCamera } from "./viewer/camera/PerspectiveCamera";
+import { OrthographicCameraControls } from "./viewer/camera/controls/OrthographicCameraControls";
 
 export const api: Api = <Api>container.resolve(Api);
 
@@ -44,4 +48,9 @@ export {
 
 export {
     Tree, TreeNode, ITransformation, ITreeNodeData, AbstractTreeNodeData, ThreejsData, CustomData, GeometryData, MaterialData, SessionData, SessionOutputData
+}
+
+
+export {
+    PerspectiveCamera, PerspectiveCameraControls, OrthographicCamera, OrthographicCameraControls
 }
