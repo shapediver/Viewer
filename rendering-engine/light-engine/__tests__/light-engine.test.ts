@@ -192,37 +192,33 @@ describe('light-engine', () => {
 
     it('assignLightScene correct', async () => {
         const lightScene = lightEngine.createLightScene({id: 'something'});
-        expect(lightEngine.assignLightScene(lightScene)).toBe(true)
-        expect(lightEngine.getLightScene()).toBe('something')
-    });
-
-    it('createLightScene', async () => {
-        expect(typeof lightEngine.createLightScene({})).toBe('string')
+        expect(lightEngine.assignLightScene(lightScene.id)).toBe(true)
+        expect(lightEngine.getLightScene().id).toBe('something')
     });
 
     it('createLightScene with id', async () => {
         const lightScene = lightEngine.createLightScene({id: 'something'});
-        expect(lightScene).toBe('something')
-        lightEngine.assignLightScene(lightScene)
-        expect(lightEngine.getLightScene()).toBe('something')
+        expect(lightScene.id).toBe('something')
+        lightEngine.assignLightScene(lightScene.id)
+        expect(lightEngine.getLightScene().id).toBe('something')
         expect(Object.keys(lightEngine.getLightSceneObject().lights).length).toBe(0)
     });
 
     it('createLightScene with id standard', async () => {
         const lightScene = lightEngine.createLightScene({id: 'something', standard: true});
-        expect(lightScene).toBe('something')
-        lightEngine.assignLightScene(lightScene)
-        expect(lightEngine.getLightScene()).toBe('something')
+        expect(lightScene.id).toBe('something')
+        lightEngine.assignLightScene(lightScene.id)
+        expect(lightEngine.getLightScene().id).toBe('something')
         expect(Object.keys(lightEngine.getLightSceneObject().lights).length).toBe(3)
     });
 
 
     it('getLightScene', async () => {
-        expect(typeof lightEngine.getLightScene()).toBe('string')
+        expect(typeof lightEngine.getLightScene().id).toBe('string')
     });
 
     it('getLightScene name', async () => {
-        expect(lightEngine.getLightScene()).toBe('default')
+        expect(lightEngine.getLightScene().id).toBe('default')
     });
     
     it('removeLight empty', async () => {
@@ -239,8 +235,8 @@ describe('light-engine', () => {
 
     it('removeLightScene', async () => {
         const lightScene = lightEngine.createLightScene({id: 'something'});
-        lightEngine.assignLightScene(lightScene)
+        lightEngine.assignLightScene(lightScene.id)
         expect(lightEngine.removeLightScene('something')).toBe(true)
-        expect(lightEngine.getLightScene()).toBe('default')
+        expect(lightEngine.getLightScene().id).toBe('default')
     });
 });
