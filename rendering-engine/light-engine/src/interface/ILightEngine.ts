@@ -1,5 +1,6 @@
 import { vec3 } from "gl-matrix";
 import { ILight } from "./ILight";
+import { ILightScene } from "./ILightScene";
 
 export interface ILightEngine {
     // #region Public Methods (12)
@@ -10,11 +11,11 @@ export interface ILightEngine {
     addPointLight(properties: {color?: string | number | vec3, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string}): ILight;
     addSpotLight(properties: {color?: string | number | vec3, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string}): ILight;
     assignLightScene(id: string): boolean;
-    createLightScene(properties: {id?: string, standard?: boolean}): string;
+    createLightScene(properties: {id?: string, standard?: boolean}): ILightScene;
     getLight(id: string): ILight;
     getLights(): { [key: string]: ILight };
-    getLightScene(): string;
-    getLightScenes(): string[];
+    getLightScene(id?: string): ILightScene;
+    getLightScenes(): {[key: string]: ILightScene};
     removeLight(id: string): boolean;
     removeLightScene(id: string): boolean;
 

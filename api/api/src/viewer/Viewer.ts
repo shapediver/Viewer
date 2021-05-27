@@ -14,6 +14,7 @@ import { AmbientLight } from "./lights/AmbientLight";
 import { DirectionalLight } from "./lights/DirectionalLight";
 import { HemisphereLight } from "./lights/HemisphereLight";
 import { Light } from "./lights/Light";
+import { LightScene } from "./lights/LightScene";
 import { PointLight } from "./lights/PointLight";
 import { SpotLight } from "./lights/SpotLight";
 @injectable()
@@ -28,6 +29,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #lights: {
     [key: string]: Light
+  } = {};
+  readonly #lightScenes: {
+    [key: string]: LightScene
   } = {};
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
@@ -567,14 +571,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.standard the option to add the standard lights
    * @returns 
    */
-  public createLightScene(properties: { id?: string, standard?: boolean }): string {
+  public createLightScene(properties: { id?: string, standard?: boolean }): LightScene {
     this.#inputValidator.validate(properties.id, 'string', false);
     this.#inputValidator.validate(properties.standard, 'boolean', false);
-    const r = this.#renderingEngine.lightEngine.createLightScene(properties);
-    this.#logger.info(`Viewer (${this.id}): New light scene with id ${r} created.`);
-    if(r) this.assignLightScene(r);
+    const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(properties);
+    const lightScene = new LightScene(this, lightSceneLogic);
+    this.#lightScenes[lightSceneLogic.id] = lightScene;
+    this.#logger.info(`Viewer (${this.id}): New light scene with id ${lightSceneLogic.id} created.`);
+    if(lightSceneLogic.id) this.assignLightScene(lightSceneLogic.id);
     this.update();
-    return r;
+    return lightScene;
   }
 
   /**
@@ -668,8 +674,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * 
    * @returns 
    */
-  public getLightScene(): string {
-    return this.#renderingEngine.lightEngine.getLightScene();
+  public getLightScene(id?: string): LightScene {
+    this.#inputValidator.validate(id, 'string', false);
+    if(!id)
+      id = this.#renderingEngine.lightEngine.getLightScene().id;
+
+    if (!this.#lightScenes[id]) {
+      const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(id);
+      this.#lightScenes[lightSceneLogic.id] = new LightScene(this, lightSceneLogic);
+    }
+    return this.#lightScenes[id];
   }
 
   /**
@@ -677,8 +691,12 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * 
    * @returns 
    */
-  public getLightScenes(): string[] {
-    return this.#renderingEngine.lightEngine.getLightScenes();
+  public getLightScenes(): { [key: string]: LightScene } {
+    const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScenes();
+    const lightScenes: { [key: string]: LightScene } = {};
+    for (let l in lightSceneLogic)
+      lightScenes[l] = this.getLightScene(l);
+    return lightScenes;
   }
 
   /**

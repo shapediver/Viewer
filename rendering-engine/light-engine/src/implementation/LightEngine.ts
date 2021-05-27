@@ -11,6 +11,7 @@ import { LightScene } from "./LightScene";
 import { AbstractLight } from "./AbstractLight";
 import { ILightEngine } from "../interface/ILightEngine";
 import { ILight, LIGHTTYPE } from "../interface/ILight";
+import { ILightScene } from "../interface/ILightScene";
 
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
@@ -70,7 +71,7 @@ export class LightEngine implements ILightEngine {
         return true;
     }
 
-    public createLightScene(properties: {id?: string, standard?: boolean}): string {
+    public createLightScene(properties: {id?: string, standard?: boolean}): ILightScene {
         if (!properties.id || this._lightScenes[properties.id]) properties.id = this._uuidGenerator.create();
         const lightScene = new LightScene(properties.id);
         if (properties.standard === true) {
@@ -80,23 +81,24 @@ export class LightEngine implements ILightEngine {
         }
         this._lightScenes[properties.id] = lightScene;
         this._currentLightScene = lightScene;
-        return properties.id;
+        return lightScene;
     }
 
     public getLight(id: string): ILight {
         return this._currentLightScene.getLight(id);
     }
 
-    public getLightScene(): string {
-        return this._currentLightScene.id;
+    public getLightScene(id?: string): ILightScene {
+        if(id && this._lightScenes[id]) return this._lightScenes[id];
+        return this._currentLightScene;
     }
 
     public getLightSceneObject(): LightScene {
         return this._currentLightScene;
     }
 
-    public getLightScenes(): string[] {
-        return Object.keys(this._lightScenes);
+    public getLightScenes(): {[key: string]: ILightScene} {
+        return this._lightScenes;
     }
 
     public getLights(): { [key: string]: ILight; } {
@@ -118,7 +120,7 @@ export class LightEngine implements ILightEngine {
     }
 
     public saveSettings() {
-        this._settingsEngine.lights.lightScene.value = this.getLightScene();
+        this._settingsEngine.lights.lightScene.value = this.getLightScene().id;
         const converted: {
             [key: string]: {
                 id: string,
@@ -226,7 +228,7 @@ export class LightEngine implements ILightEngine {
             this._lightScenes[ls.id] = ls;
         }
 
-        if (!this.getLightScenes().includes('default'))
+        if (!Object.keys(this.getLightScenes()).includes('default'))
             this.createLightScene({ id: 'default', standard: true });
 
         if (this._settingsEngine.lights.lightScene.value)

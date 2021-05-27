@@ -33,6 +33,12 @@ import { PerspectiveCameraControls } from "./viewer/camera/controls/PerspectiveC
 import { OrthographicCamera } from "./viewer/camera/OrthographicCamera";
 import { PerspectiveCamera } from "./viewer/camera/PerspectiveCamera";
 import { OrthographicCameraControls } from "./viewer/camera/controls/OrthographicCameraControls";
+import { AmbientLight } from "./viewer/lights/AmbientLight";
+import { DirectionalLight } from "./viewer/lights/DirectionalLight";
+import { HemisphereLight } from "./viewer/lights/HemisphereLight";
+import { PointLight } from "./viewer/lights/PointLight";
+import { SpotLight } from "./viewer/lights/SpotLight";
+import { LightScene } from "./viewer/lights/LightScene";
 
 export const api: Api = <Api>container.resolve(Api);
 
@@ -53,4 +59,9 @@ export {
 
 export {
     PerspectiveCamera, PerspectiveCameraControls, OrthographicCamera, OrthographicCameraControls
+}
+
+
+export {
+    AmbientLight, DirectionalLight, HemisphereLight, PointLight, SpotLight, LightScene
 }

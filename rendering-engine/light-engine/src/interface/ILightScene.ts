@@ -9,12 +9,4 @@ export interface ILightScene {
     node: TreeNode;
 
     // #endregion Properties (3)
-
-    // #region Public Methods (3)
-
-    addLight(light: ILight): void;
-    getLight(id: string): ILight;
-    removeLight(id: string): boolean;
-
-    // #endregion Public Methods (3)
 }
