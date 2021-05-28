@@ -18,10 +18,10 @@ const ticket3 = 'a7a468be421d49eeede903037db71fadbcc9df95919b088e497ef32c4e3d493
 const ticket4 = 'a7a468be421d49eeede903037db71fadbcc9df95919b088e497ef32c4e3d4934a9c0f866997c915f40f4bbb432119fc838c44d89061a64185f6ca8b02125c0d36aa3b1c43951fe0800ec5d367ec2618351a3dbfbac642b23b3593693c8fce19a89122037938d2eb614fcdc2bc50c0dffd01ef2b9718c-69dd449456f08051ab79a42a4cbc9881';
 
 (async () => {
-    let viewer1 = api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas1'), id: 'myViewer1' })
-    let viewer2 = api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas2'), id: 'myViewer2' })
-    let viewer3 = api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas3'), id: 'myViewer3' })
-    let viewer4 = api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas4'), id: 'myViewer4' })
+    let viewer1 = api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas1'), id: 'myViewer1' })
+    let viewer2 = api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas2'), id: 'myViewer2' })
+    let viewer3 = api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas3'), id: 'myViewer3' })
+    let viewer4 = api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas4'), id: 'myViewer4' })
     let session1 = await api.createAndInitializeSession({ ticket: ticket1, modelViewUrl, id: 'mySession1', excludeViewers: ['myViewer2', 'myViewer3', 'myViewer4'] });
     let session2 = await api.createAndInitializeSession({ ticket: ticket2, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4']});
     let session3 = await api.createAndInitializeSession({ ticket: ticket3, modelViewUrl, id: 'mySession3', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer4']});

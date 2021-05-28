@@ -256,7 +256,7 @@ export class Api {
 
     return session;
   }
-
+  
   /**
    * Create a viewer with the provided type and canvas.
    * An id can be provided. This id can be used to retrieve this object later on.
@@ -270,7 +270,7 @@ export class Api {
    * @param properties.id the unique id the session should have 
    * @returns 
    */
-  public createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Viewer {
+   public createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Viewer {
     // input validation
     this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.type, 'enum', false, Object.values(RENDERERTYPE));
@@ -294,12 +294,66 @@ export class Api {
     this.#viewers[viewerId] = viewer;
     this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
-    // update the viewer with the current scene tree
-    viewer.update();
+    // end the performance eval
+    this.#performanceEvaluator.end('viewer_creation_' + viewerId);
+    this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_creation_' + viewerId));
+
+    return this.#viewers[viewerId];
+  }
+
+  /**
+   * Create and initialize a viewer with the provided type and canvas.
+   * An id can be provided. This id can be used to retrieve this object later on.
+   * In the case no id has been provided, a unique one will be generated.
+   * 
+   * The viewer will automatically load what is currently in the scene tree.
+   * 
+   * @param properties.type the type of the viewer
+   * @param properties.visibility the visibility of the viewer
+   * @param properties.canvas the canvas that the viewer should use
+   * @param properties.id the unique id the session should have 
+   * @returns 
+   */
+  public createAndInitializeViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Viewer {
+    // input validation
+    this.#inputValidator.validate(properties, 'object');
+    this.#inputValidator.validate(properties.type, 'enum', false, Object.values(RENDERERTYPE));
+    this.#inputValidator.validate(properties.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+    this.#inputValidator.validate(properties.canvas, 'HTMLCanvasElement');
+    this.#inputValidator.validate(properties.id, 'string', false);
+
+    // check if the given id is valid
+    const viewerId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    if (this.#viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
+
+    // start the performance eval
+    this.#performanceEvaluator.start('viewer_creation_' + viewerId);
+
+    // create the actual viewer
+    let viewerCallbacks = {};
+    const viewer = new Viewer({ id: viewerId, canvas: properties.canvas, visibility: properties.visibility || VISIBILITYMODE.SESSION, type: properties.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
+
+    // save the viewer
+    this.#viewers[viewerId] = viewer;
+    this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
     // end the performance eval
     this.#performanceEvaluator.end('viewer_creation_' + viewerId);
     this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_creation_' + viewerId));
+
+    
+    // start the performance eval
+    this.#performanceEvaluator.start('viewer_init_' + viewerId);
+
+    // init and update the viewer with the current scene tree
+    viewer.init();
+    viewer.update();
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer });
+
+    // end the performance eval
+    this.#performanceEvaluator.end('viewer_init_' + viewerId);
+    this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_init_' + viewerId));
 
     return this.#viewers[viewerId];
   }
