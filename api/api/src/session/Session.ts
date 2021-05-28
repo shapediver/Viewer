@@ -823,5 +823,56 @@ export class Session implements ISession {
         return true;
     }
 
+    /**
+     * Changes the displayName property of the export with the specified id.
+     * 
+     * @param id the id of the export
+     * @param displayName the displayName property of the export
+     * @returns 
+     */
+     public updateExportDisplayName(id: string, displayName: string): boolean {
+        this.#inputValidator.validate(id, 'string');
+        this.#inputValidator.validate(displayName, 'string');
+        const exportLogic = this.#sessionEngine.getExportById(id);
+        if (!exportLogic) return false;
+        if (!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
+        this.#exports[id].displayName = displayName;
+        return true;
+    }
+
+    /**
+     * Changes the hidden property of the export with the specified id.
+     * 
+     * @param id the id of the export
+     * @param hidden the hidden property of the export
+     * @returns 
+     */
+    public updateExportHidden(id: string, hidden: boolean): boolean {
+        this.#inputValidator.validate(id, 'string');
+        this.#inputValidator.validate(hidden, 'boolean');
+        const exportLogic = this.#sessionEngine.getExportById(id);
+        if (!exportLogic) return false;
+        if (!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
+        this.#exports[id].hidden = hidden;
+        return true;
+    }
+
+    /**
+     * Changes the order property of the export with the specified id.
+     * 
+     * @param id the id of the export
+     * @param order the order property of the export
+     * @returns 
+     */
+    public updateExportOrder(id: string, order: number): boolean {
+        this.#inputValidator.validate(id, 'string');
+        this.#inputValidator.validate(order, 'number');
+        const exportLogic = this.#sessionEngine.getExportById(id);
+        if (!exportLogic) return false;
+        if (!this.#exports[id]) this.#exports[id] = new Export(exportLogic);
+        this.#exports[id].order = order;
+        return true;
+    }
+
     // #endregion Public Methods (24)
 }
