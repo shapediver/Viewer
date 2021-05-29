@@ -270,16 +270,16 @@ export class Api {
    * @param properties.id the unique id the session should have 
    * @returns 
    */
-   public createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
-    // input validation
-    this.#inputValidator.validate(properties, 'object');
-    this.#inputValidator.validate(properties.type, 'enum', false, Object.values(RENDERERTYPE));
-    this.#inputValidator.validate(properties.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-    this.#inputValidator.validate(properties.canvas, 'HTMLCanvasElement');
-    this.#inputValidator.validate(properties.id, 'string', false);
+   public createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
+    this.#inputValidator.validate(properties, 'object', false);
+    const prop = Object.assign({}, properties);
+    this.#inputValidator.validate(prop.type, 'enum', false, Object.values(RENDERERTYPE));
+    this.#inputValidator.validate(prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+    this.#inputValidator.validate(prop.canvas, 'HTMLCanvasElement', false);
+    this.#inputValidator.validate(prop.id, 'string', false);
 
     // check if the given id is valid
-    const viewerId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.#viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
 
     // start the performance eval
@@ -287,7 +287,7 @@ export class Api {
 
     // create the actual viewer
     let viewerCallbacks = {};
-    const viewer = new Viewer({ id: viewerId, canvas: properties.canvas, visibility: properties.visibility || VISIBILITYMODE.SESSION, type: properties.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
+    const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
     // save the viewer
