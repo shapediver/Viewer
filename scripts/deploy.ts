@@ -34,6 +34,8 @@ const execPromise = (cmd: string) => {
             });
         });
 
+        await execPromise(`npm run test`)
+
         const changes = await execPromise(`git status --porcelain`);
         if(changes) {
             throw new Error(`Please stage and commit your files first.\n${changes}`);
