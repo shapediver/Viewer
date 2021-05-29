@@ -4,7 +4,7 @@ import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, Directi
 import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
-import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
+import { Converter, InputValidator, UuidGenerator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container, injectable } from "tsyringe";
 import { Camera } from "./camera/Camera";
@@ -19,7 +19,7 @@ import { PointLight } from "./lights/PointLight";
 import { SpotLight } from "./lights/SpotLight";
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
-  // #region Properties (8)
+  // #region Properties (10)
 
   readonly #cameras: {
     [key: string]: Camera
@@ -27,18 +27,19 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly #converter: Converter = <Converter>container.resolve(Converter);
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-  readonly #lights: {
-    [key: string]: Light
-  } = {};
   readonly #lightScenes: {
     [key: string]: LightScene
   } = {};
+  readonly #lights: {
+    [key: string]: Light
+  } = {};
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-  readonly #properties: { id: string, canvas: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE };
+  
+  #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE };
   #renderingEngine!: RenderingEngineThreejs;
 
-  // #endregion Properties (8)
+  // #endregion Properties (10)
 
   // #region Constructors (1)
 
@@ -48,7 +49,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param type 
    * @param canvas 
    */
-  constructor(properties: { id: string, canvas: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }, callbacks: any) {
+  constructor(properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }, callbacks: any) {
     this.#properties = properties;
     callbacks.close = async (): Promise<boolean> => {
       const closeResult = await this.#renderingEngine.close();
@@ -395,7 +396,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   // #endregion Public Accessors (33)
 
-  // #region Public Methods (24)
+  // #region Public Methods (25)
 
   /**
    * Add an ambient light with the specified properties to the current light scene.
@@ -780,6 +781,38 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
+   * Initialize the viewer.
+   * Normally, there is no need to call this function.
+   * The initialization is done on creation via the api.
+   * 
+   * @param properties.type the type of the viewer
+   * @param properties.visibility the visibility of the viewer
+   * @param properties.canvas the canvas that the viewer should use
+   * @param properties.id the unique id the session should have 
+   */
+  public init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): void {
+    // input validation
+    this.#inputValidator.validate(properties, 'object');
+    const props = Object.assign({}, properties);
+    this.#inputValidator.validate(props.type, 'enum', false, Object.values(RENDERERTYPE));
+    this.#inputValidator.validate(props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+    this.#inputValidator.validate(props.canvas, 'HTMLCanvasElement');
+    this.#inputValidator.validate(props.id, 'string', false);
+
+    const viewerId = (properties && properties.id) ? properties.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    if(properties) this.#properties = { id: viewerId, canvas: properties.canvas, visibility: properties.visibility || VISIBILITYMODE.SESSION, type: properties.type || RENDERERTYPE.STANDARD };
+        
+    this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
+    container.registerInstance('renderingEngine', this.#renderingEngine);
+
+    // default camera
+    const camera = this.createCamera(CAMERATYPE.PERSPECTIVE);
+    this.assignCamera(camera.id);
+
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
+  }
+
+  /**
    * Remove the light with the specified id from the current light scene.
    * 
    * @param id the id of the light
@@ -825,22 +858,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
-   * Initialize the viewer.
-   * Normally, there is no need to call this function.
-   * The initialization is done on creation via the api.
-   */
-  public init(): void {
-    this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
-    container.registerInstance('renderingEngine', this.#renderingEngine);
-
-    // default camera
-    const camera = this.createCamera(CAMERATYPE.PERSPECTIVE);
-    this.assignCamera(camera.id);
-
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
-  }
-
-  /**
    * Update the viewer with the current changes of the scene tree.
    */
   public update(): void {
@@ -850,6 +867,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
   }
 
+  // #endregion Public Methods (25)
+
+  // #region Private Methods (1)
+
   private isInitialized() {
     if(!this.#renderingEngine) {
       this.#logger.error(`Viewer has not been initialized. Please initialize it first.`);
@@ -857,5 +878,5 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     }
   }
 
-  // #endregion Public Methods (24)
+  // #endregion Private Methods (1)
 }

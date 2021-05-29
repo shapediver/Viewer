@@ -270,7 +270,7 @@ export class Api {
    * @param properties.id the unique id the session should have 
    * @returns 
    */
-   public createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): Viewer {
+   public createViewer(properties: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
     // input validation
     this.#inputValidator.validate(properties, 'object');
     this.#inputValidator.validate(properties.type, 'enum', false, Object.values(RENDERERTYPE));
