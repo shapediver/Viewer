@@ -790,13 +790,13 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.canvas the canvas that the viewer should use
    * @param properties.id the unique id the session should have 
    */
-  public init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): void {
+  public init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): void {
     // input validation
     this.#inputValidator.validate(properties, 'object', false);
     const props = Object.assign({}, properties);
     this.#inputValidator.validate(props.type, 'enum', false, Object.values(RENDERERTYPE));
     this.#inputValidator.validate(props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-    this.#inputValidator.validate(props.canvas, 'HTMLCanvasElement');
+    this.#inputValidator.validate(props.canvas, 'HTMLCanvasElement', false);
     this.#inputValidator.validate(props.id, 'string', false);
 
     const viewerId = (properties && properties.id) ? properties.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
