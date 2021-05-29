@@ -792,7 +792,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas: HTMLCanvasElement, id?: string }): void {
     // input validation
-    this.#inputValidator.validate(properties, 'object');
+    this.#inputValidator.validate(properties, 'object', false);
     const props = Object.assign({}, properties);
     this.#inputValidator.validate(props.type, 'enum', false, Object.values(RENDERERTYPE));
     this.#inputValidator.validate(props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
