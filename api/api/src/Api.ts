@@ -347,7 +347,7 @@ export class Api {
     this.#performanceEvaluator.start('viewer_init_' + viewerId);
 
     // init and update the viewer with the current scene tree
-    await viewer.init();
+    await viewer.init(prop);
     viewer.update();
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer });
 
