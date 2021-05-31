@@ -813,7 +813,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
 
-    if(props.visibility === VISIBILITYMODE.SESSION) {
+    if(props.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
       return new Promise(resolve => {
         this.#stateEngine.getCustomState(this.id + '_settings_loaded').then(() => resolve())
       })
