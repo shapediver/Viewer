@@ -33,7 +33,8 @@ const execPromise = (cmd: string) => {
                 resolve();
             });
         });
-
+        
+        await execPromise(`npm run deploy-tests`)
         await execPromise(`npm run test`)
 
         const changes = await execPromise(`git status --porcelain`);
