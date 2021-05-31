@@ -98,7 +98,7 @@ const modelViewUrl = ''; // PLEASE ADD YOUR MODEL VIEW URL HERE
 const ticket = ''; // PLEASE ADD YOUR TICKET HERE
 
 (async () => {
-    api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+    await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas') })
     await api.createAndInitializeSession({ ticket, modelViewUrl });
 })();
 ```
@@ -139,7 +139,7 @@ import { api, RENDERERTYPE } from "@shapediver/viewer"
 const session = await api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession'});
 
 // From the api let's also create a viewer on our canvas
-const viewer = api.createAndInitializeViewer({ canvas: CANVAS, id: 'myViewer' });
+const viewer = await api.createAndInitializeViewer({ canvas: CANVAS, id: 'myViewer' });
 ```
 
 That's it, with that we have loaded a session and created a viewer on a canvas.

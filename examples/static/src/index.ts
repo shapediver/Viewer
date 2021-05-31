@@ -4,7 +4,7 @@ import { api, Session, Viewer, Parameter, Export } from "@shapediver/viewer";
 let viewer: Viewer, session: Session;
 
 (async () => {
-    viewer = api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
+    viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
 })();
 
 (<any>window).sceneTree = api.sceneTree;

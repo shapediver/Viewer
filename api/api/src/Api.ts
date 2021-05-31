@@ -314,7 +314,7 @@ export class Api {
    * @param properties.id the unique id the session should have 
    * @returns 
    */
-  public createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
+  public async createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<Viewer> {
     this.#inputValidator.validate(properties, 'object', false);
     const prop = Object.assign({}, properties);
     this.#inputValidator.validate(prop.type, 'enum', false, Object.values(RENDERERTYPE));
@@ -347,7 +347,7 @@ export class Api {
     this.#performanceEvaluator.start('viewer_init_' + viewerId);
 
     // init and update the viewer with the current scene tree
-    viewer.init();
+    await viewer.init();
     viewer.update();
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer });
 

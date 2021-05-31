@@ -3,7 +3,7 @@ import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic,
 import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, StateEngine } from "@shapediver/viewer.shared.services";
 import { Converter, InputValidator, UuidGenerator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container, injectable } from "tsyringe";
@@ -35,7 +35,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   } = {};
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-  
+  readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+
   #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE };
   #renderingEngine!: RenderingEngineThreejs;
 
@@ -790,7 +791,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.canvas the canvas that the viewer should use
    * @param properties.id the unique id the session should have 
    */
-  public init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): void {
+  public async init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<void> {
     // input validation
     this.#inputValidator.validate(properties, 'object', false);
     const props = Object.assign({}, properties);
@@ -799,8 +800,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(props.canvas, 'HTMLCanvasElement', false);
     this.#inputValidator.validate(props.id, 'string', false);
 
-    const viewerId = (properties && properties.id) ? properties.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if(properties) this.#properties = { id: viewerId, canvas: properties.canvas, visibility: properties.visibility || VISIBILITYMODE.SESSION, type: properties.type || RENDERERTYPE.STANDARD };
+    const viewerId = (props && props.id) ? props.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    props.visibility = props.visibility || VISIBILITYMODE.SESSION;
+    if(props) this.#properties = { id: viewerId, canvas: props.canvas, visibility: props.visibility, type: props.type || RENDERERTYPE.STANDARD };
         
     this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
     container.registerInstance('renderingEngine', this.#renderingEngine);
@@ -810,6 +812,13 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.assignCamera(camera.id);
 
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
+
+    if(props.visibility === VISIBILITYMODE.SESSION) {
+      return new Promise(resolve => {
+        this.#stateEngine.getCustomState(this.id + '_settings_loaded').then(() => resolve())
+      })
+    }
+    return Promise.resolve();
   }
 
   /**
