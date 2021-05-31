@@ -2,13 +2,16 @@
  * Adjusted from the original implementation from Luka Erkapic.
  */
 
+import { Converter } from "@shapediver/viewer.shared.utils";
 import { vec3, vec4 } from "gl-matrix";
+import { container } from "tsyringe";
 
 export class PbrMaterialConverter {
     // #region Properties (2)
 
     private readonly _dielectricSpecular = vec3.fromValues(0.04, 0.04, 0.04);
     private readonly _epsilon = 1e-6;
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     // #endregion Properties (2)
 
@@ -19,7 +22,7 @@ export class PbrMaterialConverter {
         specularFactor: vec3,
         glossinessFactor: number
     }): {
-        color: vec4,
+        color: string,
         metalness: number,
         roughness: number
     } {
@@ -38,7 +41,7 @@ export class PbrMaterialConverter {
         const color = vec3.lerp(vec3.create(), vec3.fromValues(colorFromDiffuse[0], colorFromDiffuse[1], colorFromDiffuse[2]), colorFromSpecular, metalness * metalness).map((x: number) => this.clamp(x));
 
         return {
-            color: vec4.fromValues(color[0], color[1], color[2], diffuse[3]),
+            color: this._converter.toColor(vec4.fromValues(color[0], color[1], color[2], diffuse[3])),
             metalness: metalness,
             roughness: 1 - glossiness
         }

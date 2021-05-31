@@ -16,8 +16,11 @@ export class Converter {
      * @param color 
      * @param defColor 
      */
-    public toColor(color: any, defColorString: string = '#ffffff'): string {
-        if (!color) return defColorString;
+    public toColor(color: any, defColorString: string = '#00fff7'): string {
+        if (!color || color === 'default') return defColorString;
+
+        if (color.constructor === Float32Array)
+            color = Array.from(color);
 
         const tColor = new TinyColor(color);
 

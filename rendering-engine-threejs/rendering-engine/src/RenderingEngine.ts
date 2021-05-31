@@ -121,7 +121,7 @@ export class RenderingEngine implements IRenderingEngine {
 
         this._groundPlaneObject = new SDObject('grid', '');
         let mat = new MaterialData();
-        mat.color = vec4.fromValues(0.8274, 0.8274, 0.8274, 1);
+        mat.color = '#d3d3d3';
         mat.side = MATERIAL_SIDE.FRONT;
         mat.roughness = 1;
         mat.metalness = 0;
