@@ -10,15 +10,6 @@ describe('data-engine', () => {
         dataEngine = <DataEngine>container.resolve(DataEngine)
     });
 
-    it('empty', async () => {
-        try {
-            const r = await (<any>dataEngine).loadContent()
-            expect(r).not.toBeDefined();
-        } catch (e) {
-            expect(e).toBeInstanceOf(Error)
-        }
-    });
-
     it('empty object', async () => {
         try {
             const r = await dataEngine.loadContent({ format: '' })
