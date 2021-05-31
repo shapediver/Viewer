@@ -19,9 +19,8 @@
   },
   "scripts": {
     "start": "npm start",
-    "test-script": "bash ../../scripts/test.sh",
-    "test-browserstack": "cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/settings && PORT=browserstack npm run test-script",
-    "test": "cd ../.. && ts-node ./scripts/deploy-test.ts && cd tests/settings && npm run test-script",
+    "test": "bash ../../scripts/test.sh",
+    "test-browserstack": "PORT=browserstack npm run test-script",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
     "build-watch": "bash ../../scripts/build-watch.sh",
