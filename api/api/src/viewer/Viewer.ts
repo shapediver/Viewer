@@ -802,7 +802,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
     const viewerId = (props && props.id) ? props.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
     props.visibility = props.visibility || VISIBILITYMODE.SESSION;
-    if(props) this.#properties = { id: viewerId, canvas: props.canvas, visibility: props.visibility, type: props.type || RENDERERTYPE.STANDARD };
+    if(props) this.#properties = { id: viewerId || this.#properties.id, canvas: props.canvas || this.#properties.canvas, visibility: props.visibility || this.#properties.visibility, type: props.type || RENDERERTYPE.STANDARD };
         
     this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
     container.registerInstance('renderingEngine', this.#renderingEngine);
