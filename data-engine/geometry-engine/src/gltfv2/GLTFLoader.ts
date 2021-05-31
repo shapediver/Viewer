@@ -1,5 +1,5 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { HttpClient, ImageLoader, UuidGenerator } from '@shapediver/viewer.shared.utils';
+import { Converter, HttpClient, ImageLoader, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
 
 import { ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
@@ -19,6 +19,7 @@ export class GLTFLoader {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
     private readonly _implementedExtensions = ['KHR_materials_pbrSpecularGlossiness'];
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     private _baseUri!: string;
     private _body!: ArrayBuffer;
@@ -178,10 +179,7 @@ export class GLTFLoader {
 
         if(material.pbrMetallicRoughness !== undefined) {
             if(material.pbrMetallicRoughness.baseColorFactor !== undefined) {
-                materialData.color = vec4.fromValues(material.pbrMetallicRoughness.baseColorFactor[0],
-                    material.pbrMetallicRoughness.baseColorFactor[1],
-                    material.pbrMetallicRoughness.baseColorFactor[2],
-                    material.pbrMetallicRoughness.baseColorFactor[3]);
+                materialData.color = this._converter.toColor(material.pbrMetallicRoughness.baseColorFactor);
             }
             if(material.pbrMetallicRoughness.baseColorTexture !== undefined) {
                 materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index);
@@ -208,7 +206,7 @@ export class GLTFLoader {
         }
 
         if(material.emissiveFactor !== undefined) {
-            materialData.emissiveness = vec3.fromValues(material.emissiveFactor[0], material.emissiveFactor[1], material.emissiveFactor[2]);
+            materialData.emissiveness = this._converter.toColor(material.emissiveFactor);
         }        
         if(material.alphaMode !== undefined) {
             materialData.alphaMode = material.alphaMode.toLowerCase() === MATERIAL_ALPHA.MASK ? MATERIAL_ALPHA.MASK : material.alphaMode.toLowerCase() === MATERIAL_ALPHA.BLEND ? MATERIAL_ALPHA.BLEND : MATERIAL_ALPHA.OPAQUE; 

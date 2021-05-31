@@ -172,6 +172,29 @@ export class MapData {
 export class MaterialData extends AbstractTreeNodeData {
   // #region Constructors (1)
 
+  private _alphaMap?: MapData;
+  private _alphaCutoff: number = 0;
+  private _alphaMode: MATERIAL_ALPHA = MATERIAL_ALPHA.OPAQUE;
+  private _bumpMap?: MapData;
+  private _bumpScale: number = 1.0;
+  private _color?: string;
+  private _emissiveMap?: MapData;
+  private _emissiveness?: string;
+  private _shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH;
+  private _map?: MapData;
+  private _metalness = 1.0;
+  private _metalnessMap?: MapData;
+  private _metalnessRoughnessMap?: MapData;
+  private _name?: string;
+  private _normalMap?: MapData;
+  private _normalScale: number = 1.0;
+  private _opacity = 1.0;
+  private _roughness = 1.0;
+  private _roughnessMap?: MapData;
+  private _side: MATERIAL_SIDE = MATERIAL_SIDE.DOUBLE;
+
+  private _convertedObjects: ISDObject[] = [];
+
   /**
    * Creates a material data object.
    * 
@@ -179,31 +202,54 @@ export class MaterialData extends AbstractTreeNodeData {
    * @param id the id
    */
   constructor(
-    private _alphaMap?: MapData,
-    private _alphaCutoff: number = 0,
-    private _alphaMode: MATERIAL_ALPHA = MATERIAL_ALPHA.OPAQUE,
-    private _bumpMap?: MapData,
-    private _bumpScale: number = 1.0,
-    private _color?: vec4,
-    private _emissiveMap?: MapData,
-    private _emissiveness: vec3 = vec3.fromValues(0, 0, 0),
-    private _shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH,
-    private _map?: MapData,
-    private _metalness = 1.0,
-    private _metalnessMap?: MapData,
-    private _metalnessRoughnessMap?: MapData,
-    private _name?: string,
-    private _normalMap?: MapData,
-    private _normalScale: number = 1.0,
-    private _opacity = 1.0,
-    private _roughness = 1.0,
-    private _roughnessMap?: MapData,
-    private _side: MATERIAL_SIDE = MATERIAL_SIDE.DOUBLE,
-
-    private _convertedObjects: ISDObject[] = [],
+    properties?: {
+      alphaMap?: MapData,
+      alphaCutoff?: number,
+      alphaMode?: MATERIAL_ALPHA,
+      bumpMap?: MapData,
+      bumpScale?: number,
+      color?: string,
+      emissiveMap?: MapData,
+      emissiveness?: string,
+      shading?: MATERIAL_SHADING,
+      map?: MapData,
+      metalness?: number,
+      metalnessMap?: MapData,
+      metalnessRoughnessMap?: MapData,
+      name?: string,
+      normalMap?: MapData,
+      normalScale?: number,
+      opacity?: number,
+      roughness?: number,
+      roughnessMap?: MapData,
+      side?: MATERIAL_SIDE,
+      convertedObjects?: ISDObject[]
+    },
     id?: string
   ) {
     super(id);
+    if(!properties) return;
+    if(properties.alphaMap) this.alphaMap = properties.alphaMap;
+    if(properties.alphaCutoff) this.alphaCutoff = properties.alphaCutoff;
+    if(properties.alphaMode) this.alphaMode = properties.alphaMode;
+    if(properties.bumpMap) this.bumpMap = properties.bumpMap;
+    if(properties.bumpScale) this.bumpScale = properties.bumpScale;
+    if(properties.color) this.color = properties.color;
+    if(properties.emissiveMap) this.emissiveMap = properties.emissiveMap;
+    if(properties.emissiveness) this.emissiveness = properties.emissiveness;
+    if(properties.shading) this.shading = properties.shading;
+    if(properties.map) this.map = properties.map;
+    if(properties.metalness) this.metalness = properties.metalness;
+    if(properties.metalnessMap) this.metalnessMap = properties.metalnessMap;
+    if(properties.metalnessRoughnessMap) this.metalnessRoughnessMap = properties.metalnessRoughnessMap;
+    if(properties.name) this.name = properties.name;
+    if(properties.normalMap) this.normalMap = properties.normalMap;
+    if(properties.normalScale) this.normalScale = properties.normalScale;
+    if(properties.opacity) this.opacity = properties.opacity;
+    if(properties.roughness) this.roughness = properties.roughness;
+    if(properties.roughnessMap) this.roughnessMap = properties.roughnessMap;
+    if(properties.side) this.side = properties.side;
+    if(properties.convertedObjects) this.convertedObjects = properties.convertedObjects;
   }
 
   // #endregion Constructors (1)
@@ -292,17 +338,17 @@ export class MaterialData extends AbstractTreeNodeData {
 
   /**
    * Getter color
-   * @return {vec4 | undefined}
+   * @return {string | undefined}
    */
-  public get color(): vec4 | undefined {
+  public get color(): string | undefined {
     return this._color;
   }
 
   /**
    * Setter color
-   * @param {vec4 | undefined} value
+   * @param {string | undefined} value
    */
-  public set color(value: vec4 | undefined) {
+  public set color(value: string | undefined) {
     this._color = value;
   }
 
@@ -340,17 +386,17 @@ export class MaterialData extends AbstractTreeNodeData {
 
   /**
    * Getter emissiveness
-   * @return {vec3}
+   * @return {string | undefined}
    */
-  public get emissiveness(): vec3 {
+  public get emissiveness(): string | undefined {
     return this._emissiveness;
   }
 
   /**
    * Setter emissiveness
-   * @param {vec3} value
+   * @param {string | undefined} value
    */
-  public set emissiveness(value: vec3) {
+  public set emissiveness(value: string | undefined) {
     this._emissiveness = value;
   }
 
@@ -554,7 +600,29 @@ export class MaterialData extends AbstractTreeNodeData {
    * Clones the scene graph data.
    */
   public clone(): ITreeNodeData {
-    return new MaterialData(this.alphaMap, this.alphaCutoff, this.alphaMode, this.bumpMap, this.bumpScale, this.color, this.emissiveMap, this.emissiveness, this.shading, this.map, this.metalness, this.metalnessMap, this.metalnessRoughnessMap, this.name, this.normalMap, this.normalScale, this.opacity, this.roughness, this.roughnessMap, this.side, this._convertedObjects, this._id);
+    return new MaterialData({
+      alphaMap: this.alphaMap,
+      alphaCutoff: this.alphaCutoff,
+      alphaMode: this.alphaMode,
+      bumpMap: this.bumpMap,
+      bumpScale: this.bumpScale,
+      color: this.color,
+      emissiveMap: this.emissiveMap,
+      emissiveness: this.emissiveness,
+      shading: this.shading,
+      map: this.map,
+      metalness: this.metalness,
+      metalnessMap: this.metalnessMap,
+      metalnessRoughnessMap: this.metalnessRoughnessMap,
+      name: this.name,
+      normalMap: this.normalMap,
+      normalScale: this.normalScale,
+      opacity: this.opacity,
+      roughness: this.roughness,
+      roughnessMap: this.roughnessMap,
+      side: this.side,
+      convertedObjects: this.convertedObjects,
+    }, this.id);
   }
 
   // #endregion Public Methods (1)

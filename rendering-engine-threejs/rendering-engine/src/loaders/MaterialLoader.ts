@@ -6,7 +6,7 @@ import { RenderingEngine } from '../RenderingEngine';
 export class MaterialLoader {
     // #region Properties (5)
 
-    private readonly _defaultColor: vec4 = vec4.fromValues(0, 1, 0.9686, 1);
+    private readonly _defaultColor: string = '#00fff7';
     private readonly _materialLibrary: THREE.MeshStandardMaterial[] = [];
 
     private _blending: number = 0.0;
@@ -130,10 +130,10 @@ export class MaterialLoader {
             material.bumpScale = materialProperties.bumpScale;
 
             if(materialProperties.color)
-                material.color = new THREE.Color(materialProperties.color[0], materialProperties.color[1], materialProperties.color[2]);
+                material.color = new THREE.Color(materialProperties.color);
             
             if(!materialProperties.color && !materialProperties.map)
-                material.color = new THREE.Color(this._defaultColor[0], this._defaultColor[1], this._defaultColor[2]);
+                material.color = new THREE.Color(this._defaultColor);
 
             // displacementMap
 
@@ -141,7 +141,8 @@ export class MaterialLoader {
 
             // displacementBias
 
-            material.emissive = new THREE.Color(materialProperties.emissiveness[0], materialProperties.emissiveness[1], materialProperties.emissiveness[2]);
+            if(materialProperties.emissiveness)
+                material.emissive = new THREE.Color(materialProperties.emissiveness);
 
             if (materialProperties.emissiveMap !== undefined)
                 material.emissiveMap = this.createTexture(materialProperties.emissiveMap);
@@ -200,7 +201,7 @@ export class MaterialLoader {
 
             material.side = THREE.DoubleSide;
         } else {
-            material = new THREE.MeshStandardMaterial({color: new THREE.Color(this._defaultColor[0], this._defaultColor[1], this._defaultColor[2])});
+            material = new THREE.MeshStandardMaterial({color: new THREE.Color(this._defaultColor)});
             material.side = THREE.DoubleSide;
         }
 

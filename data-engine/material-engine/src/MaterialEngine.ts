@@ -1,7 +1,7 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { container, singleton } from 'tsyringe';
-import { HttpClient, ImageLoader } from '@shapediver/viewer.shared.utils';
+import { Converter, HttpClient, ImageLoader } from '@shapediver/viewer.shared.utils';
 import { MapData, MaterialData, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
 import { vec2, vec3, vec4 } from 'gl-matrix';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
@@ -51,6 +51,7 @@ export class MaterialEngine {
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     // #endregion Properties (2)
 
@@ -126,7 +127,7 @@ export class MaterialEngine {
             if(map) material.bumpMap = map;
         }
         if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude')) material.bumpScale = generalDefinition.bumpAmplitude!;
-        if (generalDefinition.color  && !specificDefinition.color) material.color = vec4.fromValues(generalDefinition.color[0] / 255, generalDefinition.color[1] / 255, generalDefinition.color[2] / 255, generalDefinition.color[3] / 255);
+        if (generalDefinition.color  && !specificDefinition.color) material.color = this._converter.toColor(generalDefinition.color);
         if (generalDefinition.bitmaptexture  && !specificDefinition.bitmaptexture) {
             const map = await this.loadMap(generalDefinition.bitmaptexture, id.class);
             if(map) material.map = map;
@@ -160,7 +161,7 @@ export class MaterialEngine {
             if(map) material.bumpMap = map;
         }
         if (specificDefinition.hasOwnProperty('bumpAmplitude')) material.bumpScale = specificDefinition.bumpAmplitude!;
-        if (specificDefinition.color) material.color = vec4.fromValues(specificDefinition.color[0] / 255, specificDefinition.color[1] / 255, specificDefinition.color[2] / 255, specificDefinition.color[3] / 255);
+        if (specificDefinition.color) material.color = this._converter.toColor(specificDefinition.color);
         if (specificDefinition.bitmaptexture) {
             const map = await this.loadMap(specificDefinition.bitmaptexture, id.class + '/' + id.specific);
             if(map) material.map = map;
@@ -258,16 +259,13 @@ export class MaterialEngine {
         // ambient is ignored
         
         if(data.color) {
-            material.color = vec4.fromValues(data.color[0] / 255, data.color[1] / 255, data.color[2] / 255, data.color[3] / 255);
+            material.color = this._converter.toColor(data.color);
         } else if(data.diffuse) {
-            material.color = vec4.fromValues(data.diffuse[0] / 255, data.diffuse[1] / 255, data.diffuse[2] / 255, data.diffuse[3] / 255);
+            material.color = this._converter.toColor(data.diffuse);
         }
 
         if(data.emission)
-            material.emissiveness = vec3.fromValues(data.emission[0], data.emission[1], data.emission[2]);
-
-        if(data.emission)
-            material.emissiveness = vec3.fromValues(data.emission[0], data.emission[1], data.emission[2]);
+            material.emissiveness = this._converter.toColor(data.emission);
 
         // specular is ignored
 
@@ -313,7 +311,7 @@ export class MaterialEngine {
         // ambient is ignored
         
         if(data.color) 
-            material.color = vec4.fromValues(data.color[0] / 255, data.color[1] / 255, data.color[2] / 255, data.color[3] / 255);
+            material.color = this._converter.toColor(data.color);
 
         material.side = data.side === 'front' ? MATERIAL_SIDE.FRONT : data.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
 
@@ -385,7 +383,7 @@ export class MaterialEngine {
         // ambient is ignored
         
         if(data.color) 
-            material.color = vec4.fromValues(data.color[0] / 255, data.color[1] / 255, data.color[2] / 255, data.color[3] / 255);
+            material.color = this._converter.toColor(data.color);
 
         material.side = data.side === 'front' ? MATERIAL_SIDE.FRONT : data.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
 

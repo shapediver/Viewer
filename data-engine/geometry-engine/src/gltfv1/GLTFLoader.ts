@@ -1,5 +1,5 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
+import { Converter, HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 
 import { ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as ACCESSORTYPE, IGLTF_v1, IGLTF_v1_Material } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
@@ -15,6 +15,7 @@ export class GLTFLoader {
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _implementedExtensions = ['KHR_materials_common'];
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     private _body!: ArrayBuffer;
     private _content!: IGLTF_v1;
@@ -152,17 +153,14 @@ export class GLTFLoader {
                 materialData.side = values.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
 
             if (values.hasOwnProperty('diffuse') && Array.isArray(values.diffuse)) {
-                materialData.color = vec4.fromValues(values.diffuse[0], values.diffuse[1], values.diffuse[2], values.diffuse[3]);
+                materialData.color = this._converter.toColor(values.diffuse);
                 materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
             } else if(values.hasOwnProperty('diffuse') && !Array.isArray(values.diffuse)) {
                 this._logger.info('The value diffuse was set for a material, but is not supported in that type.')
-                materialData.color = vec4.fromValues(0, 0, 0, 1);
-            } else {
-                materialData.color = vec4.fromValues(0, 0, 0, 1);
             }
 
             if (values.hasOwnProperty('emission') && Array.isArray(values.emission)) {
-                materialData.emissiveness = vec3.fromValues(values.emission[0], values.emission[1], values.emission[2]);
+                materialData.emissiveness = this._converter.toColor(values.emission);
             } else {
                 this._logger.info('The value emission was set for a material, but is not supported in that type.')
             }
