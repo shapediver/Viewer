@@ -7,7 +7,7 @@ export class MaterialLoader {
     // #region Properties (5)
 
     private readonly _defaultColor: string = '#00fff7';
-    private readonly _materialLibrary: THREE.MeshStandardMaterial[] = [];
+    private readonly _materialLibrary: (THREE.MeshStandardMaterial | THREE.MeshBasicMaterial)[] = [];
 
     private _blending: number = 0.0;
     private _lightSizeUV: number = 0.025;
@@ -39,11 +39,10 @@ export class MaterialLoader {
      * @returns the material object
      */
     public load(materialProperties?: MaterialData): THREE.Material {
-        let material: THREE.MeshStandardMaterial;
+        const properties: any = {};
         if (materialProperties) {
-            material = new THREE.MeshStandardMaterial();
 
-            material.alphaTest = materialProperties.alphaCutoff;
+            properties.alphaTest = materialProperties.alphaCutoff;
 
             // blendDst
 
@@ -85,7 +84,7 @@ export class MaterialLoader {
 
             // flatShading
             if(materialProperties.shading !== undefined)
-                material.flatShading = materialProperties.shading !== 'smooth';
+                properties.flatShading = materialProperties.shading !== 'smooth';
 
             // fog
 
@@ -116,8 +115,8 @@ export class MaterialLoader {
             // visible
 
             if (materialProperties.alphaMap !== undefined) {
-                material.alphaMap = this.createTexture(materialProperties.alphaMap);
-                material.transparent = true;
+                properties.alphaMap = this.createTexture(materialProperties.alphaMap);
+                properties.transparent = true;
             }
 
             // aoMap
@@ -125,15 +124,15 @@ export class MaterialLoader {
             // aoMapIntensity
 
             if (materialProperties.bumpMap !== undefined)
-                material.bumpMap = this.createTexture(materialProperties.bumpMap);
+            properties.bumpMap = this.createTexture(materialProperties.bumpMap);
 
-            material.bumpScale = materialProperties.bumpScale;
+            properties.bumpScale = materialProperties.bumpScale;
 
             if(materialProperties.color)
-                material.color = new THREE.Color(materialProperties.color);
+            properties.color = new THREE.Color(materialProperties.color);
             
             if(!materialProperties.color && !materialProperties.map)
-                material.color = new THREE.Color(this._defaultColor);
+                properties.color = new THREE.Color(this._defaultColor);
 
             // displacementMap
 
@@ -142,14 +141,14 @@ export class MaterialLoader {
             // displacementBias
 
             if(materialProperties.emissiveness)
-                material.emissive = new THREE.Color(materialProperties.emissiveness);
+                properties.emissive = new THREE.Color(materialProperties.emissiveness);
 
             if (materialProperties.emissiveMap !== undefined)
-                material.emissiveMap = this.createTexture(materialProperties.emissiveMap);
+                properties.emissiveMap = this.createTexture(materialProperties.emissiveMap);
 
             // emissiveIntensity
 
-            material.envMap = this._envMap;
+            properties.envMap = this._envMap;
 
             // envMapIntensity
 
@@ -158,20 +157,20 @@ export class MaterialLoader {
             // lightMapIntensity
 
             if (materialProperties.map !== undefined)
-                material.map = this.createTexture(materialProperties.map);
+                properties.map = this.createTexture(materialProperties.map);
 
-            material.metalness = materialProperties.metalness;
+            properties.metalness = materialProperties.metalness;
 
-            material.roughness = materialProperties.roughness;
+            properties.roughness = materialProperties.roughness;
 
             if (materialProperties.metalnessRoughnessMap !== undefined) {
-                material.metalnessMap = this.createTexture(materialProperties.metalnessRoughnessMap);
-                material.roughnessMap = material.metalnessMap;
+                properties.metalnessMap = this.createTexture(materialProperties.metalnessRoughnessMap);
+                properties.roughnessMap = properties.metalnessMap;
             } else {
                 if (materialProperties.metalnessMap !== undefined)
-                    material.metalnessMap = this.createTexture(materialProperties.metalnessMap);
+                    properties.metalnessMap = this.createTexture(materialProperties.metalnessMap);
                 if (materialProperties.roughnessMap !== undefined)
-                    material.roughnessMap = this.createTexture(materialProperties.roughnessMap);
+                    properties.roughnessMap = this.createTexture(materialProperties.roughnessMap);
             }
 
             // morphNormals
@@ -179,11 +178,11 @@ export class MaterialLoader {
             // morphTargets
 
             if (materialProperties.normalMap !== undefined)
-                material.normalMap = this.createTexture(materialProperties.normalMap);
+                properties.normalMap = this.createTexture(materialProperties.normalMap);
 
             // normalMapType
 
-            material.normalScale = new THREE.Vector2(materialProperties.normalScale, materialProperties.normalScale);
+            properties.normalScale = new THREE.Vector2(materialProperties.normalScale, materialProperties.normalScale);
 
             // refractionRatio
 
@@ -199,19 +198,26 @@ export class MaterialLoader {
 
             // wireframeLinewidth
 
-            material.side = THREE.DoubleSide;
+            properties.side = THREE.DoubleSide;
         } else {
-            material = new THREE.MeshStandardMaterial({color: new THREE.Color(this._defaultColor)});
-            material.side = THREE.DoubleSide;
+            properties.color = new THREE.Color(this._defaultColor);
+            properties.side = THREE.DoubleSide;
         }
 
+        const material = new THREE.MeshStandardMaterial(properties);
         material.onBeforeCompile = (shader: THREE.Shader) => {
             shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
             shader.uniforms.blending = { value: this._blending };
             material.userData.shader = shader;
         };
-
         material.needsUpdate = true;
+
+        if(this._renderingEngine.minimalRendering) {
+            const basicMaterial = new THREE.MeshBasicMaterial(properties)
+            this._materialLibrary.push(basicMaterial);
+            return material;
+        }
+
         this._materialLibrary.push(material);
         return material;
     }

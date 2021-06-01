@@ -458,6 +458,14 @@ export class RenderingEngine implements IRenderingEngine {
     public get materialLoader(): MaterialLoader {
         return this._materialLoader;
     }
+    
+    /**
+     * Getter minimalRendering
+     * @return {boolean}
+     */
+     public get minimalRendering(): boolean {
+        return this._renderingLogic.minimalRendering;
+    }
 
     /**
      * Getter pointSize

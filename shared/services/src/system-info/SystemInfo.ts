@@ -28,8 +28,8 @@ export class SystemInfo {
     }
 
     /**
- * Check if we are running in internet explorer (arrrggghhhh!!!!)
- */
+     * Check if we are running in internet explorer (arrrggghhhh!!!!)
+     */
     public get runningInInternetExplorer(): boolean {
         return this._runningInInternetExplorer;
     };
