@@ -24,7 +24,7 @@ export class RenderingLogic {
 
     private _height: number = 0;
     private _lastTime: number = 0;
-    private _minimalRendering: boolean = true;
+    private _minimalRendering: boolean = false;
     private _noNeedToRender: boolean = false;
     private _noWebGL: boolean = false;
     private _usingSwiftShader: boolean = false;
@@ -269,7 +269,7 @@ export class RenderingLogic {
             }
 
             if (!_gl.getExtension("EXT_shader_texture_lod"))
-                this._minimalRendering = false;
+                this._minimalRendering = true;
 
             return _gl;
         } catch (error) {
