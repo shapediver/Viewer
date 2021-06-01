@@ -42,6 +42,8 @@ export class InputValidator {
                 if(this._typeChecker.isTypeOf(value, 'string') && enumValues.includes(value)) return;
                 break;
             case 'vec3':
+                if (value.constructor === Float32Array)
+                    value = Array.from(value);
                 if(Array.isArray(value) && this._typeChecker.isTypeOf(value[0], 'number') && this._typeChecker.isTypeOf(value[1], 'number') && this._typeChecker.isTypeOf(value[2], 'number')) return;
                 break;
             case 'cubeMap':
