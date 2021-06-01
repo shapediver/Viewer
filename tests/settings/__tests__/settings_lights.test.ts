@@ -339,7 +339,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
-                viewer.createLightScene({ id: 'testLightScene' });
+                viewer.createLightScene({ name: 'testLightScene' });
                 viewer.addAmbientLight({ color: '#ff0000', intensity: 0.4, id: 'ambient' })
                 viewer.addDirectionalLight({ color: '#00ff00', intensity: 0.5, direction: [1, -1, 0], castShadow: true, shadowMapBias: 0.0001, shadowMapResolution: 512, id: 'directional' })
                 viewer.addHemisphereLight({ color: '#ff000f', groundColor: '#0f0f0f', intensity: 0.6, id: 'hemisphere' })

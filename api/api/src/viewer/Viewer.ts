@@ -622,9 +622,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.standard the option to add the standard lights
    * @returns 
    */
-  public createLightScene(properties: { id?: string, standard?: boolean }): LightScene {
+  public createLightScene(properties: { name?: string, standard?: boolean }): LightScene {
     this.isInitialized();
-    this.#inputValidator.validate(properties.id, 'string', false);
+    this.#inputValidator.validate(properties.name, 'string', false);
     this.#inputValidator.validate(properties.standard, 'boolean', false);
     const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(properties);
     const lightScene = new LightScene(this, lightSceneLogic);

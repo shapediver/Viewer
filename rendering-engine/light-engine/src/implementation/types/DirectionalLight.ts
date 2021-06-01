@@ -22,15 +22,13 @@ export class DirectionalLight extends AbstractLight {
         castShadow?: boolean,
         shadowMapResolution?: number,
         shadowMapBias?: number,
-        name?: string,
-        id?: string
+        name?: string
     }) {
         super({
             color: properties.color || '#ffffff', 
             intensity: properties.intensity || 0.5, 
             type: LIGHTTYPE.AMBIENT,
             name: properties.name,
-            id: properties.id 
         });
 
         if(properties.direction) this._direction = properties.direction;
