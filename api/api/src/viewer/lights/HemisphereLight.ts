@@ -48,5 +48,9 @@ export class HemisphereLight extends Light {
         this.#logger.info(`Light (${this.#light.id}): groundColor was set to: ${value}`);
     }
 
+    public clone() {
+        return new HemisphereLight(<HemisphereLightLogic>this.#light.clone());
+    }
+
     // #endregion Public Accessors (2)
 }

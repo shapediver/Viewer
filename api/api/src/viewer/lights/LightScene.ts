@@ -34,6 +34,10 @@ export class LightScene implements ILightScene {
         return this.#lightSceneLogic.id;
     }
 
+    public get name(): string | undefined {
+        return this.#lightSceneLogic.name;
+    }
+
     public get lights(): { [key: string]: Light; } {
         const lightLogic = this.#lightSceneLogic.lights;
         const lights: { [key: string]: Light } = {};

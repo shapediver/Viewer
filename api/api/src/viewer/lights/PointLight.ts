@@ -83,5 +83,9 @@ export class PointLight extends Light {
         this.#logger.info(`Light (${this.#light.id}): position was set to: ${value}`);
     }
 
+    public clone() {
+        return new PointLight(<PointLightLogic>this.#light.clone());
+    }
+
     // #endregion Public Accessors (6)
 }

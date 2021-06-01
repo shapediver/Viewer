@@ -36,31 +36,31 @@ export class LightEngine implements ILightEngine {
     // #region Public Methods (14)
 
     public addAmbientLight(properties: {color?: string, intensity?: number, id?: string}): AmbientLight {
-        const light = new AmbientLight(properties.color, properties.intensity, properties.id);
+        const light = new AmbientLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
 
     public addDirectionalLight(properties: {color?: string, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, id?: string}): DirectionalLight {
-        const light = new DirectionalLight(properties.color, properties.intensity, properties.direction, properties.castShadow, properties.shadowMapResolution, properties.shadowMapBias, properties.id);
+        const light = new DirectionalLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
 
     public addHemisphereLight(properties: {color?: string, intensity?: number, groundColor?: string, id?: string}): HemisphereLight {
-        const light = new HemisphereLight(properties.color, properties.intensity, properties.groundColor, properties.id);
+        const light = new HemisphereLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
 
     public addPointLight(properties: {color?: string, intensity?: number, position?: vec3, distance?: number, decay?: number, id?: string}): PointLight {
-        const light = new PointLight(properties.color, properties.intensity, properties.position, properties.distance, properties.decay, properties.id);
+        const light = new PointLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
 
     public addSpotLight(properties: {color?: string, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, id?: string}): SpotLight {
-        const light = new SpotLight(properties.color, properties.intensity, properties.position, properties.target, properties.distance, properties.decay, properties.angle, properties.penumbra, properties.id);
+        const light = new SpotLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
@@ -71,13 +71,13 @@ export class LightEngine implements ILightEngine {
         return true;
     }
 
-    public createLightScene(properties: {id?: string, standard?: boolean}): ILightScene {
+    public createLightScene(properties: {name?: string, id?: string, standard?: boolean}): ILightScene {
         if (!properties.id || this._lightScenes[properties.id]) properties.id = this._uuidGenerator.create();
-        const lightScene = new LightScene(properties.id);
+        const lightScene = new LightScene({id: properties.id, name: properties.name});
         if (properties.standard === true) {
-            lightScene.addLight(new AmbientLight('#ffffff', 0.5, 'ambient0'));
-            lightScene.addLight(new DirectionalLight('#ffffff', 0.75, vec3.fromValues(.5774, -.5774, .5774), true, 1024, -0.00175, 'directional0'));
-            lightScene.addLight(new DirectionalLight('#ffffff', 0.35, vec3.fromValues(.25, -1, 1), false, 1024, -0.00175, 'directional1'));
+            lightScene.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
+            lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
+            lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
         }
         this._lightScenes[properties.id] = lightScene;
         this._currentLightScene = lightScene;
@@ -202,26 +202,61 @@ export class LightEngine implements ILightEngine {
         this._lightScenes = {};
 
         for (let lightSceneId in this._settingsEngine.lights.lightScenes.value) {
-            const ls = new LightScene(lightSceneId);
+            const ls = new LightScene({id: this._uuidGenerator.create(), name: lightSceneId});
             for (let lightId in this._settingsEngine.lights.lightScenes.value[lightSceneId].lights) {
                 const light = this._settingsEngine.lights.lightScenes.value[lightSceneId].lights[lightId];
                 let l: AbstractLight;
                 switch (light.type) {
                     case LIGHTTYPE.DIRECTIONAL:
-                        l = new DirectionalLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.direction), light.properties.castShadow, 1024, -0.00175, lightId);
+                        const prop = {
+
+                        }
+                        l = new DirectionalLight({
+                            color: this._converter.toColor(light.properties.color), 
+                            intensity: light.properties.intensity, 
+                            direction: this._converter.toVec3(light.properties.direction), 
+                            castShadow: light.properties.castShadow, 
+                            name: lightId
+                        });
                         break;
                     case LIGHTTYPE.HEMISPHERE:
-                        l = new HemisphereLight(this._converter.toColor(light.properties.skyColor), light.properties.intensity, this._converter.toColor(light.properties.groundColor), lightId);
+                        l = new HemisphereLight({
+                            color: this._converter.toColor(light.properties.skyColor), 
+                            intensity: light.properties.intensity, 
+                            groundColor: this._converter.toColor(light.properties.groundColor), 
+                            name: lightId
+                        });
                         break;
                     case LIGHTTYPE.POINT:
-                        l = new PointLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), light.properties.distance, light.properties.decay, lightId);
+                        l = new PointLight({
+                            color: this._converter.toColor(light.properties.color), 
+                            intensity: light.properties.intensity, 
+                            position: this._converter.toVec3(light.properties.position), 
+                            distance: light.properties.distance, 
+                            decay: light.properties.decay, 
+                            name: lightId
+                        });
                         break;
                     case LIGHTTYPE.SPOT:
-                        l = new SpotLight(this._converter.toColor(light.properties.color), light.properties.intensity, this._converter.toVec3(light.properties.position), this._converter.toVec3(light.properties.target), light.properties.distance, light.properties.decay, light.properties.angle, light.properties.penumbra, lightId);
+                        l = new SpotLight({
+                            color: this._converter.toColor(light.properties.color), 
+                            intensity: light.properties.intensity, 
+                            position: this._converter.toVec3(light.properties.position), 
+                            target: this._converter.toVec3(light.properties.target), 
+                            distance: light.properties.distance, 
+                            decay: light.properties.decay, 
+                            angle: light.properties.angle, 
+                            penumbra: light.properties.penumbra, 
+                            name: lightId
+                        });
                         break;
                     case LIGHTTYPE.AMBIENT:
                     default:
-                        l = new AmbientLight(this._converter.toColor(light.properties.color), light.properties.intensity, lightId);
+                        l = new AmbientLight({
+                            color: this._converter.toColor(light.properties.color), 
+                            intensity: light.properties.intensity, 
+                            name: lightId
+                        });
                 }
                 ls.addLight(l);
             }

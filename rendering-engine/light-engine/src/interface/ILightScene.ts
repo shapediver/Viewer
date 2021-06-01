@@ -5,6 +5,7 @@ export interface ILightScene {
     // #region Properties (3)
 
     id: string;
+    name?: string
     lights: { [key: string]: ILight; };
     node: TreeNode;
 

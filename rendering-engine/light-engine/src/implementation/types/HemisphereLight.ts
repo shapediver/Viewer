@@ -4,15 +4,30 @@ import { LIGHTTYPE } from "../../interface/ILight";
 import { AbstractLight } from "../AbstractLight";
 
 export class HemisphereLight extends AbstractLight {
+    // #region Properties (1)
+
+    private _groundColor: string = '#ffffff';
+
+    // #endregion Properties (1)
+
     // #region Constructors (1)
 
-    constructor(
-        color: string = '#ffffff',
-        intensity: number = 0.5,
-        private _groundColor: string = '#ffffff',
-        name?: string
-    ) {
-        super(color, intensity, LIGHTTYPE.HEMISPHERE, name);
+    constructor(properties: {
+        color?: string,
+        groundColor?: string,
+        intensity?: number,
+        name?: string,
+        id?: string
+    }) {
+        super({
+            color: properties.color || '#ffffff',
+            intensity: properties.intensity || 0.5,
+            type: LIGHTTYPE.HEMISPHERE,
+            name: properties.name,
+            id: properties.id
+        });
+
+        if (properties.groundColor) this._groundColor = properties.groundColor;
     }
 
     // #endregion Constructors (1)
@@ -41,7 +56,12 @@ export class HemisphereLight extends AbstractLight {
     // #region Public Methods (1)
 
     public clone(): ITreeNodeData {
-        return new HemisphereLight(this.color, this.intensity, this.groundColor, this.name);
+        return new HemisphereLight({
+            color: this.color,
+            groundColor: this.groundColor,
+            intensity: this.intensity,
+            name: this.name,
+        });
     }
 
     // #endregion Public Methods (1)

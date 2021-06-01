@@ -137,5 +137,9 @@ export class SpotLight extends Light {
         this.#logger.info(`Light (${this.#light.id}): target was set to: ${value}`);
     }
 
+    public clone() {
+        return new SpotLight(<SpotLightLogic>this.#light.clone());
+    }
+
     // #endregion Public Accessors (12)
 }

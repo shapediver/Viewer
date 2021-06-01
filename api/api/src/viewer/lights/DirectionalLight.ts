@@ -101,5 +101,9 @@ export class DirectionalLight extends Light {
         this.#logger.info(`Light (${this.#light.id}): shadowMapResolution was set to: ${value}`);
     }
 
+    public clone() {
+        return new DirectionalLight(<DirectionalLightLogic>this.#light.clone());
+    }
+
     // #endregion Public Accessors (4)
 }

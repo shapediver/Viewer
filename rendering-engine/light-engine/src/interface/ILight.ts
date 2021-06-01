@@ -1,3 +1,4 @@
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { vec3 } from 'gl-matrix'
 
 export enum LIGHTTYPE {
@@ -9,7 +10,7 @@ export enum LIGHTTYPE {
   SPOT = 'spot'
 }
 
-export interface ILight {
+export interface ILight extends ITreeNodeData {
   // #region Properties (5)
 
   color: string | number | vec3,

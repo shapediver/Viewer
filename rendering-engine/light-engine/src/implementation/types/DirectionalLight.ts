@@ -4,23 +4,44 @@ import { LIGHTTYPE } from "../../interface/ILight";
 import { AbstractLight } from "../AbstractLight";
 
 export class DirectionalLight extends AbstractLight {
+    // #region Properties (4)
+
+    private _castShadow: boolean = false;
+    private _direction: vec3 = vec3.fromValues(-1, 0, 1);
+    private _shadowMapBias: number = -0.00175;
+    private _shadowMapResolution: number = 1024;
+
+    // #endregion Properties (4)
+
     // #region Constructors (1)
 
-    constructor(
-        color: string = '#ffffff',
-        intensity: number = 0.5,
-        private _direction: vec3 = vec3.fromValues(-1, 0, 1),
-        private _castShadow: boolean = false,
-        private _shadowMapResolution: number = 1024,
-        private _shadowMapBias: number = -0.00175,
-        name?: string
-    ) {
-        super(color, intensity, LIGHTTYPE.DIRECTIONAL, name);
+    constructor(properties: {
+        color?: string,
+        intensity?: number,
+        direction?: vec3,
+        castShadow?: boolean,
+        shadowMapResolution?: number,
+        shadowMapBias?: number,
+        name?: string,
+        id?: string
+    }) {
+        super({
+            color: properties.color || '#ffffff', 
+            intensity: properties.intensity || 0.5, 
+            type: LIGHTTYPE.AMBIENT,
+            name: properties.name,
+            id: properties.id 
+        });
+
+        if(properties.direction) this._direction = properties.direction;
+        if(properties.castShadow) this._castShadow = properties.castShadow;
+        if(properties.shadowMapResolution) this._shadowMapResolution = properties.shadowMapResolution;
+        if(properties.shadowMapBias) this._shadowMapBias = properties.shadowMapBias;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (10)
+    // #region Public Accessors (8)
 
     /**
      * Getter castShadow
@@ -90,12 +111,20 @@ export class DirectionalLight extends AbstractLight {
         this.updateVersion();
     }
 
-    // #endregion Public Accessors (10)
+    // #endregion Public Accessors (8)
 
     // #region Public Methods (1)
 
     public clone(): ITreeNodeData {
-        return new DirectionalLight(this.color, this.intensity, this.direction, this.castShadow, this.shadowMapResolution, this.shadowMapBias, this.name);
+        return new DirectionalLight({
+            color: this.color,
+            intensity: this.intensity,
+            direction: this.direction,
+            castShadow: this.castShadow,
+            shadowMapResolution: this.shadowMapResolution,
+            shadowMapBias: this.shadowMapBias,
+            name: this.name,
+        });
     }
 
     // #endregion Public Methods (1)

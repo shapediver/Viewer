@@ -6,14 +6,14 @@ import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
 
 export abstract class Light implements ILight {
-    // #region Properties (1)
+    // #region Properties (4)
 
-    readonly #light: ILight;
     readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #light: ILight;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
-    // #endregion Properties (1)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -27,7 +27,7 @@ export abstract class Light implements ILight {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (7)
+    // #region Public Accessors (9)
 
     /**
      * The color of the light
@@ -43,6 +43,10 @@ export abstract class Light implements ILight {
         this.#inputValidator.validate(value, 'color');
         this.#light.color = this.#converter.toColor(value);
         this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): color was set to: ${value}`);
+    }
+
+    public get id(): string {
+        return this.#light.id;
     }
 
     /**
@@ -84,5 +88,23 @@ export abstract class Light implements ILight {
         return this.#light.type;
     }
 
-    // #endregion Public Accessors (7)
+    public get version(): string {
+        return this.#light.version;
+    }
+
+    // #endregion Public Accessors (9)
+
+    // #region Public Methods (1)
+
+    public updateVersion(): void {
+        this.#light.updateVersion();
+    }
+
+    // #endregion Public Methods (1)
+
+    // #region Public Abstract Methods (1)
+
+    abstract clone(): Light;
+
+    // #endregion Public Abstract Methods (1)
 }

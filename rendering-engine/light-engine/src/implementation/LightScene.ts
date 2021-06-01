@@ -8,18 +8,31 @@ export class LightScene implements ILightScene {
 
     private readonly _lights: { [key: string]: ILight; } = {};
     private readonly _node: TreeNode;
+    private readonly _id: string;
+    private _name: string | undefined;
 
     // #endregion Properties (2)
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string) {
-        this._node = new TreeNode(_id);
+    constructor(properties: {id: string, name?: string}) {
+        this._id = properties.id;
+        this._name = properties.name;
+        this._node = new TreeNode(properties.name || properties.id);
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (3)
+
+    
+    public get name(): string | undefined {
+        return this._name;
+    }
+
+    public set name(value: string | undefined) {
+        this._name = value;
+    }
 
     public get id(): string {
         return this._id;

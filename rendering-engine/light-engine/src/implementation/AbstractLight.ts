@@ -6,22 +6,33 @@ import { ISDObject } from "@shapediver/viewer.shared.types";
 import { container } from "tsyringe";
 
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
-    // #region Properties (1)
+    // #region Properties (6)
+
+    private readonly _type: LIGHTTYPE;
+
+    private _color: string;
+    private _convertedObjects: ISDObject[] = [];
+    private _intensity: number;
+    private _name?: string;
 
     protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    private _convertedObjects: ISDObject[] = [];
-    
-    // #endregion Properties (1)
+
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
-    constructor(
-        private _color: string,
-        private _intensity: number,
-        private readonly _type: LIGHTTYPE,
-        private _name?: string
-    ) {
-        super();
+    constructor(properties: {
+        color: string,
+        intensity: number,
+        type: LIGHTTYPE,
+        id?: string
+        name?: string,
+    }) {
+        super(properties.id);
+        this._color = properties.color;
+        this._intensity = properties.intensity;
+        this._type = properties.type;
+        this._name = properties.name;
     }
 
     // #endregion Constructors (1)
@@ -35,6 +46,22 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set color(value: string) {
         this._color = value;
         this.updateVersion();
+    }
+
+    /**
+     * Getter convertedObjects
+     * @return {ISDObject[]}
+     */
+    public get convertedObjects(): ISDObject[] {
+        return this._convertedObjects;
+    }
+
+    /**
+     * Setter convertedObjects
+     * @param {ISDObject[]} value
+     */
+    public set convertedObjects(value: ISDObject[]) {
+        this._convertedObjects = value;
     }
 
     public get intensity(): number {
@@ -57,24 +84,6 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     public get type(): LIGHTTYPE {
         return this._type;
-    }
-
-
-
-    /**
-     * Getter convertedObjects
-     * @return {ISDObject[]}
-     */
-    public get convertedObjects(): ISDObject[] {
-        return this._convertedObjects;
-    }
-
-    /**
-     * Setter convertedObjects
-     * @param {ISDObject[]} value
-     */
-    public set convertedObjects(value: ISDObject[]) {
-        this._convertedObjects = value;
     }
 
     // #endregion Public Accessors (9)
