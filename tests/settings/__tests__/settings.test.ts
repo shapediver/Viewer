@@ -192,6 +192,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
 
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayName = 'COLOR';
 
@@ -241,7 +244,10 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.addAmbientLight({ color: '#ffffff', intensity: 0.5, id: 'ambient0' });
                 viewer.addDirectionalLight({ color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, id: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175 });
                 viewer.addDirectionalLight({ color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, id: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175 });
-
+                viewer.update();
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb();
             });
