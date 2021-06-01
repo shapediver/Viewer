@@ -230,9 +230,10 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 for (let l in lights) {
                     viewer.removeLight(l)
                 }
-                viewer.addAmbientLight({ color: '#ffffff', intensity: 0.5, id: 'ambient0' });
-                viewer.addDirectionalLight({ color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, id: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175 });
-                viewer.addDirectionalLight({ color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, id: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175 });
+                
+                viewer.addAmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'});
+                viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, name: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175});
+                viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175});
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -340,11 +341,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 viewer.createLightScene({ name: 'testLightScene' });
-                viewer.addAmbientLight({ color: '#ff0000', intensity: 0.4, id: 'ambient' })
-                viewer.addDirectionalLight({ color: '#00ff00', intensity: 0.5, direction: [1, -1, 0], castShadow: true, shadowMapBias: 0.0001, shadowMapResolution: 512, id: 'directional' })
-                viewer.addHemisphereLight({ color: '#ff000f', groundColor: '#0f0f0f', intensity: 0.6, id: 'hemisphere' })
-                viewer.addPointLight({ color: '#000f0f', intensity: 0.7, position: [50, 0, 0], id: 'point' })
-                viewer.addSpotLight({ color: '#000fff', intensity: 0.8, position: [50, 0, 0], target: [0, 0, 0], id: 'spot' })
+                viewer.addAmbientLight({ color: '#ff0000', intensity: 0.4, name: 'ambient' })
+                viewer.addDirectionalLight({ color: '#00ff00', intensity: 0.5, direction: [1, -1, 0], castShadow: true, shadowMapBias: 0.0001, shadowMapResolution: 512, name: 'directional' })
+                viewer.addHemisphereLight({ color: '#ff000f', groundColor: '#0f0f0f', intensity: 0.6, name: 'hemisphere' })
+                viewer.addPointLight({ color: '#000f0f', intensity: 0.7, position: [50, 0, 0], name: 'point' })
+                viewer.addSpotLight({ color: '#000fff', intensity: 0.8, position: [50, 0, 0], target: [0, 0, 0], name: 'spot' })
 
                 let session = api.getSession('mySession');
                 viewer.update();

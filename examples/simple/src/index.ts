@@ -94,9 +94,9 @@ glTFv2Button.onclick = async () => {
     for(let l in lights) {
         viewer.removeLight(l)
     }
-    viewer.addAmbientLight({color: '#ffffff', intensity: 0.5, id: 'ambient0'});
-    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, id: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175});
-    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, id: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175});
+    viewer.addAmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'});
+    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, name: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175});
+    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175});
     await session.saveSettings();
 };
 

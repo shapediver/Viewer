@@ -414,16 +414,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * 
    * @param properties.color the color of the light
    * @param properties.intensity the intensity of the light
-   * @param properties.id the id of the light
    * @returns 
    */
-  public addAmbientLight(properties: { color?: string | number | vec3, intensity?: number, id?: string, name?: string }): AmbientLight {
+  public addAmbientLight(properties: { color?: string | number | vec3, intensity?: number, name?: string }): AmbientLight {
     this.isInitialized();
     this.#inputValidator.validate(properties, 'object', false);
     const props = Object.assign({}, properties);
     this.#inputValidator.validate(props.color, 'color', false);
     this.#inputValidator.validate(props.intensity, 'positive', false);
-    this.#inputValidator.validate(props.id, 'string', false);
     this.#inputValidator.validate(props.name, 'string', false);
     if(props.color !== undefined) props.color = this.#converter.toColor(props.color);
     const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(props)
@@ -443,20 +441,18 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.castShadow the option to cast shadow
    * @param properties.shadowMapResolution the resolution of the shadow map
    * @param properties.shadowMapBias the bias of the shadow map
-   * @param properties.id the id of the light
    * @returns 
    */
-  public addDirectionalLight(properties: { color?: string | number | vec3, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, id?: string, name?: string }): DirectionalLight {
+  public addDirectionalLight(properties: { color?: string | number | vec3, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, name?: string }): DirectionalLight {
     this.isInitialized();
     this.#inputValidator.validate(properties, 'object', false);
     const props = Object.assign({}, properties);
     this.#inputValidator.validate(props.color, 'color', false);
     this.#inputValidator.validate(props.intensity, 'positive', false);
-    this.#inputValidator.validate(props.id, 'string', false);
-    this.#inputValidator.validate(properties.direction, 'vec3', false);
-    this.#inputValidator.validate(properties.castShadow, 'boolean', false);
-    this.#inputValidator.validate(properties.shadowMapResolution, 'positive', false);
-    this.#inputValidator.validate(properties.shadowMapBias, 'number', false);
+    this.#inputValidator.validate(props.direction, 'vec3', false);
+    this.#inputValidator.validate(props.castShadow, 'boolean', false);
+    this.#inputValidator.validate(props.shadowMapResolution, 'positive', false);
+    this.#inputValidator.validate(props.shadowMapBias, 'number', false);
     this.#inputValidator.validate(props.name, 'string', false);
     if(props.color !== undefined) props.color = this.#converter.toColor(props.color);
     const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(props);
@@ -473,17 +469,15 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.color the color of the light
    * @param properties.intensity the intensity of the light
    * @param properties.groundColor the ground color of the light
-   * @param properties.id the id of the light
    * @returns 
    */
-  public addHemisphereLight(properties: { color?: string | number | vec3, intensity?: number, groundColor?: string | number | vec3, id?: string, name?: string }): HemisphereLight {
+  public addHemisphereLight(properties: { color?: string | number | vec3, intensity?: number, groundColor?: string | number | vec3, name?: string }): HemisphereLight {
     this.isInitialized();
     this.#inputValidator.validate(properties, 'object', false);
     const props = Object.assign({}, properties);
     this.#inputValidator.validate(props.color, 'color', false);
     this.#inputValidator.validate(props.groundColor, 'color', false);
     this.#inputValidator.validate(props.intensity, 'positive', false);
-    this.#inputValidator.validate(props.id, 'string', false);
     this.#inputValidator.validate(props.name, 'string', false);
     if(props.color !== undefined) props.color = this.#converter.toColor(props.color);
     if(props.groundColor !== undefined) props.groundColor = this.#converter.toColor(props.groundColor);
@@ -503,16 +497,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.position the position of the light
    * @param properties.distance the distance of the light radiance
    * @param properties.decay the decay of the light radiance
-   * @param properties.id the id of the light
    * @returns 
    */
-  public addPointLight(properties: { color?: string | number | vec3, intensity?: number, position?: vec3, distance?: number, decay?: number, id?: string, name?: string }): PointLight {
+  public addPointLight(properties: { color?: string | number | vec3, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string }): PointLight {
     this.isInitialized();
     this.#inputValidator.validate(properties, 'object', false);
     const props = Object.assign({}, properties);
     this.#inputValidator.validate(props.color, 'color', false);
     this.#inputValidator.validate(props.intensity, 'positive', false);
-    this.#inputValidator.validate(props.id, 'string', false);
     this.#inputValidator.validate(props.position, 'vec3', false);
     this.#inputValidator.validate(props.distance, 'positive', false);
     this.#inputValidator.validate(props.decay, 'positive', false);
@@ -537,16 +529,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.decay the decay of the light radiance
    * @param properties.angle the angle of the light cone
    * @param properties.penumbra the percentage of the cone that is part of the penmubra
-   * @param properties.id the id of the light
    * @returns 
    */
-  public addSpotLight(properties?: { color?: string | number | vec3, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, id?: string, name?: string }): SpotLight {
+  public addSpotLight(properties?: { color?: string | number | vec3, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string }): SpotLight {
     this.isInitialized();
     this.#inputValidator.validate(properties, 'object', false);
     const props = Object.assign({}, properties);
     this.#inputValidator.validate(props.color, 'color', false);
     this.#inputValidator.validate(props.intensity, 'positive', false);
-    this.#inputValidator.validate(props.id, 'string', false);
     this.#inputValidator.validate(props.position, 'vec3', false);
     this.#inputValidator.validate(props.target, 'vec3', false);
     this.#inputValidator.validate(props.distance, 'positive', false);
