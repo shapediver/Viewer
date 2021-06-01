@@ -101,50 +101,50 @@ const originalSettings = {
     'viewer.scene.groundPlaneVisibility': true,
     'viewer.scene.lights.lightScene': 'default',
     'viewer.scene.lights.lightScenes': {
-        "default":{
-          "id": "default",
-          "lights":{
-            "ambient0":{
-              "id": "ambient0",
-              "properties":{
-                "color": "#ffffff",
-                "intensity": 0.5,
-              },
-              "type": "ambient",
-            },
-            "directional0":{
-              "id": "directional0",
-              "properties":{
-                "castShadow": true,
-                "color": "#ffffff",
-                "direction":{
-                  "x": 0.5774000287055969,
-                  "y": -0.5774000287055969,
-                  "z": 0.5774000287055969,
+        "default": {
+            "id": "default",
+            "lights": {
+                "ambient0": {
+                    "id": "ambient0",
+                    "properties": {
+                        "color": "#ffffff",
+                        "intensity": 0.5,
+                    },
+                    "type": "ambient",
                 },
-                "intensity": 0.75,
-                "shadowMapBias": -0.00175,
-                "shadowMapResolution": 1024,
-              },
-              "type": "directional",
-            },
-            "directional1":{
-              "id": "directional1",
-              "properties":{
-                "castShadow": false,
-                "color": "#ffffff",
-                "direction":{
-                  "x": 0.25,
-                  "y": -1,
-                  "z": 1,
+                "directional0": {
+                    "id": "directional0",
+                    "properties": {
+                        "castShadow": true,
+                        "color": "#ffffff",
+                        "direction": {
+                            "x": 0.5774000287055969,
+                            "y": -0.5774000287055969,
+                            "z": 0.5774000287055969,
+                        },
+                        "intensity": 0.75,
+                        "shadowMapBias": -0.00175,
+                        "shadowMapResolution": 1024,
+                    },
+                    "type": "directional",
                 },
-                "intensity": 0.35,
-                "shadowMapBias": -0.00175,
-                "shadowMapResolution": 1024,
-              },
-              "type": "directional",
+                "directional1": {
+                    "id": "directional1",
+                    "properties": {
+                        "castShadow": false,
+                        "color": "#ffffff",
+                        "direction": {
+                            "x": 0.25,
+                            "y": -1,
+                            "z": 1,
+                        },
+                        "intensity": 0.35,
+                        "shadowMapBias": -0.00175,
+                        "shadowMapResolution": 1024,
+                    },
+                    "type": "directional",
+                },
             },
-          },
         },
     },
     'viewer.scene.material.environmentMap': 'none',
@@ -187,6 +187,64 @@ for (let c = 0; c < allCapabilities.length; c++) {
             await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
             const TIMEOUT = 300000000
             await driver.manage().setTimeouts({ implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT });
+
+            await driver.executeAsyncScript(async (cb: any) => {
+                const api: typeof API = (<any>window).api;
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+
+                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayName = 'COLOR';
+
+                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.order = 0;
+                session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.order = 1;
+                session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.order = 2;
+                session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.order = 3;
+                session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.order = 4;
+                session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.order = 5;
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.order = 6;
+                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.order = 7;
+                session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.order = 8;
+                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 9;
+                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 10;
+
+                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = true;
+                session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.hidden = true;
+                session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.hidden = true;
+                session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.hidden = true;
+                session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.hidden = true;
+                session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.hidden = true;
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.hidden = false;
+                session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.hidden = true;
+                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.hidden = true;
+                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.hidden = true;
+                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.hidden = false;
+
+                viewer.blurSceneWhenBusy = true;
+                const camera = viewer.getCamera();
+                camera!.autoAdjust = false;
+                camera!.cameraMovementDuration = 800;
+                camera!.defaultPosition = [58.03696060180664, -290.11590576171875, 87.67756652832031];
+                camera!.defaultTarget = [0, 7, -3.25];
+                (<any>camera!).fov = 45;
+                (<any>camera!).controls.autoRotationSpeed = 0;
+                (<any>camera!).controls.damping = 0.1;
+                viewer.environmentMap = 'none';
+                viewer.gridVisibility = true;
+                viewer.groundPlaneVisibility = true;
+                viewer.environmentMap = 'none';
+
+                const lights = viewer.getLights();
+                console.log(lights)
+                for (let l in lights) {
+                    viewer.removeLight(l)
+                }
+                viewer.addAmbientLight({ color: '#ffffff', intensity: 0.5, id: 'ambient0' });
+                viewer.addDirectionalLight({ color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, id: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175 });
+                viewer.addDirectionalLight({ color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, id: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175 });
+
+                await session.saveSettings();
+                cb();
+            });
         });
 
         afterEach(async () => {
@@ -196,8 +254,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
         it('settings', async () => {
             const settings: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-                let session = await api.createAndInitializeSession({ ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                let viewer = api.getViewer('myViewer');
+                let session = api.getSession('mySession');
                 const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
                 cb(settingsEngine.deconstruct());
             });
@@ -210,8 +268,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
         it('settings - save exactly the same', async () => {
             const settings: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-                let session = await api.createAndInitializeSession({ ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                let viewer = api.getViewer('myViewer');
+                let session = api.getSession('mySession');
                 await session.saveSettings();
                 const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
                 cb(settingsEngine.deconstruct());
@@ -221,12 +279,12 @@ for (let c = 0; c < allCapabilities.length; c++) {
             delete settings.build_version;
             expect(settings).toStrictEqual(originalSettings)
         });
-        
+
         it('settings - general', async () => {
             const settings: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-                let session = await api.createAndInitializeSession({ ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                let viewer = api.getViewer('myViewer');
+                let session = api.getSession('mySession');
                 await session.saveSettings();
                 const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
                 cb(settingsEngine.deconstruct());
