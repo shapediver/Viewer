@@ -27,7 +27,7 @@ export class DirectionalLight extends AbstractLight {
         super({
             color: properties.color || '#ffffff', 
             intensity: properties.intensity || 0.5, 
-            type: LIGHTTYPE.AMBIENT,
+            type: LIGHTTYPE.DIRECTIONAL,
             name: properties.name,
         });
 

@@ -278,11 +278,8 @@ export class LightEngine implements ILightEngine {
             this._lightScenes[ls.id] = ls;
         }
 
-        if (!Object.keys(this.getLightScenes()).includes('default'))
-            this.createLightScene({ name: 'default', standard: true });
-
         if (this._settingsEngine.lights.lightScene.value)
-            this.assignLightScene(this._settingsEngine.lights.lightScene.value)
+            this.assignLightScene(this._settingsEngine.lights.lightScene.value);
     }
 
     // #endregion Public Methods (14)
