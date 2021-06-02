@@ -237,7 +237,6 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.environmentMap = 'none';
 
                 const lights = viewer.getLights();
-                console.log(lights)
                 for (let l in lights) {
                     viewer.removeLight(l)
                 }
@@ -295,7 +294,6 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
                 cb(settingsEngine.deconstruct());
             });
-            console.log(settings)
             expect(settings.build_date).toBe(build_data.build_date);
             expect(settings.build_version).toBe(build_data.build_version);
             expect(settings.settings_version).toBe('2.0');

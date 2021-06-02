@@ -93,7 +93,6 @@ glTFv2Button.onclick = async () => {
     viewer.environmentMap = 'none';
 
     const lights = viewer.getLights();
-    console.log(lights)
     for(let l in lights) {
         viewer.removeLight(l)
     }

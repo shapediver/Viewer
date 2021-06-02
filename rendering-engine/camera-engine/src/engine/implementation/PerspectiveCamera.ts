@@ -83,8 +83,8 @@ export class PerspectiveCamera extends AbstractCamera {
     if (vec3.equals(position, target)) {
       this._stateEngine.boundingBoxCreated.then(async () => {
         await this.zoomTo([], { duration: 0 });
-        this.defaultPosition = vec3.clone(this.position);
-        this.defaultTarget = vec3.clone(this.target);
+        this.defaultPosition = vec3.clone(this._controls.position);
+        this.defaultTarget = vec3.clone(this._controls.target);
       })
     }
     this.fov = this._settingsEngine.camera.cameraTypes.perspective.fov.value;

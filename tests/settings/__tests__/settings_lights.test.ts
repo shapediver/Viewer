@@ -226,7 +226,6 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.environmentMap = 'none';
 
                 const lights = viewer.getLights();
-                console.log(lights)
                 for (let l in lights) {
                     viewer.removeLight(l)
                 }

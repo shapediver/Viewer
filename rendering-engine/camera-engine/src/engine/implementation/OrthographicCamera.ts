@@ -126,8 +126,8 @@ export class OrthographicCamera extends AbstractCamera {
       if (vec3.equals(position, target)) {
          this._stateEngine.boundingBoxCreated.then(async () => {
             await this.zoomTo([], { duration: 0 });
-            this.defaultPosition = vec3.clone(this.position);
-            this.defaultTarget = vec3.clone(this.target);
+            this.defaultPosition = vec3.clone(this._controls.position);
+            this.defaultTarget = vec3.clone(this._controls.target);
          })
       }
       (<OrthographicCameraControls>this._controls).applySettings();
@@ -151,44 +151,41 @@ export class OrthographicCamera extends AbstractCamera {
       const factor = 2 * box.boundingSphere.radius * this.zoomExtentsFactor;
 
       const center = vec3.clone(box.boundingSphere.center);
+      const eps = 0.001;
       switch (this._direction) {
          case ORTHOGRAPHIC_DIRECTION.TOP:
-            console.log({
-               position: vec3.fromValues(center[0], center[1], center[2] + factor),
-               target: vec3.clone(center)
-            })
             return {
-               position: vec3.fromValues(center[0], center[1], center[2] + factor),
+               position: vec3.fromValues(center[0], center[1]-eps, center[2] + factor),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_DIRECTION.BOTTOM:
             return {
-               position: vec3.fromValues(center[0], center[1], center[2] - factor),
+               position: vec3.fromValues(center[0], center[1]-eps, center[2] - factor),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_DIRECTION.RIGHT:
             return {
-               position: vec3.fromValues(center[0] + factor, center[1], center[2]),
+               position: vec3.fromValues(center[0] + factor, center[1], center[2]-eps),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_DIRECTION.LEFT:
             return {
-               position: vec3.fromValues(center[0] - factor, center[1], center[2]),
+               position: vec3.fromValues(center[0] - factor, center[1], center[2]-eps),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_DIRECTION.BACK:
             return {
-               position: vec3.fromValues(center[0], center[1] + factor, center[2]),
+               position: vec3.fromValues(center[0]-eps, center[1] + factor, center[2]),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_DIRECTION.FRONT:
             return {
-               position: vec3.fromValues(center[0], center[1] - factor, center[2]),
+               position: vec3.fromValues(center[0]-eps, center[1] - factor, center[2]),
                target: vec3.clone(center)
             }
          default:
             return {
-               position: vec3.fromValues(center[0], center[1], center[2] + factor),
+               position: vec3.fromValues(center[0], center[1]-eps, center[2] + factor),
                target: vec3.clone(center)
             }
       }
