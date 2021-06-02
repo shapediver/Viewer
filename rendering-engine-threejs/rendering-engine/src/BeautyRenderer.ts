@@ -1,8 +1,10 @@
+import { SystemInfo } from '@shapediver/viewer.shared.services';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass.js';
 import { SSAARenderPass } from 'three/examples/jsm/postprocessing/SSAARenderPass.js';
+import { container } from 'tsyringe';
 import { RenderingEngine } from './RenderingEngine';
 
 export class BeautyRenderer {
@@ -10,6 +12,7 @@ export class BeautyRenderer {
 
     //private readonly _postProcessingEngine: PostProcessingEngine;
     private readonly _effectComposer: EffectComposer;
+    private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
 
     private _beautyRenderingActive: boolean = false;
     private _beautyRenderingDurationActive: number = 0;
@@ -157,19 +160,24 @@ export class BeautyRenderer {
     public render(time: number, camera: THREE.Camera, width: number, height: number) {
         if (!this._initialized) this.initialize(camera, width, height);
         const percentage = this.setShaderProperties();
-        this._ssaaPass.clearColor = this._renderer.getClearColor(new THREE.Color());
-        this._ssaaPass.clearAlpha = this._renderer.getClearAlpha();
 
-        const saoIntensity = this._saoPass.params.saoIntensity;
-        this._saoPass.params.saoIntensity = percentage * saoIntensity;
-        // if passes changed, adapt https://shapediver.atlassian.net/browse/SS-2954
-        this._renderPass.camera = camera;
-        this._saoPass.camera = camera;
-        this._ssaaPass.camera = camera;
-        this._saoPass.setSize(width, height)
-        this._effectComposer.setSize(width, height);
-        this._effectComposer.render(time);
-        this._saoPass.params.saoIntensity = saoIntensity;
+        if((this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice)) {
+            this._ssaaPass.clearColor = this._renderer.getClearColor(new THREE.Color());
+            this._ssaaPass.clearAlpha = this._renderer.getClearAlpha();
+    
+            const saoIntensity = this._saoPass.params.saoIntensity;
+            this._saoPass.params.saoIntensity = percentage * saoIntensity;
+            // if passes changed, adapt https://shapediver.atlassian.net/browse/SS-2954
+            this._renderPass.camera = camera;
+            this._saoPass.camera = camera;
+            this._ssaaPass.camera = camera;
+            this._saoPass.setSize(width, height)
+            this._effectComposer.setSize(width, height);
+            this._effectComposer.render(time);
+            this._saoPass.params.saoIntensity = saoIntensity;
+        } else {
+            this._renderer.render(this._scene, camera)
+        }
     }
 
     public startBeautyRenderCountdown() {

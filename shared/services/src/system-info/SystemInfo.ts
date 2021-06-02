@@ -3,6 +3,7 @@ import { singleton } from "tsyringe";
 @singleton()
 export class SystemInfo {
 
+    private readonly _isIOSDevice: boolean;
     private readonly _runningInInternetExplorer: boolean;
     private readonly _runningInBrowser: boolean;
     private readonly _runningInIframe: boolean;
@@ -25,7 +26,15 @@ export class SystemInfo {
         } else {
             this._origin = 'direct';
         }
+        this._isIOSDevice = (/iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) && !window.MSStream;
     }
+
+    /**
+     * Check if we are on an IOS device
+     */
+     public get isIOSDevice(): boolean {
+        return this._isIOSDevice;
+    };
 
     /**
      * Check if we are running in internet explorer (arrrggghhhh!!!!)

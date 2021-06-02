@@ -1,5 +1,5 @@
 import { CAMERATYPE, OrthographicCamera, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { EventEngine, EVENTTYPE, StateEngine } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, StateEngine, SystemInfo } from "@shapediver/viewer.shared.services";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { vec3 } from "gl-matrix";
 import * as THREE from 'three';
@@ -21,6 +21,7 @@ export class RenderingLogic {
     private readonly _perspectiveCameraThree: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(1, 1, 1, 1);
     private readonly _renderer!: THREE.WebGLRenderer;
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
 
     private _height: number = 0;
     private _lastTime: number = 0;
@@ -205,6 +206,11 @@ export class RenderingLogic {
 
         // beauty rendering is active
         if (this._beautyRenderer.beautyRenderingActive) {
+            if(!(this._renderingEngine.shadows || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice))) {
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
+                this._beautyRenderer.deactivateBeautyRenderShaders();
+                this._noNeedToRender = true;
+            }
             this._beautyRenderer.beautyRenderingDurationActive += deltaTime;
             this._usingSwiftShader ? this._renderer.render((<SceneTree>this._renderingEngine.sceneTree).scene, camera) : this._beautyRenderer.render(deltaTime, camera, width, height);
             if (this._beautyRenderer.beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
