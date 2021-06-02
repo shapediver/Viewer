@@ -76,8 +76,14 @@ export class PerspectiveCamera extends AbstractCamera {
     let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target);
     this.defaultPosition = vec3.clone(position);
     this.defaultTarget = vec3.clone(target);
-    if (vec3.equals(position, target))
-      this.zoomTo([], { duration: 0 });
+
+    if (vec3.equals(position, target)) {
+      this._stateEngine.boundingBoxCreated.then(async () => {
+        await this.zoomTo([], { duration: 0 });
+        this.defaultPosition = vec3.clone(this.position);
+        this.defaultTarget = vec3.clone(this.target);
+      })
+    }
       
     this.position = position;
     this.target = target;
@@ -101,6 +107,10 @@ export class PerspectiveCamera extends AbstractCamera {
     }
 
     let target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
+
+    // if the camera position and the target are the same, we set a corner position
+    if (vec3.equals(this.position, this.target)) 
+      this.position = vec3.fromValues(0, -7.5, target[2]+5);
 
     // extend box by the factor
     const boxDir = vec3.subtract(vec3.create(), box.max, target)

@@ -11,7 +11,10 @@ import { vec3 } from "gl-matrix";
 
 const ticket = 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e';
 const ticket2 = '8392f2ab5231da0d1b634ef6eb849be4c6e79c0e84456ca19fe03a4d1078fd02428704e23ee9b51e691ffb60550ea8f91493fa669ac900f86061e755441cf3da11c21d81dacf7975ba024ce9b604f2de708895dcdf4d4a17ca885516399e29111fc6d7f22e8ef1000651f56c91b4841a5527cb3d228b-0c9680ec95458327deab37e9fc1a432c-60d25599bc8a340ddf70ffff0dca331d';
+const ticket3 = 'd97a0d69723018a16376de727c0a6cad943ba65fe9b0d776468ea891fcc80019e98d27e09a75ad8f806f788000bc6abc57ff8bd90390c8c815f951893bea0995d8f754a9941c1db55131fb7c020b1d94be862d1ef65cfab3af6dafc60ca26c92ddb262b5a1e9bf-fc3e6089360835fe91bdda04be4b5e0b';
+// const ticket4 = '5151fd6862510d24c9b9bb6f94fbe6d9579db91bc9d39c8eb5f43e3619da0a332ce29e5466caf24936616dad9bc7706b4cd30a24e2a8072adb490dc082a8ac04a0219b791f724f04f9a68b5e305c1748b3518e5e741f8304ecf940ffa7f5ea03b8e29d70b6cb89fd11fc42d3c35ecb29d2b2d154c1-a31625ab120de0ba812d714cab23ca4b';
 const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
+const modelViewUrl2 = 'https://sddev2.eu-central-1.shapediver.com';
 const bearerToken = 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczpcL1wvZGV2LWFwcC5zaGFwZWRpdmVyLmNvbVwvYXBpXC92MVwvdG9rZW5zIiwic3ViIjoiNGFjMDVjZDYtZmQ3Yy00NzAxLWIyNjAtNTRlYjdjYTc1ZGUwIiwiYXVkIjoiNWE5NzcxNjgtZjQ5ZC00M2VhLTgwNjMtYzg5Y2M5MDQyMzM1IiwiZXhwIjoxNjE5NTM1MzYwLCJzY29wZSI6Imdyb3VwLm93bmVyIGdyb3VwLmV4cG9ydCBncm91cC52aWV3IiwiaWF0IjoxNjE5NTMxNzYwfQ.bWn3V7cu_0TVtZskVmOt341RKWAZ0LWlVaQDx_vWbRO-XwvwpC96wCOiUVMuRMTMxjcqCRfe9jm9AVUF15fBus4DTCO_mdYYsWqW4lsta3YNC8GYr0k4UZW1hWpli4WarCiaViqg6uWSISiCn4-ypYsfAtiGBpwcVfTFSzvm8lCzokMKqRhFXW2W8SAxCrJzRLUQtmShPeXAxqwayEl65HKwasYucVDRASXGeZr_y648rOn0hNsvQKXZZiUE3x62LCeG6tSAYenLFM6u5KQPfZiSwa0xDeByNWlmRLweBxZ0dMnye-9XTVuqQQPiwm9t0qOVe6FYf_hWC27ubmnWfw';
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 (<any>window).settingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
@@ -26,7 +29,7 @@ performanceEvaluator.end('startup');
 logger.info(performanceEvaluator.getEvaluationToString('startup'));
 
 (async () => {
-    let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
+    let session = await api.createAndInitializeSession({ ticket: ticket3, modelViewUrl: modelViewUrl2, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
     performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
     performanceEvaluator.end('pageLoad_rendering');

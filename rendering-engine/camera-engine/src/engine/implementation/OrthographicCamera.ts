@@ -111,8 +111,14 @@ export class OrthographicCamera extends AbstractCamera {
       let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.target);
       this.defaultPosition = vec3.clone(position);
       this.defaultTarget = vec3.clone(target);
-      if (vec3.equals(position, target))
-         this.zoomTo([], { duration: 0 });
+
+      if (vec3.equals(position, target)) {
+         this._stateEngine.boundingBoxCreated.then(async () => {
+            await this.zoomTo([], { duration: 0 });
+            this.defaultPosition = vec3.clone(this.position);
+            this.defaultTarget = vec3.clone(this.target);
+         })
+      }
 
       this.position = position;
       this.target = target;
