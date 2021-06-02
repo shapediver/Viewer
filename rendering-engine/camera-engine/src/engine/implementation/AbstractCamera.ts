@@ -15,7 +15,6 @@ export abstract class AbstractCamera implements ICamera {
     private _defaultPosition: vec3 = vec3.create();
     private _defaultTarget: vec3 = vec3.create();
     private _enableCameraControls: boolean = true;
-    private _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private _far: number = 1000;
     private _near: number = 1;
     private _revertAtMouseUp: boolean = false;
@@ -34,9 +33,7 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {
-        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (bb: any) => this._boundingBox = bb.clone());
-    }
+    constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {}
 
     // #endregion Constructors (1)
 
@@ -56,6 +53,14 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set autoAdjust(value: boolean) {
         this._autoAdjust = value;
+    }
+
+    /**
+     * Setter boundingBox
+     * @param {Box} value
+     */
+    public set boundingBox(value: Box) {
+        this._boundingBox = value;
     }
 
     /**

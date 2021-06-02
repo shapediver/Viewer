@@ -76,6 +76,9 @@ export class PerspectiveCamera extends AbstractCamera {
     let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.perspective.default.value.target);
     this.defaultPosition = vec3.clone(position);
     this.defaultTarget = vec3.clone(target);
+      
+    this.position = position;
+    this.target = target;
 
     if (vec3.equals(position, target)) {
       this._stateEngine.boundingBoxCreated.then(async () => {
@@ -84,9 +87,6 @@ export class PerspectiveCamera extends AbstractCamera {
         this.defaultTarget = vec3.clone(this.target);
       })
     }
-      
-    this.position = position;
-    this.target = target;
     this.fov = this._settingsEngine.camera.cameraTypes.perspective.fov.value;
     (<PerspectiveCameraControls>this._controls).applySettings();
   }

@@ -1,4 +1,4 @@
-import { DomEventEngine, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
+import { DomEventEngine, EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { UuidGenerator } from "@shapediver/viewer.shared.utils";
 import { container, singleton } from "tsyringe";
 import { CAMERATYPE, ICameraEngine } from "../interface/ICameraEngine";
@@ -7,6 +7,7 @@ import { OrthographicCamera } from "./OrthographicCamera";
 import { PerspectiveCamera } from "./PerspectiveCamera";
 import { Canvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { OrthographicCameraControls } from "../../controls/implementation/OrthographicCameraControls";
+import { Box } from "@shapediver/viewer.shared.math";
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (3)
@@ -17,14 +18,24 @@ export class CameraEngine implements ICameraEngine {
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-  
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    protected _boundingBox: Box = new Box();
+
     private _camera!: Camera;
+    private _settingsApplied: boolean = false;
 
     // #endregion Properties (3)
 
     // #region Constructors (1)
 
-    constructor(private readonly _canvas: Canvas, private readonly _domEventEngine: DomEventEngine) { }
+    constructor(private readonly _canvas: Canvas, private readonly _domEventEngine: DomEventEngine) {        
+        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (bb: any) => {
+            this._boundingBox = bb.clone()
+            
+            for (let c in this._cameras)
+                this._cameras[c].boundingBox = bb.clone();
+        });
+    }
 
     public applySettings() {
         // 0 -> perspective
@@ -38,6 +49,7 @@ export class CameraEngine implements ICameraEngine {
         this._settingsEngine.camera.cameraTypes.active.value;
         for (let c in this._cameras)
             this._cameras[c].applySettings();
+        this._settingsApplied = true;
     }
 
     // #endregion Constructors (1)
@@ -57,11 +69,15 @@ export class CameraEngine implements ICameraEngine {
             const camera = new OrthographicCamera(cameraId, this._canvas.canvasElement);
             this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
+            camera.boundingBox = this._boundingBox.clone();
+            if(this._settingsApplied) camera.applySettings();
             return camera;
         } else {
             const camera = new PerspectiveCamera(cameraId, this._canvas.canvasElement);
             this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
+            camera.boundingBox = this._boundingBox.clone();
+            if(this._settingsApplied) camera.applySettings();
             return camera;
         }
     }
