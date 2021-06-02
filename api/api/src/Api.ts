@@ -117,11 +117,14 @@ export class Api {
       return false;
     }
     const result = await this.#sessionCallbacks[id].close();
+    this.#stateEngine.getCustomState(id + '_settings_registered').reset();
 
     if(this.#sessions[id].primarySession) {
       for(let v in this.#viewers)
         this.#viewers[v].reset();
-    }
+        this.#stateEngine.primarySessionLoaded.reset();
+        this.#stateEngine.primarySettingsRegistered.reset();
+      }
     this.update();
 
     (<any>this.#sessionCallbacks[id]) = undefined;
@@ -156,7 +159,6 @@ export class Api {
       return false;
     }
     const result = await this.#viewerCallbacks[id].close();
-
     (<any>this.#viewerCallbacks[id]) = undefined;
     delete this.#viewerCallbacks[id];
     (<any>this.#viewers[id]) = undefined;
