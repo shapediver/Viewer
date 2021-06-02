@@ -117,6 +117,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this.gridVisibility;
         this._gridObject.add(this._grid);
+        this._gridObject.userData.ambientOcclusion = false;
         this._sceneTree.scene.add(this._gridObject);
 
         this._groundPlaneObject = new SDObject('grid', '');
@@ -129,6 +130,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._groundPlane.receiveShadow = true;
         this._groundPlane.visible = this.groundPlaneVisibility;
         this._groundPlaneObject.add(this._groundPlane);
+        this._groundPlaneObject.userData.ambientOcclusion = false;
         this._sceneTree.scene.add(this._groundPlaneObject);
 
         let eps = 0.005;

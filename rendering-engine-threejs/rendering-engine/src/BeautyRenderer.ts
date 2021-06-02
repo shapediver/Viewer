@@ -119,13 +119,17 @@ export class BeautyRenderer {
         const saoRenderFunction = this._saoPass.render.bind(this._saoPass);
 
         this._saoPass.render = (renderer: THREE.WebGLRenderer, writeBuffer: THREE.WebGLRenderTarget, readBuffer: THREE.WebGLRenderTarget, deltaTime: number, maskActive: boolean) => {
-            const materialsNotRenderer: THREE.Mesh[] = [];
+            const materialsNotRenderer: THREE.Object3D[] = [];
             this._scene.traverse(function (object) {
                 if (object instanceof THREE.Mesh && object.material) {
                     if (object.material instanceof THREE.MeshStandardMaterial && object.material.transparent && object.visible) {
                         materialsNotRenderer.push(object);
                         object.visible = false;
                     }
+                }
+                if(object.userData.ambientOcclusion === false) {
+                    materialsNotRenderer.push(object);
+                    object.visible = false;
                 }
             });
             saoRenderFunction(renderer, writeBuffer, readBuffer, deltaTime, maskActive);
@@ -134,11 +138,16 @@ export class BeautyRenderer {
         }
 
         this._effectComposer.addPass(this._saoPass);
-        this._saoPass.params.saoScale = 0.1;
-        this._saoPass.params.saoIntensity = 0.0001;
-        this._saoPass.params.saoKernelRadius = 8;
-        this._saoPass.params.saoBlurStdDev = 25;
-        this._saoPass.params.saoMinResolution = 0.001;
+        this._saoPass.params.output = 0;
+        this._saoPass.params.saoBias = 0.5;
+        this._saoPass.params.saoIntensity = 0.0015;
+        this._saoPass.params.saoScale = 4;
+        this._saoPass.params.saoKernelRadius = 100;
+        this._saoPass.params.saoMinResolution = 0.0001;
+        this._saoPass.params.saoBlur = 1;
+        this._saoPass.params.saoBlurRadius = 4;
+        this._saoPass.params.saoBlurStdDev = 4;
+        this._saoPass.params.saoBlurDepthCutoff = 0.01;
 
         (<any>window).saoPass = this._saoPass
 
