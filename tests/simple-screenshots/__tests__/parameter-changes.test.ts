@@ -52,7 +52,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 await driver.executeAsyncScript(async (i: number, cb: any) => {
                     const api: typeof API = (<any>window).api; 
                     const session = Object.values(api.getSessions())[0];
-                    session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = i;
+                    session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateValue(i)
                     await session.customize();
                     await new Promise<void>((resolve) => {
                         api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())

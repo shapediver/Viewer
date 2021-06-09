@@ -10,26 +10,25 @@ export class Output implements ShapeDiverResponseOutput {
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #sessionEngine: Session;
-  
-  readonly chunks?: OutputChunk[];
-  readonly dependency: string[];
-  readonly id: string;
-  readonly material?: string;
-  readonly name: string;
-  readonly uid?: string;
 
   readonly bbmax?: number[];
   readonly bbmin?: number[];
+  readonly chunks?: OutputChunk[];
   readonly content?: OutputPart[];
   readonly delay?: number;
+  readonly dependency: string[];
+  readonly id: string;
+  readonly material?: string;
   readonly msg?: string;
+  readonly name: string;
+  readonly uid?: string;
   readonly version: string;
 
   // #endregion Properties (15)
 
   // #region Constructors (1)
 
-  constructor(sessionEngine: Session, outputDef: ShapeDiverResponseOutput, callbacks: any) {
+  constructor(sessionEngine: Session, outputDef: ShapeDiverResponseOutput) {
     this.#sessionEngine = sessionEngine;
 
     this.dependency = outputDef.dependency;

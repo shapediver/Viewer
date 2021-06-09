@@ -17,8 +17,8 @@ export class FileParameter extends Parameter<File | Blob | string> {
 
     // #region Constructors (1)
 
-    constructor(sessionEngine: Session, paramDef: ShapeDiverResponseParameter, callbacks: any) {
-        super(sessionEngine, paramDef, callbacks);
+    constructor(sessionEngine: Session, paramDef: ShapeDiverResponseParameter) {
+        super(sessionEngine, paramDef);
         this.#sessionEngine = sessionEngine;
     }
 

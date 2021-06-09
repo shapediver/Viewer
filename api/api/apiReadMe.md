@@ -153,7 +153,7 @@ Adjusting parameters and requesting exports is basically just as easy. The {@lin
 const parameter = session.getParameterById('SOME_ID');
 
 // To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.value = 'newValue'
+parameter.updateValue('newValue')
 
 // Get an export with a specific ID
 // Note: It is also easily possible to get the export by name, type or any other desired criteria.
@@ -224,7 +224,7 @@ So the following code
 const parameter = session.getParameterById('SOME_ID');
 
 // To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.value = 'newValue'
+parameter.updateValue('newValue')
 ```
 ![Example](./images/1.png)
 
@@ -277,7 +277,7 @@ Let's now customize the scene again and then add our copied node with some trans
 const parameter = session.getParameterById('SOME_ID');
 
 // To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.value = 'newValue'
+parameter.updateValue('newValue')
 
 // Customize the session
 await session.customize();

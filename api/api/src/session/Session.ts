@@ -20,13 +20,10 @@ export class Session {
 
     readonly #api: Api = <Api>container.resolve(Api);
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    readonly #exportCallbacks: { [key: string]: { [key: string]: (value: any) => any } } = {};
     readonly #exports: { [key: string]: Export; } = {};
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #outputCallbacks: { [key: string]: { [key: string]: (value: any) => any } } = {};
     readonly #outputs: { [key: string]: Output; } = {};
-    readonly #parameterCallbacks: { [key: string]: { [key: string]: (value: any) => any } } = {};
     readonly #parameters: { [key: string]: Parameter<any> } = {};
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
@@ -65,25 +62,25 @@ export class Session {
                 const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
                 for (let k in controlNames) {
                     if (this.#parameters[k])
-                        this.#parameters[k]!.displayName = controlNames[k];
+                        this.#parameters[k]!.updateDisplayName(controlNames[k]);
                     if (this.#exports[k])
-                        this.#exports[k]!.displayName = controlNames[k];
+                        this.#exports[k]!.updateDisplayName(controlNames[k]);
                 }
 
                 const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
                 for (let i = 0; i < controlOrder.length; i++) {
                     if (this.#parameters[controlOrder[i]])
-                        this.#parameters[controlOrder[i]]!.order = i;
+                        this.#parameters[controlOrder[i]]!.updateOrder(i);
                     if (this.#exports[controlOrder[i]])
-                        this.#exports[controlOrder[i]]!.order = i;
+                        this.#exports[controlOrder[i]]!.updateOrder(i);
                 }
 
                 const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
                 for (let i = 0; i < parametersHidden.length; i++) {
                     if (this.#parameters[parametersHidden[i]])
-                        this.#parameters[parametersHidden[i]]!.hidden = true;
+                        this.#parameters[parametersHidden[i]]!.updateHidden(true);
                     if (this.#exports[parametersHidden[i]])
-                        this.#exports[parametersHidden[i]]!.hidden = true;
+                        this.#exports[parametersHidden[i]]!.updateHidden(true);
                 }
             })
         }
@@ -327,7 +324,6 @@ export class Session {
 
         // create a set of the current validated parameter values
         for (const parameterId in this.#parameters) {
-            this.#parameters[parameterId].validate();
             parameterSet[parameterId] = {
                 value: this.#parameters[parameterId].value,
                 valueString: this.#parameters[parameterId].stringify()
@@ -342,13 +338,12 @@ export class Session {
 
         for (let o in this.#sessionEngine.outputs) {
             // will be filled by the exports
-            this.#outputCallbacks[o] = {};
-            this.#outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o], this.#outputCallbacks[o]);
+            this.#outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
         }
 
         // set the session values to the current ones in all parameters
         for (const parameterId in this.#parameters)
-            this.#parameterCallbacks[parameterId].updateSessionValue(parameterSet[parameterId].value);
+            (<any>this.#parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
 
         (<Tree>container.resolve(Tree)).addNode(this.#node);
         this.#node.excludeViewers = this.#excludeViewers;
@@ -482,39 +477,30 @@ export class Session {
         this.#node = await this.#sessionEngine.init();
         for (let p in this.#sessionEngine.parameters) {
             const param = this.#sessionEngine.parameters[p];
-
-            // will be filled by the parameters
-            this.#parameterCallbacks[p] = {};
             switch (true) {
                 case param.type === PARAMETERTYPE.BOOL || param.type === PARAMETERTYPE.SBOOL:
-                    this.#parameters[p] = new Parameter<boolean>(this.#sessionEngine, this.#sessionEngine.parameters[p], this.#parameterCallbacks[p]);
+                    this.#parameters[p] = new Parameter<boolean>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
                 case param.type === PARAMETERTYPE.COLOR || param.type === PARAMETERTYPE.SCOLOR:
-                    this.#parameters[p] = new Parameter<number | vec3>(this.#sessionEngine, this.#sessionEngine.parameters[p], this.#parameterCallbacks[p]);
+                    this.#parameters[p] = new Parameter<number | vec3>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
                 case param.type === PARAMETERTYPE.FILE:
-                    this.#parameters[p] = new FileParameter(this.#sessionEngine, this.#sessionEngine.parameters[p], this.#parameterCallbacks[p]);
+                    this.#parameters[p] = new FileParameter(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
                 case param.type === PARAMETERTYPE.EVEN || param.type === PARAMETERTYPE.FLOAT || param.type === PARAMETERTYPE.INT || param.type === PARAMETERTYPE.ODD || param.type === PARAMETERTYPE.SINTEGER || param.type === PARAMETERTYPE.SNUMBER:
-                    this.#parameters[p] = new Parameter<number>(this.#sessionEngine, this.#sessionEngine.parameters[p], this.#parameterCallbacks[p]);
+                    this.#parameters[p] = new Parameter<number>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
                 default:
-                    this.#parameters[p] = new Parameter<string>(this.#sessionEngine, this.#sessionEngine.parameters[p], this.#parameterCallbacks[p]);
+                    this.#parameters[p] = new Parameter<string>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
             }
         }
 
-        for (let e in this.#sessionEngine.exports) {
-            // will be filled by the exports
-            this.#exportCallbacks[e] = {};
-            this.#exports[e] = new Export(this.#sessionEngine, this.#sessionEngine.exports[e], this.#exportCallbacks[e]);
-        }
-        
-        for (let o in this.#sessionEngine.outputs) {
-            // will be filled by the exports
-            this.#outputCallbacks[o] = {};
-            this.#outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o], this.#outputCallbacks[o]);
-        }
+        for (let e in this.#sessionEngine.exports)
+            this.#exports[e] = new Export(this.#sessionEngine, this.#sessionEngine.exports[e]);
+
+        for (let o in this.#sessionEngine.outputs) 
+            this.#outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
 
         (<Tree>container.resolve(Tree)).addNode(this.#node);
         this.#node.excludeViewers = this.#excludeViewers;
@@ -553,11 +539,7 @@ export class Session {
         this.#settingsEngine.general.viewer.commitSettings.value = this.#commitSettings;
 
         const parameters = this.#parameters;
-        for (let p in parameters) parameters[p].validate();
-
         const exports = this.#exports;
-        for (let e in exports) exports[e].validate();
-
         const displayNames: { [key: string]: string } = {};
         for (let p in parameters)
             if (parameters[p].displayName)

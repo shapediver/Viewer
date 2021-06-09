@@ -27,18 +27,18 @@ let viewer: Viewer, session: Session;
 }
 
 (<any>window).changeParameter = async (id: string, value: any): Promise<void> => {
-    session.getParameterById(id)!.value = value;
+    session.getParameterById(id)!.updateValue(value);
     await session.customize();
 }
 
 (<any>window).changeParameters = async ( parameterDictionary: { [key: string]: any } ): Promise<void> => {
     for(let param in parameterDictionary)
-        session.getParameterById(param)!.value = parameterDictionary[param];
+        session.getParameterById(param)!.updateValue(parameterDictionary[param]);
     await session.customize();
 }
 
 (<any>window).getExports = (): { [key: string]: Export } => {
-    return session.getExports();
+    return session.exports;
 }
 
 (<any>window).requestExport = (id: string): Promise<any> => {

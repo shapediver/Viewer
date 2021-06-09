@@ -65,31 +65,29 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
     readonly choices?: string[];
     readonly decimalplaces?: number;
     readonly defval: string;
+    readonly displayName?: string;
     readonly expression?: string;
     readonly format?: string[];
     readonly group?: ShapeDiverResponseParameterGroup;
+    readonly hidden: boolean;
     readonly id: string;
+    readonly lastValidatedValue: T | string;
     readonly max?: number;
     readonly min?: number;
     readonly name: string;
+    readonly order?: number;
+    readonly sessionValue: T | string;
     readonly structure?: ShapeDiverResponseParameterStructure;
     readonly tooltip?: string;
     readonly type: PARAMETERTYPE;
+    readonly value: T | string;
     readonly visualization?: PARAMETERVISUALIZATION;
-
-    readonly lastValidatedValue: T | string;
-    readonly sessionValue: T | string;
-
-    displayName?: string;
-    hidden: boolean;
-    order?: number;
-    value: T | string;
 
     // #endregion Properties (25)
 
     // #region Constructors (1)
 
-    constructor(sessionEngine: Session, paramDef: ShapeDiverResponseParameter, callbacks: any) {
+    constructor(sessionEngine: Session, paramDef: ShapeDiverResponseParameter) {
         this.#sessionEngine = sessionEngine;
 
         this.id = paramDef.id;
@@ -122,15 +120,11 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
         this.value = this.#defaultValue;
         this.sessionValue = this.value;
         this.lastValidatedValue = this.value;
-
-        callbacks.updateSessionValue = (value: T | string) => {
-            (<any>this.sessionValue) = value;
-        };
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (9)
+    // #region Public Methods (8)
 
     /**
      * Evaluates if a given value is valid for this parameter.
@@ -226,14 +220,14 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
      * Resets the value to the default value.
      */
     public resetToDefaultValue() {
-        this.value = this.#defaultValue;
+        (<any>this.value) = this.#defaultValue;
     }
 
     /**
      * Resets the value to the value currently used in the computed session.
      */
     public resetToSessionValue() {
-        this.value = this.sessionValue;
+        (<any>this.value) = this.sessionValue;
     }
 
     /**
@@ -259,20 +253,29 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
         }
     }
 
-    /**
-     * Validates all public properties.
-     */
-    public validate() {
-        if(this.lastValidatedValue === this.value || this.isValid(this.value)) {
-            this.#inputValidator.validate(this.displayName, 'string', false);                
-            this.#inputValidator.validate(this.hidden, 'boolean');
-            this.#inputValidator.validate(this.order, 'number', false);
+    public updateDisplayName(value: string | undefined) {
+        this.#inputValidator.validate(value, 'string', false);                
+        (<any>this.displayName) = value;
+    }
 
+    public updateHidden(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
+        (<any>this.hidden) = value;
+    }
+
+    public updateOrder(value: number | undefined) {
+        this.#inputValidator.validate(value, 'number', false);
+        (<any>this.order) = value;
+    }
+
+    public updateValue(value: T | string) {
+        if(this.isValid(value)) {
+            (<any>this.value) = value;
             (<any>this.lastValidatedValue) = this.value;
         } else {
             throw new Error(`Parameter (${this.id}): Could not validate value.`);
         }
     }
 
-    // #endregion Public Methods (9)
+    // #endregion Public Methods (8)
 }
