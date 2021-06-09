@@ -16,13 +16,12 @@ export class Export implements ShapeDiverResponseExport {
   readonly name: string;
   readonly type: ShapeDiverResponseExportDefinitionType;
   readonly uid?: string;
-
-  #content?: ShapeDiverResponseExportPart[];
-  #delay?: number;
-  #filename?: string;
-  #msg?: string;
-  #result?: ExportResult;
-  #version?: string;
+  readonly content?: ShapeDiverResponseExportPart[];
+  readonly delay?: number;
+  readonly filename?: string;
+  readonly msg?: string;
+  readonly result?: ExportResult;
+  readonly version?: string;
 
   displayName?: string;
   hidden: boolean;
@@ -49,51 +48,6 @@ export class Export implements ShapeDiverResponseExport {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (6)
-
-  /**
-   * Getter content
-   */
-  public get content(): ShapeDiverResponseExportPart[] | undefined {
-    return this.#content;
-  }
-
-  /**
-   * Getter delay
-   */
-  public get delay(): number | undefined {
-    return this.#delay;
-  }
-
-  /**
-   * Getter filename
-   */
-  public get filename(): string | undefined {
-    return this.#filename;
-  }
-
-  /**
-   * Getter msg
-   */
-  public get msg(): string | undefined {
-    return this.#msg;
-  }
-
-  /**
-   * Getter result
-   */
-  public get result(): ExportResult | undefined {
-    return this.#result;
-  }
-
-  /**
-   * Getter version
-   */
-  public get version(): string | undefined {
-    return this.#version;
-  }
-
-  // #endregion Public Accessors (6)
 
   // #region Public Methods (2)
 
@@ -117,12 +71,12 @@ export class Export implements ShapeDiverResponseExport {
         await this.timeout(exportResult.delay!);
         exportResult = (await this.cacheRequest(exportResult.version!))!;
       }
-      this.#version = exportResult.version;
-      this.#delay = exportResult.delay;
-      this.#content = exportResult.content;
-      this.#msg = exportResult.msg;
-      this.#filename = exportResult.filename;
-      this.#result = exportResult.result;
+      (<any>this.version) = exportResult.version;
+      (<any>this.delay) = exportResult.delay;
+      (<any>this.content) = exportResult.content;
+      (<any>this.msg) = exportResult.msg;
+      (<any>this.filename) = exportResult.filename;
+      (<any>this.result) = exportResult.result;
       return exportResult;
     } catch (e) {
       this.#logger.error('Export request failed.', e, e.response && e.response.status ? e.response.status : null);

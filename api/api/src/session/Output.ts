@@ -18,12 +18,12 @@ export class Output implements ShapeDiverResponseOutput {
   readonly name: string;
   readonly uid?: string;
 
-  #bbmax?: number[];
-  #bbmin?: number[];
-  #content?: OutputPart[];
-  #delay?: number;
-  #msg?: string;
-  #version: string;
+  readonly bbmax?: number[];
+  readonly bbmin?: number[];
+  readonly content?: OutputPart[];
+  readonly delay?: number;
+  readonly msg?: string;
+  readonly version: string;
 
   // #endregion Properties (15)
 
@@ -39,59 +39,13 @@ export class Output implements ShapeDiverResponseOutput {
     if (outputDef.material) this.material = outputDef.material;
     if (outputDef.chunks) this.chunks = outputDef.chunks;
 
-    this.#version = outputDef.version;
-    if (outputDef.delay) this.#delay = outputDef.delay;
-    if (outputDef.content) this.#content = outputDef.content;
-    if (outputDef.bbmin) this.#bbmin = outputDef.bbmin;
-    if (outputDef.bbmax) this.#bbmax = outputDef.bbmax;
-    if (outputDef.msg) this.#msg = outputDef.msg;
+    this.version = outputDef.version;
+    if (outputDef.delay) this.delay = outputDef.delay;
+    if (outputDef.content) this.content = outputDef.content;
+    if (outputDef.bbmin) this.bbmin = outputDef.bbmin;
+    if (outputDef.bbmax) this.bbmax = outputDef.bbmax;
+    if (outputDef.msg) this.msg = outputDef.msg;
   }
 
   // #endregion Constructors (1)
-
-  // #region Public Accessors (6)
-
-  /**
-   * Getter bbmax
-   */
-  public get bbmax(): number[] | undefined {
-    return this.#bbmax;
-  }
-
-  /**
-   * Getter bbmin
-   */
-  public get bbmin(): number[] | undefined {
-    return this.#bbmin;
-  }
-
-  /**
-   * Getter content
-   */
-  public get content(): OutputPart[] | undefined {
-    return this.#content;
-  }
-
-  /**
-   * Getter delay
-   */
-  public get delay(): number | undefined {
-    return this.#delay;
-  }
-
-  /**
-   * Getter msg
-   */
-  public get msg(): string | undefined {
-    return this.#msg;
-  }
-
-  /**
-   * Getter version
-   */
-  public get version(): string {
-    return this.#version;
-  }
-
-  // #endregion Public Accessors (6)
 }

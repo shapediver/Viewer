@@ -77,8 +77,9 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
     readonly type: PARAMETERTYPE;
     readonly visualization?: PARAMETERVISUALIZATION;
 
-    #lastValidatedValue: T | string;
-    #sessionValue: T | string;
+    readonly lastValidatedValue: T | string;
+    readonly sessionValue: T | string;
+
     displayName?: string;
     hidden: boolean;
     order?: number;
@@ -119,33 +120,15 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
         }
         
         this.value = this.#defaultValue;
-        this.#sessionValue = this.value;
-        this.#lastValidatedValue = this.value;
+        this.sessionValue = this.value;
+        this.lastValidatedValue = this.value;
 
         callbacks.updateSessionValue = (value: T | string) => {
-            this.#sessionValue = value;
+            (<any>this.sessionValue) = value;
         };
     }
 
     // #endregion Constructors (1)
-
-    // #region Public Accessors (2)
-
-    /**
-     * Getter lastValidatedValue
-     */
-    public get lastValidatedValue(): T | string {
-        return this.#lastValidatedValue;
-    }
-
-    /**
-     * Getter sessionValue
-     */
-    public get sessionValue(): T | string {
-        return this.#sessionValue;
-    }
-
-    // #endregion Public Accessors (2)
 
     // #region Public Methods (9)
 
@@ -250,7 +233,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
      * Resets the value to the value currently used in the computed session.
      */
     public resetToSessionValue() {
-        this.value = this.#sessionValue;
+        this.value = this.sessionValue;
     }
 
     /**
@@ -280,12 +263,12 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
      * Validates all public properties.
      */
     public validate() {
-        if(this.#lastValidatedValue === this.value || this.isValid(this.value)) {
+        if(this.lastValidatedValue === this.value || this.isValid(this.value)) {
             this.#inputValidator.validate(this.displayName, 'string', false);                
             this.#inputValidator.validate(this.hidden, 'boolean');
             this.#inputValidator.validate(this.order, 'number', false);
 
-            this.#lastValidatedValue = this.value;
+            (<any>this.lastValidatedValue) = this.value;
         } else {
             throw new Error(`Parameter (${this.id}): Could not validate value.`);
         }
