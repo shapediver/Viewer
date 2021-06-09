@@ -1,139 +1,97 @@
-import { IOutput, Output as OutputLogic } from "@shapediver/viewer.session-engine.session-engine";
 import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
-import { ShapeDiverResponseOutputPart as OutputPart, ShapeDiverResponseOutputChunk as OutputChunk } from "@shapediver/api.geometry-api-dto-v1";
+import { ShapeDiverResponseOutputPart as OutputPart, ShapeDiverResponseOutputChunk as OutputChunk, ShapeDiverResponseOutput } from "@shapediver/api.geometry-api-dto-v1";
+import { Session } from "@shapediver/viewer.session-engine.session-engine";
 
-export class Output implements IOutput {
+export class Output implements ShapeDiverResponseOutput {
+  // #region Properties (15)
 
-  readonly #output: OutputLogic;
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #sessionEngine: Session;
+  
+  readonly chunks?: OutputChunk[];
+  readonly dependency: string[];
+  readonly id: string;
+  readonly material?: string;
+  readonly name: string;
+  readonly uid?: string;
 
-  // #region Public Accessors (16)
-  constructor(o: OutputLogic) {
-    this.#output = o;
+  #bbmax?: number[];
+  #bbmin?: number[];
+  #content?: OutputPart[];
+  #delay?: number;
+  #msg?: string;
+  #version: string;
+
+  // #endregion Properties (15)
+
+  // #region Constructors (1)
+
+  constructor(sessionEngine: Session, outputDef: ShapeDiverResponseOutput, callbacks: any) {
+    this.#sessionEngine = sessionEngine;
+
+    this.dependency = outputDef.dependency;
+    this.id = outputDef.uid || outputDef.id;
+    this.name = outputDef.name;
+    if (outputDef.uid) this.uid = outputDef.uid;
+    if (outputDef.material) this.material = outputDef.material;
+    if (outputDef.chunks) this.chunks = outputDef.chunks;
+
+    this.#version = outputDef.version;
+    if (outputDef.delay) this.#delay = outputDef.delay;
+    if (outputDef.content) this.#content = outputDef.content;
+    if (outputDef.bbmin) this.#bbmin = outputDef.bbmin;
+    if (outputDef.bbmax) this.#bbmax = outputDef.bbmax;
+    if (outputDef.msg) this.#msg = outputDef.msg;
   }
 
-  /**
-   * The chunks of the output.
-   * 
-   * @return {OutputChunk[] | undefined}
-   */
-   public get chunks(): OutputChunk[] | undefined {
-    return this.#output.chunks;
-  }
+  // #endregion Constructors (1)
+
+  // #region Public Accessors (6)
 
   /**
-   * The dependency of the output.
-   * 
-   * @return {string[]}
-   */
-   public get dependency(): string[] {
-    return this.#output.dependency;
-  }
-
-  /**
-   * The msg of the output.
-   * 
-   * @return {string | undefined}
-   */
-  public get msg(): string | undefined {
-    return this.#output.msg;
-  }
-
-  /**
-   * The uid of the output.
-   * 
-   * @return {string | undefined}
-   */
-  public get uid(): string | undefined {
-    return this.#output.uid;
-  }
-
-  /**
-   * Maximum coordinates of the axis-aligned bounding box of the geometry in this asset.
-   * @return {number[] | undefined}
+   * Getter bbmax
    */
   public get bbmax(): number[] | undefined {
-    return this.#output.bbmax;
+    return this.#bbmax;
   }
 
   /**
-   * Minimum coordinates of the axis-aligned bounding box of the geometry in this asset.
-   * @return {number[] | undefined}
+   * Getter bbmin
    */
   public get bbmin(): number[] | undefined {
-    return this.#output.bbmin;
+    return this.#bbmin;
   }
 
   /**
-   * Items of this asset - the geometries and materials to be added to the scene.
-   * @return {OutputPart[] | undefined}
+   * Getter content
    */
   public get content(): OutputPart[] | undefined {
-    return this.#output.content;
+    return this.#content;
   }
 
   /**
-  * Items of this asset - the geometries and materials to be added to the scene
-  * @param {OutputPart[] | undefined} value
-  */
-  public set content(value: OutputPart[] | undefined) {
-    // https://shapediver.atlassian.net/browse/SS-2942
-    this.#output.content = value;
-    this.#logger.info(`Output (${this.id}): content was set to: ${value}`);
-  }
-
-  /**
-   * @ignore
-   * @return {number | undefined}
+   * Getter delay
    */
   public get delay(): number | undefined {
-    return this.#output.delay;
+    return this.#delay;
   }
 
   /**
-   * The id of the output.
-   * @return {string}
+   * Getter msg
    */
-  public get id(): string {
-    return this.#output.id;
+  public get msg(): string | undefined {
+    return this.#msg;
   }
 
   /**
-   * The id of the material for the output.
-   * @return {string | undefined}
-   */
-  public get material(): string | undefined {
-    return this.#output.material;
-  }
-
-  /**
-   * The name of the output.
-   * @return {string | undefined}
-   */
-  public get name(): string | undefined {
-    return this.#output.name;
-  }
-
-  /**
-   * The version of the output.
-   * @return {string}
+   * Getter version
    */
   public get version(): string {
-    return this.#output.version;
+    return this.#version;
   }
 
-  /**
-  * The version of the output.
-  * @param {string} value
-  */
-  public set version(value: string) {
-    this.#inputValidator.validate(value, 'string');
-    this.#output.version = value;
-    this.#logger.info(`Output (${this.id}): version was set to: ${value}`);
-  }
-
-  // #endregion Public Accessors (16)
+  // #endregion Public Accessors (6)
 }

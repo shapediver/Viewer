@@ -9,6 +9,7 @@ import { vec3 } from "gl-matrix";
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;
 
+const ticket5 = 'affa36eb1031f3cd6175477dc4d76b785e2ca1c6a70c36adabc1d9547c11660a2957f4ba5e4f55a16225af626c2f25be90d944d355938fd35fc03daaaf9c56cbc85f0c6c7325aeb956145b3a030ad4aa217eefaf2d977b2815aefec5e87912ea1b731507ff24f9109cf74b0aa0eebcea9b9e7b3c807a-8b9959c9e647a0d633136750b78fbf61';
 const ticket = 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e';
 const ticket2 = '8392f2ab5231da0d1b634ef6eb849be4c6e79c0e84456ca19fe03a4d1078fd02428704e23ee9b51e691ffb60550ea8f91493fa669ac900f86061e755441cf3da11c21d81dacf7975ba024ce9b604f2de708895dcdf4d4a17ca885516399e29111fc6d7f22e8ef1000651f56c91b4841a5527cb3d228b-0c9680ec95458327deab37e9fc1a432c-60d25599bc8a340ddf70ffff0dca331d';
 const ticket3 = 'd97a0d69723018a16376de727c0a6cad943ba65fe9b0d776468ea891fcc80019e98d27e09a75ad8f806f788000bc6abc57ff8bd90390c8c815f951893bea0995d8f754a9941c1db55131fb7c020b1d94be862d1ef65cfab3af6dafc60ca26c92ddb262b5a1e9bf-fc3e6089360835fe91bdda04be4b5e0b';
@@ -29,7 +30,7 @@ performanceEvaluator.end('startup');
 logger.info(performanceEvaluator.getEvaluationToString('startup'));
 
 (async () => {
-    let session = await api.createAndInitializeSession({ ticket: ticket, modelViewUrl: modelViewUrl, id: 'mySession'});
+    let session = await api.createAndInitializeSession({ ticket: ticket5, modelViewUrl: modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
     performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
     performanceEvaluator.end('pageLoad_rendering');
@@ -52,7 +53,7 @@ glTFv2Button.onclick = async () => {
 (<any>window).resetSettings = async () => {
     const session = api.getSession('mySession');
     session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayName = 'COLOR';
-    
+
     session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.order = 0;
     session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.order = 1;
     session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.order = 2;
@@ -64,7 +65,7 @@ glTFv2Button.onclick = async () => {
     session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.order = 8;
     session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 9;
     session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 10;
-    
+
     session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = true;
     session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.hidden = true;
     session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.hidden = true;

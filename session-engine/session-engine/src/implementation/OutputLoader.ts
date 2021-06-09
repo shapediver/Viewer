@@ -8,7 +8,6 @@ import { SessionTreeNode } from './SessionTreeNode';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { SessionOutputData } from './SessionOutputData';
 import { ShapeDiverResponseBase as ShapeDiverResponse, ShapeDiverResponseOutput, ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1"
-import { Output } from './Output';
 
 export class OutputLoader {
     // #region Properties (2)
@@ -42,7 +41,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(session: ShapeDiverResponse, outputs?: { [key: string]: Output; }): Promise<SessionTreeNode> {
+    public async loadOutputs(session: ShapeDiverResponse, outputs?: { [key: string]: ShapeDiverResponseOutput; }): Promise<SessionTreeNode> {
         const node = new SessionTreeNode(session.name);
         let currentNodes: { 
             [key: string]: {

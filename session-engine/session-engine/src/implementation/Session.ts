@@ -5,50 +5,30 @@ import { SessionTreeNode } from './SessionTreeNode';
 import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
 import { SettingsEngine, SystemInfo, StateEngine } from '@shapediver/viewer.shared.services';
-import { Export } from './Export';
-import { Output } from './Output';
 import { ISession } from '../interfaces/ISession';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 import { AxiosResponse } from 'axios';
-import { AbstractParameter } from './AbstractParameter';
-import { IParameter, PARAMETERTYPE } from '../interfaces/IParameter';
-import { EXPORTTYPE } from '../interfaces/IExport';
-import { BooleanParameter } from './parameters/BooleanParameter';
-import { StringParameter } from './parameters/StringParameter';
-import { TimeParameter } from './parameters/TimeParameter';
-import { StringListParameter } from './parameters/StringListParameter';
-import { OddParameter } from './parameters/OddParameter';
-import { IntParameter } from './parameters/IntParameter';
-import { FloatParameter } from './parameters/FloatParameter';
-import { EvenParameter } from './parameters/EvenParameter';
-import { ColorParameter } from './parameters/ColorParameter';
-import { FileParameter } from './parameters/FileParameter';
+import { ShapeDiverResponseBase, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from '@shapediver/api.geometry-api-dto-v1';
 import { SessionData } from './SessionData';
-import { ShapeDiverResponseBase as ShapeDiverResponse } from "@shapediver/api.geometry-api-dto-v1"
-import { SBitmapParameter } from './parameters/SBitmapParameter';
-import { SCurveParameter } from './parameters/SCurveParameter';
-import { SIntegerParameter } from './parameters/SIntegerParameter';
-import { SNumberParameter } from './parameters/SNumberParameter';
-import { SStringParameter } from './parameters/SStringParameter';
-import { SParameter } from './parameters/SParameter';
-
 export class Session implements ISession {
-    // #region Properties (18)
+    // #region Properties (19)
 
-    private readonly _exports: { [key: string]: Export; } = {};
+    private readonly _exports: { [key: string]: ShapeDiverResponseExport; } = {};
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _id: string;
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _modelViewUrl: string;
     private readonly _outputLoader: OutputLoader;
-    private readonly _outputs: { [key: string]: Output; } = {};
-    private readonly _outputsCreated: { [key: string]: Output; } = {};
-    private readonly _parameters: { [key: string]: AbstractParameter<any>; } = {};
+    private readonly _outputs: { [key: string]: ShapeDiverResponseOutput; } = {};
+    private readonly _outputsCreated: { [key: string]: ShapeDiverResponseOutput; } = {};
+    private readonly _parameters: { [key: string]: ShapeDiverResponseParameter; } = {};
+    private readonly _parameterValues: { [key: string]: string; } = {};
     private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
     private readonly _ticket: string;
 
     private _authorTicket?: boolean;
     private _bearerToken?: string;
+    private _closed: boolean = false;
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
@@ -56,13 +36,12 @@ export class Session implements ISession {
         "X-ShapeDiver-BuildDate": ''
     }
 
-    private _closed: boolean = false;
     private _initialized: boolean = false;
     private _refreshBearerToken!: () => string;
-    private _sessionResponse!: ShapeDiverResponse;
+    private _sessionResponse!: ShapeDiverResponseBase;
     private _settingsConfig: any = {};
 
-    // #endregion Properties (18)
+    // #endregion Properties (19)
 
     // #region Constructors (1)
 
@@ -82,7 +61,7 @@ export class Session implements ISession {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (10)
+    // #region Public Accessors (12)
 
     /**
      * Getter authorTicket
@@ -116,6 +95,10 @@ export class Session implements ISession {
         this._bearerToken = value;
     }
 
+    public get exports(): { [key: string]: ShapeDiverResponseExport; } {
+        return this._exports;
+    }
+
     /**
      * Getter id
      * @return {string}
@@ -140,12 +123,16 @@ export class Session implements ISession {
         return this._modelViewUrl;
     }
 
-    /**
-     * Getter settingsConfig
-     * @return {any}
-     */
-    public get settingsConfig(): any {
-        return this._settingsConfig;
+    public get outputs(): { [key: string]: ShapeDiverResponseOutput; } {
+        return this._outputs;
+    }
+
+    public get parameters(): { [key: string]: ShapeDiverResponseParameter; } {
+        return this._parameters;
+    }
+
+    public get parameterValues(): { [key: string]: string; } {
+        return this._parameterValues;
     }
 
     /**
@@ -160,8 +147,16 @@ export class Session implements ISession {
      * Getter sessionResponse
      * @return {ShapeDiverResponse}
      */
-    public get sessionResponse(): ShapeDiverResponse {
+    public get sessionResponse(): ShapeDiverResponseBase {
         return this._sessionResponse;
+    }
+
+    /**
+     * Getter settingsConfig
+     * @return {any}
+     */
+    public get settingsConfig(): any {
+        return this._settingsConfig;
     }
 
     /**
@@ -172,30 +167,9 @@ export class Session implements ISession {
         return this._ticket;
     }
 
-    // #endregion Public Accessors (10)
+    // #endregion Public Accessors (12)
 
-    // #region Public Methods (23)
-
-    public createOutput(id: string): Output {
-        if (this._outputs[id] || this._outputsCreated[id]) {
-            this._logger.error('Output with this id already exists.');
-            return this._outputs[id];
-        }
-
-        this._outputsCreated[id] = new Output(this, id, { version: '1.0', id, name: '', dependency: [] });
-        this._outputs[id] = this._outputsCreated[id];
-        return this._outputs[id];
-    }
-
-    /**
-     * Customizes the session with updated parameters to get the updated scene graph node.
-     * 
-     * @param parameters the parameter set to update the session
-     * @returns promise with a scene graph node
-     */
-    public async customize(): Promise<SessionTreeNode> {
-        return this.customizeSession(this.getParametersAsString());
-    }
+    // #region Public Methods (18)
 
     public async close(): Promise<boolean> {
         this._closed = true;
@@ -210,140 +184,19 @@ export class Session implements ISession {
         return true;
     }
 
-    /**
-     * Getter export
-     * @return {Export}
-     */
-    public getExport(id: string): Export | null {
-        const e = this._exports[id];
-        if (!e) {
-            this._logger.error('Export with this id does not exist.');
-            return null;
-        }
-        return e;
-    }
-
-    public getExportById(id: string): Export | null {
-        return this.getExport(id);
-    }
-
-    public getExportByName(name: string): Export[] {
-        const exports: Export[] = [];
-        for (let exportId in this._exports) {
-            if (name === this._exports[exportId].name)
-                exports.push(this._exports[exportId])
-        }
-        return exports;
-    }
-
-    public getExportByType(type: string): Export[] {
-        const exports: Export[] = [];
-        for (let exportId in this._exports) {
-            if (type === this._exports[exportId].type)
-                exports.push(this._exports[exportId])
-        }
-        return exports;
+    public createOutput(id: string): ShapeDiverResponseOutput {
+        // https://shapediver.atlassian.net/browse/SS-3090
+        throw new Error();
     }
 
     /**
-     * Getter exports
-     * @return {{ [key: string]: Export; }}
+     * Customizes the session with updated parameters to get the updated scene graph node.
+     * 
+     * @param parameters the parameter set to update the session
+     * @returns promise with a scene graph node
      */
-    public getExports(): { [key: string]: Export; } {
-        const r: { [key: string]: Export } = {};
-        for (let e in this._exports)
-            r[e] = this._exports[e];
-        return r;
-    }
-
-    /**
-     * Getter output
-     * @return {Output}
-     */
-    public getOutput(id: string): Output | null {
-        const o = this._outputs[id];
-        if (!o) {
-            this._logger.error('Output with this id does not exist.');
-            return null;
-        }
-        return o;
-    }
-
-    public getOutputById(id: string): Output | null {
-        return this.getOutput(id);
-    }
-
-    public getOutputByName(name: string): Output[] {
-        const outputs: Output[] = [];
-        for (let outputId in this._outputs) {
-            if (name === this._outputs[outputId].name)
-                outputs.push(this._outputs[outputId])
-        }
-        return outputs;
-    }
-
-    /**
-     * Getter outputs
-     * @return {{ [key: string]: Output; }}
-     */
-    public getOutputs(): { [key: string]: Output; } {
-        const r: { [key: string]: Output } = {};
-        for (let o in this._outputs)
-            r[o] = this._outputs[o];
-        return r;
-    }
-
-    /**
-     * Getter parameter
-     * @return {Parameter}
-     */
-    public getParameter(id: string): IParameter<any> | null {
-        const p = this._parameters[id];
-        if (!p) {
-            this._logger.error('Parameter with this id does not exist.');
-            return null;
-        }
-        return p;
-    }
-
-    public getParameterById(id: string): IParameter<any> | null {
-        return this.getParameter(id);
-    }
-
-    public getParameterByName(name: string): IParameter<any>[] {
-        const parameters: IParameter<any>[] = [];
-        for (let parameterId in this._parameters) {
-            if (name === this._parameters[parameterId].name)
-                parameters.push(this._parameters[parameterId])
-        }
-        return parameters;
-    }
-
-    public getParameterByType(type: string): IParameter<any>[] {
-        const parameters: IParameter<any>[] = [];
-        for (let parameterId in this._parameters) {
-            if (type === this._parameters[parameterId].type)
-                parameters.push(this._parameters[parameterId])
-        }
-        return parameters;
-    }
-
-    /**
-     * Getter parameters
-     * @return {{ [key: string]: Parameter; }}
-     */
-    public getParameters(): { [key: string]: IParameter<any>; } {
-        const r: { [key: string]: IParameter<any> } = {};
-        for (let p in this._parameters)
-            r[p] = this._parameters[p];
-        return r;
-    }
-
-    public getParametersAsString(): { [key: string]: string } {
-        const parameters: { [key: string]: string } = {};
-        for (let parameter in this._parameters)
-            parameters[parameter] = this._parameters[parameter].toString();
-        return parameters;
+    public async customize(): Promise<SessionTreeNode> {
+        return this.customizeSession(this._parameterValues);
     }
 
     /**
@@ -354,13 +207,13 @@ export class Session implements ISession {
     public async init(): Promise<SessionTreeNode> {
         if (this._initialized === true) {
             this._logger.error('Session already initialized.');
-            return this.loadOutputs(this.getParametersAsString());
+            return this.loadOutputs(this._parameterValues);
         }
 
         try {
             let sessionResponse;
             try {
-                sessionResponse = <ShapeDiverResponse>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
+                sessionResponse = <ShapeDiverResponseBase>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
             } catch (e) {
                 this._logger.error('Session init failed.', e, e.response && e.response.status ? e.response.status : null);
                 return new SessionTreeNode();
@@ -371,14 +224,14 @@ export class Session implements ISession {
             this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
 
             this._initialized = true;
-            return this.loadOutputs(this.getParametersAsString());
+            return this.loadOutputs(this._parameterValues);
         } catch (e) {
             this._logger.error('Something went wrong at session init.', e);
             return new SessionTreeNode();
         }
     }
 
-    public mergeResponses(r1: ShapeDiverResponse, r2: ShapeDiverResponse, parameters?: { [key: string]: AbstractParameter<any>; }, outputs?: { [key: string]: Output; }, exports?: { [key: string]: Export; }): ShapeDiverResponse {
+    public mergeResponses(r1: ShapeDiverResponseBase, r2: ShapeDiverResponseBase, parameters?: { [key: string]: ShapeDiverResponseParameter; }, outputs?: { [key: string]: ShapeDiverResponseOutput; }, exports?: { [key: string]: ShapeDiverResponseExport; }): ShapeDiverResponseBase {
         if (!r1)
             r1 = { version: r2.version };
 
@@ -445,67 +298,24 @@ export class Session implements ISession {
         if (parameters) {
             for (let parameterId in r1.parameters) {
                 if(parameters[parameterId]) continue;
-                switch (r1.parameters[parameterId].type) {
-                    case PARAMETERTYPE.BOOL:
-                        parameters[parameterId] = new BooleanParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.COLOR:
-                        parameters[parameterId] = new ColorParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.EVEN:
-                        parameters[parameterId] = new EvenParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.FILE:
-                        parameters[parameterId] = new FileParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.FLOAT:
-                        parameters[parameterId] = new FloatParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.INT:
-                        parameters[parameterId] = new IntParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.ODD:
-                        parameters[parameterId] = new OddParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.STRINGLIST:
-                        parameters[parameterId] = new StringListParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.TIME:
-                        parameters[parameterId] = new TimeParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.SBITMAP:
-                        parameters[parameterId] = new SBitmapParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.SCURVE:
-                        parameters[parameterId] = new SCurveParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.SINTEGER:
-                        parameters[parameterId] = new SIntegerParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.SNUMBER:
-                        parameters[parameterId] = new SNumberParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.SSTRING:
-                        parameters[parameterId] = new SStringParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    case PARAMETERTYPE.SBOOL || PARAMETERTYPE.SBOX || PARAMETERTYPE.SBREP || PARAMETERTYPE.SCIRCLE || PARAMETERTYPE.SCOLOR || PARAMETERTYPE.SDOMAIN || PARAMETERTYPE.SDOMAIN2D || PARAMETERTYPE.SLINE || PARAMETERTYPE.SMESH || PARAMETERTYPE.SPLANE || PARAMETERTYPE.SPOINT || PARAMETERTYPE.SRECTANGLE || PARAMETERTYPE.SSUBDIV || PARAMETERTYPE.SSURFACE || PARAMETERTYPE.STIME || PARAMETERTYPE.SVECTOR:
-                        parameters[parameterId] = new SParameter(this, parameterId, r1.parameters[parameterId]);
-                        break;
-                    default:
-                        parameters[parameterId] = new StringParameter(this, parameterId, r1.parameters[parameterId]);
-                }
+                parameters[parameterId] = r1.parameters[parameterId];
+                parameters[parameterId].id = parameterId;
             }
         }
 
         if (exports) {
             for (let exportId in r1.exports)
-                if((<any>Object).values(EXPORTTYPE).includes(<string>r1.exports[exportId].type))
-                    exports[exportId] = new Export(this, exportId, r1.exports[exportId]);
+                if(r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.EMAIL || r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.DOWNLOAD) {
+                    exports[exportId] = r1.exports[exportId];
+                    exports[exportId].id = exportId;
+                }
         }
 
         if (outputs) {
-            for (let outputId in r1.outputs)
-                outputs[outputId] = new Output(this, outputId, r1.outputs[outputId]);
+            for (let outputId in r1.outputs) {
+                outputs[outputId] = <ShapeDiverResponseOutput>r1.outputs[outputId];
+                outputs[outputId].id = outputId;
+            }
         }
 
         return r1;
@@ -517,7 +327,7 @@ export class Session implements ISession {
             return false;
         }
         try {
-            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].method!, this.getParametersAsString(), 'application/json');
+            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].method!, this._parameterValues, 'application/json');
             return true;
         } catch (e) {
             this._logger.error('Saving of default parameters failed.', e, e.response && e.response.status ? e.response.status : null);
@@ -568,7 +378,7 @@ export class Session implements ISession {
         }
     }
 
-    // #endregion Public Methods (23)
+    // #endregion Public Methods (18)
 
     // #region Private Methods (3)
 
@@ -580,9 +390,7 @@ export class Session implements ISession {
         try {
             let responseCustomize;
             try {
-                for (let parameter in parameters)
-                    if (this._parameters[parameter] instanceof FileParameter) parameters[parameter] = await (<FileParameter>this._parameters[parameter]).upload();
-                responseCustomize = <ShapeDiverResponse>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
+                responseCustomize = <ShapeDiverResponseBase>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
             } catch (e) {
                 if (e.response && e.response.status) {
                     if (e.response && e.response.status && e.response.status === 410 && !this._closed) {
