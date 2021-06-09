@@ -68,10 +68,8 @@ export class InputValidator {
                 if(this._typeChecker.isTypeOf(value, 'string') || (Array.isArray(value) && this._typeChecker.isTypeOf(value[0], 'number') && this._typeChecker.isTypeOf(value[1], 'number') && this._typeChecker.isTypeOf(value[2], 'number')) || this._typeChecker.isTypeOf(value, 'number')) return;
                 break;
             default:
-                this._logger.error(`Invalid Input. The type ${stringLiteral} is not recognized.`);
-                return;
+                throw new Error(`The type ${stringLiteral} is not recognized.`);
         }
-        this._logger.warn(`Invalid Input. The input ${value} is not of type ${stringLiteral}, but is ${typeof value} instead.`);
-        throw new Error(`Invalid Input. The input ${value} is not of type ${stringLiteral}, but is ${typeof value} instead.`);
+        throw new Error(`The value ${value} is not of type ${stringLiteral}, but is ${typeof value} instead.`);
     }
 }

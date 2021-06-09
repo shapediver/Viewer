@@ -23,17 +23,17 @@ let viewer: Viewer, session: Session;
 }
 
 (<any>window).getParameters = (): { [key: string]: Parameter<any> } => {
-    return session.getParameters();
+    return session.parameters;
 }
 
 (<any>window).changeParameter = async (id: string, value: any): Promise<void> => {
-    session.updateParameter(id, value);
+    session.getParameterById(id)!.value = value;
     await session.customize();
 }
 
 (<any>window).changeParameters = async ( parameterDictionary: { [key: string]: any } ): Promise<void> => {
     for(let param in parameterDictionary)
-        session.updateParameter(param, parameterDictionary[param]);
+        session.getParameterById(param)!.value = parameterDictionary[param];
     await session.customize();
 }
 
