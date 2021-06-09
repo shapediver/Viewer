@@ -1,194 +1,178 @@
-import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinition, ShapeDiverResponseExportPart, ShapeDiverResponseExportResult as ExportResult } from "@shapediver/api.geometry-api-dto-v1";
-import { IExport, Export as ExportLogic, EXPORTTYPE } from "@shapediver/viewer.session-engine.session-engine";
+import { ShapeDiverResponseBase, ShapeDiverResponseExport, ShapeDiverResponseExportDefinition, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportPart, ShapeDiverResponseExportResult as ExportResult } from "@shapediver/api.geometry-api-dto-v1";
+import { Session } from "@shapediver/viewer.session-engine.session-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class Export implements IExport {
-  // #region Properties (2)
+export class Export implements ShapeDiverResponseExport {
+  // #region Properties (17)
 
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-  readonly #export: ExportLogic;
   readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #sessionEngine: Session;
 
-  // #endregion Properties (2)
+  readonly dependency: string[];
+  readonly id: string;
+  readonly name: string;
+  readonly type: ShapeDiverResponseExportDefinitionType;
+  readonly uid?: string;
+
+  #content?: ShapeDiverResponseExportPart[];
+  #delay?: number;
+  #filename?: string;
+  #msg?: string;
+  #result?: ExportResult;
+  #version?: string;
+
+  displayName?: string;
+  hidden: boolean;
+  order?: number;
+
+  // #endregion Properties (17)
 
   // #region Constructors (1)
 
-  constructor(e: ExportLogic) {
-    this.#export = e;
+  constructor(sessionEngine: Session, exportDef: ShapeDiverResponseExport, callbacks: any) {
+    this.#sessionEngine = sessionEngine;
+
+    this.dependency = exportDef.dependency;
+    this.id = exportDef.uid || exportDef.id;
+    this.name = exportDef.name;
+    this.type = exportDef.type;
+
+    if (exportDef.uid) this.uid = exportDef.uid;
+
+    this.displayName = undefined;
+    this.order = undefined;
+    this.hidden = false;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (11)
+  // #region Public Accessors (6)
 
   /**
-   * The content of the export.
-   * 
-   * @return {ShapeDiverResponseExportPart[] | undefined}
+   * Getter content
    */
   public get content(): ShapeDiverResponseExportPart[] | undefined {
-    return this.#export.content;
+    return this.#content;
   }
 
   /**
-   * The delay of the export.
-   * 
-   * @return {number | undefined}
+   * Getter delay
    */
   public get delay(): number | undefined {
-    return this.#export.delay;
+    return this.#delay;
   }
 
   /**
-   * The dependency of the export.
-   * 
-   * @return {string[]}
-   */
-  public get dependency(): string[] {
-    return this.#export.dependency;
-  }
-
-  /**
-   * Getter displayName
-   * @return {string | undefined}
-   */
-   public get displayName(): string | undefined {
-		return this.#export.displayName;
-	}
-
-  /**
-   * Setter displayName
-   * @param {string | undefined} value
-   */
-  public set displayName(value: string | undefined) {
-    this.#inputValidator.validate(value, 'string', false);
-    this.#export.displayName = value;
-    this.#logger.info(`Parameter (${this.id}) displayName was set to: ${value}`);
-	}
-
-  /**
-   * The filename of the export.
-   * 
-   * @return {string | undefined}
+   * Getter filename
    */
   public get filename(): string | undefined {
-    return this.#export.filename;
+    return this.#filename;
   }
 
   /**
-   * Getter hidden
-   * @return {boolean}
-   */
-  public get hidden(): boolean {
-		return this.#export.hidden;
-	}
-
-  /**
-     * Setter hidden
-     * @param {boolean} value
-     */
-  public set hidden(value: boolean) {
-    this.#inputValidator.validate(value, 'boolean');
-    this.#export.hidden = value;
-    this.#logger.info(`Parameter (${this.id}) hidden was set to: ${value}`);
-	}
-
-  /**
-   * The id of the export.
-   * 
-   * @return {string}
-   */
-  public get id(): string {
-    return this.#export.id;
-  }
-
-  /**
-   * The msg of the export.
-   * 
-   * @return {string | undefined}
+   * Getter msg
    */
   public get msg(): string | undefined {
-    return this.#export.msg;
+    return this.#msg;
   }
 
   /**
-   * The name of the export.
-   * 
-   * @return {string | undefined}
-   */
-  public get name(): string | undefined {
-    return this.#export.name;
-  }
-
-  /**
-     * Getter order
-     * @return {number | undefined}
-     */
-  public get order(): number | undefined {
-		return this.#export.order;
-	}
-
-  /**
-     * Setter order
-     * @param {number | undefined} value
-     */
-  public set order(value: number | undefined) {
-    this.#inputValidator.validate(value, 'number', false);
-    this.#export.order = value;
-    this.#logger.info(`Parameter (${this.id}) order was set to: ${value}`);
-	}
-
-  /**
-   * The result of the export.
-   * 
-   * @return {ExportResult | undefined}
+   * Getter result
    */
   public get result(): ExportResult | undefined {
-    return this.#export.result;
+    return this.#result;
   }
 
   /**
-   * The type of the export.
-   * 
-   * @return {EXPORTTYPE}
-   */
-  public get type(): EXPORTTYPE {
-    return <EXPORTTYPE><unknown>this.#export.type;
-  }
-
-  /**
-   * The uid of the export.
-   * 
-   * @return {string | undefined}
-   */
-  public get uid(): string | undefined {
-    return this.#export.uid;
-  }
-
-  /**
-   * The version of the export.
-   * 
-   * @return {string | undefined}
+   * Getter version
    */
   public get version(): string | undefined {
-    return this.#export.version;
+    return this.#version;
   }
 
-  // #endregion Public Accessors (11)
+  // #endregion Public Accessors (6)
 
-  // #region Public Methods (1)
+  // #region Public Methods (2)
 
   /**
-   * Request the export.
+   * Request the export with an optional additional parameter set.
    * 
+   * @param parameters 
    * @returns 
    */
-  public async request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport | ShapeDiverResponseExportDefinition | null> {
-    this.#logger.info(`Export (${this.id}) requested.`);
-    return await this.#export.request(parameters);
+  public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
+    const currentParameters = this.#sessionEngine.parameterValues;
+    const exportParameters: { [key: string]: string } = {}
+
+    for (let parameter in currentParameters)
+      exportParameters[parameter] = parameters[parameter] || currentParameters[parameter];
+    try {
+      let exportReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.id }, parameters: exportParameters }, 'application/json')).data;
+      let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.id];
+      this.#sessionEngine.mergeResponses(this.#sessionEngine.sessionResponse, { version: this.#sessionEngine.sessionResponse.version, actions: exportReply.actions });
+      if ('delay' in exportResult) {
+        await this.timeout(exportResult.delay!);
+        exportResult = (await this.cacheRequest(exportResult.version!))!;
+      }
+      this.#version = exportResult.version;
+      this.#delay = exportResult.delay;
+      this.#content = exportResult.content;
+      this.#msg = exportResult.msg;
+      this.#filename = exportResult.filename;
+      this.#result = exportResult.result;
+      return exportResult;
+    } catch (e) {
+      this.#logger.error('Export request failed.', e, e.response && e.response.status ? e.response.status : null);
+      throw new Error(`Requesting the export with id ${this.id} failed.`);
+    }
   }
 
-  // #endregion Public Methods (1)
+  /**
+   * Validates all public properties.
+   */
+  public validate() {
+    this.#inputValidator.validate(this.displayName, 'string', false);
+    this.#inputValidator.validate(this.hidden, 'boolean');
+    this.#inputValidator.validate(this.order, 'number', false);
+  }
+
+  // #endregion Public Methods (2)
+
+  // #region Private Methods (2)
+
+  /**
+   * Internal cache request for the export request.
+   * 
+   * @param version 
+   * @returns 
+   */
+  private async cacheRequest(version: string): Promise<ShapeDiverResponseExport> {
+    try {
+      let exportCacheReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].method!.toLowerCase()!, { [this.id]: version }, 'application/json')).data;
+      let exportCacheResult = <ShapeDiverResponseExport>exportCacheReply.exports![this.id];
+      if ('delay' in exportCacheResult) {
+        await this.timeout(exportCacheResult.delay!);
+        exportCacheResult = (await this.cacheRequest(version))!;
+      }
+      return exportCacheResult;
+    } catch (e) {
+      this.#logger.error('Export cache request failed.', e, e.response && e.response.status ? e.response.status : null);
+      throw new Error(`Requesting the export with id ${this.id} failed.`);
+    }
+  }
+
+  /**
+   * Returns a promise that resolves after the amount of milliseconds provided.
+   * 
+   * @param ms the milliseconds
+   * @returns promise that resolve after specified milliseconds
+   */
+  private async timeout(ms: number): Promise<any> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // #endregion Private Methods (2)
 }

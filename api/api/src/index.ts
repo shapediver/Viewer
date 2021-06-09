@@ -12,23 +12,7 @@ import { ThreejsData } from "@shapediver/viewer.rendering-engine-threejs.renderi
 import { CustomData, GeometryData, MaterialData } from "@shapediver/viewer.shared.types";
 import { LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
 import { EVENTTYPE } from "@shapediver/viewer.shared.services";
-import { EXPORTTYPE, IParameter as Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION, SessionData, SessionOutputData } from "@shapediver/viewer.session-engine.session-engine";
-import { FileParameter } from "./session/parameters/objects/FileParameter";
-import { BooleanParameter } from "./session/parameters/objects/BooleanParameter";
-import { ColorParameter } from "./session/parameters/objects/ColorParameter";
-import { EvenParameter } from "./session/parameters/objects/EvenParameter";
-import { FloatParameter } from "./session/parameters/objects/FloatParameter";
-import { IntParameter } from "./session/parameters/objects/IntParameter";
-import { OddParameter } from "./session/parameters/objects/OddParameter";
-import { StringListParameter } from "./session/parameters/objects/StringListParameter";
-import { StringParameter } from "./session/parameters/objects/StringParameter";
-import { TimeParameter } from "./session/parameters/objects/TimeParameter";
-import { SBitmapParameter } from "./session/parameters/objects/SBitmapParameter";
-import { SCurveParameter } from "./session/parameters/objects/SCurveParameter";
-import { SIntegerParameter } from "./session/parameters/objects/SIntegerParameter";
-import { SNumberParameter } from "./session/parameters/objects/SNumberParameter";
-import { SStringParameter } from "./session/parameters/objects/SStringParameter";
-import { SParameter } from "./session/parameters/objects/SParameter";
+import { SessionData, SessionOutputData } from "@shapediver/viewer.session-engine.session-engine";
 import { PerspectiveCameraControls } from "./viewer/camera/controls/PerspectiveCameraControls";
 import { OrthographicCamera } from "./viewer/camera/OrthographicCamera";
 import { PerspectiveCamera } from "./viewer/camera/PerspectiveCamera";
@@ -39,6 +23,9 @@ import { HemisphereLight } from "./viewer/lights/HemisphereLight";
 import { PointLight } from "./viewer/lights/PointLight";
 import { SpotLight } from "./viewer/lights/SpotLight";
 import { LightScene } from "./viewer/lights/LightScene";
+import { Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "./session/Parameter";
+import { FileParameter } from "./session/FileParameter";
+import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from "@shapediver/api.geometry-api-dto-v1";
 
 export const api: Api = <Api>container.resolve(Api);
 
@@ -47,9 +34,7 @@ export {
 }
 
 export {
-    Api, Session, Viewer, Parameter, Export, Output,
-    BooleanParameter, ColorParameter, EvenParameter, FileParameter, FloatParameter, IntParameter, OddParameter, StringListParameter, StringParameter, TimeParameter,
-    SBitmapParameter, SCurveParameter, SIntegerParameter, SNumberParameter, SStringParameter, SParameter
+    Api, Session, Viewer, Parameter, Export, Output, FileParameter
 }
 
 export {

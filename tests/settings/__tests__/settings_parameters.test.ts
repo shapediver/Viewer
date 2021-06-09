@@ -66,6 +66,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.hidden = true;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.hidden = false;
 
+
                 viewer.blurSceneWhenBusy = true;
                 const camera = viewer.getCamera();
                 camera!.autoAdjust = false;
@@ -167,8 +168,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession');
-                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 9;
-                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 10;
+                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 9
+                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 10
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -190,8 +191,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession');
-                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 10;
-                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 9;
+                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = 10
+                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = 9
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });

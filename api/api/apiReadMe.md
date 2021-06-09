@@ -150,10 +150,10 @@ Adjusting parameters and requesting exports is basically just as easy. The {@lin
 ```typescript
 // Get a parameter with a specific ID
 // Note: It is also easily possible to get the parameter by name, type or any other desired criteria.
-const parameter = session.getParameter('SOME_ID');
+const parameter = session.getParameterById('SOME_ID');
 
 // To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.value = 'newValue';
+parameter.value = 'newValue'
 
 // Get an export with a specific ID
 // Note: It is also easily possible to get the export by name, type or any other desired criteria.
@@ -221,10 +221,10 @@ So the following code
 
 ```typescript
 // Get a parameter with a specific ID
-const parameter = session.getParameter('SOME_ID');
+const parameter = session.getParameterById('SOME_ID');
 
 // To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.value = 'newValue';
+parameter.value = 'newValue'
 ```
 ![Example](./images/1.png)
 
@@ -274,10 +274,10 @@ Let's now customize the scene again and then add our copied node with some trans
 
 ```typescript
 // Get a parameter with a specific ID
-const parameter = session.getParameter('SOME_ID');
+const parameter = session.getParameterById('SOME_ID');
 
 // To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.value = 'newValue';
+parameter.value = 'newValue'
 
 // Customize the session
 await session.customize();
