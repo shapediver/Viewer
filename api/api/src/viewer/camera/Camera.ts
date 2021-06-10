@@ -1,17 +1,45 @@
-import { CAMERATYPE, ICamera, ICameraControls } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { AbstractCamera, CAMERATYPE, ICamera, ICameraControls } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { Box } from "@shapediver/viewer.shared.math";
 export abstract class Camera implements ICamera {
-    // #region Properties (3)
+    // #region Properties (15)
 
     readonly #camera: ICamera;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
 
-    // #endregion Properties (3)
+    readonly autoAdjust!: boolean;
+    readonly cameraMovementDuration!: number;
+    readonly defaultPosition!: vec3;
+    readonly defaultTarget!: vec3;
+    readonly enableCameraControls!: boolean;
+    readonly id!: string;
+    readonly position!: vec3;
+    readonly revertAtMouseUp!: boolean;
+    readonly revertAtMouseUpDuration!: number;
+    readonly target!: vec3;
+    readonly type!: CAMERATYPE;
+    readonly zoomExtentsFactor!: number;
+
+    readonly #updateCB = () => {
+        (<any>this.autoAdjust) = this.#camera.autoAdjust;
+        (<any>this.cameraMovementDuration) = this.#camera.cameraMovementDuration;
+        (<any>this.defaultPosition) = this.#camera.defaultPosition;
+        (<any>this.defaultTarget) = this.#camera.defaultTarget;
+        (<any>this.enableCameraControls) = this.#camera.enableCameraControls;
+        (<any>this.id) = this.#camera.id;
+        (<any>this.position) = this.#camera.position;
+        (<any>this.revertAtMouseUp) = this.#camera.revertAtMouseUp;
+        (<any>this.revertAtMouseUpDuration) = this.#camera.revertAtMouseUpDuration;
+        (<any>this.target) = this.#camera.target;
+        (<any>this.type) = this.#camera.type;
+        (<any>this.zoomExtentsFactor) = this.#camera.zoomExtentsFactor;
+    }
+
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
@@ -21,43 +49,19 @@ export abstract class Camera implements ICamera {
      */
     constructor(camera: ICamera) {
         this.#camera = camera;
+        (<AbstractCamera>this.#camera).addUpdateCB(this.#updateCB);
+        this.#updateCB();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (22)
-
-    /**
-     * Enable / Disable that the camera adjusts to geometry updates
-     * @return {boolean}
-     */
-    public get autoAdjust(): boolean {
-        return this.#camera.autoAdjust;
-    }
-
-    /**
-     * Enable / Disable that the camera adjusts to geometry updates
-     * @param {boolean} value
-     */
-    public set autoAdjust(value: boolean) {
-        this.#inputValidator.validate(value, 'boolean');
-        this.#camera.autoAdjust = value;
-        this.#logger.info(`Camera (${this.#camera.id}): autoAdjust was set to: ${value}`);
-    }
-
-    /**
-     * Default duration of camera movements
-     * @return {number}
-     */
-    public get cameraMovementDuration(): number {
-        return this.#camera.cameraMovementDuration;
-    }
+    // #region Public Accessors (9)
 
     /**
      * Default duration of camera movements
      * @param {number} value
      */
-    public set cameraMovementDuration(value: number) {
+    public updateCameraMovementDuration(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#camera.cameraMovementDuration = value;
         this.#logger.info(`Camera (${this.#camera.id}): cameraMovementDuration was set to: ${value}`);
@@ -65,17 +69,9 @@ export abstract class Camera implements ICamera {
 
     /**
      * The defaultPosition of the camera
-     * @return {vec3}
-     */
-    public get defaultPosition(): vec3 {
-        return this.#camera.defaultPosition;
-    }
-
-    /**
-     * The defaultPosition of the camera
      * @param {vec3} value
      */
-    public set defaultPosition(value: vec3) {
+    public updateDefaultPosition(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#camera.defaultPosition = value;
         this.#logger.info(`Camera (${this.#camera.id}): defaultPosition was set to: ${value}`);
@@ -83,17 +79,9 @@ export abstract class Camera implements ICamera {
 
     /**
      * The defaultTarget of the camera
-     * @return {vec3}
-     */
-    public get defaultTarget(): vec3 {
-        return this.#camera.defaultTarget;
-    }
-
-    /**
-     * The defaultTarget of the camera
      * @param {vec3} value
      */
-    public set defaultTarget(value: vec3) {
+    public updateDefaultTarget(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#camera.defaultTarget = value;
         this.#logger.info(`Camera (${this.#camera.id}): defaultTarget was set to: ${value}`);
@@ -101,43 +89,19 @@ export abstract class Camera implements ICamera {
 
     /**
      * Enable / Disable the camera controls
-     * @return {boolean}
-     */
-    public get enableCameraControls(): boolean {
-        return this.#camera.enableCameraControls;
-    }
-
-    /**
-     * Enable / Disable the camera controls
      * @param {boolean} value
      */
-    public set enableCameraControls(value: boolean) {
+    public updateEnableCameraControls(value: boolean) {
         this.#inputValidator.validate(value, 'boolean');
         this.#camera.enableCameraControls = value;
         this.#logger.info(`Camera (${this.#camera.id}): enableCameraControls was set to: ${value}`);
     }
 
     /**
-     * The id of the camera
-     * @return {string}
-     */
-    public get id(): string {
-        return this.#camera.id;
-    }
-
-    /**
-     * The position of the camera
-     * @return {vec3}
-     */
-    public get position(): vec3 {
-        return this.#camera.position;
-    }
-
-    /**
      * The position of the camera
      * @param {vec3} value
      */
-    public set position(value: vec3) {
+    public updatePosition(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#camera.position = value;
         this.#logger.info(`Camera (${this.#camera.id}): position was set to: ${value}`);
@@ -145,17 +109,9 @@ export abstract class Camera implements ICamera {
 
     /**
      * Enable / Disable if the mouse should reset on mouse up
-     * @return {boolean}
-     */
-    public get revertAtMouseUp(): boolean {
-        return this.#camera.revertAtMouseUp;
-    }
-
-    /**
-     * Enable / Disable if the mouse should reset on mouse up
      * @param {boolean} value
      */
-    public set revertAtMouseUp(value: boolean) {
+    public updateRevertAtMouseUp(value: boolean) {
         this.#inputValidator.validate(value, 'boolean');
         this.#camera.revertAtMouseUp = value;
         this.#logger.info(`Camera (${this.#camera.id}): revertAtMouseUp was set to: ${value}`);
@@ -163,17 +119,9 @@ export abstract class Camera implements ICamera {
 
     /**
      * The duration of the transition of the revertAtMouseUp
-     * @return {number}
-     */
-    public get revertAtMouseUpDuration(): number {
-        return this.#camera.revertAtMouseUpDuration;
-    }
-
-    /**
-     * The duration of the transition of the revertAtMouseUp
      * @param {number} value
      */
-    public set revertAtMouseUpDuration(value: number) {
+    public updateRevertAtMouseUpDuration(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#camera.revertAtMouseUpDuration = value;
         this.#logger.info(`Camera (${this.#camera.id}): revertAtMouseUpDuration was set to: ${value}`);
@@ -181,61 +129,27 @@ export abstract class Camera implements ICamera {
 
     /**
      * The target of the camera
-     * @return {vec3}
-     */
-    public get target(): vec3 {
-        return this.#camera.target;
-    }
-
-    /**
-     * The target of the camera
      * @param {vec3} value
      */
-    public set target(value: vec3) {
+    public updateTarget(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#camera.target = value;
         this.#logger.info(`Camera (${this.#camera.id}): target was set to: ${value}`);
     }
 
     /**
-     * The type of the camera
-     * @return {CAMERATYPE}
-     */
-    public get type(): CAMERATYPE {
-        return this.#camera.type;
-    }
-
-    /**
-     * Factor to apply to the bounding box before zooming to extents
-     * @return {number}
-     */
-    public get zoomExtentsFactor(): number {
-        return this.#camera.zoomExtentsFactor;
-    }
-
-    /**
      * Factor to apply to the bounding box before zooming to extents
      * @param {number} value
      */
-    public set zoomExtentsFactor(value: number) {
+    public updateZoomExtentsFactor(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#camera.zoomExtentsFactor = value;
         this.#logger.info(`Camera (${this.#camera.id}): zoomExtentsFactor was set to: ${value}`);
     }
 
-    // #endregion Public Accessors (22)
+    // #endregion Public Accessors (9)
 
-    // #region Public Abstract Accessors (1)
-
-    /**
-     * The camera controls
-     * @return {ICameraControls}
-     */
-    public abstract get controls(): ICameraControls;
-
-    // #endregion Public Abstract Accessors (1)
-
-    // #region Public Methods (4)
+    // #region Public Methods (5)
 
     /**
      * Let the camera follow a path from different position and target pairs to another.
@@ -292,7 +206,17 @@ export abstract class Camera implements ICamera {
         this.#logger.info(`Camera ${this.id}: Setting position to ${position} and target to ${target}.`);
         return this.#camera.set(vec3.fromValues(position[0], position[1], position[2]), vec3.fromValues(target[0], target[1], target[2]), options);      
     }
-    
+
+    /**
+     * Enable / Disable that the camera adjusts to geometry updates
+     * @param {boolean} value
+     */
+    public updateAutoAdjust(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
+        this.#camera.autoAdjust = value;
+        this.#logger.info(`Camera (${this.#camera.id}): autoAdjust was set to: ${value}`);
+    }
+
     /**
      * Zoom in on a specific part of the scene, or the whole scene (default).
      * 
@@ -317,21 +241,5 @@ export abstract class Camera implements ICamera {
         return this.#camera.zoomTo(zoomTarget, options);  
     }
 
-    /**
-     * Update the camera with the delta time of the viewer.
-     * Normally, there shouldn't be much reason to use this function.
-     * It is used internally in the rendering engine.
-     * 
-     * @param time the delta time
-     * @returns 
-     */
-    public update(time: number): {
-        position: vec3,
-        target: vec3
-    } {
-        this.#inputValidator.validate(time, 'positive');
-        return this.#camera.controls.update(time);
-    }
-
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (5)
 }

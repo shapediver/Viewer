@@ -1,12 +1,16 @@
-import { OrthographicCameraControls } from "./controls/implementation/OrthographicCameraControls";
-import { PerspectiveCameraControls } from "./controls/implementation/PerspectiveCameraControls";
-import { ICameraControls } from "./controls/interface/ICameraControls";
-import { AbstractCamera } from "./engine/implementation/AbstractCamera";
-import { CameraEngine } from "./engine/implementation/CameraEngine";
-import { OrthographicCamera } from "./engine/implementation/OrthographicCamera";
-import { PerspectiveCamera } from "./engine/implementation/PerspectiveCamera";
-import { ICamera } from "./engine/interface/ICamera";
-import { CAMERATYPE, ICameraEngine } from "./engine/interface/ICameraEngine";
+import { ICameraControls } from "./interfaces/controls/ICameraControls";
+import { AbstractCamera } from "./implementation/camera/AbstractCamera";
+import { CameraEngine } from "./implementation/CameraEngine";
+import { ICamera } from "./interfaces/camera/ICamera";
+import { CAMERATYPE, ICameraEngine } from "./interfaces/ICameraEngine";
+import { OrthographicCamera } from "./implementation/camera/OrthographicCamera";
+import { PerspectiveCamera } from "./implementation/camera/PerspectiveCamera";
+import { OrthographicCameraControls } from "./implementation/controls/OrthographicCameraControls";
+import { PerspectiveCameraControls } from "./implementation/controls/PerspectiveCameraControls";
+import { IPerspectiveCameraControls } from "./interfaces/controls/IPerspectiveCameraControls";
+import { IOrthographicCameraControls } from "./interfaces/controls/IOrthographicCameraControls";
+import { IOrthographicCamera } from "./interfaces/camera/IOrthographicCamera";
+import { IPerspectiveCamera } from "./interfaces/camera/IPerspectiveCamera";
 
 export {
   ICameraEngine, ICamera, ICameraControls
@@ -17,9 +21,11 @@ export {
 }
 
 export { 
-  PerspectiveCamera, OrthographicCamera
+  PerspectiveCamera, OrthographicCamera,
+  IPerspectiveCamera, IOrthographicCamera
 }
 
 export { 
-  PerspectiveCameraControls, OrthographicCameraControls
+  PerspectiveCameraControls, OrthographicCameraControls,
+  IPerspectiveCameraControls, IOrthographicCameraControls
 }

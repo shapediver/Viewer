@@ -2,7 +2,7 @@ import { vec2, vec3, vec4 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe'
 
-import { AbstractCamera, CameraEngine, CAMERATYPE, ICameraEngine, OrthographicCameraControls, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { AbstractCamera, CameraEngine, CAMERATYPE, ICameraEngine, OrthographicCamera, OrthographicCameraControls, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Tree } from '@shapediver/viewer.shared.node-tree';
 
@@ -667,7 +667,7 @@ export class RenderingEngine implements IRenderingEngine {
                 this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] };
                 this._settingsEngine.scene.camera.cameraTypes.perspective.fov.value = (<PerspectiveCamera>camera).fov;
 
-                const controls = <PerspectiveCameraControls>camera.controls;
+                const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
                 this._settingsEngine.scene.camera.controls.orbit.autoRotationSpeed.value = controls.autoRotationSpeed;
                 this._settingsEngine.scene.camera.controls.orbit.damping.value = controls.damping;
                 this._settingsEngine.scene.camera.controls.orbit.enableAutoRotation.value = controls.enableAutoRotation;
@@ -708,7 +708,7 @@ export class RenderingEngine implements IRenderingEngine {
                 this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] };
                 this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] };
 
-                const controls = <OrthographicCameraControls>camera.controls;
+                const controls = <OrthographicCameraControls>(<OrthographicCamera>camera).controls;
                 this._settingsEngine.scene.camera.controls.orthographic.damping.value = controls.damping;
                 this._settingsEngine.scene.camera.controls.orthographic.enableKeyPan.value = controls.enableKeyPan;
                 this._settingsEngine.scene.camera.controls.orthographic.enablePan.value = controls.enablePan;

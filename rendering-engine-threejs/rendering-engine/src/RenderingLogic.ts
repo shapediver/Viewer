@@ -1,4 +1,4 @@
-import { CAMERATYPE, OrthographicCamera, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { AbstractCamera, CAMERATYPE, OrthographicCamera, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { EventEngine, EVENTTYPE, StateEngine, SystemInfo } from "@shapediver/viewer.shared.services";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { vec3 } from "gl-matrix";
@@ -125,7 +125,7 @@ export class RenderingLogic {
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let cameraThree: THREE.Camera;
-        const { position, target } = this._renderingEngine.cameraEngine.getCamera()!.update(time);
+        const { position, target } = (<AbstractCamera>this._renderingEngine.cameraEngine.getCamera())!.update(time);
         if (this._renderingEngine.cameraEngine.getCamera()!.type === CAMERATYPE.ORTHOGRAPHIC) {
             const camera = <OrthographicCamera>this._renderingEngine.cameraEngine.getCamera()!;
             const aspect = width / height;

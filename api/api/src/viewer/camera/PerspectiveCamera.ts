@@ -1,19 +1,24 @@
-import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic  } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic, IPerspectiveCamera, ICameraControls, IPerspectiveCameraControls } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Camera } from "./Camera";
 import { PerspectiveCameraControls } from "./controls/PerspectiveCameraControls";
 
-export class PerspectiveCamera extends Camera {
-    // #region Properties (1)
+export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
+    // #region Properties (6)
 
     readonly #camera: PerspectiveCameraLogic;
-    readonly #controls: PerspectiveCameraControls;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #updateCB = () => {
+        (<any>this.fov) = this.#camera.fov;
+    }
 
-    // #endregion Properties (1)
+    readonly controls: IPerspectiveCameraControls
+    readonly fov!: number;
+
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
@@ -24,38 +29,24 @@ export class PerspectiveCamera extends Camera {
     constructor(camera: PerspectiveCameraLogic) {
         super(camera);
         this.#camera = camera;
-        this.#controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls)
+        this.controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls);
+        (<PerspectiveCameraLogic>this.#camera).addUpdateCB(this.#updateCB);
+        this.#updateCB();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
-
-    /**
-     * Camera frustum vertical field of view angle, unit degree, interval [0,180]
-     * @return {number}
-     */
-    public get fov(): number {
-        return this.#camera.fov;
-    }
+    // #region Public Methods (1)
 
     /**
      * Camera frustum vertical field of view angle, unit degree, interval [0,180]
      * @param {number} value
      */
-    public set fov(value: number) {
+    public updateFov(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#camera.fov = value;
         this.#logger.info(`Camera (${this.#camera.id}): fov was set to: ${value}`);
     }
 
-    /**
-     * The camera controls
-     * @return {PerspectiveCameraControls}
-     */
-     public get controls(): PerspectiveCameraControls {
-        return this.#controls;
-    }
-
-    // #endregion Public Accessors (2)
+    // #endregion Public Methods (1)
 }
