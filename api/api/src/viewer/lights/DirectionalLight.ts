@@ -6,13 +6,24 @@ import { container } from "tsyringe";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 
 export class DirectionalLight extends Light {
-    // #region Properties (1)
+    // #region Properties (8)
 
-    readonly #light: DirectionalLightLogic;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #light: DirectionalLightLogic;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #updateCB = () => {
+        (<any>this.castShadow) = this.#light.castShadow;
+        (<any>this.direction) = this.#light.direction;
+        (<any>this.shadowMapBias) = this.#light.shadowMapBias;
+        (<any>this.shadowMapResolution) = this.#light.shadowMapResolution;
+    }
 
-    // #endregion Properties (1)
+    readonly castShadow!: boolean
+    readonly direction!: vec3
+    readonly shadowMapBias!: number
+    readonly shadowMapResolution!: number;
+
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
@@ -23,25 +34,19 @@ export class DirectionalLight extends Light {
     constructor(light: DirectionalLightLogic) {
         super(light);
         this.#light = light;
+        (<DirectionalLightLogic>this.#light).addUpdateCB(this.#updateCB);
+        this.#updateCB();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (4)
-
-    /**
-     * The option to cast shadow
-     * @return {boolean}
-     */
-    public get castShadow(): boolean {
-        return this.#light.castShadow;
-    }
+    // #region Public Methods (4)
 
     /**
      * The option to cast shadow
      * @param {boolean} value
      */
-    public set castShadow(value: boolean) {
+    public updateCastShadow(value: boolean) {
         this.#inputValidator.validate(value, 'boolean');
         this.#light.castShadow = value;
         this.#logger.info(`Light (${this.#light.id}): castShadow was set to: ${value}`);
@@ -49,17 +54,9 @@ export class DirectionalLight extends Light {
 
     /**
      * The directional of the light
-     * @return {vec3}
-     */
-    public get direction(): vec3 {
-        return this.#light.direction;
-    }
-
-    /**
-     * The directional of the light
      * @param {vec3} value
      */
-    public set direction(value: vec3) {
+    public updateDirection(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#light.direction = value;
         this.#logger.info(`Light (${this.#light.id}): direction was set to: ${value}`);
@@ -67,17 +64,9 @@ export class DirectionalLight extends Light {
 
     /**
      * The bias of the shadow map
-     * @return {number}
-     */
-    public get shadowMapBias(): number {
-        return this.#light.shadowMapBias;
-    }
-
-    /**
-     * The bias of the shadow map
      * @param {number} value
      */
-    public set shadowMapBias(value: number) {
+    public updateShadowMapBias(value: number) {
         this.#inputValidator.validate(value, 'number');
         this.#light.shadowMapBias = value;
         this.#logger.info(`Light (${this.#light.id}): shadowMapBias was set to: ${value}`);
@@ -85,25 +74,13 @@ export class DirectionalLight extends Light {
 
     /**
      * The resolution of the shadow map
-     * @return {number}
-     */
-    public get shadowMapResolution(): number {
-        return this.#light.shadowMapResolution;
-    }
-
-    /**
-     * The resolution of the shadow map
      * @param {number} value
      */
-    public set shadowMapResolution(value: number) {
+    public updateShadowMapResolution(value: number) {
         this.#inputValidator.validate(value, 'number');
         this.#light.shadowMapResolution = value;
         this.#logger.info(`Light (${this.#light.id}): shadowMapResolution was set to: ${value}`);
     }
 
-    public clone() {
-        return new DirectionalLight(<DirectionalLightLogic>this.#light.clone());
-    }
-
-    // #endregion Public Accessors (4)
+    // #endregion Public Methods (4)
 }

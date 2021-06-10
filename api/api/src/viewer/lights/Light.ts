@@ -1,4 +1,4 @@
-import { ILight, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
+import { AbstractLight, ILight, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
@@ -6,14 +6,27 @@ import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
 
 export abstract class Light implements ILight {
-    // #region Properties (4)
+    // #region Properties (10)
 
     readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #light: ILight;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #updateCB = () => {
+        (<any>this.color) = this.#light.color;
+        (<any>this.id) = this.#light.id;
+        (<any>this.intensity) = this.#light.intensity;
+        (<any>this.name) = this.#light.name;
+        (<any>this.type) = this.#light.type;
+    }
 
-    // #endregion Properties (4)
+    readonly color!: string | number | vec3;
+    readonly id!: string;
+    readonly intensity!: number;
+    readonly name!: string | undefined;
+    readonly type!: LIGHTTYPE;
+
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
@@ -23,43 +36,27 @@ export abstract class Light implements ILight {
      */
     constructor(light: ILight) {
         this.#light = light;
+        (<AbstractLight>this.#light).addUpdateCB(this.#updateCB);
+        this.#updateCB();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (9)
+    // #region Public Methods (3)
 
     /**
      * The color of the light
      */
-    public get color(): string | number | vec3 {
-        return this.#light.color;
-    }
-
-    /**
-     * The color of the light
-     */
-    public set color(value: string | number | vec3) {
+    public updateColor(value: string | number | vec3) {
         this.#inputValidator.validate(value, 'color');
         this.#light.color = this.#converter.toColor(value);
         this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): color was set to: ${value}`);
     }
 
-    public get id(): string {
-        return this.#light.id;
-    }
-
     /**
      * The intensity of the light
      */
-    public get intensity(): number {
-        return this.#light.intensity;
-    }
-
-    /**
-     * The intensity of the light
-     */
-    public set intensity(value: number) {
+    public updateIntensity(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#light.intensity = value;
         this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): intensity was set to: ${value}`);
@@ -68,43 +65,11 @@ export abstract class Light implements ILight {
     /**
      * The name of the light
      */
-    public get name(): string | undefined {
-        return this.#light.name;
-    }
-
-    /**
-     * The name of the light
-     */
-    public set name(value: string | undefined) {
+    public updateName(value: string | undefined) {
         this.#inputValidator.validate(value, 'string', false);
         this.#light.name = value;
         this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): name was set to: ${value}`);
     }
 
-    /**
-     * The type of the light
-     */
-    public get type(): LIGHTTYPE {
-        return this.#light.type;
-    }
-
-    public get version(): string {
-        return this.#light.version;
-    }
-
-    // #endregion Public Accessors (9)
-
-    // #region Public Methods (1)
-
-    public updateVersion(): void {
-        this.#light.updateVersion();
-    }
-
-    // #endregion Public Methods (1)
-
-    // #region Public Abstract Methods (1)
-
-    abstract clone(): Light;
-
-    // #endregion Public Abstract Methods (1)
+    // #endregion Public Methods (3)
 }

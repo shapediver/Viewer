@@ -616,7 +616,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(properties.name, 'string', false);
     this.#inputValidator.validate(properties.standard, 'boolean', false);
     const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(properties);
-    const lightScene = new LightScene(this, lightSceneLogic);
+    const lightScene = new LightScene(lightSceneLogic);
     this.#lightScenes[lightSceneLogic.id] = lightScene;
     this.#logger.info(`Viewer (${this.id}): New light scene with id ${lightSceneLogic.id} created.`);
     if(lightSceneLogic.id) this.assignLightScene(lightSceneLogic.id);
@@ -694,7 +694,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const lightSceneId = this.#renderingEngine.lightEngine.getLightScene().id;
     if (!this.#lightScenes[lightSceneId]) {
       const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(lightSceneId);
-      this.#lightScenes[lightSceneId] = new LightScene(this, lightSceneLogic);
+      this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic);
     }
     return this.#lightScenes[lightSceneId].lights[id];
   }
@@ -712,7 +712,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
     if (!this.#lightScenes[id]) {
       const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(id);
-      this.#lightScenes[lightSceneLogic.id] = new LightScene(this, lightSceneLogic);
+      this.#lightScenes[lightSceneLogic.id] = new LightScene(lightSceneLogic);
     }
     return this.#lightScenes[id];
   }

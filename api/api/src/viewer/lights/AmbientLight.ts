@@ -18,10 +18,6 @@ export class AmbientLight extends Light {
         super(light);
         this.#light = light;
     }
-
-    public clone() {
-        return new AmbientLight(<AmbientLightLogic>this.#light.clone());
-    }
-
+    
     // #endregion Constructors (1)
 }

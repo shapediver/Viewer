@@ -10,9 +10,10 @@ export enum LIGHTTYPE {
   SPOT = 'spot'
 }
 
-export interface ILight extends ITreeNodeData {
+export interface ILight {
   // #region Properties (5)
 
+  id: string;
   color: string | number | vec3,
   intensity: number,
   name?: string

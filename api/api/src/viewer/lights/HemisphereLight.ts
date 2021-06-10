@@ -12,6 +12,11 @@ export class HemisphereLight extends Light {
     readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #updateCB = () => {
+        (<any>this.groundColor) = this.#light.groundColor;
+    }
+    
+    readonly groundColor!: string | number | vec3;
 
     // #endregion Properties (1)
 
@@ -24,6 +29,8 @@ export class HemisphereLight extends Light {
     constructor(light: HemisphereLightLogic) {
         super(light);
         this.#light = light;
+        (<HemisphereLightLogic>this.#light).addUpdateCB(this.#updateCB);
+        this.#updateCB();
     }
 
     // #endregion Constructors (1)
@@ -32,24 +39,12 @@ export class HemisphereLight extends Light {
 
     /**
      * The ground color of the light
-     * @return {string | number | vec3}
-     */
-    public get groundColor(): string | number | vec3 {
-        return this.#light.groundColor;
-    }
-
-    /**
-     * The ground color of the light
      * @param {string | number | vec3} value
      */
-    public set groundColor(value: string | number | vec3) {
+    public updateGroundColor(value: string | number | vec3) {
         this.#inputValidator.validate(value, 'color');
         this.#light.groundColor = this.#converter.toColor(value);
         this.#logger.info(`Light (${this.#light.id}): groundColor was set to: ${value}`);
-    }
-
-    public clone() {
-        return new HemisphereLight(<HemisphereLightLogic>this.#light.clone());
     }
 
     // #endregion Public Accessors (2)

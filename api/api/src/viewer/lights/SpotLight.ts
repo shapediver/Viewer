@@ -6,13 +6,28 @@ import { container } from "tsyringe";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 
 export class SpotLight extends Light {
-    // #region Properties (1)
+    // #region Properties (10)
 
-    readonly #light: SpotLightLogic;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #light: SpotLightLogic;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #updateCB = () => {
+        (<any>this.angle) = this.#light.angle;
+        (<any>this.decay) = this.#light.decay;
+        (<any>this.distance) = this.#light.distance;
+        (<any>this.penumbra) = this.#light.penumbra;
+        (<any>this.position) = this.#light.position;
+        (<any>this.target) = this.#light.target;
+    }
 
-    // #endregion Properties (1)
+    readonly angle!: number;
+    readonly decay!: number;
+    readonly distance!: number;
+    readonly penumbra!: number;
+    readonly position!: vec3;
+    readonly target!: vec3;
+
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
@@ -23,25 +38,19 @@ export class SpotLight extends Light {
     constructor(light: SpotLightLogic) {
         super(light);
         this.#light = light;
+        (<SpotLightLogic>this.#light).addUpdateCB(this.#updateCB);
+        this.#updateCB();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (12)
-
-    /**
-     * The angle of the light cone
-     * @return {number}
-     */
-    public get angle(): number {
-        return this.#light.angle;
-    }
+    // #region Public Accessors (6)
 
     /**
      * The angle of the light cone
      * @param {number} value
      */
-    public set angle(value: number) {
+    public updateAngle(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#light.angle = value;
         this.#logger.info(`Light (${this.#light.id}): angle was set to: ${value}`);
@@ -49,17 +58,9 @@ export class SpotLight extends Light {
 
     /**
      * The decay of the light radiance
-     * @return {number}
-     */
-    public get decay(): number {
-        return this.#light.decay;
-    }
-
-    /**
-     * The decay of the light radiance
      * @param {number} value
      */
-    public set decay(value: number) {
+    public updateDecay(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#light.decay = value;
         this.#logger.info(`Light (${this.#light.id}): decay was set to: ${value}`);
@@ -67,17 +68,9 @@ export class SpotLight extends Light {
 
     /**
      * The distance of the light radiance
-     * @return {number}
-     */
-    public get distance(): number {
-        return this.#light.distance;
-    }
-
-    /**
-     * The distance of the light radiance
      * @param {number} value
      */
-    public set distance(value: number) {
+    public updateDistance(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#light.distance = value;
         this.#logger.info(`Light (${this.#light.id}): distance was set to: ${value}`);
@@ -85,17 +78,9 @@ export class SpotLight extends Light {
 
     /**
      * The percentage of the cone that is part of the penmubra
-     * @return {number}
-     */
-    public get penumbra(): number {
-        return this.#light.penumbra;
-    }
-
-    /**
-     * The percentage of the cone that is part of the penmubra
      * @param {number} value
      */
-    public set penumbra(value: number) {
+    public updatePenumbra(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#light.penumbra = value;
         this.#logger.info(`Light (${this.#light.id}): penumbra was set to: ${value}`);
@@ -103,17 +88,9 @@ export class SpotLight extends Light {
 
     /**
      * The position of the light
-     * @return {vec3}
-     */
-    public get position(): vec3 {
-        return this.#light.position;
-    }
-
-    /**
-     * The position of the light
      * @param {vec3} value
      */
-    public set position(value: vec3) {
+    public updatePosition(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#light.position = value;
         this.#logger.info(`Light (${this.#light.id}): position was set to: ${value}`);
@@ -121,25 +98,13 @@ export class SpotLight extends Light {
 
     /**
      * The target of the light
-     * @return {vec3}
-     */
-    public get target(): vec3 {
-        return this.#light.target;
-    }
-
-    /**
-     * The target of the light
      * @param {vec3} value
      */
-    public set target(value: vec3) {
+    public updateTarget(value: vec3) {
         this.#inputValidator.validate(value, 'vec3');
         this.#light.target = value;
         this.#logger.info(`Light (${this.#light.id}): target was set to: ${value}`);
     }
 
-    public clone() {
-        return new SpotLight(<SpotLightLogic>this.#light.clone());
-    }
-
-    // #endregion Public Accessors (12)
+    // #endregion Public Accessors (6)
 }

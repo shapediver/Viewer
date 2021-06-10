@@ -47,6 +47,7 @@ export class HemisphereLight extends AbstractLight {
     public set groundColor(value: string) {
         this._groundColor = value;
         this.updateVersion();
+        this._updateCBs.forEach(v => v());
     }
 
     // #endregion Public Accessors (2)

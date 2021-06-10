@@ -10,6 +10,7 @@ export class LightScene implements ILightScene {
     private readonly _node: TreeNode;
     private readonly _id: string;
     private _name: string | undefined;
+    protected _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (2)
 
@@ -32,6 +33,7 @@ export class LightScene implements ILightScene {
 
     public set name(value: string | undefined) {
         this._name = value;
+        this._updateCBs.forEach(v => v());
     }
 
     public get id(): string {
@@ -57,6 +59,7 @@ export class LightScene implements ILightScene {
         this._lights[light.id] = light;
         
         this._node.updateVersion();
+        this._updateCBs.forEach(v => v());
     }
 
     public getLight(id: string): AbstractLight {
@@ -76,7 +79,12 @@ export class LightScene implements ILightScene {
 
         delete this._lights[id];
         this._node.updateVersion();
+        this._updateCBs.forEach(v => v());
         return true;
+    }
+    
+    public addUpdateCB(value: () => void) {
+        this._updateCBs.push(value)
     }
 
     // #endregion Public Methods (3)

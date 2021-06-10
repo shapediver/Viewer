@@ -56,6 +56,7 @@ export class DirectionalLight extends AbstractLight {
     public set castShadow(value: boolean) {
         this._castShadow = value;
         this.updateVersion();
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -73,6 +74,7 @@ export class DirectionalLight extends AbstractLight {
     public set direction(value: vec3) {
         this._direction = value;
         this.updateVersion();
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -90,6 +92,7 @@ export class DirectionalLight extends AbstractLight {
     public set shadowMapBias(value: number) {
         this._shadowMapBias = value;
         this.updateVersion();
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -107,6 +110,7 @@ export class DirectionalLight extends AbstractLight {
     public set shadowMapResolution(value: number) {
         this._shadowMapResolution = value;
         this.updateVersion();
+        this._updateCBs.forEach(v => v());
     }
 
     // #endregion Public Accessors (8)

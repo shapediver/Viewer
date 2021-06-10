@@ -213,13 +213,13 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
                 viewer.blurSceneWhenBusy = true;
                 const camera = viewer.getCamera();
-                camera!.autoAdjust = false;
-                camera!.cameraMovementDuration = 800;
-                camera!.defaultPosition = [58.03696060180664, -290.11590576171875, 87.67756652832031];
-                camera!.defaultTarget = [0, 7, -3.25];
-                (<any>camera!).fov = 45;
-                (<any>camera!).controls.autoRotationSpeed = 0;
-                (<any>camera!).controls.damping = 0.1;
+                camera!.updateAutoAdjust(false);
+                camera!.updateCameraMovementDuration(800)
+                camera!.updateDefaultPosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
+                camera!.updateDefaultTarget([0, 7, -3.25]);
+                (<any>camera!).updateFov(45);
+                (<any>camera!).controls.updateAutoRotationSpeed(0);
+                (<any>camera!).controls.updateDamping(0.1);
                 viewer.environmentMap = 'none';
                 viewer.gridVisibility = true;
                 viewer.groundPlaneVisibility = true;
@@ -267,13 +267,13 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const lights = viewer.getLights();
                 for (let l in lights) {
                     if (lights[l].name === 'ambient0')
-                        lights[l].color = '#ff0000';
+                        lights[l].updateColor('#ff0000');
 
                     if (lights[l].name === 'directional0')
-                        lights[l].color = '#00ff00';
+                        lights[l].updateColor('#00ff00');
 
                     if (lights[l].name === 'directional1')
-                        lights[l].color = '#0000ff';
+                        lights[l].updateColor('#0000ff');
                 }
                 let session = api.getSession('mySession');
                 viewer.update();
@@ -297,13 +297,13 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 for (let l in lights) {
                     for (let l in lights) {
                         if (lights[l].name === 'ambient0')
-                            lights[l].color = '#ffffff';
+                            lights[l].updateColor('#ffffff');
 
                         if (lights[l].name === 'directional0')
-                            lights[l].color = '#ffffff';
+                            lights[l].updateColor('#ffffff');
 
                         if (lights[l].name === 'directional1')
-                            lights[l].color = '#ffffff';
+                            lights[l].updateColor('#ffffff');
                     }
                 }
                 viewer.update();
