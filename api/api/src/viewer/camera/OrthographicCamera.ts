@@ -1,4 +1,4 @@
-import { IOrthographicCamera, IOrthographicCameraControls, OrthographicCamera as OrthographicCameraLogic, OrthographicCameraControls as OrthographicCameraControlsLogic  } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { IOrthographicCamera, OrthographicCamera as OrthographicCameraLogic, OrthographicCameraControls as OrthographicCameraControlsLogic  } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { Camera } from "./Camera";
 import { OrthographicCameraControls } from "./controls/OrthographicCameraControls";
 
@@ -6,7 +6,7 @@ export class OrthographicCamera extends Camera implements IOrthographicCamera {
     // #region Properties (2)
 
     readonly #camera: OrthographicCameraLogic;
-    readonly controls: IOrthographicCameraControls;
+    readonly controls: OrthographicCameraControls;
     
     // #endregion Properties (2)
 

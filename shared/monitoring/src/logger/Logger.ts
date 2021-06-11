@@ -18,6 +18,7 @@ export class Logger {
 
     private _loggingLevel: LOGGINGLEVEL = LOGGINGLEVEL.NONE;
     private _showMessages: boolean = true;
+    private _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (2)
 
@@ -37,6 +38,7 @@ export class Logger {
      */
     public set loggingLevel(value: LOGGINGLEVEL) {
         this._loggingLevel = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -53,6 +55,7 @@ export class Logger {
      */
     public set showMessages(value: boolean) {
         this._showMessages = value;
+        this._updateCBs.forEach(v => v());
     }
 
     private canLog(loggingLevel: LOGGINGLEVEL): boolean {
@@ -426,6 +429,10 @@ export class Logger {
 
     private messageConstruction(msg: string): string {
         return new Date().toISOString() + ': ' + msg;
+    }    
+
+    public addUpdateCB(value: () => void) {
+        this._updateCBs.push(value)
     }
 
     // #endregion Private Methods (2)

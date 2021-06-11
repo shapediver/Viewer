@@ -19,7 +19,7 @@ import { PointLight } from "./lights/PointLight";
 import { SpotLight } from "./lights/SpotLight";
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
-  // #region Properties (10)
+  // #region Properties (28)
 
   readonly #cameras: {
     [key: string]: Camera
@@ -33,12 +33,50 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+  readonly ambientOcclusion!: boolean;
+  readonly automaticResizing!: boolean;
+  readonly beautyRenderBlendingDuration!: number
+  readonly beautyRenderDelay!: number;
+  readonly blurSceneWhenBusy!: boolean;
+  readonly clearAlpha!: number;
+  readonly clearColor!: string | number | vec3;
+  readonly environmentMap!: string | string[];
+  readonly environmentMapAsBackground!: boolean;
+  readonly environmentMapResolution!: string;
+  readonly gridVisibility!: boolean;
+  readonly groundPlaneVisibility!: boolean;
+  readonly id!: string;
+  readonly initialized: boolean = false;
+  readonly lightScene!: string;
+  readonly pointSize!: number;
+  readonly shadows!: boolean;
+  readonly show!: boolean;
+  readonly #updateCB = () => {
+    if(!this.#renderingEngine) return;
+    (<any>this.ambientOcclusion) = this.#renderingEngine.ambientOcclusion;
+    (<any>this.automaticResizing) = this.#renderingEngine.automaticResizing;
+    (<any>this.beautyRenderBlendingDuration) = this.#renderingEngine.beautyRenderBlendingDuration;
+    (<any>this.beautyRenderDelay) = this.#renderingEngine.beautyRenderDelay;
+    (<any>this.blurSceneWhenBusy) = this.#renderingEngine.blurSceneWhenBusy;
+    (<any>this.clearAlpha) = this.#renderingEngine.clearAlpha;
+    (<any>this.clearColor) = this.#renderingEngine.clearColor;
+    (<any>this.environmentMap) = this.#renderingEngine.environmentMap;
+    (<any>this.environmentMapAsBackground) = this.#renderingEngine.environmentMapAsBackground;
+    (<any>this.environmentMapResolution) = this.#renderingEngine.environmentMapResolution;
+    (<any>this.gridVisibility) = this.#renderingEngine.gridVisibility;
+    (<any>this.groundPlaneVisibility) = this.#renderingEngine.groundPlaneVisibility;
+    (<any>this.id) = this.#renderingEngine.id;
+    (<any>this.lightScene) = this.#renderingEngine.lightScene;
+    (<any>this.pointSize) = this.#renderingEngine.pointSize;
+    (<any>this.shadows) = this.#renderingEngine.shadows;
+    (<any>this.show) = this.#renderingEngine.show;
+  }
 
   #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE };
-  #renderingEngine!: RenderingEngineThreejs;
-  #initialized = false;
+  #renderingEngine!: RenderingEngineThreejs;    
 
-  // #endregion Properties (10)
+
+  // #endregion Properties (28)
 
   // #region Constructors (1)
 
@@ -61,22 +99,13 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (33)
-
-  /**
-   * Enable / Disable the ambient occlusion
-   * @return {boolean}
-   */
-  public get ambientOcclusion(): boolean {
-    this.isInitialized();
-    return this.#renderingEngine.ambientOcclusion;
-  }
+  // #region Public Accessors (16)
 
   /**
    * Enable / Disable the ambient occlusion
    * @param {boolean} value
    */
-  public set ambientOcclusion(value: boolean) {
+  public updateAmbientOcclusion(value: boolean) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.ambientOcclusion = value;
@@ -85,18 +114,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * If the canvas should be automatically resized
-   * @return {boolean}
-   */
-  public get automaticResizing(): boolean {
-    this.isInitialized();
-    return this.#renderingEngine.automaticResizing;
-  }
-
-  /**
-   * If the canvas should be automatically resized
    * @param {boolean} value
    */
-  public set automaticResizing(value: boolean) {
+  public updateAutomaticResizing(value: boolean) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.automaticResizing = value;
@@ -105,18 +125,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Time to blend the beauty rendering
-   * @return {number}
-   */
-  public get beautyRenderBlendingDuration(): number {
-    this.isInitialized();
-    return this.#renderingEngine.beautyRenderBlendingDuration;
-  }
-
-  /**
-   * Time to blend the beauty rendering
    * @param {number} value
    */
-  public set beautyRenderBlendingDuration(value: number) {
+  public updateBeautyRenderBlendingDuration(value: number) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'positive');
     this.#renderingEngine.beautyRenderBlendingDuration = value;
@@ -125,18 +136,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Time to delay the beauty rendering
-   * @return {number}
-   */
-  public get beautyRenderDelay(): number {
-    this.isInitialized();
-    return this.#renderingEngine.beautyRenderDelay;
-  }
-
-  /**
-   * Time to delay the beauty rendering
    * @param {number} value
    */
-  public set beautyRenderDelay(value: number) {
+  public updateBeautyRenderDelay(value: number) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'positive');
     this.#renderingEngine.beautyRenderDelay = value;
@@ -145,18 +147,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Blur or don't blur the scene while a session is busy
-   * @return {boolean}
-   */
-  public get blurSceneWhenBusy(): boolean {
-    this.isInitialized();
-    return this.#renderingEngine.blurSceneWhenBusy;
-  }
-
-  /**
-   * Blur or don't blur the scene while a session is busy
    * @param {boolean} value
    */
-  public set blurSceneWhenBusy(value: boolean) {
+  public updateBlurSceneWhenBusy(value: boolean) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.blurSceneWhenBusy = value;
@@ -165,18 +158,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Background alpha value
-   * @return {number}
-   */
-  public get clearAlpha(): number {
-    this.isInitialized();
-    return this.#renderingEngine.clearAlpha;
-  }
-
-  /**
-   * Background alpha value
    * @param {number} value
    */
-  public set clearAlpha(value: number) {
+  public updateClearAlpha(value: number) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'factor');
     this.#renderingEngine.clearAlpha = value;
@@ -185,18 +169,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Background color value
-   * @return {string | number | vec3}
-   */
-  public get clearColor(): string | number | vec3 {
-    this.isInitialized();
-    return this.#renderingEngine.clearColor;
-  }
-
-  /**
-   * Background color value
    * @param {string | number | vec3} value
    */
-  public set clearColor(value: string | number | vec3) {
+  public updateClearColor(value: string | number | vec3) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'color');
     this.#renderingEngine.clearColor = this.#converter.toColor(value);
@@ -205,18 +180,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Name of the environment map to use, or an array of 6 image URLs making up the cube mapped environment map (px, nx, pz, nz, py, ny)
-   * @return {string | string[]}
-   */
-  public get environmentMap(): string | string[] {
-    this.isInitialized();
-    return this.#renderingEngine.environmentMap;
-  }
-
-  /**
-   * Name of the environment map to use, or an array of 6 image URLs making up the cube mapped environment map (px, nx, pz, nz, py, ny)
    * @param {string | string[]} value
    */
-  public set environmentMap(value: string | string[]) {
+  public updateEnvironmentMap(value: string | string[]) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'cubeMap');
     this.#renderingEngine.environmentMap = value;
@@ -225,18 +191,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Show / Hide the environment map in the background
-   * @return {boolean}
-   */
-  public get environmentMapAsBackground(): boolean {
-    this.isInitialized();
-    return this.#renderingEngine.environmentMapAsBackground;
-  }
-
-  /**
-   * Show / Hide the environment map in the background
    * @param {boolean} value
    */
-  public set environmentMapAsBackground(value: boolean) {
+  public updateEnvironmentMapAsBackground(value: boolean) {
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.environmentMapAsBackground = value;
     this.#logger.info(`Viewer (${this.id}): environmentMapAsBackground was set to: ${value}`);
@@ -244,18 +201,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Image resolution to be used for the named environment maps (available resolutions: 256, 512, 1024)
-   * @return {string}
-   */
-  public get environmentMapResolution(): string {
-    this.isInitialized();
-    return this.#renderingEngine.environmentMapResolution;
-  }
-
-  /**
-   * Image resolution to be used for the named environment maps (available resolutions: 256, 512, 1024)
    * @param {string} value
    */
-  public set environmentMapResolution(value: string) {
+  public updateEnvironmentMapResolution(value: string) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'string');
     this.#renderingEngine.environmentMapResolution = value;
@@ -264,18 +212,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Show / Hide the grid
-   * @return {boolean}
-   */
-  public get gridVisibility(): boolean {
-    this.isInitialized();
-    return this.#renderingEngine.gridVisibility;
-  }
-
-  /**
-   * Show / Hide the grid
    * @param {boolean} value
    */
-  public set gridVisibility(value: boolean) {
+  public updateGridVisibility(value: boolean) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.gridVisibility = value;
@@ -284,18 +223,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Show / Hide the ground plane
-   * @return {boolean}
-   */
-  public get groundPlaneVisibility(): boolean {
-    this.isInitialized();
-    return this.#renderingEngine.groundPlaneVisibility;
-  }
-
-  /**
-   * Show / Hide the ground plane
    * @param {boolean} value
    */
-  public set groundPlaneVisibility(value: boolean) {
+  public updateGroundPlaneVisibility(value: boolean) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.groundPlaneVisibility = value;
@@ -303,36 +233,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
-   * Getter id
-   * @return {string}
-   */
-  public get id(): string {
-    this.isInitialized();
-    return this.#renderingEngine.id;
-  }
-
-  /**
-   * If the viewer was already initialized.
-   * @return {boolean}
-   */
-  public get initialized(): boolean {
-    return this.#initialized;
-  }
-
-  /**
-   * Getter lightScene
-   * @return {string}
-   */
-  public get lightScene(): string {
-    this.isInitialized();
-    return this.#renderingEngine.lightScene;
-  }
-
-  /**
    * Setter lightScene
    * @param {string} value
    */
-  public set lightScene(value: string) {
+  public updateLightScene(value: string) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'string');
     if (this.assignLightScene(value)) {
@@ -343,18 +247,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Size of points
-   * @return {number}
-   */
-  public get pointSize(): number {
-    this.isInitialized();
-    return this.#renderingEngine.pointSize;
-  }
-
-  /**
-   * Size of points
    * @param {number} value
    */
-  public set pointSize(value: number) {
+  public updatePointSize(value: number) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'positive');
     this.#renderingEngine.pointSize = value;
@@ -363,18 +258,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Enable / Disable shadows
-   * @return {boolean}
-   */
-  public get shadows(): boolean {
-    this.isInitialized();
-    return this.#renderingEngine.shadows;
-  }
-
-  /**
-   * Enable / Disable shadows
    * @param {boolean} value
    */
-  public set shadows(value: boolean) {
+  public updateShadows(value: boolean) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.shadows = value;
@@ -383,27 +269,18 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   /**
    * Show / Hide the scene
-   * @return {boolean}
-   */
-  public get show(): boolean {
-    this.isInitialized();
-    return this.#renderingEngine.show;
-  }
-
-  /**
-   * Show / Hide the scene
    * @param {boolean} value
    */
-  public set show(value: boolean) {
+  public updateShow(value: boolean) {
     this.isInitialized();
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.show = value;
     this.#logger.info(`Viewer (${this.id}): show was set to: ${value}`);
   }
 
-  // #endregion Public Accessors (33)
+  // #endregion Public Accessors (16)
 
-  // #region Public Methods (25)
+  // #region Public Methods (26)
 
   /**
    * Add an ambient light with the specified properties to the current light scene.
@@ -794,6 +671,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     if(props) this.#properties = { id: viewerId || this.#properties.id, canvas: props.canvas || this.#properties.canvas, visibility: props.visibility || this.#properties.visibility, type: props.type || RENDERERTYPE.STANDARD };
         
     this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
+    this.#renderingEngine.addUpdateCB(this.#updateCB);
+    this.#updateCB();
     container.registerInstance('renderingEngine', this.#renderingEngine);
 
     // default camera
@@ -807,7 +686,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     }
 
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
-    this.#initialized = true;
+    (<any>this.initialized) = true;
     return Promise.resolve();
   }
 
@@ -867,7 +746,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
   }
 
-  // #endregion Public Methods (25)
+  // #endregion Public Methods (26)
 
   // #region Private Methods (1)
 

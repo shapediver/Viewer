@@ -42,7 +42,7 @@ let viewer: Viewer, session: Session;
 }
 
 (<any>window).requestExport = (id: string): Promise<any> => {
-    const exp = session.getExport(id);
+    const exp = session.getExportById(id);
     if(!exp) return new Promise(() => null);
     return exp.request();
 }

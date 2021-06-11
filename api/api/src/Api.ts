@@ -11,20 +11,27 @@ import { build_data } from "./build_data";
 
 @singleton()
 export class Api {
-  // #region Properties (8)
+  // #region Properties (13)
 
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
-  readonly #sessions: { [key: string]: Session } = {};
   readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #viewerCallbacks: { [key: string]: { [key: string]: () => any } } = {};
-  readonly #viewers: { [key: string]: Viewer } = {};
+  readonly loggingLevel!: LOGGINGLEVEL;
+  readonly sceneTree: Tree = <Tree>container.resolve(Tree);
+  readonly sessions: { [key: string]: Session } = {};
+  readonly showMessages!: boolean;
+  readonly viewers: { [key: string]: Viewer } = {};
+  readonly #updateCB = () => {
+    (<any>this.loggingLevel) = this.#logger.loggingLevel;
+    (<any>this.showMessages) = this.#logger.showMessages;
+  }
 
-  // #endregion Properties (8)
+  // #endregion Properties (13)
 
   // #region Constructors (1)
 
@@ -36,60 +43,13 @@ export class Api {
       this.#logger.showMessages = this.#settingsEngine.general.viewer.showMessages.value;
     })
     this.#logger.info(`Viewer version: ${build_data.build_version}`);
+    this.#logger.addUpdateCB(this.#updateCB);
+    this.#updateCB();
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (5)
-
-  /**
-   * The loggingLevel setting.
-   * @return {LOGGINGLEVEL}
-   */
-  public get loggingLevel(): LOGGINGLEVEL {
-    return this.#logger.loggingLevel;
-  }
-
-  /**
-   * The loggingLevel setting.
-   * @param {LOGGINGLEVEL} value
-   */
-  public set loggingLevel(value: LOGGINGLEVEL) {
-    this.#inputValidator.validate(value, 'enum', true, Object.values(LOGGINGLEVEL));
-    this.#logger.loggingLevel = value;
-    this.#logger.info(`LoggingLevel was set to: ${value}`);
-  }
-
-  /**
-   * The scene tree.
-   */
-  public get sceneTree(): Tree {
-    // https://shapediver.atlassian.net/browse/SS-2861
-    return <Tree>container.resolve(Tree);
-  }
-
-  /**
-   * The showMessages setting.
-   * @return {boolean}
-   */
-  public get showMessages(): boolean {
-    return this.#logger.showMessages;
-  }
-
-  /**
-   * The showMessages setting.
-   * @param {boolean} value
-   */
-  public set showMessages(value: boolean) {
-    this.#inputValidator.validate(value, 'boolean');
-    this.#logger.showMessages = value;
-    this.#settingsEngine.general.viewer.showMessages.value = this.#logger.showMessages;
-    this.#logger.info(`ShowMessages was set to: ${value}`);
-  }
-
-  // #endregion Public Accessors (5)
-
-  // #region Public Methods (11)
+  // #region Public Methods (13)
 
   /**
    * Adds an event listener.
@@ -112,16 +72,16 @@ export class Api {
    */
   public async closeSession(id: string): Promise<boolean> {
     this.#inputValidator.validate(id, 'string');
-    if(!this.#sessions[id]) {
+    if(!this.sessions[id]) {
       this.#logger.info(`Session with id ${id} was not registered`);
       return false;
     }
     const result = await this.#sessionCallbacks[id].close();
     this.#stateEngine.getCustomState(id + '_settings_registered').reset();
 
-    if(this.#sessions[id].primarySession) {
-      for(let v in this.#viewers)
-        this.#viewers[v].reset();
+    if(this.sessions[id].primarySession) {
+      for(let v in this.viewers)
+        this.viewers[v].reset();
         this.#stateEngine.primarySessionLoaded.reset();
         this.#stateEngine.primarySettingsRegistered.reset();
       }
@@ -129,13 +89,13 @@ export class Api {
 
     (<any>this.#sessionCallbacks[id]) = undefined;
     delete this.#sessionCallbacks[id];
-    (<any>this.#sessions[id]) = undefined;
-    delete this.#sessions[id];
+    (<any>this.sessions[id]) = undefined;
+    delete this.sessions[id];
 
     this.#logger.info(`Session (${id}): Session closed.`);
 
-    for(let s in this.#sessions) {
-      const session = this.#sessions[s];
+    for(let s in this.sessions) {
+      const session = this.sessions[s];
       if(session.primarySessionRequest) {
         await this.#sessionCallbacks[s].setAsPrimary();
         this.#logger.info(`Session (${s}): Initializing settings.`);
@@ -152,17 +112,17 @@ export class Api {
    * @param id the id of the viewer
    * @returns 
    */
-   public async closeViewer(id: string): Promise<boolean> {
+  public async closeViewer(id: string): Promise<boolean> {
     this.#inputValidator.validate(id, 'string');
-    if(!this.#viewers[id]) {
+    if(!this.viewers[id]) {
       this.#logger.info(`Viewer with id ${id} was not registered`);
       return false;
     }
     const result = await this.#viewerCallbacks[id].close();
     (<any>this.#viewerCallbacks[id]) = undefined;
     delete this.#viewerCallbacks[id];
-    (<any>this.#viewers[id]) = undefined;
-    delete this.#viewers[id];
+    (<any>this.viewers[id]) = undefined;
+    delete this.viewers[id];
 
     this.#logger.info(`Viewer (${id}): Viewer closed.`);
     return result;
@@ -197,7 +157,7 @@ export class Api {
     
     // check if the given id is valid
     const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.#sessions[sessionId]) {
+    if (this.sessions[sessionId]) {
       this.#logger.error('Session with this id already exists.');
       throw new Error('Session with this id already exists.');
     }
@@ -205,6 +165,62 @@ export class Api {
     const session = this.createSession(properties);
     await session.init();
     return session;
+  }
+
+  /**
+   * Create and initialize a viewer with the provided type and canvas.
+   * An id can be provided. This id can be used to retrieve this object later on.
+   * In the case no id has been provided, a unique one will be generated.
+   * 
+   * The viewer will automatically load what is currently in the scene tree.
+   * 
+   * @param properties.type the type of the viewer
+   * @param properties.visibility the visibility of the viewer
+   * @param properties.canvas the canvas that the viewer should use
+   * @param properties.id the unique id the session should have 
+   * @returns 
+   */
+  public async createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<Viewer> {
+    this.#inputValidator.validate(properties, 'object', false);
+    const prop = Object.assign({}, properties);
+    this.#inputValidator.validate(prop.type, 'enum', false, Object.values(RENDERERTYPE));
+    this.#inputValidator.validate(prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+    this.#inputValidator.validate(prop.canvas, 'HTMLCanvasElement', false);
+    this.#inputValidator.validate(prop.id, 'string', false);
+
+    // check if the given id is valid
+    const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    if (this.viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
+
+    // start the performance eval
+    this.#performanceEvaluator.start('viewer_creation_' + viewerId);
+
+    // create the actual viewer
+    let viewerCallbacks = {};
+    const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
+
+    // save the viewer
+    this.viewers[viewerId] = viewer;
+    this.#viewerCallbacks[viewerId] = viewerCallbacks;
+
+    // end the performance eval
+    this.#performanceEvaluator.end('viewer_creation_' + viewerId);
+    this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_creation_' + viewerId));
+    
+    // start the performance eval
+    this.#performanceEvaluator.start('viewer_init_' + viewerId);
+
+    // init and update the viewer with the current scene tree
+    await viewer.init(prop);
+    viewer.update();
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer });
+
+    // end the performance eval
+    this.#performanceEvaluator.end('viewer_init_' + viewerId);
+    this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_init_' + viewerId));
+
+    return this.viewers[viewerId];
   }
 
   /**
@@ -233,7 +249,7 @@ export class Api {
 
     // check if the given id is valid
     const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.#sessions[sessionId]) {
+    if (this.sessions[sessionId]) {
       this.#logger.error('Session with this id already exists.');
       throw new Error('Session with this id already exists.');
     }
@@ -247,7 +263,7 @@ export class Api {
     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
 
     // save the session
-    this.#sessions[sessionId] = session;
+    this.sessions[sessionId] = session;
     this.#sessionCallbacks[sessionId] = sessionCallbacks;
 
     // end the performance eval
@@ -256,7 +272,7 @@ export class Api {
 
     return session;
   }
-  
+
   /**
    * Create a viewer with the provided type and canvas.
    * An id can be provided. This id can be used to retrieve this object later on.
@@ -270,7 +286,7 @@ export class Api {
    * @param properties.id the unique id the session should have 
    * @returns 
    */
-   public createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
+  public createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
     this.#inputValidator.validate(properties, 'object', false);
     const prop = Object.assign({}, properties);
     this.#inputValidator.validate(prop.type, 'enum', false, Object.values(RENDERERTYPE));
@@ -280,7 +296,7 @@ export class Api {
 
     // check if the given id is valid
     const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.#viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
+    if (this.viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
 
     // start the performance eval
     this.#performanceEvaluator.start('viewer_creation_' + viewerId);
@@ -291,71 +307,14 @@ export class Api {
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
     // save the viewer
-    this.#viewers[viewerId] = viewer;
+    this.viewers[viewerId] = viewer;
     this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
     // end the performance eval
     this.#performanceEvaluator.end('viewer_creation_' + viewerId);
     this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_creation_' + viewerId));
 
-    return this.#viewers[viewerId];
-  }
-
-  /**
-   * Create and initialize a viewer with the provided type and canvas.
-   * An id can be provided. This id can be used to retrieve this object later on.
-   * In the case no id has been provided, a unique one will be generated.
-   * 
-   * The viewer will automatically load what is currently in the scene tree.
-   * 
-   * @param properties.type the type of the viewer
-   * @param properties.visibility the visibility of the viewer
-   * @param properties.canvas the canvas that the viewer should use
-   * @param properties.id the unique id the session should have 
-   * @returns 
-   */
-  public async createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<Viewer> {
-    this.#inputValidator.validate(properties, 'object', false);
-    const prop = Object.assign({}, properties);
-    this.#inputValidator.validate(prop.type, 'enum', false, Object.values(RENDERERTYPE));
-    this.#inputValidator.validate(prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-    this.#inputValidator.validate(prop.canvas, 'HTMLCanvasElement', false);
-    this.#inputValidator.validate(prop.id, 'string', false);
-
-    // check if the given id is valid
-    const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.#viewers[viewerId]) this.#logger.error('Viewer with this id already exists.');
-
-    // start the performance eval
-    this.#performanceEvaluator.start('viewer_creation_' + viewerId);
-
-    // create the actual viewer
-    let viewerCallbacks = {};
-    const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
-
-    // save the viewer
-    this.#viewers[viewerId] = viewer;
-    this.#viewerCallbacks[viewerId] = viewerCallbacks;
-
-    // end the performance eval
-    this.#performanceEvaluator.end('viewer_creation_' + viewerId);
-    this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_creation_' + viewerId));
-
-    
-    // start the performance eval
-    this.#performanceEvaluator.start('viewer_init_' + viewerId);
-
-    // init and update the viewer with the current scene tree
-    await viewer.init(prop);
-    viewer.update();
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer });
-
-    // end the performance eval
-    this.#performanceEvaluator.end('viewer_init_' + viewerId);
-    this.#logger.info(this.#performanceEvaluator.getEvaluationToString('viewer_init_' + viewerId));
-
-    return this.#viewers[viewerId];
+    return this.viewers[viewerId];
   }
 
   /**
@@ -366,19 +325,7 @@ export class Api {
    */
   public getSession(id: string): Session {
     this.#inputValidator.validate(id, 'string');
-    return this.#sessions[id];
-  }
-
-  /**
-   * Retrun all sessions as key-value pairs with the id of the session being the key.
-   * 
-   * @returns 
-   */
-  public getSessions(): { [key: string]: Session } {
-    const r: { [key: string]: Session } = {};
-    for (let s in this.#sessions)
-      r[s] = this.#sessions[s];
-    return r;
+    return this.sessions[id];
   }
 
   /**
@@ -389,19 +336,7 @@ export class Api {
    */
   public getViewer(id: string): Viewer {
     this.#inputValidator.validate(id, 'string');
-    return this.#viewers[id];
-  }
-
-  /**
-   * Return all viewers as key-value pairs with the id of the viewer being the key.
-   * 
-   * @returns 
-   */
-  public getViewers(): { [key: string]: Viewer } {
-    const r: { [key: string]: Viewer } = {};
-    for (let v in this.#viewers)
-      r[v] = this.#viewers[v];
-    return r;
+    return this.viewers[id];
   }
 
   /**
@@ -419,9 +354,30 @@ export class Api {
    * The viewers are updated with all current changes in the scene tree.
    */
   public update(): void {
-    for(let v in this.#viewers)
-      this.#viewers[v].update();
+    for(let v in this.viewers)
+      this.viewers[v].update();
   }
 
-  // #endregion Public Methods (11)
+  /**
+   * The loggingLevel setting.
+   * @param {LOGGINGLEVEL} value
+   */
+  public updateLoggingLevel(value: LOGGINGLEVEL) {
+    this.#inputValidator.validate(value, 'enum', true, Object.values(LOGGINGLEVEL));
+    this.#logger.loggingLevel = value;
+    this.#logger.info(`LoggingLevel was set to: ${value}`);
+  }
+
+  /**
+   * The showMessages setting.
+   * @param {boolean} value
+   */
+  public updateShowMessages(value: boolean) {
+    this.#inputValidator.validate(value, 'boolean');
+    this.#logger.showMessages = value;
+    this.#settingsEngine.general.viewer.showMessages.value = this.#logger.showMessages;
+    this.#logger.info(`ShowMessages was set to: ${value}`);
+  }
+
+  // #endregion Public Methods (13)
 }

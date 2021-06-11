@@ -13,7 +13,6 @@ export interface ISession {
     exports: { [key: string]: ShapeDiverResponseExport };
     outputs: { [key: string]: ShapeDiverResponseOutput };
 
-    createOutput(id: string): ShapeDiverResponseOutput;
     customize(): Promise<TreeNode>;
     init(): Promise<TreeNode>;
 

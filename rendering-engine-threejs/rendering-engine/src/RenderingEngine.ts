@@ -67,7 +67,8 @@ export class RenderingEngine implements IRenderingEngine {
     private _pointSize: number = 1.0;
     private _sceneTree!: SceneTree;
     private _shadows: boolean = true;
-    private _show: boolean = false;
+    private _show: boolean = false;    
+    private _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (41)
 
@@ -175,6 +176,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set ambientOcclusion(value: boolean) {
         this._ambientOcclusion = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -183,6 +185,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public get automaticResizing(): boolean {
         return this._automaticResizing;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -191,6 +194,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set automaticResizing(value: boolean) {
         this._automaticResizing = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -207,6 +211,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set beautyRenderBlendingDuration(value: number) {
         this._beautyRenderBlendingDuration = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -223,6 +228,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set beautyRenderDelay(value: number) {
         this._beautyRenderDelay = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -239,6 +245,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set blurSceneWhenBusy(value: boolean) {
         this._blurSceneWhenBusy = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -271,6 +278,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set clearAlpha(value: number) {
         this._clearAlpha = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -287,6 +295,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set clearColor(value: string) {
         this._clearColor = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -312,6 +321,7 @@ export class RenderingEngine implements IRenderingEngine {
     public set environmentMap(value: string | string[]) {
         this._environmentMap = value;
         this._environmentMapLoader.load(this.environmentMap);
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -328,6 +338,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set environmentMapAsBackground(value: boolean) {
         this._environmentMapAsBackground = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -353,6 +364,7 @@ export class RenderingEngine implements IRenderingEngine {
     public set environmentMapResolution(value: string) {
         this._environmentMapResolution = value;
         this._environmentMapLoader.load(this.environmentMap);
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -378,6 +390,7 @@ export class RenderingEngine implements IRenderingEngine {
     public set gridVisibility(value: boolean) {
         if (this._grid) this._grid.visible = value;
         this._gridVisibility = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -395,6 +408,7 @@ export class RenderingEngine implements IRenderingEngine {
     public set groundPlaneVisibility(value: boolean) {
         if (this._groundPlane) this._groundPlane.visible = value;
         this._groundPlaneVisibility = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -443,6 +457,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set lightScene(value: string) {
         this._lightScene = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -483,6 +498,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set pointSize(value: number) {
         this._pointSize = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -507,6 +523,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set shadows(value: boolean) {
         this._shadows = value;
+        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -523,6 +540,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set show(value: boolean) {
         this._show = value;
+        this._updateCBs.forEach(v => v());
     }
 
     // #endregion Public Accessors (44)
@@ -773,12 +791,18 @@ export class RenderingEngine implements IRenderingEngine {
             (<LightEngine>this.lightEngine).applySettings();
             (<CameraEngine>this.cameraEngine).applySettings();
             this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
+            this._updateCBs.forEach(v => v());
             this.update();
         })
 
         // set it like this to not trigger the loading
         this._environmentMapResolution = this._settingsEngine.scene.material.environmentMapResolution.value;
         this.environmentMap = this._settingsEngine.scene.material.environmentMap.value;
+        this._updateCBs.forEach(v => v());
+    }
+
+    public addUpdateCB(value: () => void) {
+        this._updateCBs.push(value)
     }
 
     // #endregion Private Methods (1)

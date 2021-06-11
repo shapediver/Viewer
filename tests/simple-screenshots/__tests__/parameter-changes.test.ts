@@ -51,7 +51,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             for(let i = 2; i <= 10; i++) {
                 await driver.executeAsyncScript(async (i: number, cb: any) => {
                     const api: typeof API = (<any>window).api; 
-                    const session = Object.values(api.getSessions())[0];
+                    const session = Object.values(api.sessions)[0];
                     session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateValue(i)
                     await session.customize();
                     await new Promise<void>((resolve) => {

@@ -1,4 +1,4 @@
-import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic, IPerspectiveCamera, ICameraControls, IPerspectiveCameraControls } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
@@ -15,7 +15,7 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
         (<any>this.fov) = this.#camera.fov;
     }
 
-    readonly controls: IPerspectiveCameraControls
+    readonly controls: PerspectiveCameraControls
     readonly fov!: number;
 
     // #endregion Properties (6)

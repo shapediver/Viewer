@@ -65,20 +65,20 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateHidden(true);
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateHidden(true);
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateHidden(false);
-
-                viewer.blurSceneWhenBusy = true;
+                
+                viewer.updateBlurSceneWhenBusy(true);
                 const camera = viewer.getCamera();
                 camera!.updateAutoAdjust(false);
-                camera!.updateCameraMovementDuration(800)
+                camera!.updateCameraMovementDuration(800);
                 camera!.updateDefaultPosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
                 camera!.updateDefaultTarget([0, 7, -3.25]);
                 (<any>camera!).updateFov(45);
                 (<any>camera!).controls.updateAutoRotationSpeed(0);
                 (<any>camera!).controls.updateDamping(0.1);
-                viewer.environmentMap = 'none';
-                viewer.gridVisibility = true;
-                viewer.groundPlaneVisibility = true;
-                viewer.environmentMap = 'none';
+                viewer.updateEnvironmentMap('none');
+                viewer.updateGridVisibility(true);
+                viewer.updateGroundPlaneVisibility(true);
+                viewer.updateEnvironmentMap('none');
 
                 const lights = viewer.getLights();
                 for (let l in lights) {
@@ -132,7 +132,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.gridVisibility = false;
+                viewer.updateGridVisibility(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -148,7 +148,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.gridVisibility = true;
+                viewer.updateGridVisibility(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -178,7 +178,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.groundPlaneVisibility = false;
+                viewer.updateGroundPlaneVisibility(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -194,7 +194,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.groundPlaneVisibility = true;
+                viewer.updateGroundPlaneVisibility(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -225,7 +225,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.environmentMap = 'georgentor';
+                viewer.updateEnvironmentMap('georgentor');
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -241,7 +241,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.environmentMap = 'none';
+                viewer.updateEnvironmentMap('none');
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -271,8 +271,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.environmentMap = 'georgentor';
-                viewer.environmentMapAsBackground = true;
+                viewer.updateEnvironmentMap('georgentor');
+                viewer.updateEnvironmentMapAsBackground(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -288,8 +288,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.environmentMap = 'none';
-                viewer.environmentMapAsBackground = false;
+                viewer.updateEnvironmentMap('none');
+                viewer.updateEnvironmentMapAsBackground(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -318,7 +318,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.environmentMapResolution = '512';
+                viewer.updateEnvironmentMapResolution('512');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -329,7 +329,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.environmentMapResolution = '1024';
+                viewer.updateEnvironmentMapResolution('1024');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -353,7 +353,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.ambientOcclusion = false;
+                viewer.updateAmbientOcclusion(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -369,7 +369,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.ambientOcclusion = true;
+                viewer.updateAmbientOcclusion(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -398,7 +398,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.beautyRenderBlendingDuration = 500;
+                viewer.updateBeautyRenderBlendingDuration(500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -409,7 +409,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.beautyRenderBlendingDuration = 1500;
+                viewer.updateBeautyRenderBlendingDuration(1500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -432,7 +432,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.beautyRenderDelay = 500;
+                viewer.updateBeautyRenderDelay(500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -443,7 +443,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.beautyRenderDelay = 50;
+                viewer.updateBeautyRenderDelay(50);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -468,7 +468,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.clearAlpha = 0;
+                viewer.updateClearAlpha(0);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -484,7 +484,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.clearAlpha = 1;
+                viewer.updateClearAlpha(1);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -513,7 +513,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.clearColor = '#ff0000';
+                viewer.updateClearColor('#ff0000');
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -529,7 +529,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.clearColor = '#ffffff';
+                viewer.updateClearColor('#ffffff');
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -564,7 +564,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.shadows = false;
+                viewer.updateShadows(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -580,7 +580,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                viewer.shadows = true;
+                viewer.updateShadows(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -609,7 +609,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                api.showMessages = false;
+                api.updateShowMessages(false);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -620,7 +620,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer');
                 let session = api.getSession('mySession');
-                api.showMessages = true;
+                api.updateShowMessages(true);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });

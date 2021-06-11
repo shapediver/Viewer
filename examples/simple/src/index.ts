@@ -79,19 +79,19 @@ glTFv2Button.onclick = async () => {
     session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateHidden(false);
 
     const viewer = api.getViewer('myViewer');
-    viewer.blurSceneWhenBusy = true;
+    viewer.updateBlurSceneWhenBusy(true);
     const camera = viewer.getCamera();
-    camera!.autoAdjust = false;
-    camera!.cameraMovementDuration = 800;
-    camera!.defaultPosition = [58.03696060180664, -290.11590576171875, 87.67756652832031];
-    camera!.defaultTarget = [0, 7, -3.25];
-    (<PerspectiveCamera>camera!).fov = 45;
-    (<PerspectiveCamera>camera!).controls.autoRotationSpeed = 0;
-    (<PerspectiveCamera>camera!).controls.damping = 0.1;
-    viewer.environmentMap = 'none';
-    viewer.gridVisibility = true;
-    viewer.groundPlaneVisibility = true;
-    viewer.environmentMap = 'none';
+    camera!.updateAutoAdjust(false);
+    camera!.updateCameraMovementDuration(800);
+    camera!.updateDefaultPosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
+    camera!.updateDefaultTarget([0, 7, -3.25]);
+    (<PerspectiveCamera>camera!).updateFov(45);
+    (<PerspectiveCamera>camera!).controls.updateAutoRotationSpeed(0);
+    (<PerspectiveCamera>camera!).controls.updateDamping(0.1);
+    viewer.updateEnvironmentMap('none');
+    viewer.updateGridVisibility(true);
+    viewer.updateGroundPlaneVisibility(true);
+    viewer.updateEnvironmentMap('none');
 
     const lights = viewer.getLights();
     for(let l in lights) {

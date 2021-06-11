@@ -16,27 +16,39 @@ import { vec3 } from "gl-matrix";
 
 @injectable()
 export class Session {
-    // #region Properties (17)
+    // #region Properties (23)
 
     readonly #api: Api = <Api>container.resolve(Api);
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    readonly #exports: { [key: string]: Export; } = {};
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #outputs: { [key: string]: Output; } = {};
-    readonly #parameters: { [key: string]: Parameter<any> } = {};
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    readonly #updateCB = () => {
+        (<any>this.authorTicket) = this.#sessionEngine.authorTicket;
+        (<any>this.bearerToken) = this.#sessionEngine.bearerToken;
+        (<any>this.initialized) = this.#sessionEngine.initialized;
+    }
 
-    #commitParameters: boolean = false;
-    #commitSettings: boolean = false;
+    readonly authorTicket: boolean | undefined;
+    readonly bearerToken: string | undefined;
+    readonly commitParameters: boolean = false;
+    readonly commitSettings: boolean = false;
+    readonly exports: { [key: string]: Export; } = {};
+    readonly id: string;
+    readonly initialized: boolean = false;
+    readonly modelViewUrl: string;
+    readonly node: TreeNode;
+    readonly outputs: { [key: string]: Output; } = {};
+    readonly parameters: { [key: string]: Parameter<any> } = {};
+    readonly primarySession: boolean = false;
+    readonly primarySessionRequest: boolean = false;
+    readonly ticket: string;
+
     #excludeViewers: string[] = [];
-    #node: TreeNode;
-    #primarySession: boolean = false;
-    #primarySessionRequest: boolean = false;
 
-    // #endregion Properties (17)
+    // #endregion Properties (23)
 
     // #region Constructors (1)
 
@@ -44,51 +56,54 @@ export class Session {
      * @ignore
      */
     constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, excludeViewers?: string[] }, callbacks: any) {
-        this.#node = new TreeNode(properties.id)
+        this.node = new TreeNode(properties.id);
         this.#sessionEngine = new SessionEngine(Object.assign({ buildDate: build_data.build_date, buildVersion: build_data.build_version }, properties));
+        this.id = this.#sessionEngine.id;
+        this.ticket = this.#sessionEngine.ticket;
+        this.modelViewUrl = this.#sessionEngine.modelViewUrl;
         this.#stateEngine.createCustomState(this.id + '_settings_registered');
         this.#excludeViewers = properties.excludeViewers || [];
 
-        this.#primarySessionRequest = properties.primarySession !== false;
-        if (this.#primarySessionRequest === true) {
+        this.primarySessionRequest = properties.primarySession !== false;
+        if (this.primarySessionRequest === true) {
             if (this.#stateEngine.primarySessionLoaded.resolved === false) {
-                this.#primarySession = true;
+                this.primarySession = true;
             }
 
             this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
-                this.#commitParameters = this.#settingsEngine.general.viewer.commitParameters.value;
-                this.#commitSettings = this.#settingsEngine.general.viewer.commitSettings.value;
+                (<any>this.commitParameters) = this.#settingsEngine.general.viewer.commitParameters.value;
+                (<any>this.commitSettings) = this.#settingsEngine.general.viewer.commitSettings.value;
 
                 const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
                 for (let k in controlNames) {
-                    if (this.#parameters[k])
-                        this.#parameters[k]!.updateDisplayName(controlNames[k]);
-                    if (this.#exports[k])
-                        this.#exports[k]!.updateDisplayName(controlNames[k]);
+                    if (this.parameters[k])
+                        this.parameters[k]!.updateDisplayName(controlNames[k]);
+                    if (this.exports[k])
+                        this.exports[k]!.updateDisplayName(controlNames[k]);
                 }
 
                 const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
                 for (let i = 0; i < controlOrder.length; i++) {
-                    if (this.#parameters[controlOrder[i]])
-                        this.#parameters[controlOrder[i]]!.updateOrder(i);
-                    if (this.#exports[controlOrder[i]])
-                        this.#exports[controlOrder[i]]!.updateOrder(i);
+                    if (this.parameters[controlOrder[i]])
+                        this.parameters[controlOrder[i]]!.updateOrder(i);
+                    if (this.exports[controlOrder[i]])
+                        this.exports[controlOrder[i]]!.updateOrder(i);
                 }
 
                 const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
                 for (let i = 0; i < parametersHidden.length; i++) {
-                    if (this.#parameters[parametersHidden[i]])
-                        this.#parameters[parametersHidden[i]]!.updateHidden(true);
-                    if (this.#exports[parametersHidden[i]])
-                        this.#exports[parametersHidden[i]]!.updateHidden(true);
+                    if (this.parameters[parametersHidden[i]])
+                        this.parameters[parametersHidden[i]]!.updateHidden(true);
+                    if (this.exports[parametersHidden[i]])
+                        this.exports[parametersHidden[i]]!.updateHidden(true);
                 }
             })
         }
 
         callbacks.setAsPrimary = async () => {
-            this.#primarySession = true;
+            (<any>this.primarySession) = true;
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
-            this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.#primarySession);
+            this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
             await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
             this.#api.update();
@@ -96,10 +111,10 @@ export class Session {
 
         callbacks.close = async (): Promise<boolean> => {
             const closeResult = await this.#sessionEngine.close();
-            (<Tree>container.resolve(Tree)).removeNode(this.#node);
+            (<Tree>container.resolve(Tree)).removeNode(this.node);
             this.#api.update();
 
-            if (this.#primarySession) {
+            if (this.primarySession) {
                 this.#stateEngine.primarySessionLoaded.reset();
                 this.#stateEngine.primarySettingsRegistered.reset();
                 this.#settingsEngine.reset();
@@ -111,191 +126,14 @@ export class Session {
             if (!closeResult) this.#logger.warn(`Session (${this.id}): Was not able to close session completely, please disregard this session.`);
             return closeResult;
         }
+
+        this.#sessionEngine.addUpdateCB(this.#updateCB);
+        this.#updateCB();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (18)
-
-    /**
-     * If the session has an author ticket.
-     */
-    public get authorTicket(): boolean | undefined {
-        return this.#sessionEngine.authorTicket;
-    }
-
-    /**
-     * If the session has an author ticket.
-     */
-    public set authorTicket(value: boolean | undefined) {
-        this.#inputValidator.validate(value, 'boolean', false);
-        this.#sessionEngine.authorTicket = value;
-        this.#logger.info(`Session (${this.id}): authorTicket was set to: ${value}`);
-    }
-
-    /**
-     * The bearerToken of the session.
-     */
-    public get bearerToken(): string | undefined {
-        return this.#sessionEngine.bearerToken;
-    }
-
-    /**
-     * The bearerToken of the session.
-     */
-    public set bearerToken(value: string | undefined) {
-        this.#inputValidator.validate(value, 'string', false);
-        this.#sessionEngine.bearerToken = value;
-        this.#logger.info(`Session (${this.id}): bearerToken was set to: ${value}`);
-    }
-
-    /**
-     * The commitParameters setting of the session.
-     * @return {boolean}
-     */
-    public get commitParameters(): boolean {
-        return this.#commitParameters;
-    }
-
-    /**
-     * The commitParameters setting of the session.
-     * @param {boolean} value
-     */
-    public set commitParameters(value: boolean) {
-        this.#inputValidator.validate(value, 'boolean');
-        this.#commitParameters = value;
-        this.#logger.info(`Session (${this.id}): commitParameters was set to: ${value}`);
-    }
-
-    /**
-     * The commitSettings setting of the session.
-     * @return {boolean}
-     */
-    public get commitSettings(): boolean {
-        return this.#commitSettings;
-    }
-
-    /**
-     * The commitSettings setting of the session.
-     * @param {boolean} value
-     */
-    public set commitSettings(value: boolean) {
-        this.#inputValidator.validate(value, 'boolean');
-        this.#commitSettings = value;
-        this.#logger.info(`Session (${this.id}): commitSettings was set to: ${value}`);
-    }
-
-    /**
-     * Return the exports of the session as a key-value pair.
-     * The id of the export is the key.
-     * 
-     * @returns 
-     */
-    public get exports(): { [key: string]: Export; } {
-        return this.#exports;
-    }
-
-    /**
-     * The id of the session.
-     * @return {string}
-     */
-    public get id(): string {
-        return this.#sessionEngine.id;
-    }
-
-    /**
-     * If the session was already initialized.
-     * @return {boolean}
-     */
-    public get initialized(): boolean {
-        return this.#sessionEngine.initialized;
-    }
-
-    /**
-     * The modelViewUrl of the session.
-     * @return {string}
-     */
-    public get modelViewUrl(): string {
-        return this.#sessionEngine.modelViewUrl;
-    }
-
-    /**
-     * The tree node in the scene tree.
-     * @return {TreeNode}
-     */
-    public get node(): TreeNode {
-        return this.#node;
-    }
-
-    /**
-     * Return the outputs of the session as a key-value pair.
-     * The id of the output is the key.
-     * 
-     * @returns 
-     */
-    public get outputs(): { [key: string]: Output; } {
-        return this.#outputs;
-    }
-
-    /**
-     * Return the parameters of the session as a key-value pair.
-     * The id of the parameter is the key.
-     * 
-     * @returns 
-     */
-    public get parameters(): { [key: string]: Parameter<any>; } {
-        return this.#parameters;
-    }
-
-    /**
-     * If the session is the primary session.
-     * @return {boolean}
-     */
-    public get primarySession(): boolean {
-        return this.#primarySession;
-    }
-
-    /**
-     * If the session requests to be the primary session.
-     * @return {boolean}
-     */
-    public get primarySessionRequest(): boolean {
-        return this.#primarySessionRequest;
-    }
-
-    /**
-     * The callback to refresh the bearer token.
-     * This callback will be executed, 
-     * once a session request fails due to an invalid bearer token.
-     */
-    public set refreshBearerToken(value: () => string) {
-        this.#inputValidator.validate(value, 'function');
-        this.#sessionEngine.refreshBearerToken = value;
-        this.#logger.info(`Session (${this.id}): refreshBearerToken was set to: ${value}`);
-    }
-
-    /**
-     * The ticket of the session.
-     * @return {string}
-     */
-    public get ticket(): string {
-        return this.#sessionEngine.ticket;
-    }
-
-    // #endregion Public Accessors (18)
-
-    // #region Public Methods (15)
-
-    /**
-     * Create a new output with the specified id.
-     * 
-     * @param id the id of the output
-     * @returns 
-     */
-    public createOutput(id: string): Output {
-        // https://shapediver.atlassian.net/browse/SS-3090
-        throw new Error();
-    }
+    // #region Public Methods (18)
 
     /**
      * Customize the session.
@@ -306,13 +144,13 @@ export class Session {
      * @returns 
      */
     public async customize(): Promise<TreeNode> {
-        (<Tree>container.resolve(Tree)).removeNode(this.#node);
+        (<Tree>container.resolve(Tree)).removeNode(this.node);
 
         // load file parameter first
-        for (const parameterId in this.#parameters) {
-            if (this.#parameters[parameterId] instanceof FileParameter) {
-                const id = await (<FileParameter>this.#parameters[parameterId]).upload();
-                this.#parameters[parameterId] = id;
+        for (const parameterId in this.parameters) {
+            if (this.parameters[parameterId] instanceof FileParameter) {
+                const id = await (<FileParameter>this.parameters[parameterId]).upload();
+                this.parameters[parameterId] = id;
             }
         }
         const parameterSet: {
@@ -323,29 +161,29 @@ export class Session {
         } = {};
 
         // create a set of the current validated parameter values
-        for (const parameterId in this.#parameters) {
+        for (const parameterId in this.parameters) {
             parameterSet[parameterId] = {
-                value: this.#parameters[parameterId].value,
-                valueString: this.#parameters[parameterId].stringify()
+                value: this.parameters[parameterId].value,
+                valueString: this.parameters[parameterId].stringify()
             }
         }
 
         // update the session engine parameter values if everything succeeded
-        for (const parameterId in this.#parameters)
+        for (const parameterId in this.parameters)
             this.#sessionEngine.parameterValues[parameterId] = parameterSet[parameterId].valueString;
 
-        this.#node = await this.#sessionEngine.customize();
+        (<any>this.node) = await this.#sessionEngine.customize();
 
         // set the session values to the current ones in all parameters
-        for (const parameterId in this.#parameters)
-            (<any>this.#parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
+        for (const parameterId in this.parameters)
+            (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
 
-        (<Tree>container.resolve(Tree)).addNode(this.#node);
-        this.#node.excludeViewers = this.#excludeViewers;
+        (<Tree>container.resolve(Tree)).addNode(this.node);
+        this.node.excludeViewers = this.#excludeViewers;
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
         this.#api.update();
         this.#logger.info(`Session (${this.id}): Session customized.`);
-        return this.#node;
+        return this.node;
     }
 
     /**
@@ -356,7 +194,7 @@ export class Session {
      */
     public getExportById(id: string): Export | null {
         this.#inputValidator.validate(id, 'string');
-        return this.#exports[id];
+        return this.exports[id];
     }
 
     /**
@@ -368,9 +206,9 @@ export class Session {
     public getExportByName(name: string): Export[] {
         this.#inputValidator.validate(name, 'string');
         const exports: Export[] = [];
-        for (let exportId in this.#exports) {
-            if (name === this.#exports[exportId].name)
-                exports.push(this.#exports[exportId])
+        for (let exportId in this.exports) {
+            if (name === this.exports[exportId].name)
+                exports.push(this.exports[exportId])
         }
         return exports;
     }
@@ -384,9 +222,9 @@ export class Session {
     public getExportByType(type: string): Export[] {
         this.#inputValidator.validate(type, 'string');
         const exports: Export[] = [];
-        for (let exportId in this.#exports) {
-            if (type === this.#exports[exportId].type)
-                exports.push(this.#exports[exportId])
+        for (let exportId in this.exports) {
+            if (type === this.exports[exportId].type)
+                exports.push(this.exports[exportId])
         }
         return exports;
     }
@@ -399,7 +237,7 @@ export class Session {
      */
     public getOutputById(id: string): Output | null {
         this.#inputValidator.validate(id, 'string');
-        return this.#outputs[id];
+        return this.outputs[id];
     }
 
     /**
@@ -411,9 +249,9 @@ export class Session {
     public getOutputByName(name: string): Output[] {
         this.#inputValidator.validate(name, 'string');
         const outputs: Output[] = [];
-        for (let outputId in this.#outputs) {
-            if (name === this.#outputs[outputId].name)
-                outputs.push(this.#outputs[outputId])
+        for (let outputId in this.outputs) {
+            if (name === this.outputs[outputId].name)
+                outputs.push(this.outputs[outputId])
         }
         return outputs;
     }
@@ -426,7 +264,7 @@ export class Session {
      */
     public getParameterById(id: string): Parameter<any> | null {
         this.#inputValidator.validate(id, 'string');
-        return this.#parameters[id];
+        return this.parameters[id];
     }
 
     /**
@@ -438,9 +276,9 @@ export class Session {
     public getParameterByName(name: string): Parameter<any>[] {
         this.#inputValidator.validate(name, 'string');
         const parameters: Parameter<any>[] = [];
-        for (let parameterId in this.#parameters) {
-            if (name === this.#parameters[parameterId].name)
-                parameters.push(this.#parameters[parameterId])
+        for (let parameterId in this.parameters) {
+            if (name === this.parameters[parameterId].name)
+                parameters.push(this.parameters[parameterId])
         }
         return parameters;
     }
@@ -454,9 +292,9 @@ export class Session {
     public getParameterByType(type: string): Parameter<any>[] {
         this.#inputValidator.validate(type, 'string');
         const parameters: Parameter<any>[] = [];
-        for (let parameterId in this.#parameters) {
-            if (type === this.#parameters[parameterId].type)
-                parameters.push(this.#parameters[parameterId])
+        for (let parameterId in this.parameters) {
+            if (type === this.parameters[parameterId].type)
+                parameters.push(this.parameters[parameterId])
         }
         return parameters;
     }
@@ -469,45 +307,45 @@ export class Session {
      * @returns 
      */
     public async init(): Promise<TreeNode> {
-        this.#node = await this.#sessionEngine.init();
+        (<any>this.node) = await this.#sessionEngine.init();
         for (let p in this.#sessionEngine.parameters) {
             const param = this.#sessionEngine.parameters[p];
             switch (true) {
                 case param.type === PARAMETERTYPE.BOOL || param.type === PARAMETERTYPE.SBOOL:
-                    this.#parameters[p] = new Parameter<boolean>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                    this.parameters[p] = new Parameter<boolean>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
                 case param.type === PARAMETERTYPE.COLOR || param.type === PARAMETERTYPE.SCOLOR:
-                    this.#parameters[p] = new Parameter<number | vec3>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                    this.parameters[p] = new Parameter<number | vec3>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
                 case param.type === PARAMETERTYPE.FILE:
-                    this.#parameters[p] = new FileParameter(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                    this.parameters[p] = new FileParameter(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
                 case param.type === PARAMETERTYPE.EVEN || param.type === PARAMETERTYPE.FLOAT || param.type === PARAMETERTYPE.INT || param.type === PARAMETERTYPE.ODD || param.type === PARAMETERTYPE.SINTEGER || param.type === PARAMETERTYPE.SNUMBER:
-                    this.#parameters[p] = new Parameter<number>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                    this.parameters[p] = new Parameter<number>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
                 default:
-                    this.#parameters[p] = new Parameter<string>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                    this.parameters[p] = new Parameter<string>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                     break;
             }
         }
 
         for (let e in this.#sessionEngine.exports)
-            this.#exports[e] = new Export(this.#sessionEngine, this.#sessionEngine.exports[e]);
+            this.exports[e] = new Export(this.#sessionEngine, this.#sessionEngine.exports[e]);
 
         for (let o in this.#sessionEngine.outputs) 
-            this.#outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
+            this.outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
 
-        (<Tree>container.resolve(Tree)).addNode(this.#node);
-        this.#node.excludeViewers = this.#excludeViewers;
+        (<Tree>container.resolve(Tree)).addNode(this.node);
+        this.node.excludeViewers = this.#excludeViewers;
         this.#logger.info(`Session (${this.id}): Session initialized.`);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
 
-        this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.#primarySession);
+        this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
         await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
 
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
         this.#api.update();
-        return this.#node;
+        return this.node;
     }
 
     /**
@@ -530,11 +368,11 @@ export class Session {
      * @param viewerId the optional viewer id
      */
     public async saveSettings(viewerId?: string): Promise<boolean> {
-        this.#settingsEngine.general.viewer.commitParameters.value = this.#commitParameters;
-        this.#settingsEngine.general.viewer.commitSettings.value = this.#commitSettings;
+        this.#settingsEngine.general.viewer.commitParameters.value = this.commitParameters;
+        this.#settingsEngine.general.viewer.commitSettings.value = this.commitSettings;
 
-        const parameters = this.#parameters;
-        const exports = this.#exports;
+        const parameters = this.parameters;
+        const exports = this.exports;
         const displayNames: { [key: string]: string } = {};
         for (let p in parameters)
             if (parameters[p].displayName)
@@ -564,10 +402,10 @@ export class Session {
         this.#settingsEngine.general.build_date.value = build_data.build_date;
         this.#settingsEngine.general.settings_version.value = '2.0';
 
-        if (Object.values(this.#api.getViewers()).length !== 0) {
-            let viewer = viewerId ? this.#api.getViewers()[viewerId] : null;
+        if (Object.values(this.#api.viewers).length !== 0) {
+            let viewer = viewerId ? this.#api.viewers[viewerId] : null;
             if (!viewer)
-                viewer = Object.values(this.#api.getViewers())[0];
+                viewer = Object.values(this.#api.viewers)[0];
 
             const renderingEngines = (<RenderingEngine[]>container.resolveAll('renderingEngine'));
             let renderingEngine: RenderingEngine;
@@ -587,5 +425,54 @@ export class Session {
         return false;
     }
 
-    // #endregion Public Methods (15)
+    /**
+     * If the session has an author ticket.
+     */
+    public updateAuthorTicket(value: boolean | undefined) {
+        this.#inputValidator.validate(value, 'boolean', false);
+        this.#sessionEngine.authorTicket = value;
+        this.#logger.info(`Session (${this.id}): authorTicket was set to: ${value}`);
+    }
+
+    /**
+     * The bearerToken of the session.
+     */
+    public updateBearerToken(value: string | undefined) {
+        this.#inputValidator.validate(value, 'string', false);
+        this.#sessionEngine.bearerToken = value;
+        this.#logger.info(`Session (${this.id}): bearerToken was set to: ${value}`);
+    }
+
+    /**
+     * The commitParameters setting of the session.
+     * @param {boolean} value
+     */
+    public updateCommitParameters(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
+        (<any>this.commitParameters) = value;
+        this.#logger.info(`Session (${this.id}): commitParameters was set to: ${value}`);
+    }
+
+    /**
+     * The commitSettings setting of the session.
+     * @param {boolean} value
+     */
+    public updateCommitSettings(value: boolean) {
+        this.#inputValidator.validate(value, 'boolean');
+        (<any>this.commitSettings) = value;
+        this.#logger.info(`Session (${this.id}): commitSettings was set to: ${value}`);
+    }
+
+    /**
+     * The callback to refresh the bearer token.
+     * This callback will be executed, 
+     * once a session request fails due to an invalid bearer token.
+     */
+    public updateRefreshBearerToken(value: () => string) {
+        this.#inputValidator.validate(value, 'function');
+        this.#sessionEngine.refreshBearerToken = value;
+        this.#logger.info(`Session (${this.id}): refreshBearerToken was set to: ${value}`);
+    }
+
+    // #endregion Public Methods (18)
 }

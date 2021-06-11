@@ -211,19 +211,19 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateHidden(true);
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateHidden(false);
 
-                viewer.blurSceneWhenBusy = true;
+                viewer.updateBlurSceneWhenBusy(true);
                 const camera = viewer.getCamera();
                 camera!.updateAutoAdjust(false);
-                camera!.updateCameraMovementDuration(800)
+                camera!.updateCameraMovementDuration(800);
                 camera!.updateDefaultPosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
                 camera!.updateDefaultTarget([0, 7, -3.25]);
                 (<any>camera!).updateFov(45);
                 (<any>camera!).controls.updateAutoRotationSpeed(0);
                 (<any>camera!).controls.updateDamping(0.1);
-                viewer.environmentMap = 'none';
-                viewer.gridVisibility = true;
-                viewer.groundPlaneVisibility = true;
-                viewer.environmentMap = 'none';
+                viewer.updateEnvironmentMap('none');
+                viewer.updateGridVisibility(true);
+                viewer.updateGroundPlaneVisibility(true);
+                viewer.updateEnvironmentMap('none');
 
                 const lights = viewer.getLights();
                 for (let l in lights) {
