@@ -336,11 +336,6 @@ export class Session {
 
         this.#node = await this.#sessionEngine.customize();
 
-        for (let o in this.#sessionEngine.outputs) {
-            // will be filled by the exports
-            this.#outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
-        }
-
         // set the session values to the current ones in all parameters
         for (const parameterId in this.#parameters)
             (<any>this.#parameters[parameterId].sessionValue) = parameterSet[parameterId].value;

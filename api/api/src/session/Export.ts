@@ -4,27 +4,21 @@ import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
-export class Export implements ShapeDiverResponseExport {
+export class Export implements ShapeDiverResponseExportDefinition {
   // #region Properties (17)
 
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #sessionEngine: Session;
 
-  readonly content?: ShapeDiverResponseExportPart[];
-  readonly delay?: number;
-  readonly dependency: string[];
+  readonly dependency!: string[];
   readonly displayName?: string;
-  readonly filename?: string;
   readonly hidden: boolean;
   readonly id: string;
-  readonly msg?: string;
   readonly name: string;
   readonly order?: number;
-  readonly result?: ExportResult;
   readonly type: ShapeDiverResponseExportDefinitionType;
   readonly uid?: string;
-  readonly version?: string;
 
   // #endregion Properties (17)
 
@@ -33,7 +27,7 @@ export class Export implements ShapeDiverResponseExport {
   constructor(sessionEngine: Session, exportDef: ShapeDiverResponseExport) {
     this.#sessionEngine = sessionEngine;
 
-    this.dependency = exportDef.dependency;
+    if (exportDef.dependency) this.dependency = exportDef.dependency;
     this.id = exportDef.uid || exportDef.id;
     this.name = exportDef.name;
     this.type = exportDef.type;
@@ -69,12 +63,6 @@ export class Export implements ShapeDiverResponseExport {
         await new Promise(resolve => setTimeout(resolve, exportResult.delay!));
         exportResult = (await this.cacheRequest(exportResult.version!))!;
       }
-      (<any>this.version) = exportResult.version;
-      (<any>this.delay) = exportResult.delay;
-      (<any>this.content) = exportResult.content;
-      (<any>this.msg) = exportResult.msg;
-      (<any>this.filename) = exportResult.filename;
-      (<any>this.result) = exportResult.result;
       return exportResult;
     } catch (e) {
       this.#logger.error('Export request failed.', e, e.response && e.response.status ? e.response.status : null);
