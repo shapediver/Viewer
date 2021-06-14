@@ -37,6 +37,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly automaticResizing!: boolean;
   readonly beautyRenderBlendingDuration!: number
   readonly beautyRenderDelay!: number;
+  readonly blur!: boolean;
   readonly blurSceneWhenBusy!: boolean;
   readonly clearAlpha!: number;
   readonly clearColor!: string | number | vec3;
@@ -57,6 +58,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     (<any>this.automaticResizing) = this.#renderingEngine.automaticResizing;
     (<any>this.beautyRenderBlendingDuration) = this.#renderingEngine.beautyRenderBlendingDuration;
     (<any>this.beautyRenderDelay) = this.#renderingEngine.beautyRenderDelay;
+    (<any>this.blur) = this.#renderingEngine.blur;
     (<any>this.blurSceneWhenBusy) = this.#renderingEngine.blurSceneWhenBusy;
     (<any>this.clearAlpha) = this.#renderingEngine.clearAlpha;
     (<any>this.clearColor) = this.#renderingEngine.clearColor;
@@ -143,6 +145,17 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(value, 'positive');
     this.#renderingEngine.beautyRenderDelay = value;
     this.#logger.info(`Viewer (${this.id}): beautyRenderDelay was set to: ${value}`);
+  }
+
+  /**
+   * Activate or de-active the blur.
+   * @param {boolean} value
+   */
+  public updateBlur(value: boolean) {
+    this.isInitialized();
+    this.#inputValidator.validate(value, 'boolean');
+    this.#renderingEngine.blur = value;
+    this.#logger.info(`Viewer (${this.id}): blur was set to: ${value}`);
   }
 
   /**

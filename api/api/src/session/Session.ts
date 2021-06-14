@@ -144,6 +144,13 @@ export class Session {
      * @returns 
      */
     public async customize(): Promise<TreeNode> {
+
+        const blurValues: {[key: string]: boolean} = {};
+        for(let viewerId in this.#api.viewers) {
+            blurValues[viewerId] = this.#api.viewers[viewerId].blur;
+            this.#api.viewers[viewerId].updateBlur(true);
+        }
+        
         (<Tree>container.resolve(Tree)).removeNode(this.node);
 
         // load file parameter first
@@ -181,6 +188,9 @@ export class Session {
         (<Tree>container.resolve(Tree)).addNode(this.node);
         this.node.excludeViewers = this.#excludeViewers;
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
+        
+        for(let viewerId in this.#api.viewers) 
+            this.#api.viewers[viewerId].updateBlur(blurValues[viewerId]);
         this.#api.update();
         this.#logger.info(`Session (${this.id}): Session customized.`);
         return this.node;

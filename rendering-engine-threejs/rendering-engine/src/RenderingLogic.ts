@@ -30,6 +30,7 @@ export class RenderingLogic {
     private _noWebGL: boolean = false;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
+    private _currentlyBlurred: boolean = false;
 
     // #endregion Properties (14)
 
@@ -164,6 +165,18 @@ export class RenderingLogic {
         return cameraThree;
     }
 
+    private blurScene() {
+        if(this._renderingEngine.blurSceneWhenBusy && this._renderingEngine.blur && !this._currentlyBlurred) {
+            if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
+                return;
+            this._renderer.domElement.style.filter = 'blur(3px)';
+            this._currentlyBlurred = true;
+        } else if (!this._renderingEngine.blur && this._currentlyBlurred) {
+            this._renderer.domElement.style.filter = '';
+            this._currentlyBlurred = false;
+        }
+    }
+
     private animate(time: number): void {
         if (this._renderingEngine.closed || this._noWebGL) return;
         requestAnimationFrame((time: number) => this.animate(time));
@@ -173,6 +186,7 @@ export class RenderingLogic {
 
         if (!this._renderingEngine.cameraEngine.hasCamera()) return;
 
+        this.blurScene();
         let width = this._width, height = this._height;
         if (this._renderingEngine.automaticResizing) {
             width = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientWidth;

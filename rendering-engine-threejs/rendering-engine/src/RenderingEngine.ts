@@ -48,6 +48,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _automaticResizing: boolean = true;
     private _beautyRenderBlendingDuration: number = 1500;
     private _beautyRenderDelay: number = 50;
+    private _blur: boolean = false;
     private _blurSceneWhenBusy: boolean = true;
     private _canvas!: Canvas;
     private _clearAlpha: number = 1.0;
@@ -228,6 +229,23 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set beautyRenderDelay(value: number) {
         this._beautyRenderDelay = value;
+        this._updateCBs.forEach(v => v());
+    }
+
+    /**
+     * Getter blur
+     * @return {boolean}
+     */
+    public get blur(): boolean {
+        return this._blur;
+    }
+
+    /**
+     * Setter blur
+     * @param {boolean} value
+     */
+    public set blur(value: boolean) {
+        this._blur = value;
         this._updateCBs.forEach(v => v());
     }
 
