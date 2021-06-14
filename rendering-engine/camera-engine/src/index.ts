@@ -9,7 +9,7 @@ import { OrthographicCameraControls } from "./implementation/controls/Orthograph
 import { PerspectiveCameraControls } from "./implementation/controls/PerspectiveCameraControls";
 import { IPerspectiveCameraControls } from "./interfaces/controls/IPerspectiveCameraControls";
 import { IOrthographicCameraControls } from "./interfaces/controls/IOrthographicCameraControls";
-import { IOrthographicCamera } from "./interfaces/camera/IOrthographicCamera";
+import { IOrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from "./interfaces/camera/IOrthographicCamera";
 import { IPerspectiveCamera } from "./interfaces/camera/IPerspectiveCamera";
 
 export {
@@ -17,7 +17,7 @@ export {
 }
 
 export {
-  CameraEngine, AbstractCamera, CAMERATYPE
+  CameraEngine, AbstractCamera, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION
 }
 
 export { 

@@ -2,7 +2,7 @@ import { vec2, vec3, vec4 } from 'gl-matrix';
 import * as THREE from 'three';
 import { container } from 'tsyringe'
 
-import { AbstractCamera, CameraEngine, CAMERATYPE, ICameraEngine, OrthographicCamera, OrthographicCameraControls, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { AbstractCamera, CameraEngine, CAMERATYPE, ICameraEngine, OrthographicCamera, OrthographicCameraControls, ORTHOGRAPHIC_CAMERA_DIRECTION, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer.rendering-engine.camera-engine';
 import { Canvas, CanvasEngine } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Tree } from '@shapediver/viewer.shared.node-tree';
 
@@ -683,6 +683,8 @@ export class RenderingEngine implements IRenderingEngine {
                 this._settingsEngine.scene.camera.cameraTypes.active.value = 0;
                 this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] };
                 this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] };
+                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = { x: 0, y: 0, z: 0 };
+                this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target = { x: 0, y: 0, z: 0 };
                 this._settingsEngine.scene.camera.cameraTypes.perspective.fov.value = (<PerspectiveCamera>camera).fov;
 
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
@@ -720,12 +722,46 @@ export class RenderingEngine implements IRenderingEngine {
                 this._settingsEngine.scene.camera.controls.orbit.restrictions.zoom.value = controls.zoomRestriction;
 
             } else {
-                // https://shapediver.atlassian.net/browse/SS-2948
-                this._settingsEngine.scene.camera.cameraTypes.active.value = 1;
+                const previousDirection = this._settingsEngine.scene.camera.cameraTypes.active.value;
+                switch((<OrthographicCamera>camera).direction) {
+                    case ORTHOGRAPHIC_CAMERA_DIRECTION.TOP:
+                        this._settingsEngine.scene.camera.cameraTypes.active.value = 1;
+                        break;
+                    case ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM:
+                        this._settingsEngine.scene.camera.cameraTypes.active.value = 2;
+                        break;
+                    case ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT:
+                        this._settingsEngine.scene.camera.cameraTypes.active.value = 3;
+                        break;
+                    case ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT:
+                        this._settingsEngine.scene.camera.cameraTypes.active.value = 4;
+                        break;
+                    case ORTHOGRAPHIC_CAMERA_DIRECTION.BACK:
+                        this._settingsEngine.scene.camera.cameraTypes.active.value = 5;
+                        break;
+                    case ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT:
+                        this._settingsEngine.scene.camera.cameraTypes.active.value = 6;
+                        break;
+                }
+
+                // if the direction changed, but the default position & target did not, there is an issue
+                if(previousDirection !== this._settingsEngine.scene.camera.cameraTypes.active.value && (
+                    this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position.x === camera.defaultPosition[0] &&
+                    this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position.y === camera.defaultPosition[1] &&
+                    this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position.z === camera.defaultPosition[2] &&
+                    this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target.x === camera.defaultTarget[0] &&
+                    this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target.y === camera.defaultTarget[1] &&
+                    this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target.z === camera.defaultTarget[2]
+                )) {
+                    camera.defaultPosition = vec3.clone(camera.position);
+                    camera.defaultTarget = vec3.clone(camera.target);
+                }
 
                 this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.position = { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] };
                 this._settingsEngine.scene.camera.cameraTypes.orthographic.default.value.target = { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] };
-
+                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.position = { x: 0, y: 0, z: 0 };
+                this._settingsEngine.scene.camera.cameraTypes.perspective.default.value.target = { x: 0, y: 0, z: 0 };
+                
                 const controls = <OrthographicCameraControls>(<OrthographicCamera>camera).controls;
                 this._settingsEngine.scene.camera.controls.orthographic.damping.value = controls.damping;
                 this._settingsEngine.scene.camera.controls.orthographic.enableKeyPan.value = controls.enableKeyPan;

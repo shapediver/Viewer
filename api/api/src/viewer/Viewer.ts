@@ -474,7 +474,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(type, 'enum', true, Object.values(CAMERATYPE));
     this.#inputValidator.validate(id, 'string', false);
     const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
-    this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
+    this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
     this.#logger.info(`Viewer (${this.id}): ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
     return this.#cameras[cameraLogic.id];
   }
@@ -538,7 +538,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(id, 'string', false);
     const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
     if (!cameraLogic) return null;
-    if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic);
+    if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
     return this.#cameras[cameraLogic.id];
   }
 
@@ -552,7 +552,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const cameraLogic = this.#renderingEngine.cameraEngine.getCameras();
     const cameras: { [key: string]: Camera; } = {};
     for (let e in cameraLogic) {
-      if (!this.#cameras[cameraLogic[e].id]) this.#cameras[cameraLogic[e].id] = cameraLogic[e].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic[e]) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic[e]);
+      if (!this.#cameras[cameraLogic[e].id]) this.#cameras[cameraLogic[e].id] = cameraLogic[e].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic[e], this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic[e], this);
       cameras[e] = this.#cameras[cameraLogic[e].id];
     }
     return cameras;

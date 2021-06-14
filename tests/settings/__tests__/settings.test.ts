@@ -223,11 +223,15 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateHidden(false);
 
                 viewer.updateBlurSceneWhenBusy(true);
-                const camera = viewer.getCamera();
+                const camera = viewer.createPerspectiveCamera();
+                viewer.assignCamera(camera.id);
                 camera!.updateAutoAdjust(false);
                 camera!.updateCameraMovementDuration(800);
                 camera!.updateDefaultPosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
                 camera!.updateDefaultTarget([0, 7, -3.25]);
+                
+                camera!.updatePosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
+                camera!.updateTarget([0, 7, -3.25]);
                 (<any>camera!).updateFov(45);
                 (<any>camera!).controls.updateAutoRotationSpeed(0);
                 (<any>camera!).controls.updateDamping(0.1);

@@ -283,7 +283,7 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Public Methods (5)
 
-    public animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public async animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if (path.length === 0) return Promise.resolve(false);
 
         if(!this._controls.isWithinRestrictions(path[path.length-1].position, path[path.length-1].target)) 
@@ -292,7 +292,12 @@ export abstract class AbstractCamera implements ICamera {
         if (!options) options = {};
         options.duration = options.duration! >= 0 ? options.duration : this.cameraMovementDuration;
     
-        return this._controls.animate(path, options);
+        const res = await this._controls.animate(path, options);
+        if(res) {
+            this._position = this._controls.position;
+            this._target = this._controls.target;
+        }
+        return res;
     }
 
     public reset(options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
@@ -303,16 +308,21 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    public set(position: vec3, target: vec3, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public async set(position: vec3, target: vec3, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if (!this._controls.isWithinRestrictions(position, target))
             return Promise.resolve(false);
         
         if (!options) options = {};
         options.duration = options.duration! >= 0 ? options.duration : this.cameraMovementDuration;
 
-        return this._controls.animate([
+        const res = await this._controls.animate([
             { position: vec3.clone(this.position), target: vec3.clone(this.target) },
-            { position, target }], options );
+            { position, target }], options);
+        if (res) {
+            this._position = this._controls.position;
+            this._target = this._controls.target;
+        }
+        return res;
     }
 
     public update(time: number): {

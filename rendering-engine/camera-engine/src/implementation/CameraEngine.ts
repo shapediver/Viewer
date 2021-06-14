@@ -9,6 +9,7 @@ import { OrthographicCameraControls } from "./controls/OrthographicCameraControl
 import { PerspectiveCamera } from "./camera/PerspectiveCamera";
 import { OrthographicCamera } from "./camera/OrthographicCamera";
 import { PerspectiveCameraControls } from "./controls/PerspectiveCameraControls";
+import { ORTHOGRAPHIC_CAMERA_DIRECTION } from "../interfaces/camera/IOrthographicCamera";
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (3)
@@ -39,15 +40,41 @@ export class CameraEngine implements ICameraEngine {
     }
 
     public applySettings() {
-        // 0 -> perspective
-        // 1 -> top
-        // 2 -> bottom
-        // 3 -> right
-        // 4 -> left
-        // 5 -> back
-        // 6 -> front
-        // https://shapediver.atlassian.net/browse/SS-2948
-        this._settingsEngine.camera.cameraTypes.active.value;
+        switch (this._settingsEngine.camera.cameraTypes.active.value) {
+            case 1:
+                const cameraTop = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                (<OrthographicCamera>cameraTop).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
+                this.assignCamera(cameraTop.id);
+                break;
+            case 2:
+                const cameraBottom = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                (<OrthographicCamera>cameraBottom).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM;
+                this.assignCamera(cameraBottom.id);
+                break;
+            case 3:
+                const cameraRight = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                (<OrthographicCamera>cameraRight).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT;
+                this.assignCamera(cameraRight.id);
+                break;
+            case 4:
+                const cameraLeft = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                (<OrthographicCamera>cameraLeft).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT;
+                this.assignCamera(cameraLeft.id);
+                break;
+            case 5:
+                const cameraBack = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                (<OrthographicCamera>cameraBack).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
+                this.assignCamera(cameraBack.id);
+                break;
+            case 6:
+                const cameraFront = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                (<OrthographicCamera>cameraFront).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
+                this.assignCamera(cameraFront.id);
+                break;
+            default:
+                const cameraPerspective = this.createCamera(CAMERATYPE.PERSPECTIVE, 'default');
+                this.assignCamera(cameraPerspective.id);
+        }
         for (let c in this._cameras)
             this._cameras[c].applySettings();
         this._settingsApplied = true;
@@ -71,14 +98,22 @@ export class CameraEngine implements ICameraEngine {
             this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
             camera.boundingBox = this._boundingBox.clone();
-            if(this._settingsApplied) camera.applySettings();
+            if(this._settingsApplied) {
+                camera.applySettings();
+            } else {
+                camera.zoomTo([], { duration: 0 });
+            }
             return camera;
         } else {
             const camera = new PerspectiveCamera(cameraId, this._canvas.canvasElement);
             this._domEventEngine.addDomEventListener((<PerspectiveCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
             camera.boundingBox = this._boundingBox.clone();
-            if(this._settingsApplied) camera.applySettings();
+            if(this._settingsApplied) {
+                camera.applySettings();
+            } else {
+                camera.zoomTo([], { duration: 0 });
+            }
             return camera;
         }
     }

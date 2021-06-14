@@ -2,6 +2,7 @@ import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls 
 import { Logger } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
+import { Viewer } from "../Viewer";
 import { Camera } from "./Camera";
 import { PerspectiveCameraControls } from "./controls/PerspectiveCameraControls";
 
@@ -11,6 +12,7 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
     readonly #camera: PerspectiveCameraLogic;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #viewer: Viewer;
     readonly #updateCB = () => {
         (<any>this.fov) = this.#camera.fov;
     }
@@ -26,9 +28,10 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
      * @ignore
      * @param camera 
      */
-    constructor(camera: PerspectiveCameraLogic) {
+    constructor(camera: PerspectiveCameraLogic, viewer: Viewer) {
         super(camera);
         this.#camera = camera;
+        this.#viewer = viewer;
         this.controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls);
         (<PerspectiveCameraLogic>this.#camera).addUpdateCB(this.#updateCB);
         this.#updateCB();
@@ -45,6 +48,7 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
     public updateFov(value: number) {
         this.#inputValidator.validate(value, 'positive');
         this.#camera.fov = value;
+        this.#viewer.update();
         this.#logger.info(`Camera (${this.#camera.id}): fov was set to: ${value}`);
     }
 

@@ -6,15 +6,8 @@ import { AbstractCamera } from "./AbstractCamera";
 import { mat4, vec2, vec3 } from "gl-matrix";
 import { OrthographicCameraControls } from "../controls/OrthographicCameraControls";
 import { Box } from "@shapediver/viewer.shared.math";
+import { ORTHOGRAPHIC_CAMERA_DIRECTION } from "../../interfaces/camera/IOrthographicCamera";
 
-enum ORTHOGRAPHIC_DIRECTION {
-   TOP = 'top',
-   BOTTOM = 'bottom',
-   LEFT = 'left',
-   RIGHT = 'right',
-   FRONT = 'front',
-   BACK = 'back',
-}
 export class OrthographicCamera extends AbstractCamera {
    // #region Properties (5)
 
@@ -24,7 +17,7 @@ export class OrthographicCamera extends AbstractCamera {
    private _left: number = 100;
    private _right: number = 100;
    private _top: number = 100;
-   private _direction: ORTHOGRAPHIC_DIRECTION = ORTHOGRAPHIC_DIRECTION.TOP;
+   private _direction: ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
 
    // #endregion Properties (5)
 
@@ -53,6 +46,23 @@ export class OrthographicCamera extends AbstractCamera {
       */
    public set bottom(value: number) {
       this._bottom = value;
+   }
+
+   /**
+    * Getter direction
+    * @return {ORTHOGRAPHIC_CAMERA_DIRECTION}
+    */
+   public get direction(): ORTHOGRAPHIC_CAMERA_DIRECTION {
+      return this._direction;
+   }
+
+   /**
+    * Setter direction
+    * @param {ORTHOGRAPHIC_CAMERA_DIRECTION} value
+    */
+   public set direction(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
+      this._direction = value;
+      this._updateCBs.forEach(v => v());
    }
 
    /**
@@ -153,32 +163,32 @@ export class OrthographicCamera extends AbstractCamera {
       const center = vec3.clone(box.boundingSphere.center);
       const eps = 0.001;
       switch (this._direction) {
-         case ORTHOGRAPHIC_DIRECTION.TOP:
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.TOP:
             return {
                position: vec3.fromValues(center[0], center[1]-eps, center[2] + factor),
                target: vec3.clone(center)
             }
-         case ORTHOGRAPHIC_DIRECTION.BOTTOM:
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM:
             return {
                position: vec3.fromValues(center[0], center[1]-eps, center[2] - factor),
                target: vec3.clone(center)
             }
-         case ORTHOGRAPHIC_DIRECTION.RIGHT:
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT:
             return {
                position: vec3.fromValues(center[0] + factor, center[1], center[2]-eps),
                target: vec3.clone(center)
             }
-         case ORTHOGRAPHIC_DIRECTION.LEFT:
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT:
             return {
                position: vec3.fromValues(center[0] - factor, center[1], center[2]-eps),
                target: vec3.clone(center)
             }
-         case ORTHOGRAPHIC_DIRECTION.BACK:
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.BACK:
             return {
                position: vec3.fromValues(center[0]-eps, center[1] + factor, center[2]),
                target: vec3.clone(center)
             }
-         case ORTHOGRAPHIC_DIRECTION.FRONT:
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT:
             return {
                position: vec3.fromValues(center[0]-eps, center[1] - factor, center[2]),
                target: vec3.clone(center)
