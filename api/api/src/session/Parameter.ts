@@ -172,7 +172,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                         let decimalplaces = 0;
                         if (numStr.includes('.')) 
                             decimalplaces = numStr.split('.')[1].length;
-                        if(this.decimalplaces >= decimalplaces)
+                        if(this.decimalplaces < decimalplaces)
                             throw new Error(`The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`);
                     }
                     
