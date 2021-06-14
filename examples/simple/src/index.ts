@@ -20,8 +20,6 @@ const bearerToken = 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHR
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 (<any>window).settingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
-const glTFv2Button: HTMLButtonElement = <HTMLButtonElement>document.getElementById('gltfv2button');
-const glTFv2Input: HTMLInputElement = <HTMLInputElement>document.getElementById('gltfv2uri');
 
 const performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 const logger: Logger = <Logger>container.resolve(Logger);
@@ -30,7 +28,7 @@ performanceEvaluator.end('startup');
 logger.info(performanceEvaluator.getEvaluationToString('startup'));
 
 (async () => {
-    let session = await api.createAndInitializeSession({ ticket: ticket, modelViewUrl: modelViewUrl, id: 'mySession'});
+    let session = await api.createAndInitializeSession({ ticket: ticket5, modelViewUrl: modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
     performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
     performanceEvaluator.end('pageLoad_rendering');
@@ -39,16 +37,6 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
         api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
     })
 })();
-
-glTFv2Button.onclick = async () => {
-    const uri: string = glTFv2Input.value;
-    const node = await dataEngine.loadContent({
-        format: 'gltf',
-        href: uri
-    });
-    api.sceneTree.addNode(node);
-    api.update()
-}
 
 (<any>window).resetSettings = async () => {
     const session = api.getSession('mySession');

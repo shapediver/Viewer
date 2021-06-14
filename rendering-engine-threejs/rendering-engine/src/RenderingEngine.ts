@@ -69,6 +69,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _sceneTree!: SceneTree;
     private _shadows: boolean = true;
     private _show: boolean = false;    
+    private _showStatistics: boolean = false;    
     private _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (41)
@@ -558,6 +559,23 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set show(value: boolean) {
         this._show = value;
+        this._updateCBs.forEach(v => v());
+    }
+
+    /**
+     * Getter showStatistics
+     * @return {boolean}
+     */
+    public get showStatistics(): boolean {
+        return this._showStatistics;
+    }
+
+    /**
+     * Setter showStatistics
+     * @param {boolean} value
+     */
+    public set showStatistics(value: boolean) {
+        this._showStatistics = value;
         this._updateCBs.forEach(v => v());
     }
 

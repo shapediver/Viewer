@@ -52,6 +52,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly pointSize!: number;
   readonly shadows!: boolean;
   readonly show!: boolean;
+  readonly showStatistics!: boolean;
   readonly #updateCB = () => {
     if(!this.#renderingEngine) return;
     (<any>this.ambientOcclusion) = this.#renderingEngine.ambientOcclusion;
@@ -72,6 +73,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     (<any>this.pointSize) = this.#renderingEngine.pointSize;
     (<any>this.shadows) = this.#renderingEngine.shadows;
     (<any>this.show) = this.#renderingEngine.show;
+    (<any>this.showStatistics) = this.#renderingEngine.showStatistics;
   }
 
   #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE };
@@ -289,6 +291,17 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     this.#inputValidator.validate(value, 'boolean');
     this.#renderingEngine.show = value;
     this.#logger.info(`Viewer (${this.id}): show was set to: ${value}`);
+  }
+
+  /**
+   * Show / Hide the statistics
+   * @param {boolean} value
+   */
+  public updateShowStatistics(value: boolean) {
+    this.isInitialized();
+    this.#inputValidator.validate(value, 'boolean');
+    this.#renderingEngine.showStatistics = value;
+    this.#logger.info(`Viewer (${this.id}): showStatistics was set to: ${value}`);
   }
 
   // #endregion Public Accessors (16)

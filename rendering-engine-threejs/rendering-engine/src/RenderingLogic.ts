@@ -10,6 +10,7 @@ import { main, entry } from "./shaders/PCSS";
 import { shader as normalShader } from "./shaders/normal";
 import { BeautyRenderer } from "./BeautyRenderer";
 import * as TWEEN from "@tweenjs/tween.js";
+import * as Stats from "stats.js";
 
 export class RenderingLogic {
     // #region Properties (14)
@@ -31,6 +32,7 @@ export class RenderingLogic {
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
     private _currentlyBlurred: boolean = false;
+    private _stats: any;
 
     // #endregion Properties (14)
 
@@ -84,6 +86,35 @@ export class RenderingLogic {
             window.onresize = () => { this.render(); };
             this._renderingEngine.canvas.canvasElement.onresize = () => { this.render(); };
             this._renderingEngine.canvas.canvasElement.parentElement!.onresize = () => { this.render(); };
+
+            const stats1 = new Stats.default();
+            stats1.showPanel(0); // Panel 0 = fps
+            stats1.dom.style.cssText = 'position:absolute;top:0px;left:0px;';
+            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats1.dom);
+            
+            const stats2 = new Stats.default();
+            stats2.showPanel(1); // Panel 1 = ms
+            stats2.dom.style.cssText = 'position:absolute;top:0px;left:80px;';
+            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats2.dom);
+
+            const stats3 = new Stats.default();
+            stats3.showPanel(2); // Panel 1 = ms
+            stats3.dom.style.cssText = 'position:absolute;top:0px;left:160px;';
+            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats3.dom);
+
+            this._stats = {
+                stats: [stats1, stats2, stats3],
+                begin: () => {
+                    stats1.begin();
+                    stats2.begin();
+                    stats3.begin();
+                },
+                end: () => {
+                    stats1.end();
+                    stats2.end();
+                    stats3.end();
+                }
+            };
 
             this.animate(0);
             this._beautyRenderer.startBeautyRenderCountdown();
@@ -177,6 +208,16 @@ export class RenderingLogic {
         }
     }
 
+    private showStatistics() {
+        if(this._renderingEngine.showStatistics) {
+            for(let i = 0; i < this._stats.stats.length; i++)
+                this._stats.stats[i].dom.style.display = ''
+        } else {
+            for(let i = 0; i < this._stats.stats.length; i++)
+                this._stats.stats[i].dom.style.display = 'none'
+        }
+    }
+
     private animate(time: number): void {
         if (this._renderingEngine.closed || this._noWebGL) return;
         requestAnimationFrame((time: number) => this.animate(time));
@@ -185,8 +226,10 @@ export class RenderingLogic {
         this._lastTime = time;
 
         if (!this._renderingEngine.cameraEngine.hasCamera()) return;
+        this._stats.begin();
 
         this.blurScene();
+        this.showStatistics();
         let width = this._width, height = this._height;
         if (this._renderingEngine.automaticResizing) {
             width = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientWidth;
@@ -242,6 +285,7 @@ export class RenderingLogic {
         }
 
         if (!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
+        this._stats.end();
     }
 
     private createWebGLContext(properties: {
