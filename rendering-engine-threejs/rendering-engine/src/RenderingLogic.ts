@@ -64,6 +64,7 @@ export class RenderingLogic {
             this._renderer.shadowMap.enabled = true;
             this._renderer.shadowMap.needsUpdate = true;
             this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            this._renderer.shadowMap.autoUpdate = false;
             this._renderer.setSize(this._width, this._height);
             this._renderer.setClearColor(new THREE.Color('#ffffff'), 1);
 
@@ -117,6 +118,10 @@ export class RenderingLogic {
 
     public resize(width: number, height: number) {
         this._width = width, this._height = height;
+    }
+
+    public updateShadowMap() {
+        this._renderer.shadowMap.needsUpdate = true;
     }
 
     // #endregion Public Methods (3)

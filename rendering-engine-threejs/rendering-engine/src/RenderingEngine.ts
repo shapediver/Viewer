@@ -798,6 +798,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     public update(): void {
         this._sceneTree.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
+        this._renderingLogic.updateShadowMap();
         this._renderingLogic.render();
     }
 
