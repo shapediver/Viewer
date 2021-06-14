@@ -40,7 +40,7 @@
     "check-npm-version": "bash ./scripts/check-npm-version.sh",
     "create-lib": "npm run check-npm-version && bash ./scripts/create-lib.sh",
     "create-package": "bash ./scripts/create-package.sh",
-    "doc": "rm -rf ./docs && typedoc && cp -r api/api/images docs/images",
+    "doc": "ts-node ./scripts/doc.ts",
     "add-dependency": "bash ./scripts/add-dependency.sh",
     "add-devDependency": "bash ./scripts/add-devDependency.sh",
     "init": "bash ./scripts/init.sh",
@@ -51,6 +51,9 @@
     "build-prod": "lerna run build-prod --stream",
     "build-current": "cd ./api/api && npm run build-dep && cd ../../",
     "deploy": "ts-node ./scripts/deploy.ts",
-    "deploy-tests": "ts-node ./scripts/deploy-test.ts"
+    "deploy-tests": "ts-node ./scripts/deploy-test.ts",
+    "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md",
+    "doc-migrationGuide": "typedoc --readme documentation/migrationGuide.md",
+    "doc-main": "typedoc"
   }
 }

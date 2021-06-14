@@ -20,7 +20,6 @@
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
   "scripts": {
-    "doc": "rm -rf ./docs && typedoc --out docs --entryPoints src/index.ts --entryPoints ../../shared/node-tree/src/index.ts --readme ./apiReadMe.md --disableSources --excludePrivate --hideGenerator --theme minimal --name Viewer && cp -r images docs/images",
     "test": "bash ../../scripts/test.sh",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",

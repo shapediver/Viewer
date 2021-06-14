@@ -3,6 +3,11 @@
 
 ![logo](https://shapediver.com/imgs/logo-black.png "ShapeDiver")
 # Viewer API
+
+To be up-to-date with all current changes, visit our [Release Notes](./releaseNotes.html).
+
+If you want to update from an older version, please use our [Migration Guide](./migrationGuide.html).
+
 ## Installation
 <details>
 

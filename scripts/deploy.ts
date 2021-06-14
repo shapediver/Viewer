@@ -66,9 +66,9 @@ const execPromise = (cmd: string) => {
         }, null, 0) + ';');
 
         const readmeVersion = `\n## Version\n* __Version:__ ${'3.' + newVersion}\n* __Build date:__ ${timestamp}\n* __Branch:__ ${git_branch}\n* __Commit:__ ${git_commit}\n`
-        let readme = fs.readFileSync('./api/api/apiReadMe.md', 'utf8');
+        let readme = fs.readFileSync('./documentation/apiReadMe.md', 'utf8');
         readme = readme.replace(readme.substring(readme.indexOf('<!--- VERSION_START -->') + '<!--- VERSION_START -->'.length, readme.indexOf('<!--- VERSION_END -->')), readmeVersion)
-        fs.writeFileSync('./api/api/apiReadMe.md', readme, 'utf8');
+        fs.writeFileSync('./documentation/apiReadMe.md', readme, 'utf8');
         
         console.log(await execPromise('npm run build-current'));
         console.log(await execPromise('npm run doc'));
