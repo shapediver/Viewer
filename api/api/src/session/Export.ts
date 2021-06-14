@@ -54,7 +54,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
     const exportParameters: { [key: string]: string } = {}
 
     for (let parameter in currentParameters)
-      exportParameters[parameter] = parameters[parameter] || currentParameters[parameter];
+      exportParameters[parameter] = parameters[parameter] || parameters[parameter] === '' ? parameters[parameter] : currentParameters[parameter];
     try {
       let exportReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.id }, parameters: exportParameters }, 'application/json')).data;
       let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.id];
