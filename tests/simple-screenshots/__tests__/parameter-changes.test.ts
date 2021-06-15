@@ -38,6 +38,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
         afterAll(async () => {
             await driver.close();
+            await driver.quit();
         })
 
         test(name, async () => {

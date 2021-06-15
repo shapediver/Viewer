@@ -185,6 +185,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
         afterAll(async () => {
             await driver.close();
+            await driver.quit();
         })
 
         afterEach(async () => {
@@ -342,7 +343,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             delete settings1.build_date;
             delete settings1.build_version;
             expect(settings1).toStrictEqual(originalSettings);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_newLightScene');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/newLightScene');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
