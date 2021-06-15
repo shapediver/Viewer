@@ -6,36 +6,39 @@ import { screenshotCompare } from "../../general/src/setup";
 import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
 
 for(let c = 0; c < allCapabilities.length; c++) {
-    const capabilities = Object.assign({ 'name': 'selenium_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
     let name = 'simple_screenshot';
+    const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
 
     if(process.env.PORT !== 'browserstack') {
         name = 'simple_screenshot';
         c = allCapabilities.length;
     } else {
-        name = 'simple_screenshot ' + ((allCapabilities[c] as DesktopCapabilities).os ? 
-        (<DesktopCapabilities>capabilities).os + ' ' + (<DesktopCapabilities>capabilities).os_version + ' ' + (<DesktopCapabilities>capabilities).browserName + ' ' + (<DesktopCapabilities>capabilities).browser_version : 
-        (<MobileCapabilities>capabilities).device + ' ' + (<MobileCapabilities>capabilities).os_version);
+        name = 'simple_screenshot/' + ((allCapabilities[c] as DesktopCapabilities).os ? 
+        (<DesktopCapabilities>capabilities).os + '_' + (<DesktopCapabilities>capabilities).os_version + '_' + (<DesktopCapabilities>capabilities).browserName + '_' + (<DesktopCapabilities>capabilities).browser_version : 
+        (<MobileCapabilities>capabilities).device + '_' + (<MobileCapabilities>capabilities).os_version);
     }
 
     let driver: WebDriver;
     describe('device testing', () => {
-        beforeEach(async () => {
-
+        beforeAll(async () => {
             if(process.env.PORT !== 'browserstack') {
                 driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
             } else {
+                console.log(capabilities)
                 driver = await new webdriver.Builder().usingServer('http://alexanderschiftn1:csj6VCzMwzBYyRecsbm2@hub-cloud.browserstack.com/wd/hub').withCapabilities(capabilities).build();
             }
-            
             await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
             const TIMEOUT = 300000000
             await driver.manage().setTimeouts( { implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT } );
         });
         
-        afterEach(async () => {
-            await driver.close();
+        beforeEach(async () => {
+            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
         });
+
+        afterAll(async () => {
+            await driver.close();
+        })
         
         test(name, async () => {
             // DO SOMETHING WITH THE API
@@ -50,7 +53,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             });
             
             // TAKE A SCREENSHOT
-            await screenshotCompare(await driver.takeScreenshot(), name);
+            await screenshotCompare(await driver.takeScreenshot(), name + '/test_1');
         });
     });
 }

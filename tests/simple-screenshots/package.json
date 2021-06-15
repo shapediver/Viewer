@@ -20,7 +20,7 @@
   "scripts": {
     "start": "npm start",
     "test": "bash ../../scripts/test.sh",
-    "test-browserstack": "PORT=browserstack npm run test-script",
+    "test-browserstack": "PORT=browserstack npm run test",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
     "build-watch": "bash ../../scripts/build-watch.sh",

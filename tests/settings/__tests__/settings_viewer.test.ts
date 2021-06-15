@@ -8,38 +8,46 @@ import { SettingsEngine } from "../../../rendering-engine/camera-engine/node_mod
 import { build_data } from "@shapediver/viewer/src/build_data";
 
 for (let c = 0; c < allCapabilities.length; c++) {
-    const capabilities = Object.assign({ 'name': 'selenium_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
     let name = 'settings_viewer';
+    const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
 
     if (process.env.PORT !== 'browserstack') {
         name = 'settings_viewer';
         c = allCapabilities.length;
     } else {
-        name = 'settings_viewer ' + ((allCapabilities[c] as DesktopCapabilities).os ?
-            (<DesktopCapabilities>capabilities).os + ' ' + (<DesktopCapabilities>capabilities).os_version + ' ' + (<DesktopCapabilities>capabilities).browserName + ' ' + (<DesktopCapabilities>capabilities).browser_version :
-            (<MobileCapabilities>capabilities).device + ' ' + (<MobileCapabilities>capabilities).os_version);
+        name = 'settings_viewer/' + ((allCapabilities[c] as DesktopCapabilities).os ?
+            (<DesktopCapabilities>capabilities).os + '_' + (<DesktopCapabilities>capabilities).os_version + '_' + (<DesktopCapabilities>capabilities).browserName + '_' + (<DesktopCapabilities>capabilities).browser_version :
+            (<MobileCapabilities>capabilities).device + '_' + (<MobileCapabilities>capabilities).os_version);
     }
 
     let driver: WebDriver;
     describe('device testing', () => {
-        beforeEach(async () => {
-            if (process.env.PORT !== 'browserstack') {
+        
+        beforeAll(async () => {
+            if(process.env.PORT !== 'browserstack') {
                 driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
             } else {
+                console.log(capabilities)
                 driver = await new webdriver.Builder().usingServer('http://alexanderschiftn1:csj6VCzMwzBYyRecsbm2@hub-cloud.browserstack.com/wd/hub').withCapabilities(capabilities).build();
             }
-
             await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
             const TIMEOUT = 300000000
-            await driver.manage().setTimeouts({ implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT });
+            await driver.manage().setTimeouts( { implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT } );
+        });
+        
+        beforeEach(async () => {
+            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
+        });
 
+        afterAll(async () => {
+            await driver.close();
+        })
+
+        afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-                await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-                })
+                let viewer = api.getViewer('myViewer');
+                let session = api.getSession('mySession');
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateDisplayName('COLOR');
 
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateOrder(0);
@@ -65,7 +73,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateHidden(true);
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateHidden(true);
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateHidden(false);
-                
+
+
                 viewer.updateBlurSceneWhenBusy(true);
                 const camera = viewer.createPerspectiveCamera();
                 viewer.assignCamera(camera.id);
@@ -91,44 +100,40 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, name: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175});
                 viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175});
                 viewer.update();
-                await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-                })
                 await session.saveSettings();
                 cb();
             });
         });
 
-        afterEach(async () => {
-            await driver.close();
-        });
+        // it(name + '_blur', async () => {
+        //     // 'viewer.blurSceneWhenBusy': true,
+        //     // https://shapediver.atlassian.net/browse/SS-2994
+        // });
 
-        it(name + '_blur', async () => {
-            // 'viewer.blurSceneWhenBusy': true,
-            // https://shapediver.atlassian.net/browse/SS-2994
-        });
+        // it(name + '_commitParameters', async () => {
+        //     // 'viewer.commitParameters': false,
+        //     // TODO
+        // });
 
-        it(name + '_commitParameters', async () => {
-            // 'viewer.commitParameters': false,
-            // TODO
-        });
-
-        it(name + '_commitSettings', async () => {
-            // 'viewer.commitSettings': false,
-            // TODO
-        });
+        // it(name + '_commitSettings', async () => {
+        //     // 'viewer.commitSettings': false,
+        //     // TODO
+        // });
 
         it(name + '_gridVisibility', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['viewer.scene.gridVisibility']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_gridVisibility');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/gridVisibility');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -144,7 +149,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings2['viewer.scene.gridVisibility']).toBe(false);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_gridVisibility_switch');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/gridVisibility_switch');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -160,7 +165,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings3['viewer.scene.gridVisibility']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_gridVisibility');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/gridVisibility');
         });
 
 
@@ -168,13 +173,16 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['viewer.scene.groundPlaneVisibility']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_groundPlaneVisibility');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/groundPlaneVisibility');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -190,7 +198,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings2['viewer.scene.groundPlaneVisibility']).toBe(false);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_groundPlaneVisibility_switch');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/groundPlaneVisibility_switch');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -206,7 +214,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings3['viewer.scene.groundPlaneVisibility']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_groundPlaneVisibility');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/groundPlaneVisibility');
         });
 
 
@@ -215,13 +223,16 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['viewer.scene.material.environmentMap']).toBe('none');
-            await screenshotCompare(await driver.takeScreenshot(), name + '_environmentMap');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMap');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -237,7 +248,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings2['viewer.scene.material.environmentMap']).toBe('georgentor');
-            await screenshotCompare(await driver.takeScreenshot(), name + '_environmentMap_switch');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMap_switch');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -253,7 +264,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings3['viewer.scene.material.environmentMap']).toBe('none');
-            await screenshotCompare(await driver.takeScreenshot(), name + '_environmentMap');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMap');
         });
 
 
@@ -261,13 +272,16 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['viewer.scene.material.environmentMapAsBackground']).toBe(false);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_environmentMapAsBackground');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMapAsBackground');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -284,7 +298,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings2['viewer.scene.material.environmentMapAsBackground']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_environmentMapAsBackground_switch');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMapAsBackground_switch');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -301,7 +315,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings3['viewer.scene.material.environmentMapAsBackground']).toBe(false);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_environmentMapAsBackground');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMapAsBackground');
         });
 
 
@@ -309,8 +323,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -343,13 +360,16 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['viewer.scene.render.ambientOcclusion']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ambientOcclusion');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ambientOcclusion');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -365,7 +385,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings2['viewer.scene.render.ambientOcclusion']).toBe(false);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ambientOcclusion_switch');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ambientOcclusion_switch');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -381,7 +401,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings3['viewer.scene.render.ambientOcclusion']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ambientOcclusion');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ambientOcclusion');
         });
 
 
@@ -389,8 +409,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -423,8 +446,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
@@ -458,13 +484,16 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 document.getElementById('canvas')!.parentElement!.style.background = 'red';
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['viewer.scene.render.clearAlpha']).toBe(1);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_clearAlpha');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/clearAlpha');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -480,7 +509,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings2['viewer.scene.render.clearAlpha']).toBe(0);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_clearAlpha_switch');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/clearAlpha_switch');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -496,20 +525,23 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings3['viewer.scene.render.clearAlpha']).toBe(1);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_clearAlpha');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/clearAlpha');
         });
 
         it(name + '_clearColor', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['viewer.scene.render.clearColor']).toBe('#ffffff');
-            await screenshotCompare(await driver.takeScreenshot(), name + '_clearColor');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/clearColor');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -525,7 +557,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings2['viewer.scene.render.clearColor']).toBe('#ff0000');
-            await screenshotCompare(await driver.takeScreenshot(), name + '_clearColor_switch');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/clearColor_switch');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -541,26 +573,29 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings3['viewer.scene.render.clearColor']).toBe('#ffffff');
-            await screenshotCompare(await driver.takeScreenshot(), name + '_clearColor');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/clearColor');
         });
 
-        it(name + '_pointSize', async () => {
-            // 'viewer.scene.render.pointSize': 1,
-            // https://shapediver.atlassian.net/browse/SS-2996
-        });
+        // it(name + '_pointSize', async () => {
+        //     // 'viewer.scene.render.pointSize': 1,
+        //     // https://shapediver.atlassian.net/browse/SS-2996
+        // });
 
 
         it(name + '_shadows', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings1['viewer.scene.render.shadows']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_shadows');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/shadows');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -576,7 +611,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings2['viewer.scene.render.shadows']).toBe(false);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_shadows_switch');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/shadows_switch');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -592,7 +627,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 cb((<any>window).settingsEngine.deconstruct());
             });
             expect(settings3['viewer.scene.render.shadows']).toBe(true);
-            await screenshotCompare(await driver.takeScreenshot(), name + '_shadows');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/shadows');
         });
 
 
@@ -600,8 +635,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
             });

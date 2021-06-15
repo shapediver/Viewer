@@ -6,35 +6,39 @@ import { screenshotCompare } from "../../general/src/setup";
 import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
 
 for(let c = 0; c < allCapabilities.length; c++) {
-    const capabilities = Object.assign({ 'name': 'selenium_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
     let name = 'camera_tests';
+    const capabilities = Object.assign({ 'name': 'camera_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
 
     if(process.env.PORT !== 'browserstack') {
         name = 'camera_tests';
         c = allCapabilities.length;
     } else {
-        name = 'camera_tests ' + ((allCapabilities[c] as DesktopCapabilities).os ? 
-        (<DesktopCapabilities>capabilities).os + ' ' + (<DesktopCapabilities>capabilities).os_version + ' ' + (<DesktopCapabilities>capabilities).browserName + ' ' + (<DesktopCapabilities>capabilities).browser_version : 
-        (<MobileCapabilities>capabilities).device + ' ' + (<MobileCapabilities>capabilities).os_version);
+        name = 'camera_tests/' + ((allCapabilities[c] as DesktopCapabilities).os ? 
+        (<DesktopCapabilities>capabilities).os + '_' + (<DesktopCapabilities>capabilities).os_version + '_' + (<DesktopCapabilities>capabilities).browserName + '_' + (<DesktopCapabilities>capabilities).browser_version : 
+        (<MobileCapabilities>capabilities).device + '_' + (<MobileCapabilities>capabilities).os_version);
     }
 
     let driver: WebDriver;
     describe('device testing', () => {
-        beforeEach(async () => {
+        beforeAll(async () => {
             if(process.env.PORT !== 'browserstack') {
                 driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
             } else {
+                console.log(capabilities)
                 driver = await new webdriver.Builder().usingServer('http://alexanderschiftn1:csj6VCzMwzBYyRecsbm2@hub-cloud.browserstack.com/wd/hub').withCapabilities(capabilities).build();
             }
-            
             await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
             const TIMEOUT = 300000000
             await driver.manage().setTimeouts( { implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT } );
         });
-        
-        afterEach(async () => {
-            await driver.close();
+
+        beforeEach(async () => {
+            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
         });
+
+        afterAll(async () => {
+            await driver.close();
+        })
         
         test(name + '_positioning', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -58,7 +62,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_positioning');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/positioning');
         });
         
         test(name + '_set', async () => {
@@ -83,7 +87,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_set_1');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/set_1');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -103,7 +107,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r2.target[0]).toBeCloseTo(-100)
             expect(r2.target[1]).toBeCloseTo(-100)
             expect(r2.target[2]).toBeCloseTo(-100)
-            await screenshotCompare(await driver.takeScreenshot(), name + '_set_2');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/set_2');
         });
 
         
@@ -129,7 +133,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_reset_1');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/reset_1');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -149,7 +153,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r2.target[0]).toBeCloseTo(-100)
             expect(r2.target[1]).toBeCloseTo(-100)
             expect(r2.target[2]).toBeCloseTo(-100)
-            await screenshotCompare(await driver.takeScreenshot(), name + '_reset_2');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/reset_2');
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -169,7 +173,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r3.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r3.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r3.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_reset_3');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/reset_3');
         });
 
         
@@ -195,7 +199,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_zoom_1');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/zoom_1');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -215,7 +219,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r2.target[0]).toBeCloseTo(-100)
             expect(r2.target[1]).toBeCloseTo(0)
             expect(r2.target[2]).toBeCloseTo(0)
-            await screenshotCompare(await driver.takeScreenshot(), name + '_zoom_2');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/zoom_2');
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -229,7 +233,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                     target: viewer.getCamera()!.target,
                 });
             });
-            await screenshotCompare(await driver.takeScreenshot(), name + '_zoom_3');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/zoom_3');
         });
 
 
@@ -264,7 +268,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_positioning');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
         });
         
         test(name + '_ortho_set', async () => {
@@ -296,7 +300,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_positioning');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -316,7 +320,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r2.target[0]).toBeCloseTo(-100)
             expect(r2.target[1]).toBeCloseTo(-100)
             expect(r2.target[2]).toBeCloseTo(-100)
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_set');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_set');
         });
 
         
@@ -351,7 +355,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_positioning');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -371,7 +375,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r2.target[0]).toBeCloseTo(-100)
             expect(r2.target[1]).toBeCloseTo(-100)
             expect(r2.target[2]).toBeCloseTo(-100)
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_set');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_set');
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -391,7 +395,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_positioning');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
         });
 
         
@@ -426,7 +430,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r.defaultTarget[0]).toBeCloseTo(r.target[0])
             expect(r.defaultTarget[1]).toBeCloseTo(r.target[1])
             expect(r.defaultTarget[2]).toBeCloseTo(r.target[2])
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_positioning');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -446,7 +450,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             expect(r2.target[0]).toBeCloseTo(-100)
             expect(r2.target[1]).toBeCloseTo(0)
             expect(r2.target[2]).toBeCloseTo(0)
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_zoom');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_zoom');
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -460,7 +464,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                     target: viewer.getCamera()!.target,
                 });
             });
-            await screenshotCompare(await driver.takeScreenshot(), name + '_ortho_positioning');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
         });
     });
 }
