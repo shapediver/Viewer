@@ -129,7 +129,6 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const camera = viewer.createOrthographicCamera('myNewCamera');
                 (<any>camera).updateDirection('front')
                 viewer.assignCamera(camera.id);
-                await camera.zoomTo([])
                 viewer.update();
 
                 await new Promise<void>((resolve) => {

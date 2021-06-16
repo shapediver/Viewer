@@ -14,8 +14,7 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     private _enableKeyPan: boolean = false;
     private _enablePan: boolean = true;
     private _enableZoom: boolean = true;
-    private _input: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } =
-        { keys: { up: 38, down: 40, left: 37, right: 39 }, mouse: { rotate: 0, zoom: 1, pan: 2 }, touch: { rotate: 1, zoom: 2, pan: 3 } };
+    private _input: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } = { keys: { up: 38, down: 40, left: 37, right: 39 }, mouse: { rotate: 0, zoom: 1, pan: 2 }, touch: { rotate: 1, zoom: 2, pan: 3 }, };
     private _keyPanSpeed: number = 0.5;
     private _movementSmoothness: number = 0.5;
     private _panSpeed: number = 0.5;
@@ -36,15 +35,15 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     }
 
     public applySettings() {
-        this.damping = this._settingsEngine.cameraOrbitControls.damping.value;
-        this.enableKeyPan = this._settingsEngine.cameraOrbitControls.enableKeyPan.value;
-        this.enablePan = this._settingsEngine.cameraOrbitControls.enablePan.value;
-        this.enableZoom = this._settingsEngine.cameraOrbitControls.enableZoom.value;
-        this.input = this._settingsEngine.cameraOrbitControls.input.value;
-        this.keyPanSpeed = this._settingsEngine.cameraOrbitControls.keyPanSpeed.value;
-        this.movementSmoothness = this._settingsEngine.cameraOrbitControls.movementSmoothness.value;
-        this.panSpeed = this._settingsEngine.cameraOrbitControls.panSpeed.value;
-        this.zoomSpeed = this._settingsEngine.cameraOrbitControls.zoomSpeed.value;
+        this.damping = this._settingsEngine.cameraOrthographicControls.damping.value;
+        this.enableKeyPan = this._settingsEngine.cameraOrthographicControls.enableKeyPan.value;
+        this.enablePan = this._settingsEngine.cameraOrthographicControls.enablePan.value;
+        this.enableZoom = this._settingsEngine.cameraOrthographicControls.enableZoom.value;
+        this.input = this._settingsEngine.cameraOrthographicControls.input.value;
+        this.keyPanSpeed = this._settingsEngine.cameraOrthographicControls.keyPanSpeed.value;
+        this.movementSmoothness = this._settingsEngine.cameraOrthographicControls.movementSmoothness.value;
+        this.panSpeed = this._settingsEngine.cameraOrthographicControls.panSpeed.value;
+        this.zoomSpeed = this._settingsEngine.cameraOrthographicControls.zoomSpeed.value;
     }
 
     // #endregion Constructors (1)

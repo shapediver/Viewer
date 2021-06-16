@@ -50,8 +50,8 @@ const execPromise = (cmd: string) => {
         const packageJson = require('../api/api/package.json');
         const versions: string[] = packageJson.version.split('.');
         const newVersion =  (+versions[0] + (version === 'major' ? 1 : 0)) + '.' + 
-                            (+versions[1] + (version === 'minor' ? 1 : 0)) + '.' + 
-                            (+versions[2] + (version === 'patch' ? 1 : 0));
+                            version === 'major' ? 0 : (+versions[1] + (version === 'minor' ? 1 : 0)) + '.' + 
+                            version === 'major' ? 0 : version === 'minor' ? 0 : (+versions[2] + (version === 'patch' ? 1 : 0));
 
         const git_commit: string = <string>await execPromise('git rev-parse HEAD');
         const git_branch: string = <string>await execPromise('git branch --show-current');
