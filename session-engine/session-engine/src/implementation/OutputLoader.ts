@@ -80,6 +80,13 @@ export class OutputLoader {
             node.addChild(this._outputNodes[outputID][outputs[outputID].version]);
         }
 
+        for (let outputID in outputs) {
+            for(let outputVersion in this._outputNodes[outputID]) {
+                if(outputVersion !== outputs[outputID].version)
+                    delete this._outputNodes[outputID][outputVersion];
+            }
+        }
+
         this.assignMaterials(node);
         return node;
     }
