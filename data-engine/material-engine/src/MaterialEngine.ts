@@ -6,6 +6,7 @@ import { MapData, MaterialData, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERI
 import { vec2, vec3, vec4 } from 'gl-matrix';
 import { Logger } from '@shapediver/viewer.shared.monitoring';
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1';
+import { materialDatabase } from "./materialDatabase";
 
 interface IPresetMaterialDefinition {
     // #region Properties (13)
@@ -47,8 +48,6 @@ interface ITexture {
 export class MaterialEngine {
     // #region Properties (2)
 
-    private _dataBase: any;
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
@@ -57,13 +56,7 @@ export class MaterialEngine {
 
     // #region Constructors (1)
 
-    constructor() {
-        try {
-            this._httpClient.get('https://viewer.shapediver.com/v2/materials/db.json').then((res) => { this._dataBase = res.data; });
-        } catch (e) {
-            this._logger.error('Loading of material DB failed.', e, e.response && e.response.status ? e.response.status : null);
-        }
-    }
+    constructor() {}
 
     // #endregion Constructors (1)
 
@@ -434,15 +427,15 @@ export class MaterialEngine {
 
     private async loadPresetMaterial(preset: number, material: MaterialData) {
         const idStrings = this.getClassAndSpecificID(preset);
-        if (this._dataBase[idStrings.class] && this._dataBase[idStrings.class][idStrings.specific]) {
-            await this.assignSpecificDefinition(idStrings, this._dataBase[idStrings.class][idStrings.specific], material);
-            await this.assignGeneralDefinition(idStrings, this._dataBase[idStrings.class].properties, this._dataBase[idStrings.class][idStrings.specific], material);
-        } else if (this._dataBase[idStrings.class]['00']) {
-            await this.assignSpecificDefinition(idStrings, this._dataBase[idStrings.class]['00'], material);
-            await this.assignGeneralDefinition(idStrings, this._dataBase[idStrings.class].properties, this._dataBase[idStrings.class]['00'], material);
+        if (materialDatabase[idStrings.class as any] && materialDatabase[idStrings.class][idStrings.specific]) {
+            await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class][idStrings.specific], material);
+            await this.assignGeneralDefinition(idStrings, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class][idStrings.specific], material);
+        } else if (materialDatabase[idStrings.class]['00']) {
+            await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class]['00'], material);
+            await this.assignGeneralDefinition(idStrings, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class]['00'], material);
         } else {
-            await this.assignSpecificDefinition({ class: '00', specific: '00' }, this._dataBase['00']['00'], material);
-            await this.assignGeneralDefinition({ class: '00', specific: '00' }, this._dataBase['00'].properties, this._dataBase['00']['00'], material);
+            await this.assignSpecificDefinition({ class: '00', specific: '00' }, materialDatabase['00']['00'], material);
+            await this.assignGeneralDefinition({ class: '00', specific: '00' }, materialDatabase['00'].properties, materialDatabase['00']['00'], material);
         }
     }
 
