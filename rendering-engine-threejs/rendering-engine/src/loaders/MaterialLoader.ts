@@ -212,12 +212,6 @@ export class MaterialLoader {
         };
         material.needsUpdate = true;
 
-        if(this._renderingEngine.minimalRendering) {
-            const basicMaterial = new THREE.MeshBasicMaterial(properties)
-            this._materialLibrary.push(basicMaterial);
-            return material;
-        }
-
         this._materialLibrary.push(material);
         return material;
     }

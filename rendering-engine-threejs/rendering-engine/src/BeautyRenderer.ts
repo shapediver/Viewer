@@ -159,7 +159,7 @@ export class BeautyRenderer {
         if (!this._initialized) this.initialize(camera, width, height);
         const percentage = this.setShaderProperties();
 
-        if((this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice)) {
+        if((this._renderingEngine.ambientOcclusion && !(this._systemInfo.isIOSDevice || this._systemInfo.isMobileDevice))) {
             this._ssaaPass.clearColor = this._renderer.getClearColor(new THREE.Color());
             this._ssaaPass.clearAlpha = this._renderer.getClearAlpha();
     
