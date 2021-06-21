@@ -161,7 +161,7 @@ export class OrthographicCamera extends AbstractCamera {
       const factor = 2 * box.boundingSphere.radius * this.zoomExtentsFactor;
 
       const center = vec3.clone(box.boundingSphere.center);
-      const eps = 0.001;
+      const eps = 0.01;
       switch (this._direction) {
          case ORTHOGRAPHIC_CAMERA_DIRECTION.TOP:
             return {
