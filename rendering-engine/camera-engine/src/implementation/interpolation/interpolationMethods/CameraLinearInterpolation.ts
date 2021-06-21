@@ -18,12 +18,10 @@ export class CameraLinearInterpolation implements ICameraInterpolation {
     // #region Public Methods (3)
 
     public onComplete(value: { delta: number }): void {
-        let positionOffset = vec3.subtract(vec3.create(), this._to.position, this._camera.position);
-        const translateMatP = mat4.fromTranslation(mat4.create(), positionOffset);
-        this._cameraControls.applyPositionMatrix(translateMatP);
-        let targetOffset = vec3.subtract(vec3.create(), this._to.target, this._camera.target);
-        const translateMatT = mat4.fromTranslation(mat4.create(), targetOffset);
-        this._cameraControls.applyTargetMatrix(translateMatT);
+        let positionOffset = vec3.subtract(vec3.create(), this._to.position, this._cameraControls.getPositionWithUpdates());
+        this._cameraControls.applyPositionVector(positionOffset);
+        let targetOffset = vec3.subtract(vec3.create(), this._to.target, this._cameraControls.getTargetWithUpdates());
+        this._cameraControls.applyTargetVector(targetOffset);
     }
 
     public onStop(value: { delta: number }): void {
@@ -31,14 +29,12 @@ export class CameraLinearInterpolation implements ICameraInterpolation {
 
     public onUpdate(value: { delta: number }): void {
         let p = vec3.add(vec3.create(), vec3.multiply(vec3.create(), this._from.position, vec3.fromValues(1 - value.delta, 1 - value.delta, 1 - value.delta)), vec3.multiply(vec3.create(), this._to.position, vec3.fromValues(value.delta, value.delta, value.delta)));
-        let positionOffset = vec3.subtract(vec3.create(), p, this._camera.position);
-        const translateMatP = mat4.fromTranslation(mat4.create(), positionOffset);
-        this._cameraControls.applyPositionMatrix(translateMatP);
+        let positionOffset = vec3.subtract(vec3.create(), p, this._cameraControls.getPositionWithUpdates());
+        this._cameraControls.applyPositionVector(positionOffset);
 
         let t = vec3.add(vec3.create(), vec3.multiply(vec3.create(), this._from.target, vec3.fromValues(1 - value.delta, 1 - value.delta, 1 - value.delta)), vec3.multiply(vec3.create(), this._to.target, vec3.fromValues(value.delta, value.delta, value.delta)));
-        let targetOffset = vec3.subtract(vec3.create(), t, this._camera.target);
-        const translateMatT = mat4.fromTranslation(mat4.create(), targetOffset);
-        this._cameraControls.applyTargetMatrix(translateMatT);
+        let targetOffset = vec3.subtract(vec3.create(), t, this._cameraControls.getTargetWithUpdates());
+        this._cameraControls.applyTargetVector(targetOffset);
     }
 
     // #endregion Public Methods (3)

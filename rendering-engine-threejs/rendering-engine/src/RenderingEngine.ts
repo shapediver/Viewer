@@ -187,7 +187,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public get automaticResizing(): boolean {
         return this._automaticResizing;
-        this._updateCBs.forEach(v => v());
     }
 
     /**

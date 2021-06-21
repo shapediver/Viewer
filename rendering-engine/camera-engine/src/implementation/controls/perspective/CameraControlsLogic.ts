@@ -159,9 +159,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._damping.rotation.duration = 0;
             this._damping.zoom.duration = 0;
 
-            const translateMat = mat4.fromTranslation(mat4.create(), offset);
-            this._controls.applyTargetMatrix(translateMat, true);
-            this._controls.applyPositionMatrix(translateMat, true);
+            this._controls.applyTargetVector(offset, true);
+            this._controls.applyPositionVector(offset, true);
         }
     }
 
@@ -294,8 +293,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._damping.pan.duration = 0;
             this._damping.zoom.duration = 0;
 
-            const translateMat = mat4.fromTranslation(mat4.create(), offset);
-            this._controls.applyPositionMatrix(translateMat, true);
+            this._controls.applyPositionVector(offset, true);
         }
     }
 
@@ -318,9 +316,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 let frameSinceStart = this._damping.pan.time / 16.6666;
                 let dampingFrames = Math.pow(damping, frameSinceStart);
                 let offset = vec3.multiply(vec3.create(), this._damping.pan.offset, vec3.fromValues(dampingFrames, dampingFrames, dampingFrames));
-                const translateMat = mat4.fromTranslation(mat4.create(), offset);
-                this._controls.applyTargetMatrix(translateMat);
-                this._controls.applyPositionMatrix(translateMat);
+                this._controls.applyTargetVector(offset);
+                this._controls.applyPositionVector(offset);
             }
         } else {
             this._damping.pan.time = 0;
@@ -338,8 +335,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 spherical.theta = this._damping.rotation.theta * Math.pow(damping, frameSinceStart);
                 spherical.phi = this._damping.rotation.phi * Math.pow(damping, frameSinceStart);
                 let offset = this.rotationSphericalToOffset(spherical);
-                const translateMat = mat4.fromTranslation(mat4.create(), offset);
-                this._controls.applyPositionMatrix(translateMat);
+                this._controls.applyPositionVector(offset);
             }
         } else {
             this._damping.rotation.time = 0;
@@ -355,8 +351,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 let frameSinceStart = this._damping.zoom.time / 16.6666;
                 let delta = this._damping.zoom.delta * Math.pow(damping, frameSinceStart);
                 let offset = this.zoomDistanceToOffset(delta);
-                const translateMat = mat4.fromTranslation(mat4.create(), offset);
-                this._controls.applyPositionMatrix(translateMat);
+                this._controls.applyPositionVector(offset);
             }
         } else {
             this._damping.zoom.time = 0;
@@ -365,8 +360,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
         if (this._controls.enableAutoRotation) {
             let spherical = new Spherical(1.0, 0.0, -this._adjustedSettings.autoRotationSpeed());
             let offset = this.rotationSphericalToOffset(spherical);
-            const translateMat = mat4.fromTranslation(mat4.create(), offset);
-            this._controls.applyPositionMatrix(translateMat);
+            this._controls.applyPositionVector(offset);
         }
     }
 
@@ -403,8 +397,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             this._damping.pan.duration = 0;
 
             let offset = this.zoomDistanceToOffset(delta);
-            const translateMat = mat4.fromTranslation(mat4.create(), offset);
-            this._controls.applyPositionMatrix(translateMat, true);
+            this._controls.applyPositionVector(offset, true);
         }
     }
 

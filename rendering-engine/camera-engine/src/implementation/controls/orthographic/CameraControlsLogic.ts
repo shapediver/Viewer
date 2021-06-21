@@ -109,9 +109,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
           this._damping.rotation.duration = 0;
           this._damping.zoom.duration = 0;
 
-          const translateMat = mat4.fromTranslation(mat4.create(), offset);
-          this._controls.applyTargetMatrix(translateMat, true);
-          this._controls.applyPositionMatrix(translateMat, true);
+          this._controls.applyTargetVector(offset, true);
+          this._controls.applyPositionVector(offset, true);
         }
     }
 
@@ -168,9 +167,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
               let frameSinceStart = this._damping.pan.time / 16.6666;
               let dampingFrames = Math.pow(damping, frameSinceStart);
               let offset = vec3.multiply(vec3.create(), this._damping.pan.offset, vec3.fromValues(dampingFrames, dampingFrames, dampingFrames));
-              const translateMat = mat4.fromTranslation(mat4.create(), offset);
-              this._controls.applyTargetMatrix(translateMat);
-              this._controls.applyPositionMatrix(translateMat);
+              this._controls.applyTargetVector(offset);
+              this._controls.applyPositionVector(offset);
             }
         } else {
             this._damping.pan.time = 0;
@@ -195,8 +193,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
                 vec3.normalize(dir, vec3.subtract(dir, this._controls.getTargetWithManualUpdates(), this._controls.getPositionWithManualUpdates()));
                 vec3.add(offset, this._controls.getPositionWithManualUpdates(), vec3.multiply(offset, dir, vec3.fromValues(newDistance, newDistance, newDistance)))
                 vec3.subtract(offset, offset, this._controls.getTargetWithManualUpdates())
-                const translateMat = mat4.fromTranslation(mat4.create(), offset);
-                this._controls.applyTargetMatrix(translateMat, true);
+                this._controls.applyTargetVector(offset, true);
       
             }
         } else {
@@ -242,8 +239,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             vec3.normalize(dir, vec3.subtract(dir, this._controls.getTargetWithManualUpdates(), this._controls.getPositionWithManualUpdates()));
             vec3.add(offset, this._controls.getPositionWithManualUpdates(), vec3.multiply(offset, dir, vec3.fromValues(newDistance, newDistance, newDistance)))
             vec3.subtract(offset, offset, this._controls.getTargetWithManualUpdates())
-            const translateMat = mat4.fromTranslation(mat4.create(), offset);
-            this._controls.applyTargetMatrix(translateMat, true);
+            this._controls.applyTargetVector(offset, true);
         }
     }
 
