@@ -34,8 +34,8 @@ const execPromise = (cmd: string) => {
             });
         });
         
-        await execPromise(`npm run deploy-tests`)
-        await execPromise(`npm run test`)
+        // await execPromise(`npm run deploy-tests`)
+        // await execPromise(`npm run test`)
 
         const changes = await execPromise(`git status --porcelain`);
         if(changes) {
