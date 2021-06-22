@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.geometry-engine",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -37,12 +37,12 @@
   },
   "dependencies": {
     "@shapediver/api.geometry-api-dto-v1": "^1.0.6",
-    "@shapediver/viewer.data-engine.shared-types": "^0.3.0",
-    "@shapediver/viewer.shared.monitoring": "^0.3.0",
-    "@shapediver/viewer.shared.node-tree": "^0.3.0",
-    "@shapediver/viewer.shared.services": "^0.3.0",
-    "@shapediver/viewer.shared.types": "^0.3.0",
-    "@shapediver/viewer.shared.utils": "^0.3.0",
+    "@shapediver/viewer.data-engine.shared-types": "^0.3.1",
+    "@shapediver/viewer.shared.monitoring": "^0.3.1",
+    "@shapediver/viewer.shared.node-tree": "^0.3.1",
+    "@shapediver/viewer.shared.services": "^0.3.1",
+    "@shapediver/viewer.shared.types": "^0.3.1",
+    "@shapediver/viewer.shared.utils": "^0.3.1",
     "gl-matrix": "^3.3.0",
     "tsyringe": "^4.5.0"
   }
