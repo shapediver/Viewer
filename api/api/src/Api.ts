@@ -323,7 +323,7 @@ export class Api {
    * @param id the id of the session
    * @returns 
    */
-  public getSession(id: string): Session {
+  public getSession(id: string): Session | null {
     this.#inputValidator.validate(id, 'string');
     return this.sessions[id];
   }
@@ -334,7 +334,7 @@ export class Api {
    * @param id the id of the viewer
    * @returns 
    */
-  public getViewer(id: string): Viewer {
+  public getViewer(id: string): Viewer | null {
     this.#inputValidator.validate(id, 'string');
     return this.viewers[id];
   }
