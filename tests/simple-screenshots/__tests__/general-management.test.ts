@@ -52,8 +52,8 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                await api.getViewer('myViewer').init();
-                await api.getSession('mySession').init();
+                await api.getViewer('myViewer')!.init();
+                await api.getSession('mySession')!.init();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
@@ -90,8 +90,8 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                await api.getViewer('myViewer').init();
-                await api.getSession('mySession').init();
+                await api.getViewer('myViewer')!.init();
+                await api.getSession('mySession')!.init();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })

@@ -191,8 +191,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateDisplayName('COLOR');
 
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateOrder(0);
@@ -270,7 +270,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
+                let viewer = api.getViewer('myViewer')!;
                 const lights = viewer.getLights();
                 for (let l in lights) {
                     if (lights[l].name === 'ambient0')
@@ -282,7 +282,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     if (lights[l].name === 'directional1')
                         lights[l].updateColor('#0000ff');
                 }
-                let session = api.getSession('mySession');
+                let session = api.getSession('mySession')!;
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -298,8 +298,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 const lights = viewer.getLights();
                 for (let l in lights) {
                     for (let l in lights) {
@@ -348,7 +348,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
+                let viewer = api.getViewer('myViewer')!;
                 viewer.createLightScene({ name: 'testLightScene' });
                 viewer.addAmbientLight({ color: '#ff0000', intensity: 0.4, name: 'ambient' })
                 viewer.addDirectionalLight({ color: '#00ff00', intensity: 0.5, direction: [1, -1, 0], castShadow: true, shadowMapBias: 0.0001, shadowMapResolution: 512, name: 'directional' })
@@ -356,7 +356,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.addPointLight({ color: '#000f0f', intensity: 0.7, position: [50, 0, 0], name: 'point' })
                 viewer.addSpotLight({ color: '#000fff', intensity: 0.8, position: [50, 0, 0], target: [0, 0, 0], name: 'spot' })
 
-                let session = api.getSession('mySession');
+                let session = api.getSession('mySession')!;
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -377,8 +377,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
 
                 viewer.assignLightScene('default');
                 viewer.removeLightScene('testLightScene')

@@ -47,8 +47,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateDisplayName('COLOR');
 
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateOrder(0);
@@ -125,7 +125,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let session = api.getSession('mySession');
+                let session = api.getSession('mySession')!;
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateDisplayName('THE LENGTH');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -138,7 +138,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let session = api.getSession('mySession');
+                let session = api.getSession('mySession')!;
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateDisplayName(undefined);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -178,7 +178,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let session = api.getSession('mySession');
+                let session = api.getSession('mySession')!;
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateOrder(9);
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateOrder(10);
                 await session.saveSettings();
@@ -201,7 +201,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let session = api.getSession('mySession');
+                let session = api.getSession('mySession')!;
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateOrder(10);
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateOrder(9);
                 await session.saveSettings();
@@ -250,7 +250,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let session = api.getSession('mySession');
+                let session = api.getSession('mySession')!;
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateHidden(false);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -269,7 +269,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let session = api.getSession('mySession');
+                let session = api.getSession('mySession')!;
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateHidden(true);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());

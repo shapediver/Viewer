@@ -39,7 +39,7 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
 })();
 
 (<any>window).resetSettings = async () => {
-    const session = api.getSession('mySession');
+    const session = api.getSession('mySession')!;
     session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateDisplayName('COLOR');
 
     session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateOrder(0);
@@ -66,7 +66,7 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
     session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateHidden(true);
     session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateHidden(false);
 
-    const viewer = api.getViewer('myViewer');
+    const viewer = api.getViewer('myViewer')!;
     viewer.updateBlurSceneWhenBusy(true);
     const camera = viewer.getCamera();
     camera!.updateAutoAdjust(false);
@@ -93,7 +93,7 @@ logger.info(performanceEvaluator.getEvaluationToString('startup'));
 
 
 (<any>window).saveSettings = async () => {
-    const session = api.getSession('mySession');
+    const session = api.getSession('mySession')!;
     await session.saveSettings();
 };
 

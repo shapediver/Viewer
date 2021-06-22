@@ -47,8 +47,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateDisplayName('COLOR');
 
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateOrder(0);
@@ -139,8 +139,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateGridVisibility(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -155,8 +155,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateGridVisibility(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -188,8 +188,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateGroundPlaneVisibility(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -204,8 +204,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateGroundPlaneVisibility(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -238,8 +238,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateEnvironmentMap('georgentor');
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -254,8 +254,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateEnvironmentMap('none');
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -287,8 +287,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateEnvironmentMap('georgentor');
                 viewer.updateEnvironmentMapAsBackground(true);
                 viewer.update();
@@ -304,8 +304,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateEnvironmentMap('none');
                 viewer.updateEnvironmentMapAsBackground(false);
                 viewer.update();
@@ -337,8 +337,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateEnvironmentMapResolution('512');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -348,8 +348,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateEnvironmentMapResolution('1024');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -375,8 +375,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateAmbientOcclusion(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -391,8 +391,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateAmbientOcclusion(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -423,8 +423,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateBeautyRenderBlendingDuration(500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -434,8 +434,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateBeautyRenderBlendingDuration(1500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -460,8 +460,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateBeautyRenderDelay(500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -471,8 +471,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateBeautyRenderDelay(50);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -499,8 +499,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateClearAlpha(0);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -515,8 +515,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateClearAlpha(1);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -547,8 +547,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateClearColor('#ff0000');
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -563,8 +563,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateClearColor('#ffffff');
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -601,8 +601,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateShadows(false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -617,8 +617,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 viewer.updateShadows(true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
@@ -649,8 +649,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 api.updateShowMessages(false);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
@@ -660,8 +660,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer');
-                let session = api.getSession('mySession');
+                let viewer = api.getViewer('myViewer')!;
+                let session = api.getSession('mySession')!;
                 api.updateShowMessages(true);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.deconstruct());
