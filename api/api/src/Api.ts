@@ -323,12 +323,8 @@ export class Api {
    * @param id the id of the session
    * @returns 
    */
-  public getSession(id: string): Session {
+  public getSession(id: string): Session | null {
     this.#inputValidator.validate(id, 'string');
-    if(!this.sessions[id]) {
-      this.#logger.error('Session with this id does not exists.');
-      throw new Error('Session with this id does not exists.');
-    }
     return this.sessions[id];
   }
 
@@ -338,12 +334,8 @@ export class Api {
    * @param id the id of the viewer
    * @returns 
    */
-  public getViewer(id: string): Viewer {
+  public getViewer(id: string): Viewer | null {
     this.#inputValidator.validate(id, 'string');
-    if(!this.viewers[id]) {
-      this.#logger.error('Viewer with this id does not exists.');
-      throw new Error('Viewer with this id does not exists.');
-    }
     return this.viewers[id];
   }
 

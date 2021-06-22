@@ -144,25 +144,21 @@ export class Session {
      * @returns 
      */
     public async customize(): Promise<TreeNode> {
-        console.log('A');
         const blurValues: {[key: string]: boolean} = {};
         for(let viewerId in this.#api.viewers) {
             blurValues[viewerId] = this.#api.viewers[viewerId].blur;
             this.#api.viewers[viewerId].updateBlur(true);
         }
-        console.log('B');
 
         (<Tree>container.resolve(Tree)).removeNode(this.node);
-        console.log('C');
 
         // load file parameter first
         for (const parameterId in this.parameters) {
             if (this.parameters[parameterId] instanceof FileParameter) {
                 const id = await (<FileParameter>this.parameters[parameterId]).upload();
-                this.parameters[parameterId] = id;
+                this.parameters[parameterId].updateValue(id);
             }
         }
-        console.log('D');
 
         const parameterSet: {
             [key: string]: {
@@ -170,7 +166,6 @@ export class Session {
                 valueString: string
             }
         } = {};
-        console.log('E');
 
         // create a set of the current validated parameter values
         for (const parameterId in this.parameters) {
@@ -179,28 +174,22 @@ export class Session {
                 valueString: this.parameters[parameterId].stringify()
             }
         }
-        console.log('F');
 
         // update the session engine parameter values if everything succeeded
         for (const parameterId in this.parameters)
             this.#sessionEngine.parameterValues[parameterId] = parameterSet[parameterId].valueString;
-        console.log('G');
 
         (<any>this.node) = await this.#sessionEngine.customize();
-        console.log('H');
 
         // set the session values to the current ones in all parameters
         for (const parameterId in this.parameters)
             (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
-        console.log('I');
         (<Tree>container.resolve(Tree)).addNode(this.node);
         this.node.excludeViewers = this.#excludeViewers;
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
-        console.log('J');
         for(let viewerId in this.#api.viewers) 
             this.#api.viewers[viewerId].updateBlur(blurValues[viewerId]);
         this.#api.update();
-        console.log('K');
         this.#logger.info(`Session (${this.id}): Session customized.`);
         return this.node;
     }
