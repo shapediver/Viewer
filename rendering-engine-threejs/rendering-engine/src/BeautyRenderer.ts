@@ -147,7 +147,7 @@ export class BeautyRenderer {
         this._saoPass.params.saoScale = 4;
         this._saoPass.params.saoKernelRadius = 100;
         this._saoPass.params.saoMinResolution = 0.001;
-        this._saoPass.params.saoBlur = 1;
+        this._saoPass.params.saoBlur = true;
         this._saoPass.params.saoBlurRadius = 4;
         this._saoPass.params.saoBlurStdDev = 4;
         this._saoPass.params.saoBlurDepthCutoff = 0.01;

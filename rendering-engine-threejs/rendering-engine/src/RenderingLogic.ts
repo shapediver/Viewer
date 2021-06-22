@@ -7,7 +7,6 @@ import { container } from "tsyringe";
 import { RenderingEngine } from "./RenderingEngine";
 import { SceneTree } from "./SceneTree";
 import { main, entry } from "./shaders/PCSS";
-import { shader as normalShader } from "./shaders/normal";
 import { BeautyRenderer } from "./BeautyRenderer";
 import * as TWEEN from "@tweenjs/tween.js";
 import * as Stats from "stats.js";
@@ -45,7 +44,6 @@ export class RenderingLogic {
             shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
         }
         THREE.ShaderChunk.shadowmap_pars_fragment = shader;
-        THREE.ShaderChunk.normalmap_pars_fragment = normalShader;
 
         this._width = this._renderingEngine.canvas.canvasElement.width;
         this._height = this._renderingEngine.canvas.canvasElement.height;
