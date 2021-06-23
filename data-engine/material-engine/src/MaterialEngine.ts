@@ -431,8 +431,8 @@ export class MaterialEngine {
             await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class][idStrings.specific], material);
             await this.assignGeneralDefinition(idStrings, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class][idStrings.specific], material);
         } else if (materialDatabase[idStrings.class]['00']) {
-            await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class]['00'], material);
-            await this.assignGeneralDefinition(idStrings, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class]['00'], material);
+            await this.assignSpecificDefinition({ class: idStrings.class, specific: '00' }, materialDatabase[idStrings.class]['00'], material);
+            await this.assignGeneralDefinition({ class: idStrings.class, specific: '00' }, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class]['00'], material);
         } else {
             await this.assignSpecificDefinition({ class: '00', specific: '00' }, materialDatabase['00']['00'], material);
             await this.assignGeneralDefinition({ class: '00', specific: '00' }, materialDatabase['00'].properties, materialDatabase['00']['00'], material);
