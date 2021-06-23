@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.utils",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@ctrl/tinycolor": "^3.4.0",
-    "@shapediver/viewer.shared.monitoring": "^0.3.3",
+    "@shapediver/viewer.shared.monitoring": "^0.3.4",
     "@types/uuid": "^8.3.0",
     "axios": "^0.21.1",
     "gl-matrix": "^3.3.0",
