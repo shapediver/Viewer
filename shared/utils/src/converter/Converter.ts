@@ -8,6 +8,17 @@ export class Converter {
     private tinyColorToString(color: TinyColor): string {
         return color.toHexString();
     }
+    
+    /**
+     * @param color 
+     * @param defColor 
+     */
+     public toHex8Color(color: any, defColorString: string = '#00fff7'): string {
+        const c = this.toColor(color, defColorString);
+        const tColor = new TinyColor(c);
+        const cH8 = tColor.toHex8String();
+        return cH8.replace('#', '0x');
+    }
 
     /**
      * This color converter is mostly left 'as-is' from viewer v2.

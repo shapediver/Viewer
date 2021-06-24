@@ -239,7 +239,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
             case this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL:
                 return typeof this.value === 'string' ? this.value : (<boolean><unknown>this.value)+'';
             case this.type === PARAMETERTYPE.COLOR || this.type === PARAMETERTYPE.SCOLOR:
-                return typeof this.value === 'string' ? this.value : this.#converter.toColor(this.value);
+                return this.#converter.toHex8Color(this.value);
             case this.type === PARAMETERTYPE.FILE:
                 if(typeof this.value !== 'string') {
                     this.#logger.error(`Parameter (${this.id}): Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`);
