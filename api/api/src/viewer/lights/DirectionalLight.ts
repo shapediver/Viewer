@@ -3,7 +3,7 @@ import { DirectionalLight as DirectionalLightLogic } from "@shapediver/viewer.re
 import { vec3 } from "gl-matrix";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 
 export class DirectionalLight extends Light {
     // #region Properties (8)

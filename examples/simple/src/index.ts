@@ -2,7 +2,7 @@ import "reflect-metadata"
 import { container } from "tsyringe";
 import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, EVENTTYPE, LOGGINGLEVEL, PerspectiveCamera } from "@shapediver/viewer"
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
-import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
+import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.utils";
 import { SettingsEngine } from "@shapediver/viewer.shared.services";
 import { vec3 } from "gl-matrix";
 

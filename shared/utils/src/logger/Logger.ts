@@ -1,7 +1,8 @@
-import { singleton } from "tsyringe";
+import { singleton,container } from "tsyringe";
 import * as Sentry from "@sentry/browser";
 import { Integrations } from "@sentry/tracing";
 import { build_data } from "@shapediver/viewer.shared.build-data";
+import { UuidGenerator } from "../uuid-generator/UuidGenerator";
 
 export enum LOGGINGLEVEL {
     NONE = 'none',
@@ -37,21 +38,40 @@ export class Logger {
     private _showMessages: boolean = true;
     private _updateCBs: (() => void)[] = [];
     private _breadCrumbCounter: number = 0;
+    private _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     // #endregion Properties (2)
 
     constructor() {
         Sentry.init({
             dsn: "https://0510990697b04b9da3ad07868e94e378@o363881.ingest.sentry.io/5828729",
-            integrations: [new Integrations.BrowserTracing(), new Sentry.Integrations.TryCatch()],
+            integrations: [
+                new Integrations.BrowserTracing(), 
+                new Sentry.Integrations.TryCatch(), 
+                new Sentry.Integrations.Breadcrumbs({
+                    console: false,
+                })
+            ],
             environment: 'local',
             release: build_data.build_version,
             maxBreadcrumbs: 100,
+            beforeBreadcrumb: (breadcrumb: Sentry.Breadcrumb, hint?: Sentry.BreadcrumbHint | undefined) => {
+                this._breadCrumbCounter++;
+                if(this._breadCrumbCounter === 100) {
+                    Sentry.captureMessage('Breadcrumb Issue', Sentry.Severity.Debug);
+                    Sentry.getCurrentHub().getScope()?.clear()
+                    this._breadCrumbCounter = 0;
+                }
+                return breadcrumb;
+            },            
             // Set tracesSampleRate to 1.0 to capture 100%
             // of transactions for performance monitoring.
             // We recommend adjusting this value in production
             tracesSampleRate: 1.0
         });
+        Sentry.setUser({
+            id: this._uuidGenerator.create()
+        })
     }
 
     // #region Public Accessors (4)
@@ -135,17 +155,12 @@ export class Logger {
     // #region Public Methods (8)
 
     private sentryBreadcrumb(topic: LOGGINGTOPIC, msg: string, level: Sentry.Severity) {
-        this._breadCrumbCounter++;
         Sentry.addBreadcrumb({
             category: topic,
             message: msg,
             level: Sentry.Severity.Debug,
             timestamp: Math.floor(new Date().getTime() / 1000)
         })
-        if(this._breadCrumbCounter === 100) {
-            Sentry.captureMessage('Breadcrumb Issue', Sentry.Severity.Debug);
-            this._breadCrumbCounter = 0;
-        }
     }
 
     /**

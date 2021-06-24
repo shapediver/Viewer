@@ -2,7 +2,7 @@ import { AbstractCamera, CAMERATYPE, ICamera, ICameraControls } from "@shapedive
 import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { Box } from "@shapediver/viewer.shared.math";
 export abstract class Camera implements ICamera {
     // #region Properties (15)

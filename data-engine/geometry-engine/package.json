@@ -38,7 +38,6 @@
   "dependencies": {
     "@shapediver/api.geometry-api-dto-v1": "^1.0.6",
     "@shapediver/viewer.data-engine.shared-types": "^0.3.7",
-    "@shapediver/viewer.shared.monitoring": "^0.3.7",
     "@shapediver/viewer.shared.node-tree": "^0.3.7",
     "@shapediver/viewer.shared.services": "^0.3.7",
     "@shapediver/viewer.shared.types": "^0.3.7",

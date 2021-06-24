@@ -1,5 +1,5 @@
 import { AbstractLight, ILight, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";

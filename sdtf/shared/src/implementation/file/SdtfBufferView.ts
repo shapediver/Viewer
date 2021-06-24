@@ -1,7 +1,7 @@
 import { CONTENTTYPE, CONTENT_ENCODING } from "../../enums";
 import { SdtfBuffer } from "./SdtfBuffer";
 import { ungzip } from "pako"
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
 export class SdtfBufferView {

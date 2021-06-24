@@ -10,7 +10,7 @@ import { PerspectiveCamera } from "./camera/PerspectiveCamera";
 import { OrthographicCamera } from "./camera/OrthographicCamera";
 import { PerspectiveCameraControls } from "./controls/PerspectiveCameraControls";
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from "../interfaces/camera/IOrthographicCamera";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (3)

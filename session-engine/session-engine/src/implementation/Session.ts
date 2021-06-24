@@ -6,7 +6,7 @@ import { HttpClient, UuidGenerator } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
 import { SettingsEngine, SystemInfo, StateEngine } from '@shapediver/viewer.shared.services';
 import { ISession } from '../interfaces/ISession';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
 import { AxiosResponse } from 'axios';
 import { ShapeDiverResponseBase, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from '@shapediver/api.geometry-api-dto-v1';
 import { SessionData } from './SessionData';

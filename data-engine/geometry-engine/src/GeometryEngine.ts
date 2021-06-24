@@ -3,7 +3,7 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { GLTFLoader as GLTF_v1Loader } from './gltfv1/GLTFLoader';
 import { GLTFLoader as GLTF_v2Loader } from './gltfv2/GLTFLoader';
 import { container, singleton } from 'tsyringe';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1';
 
 @singleton()

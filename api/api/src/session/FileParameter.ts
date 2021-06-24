@@ -1,6 +1,6 @@
 import { ShapeDiverResponseParameter } from "@shapediver/api.geometry-api-dto-v1";
 import { Session } from "@shapediver/viewer.session-engine.session-engine";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { HttpClient, InputValidator, UuidGenerator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Parameter } from "./Parameter";
@@ -37,6 +37,7 @@ export class FileParameter extends Parameter<File | Blob | string> {
         this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
         try {
             let uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].method!.toLowerCase()!, { [this.id]: { size: data.size, format: this.format![0] } }, 'application/json')).data;
+            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Received reply ${JSON.stringify(uploadReply)}.`);
             await this.#httpClient.put(uploadReply[this.id].href, { data, headers: { 'Content-Type': this.format![0] }, });
             return uploadReply[this.id].id;
         } catch (e) {

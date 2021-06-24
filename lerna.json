@@ -1,6 +1,5 @@
 {
   "packages": [
-    "monitoring/*",
     "utils/*",
     "node-tree/*",
     "shared/*",

@@ -1,6 +1,6 @@
 import { ShapeDiverResponseParameterStructure, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameter } from "@shapediver/api.geometry-api-dto-v1";
 import { Session } from "@shapediver/viewer.session-engine.session-engine";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
@@ -120,7 +120,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
         this.value = this.#defaultValue;
         this.sessionValue = this.value;
         this.lastValidatedValue = this.value;
-        this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).constructor: Initialized parameter ${paramDef}.`);
+        this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).constructor: Initialized parameter ${JSON.stringify(paramDef)}.`);
     }
 
     // #endregion Constructors (1)

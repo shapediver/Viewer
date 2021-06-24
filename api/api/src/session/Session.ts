@@ -4,7 +4,7 @@ import { Export } from "./Export";
 import { Output } from "./Output";
 import { container, injectable } from "tsyringe";
 import { Viewer } from "../viewer/Viewer";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { RenderingEngine } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";

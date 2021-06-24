@@ -3,7 +3,7 @@ import { PointLight as PointLightLogic } from "@shapediver/viewer.rendering-engi
 import { vec3 } from "gl-matrix";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 
 export class PointLight extends Light {
     // #region Properties (7)

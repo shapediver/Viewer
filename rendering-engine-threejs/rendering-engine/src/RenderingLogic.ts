@@ -1,6 +1,6 @@
 import { AbstractCamera, CAMERATYPE, OrthographicCamera, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { EventEngine, EVENTTYPE, StateEngine, SystemInfo } from "@shapediver/viewer.shared.services";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import * as THREE from 'three';
 import { container } from "tsyringe";

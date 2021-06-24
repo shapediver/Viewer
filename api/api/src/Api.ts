@@ -5,7 +5,7 @@ import { Viewer } from "./viewer/Viewer";
 import { StateEngine, EventEngine, EVENTTYPE, MAINEVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services';
 import { UuidGenerator, InputValidator } from '@shapediver/viewer.shared.utils';
 import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { build_data } from "@shapediver/viewer.shared.build-data";
 
@@ -149,7 +149,7 @@ export class Api {
    * @returns 
    */
   public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Promise<Session> {
-    this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Creating and initializing session with properties ${properties}.`);
+    this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
     // input validation
     this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties, 'object');
     this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.ticket, 'string');
@@ -184,7 +184,7 @@ export class Api {
    * @returns 
    */
   public async createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<Viewer> {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Creating and initializing viewer with properties ${properties}.`);
+    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
     this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createAndInitializeViewer', properties, 'object', false);
     const prop = Object.assign({}, properties);
     this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));
@@ -230,7 +230,7 @@ export class Api {
    * @returns 
    */
   public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Session {
-    this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating session with properties ${properties}.`);
+    this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating session with properties ${JSON.stringify(properties)}.`);
     // input validation
     this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties, 'object');
     this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.ticket, 'string');
@@ -272,7 +272,7 @@ export class Api {
    * @returns 
    */
   public createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating viewer with properties ${properties}.`);
+    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating viewer with properties ${JSON.stringify(properties)}.`);
     this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
     const prop = Object.assign({}, properties);
     this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));

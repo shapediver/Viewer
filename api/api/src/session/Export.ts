@@ -1,6 +1,6 @@
 import { ShapeDiverResponseBase, ShapeDiverResponseExport, ShapeDiverResponseExportDefinition, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportPart, ShapeDiverResponseExportResult as ExportResult } from "@shapediver/api.geometry-api-dto-v1";
 import { Session } from "@shapediver/viewer.session-engine.session-engine";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 
@@ -37,7 +37,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
     this.displayName = undefined;
     this.order = undefined;
     this.hidden = false;
-    this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).constructor: Initialized export ${exportDef}.`);
+    this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
   }
 
   // #endregion Constructors (1)
@@ -58,10 +58,10 @@ export class Export implements ShapeDiverResponseExportDefinition {
     for (let parameter in currentParameters)
       exportParameters[parameter] = parameters[parameter] || parameters[parameter] === '' ? parameters[parameter] : currentParameters[parameter];
 
-    this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Sending export request with parameters ${exportParameters}.`);
+    this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
     try {
       let exportReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.id }, parameters: exportParameters }, 'application/json')).data;
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Received export reply ${exportReply}.`);
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Received export reply ${JSON.stringify(exportReply)}.`);
       let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.id];
       this.#sessionEngine.mergeResponses(this.#sessionEngine.sessionResponse, { version: this.#sessionEngine.sessionResponse.version, actions: exportReply.actions });
       if ('delay' in exportResult) {
@@ -113,7 +113,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
     this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).cacheRequest: Sending cache request.`);
     try {
       let exportCacheReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].method!.toLowerCase()!, { [this.id]: version }, 'application/json')).data;
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).cacheRequest: Received export cache reply ${exportCacheReply}.`);
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).cacheRequest: Received export cache reply ${JSON.stringify(exportCacheReply)}.`);
       let exportCacheResult = <ShapeDiverResponseExport>exportCacheReply.exports![this.id];
       if ('delay' in exportCacheResult) {
         await new Promise(resolve => setTimeout(resolve, exportCacheResult.delay!));

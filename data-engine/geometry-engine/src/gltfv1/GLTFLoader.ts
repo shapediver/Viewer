@@ -5,7 +5,7 @@ import { ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as 
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MaterialData, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { container } from 'tsyringe';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
 
 export class GLTFLoader {
     // #region Properties (5)

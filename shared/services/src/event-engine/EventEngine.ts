@@ -5,7 +5,7 @@ import { ICallback } from "./interfaces/ICallback";
 import { IEvent } from "./interfaces/IEvent";
 
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 
 @singleton()
 export class EventEngine {

@@ -2,7 +2,7 @@ import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.re
 import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic, OrthographicCamera as OrthographicCameraLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from "@shapediver/viewer.shared.utils";
 import { EventEngine, EVENTTYPE, StateEngine } from "@shapediver/viewer.shared.services";
 import { Converter, InputValidator, UuidGenerator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";

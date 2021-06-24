@@ -1,7 +1,7 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import * as THREE from 'three';
 import { container, singleton } from 'tsyringe';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1';
 import { Converter } from '@shapediver/viewer.shared.utils';
 import { AttributeData, GeometryData, MaterialData, PrimitiveData } from '@shapediver/viewer.shared.types';

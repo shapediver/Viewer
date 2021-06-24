@@ -1,6 +1,6 @@
 import { HttpClient } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
 
 export class SdtfBuffer {
   // #region Properties (1)

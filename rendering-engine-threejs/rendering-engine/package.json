@@ -41,7 +41,6 @@
     "@shapediver/viewer.rendering-engine.light-engine": "^0.3.7",
     "@shapediver/viewer.rendering-engine.rendering-engine": "^0.3.7",
     "@shapediver/viewer.shared.math": "^0.3.7",
-    "@shapediver/viewer.shared.monitoring": "^0.3.7",
     "@shapediver/viewer.shared.node-tree": "^0.3.7",
     "@shapediver/viewer.shared.services": "^0.3.7",
     "@shapediver/viewer.shared.types": "^0.3.7",

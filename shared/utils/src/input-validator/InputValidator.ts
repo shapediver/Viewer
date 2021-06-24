@@ -1,5 +1,5 @@
 import { container, singleton } from "tsyringe";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring"
+import { Logger, LOGGINGTOPIC } from "../logger/Logger"
 import { TypeChecker } from "../type-check/TypeChecker";
 
 export type Types = 'string' | 'boolean' | 'function' |

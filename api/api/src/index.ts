@@ -10,7 +10,7 @@ import { Session } from "./session/Session";
 import { AbstractTreeNodeData, ITransformation, ITreeNodeData, Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ThreejsData } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
 import { CustomData, GeometryData, MaterialData } from "@shapediver/viewer.shared.types";
-import { LOGGINGLEVEL } from "@shapediver/viewer.shared.monitoring";
+import { LOGGINGLEVEL } from "@shapediver/viewer.shared.utils";
 import { EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { SessionData, SessionOutputData } from "@shapediver/viewer.session-engine.session-engine";
 import { PerspectiveCameraControls } from "./viewer/camera/controls/PerspectiveCameraControls";

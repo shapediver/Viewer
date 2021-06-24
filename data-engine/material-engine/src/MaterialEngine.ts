@@ -4,7 +4,7 @@ import { container, singleton } from 'tsyringe';
 import { Converter, HttpClient, ImageLoader } from '@shapediver/viewer.shared.utils';
 import { MapData, MaterialData, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
 import { vec2, vec3, vec4 } from 'gl-matrix';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1';
 import { materialDatabase } from "./materialDatabase";
 

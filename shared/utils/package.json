@@ -37,7 +37,9 @@
   },
   "dependencies": {
     "@ctrl/tinycolor": "^3.4.0",
-    "@shapediver/viewer.shared.monitoring": "^0.3.7",
+    "@sentry/browser": "^6.7.2",
+    "@sentry/tracing": "^6.7.2",
+    "@shapediver/viewer.shared.build-data": "^0.3.7",
     "@types/uuid": "^8.3.0",
     "axios": "^0.21.1",
     "gl-matrix": "^3.3.0",

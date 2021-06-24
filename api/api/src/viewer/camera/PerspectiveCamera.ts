@@ -1,5 +1,5 @@
 import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Viewer } from "../Viewer";

@@ -22,7 +22,7 @@ import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { GeometryData } from '@shapediver/viewer.shared.types';
 import { Box } from '@shapediver/viewer.shared.math';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
 
 export class RenderingEngine implements IRenderingEngine {
     // #region Properties (41)

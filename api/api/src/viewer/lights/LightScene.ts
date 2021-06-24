@@ -3,7 +3,7 @@ import { ILight, ILightScene, ILightScene as LightSceneLogic, LightScene as Ligh
 import { vec3 } from "gl-matrix";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { Viewer } from "../Viewer";
 import { AmbientLight } from "../lights/AmbientLight";
