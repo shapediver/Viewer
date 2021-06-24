@@ -39,6 +39,7 @@ export class Logger {
     private _updateCBs: (() => void)[] = [];
     private _breadCrumbCounter: number = 0;
     private _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    private _userId = this._uuidGenerator.create();
 
     // #endregion Properties (2)
 
@@ -60,6 +61,9 @@ export class Logger {
                 if(this._breadCrumbCounter === 100) {
                     Sentry.captureMessage('Breadcrumb Issue', Sentry.Severity.Debug);
                     Sentry.getCurrentHub().getScope()?.clear()
+                    Sentry.setUser({
+                        id: this._userId
+                    })
                     this._breadCrumbCounter = 0;
                 }
                 return breadcrumb;
@@ -70,7 +74,7 @@ export class Logger {
             tracesSampleRate: 1.0
         });
         Sentry.setUser({
-            id: this._uuidGenerator.create()
+            id: this._userId
         })
     }
 
