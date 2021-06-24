@@ -46,10 +46,11 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
      * @param {number} value
      */
     public updateFov(value: number) {
-        this.#inputValidator.validate(value, 'positive');
+        this.#logger.debugLow(`Camera(${this.id}).updateFov: Updating Fov to ${value}.`);
+        this.#inputValidator.validateAndError(`Camera(${this.id}).updateFov`, value, 'positive');
         this.#camera.fov = value;
         this.#viewer.update();
-        this.#logger.info(`Camera (${this.#camera.id}): fov was set to: ${value}`);
+        this.#logger.info(`Camera(${this.id}).updateFov: fov was set to: ${value}`);
     }
 
     // #endregion Public Methods (1)

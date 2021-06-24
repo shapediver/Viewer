@@ -51,9 +51,10 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public updateAngle(value: number) {
-        this.#inputValidator.validate(value, 'positive');
+        this.#logger.debugLow(`Light(${this.id}).updateAngle: Updating Angle to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateAngle`, value, 'positive');
         this.#light.angle = value;
-        this.#logger.info(`Light (${this.#light.id}): angle was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updateAngle: angle was set to: ${value}`);
     }
 
     /**
@@ -61,9 +62,10 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public updateDecay(value: number) {
-        this.#inputValidator.validate(value, 'positive');
+        this.#logger.debugLow(`Light(${this.id}).updateDecay: Updating Decay to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateDecay`, value, 'positive');
         this.#light.decay = value;
-        this.#logger.info(`Light (${this.#light.id}): decay was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updateDecay: decay was set to: ${value}`);
     }
 
     /**
@@ -71,9 +73,10 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public updateDistance(value: number) {
-        this.#inputValidator.validate(value, 'positive');
+        this.#logger.debugLow(`Light(${this.id}).updateDistance: Updating Distance to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateDistance`, value, 'positive');
         this.#light.distance = value;
-        this.#logger.info(`Light (${this.#light.id}): distance was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updateDistance: distance was set to: ${value}`);
     }
 
     /**
@@ -81,9 +84,10 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public updatePenumbra(value: number) {
-        this.#inputValidator.validate(value, 'positive');
+        this.#logger.debugLow(`Light(${this.id}).updatePenumbra: Updating Penumbra to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updatePenumbra`, value, 'positive');
         this.#light.penumbra = value;
-        this.#logger.info(`Light (${this.#light.id}): penumbra was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updatePenumbra: penumbra was set to: ${value}`);
     }
 
     /**
@@ -91,9 +95,10 @@ export class SpotLight extends Light {
      * @param {vec3} value
      */
     public updatePosition(value: vec3) {
-        this.#inputValidator.validate(value, 'vec3');
+        this.#logger.debugLow(`Light(${this.id}).updatePosition: Updating Position to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updatePosition`, value, 'vec3');
         this.#light.position = value;
-        this.#logger.info(`Light (${this.#light.id}): position was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updatePosition: position was set to: ${value}`);
     }
 
     /**
@@ -101,9 +106,10 @@ export class SpotLight extends Light {
      * @param {vec3} value
      */
     public updateTarget(value: vec3) {
-        this.#inputValidator.validate(value, 'vec3');
+        this.#logger.debugLow(`Light(${this.id}).updateTarget: Updating Target to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateTarget`, value, 'vec3');
         this.#light.target = value;
-        this.#logger.info(`Light (${this.#light.id}): target was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updateTarget: target was set to: ${value}`);
     }
 
     // #endregion Public Accessors (6)

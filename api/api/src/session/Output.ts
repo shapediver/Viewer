@@ -31,6 +31,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
     if (outputDef.uid) this.uid = outputDef.uid;
     if (outputDef.material) this.material = outputDef.material;
     if (outputDef.chunks) this.chunks = outputDef.chunks;
+    this.#logger.debugLow(`Output(${this.id}).constructor: Initialized output ${outputDef}.`);
   }
 
   // #endregion Constructors (1)

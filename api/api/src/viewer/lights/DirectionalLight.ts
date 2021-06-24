@@ -47,9 +47,10 @@ export class DirectionalLight extends Light {
      * @param {boolean} value
      */
     public updateCastShadow(value: boolean) {
-        this.#inputValidator.validate(value, 'boolean');
+        this.#logger.debugLow(`Light(${this.id}).updateCastShadow: Updating CastShadow to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateCastShadow`, value, 'boolean');
         this.#light.castShadow = value;
-        this.#logger.info(`Light (${this.#light.id}): castShadow was set to: ${value}`);
+        this.#logger.info(` Light(${this.id}).updateCastShadow: castShadow was set to: ${value}`);
     }
 
     /**
@@ -57,9 +58,10 @@ export class DirectionalLight extends Light {
      * @param {vec3} value
      */
     public updateDirection(value: vec3) {
-        this.#inputValidator.validate(value, 'vec3');
+        this.#logger.debugLow(`Light(${this.id}).updateDirection: Updating Direction to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateDirection`, value, 'vec3');
         this.#light.direction = value;
-        this.#logger.info(`Light (${this.#light.id}): direction was set to: ${value}`);
+        this.#logger.info(` Light(${this.id}).updateDirection: direction was set to: ${value}`);
     }
 
     /**
@@ -67,9 +69,10 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public updateShadowMapBias(value: number) {
-        this.#inputValidator.validate(value, 'number');
+        this.#logger.debugLow(`Light(${this.id}).updateShadowMapBias: Updating ShadowMapBias to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateShadowMapBias`, value, 'number');
         this.#light.shadowMapBias = value;
-        this.#logger.info(`Light (${this.#light.id}): shadowMapBias was set to: ${value}`);
+        this.#logger.info(` Light(${this.id}).updateShadowMapBias: shadowMapBias was set to: ${value}`);
     }
 
     /**
@@ -77,9 +80,10 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public updateShadowMapResolution(value: number) {
-        this.#inputValidator.validate(value, 'number');
+        this.#logger.debugLow(`Light(${this.id}).updateShadowMapResolution: Updating ShadowMapResolution to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateShadowMapResolution`, value, 'number');
         this.#light.shadowMapResolution = value;
-        this.#logger.info(`Light (${this.#light.id}): shadowMapResolution was set to: ${value}`);
+        this.#logger.info(` Light(${this.id}).updateShadowMapResolution: shadowMapResolution was set to: ${value}`);
     }
 
     // #endregion Public Methods (4)

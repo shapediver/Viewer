@@ -17,6 +17,7 @@ export class LightScene implements ILightScene {
     // #region Properties (8)
 
     readonly #lightSceneLogic: LightSceneLogic;
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #updateCB = () => {
         (<any>this.id) = this.#lightSceneLogic.id;
         (<any>this.name) = this.#lightSceneLogic.name;
@@ -69,6 +70,7 @@ export class LightScene implements ILightScene {
         this.#lightSceneLogic = lightSceneLogic;
         (<LightSceneLogicImplementation>this.#lightSceneLogic).addUpdateCB(this.#updateCB);
         this.#updateCB();
+        this.#logger.debugLow(`LightScene(${this.id}).constructor: LightScene api created.`);
     }
 
     // #endregion Constructors (1)

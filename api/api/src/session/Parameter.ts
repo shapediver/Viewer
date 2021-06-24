@@ -61,7 +61,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #sessionEngine: Session;
-    
+
     readonly choices?: string[];
     readonly decimalplaces?: number;
     readonly defval: string;
@@ -94,32 +94,33 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
         this.defval = paramDef.defval;
         this.name = paramDef.name;
         this.type = <PARAMETERTYPE>paramDef.type;
-        if(paramDef.choices) this.choices = paramDef.choices;
-        if(paramDef.decimalplaces) this.decimalplaces = +paramDef.decimalplaces;
-        if(paramDef.expression) this.expression = paramDef.expression;
-        if(paramDef.format) this.format = paramDef.format;
-        if(paramDef.min) this.min = +paramDef.min;
-        if(paramDef.max) this.max = +paramDef.max;
-        if(paramDef.visualization) this.visualization = <PARAMETERVISUALIZATION>paramDef.visualization;
-        if(paramDef.structure) this.structure = paramDef.structure;
-        if(paramDef.group) this.group = paramDef.group;
-        if(paramDef.tooltip) this.tooltip = paramDef.tooltip;
+        if (paramDef.choices) this.choices = paramDef.choices;
+        if (paramDef.decimalplaces) this.decimalplaces = +paramDef.decimalplaces;
+        if (paramDef.expression) this.expression = paramDef.expression;
+        if (paramDef.format) this.format = paramDef.format;
+        if (paramDef.min) this.min = +paramDef.min;
+        if (paramDef.max) this.max = +paramDef.max;
+        if (paramDef.visualization) this.visualization = <PARAMETERVISUALIZATION>paramDef.visualization;
+        if (paramDef.structure) this.structure = paramDef.structure;
+        if (paramDef.group) this.group = paramDef.group;
+        if (paramDef.tooltip) this.tooltip = paramDef.tooltip;
 
         this.displayName = undefined;
         this.order = undefined;
         this.hidden = false;
 
-        if(this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL) {
+        if (this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL) {
             this.#defaultValue = <T><unknown>(this.defval === 'true');
-        } else if(this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD || this.type === PARAMETERTYPE.SINTEGER || this.type === PARAMETERTYPE.SNUMBER) {
+        } else if (this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD || this.type === PARAMETERTYPE.SINTEGER || this.type === PARAMETERTYPE.SNUMBER) {
             this.#defaultValue = <T><unknown>+this.defval;
         } else {
             this.#defaultValue = this.defval;
         }
-        
+
         this.value = this.#defaultValue;
         this.sessionValue = this.value;
         this.lastValidatedValue = this.value;
+        this.#logger.debugLow(`Parameter(${this.id}).constructor: Initialized parameter ${paramDef}.`);
     }
 
     // #endregion Constructors (1)
@@ -132,70 +133,71 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
      * @param value 
      * @returns 
      */
-    public isValid(value: any): boolean {
+    public isValid(value: any, throwError = false): boolean {
+        this.#logger.debugLow(`Parameter(${this.id}).isValid: Checking value ${value}.`);
         try {
-            switch(true) {
+            switch (true) {
                 case this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL:
-                    if(typeof value === 'string') {
-                        if(!(value === 'true' || value === 'false'))
-                            throw new Error(`The value ${value} is a string that is neither true or false.`);
+                    if (typeof value === 'string') {
+                        if (!(value === 'true' || value === 'false'))
+                            this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${value} is a string that is neither true or false.`);
                     } else {
-                        this.#inputValidator.validate(value, 'boolean');
+                        this.#inputValidator.validateAndError(`Parameter(${this.id}).isValid`, value, 'boolean');
                     }
                     break;
                 case this.type === PARAMETERTYPE.COLOR || this.type === PARAMETERTYPE.SCOLOR:
-                    this.#inputValidator.validate(value, 'color');
+                    this.#inputValidator.validateAndError(`Parameter(${this.id}).isValid`, value, 'color');
                     break;
                 case this.type === PARAMETERTYPE.FILE:
-                    this.#inputValidator.validate(value, 'file');
+                    this.#inputValidator.validateAndError(`Parameter(${this.id}).isValid`, value, 'file');
                     break;
                 case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD || this.type === PARAMETERTYPE.SINTEGER || this.type === PARAMETERTYPE.SNUMBER:
-                    let temp: number = value;    
-                    if(typeof value === 'string') 
+                    let temp: number = value;
+                    if (typeof value === 'string')
                         temp = +value;
-                    this.#inputValidator.validate(temp, 'number');
-                    if(this.type === PARAMETERTYPE.EVEN) {
-                        if(temp % 2 !== 0) throw new Error(`The value ${value} is not even.`);
-                    } else if(this.type === PARAMETERTYPE.ODD) {
-                        if(temp % 2 === 0) throw new Error(`The value ${value} is not odd.`);
-                    } else if(this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.SINTEGER) {
-                        if(!Number.isInteger(temp)) throw new Error(`The value ${value} is not an integer.`);
+                    this.#inputValidator.validateAndError(`Parameter(${this.id}).isValid`, value, 'number');
+                    if (this.type === PARAMETERTYPE.EVEN) {
+                        if (temp % 2 !== 0) this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${value} is not even.`);
+                    } else if (this.type === PARAMETERTYPE.ODD) {
+                        if (temp % 2 === 0) this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${value} is not odd.`);
+                    } else if (this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.SINTEGER) {
+                        if (!Number.isInteger(temp)) this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${value} is not an integer.`);
                     }
-                    if(this.min || this.min === 0) 
-                        if(temp < this.min) throw new Error(`The value ${value} is smaller than the minimum ${this.min}.`);
-                    
-                    if(this.max || this.max === 0) 
-                        if(temp > this.max) throw new Error(`The value ${value} is larger than the maximum ${this.max}.`);
-                    
-                    if(this.decimalplaces || this.decimalplaces === 0) {
-                        const numStr = temp+'';
+                    if (this.min || this.min === 0)
+                        if (temp < this.min) this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${value} is smaller than the minimum ${this.min}.`);
+
+                    if (this.max || this.max === 0)
+                        if (temp > this.max) this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${value} is larger than the maximum ${this.max}.`);
+
+                    if (this.decimalplaces || this.decimalplaces === 0) {
+                        const numStr = temp + '';
                         let decimalplaces = 0;
-                        if (numStr.includes('.')) 
+                        if (numStr.includes('.'))
                             decimalplaces = numStr.split('.')[1].length;
-                        if(this.decimalplaces < decimalplaces)
-                            throw new Error(`The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`);
+                        if (this.decimalplaces < decimalplaces)
+                            this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`);
                     }
-                    
+
                     break;
                 case this.type === PARAMETERTYPE.STRINGLIST:
-                    this.#inputValidator.validate(value, 'string');
+                    this.#inputValidator.validateAndError(`Parameter(${this.id}).isValid`, value, 'string');
                     const choicesChecker = (v: string) => {
                         // has to be a single value that is
                         // 1. convertible to number
                         // 2. between 0 and choices.length -1
                         const temp = +v;
-                        this.#inputValidator.validate(temp, 'number');
-                        if(temp < 0 || temp > this.choices!.length-1)
-                            throw new Error(`The value ${v} is not within the range of the defined number choices.`);
+                        this.#inputValidator.validateAndError(`Parameter(${this.id}).isValid`, value, 'number');
+                        if (temp < 0 || temp > this.choices!.length - 1)
+                            this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${v} is not within the range of the defined number choices.`);
                     }
 
-                    if(this.visualization === PARAMETERVISUALIZATION.CHECKLIST) {
+                    if (this.visualization === PARAMETERVISUALIZATION.CHECKLIST) {
                         // comma separated numbers
-                        if(value.includes(',')) {
+                        if (value.includes(',')) {
                             const values: string[] = value.split(',');
-                            for(let i = 0; i < values.length; i++) {
-                                if(values.filter(item => item === values[i]).length !== 1)
-                                    throw new Error(`The value ${values[i]} exists multiple times, but should only exist once.`);
+                            for (let i = 0; i < values.length; i++) {
+                                if (values.filter(item => item === values[i]).length !== 1)
+                                    this.#logger.errorMessage(`Parameter(${this.id}).isValid: The value ${values[i]} exists multiple times, but should only exist once.`);
                                 choicesChecker(values[i]);
                             }
                         } else {
@@ -206,11 +208,11 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                     }
                     break;
                 default:
-                    this.#inputValidator.validate(value, 'string');
+                    this.#inputValidator.validateAndError(`Parameter(${this.id}).isValid`, value, 'string');
                     break;
             }
         } catch (e) {
-            this.#logger.info((<Error>e).message);
+            if (throwError) throw e;
             return false;
         }
         return true;
@@ -220,14 +222,18 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
      * Resets the value to the default value.
      */
     public resetToDefaultValue() {
+        this.#logger.debugLow(`Parameter(${this.id}).resetToDefaultValue: Resetting value ${this.value} to default value ${this.#defaultValue}.`);
         (<any>this.value) = this.#defaultValue;
+        this.#logger.info(`Parameter(${this.id}).resetToDefaultValue: value was set to default value ${this.#defaultValue}.`);
     }
 
     /**
      * Resets the value to the value currently used in the computed session.
      */
     public resetToSessionValue() {
+        this.#logger.debugLow(`Parameter(${this.id}).resetToSessionValue: Resetting value ${this.value} to last session value ${this.sessionValue}.`);
         (<any>this.value) = this.sessionValue;
+        this.#logger.info(`Parameter(${this.id}).resetToSessionValue: value was set to last session value ${this.sessionValue}.`);
     }
 
     /**
@@ -235,45 +241,52 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
      * @returns 
      */
     public stringify(): string {
-        switch(true) {
+        this.#logger.debugLow(`Parameter(${this.id}).stringify: Stringifying value.`);
+        switch (true) {
             case this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL:
-                return typeof this.value === 'string' ? this.value : (<boolean><unknown>this.value)+'';
+                return typeof this.value === 'string' ? this.value : (<boolean><unknown>this.value) + '';
             case this.type === PARAMETERTYPE.COLOR || this.type === PARAMETERTYPE.SCOLOR:
                 return this.#converter.toHex8Color(this.value);
             case this.type === PARAMETERTYPE.FILE:
-                if(typeof this.value !== 'string') {
-                    this.#logger.error(`Parameter (${this.id}): Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`);
-                    throw new Error(`Parameter (${this.id}): Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`);
-                }
+                if (typeof this.value !== 'string')
+                    this.#logger.errorMessage(`Parameter(${this.id}).stringify: Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`);
                 return <string>this.value;
             case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD || this.type === PARAMETERTYPE.SINTEGER || this.type === PARAMETERTYPE.SNUMBER:
-                return typeof this.value === 'string' ? this.value : (<number><unknown>this.value)+'';
+                return typeof this.value === 'string' ? this.value : (<number><unknown>this.value) + '';
             default:
                 return <string>this.value;
         }
     }
 
     public updateDisplayName(value: string | undefined) {
-        this.#inputValidator.validate(value, 'string', false);                
+        this.#logger.debugLow(`Parameter(${this.id}).updateDisplayName: Updating DisplayName to ${value}.`);
+        this.#inputValidator.validateAndError(`Parameter(${this.id}).updateDisplayName`, value, 'string', false);
         (<any>this.displayName) = value;
+        this.#logger.info(`Parameter(${this.id}).updateDisplayName: DisplayName was updated to ${this.displayName}.`);
     }
 
     public updateHidden(value: boolean) {
-        this.#inputValidator.validate(value, 'boolean');
+        this.#logger.debugLow(`Parameter(${this.id}).updateHidden: Updating Hidden to ${value}.`);
+        this.#inputValidator.validateAndError(`Parameter(${this.id}).updateHidden`, value, 'boolean');
         (<any>this.hidden) = value;
+        this.#logger.info(`Parameter(${this.id}).updateHidden: Hidden was updated to ${this.hidden}.`);
     }
 
     public updateOrder(value: number | undefined) {
-        this.#inputValidator.validate(value, 'number', false);
+        this.#logger.debugLow(`Parameter(${this.id}).updateOrder: Updating Order to ${value}.`);
+        this.#inputValidator.validateAndError(`Parameter(${this.id}).updateOrder`, value, 'number', false);
         (<any>this.order) = value;
+        this.#logger.info(`Parameter(${this.id}).updateOrder: Order was updated to ${this.order}.`);
     }
 
     public updateValue(value: T | string) {
-        if(this.isValid(value)) {
+        this.#logger.debugLow(`Parameter(${this.id}).updateValue: Updating Value to ${value}.`);
+        if (this.isValid(value, true)) {
             (<any>this.value) = value;
             (<any>this.lastValidatedValue) = this.value;
+            this.#logger.info(`Parameter(${this.id}).updateValue: Value was updated to ${this.value}.`);
         } else {
-            throw new Error(`Parameter (${this.id}): Could not validate value.`);
+            this.#logger.errorMessage(`Parameter(${this.id}).updateValue: Could not validate value.`);
         }
     }
 

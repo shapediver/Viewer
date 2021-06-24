@@ -68,6 +68,7 @@ export class Session {
         if (this.primarySessionRequest === true) {
             if (this.#stateEngine.primarySessionLoaded.resolved === false) {
                 this.primarySession = true;
+                this.#logger.info(`Session(${this.id}): This is now the primary session.`);
             }
 
             this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
@@ -107,6 +108,7 @@ export class Session {
             await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
             this.#api.update();
+            this.#logger.info(`Session(${this.id}): This is now the primary session.`);
         }
 
         callbacks.close = async (): Promise<boolean> => {
@@ -123,12 +125,13 @@ export class Session {
 
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, {});
 
-            if (!closeResult) this.#logger.warn(`Session (${this.id}): Was not able to close session completely, please disregard this session.`);
+            if (!closeResult) this.#logger.warn(`Session(${this.id}): Was not able to close session completely, please disregard this session.`);
             return closeResult;
         }
 
         this.#sessionEngine.addUpdateCB(this.#updateCB);
         this.#updateCB();
+        this.#logger.debugLow(`Session(${this.id}).constructor: Session api created.`);
     }
 
     // #endregion Constructors (1)
@@ -144,6 +147,7 @@ export class Session {
      * @returns 
      */
     public async customize(): Promise<TreeNode> {
+        this.#logger.debugLow(`Session(${this.id}).customize: Customizing session.`);
         const blurValues: {[key: string]: boolean} = {};
         for(let viewerId in this.#api.viewers) {
             blurValues[viewerId] = this.#api.viewers[viewerId].blur;
@@ -178,8 +182,11 @@ export class Session {
         // update the session engine parameter values if everything succeeded
         for (const parameterId in this.parameters)
             this.#sessionEngine.parameterValues[parameterId] = parameterSet[parameterId].valueString;
+        this.#logger.info(`Session(${this.id}).customize: Customizing session with parameters ${this.#sessionEngine.parameterValues}.`);
 
         (<any>this.node) = await this.#sessionEngine.customize();
+
+        this.#logger.info(`Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
         // set the session values to the current ones in all parameters
         for (const parameterId in this.parameters)
@@ -190,7 +197,7 @@ export class Session {
         for(let viewerId in this.#api.viewers) 
             this.#api.viewers[viewerId].updateBlur(blurValues[viewerId]);
         this.#api.update();
-        this.#logger.info(`Session (${this.id}): Session customized.`);
+        this.#logger.info(`Session(${this.id}).customize: Session customized.`);
         return this.node;
     }
 
@@ -201,7 +208,8 @@ export class Session {
      * @returns 
      */
     public getExportById(id: string): Export | null {
-        this.#inputValidator.validate(id, 'string');
+        this.#logger.debugLow(`Session(${this.id}).getExportById: Getting export with id ${id}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).getExportById`, id, 'string');
         return this.exports[id];
     }
 
@@ -212,7 +220,8 @@ export class Session {
      * @returns 
      */
     public getExportByName(name: string): Export[] {
-        this.#inputValidator.validate(name, 'string');
+        this.#logger.debugLow(`Session(${this.id}).getExportByName: Getting export(s) with name ${name}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).getExportByName`, name, 'string');
         const exports: Export[] = [];
         for (let exportId in this.exports) {
             if (name === this.exports[exportId].name)
@@ -228,7 +237,8 @@ export class Session {
      * @returns 
      */
     public getExportByType(type: string): Export[] {
-        this.#inputValidator.validate(type, 'string');
+        this.#logger.debugLow(`Session(${this.id}).getExportByType: Getting export(s) with type ${type}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).getExportByType`, type, 'string');
         const exports: Export[] = [];
         for (let exportId in this.exports) {
             if (type === this.exports[exportId].type)
@@ -244,7 +254,8 @@ export class Session {
      * @returns 
      */
     public getOutputById(id: string): Output | null {
-        this.#inputValidator.validate(id, 'string');
+        this.#logger.debugLow(`Session(${this.id}).getOutputById: Getting output with id ${id}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).getOutputById`, id, 'string');
         return this.outputs[id];
     }
 
@@ -255,7 +266,8 @@ export class Session {
      * @returns 
      */
     public getOutputByName(name: string): Output[] {
-        this.#inputValidator.validate(name, 'string');
+        this.#logger.debugLow(`Session(${this.id}).getOutputByName: Getting output(s) with name ${name}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).getOutputByName`, name, 'string');
         const outputs: Output[] = [];
         for (let outputId in this.outputs) {
             if (name === this.outputs[outputId].name)
@@ -271,7 +283,8 @@ export class Session {
      * @returns 
      */
     public getParameterById(id: string): Parameter<any> | null {
-        this.#inputValidator.validate(id, 'string');
+        this.#logger.debugLow(`Session(${this.id}).getParameterById: Getting paramter with id ${id}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).getParameterById`, id, 'string');
         return this.parameters[id];
     }
 
@@ -282,7 +295,8 @@ export class Session {
      * @returns 
      */
     public getParameterByName(name: string): Parameter<any>[] {
-        this.#inputValidator.validate(name, 'string');
+        this.#logger.debugLow(`Session(${this.id}).getParameterByName: Getting parameter(s) with name ${name}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).getParameterByName`, name, 'string');
         const parameters: Parameter<any>[] = [];
         for (let parameterId in this.parameters) {
             if (name === this.parameters[parameterId].name)
@@ -298,7 +312,8 @@ export class Session {
      * @returns 
      */
     public getParameterByType(type: string): Parameter<any>[] {
-        this.#inputValidator.validate(type, 'string');
+        this.#logger.debugLow(`Session(${this.id}).getParameterByType: Getting parameter(s) with type ${type}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).getParameterByType`, type, 'string');
         const parameters: Parameter<any>[] = [];
         for (let parameterId in this.parameters) {
             if (type === this.parameters[parameterId].type)
@@ -315,6 +330,7 @@ export class Session {
      * @returns 
      */
     public async init(): Promise<TreeNode> {
+        this.#logger.debugLow(`Session(${this.id}).init: Initializing Session.`);
         (<any>this.node) = await this.#sessionEngine.init();
         for (let p in this.#sessionEngine.parameters) {
             const param = this.#sessionEngine.parameters[p];
@@ -345,7 +361,6 @@ export class Session {
 
         (<Tree>container.resolve(Tree)).addNode(this.node);
         this.node.excludeViewers = this.#excludeViewers;
-        this.#logger.info(`Session (${this.id}): Session initialized.`);
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
 
         this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
@@ -353,6 +368,7 @@ export class Session {
 
         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
         this.#api.update();
+        this.#logger.info(`Session(${this.id}).init: Session initialized.`);
         return this.node;
     }
 
@@ -363,8 +379,13 @@ export class Session {
      * @returns 
      */
     public async saveDefaultParameters() {
+        this.#logger.debugLow(`Session(${this.id}).saveDefaultParameters: Saving default parameters.`);
         const response = await this.#sessionEngine.saveDefaultParameters();
-        this.#logger.info(`Session (${this.id}): ${response ? 'Saved default parameters.' : 'Could not save default parameters.'}`);
+        if(response) {
+            this.#logger.info(`Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
+        } else {
+            this.#logger.errorMessage(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`);
+        }
         return response;
     }
 
@@ -376,6 +397,7 @@ export class Session {
      * @param viewerId the optional viewer id
      */
     public async saveSettings(viewerId?: string): Promise<boolean> {
+        this.#logger.debugLow(`Session(${this.id}).saveSettings: Saving settings.`);
         this.#settingsEngine.general.viewer.commitParameters.value = this.commitParameters;
         this.#settingsEngine.general.viewer.commitSettings.value = this.commitSettings;
 
@@ -425,11 +447,15 @@ export class Session {
 
             const json = this.#settingsEngine.toJson();
             const response = await this.#sessionEngine.saveSettings(json);
-            this.#logger.info(`Session (${this.id}): ${response ? 'Saved settings.' : 'Could not save settings.'}`);
+            if(response) {
+                this.#logger.info(`Session(${this.id}).saveSettings: Saved settings.`);
+            } else {
+                this.#logger.errorMessage(`Session(${this.id}).saveSettings: Could not save settings.`);
+            }
             return response;
         }
 
-        this.#logger.warn(`Session (${this.id}): Could not save settings, no viewer initialized.`);
+        this.#logger.errorMessage(`Session(${this.id}).saveSettings: Could not save settings, no viewer initialized.`);
         return false;
     }
 
@@ -437,18 +463,20 @@ export class Session {
      * If the session has an author ticket.
      */
     public updateAuthorTicket(value: boolean | undefined) {
-        this.#inputValidator.validate(value, 'boolean', false);
+        this.#logger.debugLow(`Session(${this.id}).updateAuthorTicket: Updating AuthorTicket to ${value}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).updateAuthorTicket`, value, 'string', false);
         this.#sessionEngine.authorTicket = value;
-        this.#logger.info(`Session (${this.id}): authorTicket was set to: ${value}`);
+        this.#logger.info(`Session(${this.id}).updateAuthorTicket: authorTicket was set to: ${value}`);
     }
 
     /**
      * The bearerToken of the session.
      */
     public updateBearerToken(value: string | undefined) {
-        this.#inputValidator.validate(value, 'string', false);
+        this.#logger.debugLow(`Session(${this.id}).updateBearerToken: Updating BearerToken to ${value}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).updateBearerToken`, value, 'string', false);
         this.#sessionEngine.bearerToken = value;
-        this.#logger.info(`Session (${this.id}): bearerToken was set to: ${value}`);
+        this.#logger.info(`Session(${this.id}).updateBearerToken: bearerToken was set to: ${value}`);
     }
 
     /**
@@ -456,9 +484,10 @@ export class Session {
      * @param {boolean} value
      */
     public updateCommitParameters(value: boolean) {
-        this.#inputValidator.validate(value, 'boolean');
+        this.#logger.debugLow(`Session(${this.id}).updateCommitParameters: Updating CommitParameters to ${value}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).updateCommitParameters`, value, 'boolean');
         (<any>this.commitParameters) = value;
-        this.#logger.info(`Session (${this.id}): commitParameters was set to: ${value}`);
+        this.#logger.info(`Session(${this.id}).updateCommitParameters: commitParameters was set to: ${value}`);
     }
 
     /**
@@ -466,9 +495,10 @@ export class Session {
      * @param {boolean} value
      */
     public updateCommitSettings(value: boolean) {
-        this.#inputValidator.validate(value, 'boolean');
+        this.#logger.debugLow(`Session(${this.id}).updateCommitSettings: Updating CommitSettings to ${value}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).updateCommitSettings`, value, 'boolean');
         (<any>this.commitSettings) = value;
-        this.#logger.info(`Session (${this.id}): commitSettings was set to: ${value}`);
+        this.#logger.info(`Session(${this.id}).updateCommitSettings: commitSettings was set to: ${value}`);
     }
 
     /**
@@ -477,9 +507,10 @@ export class Session {
      * once a session request fails due to an invalid bearer token.
      */
     public updateRefreshBearerToken(value: () => string) {
-        this.#inputValidator.validate(value, 'function');
+        this.#logger.debugLow(`Session(${this.id}).updateRefreshBearerToken: Updating RefreshBearerToken to ${value}.`);
+        this.#inputValidator.validateAndError(`Session(${this.id}).updateRefreshBearerToken`, value, 'function');
         this.#sessionEngine.refreshBearerToken = value;
-        this.#logger.info(`Session (${this.id}): refreshBearerToken was set to: ${value}`);
+        this.#logger.info(`Session(${this.id}).updateRefreshBearerToken: refreshBearerToken was set to: ${value}`);
     }
 
     // #endregion Public Methods (18)

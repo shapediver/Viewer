@@ -43,11 +43,12 @@ export class OrthographicCamera extends Camera implements IOrthographicCamera {
      * @param {number} value
      */
     public updateDirection(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
-        this.#inputValidator.validate(value, 'enum', true, Object.values(ORTHOGRAPHIC_CAMERA_DIRECTION));
+        this.#logger.debugLow(`Camera(${this.id}).updateDirection: Updating Direction to ${value}.`);
+        this.#inputValidator.validateAndError(`Camera(${this.id}).updateDirection`, value, 'enum', true, Object.values(ORTHOGRAPHIC_CAMERA_DIRECTION));
         this.#camera.direction = value;
         this.#camera.zoomTo([], {duration: 0});
         this.#viewer.update();
-        this.#logger.info(`Camera (${this.#camera.id}): direction was set to: ${value}`);
+        this.#logger.info(`Camera(${this.id}).updateDirection: direction was set to: ${value}`);
     }
 
     // #endregion Constructors (1)

@@ -38,6 +38,7 @@ export abstract class Light implements ILight {
         this.#light = light;
         (<AbstractLight>this.#light).addUpdateCB(this.#updateCB);
         this.#updateCB();
+        this.#logger.debugLow(`Light(${this.id}).constructor: Light api created.`);
     }
 
     // #endregion Constructors (1)
@@ -48,27 +49,30 @@ export abstract class Light implements ILight {
      * The color of the light
      */
     public updateColor(value: string | number | vec3) {
-        this.#inputValidator.validate(value, 'color');
+        this.#logger.debugLow(`Light(${this.id}).updateColor: Updating Color to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateColor`, value, 'color');
         this.#light.color = this.#converter.toColor(value);
-        this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): color was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updateColor: color was set to: ${value}`);
     }
 
     /**
      * The intensity of the light
      */
     public updateIntensity(value: number) {
-        this.#inputValidator.validate(value, 'positive');
+        this.#logger.debugLow(`Light(${this.id}).updateIntensity: Updating Intensity to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateIntensity`, value, 'positive');
         this.#light.intensity = value;
-        this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): intensity was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updateIntensity: intensity was set to: ${value}`);
     }
 
     /**
      * The name of the light
      */
     public updateName(value: string | undefined) {
-        this.#inputValidator.validate(value, 'string', false);
+        this.#logger.debugLow(`Light(${this.id}).updateName: Updating Name to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateName`, value, 'string', false);
         this.#light.name = value;
-        this.#logger.info(`Light (${(<ITreeNodeData><unknown>this.#light).id}): name was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updateName: name was set to: ${value}`);
     }
 
     // #endregion Public Methods (3)

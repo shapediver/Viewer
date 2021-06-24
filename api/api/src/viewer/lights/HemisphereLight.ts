@@ -42,9 +42,10 @@ export class HemisphereLight extends Light {
      * @param {string | number | vec3} value
      */
     public updateGroundColor(value: string | number | vec3) {
-        this.#inputValidator.validate(value, 'color');
+        this.#logger.debugLow(`Light(${this.id}).updateGroundColor: Updating GroundColor to ${value}.`);
+        this.#inputValidator.validateAndError(`Light(${this.id}).updateGroundColor`, value, 'color');
         this.#light.groundColor = this.#converter.toColor(value);
-        this.#logger.info(`Light (${this.#light.id}): groundColor was set to: ${value}`);
+        this.#logger.info(`Light(${this.id}).updateGroundColor: groundColor was set to: ${value}`);
     }
 
     // #endregion Public Accessors (2)
