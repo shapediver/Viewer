@@ -161,7 +161,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                     } else if (this.type === PARAMETERTYPE.ODD) {
                         if (temp % 2 === 0) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is not odd.`, new Error());
                     } else if (this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.SINTEGER) {
-                        if (!Number.isInteger(temp)) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is not an integer.`);
+                        if (!Number.isInteger(temp)) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is not an integer.`, new Error());
                     }
                     if (this.min || this.min === 0)
                         if (temp < this.min) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is smaller than the minimum ${this.min}.`, new Error());

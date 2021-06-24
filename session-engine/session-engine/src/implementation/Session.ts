@@ -400,7 +400,7 @@ export class Session implements ISession {
 
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
         if (this._initialized === false) {
-            this._logger.error(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Session not initialized.');
+            this._logger.error(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Session not initialized.', new Error());
             return new SessionTreeNode();
         }
         try {
