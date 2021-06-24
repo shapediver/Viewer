@@ -20,7 +20,7 @@ export class DataEngine {
 
     public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
         if(!content || (content && !content.format)) {
-            this._logger.error('Invalid content was provided to data engine.');
+            this._logger.errorMessage('DataEngine.loadContent: Invalid content was provided to data engine.');
             return new TreeNode();
         }
 
@@ -43,7 +43,7 @@ export class DataEngine {
                 return customNode;
             }
         } catch (e) {
-            this._logger.error(`An error occurred while loading the ${content.format}.`, e, e.response && e.response.status ? e.response.status : null);
+            this._logger.error(`DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e, e.response && e.response.status ? e.response.status : null);
             return new TreeNode();
         }
     }

@@ -100,7 +100,7 @@ export class SdtfBufferView {
       });
       return this._data;
     } else {
-      this._logger.error('The MIME type "model/vnd.3dm" is currently not implemented.');
+      this._logger.errorMessage('SdtfBufferView.load: The MIME type "model/vnd.3dm" is currently not implemented.');
       return null;
       // const bytes = new Uint8Array(arrayBuffer);
       // const data = ungzip(bytes);

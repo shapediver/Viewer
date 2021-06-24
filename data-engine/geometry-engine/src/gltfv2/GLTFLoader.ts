@@ -37,7 +37,7 @@ export class GLTFLoader {
                 responseType: 'arraybuffer'
             });
         } catch (e) {
-            this._logger.error('Initial loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+            this._logger.error('GLTFLoader.load: Initial loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
             return new TreeNode();
         }
 
@@ -58,7 +58,7 @@ export class GLTFLoader {
                 contentFormat: headerDataView.getUint32(16, true)
             }
             if (header.magic != 'glTF') {
-                this._logger.error('Invalid data: glTF magic wrong.');
+                this._logger.errorMessage('GLTFLoader.load: Invalid data: glTF magic wrong.');
                 return new TreeNode();
             }
             // create content
@@ -87,7 +87,7 @@ export class GLTFLoader {
             this.validateVersionAndExtensions();
             return await this.loadScene();
         } catch (e) {
-            this._logger.error('Loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+            this._logger.error('GLTFLoader.load: Loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
             return new TreeNode();
         }
     }
@@ -234,7 +234,7 @@ export class GLTFLoader {
                 materialData.map = await this.loadMap(material_extension.diffuseTexture.index);
 
             if (material_extension.specularGlossinessTexture !== undefined)
-                this._logger.info('Due to issues with the material conversion, the specularGlossinessTexture is not supported at the moment.');
+                this._logger.info('GLTFLoader.loadMaterial: Due to issues with the material conversion, the specularGlossinessTexture is not supported at the moment.');
         }
 
         return materialData;
@@ -336,7 +336,7 @@ export class GLTFLoader {
                     message += '"' + element + '"' + (index === notSupported.length-1 ? '' : index === notSupported.length-2 ? ' and ' : ', ');
                 });
                 message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
-                this._logger.info(message);
+                this._logger.info('GLTFLoader.validateVersionAndExtensions: ' + message);
             }
         }
 

@@ -72,7 +72,7 @@ export class MaterialEngine {
         const node = new TreeNode('material');
     
         if(!content) {
-            this._logger.error('Invalid content was provided to material engine.');
+            this._logger.errorMessage('MaterialEngine.loadContent: Invalid content was provided to material engine.');
             return node;
         }
 
@@ -98,7 +98,7 @@ export class MaterialEngine {
                 }
             }
         } else {
-            this._logger.error('No material data was provided to material engine.');
+            this._logger.errorMessage('MaterialEngine.loadContent: No material data was provided to material engine.');
         }
         return node;
     }
@@ -202,7 +202,7 @@ export class MaterialEngine {
                 image = await this._imageLoader.load('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
             }
         } catch (e) {
-            this._logger.error('Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
+            this._logger.error('MaterialEngine.loadMap: Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
             return null;
         }
         return new MapData(image);        
@@ -220,7 +220,7 @@ export class MaterialEngine {
             //     // canvas https://shapediver.atlassian.net/browse/SS-3106
             // }
         } catch (e) {
-            this._logger.error('Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
+            this._logger.error('MaterialEngine.loadMapWithProperties: Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
             return null;
         }
 

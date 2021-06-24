@@ -69,7 +69,7 @@ export class HTMLElementAnchorEngine {
                 data.forEach((element: Tag2D) => {
                     // we need a location and a text, otherwise this doesn't make sense
                     if (!element.location || !element.text) {
-                        this._logger.warn('One of the specified Tag2D elements did not have all necessary properties.');
+                        this._logger.warn('HTMLElementAnchorEngine.load: One of the specified Tag2D elements did not have all necessary properties.');
                         return;
                     }
                     node.data.push(new HTMLElementAnchorData(this._converter.toVec3(element.location), { color: this._converter.toColor(element.color, '#000000'), text: element.text }, 'text'));
@@ -77,7 +77,7 @@ export class HTMLElementAnchorEngine {
             } else if (content.format === 'anchor') {
                 data.forEach((element: Anchor) => {
                     if (!element.location || !element.data) {
-                        this._logger.warn('One of the specified Anchor elements did not have all necessary properties.');
+                        this._logger.warn('HTMLElementAnchorEngine.load: One of the specified Anchor elements did not have all necessary properties.');
                         return;
                     }
 
@@ -99,7 +99,7 @@ export class HTMLElementAnchorEngine {
 
                     if (!element.format || (element.format === 'text')) {
                         if (!(<AnchorDataText>element.data).text) {
-                            this._logger.warn('The text property for an Anchor element is missing.');
+                            this._logger.warn('HTMLElementAnchorEngine.load: The text property for an Anchor element is missing.');
                             return;
                         }
                         const textData = <AnchorDataText>element.data;
@@ -120,7 +120,7 @@ export class HTMLElementAnchorEngine {
 
                     } else if (element.format === 'image') {
                         if (!(<AnchorDataImage>element.data).src || !(<AnchorDataImage>element.data).width || !(<AnchorDataImage>element.data).height || !(<AnchorDataImage>element.data).alt) {
-                            this._logger.warn('One of the specified Anchor elements did not have all necessary properties.');
+                            this._logger.warn('HTMLElementAnchorEngine.load: One of the specified Anchor elements did not have all necessary properties.');
                             return;
                         }
                         const imageData = <AnchorDataImage>element.data;
@@ -141,12 +141,12 @@ export class HTMLElementAnchorEngine {
                         ));
 
                     }
-                    this._logger.warn(`The Anchor does not have a recognized format: ${element.format}`);
+                    this._logger.warn(`HTMLElementAnchorEngine.load: The Anchor does not have a recognized format: ${element.format}`);
                 });
             }
             return node;
         } catch (e) {
-            this._logger.error('Loading of anchors failed.', e);
+            this._logger.error('HTMLElementAnchorEngine.load: Loading of anchors failed.', e);
             return new TreeNode();
         }
     }

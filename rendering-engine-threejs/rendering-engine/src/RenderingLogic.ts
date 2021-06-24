@@ -312,7 +312,7 @@ export class RenderingLogic {
                 _gl = <WebGLRenderingContext>canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
                 if (_gl !== null) {
-                    this._logger.warn('We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
+                    this._logger.warn('RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
                 } else {
                     throw new Error('We were unable to get a WebGL context.');
                 }
@@ -331,7 +331,7 @@ export class RenderingLogic {
                 const renderer = _gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                 if (renderer === "Google SwiftShader") {
                     this._usingSwiftShader = true;
-                    this._logger.warn('The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
+                    this._logger.warn('RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
                 }
             }
 
@@ -340,7 +340,7 @@ export class RenderingLogic {
 
             return _gl;
         } catch (error) {
-            this._logger.error('We were unable to get a WebGL context.');
+            this._logger.errorMessage('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.');
             throw error;
         }
     }
