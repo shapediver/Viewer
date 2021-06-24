@@ -3,7 +3,7 @@ import { DirectionalLight as DirectionalLightLogic } from "@shapediver/viewer.re
 import { vec3 } from "gl-matrix";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 
 export class DirectionalLight extends Light {
     // #region Properties (8)
@@ -47,10 +47,10 @@ export class DirectionalLight extends Light {
      * @param {boolean} value
      */
     public updateCastShadow(value: boolean) {
-        this.#logger.debugLow(`Light(${this.id}).updateCastShadow: Updating CastShadow to ${value}.`);
-        this.#inputValidator.validateAndError(`Light(${this.id}).updateCastShadow`, value, 'boolean');
+        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow: Updating CastShadow to ${value}.`);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow`, value, 'boolean');
         this.#light.castShadow = value;
-        this.#logger.info(` Light(${this.id}).updateCastShadow: castShadow was set to: ${value}`);
+        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow: castShadow was set to: ${value}`);
     }
 
     /**
@@ -58,10 +58,10 @@ export class DirectionalLight extends Light {
      * @param {vec3} value
      */
     public updateDirection(value: vec3) {
-        this.#logger.debugLow(`Light(${this.id}).updateDirection: Updating Direction to ${value}.`);
-        this.#inputValidator.validateAndError(`Light(${this.id}).updateDirection`, value, 'vec3');
+        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection: Updating Direction to ${value}.`);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection`, value, 'vec3');
         this.#light.direction = value;
-        this.#logger.info(` Light(${this.id}).updateDirection: direction was set to: ${value}`);
+        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection: direction was set to: ${value}`);
     }
 
     /**
@@ -69,10 +69,10 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public updateShadowMapBias(value: number) {
-        this.#logger.debugLow(`Light(${this.id}).updateShadowMapBias: Updating ShadowMapBias to ${value}.`);
-        this.#inputValidator.validateAndError(`Light(${this.id}).updateShadowMapBias`, value, 'number');
+        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias: Updating ShadowMapBias to ${value}.`);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias`, value, 'number');
         this.#light.shadowMapBias = value;
-        this.#logger.info(` Light(${this.id}).updateShadowMapBias: shadowMapBias was set to: ${value}`);
+        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias: shadowMapBias was set to: ${value}`);
     }
 
     /**
@@ -80,10 +80,10 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public updateShadowMapResolution(value: number) {
-        this.#logger.debugLow(`Light(${this.id}).updateShadowMapResolution: Updating ShadowMapResolution to ${value}.`);
-        this.#inputValidator.validateAndError(`Light(${this.id}).updateShadowMapResolution`, value, 'number');
+        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution: Updating ShadowMapResolution to ${value}.`);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution`, value, 'number');
         this.#light.shadowMapResolution = value;
-        this.#logger.info(` Light(${this.id}).updateShadowMapResolution: shadowMapResolution was set to: ${value}`);
+        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution: shadowMapResolution was set to: ${value}`);
     }
 
     // #endregion Public Methods (4)

@@ -1,5 +1,5 @@
 import { container, singleton } from "tsyringe";
-import { Logger } from "@shapediver/viewer.shared.monitoring"
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring"
 import { TypeChecker } from "../type-check/TypeChecker";
 
 export type Types = 'string' | 'boolean' | 'function' |
@@ -13,10 +13,10 @@ export class InputValidator {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _typeChecker: TypeChecker = <TypeChecker>container.resolve(TypeChecker);
 
-    public validateAndError(scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
+    public validateAndError(topic: LOGGINGTOPIC, scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
         const res = this.validate(value, type, defined, enumValues);
         if(res) return;
-        this._logger.errorMessage(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`);
+        this._logger.error(topic, `${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, new Error());
     }
 
     private validate(value: any, stringLiteral: Types, defined: boolean = true, enumValues: string[] = []): boolean {

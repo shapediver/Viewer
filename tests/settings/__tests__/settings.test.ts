@@ -12,7 +12,7 @@ import { OrthographicCameraControls } from "../../../api/api/node_modules/@shape
 import { PerspectiveCameraControls } from "../../../api/api/node_modules/@shapediver/viewer.rendering-engine.camera-engine/dist";
 import { PerspectiveCamera } from "../../../api/api/node_modules/@shapediver/viewer.rendering-engine.camera-engine/dist";
 import { SettingsEngine } from "../../../rendering-engine/camera-engine/node_modules/@shapediver/viewer.shared.services/dist";
-import { build_data } from "../../../api/api/src/build_data";
+import { build_data } from "../../../shared/build-data/src/build_data";
 
 const originalSettings = {
     // build_date: '', // this will be different every time

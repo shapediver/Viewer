@@ -1,5 +1,5 @@
 import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Viewer } from "../Viewer";
@@ -46,11 +46,11 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
      * @param {number} value
      */
     public updateFov(value: number) {
-        this.#logger.debugLow(`Camera(${this.id}).updateFov: Updating Fov to ${value}.`);
-        this.#inputValidator.validateAndError(`Camera(${this.id}).updateFov`, value, 'positive');
+        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov: Updating Fov to ${value}.`);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov`, value, 'positive');
         this.#camera.fov = value;
         this.#viewer.update();
-        this.#logger.info(`Camera(${this.id}).updateFov: fov was set to: ${value}`);
+        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov: fov was set to: ${value}`);
     }
 
     // #endregion Public Methods (1)

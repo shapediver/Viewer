@@ -1,6 +1,6 @@
 import { container } from "tsyringe";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 import { ShapeDiverResponseOutputPart as OutputPart, ShapeDiverResponseOutputChunk as OutputChunk, ShapeDiverResponseOutput, ShapeDiverResponseOutputDefinition } from "@shapediver/api.geometry-api-dto-v1";
 import { Session } from "@shapediver/viewer.session-engine.session-engine";
 
@@ -31,7 +31,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
     if (outputDef.uid) this.uid = outputDef.uid;
     if (outputDef.material) this.material = outputDef.material;
     if (outputDef.chunks) this.chunks = outputDef.chunks;
-    this.#logger.debugLow(`Output(${this.id}).constructor: Initialized output ${outputDef}.`);
+    this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).constructor: Initialized output ${outputDef}.`);
   }
 
   // #endregion Constructors (1)

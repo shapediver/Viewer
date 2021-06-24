@@ -1,7 +1,7 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import * as THREE from 'three';
 import { container, singleton } from 'tsyringe';
-import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1';
 import { Converter } from '@shapediver/viewer.shared.utils';
 import { AttributeData, GeometryData, MaterialData, PrimitiveData } from '@shapediver/viewer.shared.types';
@@ -62,7 +62,7 @@ export class Tag3dEngine {
         const node = new TreeNode('tag3d');
 
         if (!content) {
-            this._logger.errorMessage('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.');
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.', new Error());
             return node;
         }
 
@@ -171,7 +171,7 @@ export class Tag3dEngine {
 
             }
         } else {
-            this._logger.errorMessage('Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.');
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.', new Error());
         }
         return node;
     }

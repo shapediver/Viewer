@@ -1,6 +1,6 @@
 import { HttpClient } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
-import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
 
 export class SdtfBuffer {
   // #region Properties (1)
@@ -57,9 +57,9 @@ export class SdtfBuffer {
       })
     } catch (e) {
       if (e.response && e.response.status) {
-          this._logger.httpError(`SdtfBuffer.load: Initial loading of geometry failed.`, e, e.response.status, false)
+          this._logger.httpError(LOGGINGTOPIC.SDTF, `SdtfBuffer.load: Initial loading of geometry failed.`, e, e.response.status, false)
         } else {
-          this._logger.error(`SdtfBuffer.load: Initial loading of geometry failed.`, e, false)
+          this._logger.error(LOGGINGTOPIC.SDTF, `SdtfBuffer.load: Initial loading of geometry failed.`, e, false)
       }
       return null;
     }

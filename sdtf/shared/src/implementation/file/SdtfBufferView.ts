@@ -1,7 +1,7 @@
 import { CONTENTTYPE, CONTENT_ENCODING } from "../../enums";
 import { SdtfBuffer } from "./SdtfBuffer";
 import { ungzip } from "pako"
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 import { container } from "tsyringe";
 
 export class SdtfBufferView {
@@ -100,7 +100,7 @@ export class SdtfBufferView {
       });
       return this._data;
     } else {
-      this._logger.errorMessage('SdtfBufferView.load: The MIME type "model/vnd.3dm" is currently not implemented.');
+      this._logger.error(LOGGINGTOPIC.SDTF, 'SdtfBufferView.load: The MIME type "model/vnd.3dm" is currently not implemented.', new Error());
       return null;
       // const bytes = new Uint8Array(arrayBuffer);
       // const data = ungzip(bytes);

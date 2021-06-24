@@ -3,7 +3,7 @@ import { ILight, ILightScene, ILightScene as LightSceneLogic, LightScene as Ligh
 import { vec3 } from "gl-matrix";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { Viewer } from "../Viewer";
 import { AmbientLight } from "../lights/AmbientLight";
@@ -70,7 +70,7 @@ export class LightScene implements ILightScene {
         this.#lightSceneLogic = lightSceneLogic;
         (<LightSceneLogicImplementation>this.#lightSceneLogic).addUpdateCB(this.#updateCB);
         this.#updateCB();
-        this.#logger.debugLow(`LightScene(${this.id}).constructor: LightScene api created.`);
+        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).constructor: LightScene api created.`);
     }
 
     // #endregion Constructors (1)

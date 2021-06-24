@@ -4,8 +4,6 @@ require('chromedriver');
 import { api as API } from "@shapediver/viewer"
 import { screenshotCompare } from "../../general/src/setup";
 import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
-import { SettingsEngine } from "../../../rendering-engine/camera-engine/node_modules/@shapediver/viewer.shared.services/dist";
-import { build_data } from "@shapediver/viewer/src/build_data";
 
 for (let c = 0; c < allCapabilities.length; c++) {
     let name = 'settings_viewer';

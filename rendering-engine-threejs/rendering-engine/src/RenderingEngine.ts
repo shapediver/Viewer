@@ -22,6 +22,7 @@ import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { GeometryData } from '@shapediver/viewer.shared.types';
 import { Box } from '@shapediver/viewer.shared.math';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
 
 export class RenderingEngine implements IRenderingEngine {
     // #region Properties (41)
@@ -37,6 +38,7 @@ export class RenderingEngine implements IRenderingEngine {
     private readonly _id: string;
     private readonly _lightEngine: LightEngine;
     private readonly _lightLoader: LightLoader;
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _materialLoader: MaterialLoader;
     private readonly _renderingLogic: RenderingLogic;
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
@@ -651,7 +653,7 @@ export class RenderingEngine implements IRenderingEngine {
             height = this.canvas.canvasElement.height;
 
         const camera = this.cameraEngine.getCamera();
-        if (!camera) throw new Error('No camera is defined for this viewer.');
+        if (!camera) throw this._logger.error(LOGGINGTOPIC.VIEWER, 'RenderingEngine: No camera is defined for this viewer.', new Error());
 
         const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
         const tracing = this.trace(camera.position, direction);

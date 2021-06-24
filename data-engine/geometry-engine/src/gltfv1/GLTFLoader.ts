@@ -5,7 +5,7 @@ import { ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as 
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MaterialData, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { container } from 'tsyringe';
-import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
 
 export class GLTFLoader {
     // #region Properties (5)
@@ -33,9 +33,9 @@ export class GLTFLoader {
             })).data;
         } catch (e) {            
             if (e.response && e.response.status) {
-                this._logger.httpError(`GLTFLoader.load: Initial loading of geometry failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Initial loading of geometry failed.`, e, e.response.status, false)
             } else {
-                this._logger.error(`GLTFLoader.load: Initial loading of geometry failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Initial loading of geometry failed.`, e, false)
             }
             return new TreeNode();
         }
@@ -50,7 +50,7 @@ export class GLTFLoader {
             contentFormat: headerDataView.getUint32(16, true)
         }
         if (header.magic != 'glTF') {
-            this._logger.errorMessage('GLTFLoader.load: Invalid data: glTF magic wrong.');
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.load: Invalid data: glTF magic wrong.', new Error());
             return new TreeNode();
         }
 
@@ -67,9 +67,9 @@ export class GLTFLoader {
             return await this.loadScene();
         } catch (e) {            
             if (e.response && e.response.status) {
-                this._logger.httpError(`GLTFLoader.load: Loading of geometry failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Loading of geometry failed.`, e, e.response.status, false)
             } else {
-                this._logger.error(`GLTFLoader.load: Loading of geometry failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Loading of geometry failed.`, e, false)
             }
             return new TreeNode();
         }
@@ -92,7 +92,7 @@ export class GLTFLoader {
                     message += '"' + element + '"' + (index === notSupported.length-1 ? '' : index === notSupported.length-2 ? ' and ' : ', ');
                 });
                 message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
-                this._logger.info('GLTFLoader.validateVersionAndExtensions: ' + message);
+                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
             }
         }
     }
@@ -151,11 +151,11 @@ export class GLTFLoader {
 
         if(material.extensions && material.extensions.KHR_materials_common) {
             const technique = material.extensions.KHR_materials_common.technique;
-            if(technique && technique !== 'BLINN') this._logger.info('The technique ' + technique + ' is not supported. Trying to load the material either way.')
+            if(technique && technique !== 'BLINN') this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'The technique ' + technique + ' is not supported. Trying to load the material either way.')
             const values = material.extensions.KHR_materials_common.values;
 
             if (values.hasOwnProperty('ambient')) 
-                this._logger.info('GLTFLoader.loadMaterial: The value ambient was set for a material, but is not supported.')
+                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: The value ambient was set for a material, but is not supported.')
 
             if (values.hasOwnProperty('doubleSided')) 
                 materialData.side = values.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
@@ -164,13 +164,13 @@ export class GLTFLoader {
                 materialData.color = this._converter.toColor(values.diffuse);
                 materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
             } else if(values.hasOwnProperty('diffuse') && !Array.isArray(values.diffuse)) {
-                this._logger.info('GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
+                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
             }
 
             if (values.hasOwnProperty('emission') && Array.isArray(values.emission)) {
                 materialData.emissiveness = this._converter.toColor(values.emission);
             } else {
-                this._logger.info('GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
+                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
             }
 
             if (values.hasOwnProperty('shininess')) {
@@ -182,7 +182,7 @@ export class GLTFLoader {
                 materialData.opacity = Math.max(0.0, Math.min(values.transparency, 1.0));
 
             if (values.hasOwnProperty('transparent')) 
-                this._logger.info('GLTFLoader.loadMaterial: The value transparent was set for a material, but is not supported.')
+                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: The value transparent was set for a material, but is not supported.')
 
             if (values.hasOwnProperty('_roughness'))
                 materialData.roughness = Math.min(1, Math.max(0, values.roughness));

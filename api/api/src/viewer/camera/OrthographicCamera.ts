@@ -1,5 +1,5 @@
 import { IOrthographicCamera, OrthographicCamera as OrthographicCameraLogic, OrthographicCameraControls as OrthographicCameraControlsLogic, ORTHOGRAPHIC_CAMERA_DIRECTION  } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
@@ -43,12 +43,12 @@ export class OrthographicCamera extends Camera implements IOrthographicCamera {
      * @param {number} value
      */
     public updateDirection(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
-        this.#logger.debugLow(`Camera(${this.id}).updateDirection: Updating Direction to ${value}.`);
-        this.#inputValidator.validateAndError(`Camera(${this.id}).updateDirection`, value, 'enum', true, Object.values(ORTHOGRAPHIC_CAMERA_DIRECTION));
+        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDirection: Updating Direction to ${value}.`);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDirection`, value, 'enum', true, Object.values(ORTHOGRAPHIC_CAMERA_DIRECTION));
         this.#camera.direction = value;
         this.#camera.zoomTo([], {duration: 0});
         this.#viewer.update();
-        this.#logger.info(`Camera(${this.id}).updateDirection: direction was set to: ${value}`);
+        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDirection: direction was set to: ${value}`);
     }
 
     // #endregion Constructors (1)

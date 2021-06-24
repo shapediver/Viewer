@@ -1,20 +1,7 @@
 import 'reflect-metadata'
 import { container } from 'tsyringe';
 
-import { PerformanceEvaluator, Logger } from '../src/index'
-
-describe('logger - test', () => {
-    let logger: Logger;
-
-    beforeEach(() => {
-        logger = <Logger>container.resolve(Logger);
-    });
-
-    test('info logging', async () => {
-        logger.info('a message')
-    });
-
-})
+import { PerformanceEvaluator, Logger, LOGGINGTOPIC } from '../src/index'
 
 jest.setTimeout(100000);
 

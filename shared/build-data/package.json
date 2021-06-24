@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.shared.monitoring",
+  "name": "@shapediver/viewer.shared.build-data",
   "version": "0.3.7",
   "description": "",
   "keywords": [],
@@ -34,12 +34,5 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
-  },
-  "dependencies": {
-    "@sentry/browser": "^6.7.2",
-    "@sentry/tracing": "^6.7.2",
-    "@shapediver/viewer.shared.build-data": "^0.3.7",
-    "gl-matrix": "^3.3.0",
-    "tsyringe": "^4.5.0"
   }
 }

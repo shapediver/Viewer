@@ -4,8 +4,6 @@ require('chromedriver');
 import { api as API } from "@shapediver/viewer"
 import { screenshotCompare } from "../../general/src/setup";
 import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
-import { SettingsEngine } from "../../../rendering-engine/camera-engine/node_modules/@shapediver/viewer.shared.services/dist";
-import { build_data } from "@shapediver/viewer/src/build_data";
 const originalSettings = {
     // build_date: '', // this will be different every time
     // build_version: '', // this will be different every time

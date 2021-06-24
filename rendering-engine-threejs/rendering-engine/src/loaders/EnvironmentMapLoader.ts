@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { RenderingEngine } from "..";
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 
@@ -57,7 +57,7 @@ export class EnvironmentMapLoader {
             name_caching = name_internal + this._renderingEngine.environmentMapResolution;
         } else {
             if (name.length !== 6) {
-                this._logger.errorMessage('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.')
+                this._logger.error(LOGGINGTOPIC.VIEWER, 'EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.', new Error())
                 this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
                 return false;
             }
@@ -89,7 +89,7 @@ export class EnvironmentMapLoader {
                     url.push(name + this._environmentMapFilenames[i] + '.jpg');
             }
             else {
-                this._logger.errorMessage('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.')
+                this._logger.error(LOGGINGTOPIC.VIEWER, 'EnvironmentMapLoader.load: Was not able to load environment map, format not supported.', new Error())
                 this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
                 return false;
             }
@@ -103,7 +103,7 @@ export class EnvironmentMapLoader {
             return Promise.resolve(true);
         }
         catch (error) {
-            this._logger.errorMessage('EnvironmentMapLoader.load: Was not able to load environment map.')
+            this._logger.error(LOGGINGTOPIC.VIEWER, 'EnvironmentMapLoader.load: Was not able to load environment map.', new Error())
             this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
             return Promise.resolve(false);
         }

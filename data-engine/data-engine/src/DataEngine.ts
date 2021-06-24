@@ -6,7 +6,7 @@ import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Reader } from '@shapediver/viewer.sdtf.converter';
 import { TreeNodeConverter } from './TreeNodeConverter';
-import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine';
 import { ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
 
@@ -20,7 +20,7 @@ export class DataEngine {
 
     public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
         if(!content || (content && !content.format)) {
-            this._logger.errorMessage('DataEngine.loadContent: Invalid content was provided to data engine.');
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'DataEngine.loadContent: Invalid content was provided to data engine.', new Error());
             return new TreeNode();
         }
 
@@ -44,9 +44,9 @@ export class DataEngine {
             }
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(`DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e, e.response.status, false)
               } else {
-                this._logger.error(`DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e, false)
             }
             return new TreeNode();
         }

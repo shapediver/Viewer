@@ -5,7 +5,7 @@ import { ICallback } from "./interfaces/ICallback";
 import { IEvent } from "./interfaces/IEvent";
 
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 
 @singleton()
 export class EventEngine {
@@ -43,7 +43,7 @@ export class EventEngine {
                 typeString = mainType.toLowerCase();
         
         if(!typeString || !this._eventListeners[typeString]) {
-            this._logger.errorMessage('EventEngine.convertTypeToString: No valid type provided.');
+            this._logger.error(LOGGINGTOPIC.GENERAL, 'EventEngine.convertTypeToString: No valid type provided.', new Error());
             return '';
         }
         

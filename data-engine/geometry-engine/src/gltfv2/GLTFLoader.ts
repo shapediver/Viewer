@@ -5,7 +5,7 @@ import { container } from 'tsyringe';
 import { ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
-import { Logger } from '@shapediver/viewer.shared.monitoring';
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.monitoring';
 import { PbrMaterialConverter } from './PbrSpecularGlossinessConverter';
 
 export class GLTFLoader {
@@ -38,9 +38,9 @@ export class GLTFLoader {
             });
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(`GLTFLoader.load: Initial loading of geometry failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Initial loading of geometry failed.`, e, e.response.status, false)
             } else {
-                this._logger.error(`GLTFLoader.load: Initial loading of geometry failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Initial loading of geometry failed.`, e, false)
             }
             return new TreeNode();
         }
@@ -62,7 +62,7 @@ export class GLTFLoader {
                 contentFormat: headerDataView.getUint32(16, true)
             }
             if (header.magic != 'glTF') {
-                this._logger.errorMessage('GLTFLoader.load: Invalid data: glTF magic wrong.');
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.load: Invalid data: glTF magic wrong.', new Error());
                 return new TreeNode();
             }
             // create content
@@ -92,9 +92,9 @@ export class GLTFLoader {
             return await this.loadScene();
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(`GLTFLoader.load: Loading of geometry failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Loading of geometry failed.`, e, e.response.status, false)
             } else {
-                this._logger.error(`GLTFLoader.load: Loading of geometry failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Loading of geometry failed.`, e, false)
             }
             return new TreeNode();
         }
@@ -242,7 +242,7 @@ export class GLTFLoader {
                 materialData.map = await this.loadMap(material_extension.diffuseTexture.index);
 
             if (material_extension.specularGlossinessTexture !== undefined)
-                this._logger.info('GLTFLoader.loadMaterial: Due to issues with the material conversion, the specularGlossinessTexture is not supported at the moment.');
+                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: Due to issues with the material conversion, the specularGlossinessTexture is not supported at the moment.');
         }
 
         return materialData;
@@ -344,7 +344,7 @@ export class GLTFLoader {
                     message += '"' + element + '"' + (index === notSupported.length-1 ? '' : index === notSupported.length-2 ? ' and ' : ', ');
                 });
                 message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
-                this._logger.info('GLTFLoader.validateVersionAndExtensions: ' + message);
+                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
             }
         }
 

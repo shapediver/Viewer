@@ -42,6 +42,7 @@
     "@shapediver/viewer.rendering-engine.light-engine": "^0.3.7",
     "@shapediver/viewer.rendering-engine.rendering-engine": "^0.3.7",
     "@shapediver/viewer.session-engine.session-engine": "^0.3.7",
+    "@shapediver/viewer.shared.build-data": "^0.3.7",
     "@shapediver/viewer.shared.math": "^0.3.7",
     "@shapediver/viewer.shared.monitoring": "^0.3.7",
     "@shapediver/viewer.shared.node-tree": "^0.3.7",

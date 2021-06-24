@@ -10,6 +10,7 @@ import { PerspectiveCamera } from "./camera/PerspectiveCamera";
 import { OrthographicCamera } from "./camera/OrthographicCamera";
 import { PerspectiveCameraControls } from "./controls/PerspectiveCameraControls";
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from "../interfaces/camera/IOrthographicCamera";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (3)
@@ -21,6 +22,7 @@ export class CameraEngine implements ICameraEngine {
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
     protected _boundingBox: Box = new Box();
 
     private _camera!: Camera;
@@ -92,7 +94,7 @@ export class CameraEngine implements ICameraEngine {
 
     public createCamera(type: CAMERATYPE, id?: string): Camera {
         const cameraId = id || this._uuidGenerator.create();
-        if (this._cameras[cameraId]) new Error('Camera with this id already exists.');
+        if (this._cameras[cameraId]) this._logger.error(LOGGINGTOPIC.CAMERA, 'Camera: Camera with this id already exists.', new Error());
         if (CAMERATYPE.ORTHOGRAPHIC === type) {
             const camera = new OrthographicCamera(cameraId, this._canvas.canvasElement);
             this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);

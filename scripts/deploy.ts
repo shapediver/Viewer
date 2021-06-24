@@ -58,14 +58,14 @@ const execPromise = (cmd: string) => {
         if (!git_branch || !git_commit) throw new Error('Could not get git branch or commit for deployment.');
         const timestamp = new Date().toISOString();
 
-        fs.writeFileSync('api/api/src/build_data.ts', 'export const build_data = ' + JSON.stringify({
-            build_version: '3.' + newVersion,
+        fs.writeFileSync('shared/build_data/src/build_data.ts', 'export const build_data = ' + JSON.stringify({
+            build_version: newVersion,
             build_date: timestamp,
             build_branch: git_branch,
             build_commit: git_commit
         }, null, 0) + ';');
 
-        const readmeVersion = `\n## Version\n* __Version:__ ${'3.' + newVersion}\n* __Build date:__ ${timestamp}\n* __Branch:__ ${git_branch}\n* __Commit:__ ${git_commit}\n`
+        const readmeVersion = `\n## Version\n* __Version:__ ${newVersion}\n* __Build date:__ ${timestamp}\n* __Branch:__ ${git_branch}\n* __Commit:__ ${git_commit}\n`
         let readme = fs.readFileSync('./documentation/apiReadMe.md', 'utf8');
         readme = readme.replace(readme.substring(readme.indexOf('<!--- VERSION_START -->') + '<!--- VERSION_START -->'.length, readme.indexOf('<!--- VERSION_END -->')), readmeVersion)
         fs.writeFileSync('./documentation/apiReadMe.md', readme, 'utf8');

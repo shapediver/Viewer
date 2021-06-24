@@ -20,19 +20,9 @@ const bearerToken = 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHR
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 (<any>window).settingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
-
-const performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-const logger: Logger = <Logger>container.resolve(Logger);
-performanceEvaluator.start('startup', window.performance.timing.connectStart);
-performanceEvaluator.end('startup');
-logger.info(performanceEvaluator.getEvaluationToString('startup'));
-
 (async () => {
     let session = await api.createAndInitializeSession({ ticket: ticket, modelViewUrl: modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
-    performanceEvaluator.start('pageLoad_rendering', window.performance.timing.connectStart);
-    performanceEvaluator.end('pageLoad_rendering');
-    logger.info(performanceEvaluator.getEvaluationToString('pageLoad_rendering'));
     await new Promise<void>((resolve) => {
         api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
     })

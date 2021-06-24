@@ -1,0 +1,1 @@
+# `@shapediver/viewer.shared.build-data`

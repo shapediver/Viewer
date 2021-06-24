@@ -3,7 +3,7 @@ import { HemisphereLight as HemisphereLightLogic } from "@shapediver/viewer.rend
 import { vec3 } from "gl-matrix";
 import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
-import { Logger } from "@shapediver/viewer.shared.monitoring";
+import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.monitoring";
 
 export class HemisphereLight extends Light {
     // #region Properties (1)
@@ -42,10 +42,10 @@ export class HemisphereLight extends Light {
      * @param {string | number | vec3} value
      */
     public updateGroundColor(value: string | number | vec3) {
-        this.#logger.debugLow(`Light(${this.id}).updateGroundColor: Updating GroundColor to ${value}.`);
-        this.#inputValidator.validateAndError(`Light(${this.id}).updateGroundColor`, value, 'color');
+        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor: Updating GroundColor to ${value}.`);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor`, value, 'color');
         this.#light.groundColor = this.#converter.toColor(value);
-        this.#logger.info(`Light(${this.id}).updateGroundColor: groundColor was set to: ${value}`);
+        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor: groundColor was set to: ${value}`);
     }
 
     // #endregion Public Accessors (2)
