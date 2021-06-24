@@ -508,7 +508,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     const r = this.#renderingEngine.lightEngine.assignLightScene(id);
     if (r) this.#renderingEngine.lightScene = id;
     if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigned light scene with id ${id}.`);
-    if (!r) this.#logger.error(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Could not assign light scene with id ${id}.`, new Error());
+    if (!r) this.#logger.error(LOGGINGTOPIC.LIGHT, new Error(`Viewer(${this.id}).assignLightScene: Could not assign light scene with id ${id}.`));
     this.update();
     return r;
   }
@@ -826,7 +826,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   private isInitialized() {
     this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).isInitialized: Checking if Viewer was initialized.`);
     if (!this.#renderingEngine)
-      this.#logger.error(LOGGINGTOPIC.VIEWER, `Viewer has not been initialized. Please initialize it first.`, new Error());
+      this.#logger.error(LOGGINGTOPIC.VIEWER, new Error(`Viewer has not been initialized. Please initialize it first.`));
   }
 
   // #endregion Private Methods (1)

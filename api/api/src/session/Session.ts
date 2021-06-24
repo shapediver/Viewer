@@ -384,7 +384,7 @@ export class Session {
         if(response) {
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
         } else {
-            this.#logger.error(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Could not save default parameters.`, new Error());
+            this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`));
         }
         return response;
     }
@@ -450,12 +450,12 @@ export class Session {
             if(response) {
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Saved settings.`);
             } else {
-                this.#logger.error(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Could not save settings.`, new Error());
+                this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Session(${this.id}).saveSettings: Could not save settings.`));
             }
             return response;
         }
 
-        this.#logger.error(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Could not save settings, no viewer initialized.`, new Error());
+        this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Session(${this.id}).saveSettings: Could not save settings, no viewer initialized.`));
         return false;
     }
 

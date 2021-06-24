@@ -653,7 +653,7 @@ export class RenderingEngine implements IRenderingEngine {
             height = this.canvas.canvasElement.height;
 
         const camera = this.cameraEngine.getCamera();
-        if (!camera) throw this._logger.error(LOGGINGTOPIC.VIEWER, 'RenderingEngine: No camera is defined for this viewer.', new Error());
+        if (!camera) throw this._logger.error(LOGGINGTOPIC.VIEWER, new Error('RenderingEngine: No camera is defined for this viewer.'));
 
         const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
         const tracing = this.trace(camera.position, direction);

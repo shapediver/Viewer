@@ -57,9 +57,9 @@ export class SdtfBuffer {
       })
     } catch (e) {
       if (e.response && e.response.status) {
-          this._logger.httpError(LOGGINGTOPIC.SDTF, `SdtfBuffer.load: Initial loading of geometry failed.`, e, e.response.status, false)
+          this._logger.httpError(LOGGINGTOPIC.SDTF, e, `SdtfBuffer.load: Initial loading of geometry failed.`, e.response.status, false)
         } else {
-          this._logger.error(LOGGINGTOPIC.SDTF, `SdtfBuffer.load: Initial loading of geometry failed.`, e, false)
+          this._logger.error(LOGGINGTOPIC.SDTF, e, `SdtfBuffer.load: Initial loading of geometry failed.`, false)
       }
       return null;
     }

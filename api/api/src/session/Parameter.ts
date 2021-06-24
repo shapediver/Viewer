@@ -140,7 +140,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                 case this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL:
                     if (typeof value === 'string') {
                         if (!(value === 'true' || value === 'false'))
-                            this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is a string that is neither true or false.`, new Error());
+                            this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${value} is a string that is neither true or false.`), '', true);
                     } else {
                         this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, value, 'boolean');
                     }
@@ -157,17 +157,17 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                         temp = +value;
                     this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, value, 'number');
                     if (this.type === PARAMETERTYPE.EVEN) {
-                        if (temp % 2 !== 0) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is not even.`, new Error());
+                        if (temp % 2 !== 0) this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${value} is not even.`), '', true);
                     } else if (this.type === PARAMETERTYPE.ODD) {
-                        if (temp % 2 === 0) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is not odd.`, new Error());
+                        if (temp % 2 === 0) this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${value} is not odd.`), '', true);
                     } else if (this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.SINTEGER) {
-                        if (!Number.isInteger(temp)) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is not an integer.`, new Error());
+                        if (!Number.isInteger(temp)) this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${value} is not an integer.`), '', true);
                     }
                     if (this.min || this.min === 0)
-                        if (temp < this.min) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is smaller than the minimum ${this.min}.`, new Error());
+                        if (temp < this.min) this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${value} is smaller than the minimum ${this.min}.`), '', true);
 
                     if (this.max || this.max === 0)
-                        if (temp > this.max) this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} is larger than the maximum ${this.max}.`, new Error());
+                        if (temp > this.max) this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${value} is larger than the maximum ${this.max}.`), '', true);
 
                     if (this.decimalplaces || this.decimalplaces === 0) {
                         const numStr = temp + '';
@@ -175,7 +175,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                         if (numStr.includes('.'))
                             decimalplaces = numStr.split('.')[1].length;
                         if (this.decimalplaces < decimalplaces)
-                            this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`, new Error());
+                            this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`), '', true);
                     }
 
                     break;
@@ -188,7 +188,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                         const temp = +v;
                         this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, value, 'number');
                         if (temp < 0 || temp > this.choices!.length - 1)
-                            this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${v} is not within the range of the defined number choices.`, new Error());
+                            this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${v} is not within the range of the defined number choices.`), '', true);
                     }
 
                     if (this.visualization === PARAMETERVISUALIZATION.CHECKLIST) {
@@ -197,7 +197,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                             const values: string[] = value.split(',');
                             for (let i = 0; i < values.length; i++) {
                                 if (values.filter(item => item === values[i]).length !== 1)
-                                    this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid: The value ${values[i]} exists multiple times, but should only exist once.`, new Error());
+                                    this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${values[i]} exists multiple times, but should only exist once.`), '', true);
                                 choicesChecker(values[i]);
                             }
                         } else {
@@ -249,7 +249,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                 return this.#converter.toHex8Color(this.value);
             case this.type === PARAMETERTYPE.FILE:
                 if (typeof this.value !== 'string')
-                    this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).stringify: Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`, new Error());
+                    this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).stringify: Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`), '', true);
                 return <string>this.value;
             case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD || this.type === PARAMETERTYPE.SINTEGER || this.type === PARAMETERTYPE.SNUMBER:
                 return typeof this.value === 'string' ? this.value : (<number><unknown>this.value) + '';
@@ -286,7 +286,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
             (<any>this.lastValidatedValue) = this.value;
             this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).updateValue: Value was updated to ${this.value}.`);
         } else {
-            this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).updateValue: Could not validate value.`, new Error());
+            this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).updateValue: Could not validate value.`));
         }
     }
 

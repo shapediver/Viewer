@@ -62,7 +62,7 @@ export class Tag3dEngine {
         const node = new TreeNode('tag3d');
 
         if (!content) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.', new Error());
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.'));
             return node;
         }
 
@@ -171,7 +171,7 @@ export class Tag3dEngine {
 
             }
         } else {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.', new Error());
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.'));
         }
         return node;
     }

@@ -76,7 +76,7 @@ export class Api {
     this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
     this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
     if(!this.sessions[id])
-      this.#logger.error(LOGGINGTOPIC.SESSION, `Api.closeSession: Session with id ${id} was not registered.`, new Error());
+      this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Api.closeSession: Session with id ${id} was not registered.`));
 
     const result = await this.#sessionCallbacks[id].close();
     this.#stateEngine.getCustomState(id + '_settings_registered').reset();
@@ -162,7 +162,7 @@ export class Api {
     // check if the given id is valid
     const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.sessions[sessionId])
-      this.#logger.error(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`, new Error());
+      this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`));
 
     const session = this.createSession(properties);
     await session.init();
@@ -195,7 +195,7 @@ export class Api {
     // check if the given id is valid
     const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.viewers[viewerId]) 
-      this.#logger.error(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`, new Error());
+      this.#logger.error(LOGGINGTOPIC.VIEWER, new Error(`Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`));
 
     // create the actual viewer
     let viewerCallbacks = {};
@@ -243,7 +243,7 @@ export class Api {
     // check if the given id is valid
     const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.sessions[sessionId])
-      this.#logger.error(LOGGINGTOPIC.SESSION, `Api.createSession: Session with this id (${sessionId}) already exists.`, new Error());
+      this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Api.createSession: Session with this id (${sessionId}) already exists.`));
 
     // create the actual session 
     let sessionCallbacks = {};
@@ -283,7 +283,7 @@ export class Api {
     // check if the given id is valid
     const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
     if (this.viewers[viewerId]) 
-      this.#logger.error(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer with this id (${viewerId}) already exists.`, new Error());
+      this.#logger.error(LOGGINGTOPIC.VIEWER, new Error(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`));
 
     // create the actual viewer
     let viewerCallbacks = {};

@@ -72,7 +72,7 @@ export class MaterialEngine {
         const node = new TreeNode('material');
     
         if(!content) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'MaterialEngine.loadContent: Invalid content was provided to material engine.', new Error());
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('MaterialEngine.loadContent: Invalid content was provided to material engine.'));
             return node;
         }
 
@@ -98,7 +98,7 @@ export class MaterialEngine {
                 }
             }
         } else {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'MaterialEngine.loadContent: No material data was provided to material engine.', new Error());
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('MaterialEngine.loadContent: No material data was provided to material engine.'));
         }
         return node;
     }
@@ -203,9 +203,9 @@ export class MaterialEngine {
             }
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMap: Loading of map failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMap: Loading of map failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMap: Loading of map failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMap: Loading of map failed.`, false)
             }
             return null;
         }
@@ -225,9 +225,9 @@ export class MaterialEngine {
             // }
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMapWithProperties: Loading of map failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMapWithProperties: Loading of map failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMapWithProperties: Loading of map failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMapWithProperties: Loading of map failed.`, false)
             }
             return null;
         }

@@ -340,7 +340,7 @@ export class RenderingLogic {
 
             return _gl;
         } catch (error) {
-            this._logger.error(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', new Error());
+            this._logger.error(LOGGINGTOPIC.VIEWER, new Error('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.'));
             throw error;
         }
     }

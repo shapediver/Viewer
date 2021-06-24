@@ -16,7 +16,7 @@ export class InputValidator {
     public validateAndError(topic: LOGGINGTOPIC, scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
         const res = this.validate(value, type, defined, enumValues);
         if(res) return;
-        this._logger.error(topic, `${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, new Error());
+        this._logger.error(topic, new Error(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`));
     }
 
     private validate(value: any, stringLiteral: Types, defined: boolean = true, enumValues: string[] = []): boolean {

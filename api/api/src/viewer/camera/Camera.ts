@@ -247,7 +247,7 @@ export abstract class Camera implements ICamera {
             if(Array.isArray(zoomTarget)) {
                  this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, zoomTarget, 'stringArray');
             } else if(!(zoomTarget instanceof Box)) 
-                this.#logger.error(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: The specified zoom target does not have a valid type`, new Error());
+                this.#logger.error(LOGGINGTOPIC.CAMERA, new Error(`Camera(${this.id}).zoomTo: The specified zoom target does not have a valid type`));
         }
         const o = Object.assign({}, options);
         this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.easing, 'string', false);

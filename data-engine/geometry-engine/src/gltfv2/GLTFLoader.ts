@@ -38,9 +38,9 @@ export class GLTFLoader {
             });
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Initial loading of geometry failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Initial loading of geometry failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Initial loading of geometry failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Initial loading of geometry failed.`, false)
             }
             return new TreeNode();
         }
@@ -62,7 +62,7 @@ export class GLTFLoader {
                 contentFormat: headerDataView.getUint32(16, true)
             }
             if (header.magic != 'glTF') {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.load: Invalid data: glTF magic wrong.', new Error());
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('GLTFLoader.load: Invalid data: glTF magic wrong.'));
                 return new TreeNode();
             }
             // create content
@@ -92,9 +92,9 @@ export class GLTFLoader {
             return await this.loadScene();
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Loading of geometry failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load: Loading of geometry failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed.`, false)
             }
             return new TreeNode();
         }

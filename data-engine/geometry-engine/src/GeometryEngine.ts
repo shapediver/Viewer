@@ -32,7 +32,7 @@ export class GeometryEngine {
         const node = new TreeNode('geometry');
         
         if(!content || (content && !content.href)) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, 'GeometryEngine.loadContent: Invalid content was provided to geometry engine.', new Error(), false);
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('GeometryEngine.loadContent: Invalid content was provided to geometry engine.'), '', false);
             return node;
         }
 

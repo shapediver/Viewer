@@ -182,9 +182,9 @@ export class Session implements ISession {
                 await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'close')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'close')[0].method!, null, 'application/json');
             } catch (e) {
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, `Session.close: Session closing failed.`, e, e.response.status, false)
+                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.close: Session closing failed.`, e.response.status, false)
                   } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, `Session.close: Session closing failed.`, e, false)
+                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.close: Session closing failed.`, false)
                 }
                 return false;
             }
@@ -209,7 +209,7 @@ export class Session implements ISession {
      */
     public async init(): Promise<SessionTreeNode> {
         if (this._initialized === true) {
-            this._logger.error(LOGGINGTOPIC.SESSION, 'Session.init: Session already initialized.', new Error());
+            this._logger.error(LOGGINGTOPIC.SESSION, new Error('Session.init: Session already initialized.'));
             return this.loadOutputs(this._parameterValues);
         }
 
@@ -219,9 +219,9 @@ export class Session implements ISession {
                 sessionResponse = <ShapeDiverResponseBase>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
             } catch (e) {                
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, `Session.init: Session init failed.`, e, e.response.status, false)
+                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, e.response.status, false)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, `Session.init: Session init failed.`, e, false)
+                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, false)
                 }
                 return new SessionTreeNode();
             }
@@ -234,7 +234,7 @@ export class Session implements ISession {
             this._updateCBs.forEach(v => v());
             return this.loadOutputs(this._parameterValues);
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.SESSION, 'Session.init: Something went wrong at session init.', e);
+            this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.init: Something went wrong at session init.');
             return new SessionTreeNode();
         }
     }
@@ -331,7 +331,7 @@ export class Session implements ISession {
 
     public async saveDefaultParameters(): Promise<boolean> {
         if (!this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0]) {
-            this._logger.error(LOGGINGTOPIC.SESSION, 'Session.saveDefaultParameters: Session has to be in edit mode to be able to save the settings.', new Error());
+            this._logger.error(LOGGINGTOPIC.SESSION, new Error('Session.saveDefaultParameters: Session has to be in edit mode to be able to save the settings.'));
             return false;
         }
         try {
@@ -339,9 +339,9 @@ export class Session implements ISession {
             return true;
         } catch (e) {                
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, `Session.saveDefaultParameters: Saving of default parameters failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveDefaultParameters: Saving of default parameters failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, `Session.saveDefaultParameters: Saving of default parameters failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveDefaultParameters: Saving of default parameters failed.`, false)
             }
             return false;
         }
@@ -349,7 +349,7 @@ export class Session implements ISession {
 
     public async saveSettings(json: any): Promise<boolean> {
         if (!this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]) {
-            this._logger.error(LOGGINGTOPIC.SESSION, 'Session.saveSettings: Session has to be in edit mode to be able to save the settings.', new Error());
+            this._logger.error(LOGGINGTOPIC.SESSION, new Error('Session.saveSettings: Session has to be in edit mode to be able to save the settings.'));
             return false;
         }
         try {
@@ -357,9 +357,9 @@ export class Session implements ISession {
             return true;
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, `Session.saveSettings: Saving of settings failed.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveSettings: Saving of settings failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, `Session.saveSettings: Saving of settings failed.`, e, false)
+                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveSettings: Saving of settings failed.`, false)
             }
             return false;
         }
@@ -370,19 +370,19 @@ export class Session implements ISession {
         if (contentType) headers = Object.assign({ "Content-Type": contentType }, this._headers);
 
         method = method.toLowerCase();
-        if (method !== 'post' && method !== 'get') throw this._logger.error(LOGGINGTOPIC.SESSION, 'Session: Method ' + method + ' not recognized.', new Error());
+        if (method !== 'post' && method !== 'get') throw this._logger.error(LOGGINGTOPIC.SESSION, new Error('Session: Method ' + method + ' not recognized.'));
         try {
             return await this._httpClient[method](href, { data, headers });
         } catch (e) {
             if (e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
                 if (!this._refreshBearerToken) {
-                    this._logger.error(LOGGINGTOPIC.SESSION, 'Session.sessionCommunication: Session request failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.', new Error());
+                    this._logger.error(LOGGINGTOPIC.SESSION, new Error('Session.sessionCommunication: Session request failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.'));
                     throw e;
                 } else {
                     const bearerToken = this.bearerToken;
                     const newToken = this._refreshBearerToken();
                     if (bearerToken === newToken) {
-                        this._logger.error(LOGGINGTOPIC.SESSION, 'Session.sessionCommunication: Session request failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.', new Error());
+                        this._logger.error(LOGGINGTOPIC.SESSION, new Error('Session.sessionCommunication: Session request failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.'));
                         throw e;
                     } else {
                         this.bearerToken = newToken;
@@ -400,7 +400,7 @@ export class Session implements ISession {
 
     private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
         if (this._initialized === false) {
-            this._logger.error(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Session not initialized.', new Error());
+            this._logger.error(LOGGINGTOPIC.SESSION, new Error('Session.customizeSession: Session not initialized.'));
             return new SessionTreeNode();
         }
         try {
@@ -419,16 +419,16 @@ export class Session implements ISession {
                 }
 
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, `Session.customizeSession: Session customization failed.`, e, e.response.status, false)
+                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, e.response.status, false)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, `Session.customizeSession: Session customization failed.`, e, false)
+                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, false)
                 }
                 return new SessionTreeNode();
             }
             this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);
             return this.loadOutputs(parameters);
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Something went wrong at session customization.', e);
+            this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.customizeSession: Something went wrong at session customization.');
             return new SessionTreeNode();
         }
     }

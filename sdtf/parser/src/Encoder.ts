@@ -32,9 +32,9 @@ export class Encoder {
             });
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SDTF, `Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, e, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SDTF, e, `Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, e.response.status, false)
               } else {
-                this._logger.error(LOGGINGTOPIC.SDTF, `Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, e, false)
+                this._logger.error(LOGGINGTOPIC.SDTF, e, `Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, false)
             }
             return null;
         }
@@ -46,7 +46,7 @@ export class Encoder {
                 return (<Uint8Array>axiosResponse.data).buffer
             }
         } else {
-            this._logger.error(LOGGINGTOPIC.SDTF, 'Encoder.encodeFromUriToArrayBuffer: Non-binary SDTF encoding not implemented.', new Error());
+            this._logger.error(LOGGINGTOPIC.SDTF, new Error('Encoder.encodeFromUriToArrayBuffer: Non-binary SDTF encoding not implemented.'));
             return null;
         }
     }
@@ -65,19 +65,19 @@ export class Encoder {
 
         const magic = String.fromCharCode(headerDataView.getUint8(0)) + String.fromCharCode(headerDataView.getUint8(1)) + String.fromCharCode(headerDataView.getUint8(2)) + String.fromCharCode(headerDataView.getUint8(3));
         if (magic !== 'sdtf') {
-            this._logger.error(LOGGINGTOPIC.SDTF, 'Encoder.encodeFromArrayBufferToJson: Invalid data: sdtf magic wrong.', new Error());
+            this._logger.error(LOGGINGTOPIC.SDTF, new Error('Encoder.encodeFromArrayBufferToJson: Invalid data: sdtf magic wrong.'));
             return null;
         } 
         const version = headerDataView.getUint32(4, true);
         if (version !== 1) {
-            this._logger.error(LOGGINGTOPIC.SDTF, `Encoder.encodeFromArrayBufferToJson: Invalid version: sdtf loader does not support version ${version}.`, new Error());
+            this._logger.error(LOGGINGTOPIC.SDTF, new Error(`Encoder.encodeFromArrayBufferToJson: Invalid version: sdtf loader does not support version ${version}.`));
             return null;
         } 
         const totalLength = headerDataView.getUint32(8, true);
         const contentLength = headerDataView.getUint32(12, true);
         const contentFormat = headerDataView.getUint32(16, true);
         if (contentFormat !== 0) {
-            this._logger.error(LOGGINGTOPIC.SDTF, 'Encoder.encodeFromArrayBufferToJson: Content format is not Json (0), content invalid.', new Error());
+            this._logger.error(LOGGINGTOPIC.SDTF, new Error('Encoder.encodeFromArrayBufferToJson: Content format is not Json (0), content invalid.'));
             return null;
         }
 

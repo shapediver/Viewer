@@ -32,7 +32,7 @@ export class FileParameter extends Parameter<File | Blob | string> {
         if (typeof this.value === 'string' && this.value.length === 36 && this.#uuidGenerator.validate(this.value)) return this.value;
         const data = new File([typeof this.value === 'string' ? new Blob([this.value], { type: 'text/plain' }) : this.value], 'upload');
         if (data.size === 0)
-            this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Error uploading FileParameter, file size was 0.`, new Error());
+            this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).upload: Error uploading FileParameter, file size was 0.`));
 
         this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
         try {
@@ -41,9 +41,9 @@ export class FileParameter extends Parameter<File | Blob | string> {
             return uploadReply[this.id].id;
         } catch (e) {
             if (e.response && e.response.status) {
-                throw this.#logger.httpError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Upload failed.`, e, e.response.status, true);
+                throw this.#logger.httpError(LOGGINGTOPIC.PARAMETER, e, `Parameter(${this.id}).upload: Upload failed.`, e.response.status, true);
             } else {
-                throw this.#logger.error(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Upload failed.`, e, true);
+                throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Parameter(${this.id}).upload: Upload failed.`, true);
             }
         }
     }

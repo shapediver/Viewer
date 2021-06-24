@@ -71,9 +71,9 @@ export class Export implements ShapeDiverResponseExportDefinition {
       return exportResult;
     } catch (e) {
       if (e.response && e.response.status) {
-        throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Request failed.`, e, e.response.status, true);
+        throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).request: Request failed.`, e.response.status, true);
       } else {
-        throw this.#logger.error(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Request failed.`, e, true);
+        throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).request: Request failed.`, true);
       }
     }
   }
@@ -122,9 +122,9 @@ export class Export implements ShapeDiverResponseExportDefinition {
       return exportCacheResult;
     } catch (e) {
       if (e.response && e.response.status) {
-        throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, `Export(${this.id}).cacheRequest: Cache request failed.`, e, e.response.status, true);
+        throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).cacheRequest: Cache request failed.`, e.response.status, true);
       } else {
-        throw this.#logger.error(LOGGINGTOPIC.EXPORT, `Export(${this.id}).cacheRequest: Cache request failed.`, e, true);
+        throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).cacheRequest: Cache request failed.`, true);
       }
     }
   }

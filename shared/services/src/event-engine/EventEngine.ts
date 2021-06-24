@@ -43,7 +43,7 @@ export class EventEngine {
                 typeString = mainType.toLowerCase();
         
         if(!typeString || !this._eventListeners[typeString]) {
-            this._logger.error(LOGGINGTOPIC.GENERAL, 'EventEngine.convertTypeToString: No valid type provided.', new Error());
+            this._logger.error(LOGGINGTOPIC.GENERAL, new Error('EventEngine.convertTypeToString: No valid type provided.'));
             return '';
         }
         

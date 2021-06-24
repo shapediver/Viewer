@@ -36,6 +36,7 @@ export class Logger {
     private _loggingLevel: LOGGINGLEVEL = LOGGINGLEVEL.NONE;
     private _showMessages: boolean = true;
     private _updateCBs: (() => void)[] = [];
+    private _breadCrumbCounter: number = 0;
 
     // #endregion Properties (2)
 
@@ -45,6 +46,7 @@ export class Logger {
             integrations: [new Integrations.BrowserTracing(), new Sentry.Integrations.TryCatch()],
             environment: 'local',
             release: build_data.build_version,
+            maxBreadcrumbs: 100,
             // Set tracesSampleRate to 1.0 to capture 100%
             // of transactions for performance monitoring.
             // We recommend adjusting this value in production
@@ -133,20 +135,17 @@ export class Logger {
     // #region Public Methods (8)
 
     private sentryBreadcrumb(topic: LOGGINGTOPIC, msg: string, level: Sentry.Severity) {
+        this._breadCrumbCounter++;
         Sentry.addBreadcrumb({
             category: topic,
             message: msg,
             level: Sentry.Severity.Debug,
             timestamp: Math.floor(new Date().getTime() / 1000)
         })
-    }
-    private sentryError(topic: LOGGINGTOPIC, msg: string, level: Sentry.Severity) {
-        Sentry.captureException({
-            category: topic,
-            message: msg,
-            level: Sentry.Severity.Debug,
-            timestamp: Math.floor(new Date().getTime() / 1000)
-        })
+        if(this._breadCrumbCounter === 100) {
+            Sentry.captureMessage('Breadcrumb Issue', Sentry.Severity.Debug);
+            this._breadCrumbCounter = 0;
+        }
     }
 
     /**
@@ -193,11 +192,12 @@ export class Logger {
      * Logging an error.
      * @param msg the message
      */
-    public error(topic: LOGGINGTOPIC, msg: string, error: Error, throwError: boolean = false): void {
-        this.sentryBreadcrumb(topic, msg, Sentry.Severity.Error); 
+    public error(topic: LOGGINGTOPIC, error: Error, msg?: string, throwError: boolean = false): void {
+        this.sentryBreadcrumb(topic, msg || error.message, Sentry.Severity.Error); 
+        Sentry.setTag('topic', topic);
         Sentry.captureException(error)
         if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true) 
-            console.error('(ERROR) ' + this.messageConstruction(msg));
+            console.error('(ERROR) ' + this.messageConstruction(msg || error.message));
         if(throwError) throw error;
     }
 
@@ -205,8 +205,9 @@ export class Logger {
      * Logging an error.
      * @param msg the message
      */
-    public httpError(topic: LOGGINGTOPIC, msg: string, error: Error, httpError: number, throwError: boolean = false): void {
+    public httpError(topic: LOGGINGTOPIC, error: Error, msg: string, httpError: number, throwError: boolean = false): void {
         this.sentryBreadcrumb(topic, msg, Sentry.Severity.Error);
+        Sentry.setTag('topic', topic);
         Sentry.captureException(error);
         this.httpErrorHelper(topic, msg, error, httpError, throwError);
     }
@@ -217,6 +218,7 @@ export class Logger {
      */
     public fatal(topic: LOGGINGTOPIC, msg: string, error: Error, throwError: boolean = false): void {
         this.sentryBreadcrumb(topic, msg, Sentry.Severity.Fatal);
+        Sentry.setTag('topic', topic);
         Sentry.captureException(error);
         if (this.canLog(LOGGINGLEVEL.FATAL) && this.showMessages === true)
             console.error('(FATAL) ' + this.messageConstruction(msg));
@@ -343,149 +345,149 @@ export class Logger {
             if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true)
                 switch (httpError) {
                     case 400:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Bad Request. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Bad Request. ' + error.message, throwError);
                         break;
                     case 401:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Unauthorized. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Unauthorized. ' + error.message, throwError);
                         break;
                     case 402:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Payment Required. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Payment Required. ' + error.message, throwError);
                         break;
                     case 403:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Forbidden. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Forbidden. ' + error.message, throwError);
                         break;
                     case 404:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Not Found. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Not Found. ' + error.message, throwError);
                         break;
                     case 405:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Method Not Allowed. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Method Not Allowed. ' + error.message, throwError);
                         break;
                     case 406:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Not Acceptable. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Not Acceptable. ' + error.message, throwError);
                         break;
                     case 407:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Proxy Authentication Required. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Proxy Authentication Required. ' + error.message, throwError);
                         break;
                     case 408:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Request Timeout. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Request Timeout. ' + error.message, throwError);
                         break;
                     case 409:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Conflict. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Conflict. ' + error.message, throwError);
                         break;
                     case 410:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Gone. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Gone. ' + error.message, throwError);
                         break;
                     case 411:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Length Required. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Length Required. ' + error.message, throwError);
                         break;
                     case 412:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Precondition Failed. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Precondition Failed. ' + error.message, throwError);
                         break;
                     case 413:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Payload Too Large. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Payload Too Large. ' + error.message, throwError);
                         break;
                     case 414:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': URI Too Long. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': URI Too Long. ' + error.message, throwError);
                         break;
                     case 415:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Unsupported Media Type. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Unsupported Media Type. ' + error.message, throwError);
                         break;
                     case 416:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Range Not Satisfiable. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Range Not Satisfiable. ' + error.message, throwError);
                         break;
                     case 417:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Expectation Failed. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Expectation Failed. ' + error.message, throwError);
                         break;
                     case 421:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Misdirected Request. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Misdirected Request. ' + error.message, throwError);
                         break;
                     case 422:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Unprocessable Entity. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Unprocessable Entity. ' + error.message, throwError);
                         break;
                     case 423:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Locked. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Locked. ' + error.message, throwError);
                         break;
                     case 424:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Failed Dependency. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Failed Dependency. ' + error.message, throwError);
                         break;
                     case 425:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Too Early. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Too Early. ' + error.message, throwError);
                         break;
                     case 426:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Upgrade Required. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Upgrade Required. ' + error.message, throwError);
                         break;
                     case 428:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Precondition Required. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Precondition Required. ' + error.message, throwError);
                         break;
                     case 429:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Too Many Requests. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Too Many Requests. ' + error.message, throwError);
                         break;
                     case 431:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Request Header Fields Too Large. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Request Header Fields Too Large. ' + error.message, throwError);
                         break;
                     case 451:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Unavailable For Legal Reasons. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Unavailable For Legal Reasons. ' + error.message, throwError);
                         break;
                     case 418:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': I\'m a teapot. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': I\'m a teapot. ' + error.message, throwError);
                         break;
                     case 420:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Policy Not Fulfilled. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Policy Not Fulfilled. ' + error.message, throwError);
                         break;
                     case 444:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': No Response. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': No Response. ' + error.message, throwError);
                         break;
                     case 449:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': The request should be retried after doing the appropriate action. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': The request should be retried after doing the appropriate action. ' + error.message, throwError);
                         break;
                     case 499:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Client Closed Request. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Client Closed Request. ' + error.message, throwError);
                         break;
                     default:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Unknown Client Error. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Unknown Client Error. ' + error.message, throwError);
                 }
         } else if (httpError.toString()[0] === '5') {
             if (this.canLog(LOGGINGLEVEL.INFO) && this.showMessages === true)
                 switch (httpError) {
                     case 500:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Internal Server Error. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Internal Server Error. ' + error.message, throwError);
                         break;
                     case 501:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Not Implemented. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Not Implemented. ' + error.message, throwError);
                         break;
                     case 502:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Bad Gateway. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Bad Gateway. ' + error.message, throwError);
                         break;
                     case 503:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Service Unavailable. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Service Unavailable. ' + error.message, throwError);
                         break;
                     case 504:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Gateway Timeout. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Gateway Timeout. ' + error.message, throwError);
                         break;
                     case 505:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': HTTP Version Not Supported. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': HTTP Version Not Supported. ' + error.message, throwError);
                         break;
                     case 506:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Variant Also Negotiates. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Variant Also Negotiates. ' + error.message, throwError);
                         break;
                     case 507:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Insufficient Storage. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Insufficient Storage. ' + error.message, throwError);
                         break;
                     case 508:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Loop Detected. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Loop Detected. ' + error.message, throwError);
                         break;
                     case 510:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Not Extended. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Not Extended. ' + error.message, throwError);
                         break;
                     case 511:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Network Authentication Required. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Network Authentication Required. ' + error.message, throwError);
                         break;
                     default:
-                        this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Unknown Server Error. ' + error.message, error, throwError);
+                        this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Unknown Server Error. ' + error.message, throwError);
                 }
         } else {
             if (this.canLog(LOGGINGLEVEL.INFO) && this.showMessages === true)
-                this.error(topic, msg + '\n' + 'Http-Code ' + httpError + ': Unknown Error Code. ' + error.message, error, throwError);
+                this.error(topic, error, msg + '\n' + 'Http-Code ' + httpError + ': Unknown Error Code. ' + error.message, throwError);
         }
     }
 
