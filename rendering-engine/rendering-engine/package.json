@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.rendering-engine",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -36,13 +36,13 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.rendering-engine.camera-engine": "^0.3.6",
-    "@shapediver/viewer.rendering-engine.canvas-engine": "^0.3.6",
-    "@shapediver/viewer.rendering-engine.light-engine": "^0.3.6",
-    "@shapediver/viewer.shared.monitoring": "^0.3.6",
-    "@shapediver/viewer.shared.node-tree": "^0.3.6",
-    "@shapediver/viewer.shared.services": "^0.3.6",
-    "@shapediver/viewer.shared.utils": "^0.3.6",
+    "@shapediver/viewer.rendering-engine.camera-engine": "^0.3.7",
+    "@shapediver/viewer.rendering-engine.canvas-engine": "^0.3.7",
+    "@shapediver/viewer.rendering-engine.light-engine": "^0.3.7",
+    "@shapediver/viewer.shared.monitoring": "^0.3.7",
+    "@shapediver/viewer.shared.node-tree": "^0.3.7",
+    "@shapediver/viewer.shared.services": "^0.3.7",
+    "@shapediver/viewer.shared.utils": "^0.3.7",
     "gl-matrix": "^3.3.0",
     "tsyringe": "^4.5.0"
   }
