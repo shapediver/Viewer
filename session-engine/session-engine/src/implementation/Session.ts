@@ -181,7 +181,11 @@ export class Session implements ISession {
             try {
                 await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'close')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'close')[0].method!, null, 'application/json');
             } catch (e) {
-                this._logger.error('Session.close: Session closing failed.', e, e.response && e.response.status ? e.response.status : null);
+                if (e.response && e.response.status) {
+                    this._logger.httpError(`Session.close: Session closing failed.`, e, e.response.status, false)
+                  } else {
+                    this._logger.error(`Session.close: Session closing failed.`, e, false)
+                }
                 return false;
             }
         }
@@ -213,8 +217,12 @@ export class Session implements ISession {
             let sessionResponse;
             try {
                 sessionResponse = <ShapeDiverResponseBase>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
-            } catch (e) {
-                this._logger.error('Session.init: Session init failed.', e, e.response && e.response.status ? e.response.status : null);
+            } catch (e) {                
+                if (e.response && e.response.status) {
+                    this._logger.httpError(`Session.init: Session init failed.`, e, e.response.status, false)
+                } else {
+                    this._logger.error(`Session.init: Session init failed.`, e, false)
+                }
                 return new SessionTreeNode();
             }
 
@@ -329,8 +337,12 @@ export class Session implements ISession {
         try {
             await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].method!, this._parameterValues, 'application/json');
             return true;
-        } catch (e) {
-            this._logger.error('Session.saveDefaultParameters: Saving of default parameters failed.', e, e.response && e.response.status ? e.response.status : null);
+        } catch (e) {                
+            if (e.response && e.response.status) {
+                this._logger.httpError(`Session.saveDefaultParameters: Saving of default parameters failed.`, e, e.response.status, false)
+            } else {
+                this._logger.error(`Session.saveDefaultParameters: Saving of default parameters failed.`, e, false)
+            }
             return false;
         }
     }
@@ -344,7 +356,11 @@ export class Session implements ISession {
             await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].method!, json, 'application/json');
             return true;
         } catch (e) {
-            this._logger.error('Session.saveSettings: Saving of settings failed.', e, e.response && e.response.status ? e.response.status : null);
+            if (e.response && e.response.status) {
+                this._logger.httpError(`Session.saveSettings: Saving of settings failed.`, e, e.response.status, false)
+            } else {
+                this._logger.error(`Session.saveSettings: Saving of settings failed.`, e, false)
+            }
             return false;
         }
     }
@@ -402,7 +418,11 @@ export class Session implements ISession {
                     }
                 }
 
-                this._logger.error('Session.customizeSession: Session customization failed.', e, e.response && e.response.status ? e.response.status : null);
+                if (e.response && e.response.status) {
+                    this._logger.httpError(`Session.customizeSession: Session customization failed.`, e, e.response.status, false)
+                } else {
+                    this._logger.error(`Session.customizeSession: Session customization failed.`, e, false)
+                }
                 return new SessionTreeNode();
             }
             this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);

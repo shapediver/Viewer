@@ -202,7 +202,11 @@ export class MaterialEngine {
                 image = await this._imageLoader.load('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
             }
         } catch (e) {
-            this._logger.error('MaterialEngine.loadMap: Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
+            if (e.response && e.response.status) {
+                this._logger.httpError(`MaterialEngine.loadMap: Loading of map failed.`, e, e.response.status, false)
+            } else {
+                this._logger.error(`MaterialEngine.loadMap: Loading of map failed.`, e, false)
+            }
             return null;
         }
         return new MapData(image);        
@@ -220,7 +224,11 @@ export class MaterialEngine {
             //     // canvas https://shapediver.atlassian.net/browse/SS-3106
             // }
         } catch (e) {
-            this._logger.error('MaterialEngine.loadMapWithProperties: Loading of map failed.', e, e.response && e.response.status ? e.response.status : null);
+            if (e.response && e.response.status) {
+                this._logger.httpError(`MaterialEngine.loadMapWithProperties: Loading of map failed.`, e, e.response.status, false)
+            } else {
+                this._logger.error(`MaterialEngine.loadMapWithProperties: Loading of map failed.`, e, false)
+            }
             return null;
         }
 

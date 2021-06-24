@@ -37,7 +37,11 @@ export class GLTFLoader {
                 responseType: 'arraybuffer'
             });
         } catch (e) {
-            this._logger.error('GLTFLoader.load: Initial loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+            if (e.response && e.response.status) {
+                this._logger.httpError(`GLTFLoader.load: Initial loading of geometry failed.`, e, e.response.status, false)
+            } else {
+                this._logger.error(`GLTFLoader.load: Initial loading of geometry failed.`, e, false)
+            }
             return new TreeNode();
         }
 
@@ -87,7 +91,11 @@ export class GLTFLoader {
             this.validateVersionAndExtensions();
             return await this.loadScene();
         } catch (e) {
-            this._logger.error('GLTFLoader.load: Loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+            if (e.response && e.response.status) {
+                this._logger.httpError(`GLTFLoader.load: Loading of geometry failed.`, e, e.response.status, false)
+            } else {
+                this._logger.error(`GLTFLoader.load: Loading of geometry failed.`, e, false)
+            }
             return new TreeNode();
         }
     }

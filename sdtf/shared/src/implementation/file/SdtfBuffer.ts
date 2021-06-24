@@ -56,7 +56,11 @@ export class SdtfBuffer {
         responseType: 'arraybuffer'
       })
     } catch (e) {
-      this._logger.error('SdtfBuffer.load: Initial loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+      if (e.response && e.response.status) {
+          this._logger.httpError(`SdtfBuffer.load: Initial loading of geometry failed.`, e, e.response.status, false)
+        } else {
+          this._logger.error(`SdtfBuffer.load: Initial loading of geometry failed.`, e, false)
+      }
       return null;
     }
 

@@ -43,7 +43,11 @@ export class DataEngine {
                 return customNode;
             }
         } catch (e) {
-            this._logger.error(`DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e, e.response && e.response.status ? e.response.status : null);
+            if (e.response && e.response.status) {
+                this._logger.httpError(`DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e, e.response.status, false)
+              } else {
+                this._logger.error(`DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e, false)
+            }
             return new TreeNode();
         }
     }

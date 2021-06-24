@@ -31,8 +31,12 @@ export class GLTFLoader {
             binaryGeometry = (await this._httpClient.get(url!, {
                 responseType: 'arraybuffer'
             })).data;
-        } catch (e) {
-            this._logger.error('GLTFLoader.load: Initial loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+        } catch (e) {            
+            if (e.response && e.response.status) {
+                this._logger.httpError(`GLTFLoader.load: Initial loading of geometry failed.`, e, e.response.status, false)
+            } else {
+                this._logger.error(`GLTFLoader.load: Initial loading of geometry failed.`, e, false)
+            }
             return new TreeNode();
         }
 
@@ -61,8 +65,12 @@ export class GLTFLoader {
         try {
             this.validateVersionAndExtensions();
             return await this.loadScene();
-        } catch (e) {
-            this._logger.error('GLTFLoader.load: Loading of geometry failed.', e, e.response && e.response.status ? e.response.status : null);
+        } catch (e) {            
+            if (e.response && e.response.status) {
+                this._logger.httpError(`GLTFLoader.load: Loading of geometry failed.`, e, e.response.status, false)
+            } else {
+                this._logger.error(`GLTFLoader.load: Loading of geometry failed.`, e, false)
+            }
             return new TreeNode();
         }
     }

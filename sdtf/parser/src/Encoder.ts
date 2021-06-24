@@ -31,7 +31,11 @@ export class Encoder {
                 responseType: 'arraybuffer'
             });
         } catch (e) {
-            this._logger.error(`Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, e, e.response && e.response.status ? e.response.status : null);
+            if (e.response && e.response.status) {
+                this._logger.httpError(`Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, e, e.response.status, false)
+              } else {
+                this._logger.error(`Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, e, false)
+            }
             return null;
         }
 
