@@ -155,7 +155,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                     let temp: number = value;
                     if (typeof value === 'string')
                         temp = +value;
-                    this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, value, 'number');
+                    this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, temp, 'number');
                     if (this.type === PARAMETERTYPE.EVEN) {
                         if (temp % 2 !== 0) this.#logger.error(LOGGINGTOPIC.PARAMETER, new Error(`Parameter(${this.id}).isValid: The value ${value} is not even.`), '', true);
                     } else if (this.type === PARAMETERTYPE.ODD) {
