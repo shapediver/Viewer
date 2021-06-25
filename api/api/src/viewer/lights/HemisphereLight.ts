@@ -1,7 +1,7 @@
 import { Light } from "./Light";
 import { HemisphereLight as HemisphereLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
-import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
+import { Converter, InputValidator, SDError } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 
@@ -15,7 +15,7 @@ export class HemisphereLight extends Light {
     readonly #updateCB = () => {
         (<any>this.groundColor) = this.#light.groundColor;
     }
-    
+
     readonly groundColor!: string | number | vec3;
 
     // #endregion Properties (1)
@@ -42,10 +42,15 @@ export class HemisphereLight extends Light {
      * @param {string | number | vec3} value
      */
     public updateGroundColor(value: string | number | vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor: Updating GroundColor to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor`, value, 'color');
-        this.#light.groundColor = this.#converter.toColor(value);
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor: groundColor was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor: Updating GroundColor to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor`, value, 'color');
+            this.#light.groundColor = this.#converter.toColor(value);
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor: groundColor was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateGroundColor: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Public Accessors (2)

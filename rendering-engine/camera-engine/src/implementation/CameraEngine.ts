@@ -1,5 +1,5 @@
 import { DomEventEngine, EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
-import { UuidGenerator } from "@shapediver/viewer.shared.utils";
+import { SDError, UuidGenerator } from "@shapediver/viewer.shared.utils";
 import { container, singleton } from "tsyringe";
 import { CAMERATYPE, ICameraEngine } from "../interfaces/ICameraEngine";
 import { AbstractCamera as Camera } from "./camera/AbstractCamera";
@@ -44,37 +44,42 @@ export class CameraEngine implements ICameraEngine {
     public applySettings() {
         switch (this._settingsEngine.camera.cameraTypes.active.value) {
             case 1:
-                const cameraTop = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                const cameraTop = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultTop');
                 (<OrthographicCamera>cameraTop).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
                 this.assignCamera(cameraTop.id);
                 break;
             case 2:
-                const cameraBottom = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                const cameraBottom = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultBottom');
                 (<OrthographicCamera>cameraBottom).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM;
                 this.assignCamera(cameraBottom.id);
                 break;
             case 3:
-                const cameraRight = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                const cameraRight = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultRight');
                 (<OrthographicCamera>cameraRight).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT;
                 this.assignCamera(cameraRight.id);
                 break;
             case 4:
-                const cameraLeft = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                const cameraLeft = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultLeft');
                 (<OrthographicCamera>cameraLeft).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT;
                 this.assignCamera(cameraLeft.id);
                 break;
             case 5:
-                const cameraBack = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                const cameraBack = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultBack');
                 (<OrthographicCamera>cameraBack).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
                 this.assignCamera(cameraBack.id);
                 break;
             case 6:
-                const cameraFront = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'default');
+                const cameraFront = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultFront');
                 (<OrthographicCamera>cameraFront).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
                 this.assignCamera(cameraFront.id);
                 break;
             default:
-                const cameraPerspective = this.createCamera(CAMERATYPE.PERSPECTIVE, 'default');
+                let cameraPerspective;
+                for(let c in this.getCameras()) 
+                    if(this.getCameras()[c].id === 'default' && this.getCameras()[c].type === CAMERATYPE.PERSPECTIVE)
+                        cameraPerspective = this.getCameras()[c];
+
+                if(!cameraPerspective) cameraPerspective = this.createCamera(CAMERATYPE.PERSPECTIVE, 'default');
                 this.assignCamera(cameraPerspective.id);
         }
         for (let c in this._cameras)
@@ -94,7 +99,7 @@ export class CameraEngine implements ICameraEngine {
 
     public createCamera(type: CAMERATYPE, id?: string): Camera {
         const cameraId = id || this._uuidGenerator.create();
-        if (this._cameras[cameraId]) this._logger.error(LOGGINGTOPIC.CAMERA, new Error(`Camera: Camera with this id ${cameraId} already exists.`));
+        if (this._cameras[cameraId]) this._logger.error(LOGGINGTOPIC.CAMERA, new SDError(`Camera: Camera (${type}) with this id (${cameraId}) already exists.`));
         if (CAMERATYPE.ORTHOGRAPHIC === type) {
             const camera = new OrthographicCamera(cameraId, this._canvas.canvasElement);
             this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);

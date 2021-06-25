@@ -1,7 +1,7 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { container, singleton } from 'tsyringe';
-import { Converter, HttpClient, ImageLoader } from '@shapediver/viewer.shared.utils';
+import { Converter, HttpClient, ImageLoader, SDError } from '@shapediver/viewer.shared.utils';
 import { MapData, MaterialData, MATERIAL_SIDE, TEXTURE_WRAPPING, TEXTURE_FILTERING } from '@shapediver/viewer.shared.types';
 import { vec2, vec3, vec4 } from 'gl-matrix';
 import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
@@ -72,7 +72,7 @@ export class MaterialEngine {
         const node = new TreeNode('material');
     
         if(!content) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('MaterialEngine.loadContent: Invalid content was provided to material engine.'));
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('MaterialEngine.loadContent: Invalid content was provided to material engine.'));
             return node;
         }
 
@@ -98,7 +98,7 @@ export class MaterialEngine {
                 }
             }
         } else {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('MaterialEngine.loadContent: No material data was provided to material engine.'));
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('MaterialEngine.loadContent: No material data was provided to material engine.'));
         }
         return node;
     }
@@ -203,9 +203,9 @@ export class MaterialEngine {
             }
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMap: Loading of map failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `MaterialEngine.loadMap: Loading of map failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMap: Loading of map failed.`, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `MaterialEngine.loadMap: Loading of map failed.`, false)
             }
             return null;
         }

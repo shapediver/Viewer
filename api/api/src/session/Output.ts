@@ -3,6 +3,7 @@ import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { ShapeDiverResponseOutputPart as OutputPart, ShapeDiverResponseOutputChunk as OutputChunk, ShapeDiverResponseOutput, ShapeDiverResponseOutputDefinition } from "@shapediver/api.geometry-api-dto-v1";
 import { Session } from "@shapediver/viewer.session-engine.session-engine";
+import { SDError } from "@shapediver/viewer.shared.utils";
 
 export class Output implements ShapeDiverResponseOutputDefinition {
   // #region Properties (15)
@@ -23,15 +24,20 @@ export class Output implements ShapeDiverResponseOutputDefinition {
   // #region Constructors (1)
 
   constructor(sessionEngine: Session, outputDef: ShapeDiverResponseOutput) {
-    this.#sessionEngine = sessionEngine;
+    try {
+      this.#sessionEngine = sessionEngine;
 
-    if (outputDef.dependency) this.dependency = outputDef.dependency;
-    this.id = outputDef.uid || outputDef.id;
-    this.name = outputDef.name;
-    if (outputDef.uid) this.uid = outputDef.uid;
-    if (outputDef.material) this.material = outputDef.material;
-    if (outputDef.chunks) this.chunks = outputDef.chunks;
-    this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
+      if (outputDef.dependency) this.dependency = outputDef.dependency;
+      this.id = outputDef.uid || outputDef.id;
+      this.name = outputDef.name;
+      if (outputDef.uid) this.uid = outputDef.uid;
+      if (outputDef.material) this.material = outputDef.material;
+      if (outputDef.chunks) this.chunks = outputDef.chunks;
+      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${outputDef.uid || outputDef.id}).constructor: Something unexpected happened.`, true)
+    }
   }
 
   // #endregion Constructors (1)

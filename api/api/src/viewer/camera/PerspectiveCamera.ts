@@ -1,5 +1,5 @@
 import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
+import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Viewer } from "../Viewer";
@@ -30,11 +30,16 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
      */
     constructor(camera: PerspectiveCameraLogic, viewer: Viewer) {
         super(camera);
-        this.#camera = camera;
-        this.#viewer = viewer;
-        this.controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls);
-        (<PerspectiveCameraLogic>this.#camera).addUpdateCB(this.#updateCB);
-        this.#updateCB();
+        try {
+            this.#camera = camera;
+            this.#viewer = viewer;
+            this.controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls);
+            (<PerspectiveCameraLogic>this.#camera).addUpdateCB(this.#updateCB);
+            this.#updateCB();
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).constructor: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Constructors (1)
@@ -46,11 +51,16 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
      * @param {number} value
      */
     public updateFov(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov: Updating Fov to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov`, value, 'positive');
-        this.#camera.fov = value;
-        this.#viewer.update();
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov: fov was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov: Updating Fov to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov`, value, 'positive');
+            this.#camera.fov = value;
+            this.#viewer.update();
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov: fov was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateFov: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Public Methods (1)

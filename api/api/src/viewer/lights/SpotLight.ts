@@ -1,7 +1,7 @@
 import { Light } from "./Light";
 import { SpotLight as SpotLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { InputValidator, SDError } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 
@@ -51,10 +51,15 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public updateAngle(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateAngle: Updating Angle to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateAngle`, value, 'positive');
-        this.#light.angle = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateAngle: angle was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateAngle: Updating Angle to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateAngle`, value, 'positive');
+            this.#light.angle = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateAngle: angle was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateAngle: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -62,10 +67,15 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public updateDecay(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: Updating Decay to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay`, value, 'positive');
-        this.#light.decay = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: decay was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: Updating Decay to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay`, value, 'positive');
+            this.#light.decay = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: decay was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDecay: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -73,10 +83,15 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public updateDistance(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: Updating Distance to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance`, value, 'positive');
-        this.#light.distance = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: distance was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: Updating Distance to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance`, value, 'positive');
+            this.#light.distance = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: distance was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDistance: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -84,10 +99,15 @@ export class SpotLight extends Light {
      * @param {number} value
      */
     public updatePenumbra(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePenumbra: Updating Penumbra to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePenumbra`, value, 'positive');
-        this.#light.penumbra = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePenumbra: penumbra was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePenumbra: Updating Penumbra to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePenumbra`, value, 'positive');
+            this.#light.penumbra = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePenumbra: penumbra was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updatePenumbra: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -95,10 +115,15 @@ export class SpotLight extends Light {
      * @param {vec3} value
      */
     public updatePosition(value: vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: Updating Position to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition`, value, 'vec3');
-        this.#light.position = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: position was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: Updating Position to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition`, value, 'vec3');
+            this.#light.position = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: position was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updatePosition: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -106,10 +131,15 @@ export class SpotLight extends Light {
      * @param {vec3} value
      */
     public updateTarget(value: vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateTarget: Updating Target to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateTarget`, value, 'vec3');
-        this.#light.target = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateTarget: target was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateTarget: Updating Target to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateTarget`, value, 'vec3');
+            this.#light.target = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateTarget: target was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateTarget: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Public Accessors (6)

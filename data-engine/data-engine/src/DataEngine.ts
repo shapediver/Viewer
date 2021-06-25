@@ -6,7 +6,7 @@ import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Reader } from '@shapediver/viewer.sdtf.converter';
 import { TreeNodeConverter } from './TreeNodeConverter';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils';
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine';
 import { ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
 
@@ -20,7 +20,7 @@ export class DataEngine {
 
     public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
         if(!content || (content && !content.format)) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new Error('DataEngine.loadContent: Invalid content was provided to data engine.'));
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('DataEngine.loadContent: Invalid content was provided to data engine.'));
             return new TreeNode();
         }
 
@@ -44,9 +44,9 @@ export class DataEngine {
             }
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e.response.status, false)
               } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `DataEngine.loadContent: An error occurred while loading the ${content.format}.`, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `DataEngine.loadContent: An error occurred while loading the ${content.format}.`, false)
             }
             return new TreeNode();
         }

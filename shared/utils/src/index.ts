@@ -6,6 +6,7 @@ import { TypeChecker } from "./type-check/TypeChecker";
 import { UuidGenerator } from "./uuid-generator/UuidGenerator";
 import { PerformanceEvaluator } from "./performance-evaluator/PerformanceEvaluator";
 import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from "./logger/Logger";
+import { SDError } from "./logger/SDError";
 
 export {
     HttpClient
@@ -32,7 +33,7 @@ export {
 }
 
 export {
-    Logger, LOGGINGLEVEL, LOGGINGTOPIC
+    Logger, LOGGINGLEVEL, LOGGINGTOPIC, SDError
 }
 
 export {

@@ -1,6 +1,6 @@
 import { AbstractCamera, CAMERATYPE, OrthographicCamera, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { EventEngine, EVENTTYPE, StateEngine, SystemInfo } from "@shapediver/viewer.shared.services";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
+import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import * as THREE from 'three';
 import { container } from "tsyringe";
@@ -118,6 +118,7 @@ export class RenderingLogic {
             this._beautyRenderer.startBeautyRenderCountdown();
         } catch (e) {
             this._noWebGL = true;
+            throw new SDError(e.message, e);
         }
     }
 
@@ -314,7 +315,7 @@ export class RenderingLogic {
                 if (_gl !== null) {
                     this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
                 } else {
-                    throw new Error('We were unable to get a WebGL context.');
+                    throw new SDError('We were unable to get a WebGL context.');
                 }
             }
 
@@ -340,8 +341,7 @@ export class RenderingLogic {
 
             return _gl;
         } catch (error) {
-            this._logger.error(LOGGINGTOPIC.VIEWER, new Error('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.'));
-            throw error;
+            throw this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', error), '', true);
         }
     }
 

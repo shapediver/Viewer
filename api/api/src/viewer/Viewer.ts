@@ -17,6 +17,7 @@ import { Light } from "./lights/Light";
 import { LightScene } from "./lights/LightScene";
 import { PointLight } from "./lights/PointLight";
 import { SpotLight } from "./lights/SpotLight";
+import { SDError } from "@shapediver/viewer.shared.utils";
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Properties (28)
@@ -91,15 +92,20 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param canvas 
    */
   constructor(properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }, callbacks: any) {
-    this.#properties = properties;
-    callbacks.close = async (): Promise<boolean> => {
-      const closeResult = await this.#renderingEngine.close();
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, {});
+    try {
+      this.#properties = properties;
+      callbacks.close = async (): Promise<boolean> => {
+        const closeResult = await this.#renderingEngine.close();
+        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, {});
 
-      if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}): Was not able to close viewer completely, please disregard this viewer.`);
-      return closeResult;
+        if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}): Was not able to close viewer completely, please disregard this viewer.`);
+        return closeResult;
+      }
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).constructor: Viewer api created.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).constructor: Something unexpected happened.`, true)
     }
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).constructor: Viewer api created.`);
   }
 
   // #endregion Constructors (1)
@@ -111,11 +117,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateAmbientOcclusion(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion: Updating AmbientOcclusion to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion`, value, 'boolean');
-    this.#renderingEngine.ambientOcclusion = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion: ambientOcclusion was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion: Updating AmbientOcclusion to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion`, value, 'boolean');
+      this.#renderingEngine.ambientOcclusion = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion: ambientOcclusion was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateAmbientOcclusion: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -123,11 +134,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateAutomaticResizing(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing: Updating AutomaticResizing to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing`, value, 'boolean');
-    this.#renderingEngine.automaticResizing = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing: automaticResizing was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing: Updating AutomaticResizing to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing`, value, 'boolean');
+      this.#renderingEngine.automaticResizing = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing: automaticResizing was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateAutomaticResizing: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -135,11 +151,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public updateBeautyRenderBlendingDuration(value: number) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: Updating RenderBlendingDuration to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration`, value, 'positive');
-    this.#renderingEngine.beautyRenderBlendingDuration = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: Updating RenderBlendingDuration to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration`, value, 'positive');
+      this.#renderingEngine.beautyRenderBlendingDuration = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBeautyRenderBlendingDuration: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -147,11 +168,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public updateBeautyRenderDelay(value: number) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: Updating BeautyRenderDelay to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderDelay`, value, 'positive');
-    this.#renderingEngine.beautyRenderDelay = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: beautyRenderDelay was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: Updating BeautyRenderDelay to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderDelay`, value, 'positive');
+      this.#renderingEngine.beautyRenderDelay = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: beautyRenderDelay was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBeautyBeautyRenderDelay: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -159,11 +185,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateBlur(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur: Updating Blur to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur`, value, 'boolean');
-    this.#renderingEngine.blur = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur: blur was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur: Updating Blur to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur`, value, 'boolean');
+      this.#renderingEngine.blur = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur: blur was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBlur: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -171,11 +202,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateBlurSceneWhenBusy(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy`, value, 'boolean');
-    this.#renderingEngine.blurSceneWhenBusy = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy`, value, 'boolean');
+      this.#renderingEngine.blurSceneWhenBusy = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBlurSceneWhenBusy: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -183,11 +219,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public updateClearAlpha(value: number) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha: Updating ClearAlpha to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha`, value, 'factor');
-    this.#renderingEngine.clearAlpha = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha: clearAlpha was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha: Updating ClearAlpha to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha`, value, 'factor');
+      this.#renderingEngine.clearAlpha = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha: clearAlpha was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateClearAlpha: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -195,11 +236,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {string | number | vec3} value
    */
   public updateClearColor(value: string | number | vec3) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor: Updating ClearColor to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor`, value, 'color');
-    this.#renderingEngine.clearColor = this.#converter.toColor(value);
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor: clearColor was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor: Updating ClearColor to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor`, value, 'color');
+      this.#renderingEngine.clearColor = this.#converter.toColor(value);
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor: clearColor was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateClearColor: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -207,11 +253,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {string | string[]} value
    */
   public updateEnvironmentMap(value: string | string[]) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: Updating EnvironmentMap to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap`, value, 'cubeMap');
-    this.#renderingEngine.environmentMap = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: environmentMap was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: Updating EnvironmentMap to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap`, value, 'cubeMap');
+      this.#renderingEngine.environmentMap = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: environmentMap was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMap: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -219,10 +270,15 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateEnvironmentMapAsBackground(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: Updating EnvironmentMapAsBackground to ${value}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground`, value, 'boolean');
-    this.#renderingEngine.environmentMapAsBackground = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: environmentMapAsBackground was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground: Updating EnvironmentMapAsBackground to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground`, value, 'boolean');
+      this.#renderingEngine.environmentMapAsBackground = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground: environmentMapAsBackground was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMapAsBackground: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -230,11 +286,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {string} value
    */
   public updateEnvironmentMapResolution(value: string) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution: Updating EnvironmentMapResolution to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution`, value, 'string');
-    this.#renderingEngine.environmentMapResolution = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution: environmentMapResolution was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution: Updating EnvironmentMapResolution to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution`, value, 'string');
+      this.#renderingEngine.environmentMapResolution = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution: environmentMapResolution was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMapResolution: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -242,11 +303,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateGridVisibility(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility: Updating GridVisibility to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility`, value, 'boolean');
-    this.#renderingEngine.gridVisibility = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility: gridVisibility was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility: Updating GridVisibility to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility`, value, 'boolean');
+      this.#renderingEngine.gridVisibility = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility: gridVisibility was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateGridVisibility: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -254,11 +320,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateGroundPlaneVisibility(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility: Updating GroundPlaneVisibility to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility`, value, 'boolean');
-    this.#renderingEngine.groundPlaneVisibility = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility: Updating GroundPlaneVisibility to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility`, value, 'boolean');
+      this.#renderingEngine.groundPlaneVisibility = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateGroundPlaneVisibility: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -266,12 +337,17 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {string} value
    */
   public updateLightScene(value: string) {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene: Updating LightScene to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene`, value, 'string');
-    if (this.assignLightScene(value)) {
-      this.#renderingEngine.lightScene = value;
-      this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene: lightScene was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene: Updating LightScene to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene`, value, 'string');
+      if (this.assignLightScene(value)) {
+        this.#renderingEngine.lightScene = value;
+        this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene: lightScene was set to: ${value}`);
+      }
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).updateLightScene: Something unexpected happened.`, true)
     }
   }
 
@@ -280,11 +356,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {number} value
    */
   public updatePointSize(value: number) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize: Updating PointSize to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize`, value, 'positive');
-    this.#renderingEngine.pointSize = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize: pointSize was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize: Updating PointSize to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize`, value, 'positive');
+      this.#renderingEngine.pointSize = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize: pointSize was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updatePointSize: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -292,11 +373,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateShadows(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows: Updating Shadows to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows`, value, 'boolean');
-    this.#renderingEngine.shadows = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows: shadows was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows: Updating Shadows to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows`, value, 'boolean');
+      this.#renderingEngine.shadows = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows: shadows was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShadows: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -304,11 +390,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateShow(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow: Updating Show to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow`, value, 'boolean');
-    this.#renderingEngine.show = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow: show was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow: Updating Show to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow`, value, 'boolean');
+      this.#renderingEngine.show = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow: show was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShow: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -316,11 +407,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param {boolean} value
    */
   public updateShowStatistics(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics: Updating ShowStatistics to ${value}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics`, value, 'boolean');
-    this.#renderingEngine.showStatistics = value;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics: showStatistics was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics: Updating ShowStatistics to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics`, value, 'boolean');
+      this.#renderingEngine.showStatistics = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics: showStatistics was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShowStatistics: Something unexpected happened.`, true)
+    }
   }
 
   // #endregion Public Accessors (16)
@@ -336,19 +432,24 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addAmbientLight(properties: { color?: string | number | vec3, intensity?: number, name?: string }): AmbientLight {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Adding light with properties ${properties}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, properties, 'object', false);
-    const props = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.color, 'color', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.intensity, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.name, 'string', false);
-    if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
-    const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(props)
-    const light = this.getLightScene().lights[lightLogic.id];
-    this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Ambient light with id ${light.id} created.`);
-    this.update();
-    return <AmbientLight>light;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Adding light with properties ${properties}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, properties, 'object', false);
+      const props = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.color, 'color', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.intensity, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.name, 'string', false);
+      if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
+      const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(props)
+      const light = this.getLightScene().lights[lightLogic.id];
+      this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Ambient light with id ${light.id} created.`);
+      this.update();
+      return <AmbientLight>light;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addAmbientLight: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -364,23 +465,28 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addDirectionalLight(properties: { color?: string | number | vec3, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, name?: string }): DirectionalLight {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Adding light with properties ${properties}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, properties, 'object', false);
-    const props = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.color, 'color', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.intensity, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.direction, 'vec3', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.castShadow, 'boolean', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapResolution, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapBias, 'number', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.name, 'string', false);
-    if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
-    const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(props);
-    const light = this.getLightScene().lights[lightLogic.id];
-    this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Directional light with id ${light.id} created.`);
-    this.update();
-    return <DirectionalLight>light;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Adding light with properties ${properties}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, properties, 'object', false);
+      const props = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.color, 'color', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.intensity, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.direction, 'vec3', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.castShadow, 'boolean', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapResolution, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapBias, 'number', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.name, 'string', false);
+      if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
+      const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(props);
+      const light = this.getLightScene().lights[lightLogic.id];
+      this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Directional light with id ${light.id} created.`);
+      this.update();
+      return <DirectionalLight>light;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addDirectionalLight: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -393,21 +499,26 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addHemisphereLight(properties: { color?: string | number | vec3, intensity?: number, groundColor?: string | number | vec3, name?: string }): HemisphereLight {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Adding light with properties ${properties}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, properties, 'object', false);
-    const props = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.color, 'color', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.groundColor, 'color', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.intensity, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.name, 'string', false);
-    if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
-    if (props.groundColor !== undefined) props.groundColor = this.#converter.toColor(props.groundColor);
-    const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(props);
-    const light = this.getLightScene().lights[lightLogic.id];
-    this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Hemisphere light with id ${light.id} created.`);
-    this.update();
-    return <HemisphereLight>light;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Adding light with properties ${properties}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, properties, 'object', false);
+      const props = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.color, 'color', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.groundColor, 'color', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.intensity, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.name, 'string', false);
+      if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
+      if (props.groundColor !== undefined) props.groundColor = this.#converter.toColor(props.groundColor);
+      const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(props);
+      const light = this.getLightScene().lights[lightLogic.id];
+      this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Hemisphere light with id ${light.id} created.`);
+      this.update();
+      return <HemisphereLight>light;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addHemisphereLight: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -422,22 +533,27 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addPointLight(properties: { color?: string | number | vec3, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string }): PointLight {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Adding light with properties ${properties}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, properties, 'object', false);
-    const props = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.color, 'color', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.intensity, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.position, 'vec3', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.distance, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.decay, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.name, 'string', false);
-    if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
-    const lightLogic = this.#renderingEngine.lightEngine.addPointLight(props);
-    const light = this.getLightScene().lights[lightLogic.id];
-    this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Point light with id ${light.id} created.`);
-    this.update();
-    return <PointLight>light;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Adding light with properties ${properties}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, properties, 'object', false);
+      const props = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.color, 'color', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.intensity, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.position, 'vec3', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.distance, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.decay, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.name, 'string', false);
+      if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
+      const lightLogic = this.#renderingEngine.lightEngine.addPointLight(props);
+      const light = this.getLightScene().lights[lightLogic.id];
+      this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Point light with id ${light.id} created.`);
+      this.update();
+      return <PointLight>light;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addPointLight: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -455,27 +571,32 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public addSpotLight(properties?: { color?: string | number | vec3, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string }): SpotLight {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Adding light with properties ${properties}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, properties, 'object', false);
-    const props = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.color, 'color', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.intensity, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.position, 'vec3', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.target, 'vec3', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.distance, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.decay, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.angle, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.penumbra, 'positive', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.name, 'string', false);
-    if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Adding light with properties ${properties}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, properties, 'object', false);
+      const props = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.color, 'color', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.intensity, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.position, 'vec3', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.target, 'vec3', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.distance, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.decay, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.angle, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.penumbra, 'positive', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.name, 'string', false);
+      if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
 
-    const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(props);
-    const light = this.getLightScene().lights[lightLogic.id];
+      const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(props);
+      const light = this.getLightScene().lights[lightLogic.id];
 
-    this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Spot light with id ${light.id} created.`);
-    this.update();
-    return <SpotLight>light;
+      this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Spot light with id ${light.id} created.`);
+      this.update();
+      return <SpotLight>light;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addSpotLight: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -484,11 +605,16 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param id the id of the camera
    */
   public assignCamera(id: string): void {
-    this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Assigning Camera with id ${id}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera`, id, 'string');
-    this.#renderingEngine.cameraEngine.assignCamera(id);
-    this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Camera with id ${id} assigned.`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Assigning Camera with id ${id}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera`, id, 'string');
+      this.#renderingEngine.cameraEngine.assignCamera(id);
+      this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Camera with id ${id} assigned.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).assignCamera: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -498,19 +624,24 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public assignLightScene(id: string): boolean {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigning LightScene with id ${id}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene`, id, 'string');
-    if (this.lightScene === id) {
-      this.#logger.warn(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: The light scene with id ${id} was already assigned.`);
-      return true;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigning LightScene with id ${id}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene`, id, 'string');
+      if (this.lightScene === id) {
+        this.#logger.warn(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: The light scene with id ${id} was already assigned.`);
+        return true;
+      }
+      const r = this.#renderingEngine.lightEngine.assignLightScene(id);
+      if (r) this.#renderingEngine.lightScene = id;
+      if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigned light scene with id ${id}.`);
+      if (!r) this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(`Viewer(${this.id}).assignLightScene: Could not assign light scene with id ${id}.`));
+      this.update();
+      return r;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).assignLightScene: Something unexpected happened.`, true)
     }
-    const r = this.#renderingEngine.lightEngine.assignLightScene(id);
-    if (r) this.#renderingEngine.lightScene = id;
-    if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigned light scene with id ${id}.`);
-    if (!r) this.#logger.error(LOGGINGTOPIC.LIGHT, new Error(`Viewer(${this.id}).assignLightScene: Could not assign light scene with id ${id}.`));
-    this.update();
-    return r;
   }
 
   /**
@@ -522,14 +653,19 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public createCamera(type: CAMERATYPE, id?: string): Camera {
-    this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: Creating Camera with id ${id} and type ${type}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, type, 'enum', true, Object.values(CAMERATYPE));
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, id, 'string', false);
-    const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
-    this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
-    this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
-    return this.#cameras[cameraLogic.id];
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: Creating Camera with id ${id} and type ${type}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, type, 'enum', true, Object.values(CAMERATYPE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, id, 'string', false);
+      const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
+      this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
+      this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
+      return this.#cameras[cameraLogic.id];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).createCamera: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -542,19 +678,24 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public createLightScene(properties?: { name?: string, standard?: boolean }): LightScene {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: Creating LightScene with properties ${properties}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, properties, 'object', false);
-    const props = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.name, 'string', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.standard, 'boolean', false);
-    const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(props);
-    const lightScene = new LightScene(lightSceneLogic);
-    this.#lightScenes[lightSceneLogic.id] = lightScene;
-    this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: New light scene with id ${lightSceneLogic.id} created.`);
-    if (lightSceneLogic.id) this.assignLightScene(lightSceneLogic.id);
-    this.update();
-    return lightScene;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: Creating LightScene with properties ${properties}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, properties, 'object', false);
+      const props = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.name, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.standard, 'boolean', false);
+      const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(props);
+      const lightScene = new LightScene(lightSceneLogic);
+      this.#lightScenes[lightSceneLogic.id] = lightScene;
+      this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: New light scene with id ${lightSceneLogic.id} created.`);
+      if (lightSceneLogic.id) this.assignLightScene(lightSceneLogic.id);
+      this.update();
+      return lightScene;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).createLightScene: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -565,10 +706,15 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public createOrthographicCamera(id?: string): Camera {
-    this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Creating OrthographicCamera with id ${id}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera`, id, 'string', false);
-    this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Orthographic camera with id ${id} created.`);
-    return this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Creating OrthographicCamera with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera`, id, 'string', false);
+      this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Orthographic camera with id ${id} created.`);
+      return this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).createOrthographicCamera: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -579,10 +725,15 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public createPerspectiveCamera(id?: string): Camera {
-    this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Creating PerspectiveCamera with id ${id}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera`, id, 'string', false);
-    this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Perspective camera with id ${id} created.`);
-    return this.createCamera(CAMERATYPE.PERSPECTIVE, id);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Creating PerspectiveCamera with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera`, id, 'string', false);
+      this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Perspective camera with id ${id} created.`);
+      return this.createCamera(CAMERATYPE.PERSPECTIVE, id);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -592,13 +743,18 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getCamera(id?: string): Camera | null {
-    this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCamera: Getting Camera with id ${id}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCamera`, id, 'string', false);
-    const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
-    if (!cameraLogic) return null;
-    if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
-    return this.#cameras[cameraLogic.id];
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCamera: Getting Camera with id ${id}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCamera`, id, 'string', false);
+      const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
+      if (!cameraLogic) return null;
+      if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
+      return this.#cameras[cameraLogic.id];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).getCamera: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -607,15 +763,20 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getCameras(): { [key: string]: Camera } {
-    this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCameras: Getting Cameras.`);
-    this.isInitialized();
-    const cameraLogic = this.#renderingEngine.cameraEngine.getCameras();
-    const cameras: { [key: string]: Camera; } = {};
-    for (let e in cameraLogic) {
-      if (!this.#cameras[cameraLogic[e].id]) this.#cameras[cameraLogic[e].id] = cameraLogic[e].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic[e], this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic[e], this);
-      cameras[e] = this.#cameras[cameraLogic[e].id];
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCameras: Getting Cameras.`);
+      this.isInitialized();
+      const cameraLogic = this.#renderingEngine.cameraEngine.getCameras();
+      const cameras: { [key: string]: Camera; } = {};
+      for (let e in cameraLogic) {
+        if (!this.#cameras[cameraLogic[e].id]) this.#cameras[cameraLogic[e].id] = cameraLogic[e].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic[e], this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic[e], this);
+        cameras[e] = this.#cameras[cameraLogic[e].id];
+      }
+      return cameras;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).getCameras: Something unexpected happened.`, true)
     }
-    return cameras;
   }
 
   /**
@@ -625,16 +786,21 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getLight(id: string): Light {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLight: Getting Light with id ${id}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLight`, id, 'string');
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLight: Getting Light with id ${id}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLight`, id, 'string');
 
-    const lightSceneId = this.#renderingEngine.lightEngine.getLightScene().id;
-    if (!this.#lightScenes[lightSceneId]) {
-      const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(lightSceneId);
-      this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic);
+      const lightSceneId = this.#renderingEngine.lightEngine.getLightScene().id;
+      if (!this.#lightScenes[lightSceneId]) {
+        const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(lightSceneId);
+        this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic);
+      }
+      return this.#lightScenes[lightSceneId].lights[id];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLight: Something unexpected happened.`, true)
     }
-    return this.#lightScenes[lightSceneId].lights[id];
   }
 
   /**
@@ -643,17 +809,22 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getLightScene(id?: string): LightScene {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScene: Getting LightScene with id ${id}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScene`, id, 'string', false);
-    if (!id)
-      id = this.#renderingEngine.lightEngine.getLightScene().id;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScene: Getting LightScene with id ${id}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScene`, id, 'string', false);
+      if (!id)
+        id = this.#renderingEngine.lightEngine.getLightScene().id;
 
-    if (!this.#lightScenes[id]) {
-      const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(id);
-      this.#lightScenes[lightSceneLogic.id] = new LightScene(lightSceneLogic);
+      if (!this.#lightScenes[id]) {
+        const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(id);
+        this.#lightScenes[lightSceneLogic.id] = new LightScene(lightSceneLogic);
+      }
+      return this.#lightScenes[id];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLightScene: Something unexpected happened.`, true)
     }
-    return this.#lightScenes[id];
   }
 
   /**
@@ -662,13 +833,18 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getLightScenes(): { [key: string]: LightScene } {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScenes: Getting LightScenes.`);
-    this.isInitialized();
-    const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScenes();
-    const lightScenes: { [key: string]: LightScene } = {};
-    for (let l in lightSceneLogic)
-      lightScenes[l] = this.getLightScene(l);
-    return lightScenes;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScenes: Getting LightScenes.`);
+      this.isInitialized();
+      const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScenes();
+      const lightScenes: { [key: string]: LightScene } = {};
+      for (let l in lightSceneLogic)
+        lightScenes[l] = this.getLightScene(l);
+      return lightScenes;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLightScenes: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -677,13 +853,18 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getLights(): { [key: string]: Light } {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLights: Getting Lights.`);
-    this.isInitialized();
-    const lightLogic = this.#renderingEngine.lightEngine.getLights();
-    const lights: { [key: string]: Light } = {};
-    for (let l in lightLogic)
-      lights[l] = this.getLight(l);
-    return lights;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLights: Getting Lights.`);
+      this.isInitialized();
+      const lightLogic = this.#renderingEngine.lightEngine.getLights();
+      const lights: { [key: string]: Light } = {};
+      for (let l in lightLogic)
+        lights[l] = this.getLight(l);
+      return lights;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLights: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -694,12 +875,17 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public getScreenshot(type?: string, quality?: number): string {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: Getting getScreenshot with type ${type} and quality ${quality}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, type, 'string', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, quality, 'factor', false);
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: screenshot was requested`);
-    return this.#renderingEngine.getScreenshot(type, quality);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: Getting getScreenshot with type ${type} and quality ${quality}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, type, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, quality, 'factor', false);
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: screenshot was requested`);
+      return this.#renderingEngine.getScreenshot(type, quality);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).getScreenshot: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -708,9 +894,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public hasCamera(): boolean {
-    this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).hasCamera: Checking existence of Camera.`);
-    this.isInitialized();
-    return this.#renderingEngine.cameraEngine.hasCamera();
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).hasCamera: Checking existence of Camera.`);
+      this.isInitialized();
+      return this.#renderingEngine.cameraEngine.hasCamera();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).hasCamera: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -724,38 +915,43 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.id the unique id the session should have 
    */
   public async init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<void> {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Initializing Viewer with properties ${properties}.`);
-    // input validation
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, properties, 'object', false);
-    const props = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.type, 'enum', false, Object.values(RENDERERTYPE));
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.canvas, 'HTMLCanvasElement', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.id, 'string', false);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Initializing Viewer with properties ${JSON.stringify(properties)}.`);
+      // input validation
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, properties, 'object', false);
+      const props = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.type, 'enum', false, Object.values(RENDERERTYPE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.canvas, 'HTMLCanvasElement', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.id, 'string', false);
 
-    const viewerId = (props && props.id) ? props.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    props.visibility = props.visibility || VISIBILITYMODE.SESSION;
-    if (props) this.#properties = { id: viewerId || this.#properties.id, canvas: props.canvas || this.#properties.canvas, visibility: props.visibility || this.#properties.visibility, type: props.type || RENDERERTYPE.STANDARD };
+      const viewerId = (props && props.id) ? props.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
+      props.visibility = props.visibility || VISIBILITYMODE.SESSION;
+      if (props) this.#properties = { id: viewerId || this.#properties.id, canvas: props.canvas || this.#properties.canvas, visibility: props.visibility || this.#properties.visibility, type: props.type || RENDERERTYPE.STANDARD };
 
-    this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
-    this.#renderingEngine.addUpdateCB(this.#updateCB);
-    this.#updateCB();
-    container.registerInstance('renderingEngine', this.#renderingEngine);
+      this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
+      this.#renderingEngine.addUpdateCB(this.#updateCB);
+      this.#updateCB();
+      container.registerInstance('renderingEngine', this.#renderingEngine);
 
-    // default camera
-    const camera = this.createCamera(CAMERATYPE.PERSPECTIVE);
-    this.assignCamera(camera.id);
+      // default camera
+      const camera = this.createCamera(CAMERATYPE.PERSPECTIVE, 'default');
+      this.assignCamera(camera.id);
 
-    if (props.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
-      await new Promise<void>(resolve => {
-        this.#stateEngine.getCustomState(this.id + '_settings_loaded').then(() => resolve())
-      })
+      if (props.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
+        await new Promise<void>(resolve => {
+          this.#stateEngine.getCustomState(this.id + '_settings_loaded').then(() => resolve())
+        })
+      }
+
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
+      (<any>this.initialized) = true;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Viewer initialized.`);
+      return Promise.resolve();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).init: Something unexpected happened.`, true)
     }
-
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
-    (<any>this.initialized) = true;
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Viewer initialized.`);
-    return Promise.resolve();
   }
 
   /**
@@ -765,14 +961,19 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public removeLight(id: string): boolean {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Removing Light with id ${id}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight`, id, 'string');
-    const r = this.#renderingEngine.lightEngine.removeLight(id);
-    if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Light with id ${id} removed.`);
-    if (!r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Could not remove light with id ${id}.`);
-    this.update();
-    return r;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Removing Light with id ${id}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight`, id, 'string');
+      const r = this.#renderingEngine.lightEngine.removeLight(id);
+      if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Light with id ${id} removed.`);
+      if (!r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Could not remove light with id ${id}.`);
+      this.update();
+      return r;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).removeLight: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -782,41 +983,61 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @returns 
    */
   public removeLightScene(id: string): boolean {
-    this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Removing LightScene with id ${id}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene`, id, 'string');
-    const r = this.#renderingEngine.lightEngine.removeLightScene(id);
-    if (r) delete this.#lightScenes[id];
-    if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Light scene with id ${id} removed.`);
-    if (!r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Could not remove light scene with id ${id}.`);
-    this.update();
-    return r;
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Removing LightScene with id ${id}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene`, id, 'string');
+      const r = this.#renderingEngine.lightEngine.removeLightScene(id);
+      if (r) delete this.#lightScenes[id];
+      if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Light scene with id ${id} removed.`);
+      if (!r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Could not remove light scene with id ${id}.`);
+      this.update();
+      return r;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).removeLightScene: Something unexpected happened.`, true)
+    }
   }
 
   public reset(): void {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).reset: Resetting Viewer.`);
-    this.isInitialized();
-    this.#renderingEngine.reset();
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).reset: Resetting Viewer.`);
+      this.isInitialized();
+      this.#renderingEngine.reset();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).reset: Something unexpected happened.`, true)
+    }
   }
 
   public resize(width: number, height: number): void {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resizing Viewer to ${width} / ${height}.`);
-    this.isInitialized();
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, width, 'number');
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, height, 'number');
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resized Viewer to ${width} / ${height}.`);
-    this.#renderingEngine.resize(width, height);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resizing Viewer to ${width} / ${height}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, width, 'number');
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, height, 'number');
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resized Viewer to ${width} / ${height}.`);
+      this.#renderingEngine.resize(width, height);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).resize: Something unexpected happened.`, true)
+    }
   }
 
   /**
    * Update the viewer with the current changes of the scene tree.
    */
   public update(): void {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updating Viewer.`);
-    if (!this.#renderingEngine) return;
-    this.#renderingEngine.update();
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updated viewer.`);
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updating Viewer.`);
+      if (!this.#renderingEngine) return;
+      this.#renderingEngine.update();
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updated viewer.`);
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).update: Something unexpected happened.`, true)
+    }
   }
 
   // #endregion Public Methods (26)
@@ -824,9 +1045,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Private Methods (1)
 
   private isInitialized() {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).isInitialized: Checking if Viewer was initialized.`);
-    if (!this.#renderingEngine)
-      this.#logger.error(LOGGINGTOPIC.VIEWER, new Error(`Viewer has not been initialized. Please initialize it first.`));
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).isInitialized: Checking if Viewer was initialized.`);
+      if (!this.#renderingEngine)
+        this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Viewer has not been initialized. Please initialize it first.`));
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).isInitialized: Something unexpected happened.`, true)
+    }
   }
 
   // #endregion Private Methods (1)

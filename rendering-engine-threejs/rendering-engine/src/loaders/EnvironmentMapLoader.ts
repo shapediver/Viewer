@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { RenderingEngine } from "..";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
+import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 
@@ -49,7 +49,9 @@ export class EnvironmentMapLoader {
 
         // check if name is a JSON.stringified version of an array of urls
         if (!Array.isArray(name) && (name.startsWith('["https') && name.endsWith('"]')))
-            try { name = JSON.parse(name); } catch (e) { }
+            try { name = JSON.parse(name); } catch (e) {
+                this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map.'))
+            }
 
         // deal with string or array, define names for loading and caching
         if (!Array.isArray(name)) {
@@ -57,7 +59,7 @@ export class EnvironmentMapLoader {
             name_caching = name_internal + this._renderingEngine.environmentMapResolution;
         } else {
             if (name.length !== 6) {
-                this._logger.error(LOGGINGTOPIC.VIEWER, new Error('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.'))
+                this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.'))
                 this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
                 return false;
             }
@@ -89,7 +91,7 @@ export class EnvironmentMapLoader {
                     url.push(name + this._environmentMapFilenames[i] + '.jpg');
             }
             else {
-                this._logger.error(LOGGINGTOPIC.VIEWER, new Error('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.'))
+                this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.'))
                 this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
                 return false;
             }
@@ -103,7 +105,7 @@ export class EnvironmentMapLoader {
             return Promise.resolve(true);
         }
         catch (error) {
-            this._logger.error(LOGGINGTOPIC.VIEWER, new Error('EnvironmentMapLoader.load: Was not able to load environment map.'))
+            this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map.'))
             this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
             return Promise.resolve(false);
         }

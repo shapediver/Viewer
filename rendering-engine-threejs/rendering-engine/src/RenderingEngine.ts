@@ -14,7 +14,7 @@ import { SDObject } from './types/SDObject';
 import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
 import { RenderingLogic } from './RenderingLogic';
 import { MaterialLoader } from './loaders/MaterialLoader';
-import { Converter } from '@shapediver/viewer.shared.utils';
+import { Converter, SDError } from '@shapediver/viewer.shared.utils';
 import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader';
 import { GeometryLoader } from './loaders/GeometryLoader';
 import { LightLoader } from './loaders/LightLoader';
@@ -653,7 +653,7 @@ export class RenderingEngine implements IRenderingEngine {
             height = this.canvas.canvasElement.height;
 
         const camera = this.cameraEngine.getCamera();
-        if (!camera) throw this._logger.error(LOGGINGTOPIC.VIEWER, new Error('RenderingEngine: No camera is defined for this viewer.'));
+        if (!camera) throw this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('RenderingEngine: No camera is defined for this viewer.'));
 
         const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
         const tracing = this.trace(camera.position, direction);

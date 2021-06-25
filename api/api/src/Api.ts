@@ -8,6 +8,7 @@ import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engi
 import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { build_data } from "@shapediver/viewer.shared.build-data";
+import { SDError } from "@shapediver/viewer.shared.utils";
 
 @singleton()
 export class Api {
@@ -38,13 +39,18 @@ export class Api {
    * @ignore
    */
   constructor() {
-    this.#stateEngine.primarySettingsRegistered.then(() => {
-      this.#logger.showMessages = this.#settingsEngine.general.viewer.showMessages.value;
-    })
-    this.#logger.info(LOGGINGTOPIC.GENERAL, `Viewer version: ${build_data.build_version}`);
-    this.#logger.addUpdateCB(this.#updateCB);
-    this.#updateCB();
-    this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
+    try {
+      this.#stateEngine.primarySettingsRegistered.then(() => {
+        this.#logger.showMessages = this.#settingsEngine.general.viewer.showMessages.value;
+      })
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Viewer version: ${build_data.build_version}`);
+      this.#logger.addUpdateCB(this.#updateCB);
+      this.#updateCB();
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.constructor: Something unexpected happened.`, true)
+    }
   }
 
   // #endregion Constructors (1)
@@ -59,9 +65,14 @@ export class Api {
    * @returns 
    */
   public addListener(type: string | MAINEVENTTYPE, cb: (event: any) => {}): string {
-    this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
-    this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
-    return this.#eventEngine.addListener(type, cb);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
+      return this.#eventEngine.addListener(type, cb);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.addListener: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -73,39 +84,44 @@ export class Api {
    * @returns 
    */
   public async closeSession(id: string): Promise<boolean> {
-    this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
-    if(!this.sessions[id])
-      this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Api.closeSession: Session with id ${id} was not registered.`));
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
+      if (!this.sessions[id])
+        this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.closeSession: Session with id ${id} was not registered.`));
 
-    const result = await this.#sessionCallbacks[id].close();
-    this.#stateEngine.getCustomState(id + '_settings_registered').reset();
+      const result = await this.#sessionCallbacks[id].close();
+      this.#stateEngine.getCustomState(id + '_settings_registered').reset();
 
-    if(this.sessions[id].primarySession) {
-      for(let v in this.viewers)
-        this.viewers[v].reset();
+      if (this.sessions[id].primarySession) {
+        for (let v in this.viewers)
+          this.viewers[v].reset();
         this.#stateEngine.primarySessionLoaded.reset();
         this.#stateEngine.primarySettingsRegistered.reset();
       }
-    this.update();
+      this.update();
 
-    (<any>this.#sessionCallbacks[id]) = undefined;
-    delete this.#sessionCallbacks[id];
-    (<any>this.sessions[id]) = undefined;
-    delete this.sessions[id];
+      (<any>this.#sessionCallbacks[id]) = undefined;
+      delete this.#sessionCallbacks[id];
+      (<any>this.sessions[id]) = undefined;
+      delete this.sessions[id];
 
-    this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
+      this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
 
-    for(let s in this.sessions) {
-      const session = this.sessions[s];
-      if(session.primarySessionRequest) {
-        await this.#sessionCallbacks[s].setAsPrimary();
-        this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
-        break;
+      for (let s in this.sessions) {
+        const session = this.sessions[s];
+        if (session.primarySessionRequest) {
+          await this.#sessionCallbacks[s].setAsPrimary();
+          this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
+          break;
+        }
       }
-    }
 
-    return result;
+      return result;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Api.closeSession: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -115,20 +131,25 @@ export class Api {
    * @returns 
    */
   public async closeViewer(id: string): Promise<boolean> {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Closing viewer ${id}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.closeViewer', id, 'string');
-    if(!this.viewers[id]) {
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
-      return false;
-    }
-    const result = await this.#viewerCallbacks[id].close();
-    (<any>this.#viewerCallbacks[id]) = undefined;
-    delete this.#viewerCallbacks[id];
-    (<any>this.viewers[id]) = undefined;
-    delete this.viewers[id];
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Closing viewer ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.closeViewer', id, 'string');
+      if (!this.viewers[id]) {
+        this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
+        return false;
+      }
+      const result = await this.#viewerCallbacks[id].close();
+      (<any>this.#viewerCallbacks[id]) = undefined;
+      delete this.#viewerCallbacks[id];
+      (<any>this.viewers[id]) = undefined;
+      delete this.viewers[id];
 
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
-    return result;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
+      return result;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.closeViewer: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -149,25 +170,30 @@ export class Api {
    * @returns 
    */
   public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Promise<Session> {
-    this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
-    // input validation
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties, 'object');
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.ticket, 'string');
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.modelViewUrl, 'string');
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.bearerToken, 'string', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.primarySession, 'boolean', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.excludeViewers, 'stringArray', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.id, 'string', false);
-    
-    // check if the given id is valid
-    const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.sessions[sessionId])
-      this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`));
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
+      // input validation
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties, 'object');
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.ticket, 'string');
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.modelViewUrl, 'string');
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.bearerToken, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.primarySession, 'boolean', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.excludeViewers, 'stringArray', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.id, 'string', false);
 
-    const session = this.createSession(properties);
-    await session.init();
-    this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Session(${session.id}) created and initialized.`);
-    return session;
+      // check if the given id is valid
+      const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+      if (this.sessions[sessionId])
+        this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`));
+
+      const session = this.createSession(properties);
+      await session.init();
+      this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Session(${session.id}) created and initialized.`);
+      return session;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Api.createAndInitializeSession: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -184,35 +210,40 @@ export class Api {
    * @returns 
    */
   public async createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<Viewer> {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createAndInitializeViewer', properties, 'object', false);
-    const prop = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.canvas, 'HTMLCanvasElement', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.id, 'string', false);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createAndInitializeViewer', properties, 'object', false);
+      const prop = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.canvas, 'HTMLCanvasElement', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.id, 'string', false);
 
-    // check if the given id is valid
-    const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.viewers[viewerId]) 
-      this.#logger.error(LOGGINGTOPIC.VIEWER, new Error(`Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`));
+      // check if the given id is valid
+      const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+      if (this.viewers[viewerId])
+        this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`));
 
-    // create the actual viewer
-    let viewerCallbacks = {};
-    const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
+      // create the actual viewer
+      let viewerCallbacks = {};
+      const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
-    // save the viewer
-    this.viewers[viewerId] = viewer;
-    this.#viewerCallbacks[viewerId] = viewerCallbacks;
+      // save the viewer
+      this.viewers[viewerId] = viewer;
+      this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
-    // init and update the viewer with the current scene tree
-    await viewer.init(prop);
-    viewer.update();
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer });
+      // init and update the viewer with the current scene tree
+      await viewer.init(prop);
+      viewer.update();
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer });
 
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Viewer(${viewer.id}) created and initialized.`);
-    return this.viewers[viewerId];
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Viewer(${viewer.id}) created and initialized.`);
+      return this.viewers[viewerId];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.createAndInitializeViewer: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -230,32 +261,37 @@ export class Api {
    * @returns 
    */
   public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Session {
-    this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating session with properties ${JSON.stringify(properties)}.`);
-    // input validation
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties, 'object');
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.ticket, 'string');
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.modelViewUrl, 'string');
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.bearerToken, 'string', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.primarySession, 'boolean', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.excludeViewers, 'stringArray', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.id, 'string', false);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating session with properties ${JSON.stringify(properties)}.`);
+      // input validation
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties, 'object');
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.ticket, 'string');
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.modelViewUrl, 'string');
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.bearerToken, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.primarySession, 'boolean', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.excludeViewers, 'stringArray', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.id, 'string', false);
 
-    // check if the given id is valid
-    const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.sessions[sessionId])
-      this.#logger.error(LOGGINGTOPIC.SESSION, new Error(`Api.createSession: Session with this id (${sessionId}) already exists.`));
+      // check if the given id is valid
+      const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+      if (this.sessions[sessionId])
+        this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.createSession: Session with this id (${sessionId}) already exists.`));
 
-    // create the actual session 
-    let sessionCallbacks = {};
-    const session = new Session(Object.assign({}, properties, { id: sessionId }), sessionCallbacks);
-    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
+      // create the actual session 
+      let sessionCallbacks = {};
+      const session = new Session(Object.assign({}, properties, { id: sessionId }), sessionCallbacks);
+      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
 
-    // save the session
-    this.sessions[sessionId] = session;
-    this.#sessionCallbacks[sessionId] = sessionCallbacks;
+      // save the session
+      this.sessions[sessionId] = session;
+      this.#sessionCallbacks[sessionId] = sessionCallbacks;
 
-    this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
-    return session;
+      this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
+      return session;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Api.createSession: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -272,30 +308,35 @@ export class Api {
    * @returns 
    */
   public createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating viewer with properties ${JSON.stringify(properties)}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
-    const prop = Object.assign({}, properties);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.canvas, 'HTMLCanvasElement', false);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.id, 'string', false);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating viewer with properties ${JSON.stringify(properties)}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
+      const prop = Object.assign({}, properties);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.canvas, 'HTMLCanvasElement', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.id, 'string', false);
 
-    // check if the given id is valid
-    const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-    if (this.viewers[viewerId]) 
-      this.#logger.error(LOGGINGTOPIC.VIEWER, new Error(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`));
+      // check if the given id is valid
+      const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+      if (this.viewers[viewerId])
+        this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`));
 
-    // create the actual viewer
-    let viewerCallbacks = {};
-    const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
-    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
+      // create the actual viewer
+      let viewerCallbacks = {};
+      const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
-    // save the viewer
-    this.viewers[viewerId] = viewer;
-    this.#viewerCallbacks[viewerId] = viewerCallbacks;
+      // save the viewer
+      this.viewers[viewerId] = viewer;
+      this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
-    this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
-    return this.viewers[viewerId];
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
+      return this.viewers[viewerId];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.createViewer: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -305,9 +346,14 @@ export class Api {
    * @returns 
    */
   public getSession(id: string): Session | null {
-    this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.getSession: Getting session with id ${id}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.getSession', id, 'string');
-    return this.sessions[id];
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.getSession: Getting session with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.getSession', id, 'string');
+      return this.sessions[id];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Api.getSession: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -317,9 +363,14 @@ export class Api {
    * @returns 
    */
   public getViewer(id: string): Viewer | null {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.getViewer: Getting viewer with id ${id}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.getViewer', id, 'string');
-    return this.viewers[id];
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.getViewer: Getting viewer with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.getViewer', id, 'string');
+      return this.viewers[id];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.getViewer: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -329,8 +380,13 @@ export class Api {
    * @returns 
    */
   public removeListener(id: string): boolean {
-    this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.removeListener: Removing event listener with id ${id}.`);
-    return this.#eventEngine.removeListener(id);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.removeListener: Removing event listener with id ${id}.`);
+      return this.#eventEngine.removeListener(id);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.removeListener: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -338,9 +394,14 @@ export class Api {
    * The viewers are updated with all current changes in the scene tree.
    */
   public update(): void {
-    this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.update: Updating all viewers.`);
-    for(let v in this.viewers)
-      this.viewers[v].update();
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.update: Updating all viewers.`);
+      for (let v in this.viewers)
+        this.viewers[v].update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.update: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -348,10 +409,15 @@ export class Api {
    * @param {LOGGINGLEVEL} value
    */
   public updateLoggingLevel(value: LOGGINGLEVEL) {
-    this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.updateLoggingLevel: Updating LoggingLevel to ${value}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.updateLoggingLevel', value, 'enum', true, Object.values(LOGGINGLEVEL));
-    this.#logger.loggingLevel = value;
-    this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateLoggingLevel: LoggingLevel was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.updateLoggingLevel: Updating LoggingLevel to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.updateLoggingLevel', value, 'enum', true, Object.values(LOGGINGLEVEL));
+      this.#logger.loggingLevel = value;
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateLoggingLevel: LoggingLevel was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.updateLoggingLevel: Something unexpected happened.`, true)
+    }
   }
 
   /**
@@ -359,11 +425,16 @@ export class Api {
    * @param {boolean} value
    */
   public updateShowMessages(value: boolean) {
-    this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: Updating ShowMessages to ${value}.`);
-    this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.updateShowMessages', value, 'boolean');
-    this.#logger.showMessages = value;
-    this.#settingsEngine.general.viewer.showMessages.value = this.#logger.showMessages;
-    this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: ShowMessages was set to: ${value}`);
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: Updating ShowMessages to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.updateShowMessages', value, 'boolean');
+      this.#logger.showMessages = value;
+      this.#settingsEngine.general.viewer.showMessages.value = this.#logger.showMessages;
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: ShowMessages was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.updateShowMessages: Something unexpected happened.`, true)
+    }
   }
 
   // #endregion Public Methods (13)

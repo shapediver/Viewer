@@ -1,7 +1,7 @@
 import { container, singleton } from "tsyringe"
 import { HTMLElementAnchorData } from "@shapediver/viewer.shared.types";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
+import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
 import { Converter } from "@shapediver/viewer.shared.utils";
 import { vec3, vec4 } from "gl-matrix";
 import { Box } from "@shapediver/viewer.shared.math";
@@ -146,7 +146,7 @@ export class HTMLElementAnchorEngine {
             }
             return node;
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, 'HTMLElementAnchorEngine.load: Loading of anchors failed.');
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), 'HTMLElementAnchorEngine.load: Loading of anchors failed.');
             return new TreeNode();
         }
     }

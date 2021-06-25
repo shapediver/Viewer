@@ -1,7 +1,7 @@
 import { Light } from "./Light";
 import { DirectionalLight as DirectionalLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { InputValidator, SDError } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 
@@ -47,10 +47,15 @@ export class DirectionalLight extends Light {
      * @param {boolean} value
      */
     public updateCastShadow(value: boolean) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow: Updating CastShadow to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow`, value, 'boolean');
-        this.#light.castShadow = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow: castShadow was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow: Updating CastShadow to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow`, value, 'boolean');
+            this.#light.castShadow = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateCastShadow: castShadow was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateCastShadow: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -58,10 +63,15 @@ export class DirectionalLight extends Light {
      * @param {vec3} value
      */
     public updateDirection(value: vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection: Updating Direction to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection`, value, 'vec3');
-        this.#light.direction = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection: direction was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection: Updating Direction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection`, value, 'vec3');
+            this.#light.direction = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDirection: direction was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDirection: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -69,10 +79,15 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public updateShadowMapBias(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias: Updating ShadowMapBias to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias`, value, 'number');
-        this.#light.shadowMapBias = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias: shadowMapBias was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias: Updating ShadowMapBias to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias`, value, 'number');
+            this.#light.shadowMapBias = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapBias: shadowMapBias was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateShadowMapBias: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -80,10 +95,15 @@ export class DirectionalLight extends Light {
      * @param {number} value
      */
     public updateShadowMapResolution(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution: Updating ShadowMapResolution to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution`, value, 'number');
-        this.#light.shadowMapResolution = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution: shadowMapResolution was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution: Updating ShadowMapResolution to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution`, value, 'number');
+            this.#light.shadowMapResolution = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateShadowMapResolution: shadowMapResolution was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateShadowMapResolution: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Public Methods (4)

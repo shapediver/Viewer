@@ -1,7 +1,7 @@
 import { Light } from "./Light";
 import { PointLight as PointLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { InputValidator, SDError } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 
@@ -45,10 +45,15 @@ export class PointLight extends Light {
      * @param {number} value
      */
     public updateDecay(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: Updating Decay to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay`, value, 'positive');
-        this.#light.decay = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: decay was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: Updating Decay to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay`, value, 'positive');
+            this.#light.decay = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: decay was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDecay: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -56,10 +61,15 @@ export class PointLight extends Light {
      * @param {number} value
      */
     public updateDistance(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: Updating Distance to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance`, value, 'positive');
-        this.#light.distance = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: distance was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: Updating Distance to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance`, value, 'positive');
+            this.#light.distance = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: distance was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDistance: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -67,10 +77,15 @@ export class PointLight extends Light {
      * @param {vec3} value
      */
     public updatePosition(value: vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: Updating Position to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition`, value, 'vec3');
-        this.#light.position = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: position was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: Updating Position to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition`, value, 'vec3');
+            this.#light.position = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: position was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updatePosition: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Public Methods (3)

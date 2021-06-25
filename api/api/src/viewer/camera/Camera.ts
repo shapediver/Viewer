@@ -4,6 +4,7 @@ import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { Box } from "@shapediver/viewer.shared.math";
+import { SDError } from "@shapediver/viewer.shared.utils";
 export abstract class Camera implements ICamera {
     // #region Properties (15)
 
@@ -48,10 +49,15 @@ export abstract class Camera implements ICamera {
      * @param camera 
      */
     constructor(camera: ICamera) {
-        this.#camera = camera;
-        (<AbstractCamera>this.#camera).addUpdateCB(this.#updateCB);
-        this.#updateCB();
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor: Camera api created.`);
+        try {
+            this.#camera = camera;
+            (<AbstractCamera>this.#camera).addUpdateCB(this.#updateCB);
+            this.#updateCB();
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor: Camera api created.`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).constructor: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Constructors (1)
@@ -63,10 +69,15 @@ export abstract class Camera implements ICamera {
      * @param {number} value
      */
     public updateCameraMovementDuration(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration: Updating CameraMovementDuration to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration`, value, 'positive');
-        this.#camera.cameraMovementDuration = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration: cameraMovementDuration was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration: Updating CameraMovementDuration to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration`, value, 'positive');
+            this.#camera.cameraMovementDuration = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration: cameraMovementDuration was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateCameraMovementDuration: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -74,10 +85,15 @@ export abstract class Camera implements ICamera {
      * @param {vec3} value
      */
     public updateDefaultPosition(value: vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition: Updating DefaultPosition to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition`, value, 'vec3');
-        this.#camera.defaultPosition = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition: defaultPosition was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition: Updating DefaultPosition to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition`, value, 'vec3');
+            this.#camera.defaultPosition = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition: defaultPosition was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateDefaultPosition: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -85,10 +101,15 @@ export abstract class Camera implements ICamera {
      * @param {vec3} value
      */
     public updateDefaultTarget(value: vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget: Updating DefaultTarget to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget`, value, 'vec3');
-        this.#camera.defaultTarget = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget: defaultTarget was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget: Updating DefaultTarget to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget`, value, 'vec3');
+            this.#camera.defaultTarget = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget: defaultTarget was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateDefaultTarget: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -96,10 +117,15 @@ export abstract class Camera implements ICamera {
      * @param {boolean} value
      */
     public updateEnableCameraControls(value: boolean) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls: Updating EnableCameraControls to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls`, value, 'boolean');
-        this.#camera.enableCameraControls = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls: enableCameraControls was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls: Updating EnableCameraControls to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls`, value, 'boolean');
+            this.#camera.enableCameraControls = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls: enableCameraControls was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateEnableCameraControls: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -107,10 +133,15 @@ export abstract class Camera implements ICamera {
      * @param {vec3} value
      */
     public updatePosition(value: vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition: Updating Position to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition`, value, 'vec3');
-        this.#camera.position = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition: position was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition: Updating Position to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition`, value, 'vec3');
+            this.#camera.position = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition: position was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updatePosition: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -118,10 +149,15 @@ export abstract class Camera implements ICamera {
      * @param {boolean} value
      */
     public updateRevertAtMouseUp(value: boolean) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp: Updating RevertAtMouseUp to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp`, value, 'boolean');
-        this.#camera.revertAtMouseUp = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp: revertAtMouseUp was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp: Updating RevertAtMouseUp to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp`, value, 'boolean');
+            this.#camera.revertAtMouseUp = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp: revertAtMouseUp was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateRevertAtMouseUp: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -129,10 +165,15 @@ export abstract class Camera implements ICamera {
      * @param {number} value
      */
     public updateRevertAtMouseUpDuration(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration: Updating RevertAtMouseUpDuration to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration`, value, 'positive');
-        this.#camera.revertAtMouseUpDuration = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration: revertAtMouseUpDuration was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration: Updating RevertAtMouseUpDuration to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration`, value, 'positive');
+            this.#camera.revertAtMouseUpDuration = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration: revertAtMouseUpDuration was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateRevertAtMouseUpDuration: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -140,10 +181,15 @@ export abstract class Camera implements ICamera {
      * @param {vec3} value
      */
     public updateTarget(value: vec3) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget: Updating Target to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget`, value, 'vec3');
-        this.#camera.target = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget: target was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget: Updating Target to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget`, value, 'vec3');
+            this.#camera.target = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget: target was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateTarget: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -151,10 +197,15 @@ export abstract class Camera implements ICamera {
      * @param {number} value
      */
     public updateZoomExtentsFactor(value: number) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor: Updating ZoomExtentsFactor to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor`, value, 'positive');
-        this.#camera.zoomExtentsFactor = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor: zoomExtentsFactor was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor: Updating ZoomExtentsFactor to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor`, value, 'positive');
+            this.#camera.zoomExtentsFactor = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor: zoomExtentsFactor was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateZoomExtentsFactor: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Public Accessors (9)
@@ -169,20 +220,25 @@ export abstract class Camera implements ICamera {
      * @returns 
      */
     public animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string; duration?: number; default?: boolean; coordinates?: string; interpolation?: string; }): Promise<boolean> {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate: Animating with path ${path} and options ${options}.`);
-        for(let i = 0; i < path.length; i++) {
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].position, 'vec3');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].target, 'vec3');
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate: Animating with path ${path} and options ${options}.`);
+            for (let i = 0; i < path.length; i++) {
+                this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].position, 'vec3');
+                this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].target, 'vec3');
+            }
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, options, 'object', false);
+            const o = Object.assign({}, options);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.easing, 'string', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.duration, 'number', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.default, 'boolean', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.coordinates, 'string', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.interpolation, 'string', false);
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate: Starting camera path animation.`);
+            return this.#camera.animate(path, o);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).animate: Something unexpected happened.`, true)
         }
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, options, 'object', false);
-        const o = Object.assign({}, options);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.easing, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.duration, 'number', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.default, 'boolean', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.coordinates, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.interpolation, 'string', false);
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate: Starting camera path animation.`);
-        return this.#camera.animate(path, o);
     }
 
     /**
@@ -192,15 +248,20 @@ export abstract class Camera implements ICamera {
      * @returns 
      */
     public reset(options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting with options ${options}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, options, 'object');
-        const o = Object.assign({}, options);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.easing, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.duration, 'number', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.coordinates, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.interpolation, 'string', false);
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting position and target.`);
-        return this.#camera.reset(o);    
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting with options ${options}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, options, 'object');
+            const o = Object.assign({}, options);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.easing, 'string', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.duration, 'number', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.coordinates, 'string', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.interpolation, 'string', false);
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting position and target.`);
+            return this.#camera.reset(o);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).reset: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -210,17 +271,22 @@ export abstract class Camera implements ICamera {
      * @returns 
      */
     public set(position: vec3, target: vec3, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting to position ${position} and target ${target} with options ${options}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, position, 'vec3');
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, target, 'vec3');
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, options, 'object');
-        const o = Object.assign({}, options);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.easing, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.duration, 'number', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.coordinates, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.interpolation, 'string', false);
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting position to ${position} and target to ${target}.`);
-        return this.#camera.set(vec3.fromValues(position[0], position[1], position[2]), vec3.fromValues(target[0], target[1], target[2]), o);      
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting to position ${position} and target ${target} with options ${options}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, position, 'vec3');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, target, 'vec3');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, options, 'object');
+            const o = Object.assign({}, options);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.easing, 'string', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.duration, 'number', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.coordinates, 'string', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.interpolation, 'string', false);
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting position to ${position} and target to ${target}.`);
+            return this.#camera.set(vec3.fromValues(position[0], position[1], position[2]), vec3.fromValues(target[0], target[1], target[2]), o);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).set: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -228,10 +294,15 @@ export abstract class Camera implements ICamera {
      * @param {boolean} value
      */
     public updateAutoAdjust(value: boolean) {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust: Updating AutoAdjust to ${value}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust`, value, 'boolean');
-        this.#camera.autoAdjust = value;
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust: autoAdjust was set to: ${value}`);
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust: Updating AutoAdjust to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust`, value, 'boolean');
+            this.#camera.autoAdjust = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust: autoAdjust was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateAutoAdjust: Something unexpected happened.`, true)
+        }
     }
 
     /**
@@ -242,20 +313,25 @@ export abstract class Camera implements ICamera {
      * @returns 
      */
     public zoomTo(zoomTarget?: string[] | Box, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
-        this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming to ${zoomTarget} with options ${options}.`);
-        if(zoomTarget) {
-            if(Array.isArray(zoomTarget)) {
-                 this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, zoomTarget, 'stringArray');
-            } else if(!(zoomTarget instanceof Box)) 
-                this.#logger.error(LOGGINGTOPIC.CAMERA, new Error(`Camera(${this.id}).zoomTo: The specified zoom target does not have a valid type`));
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming to ${zoomTarget} with options ${options}.`);
+            if (zoomTarget) {
+                if (Array.isArray(zoomTarget)) {
+                    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, zoomTarget, 'stringArray');
+                } else if (!(zoomTarget instanceof Box))
+                    this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(`Camera(${this.id}).zoomTo: The specified zoom target does not have a valid type`));
+            }
+            const o = Object.assign({}, options);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.easing, 'string', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.duration, 'number', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.coordinates, 'string', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.interpolation, 'string', false);
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming in.`);
+            return this.#camera.zoomTo(zoomTarget, o);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).zoomTo: Something unexpected happened.`, true)
         }
-        const o = Object.assign({}, options);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.easing, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.duration, 'number', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.coordinates, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.interpolation, 'string', false);
-        this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming in.`);
-        return this.#camera.zoomTo(zoomTarget, o);  
     }
 
     // #endregion Public Methods (5)
