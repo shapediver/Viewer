@@ -37,7 +37,7 @@ export class Logger {
     private _loggingLevel: LOGGINGLEVEL = LOGGINGLEVEL.NONE;
     private _showMessages: boolean = true;
     private _updateCBs: (() => void)[] = [];
-    private _breadCrumbCounter: number = 0;
+    private _breadCrumbs: Sentry.Breadcrumb[] = [];
     private _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private _userId = this._uuidGenerator.create();
 
@@ -55,19 +55,7 @@ export class Logger {
             ],
             environment: 'local',
             release: build_data.build_version,
-            maxBreadcrumbs: 100,
-            beforeBreadcrumb: (breadcrumb: Sentry.Breadcrumb, hint?: Sentry.BreadcrumbHint | undefined) => {
-                this._breadCrumbCounter++;
-                if(this._breadCrumbCounter === 100) {
-                    Sentry.captureMessage('Breadcrumb Issue', Sentry.Severity.Debug);
-                    Sentry.getCurrentHub().getScope()?.clear()
-                    Sentry.setUser({
-                        id: this._userId
-                    })
-                    this._breadCrumbCounter = 0;
-                }
-                return breadcrumb;
-            },            
+            maxBreadcrumbs: 100,         
             // Set tracesSampleRate to 1.0 to capture 100%
             // of transactions for performance monitoring.
             // We recommend adjusting this value in production
@@ -158,8 +146,26 @@ export class Logger {
 
     // #region Public Methods (8)
 
+    private sentryError(topic: LOGGINGTOPIC, error: Error, msg?: string) {
+        this.sentryBreadcrumb(topic, msg || error.message, Sentry.Severity.Error); 
+
+        for(let i = 0; i < this._breadCrumbs.length; i++) {
+            if(i%100 === 0) {
+                Sentry.setTag('topic', topic);
+                Sentry.setUser({ id: this._userId })
+                Sentry.captureMessage('Breadcrumb Issue ' + (i/100 - 1) + ' (' + this._userId, Sentry.Severity.Debug) + ')';
+                Sentry.getCurrentHub().getScope()?.clear()
+            }
+            Sentry.addBreadcrumb(this._breadCrumbs[i]);
+        }
+
+        Sentry.setTag('topic', topic);
+        Sentry.setUser({ id: this._userId })
+        Sentry.captureException(error);
+    }
+
     private sentryBreadcrumb(topic: LOGGINGTOPIC, msg: string, level: Sentry.Severity) {
-        Sentry.addBreadcrumb({
+        this._breadCrumbs.push({
             category: topic,
             message: msg,
             level: Sentry.Severity.Debug,
@@ -213,8 +219,7 @@ export class Logger {
      */
     public error(topic: LOGGINGTOPIC, error: Error, msg?: string, throwError: boolean = false): void {
         this.sentryBreadcrumb(topic, msg || error.message, Sentry.Severity.Error); 
-        Sentry.setTag('topic', topic);
-        Sentry.captureException(error)
+        this.sentryError(topic, error, msg);
         if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true) 
             console.error('(ERROR) ' + this.messageConstruction(msg || error.message));
         if(throwError) throw error;
@@ -226,8 +231,7 @@ export class Logger {
      */
     public httpError(topic: LOGGINGTOPIC, error: Error, msg: string, httpError: number, throwError: boolean = false): void {
         this.sentryBreadcrumb(topic, msg, Sentry.Severity.Error);
-        Sentry.setTag('topic', topic);
-        Sentry.captureException(error);
+        this.sentryError(topic, error, msg);
         this.httpErrorHelper(topic, msg, error, httpError, throwError);
     }
 
@@ -237,8 +241,7 @@ export class Logger {
      */
     public fatal(topic: LOGGINGTOPIC, msg: string, error: Error, throwError: boolean = false): void {
         this.sentryBreadcrumb(topic, msg, Sentry.Severity.Fatal);
-        Sentry.setTag('topic', topic);
-        Sentry.captureException(error);
+        this.sentryError(topic, error, msg);
         if (this.canLog(LOGGINGLEVEL.FATAL) && this.showMessages === true)
             console.error('(FATAL) ' + this.messageConstruction(msg));
         if(throwError) throw error;
