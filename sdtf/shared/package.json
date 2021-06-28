@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.sdtf.shared",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -36,8 +36,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.services": "^0.3.12",
-    "@shapediver/viewer.shared.utils": "^0.3.12",
+    "@shapediver/viewer.shared.services": "^0.3.13",
+    "@shapediver/viewer.shared.utils": "^0.3.13",
     "@types/pako": "^1.0.1",
     "gl-matrix": "^3.3.0",
     "pako": "^2.0.3",
