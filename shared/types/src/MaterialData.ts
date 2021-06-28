@@ -67,7 +67,7 @@ export class MapData {
     private readonly _minFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE,
     private readonly _magFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE,
     private readonly _center: vec2 = vec2.fromValues(0, 0),
-    private readonly _color: vec4 = vec4.fromValues(1, 1, 1, 1),
+    private readonly _color?: string,
     private readonly _offset: vec2 = vec2.fromValues(0, 0),
     private readonly _repeat: vec2 = vec2.fromValues(1, 1),
     private readonly _rotation: number = 0,
@@ -88,9 +88,9 @@ export class MapData {
 
   /**
    * Getter color
-   * @return {vec4}
+   * @return {string | undefined}
    */
-  public get color(): vec4 {
+  public get color(): string | undefined {
     return this._color;
   }
 

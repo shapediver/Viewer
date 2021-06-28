@@ -239,7 +239,7 @@ export class MaterialEngine {
         const offset = texture.offset ? vec2.fromValues(texture.offset[0], texture.offset[1]) : vec2.fromValues(0,0);
         const repeat = texture.repeat ? vec2.fromValues(texture.repeat[0], texture.repeat[1]) : vec2.fromValues(1,1);
 
-        return new MapData(image, wrapS, wrapT, TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, TEXTURE_FILTERING.LINEAR, center, color, offset, repeat, texture.rotation || 0);        
+        return new MapData(image, wrapS, wrapT, TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, TEXTURE_FILTERING.LINEAR, center, this._converter.toColor(color), offset, repeat, texture.rotation || 0);        
     }
 
     private async loadMaterialV1(data: {

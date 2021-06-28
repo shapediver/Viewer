@@ -129,8 +129,11 @@ export class MaterialLoader {
             properties.bumpScale = materialProperties.bumpScale;
 
             if(materialProperties.color)
-            properties.color = new THREE.Color(materialProperties.color);
+                properties.color = new THREE.Color(materialProperties.color);
             
+            if(!materialProperties.color && materialProperties.map && materialProperties.map.color)
+                properties.color = new THREE.Color(materialProperties.map.color);
+
             if(!materialProperties.color && !materialProperties.map)
                 properties.color = new THREE.Color(this._defaultColor);
 
@@ -289,8 +292,6 @@ export class MaterialLoader {
         })();
 
         texture.center = new THREE.Vector2(map.center[0], map.center[1]);
-        // color https://shapediver.atlassian.net/browse/SS-2953
-        // texture.color = new THREE.Color(map.color[0], map.color[1], map.color[2]);
         texture.offset = new THREE.Vector2(map.offset[0], map.offset[1]);
         texture.repeat = new THREE.Vector2(map.repeat[0], map.repeat[1]);
         texture.rotation = map.rotation;
