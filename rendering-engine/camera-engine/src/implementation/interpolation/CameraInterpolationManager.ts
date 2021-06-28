@@ -119,15 +119,34 @@ export class CameraInterpolationManager {
         }
     }
 
-    private optionsParser(options: { default?: boolean, duration?: number, easing?: string|Function, coordinates?: string, interpolation?: string|Function} ): {default: boolean, duration: number, easing: (amount: number) => number, coordinates: string, interpolation: Function }
+    private optionsParser(options: { default?: boolean, duration?: number, easing?: string|Function, coordinates?: string, interpolation?: string|Function} ): {default: boolean, duration: number, easing: (amount: number) => number, coordinates: string, interpolation: (v: number[], k: number) => number }
     {
-        // https://shapediver.atlassian.net/browse/SS-2947
+        let easing = TWEEN.Easing.Quartic.InOut;
+        if(typeof options.easing === 'string') {
+            const keys = options.easing.split('.');
+            const easingFamily = TWEEN.Easing[<keyof typeof TWEEN.Easing>keys[0]];
+            if(easingFamily) {
+                const easingFunction = easingFamily[<keyof typeof easingFamily>keys[1]];
+                if(easingFunction) easing = easingFunction;
+            }
+        } else if(typeof options.easing === 'function') {
+            easing = <(amount: number) => number>options.easing;
+        }
+
+        let interpolation = TWEEN.Interpolation.CatmullRom;
+        if(typeof options.interpolation === 'string') {
+            const interpolationFunction = TWEEN.Interpolation[<keyof typeof TWEEN.Interpolation>options.interpolation];
+            if(interpolationFunction && interpolationFunction !== TWEEN.Interpolation.Utils) interpolation = <(v: number[], k: number) => number>interpolationFunction;
+        } else if(typeof options.interpolation === 'function') {
+            interpolation = <(v: number[], k: number) => number>options.interpolation;
+        }
+
         return {
             default: options.default || false,
             duration: options.duration && options.duration >= 0 ? options.duration : 0,
-            easing: TWEEN.Easing.Quartic.InOut,// typeof options.easing === 'string' ? Easing[<typeof Easing>options.easing] TWEEN.Easing.Quartic.InOut : typeof options.easing === 'function' ? options.easing : TWEEN.Easing.Quartic.InOut,
+            easing,
             coordinates: options.coordinates !== 'spherical' && options.coordinates !== 'linear' && options.coordinates !== 'cylindrical' ? 'cylindrical' : options.coordinates, 
-            interpolation: TWEEN.Interpolation.CatmullRom// this._globalUtils.typeCheck(options.interpolation, 'string') ? this._globalUtils.getAtPath(TWEEN.Interpolation, options.interpolation) || TWEEN.Interpolation.CatmullRom : typeof options.interpolation === 'function' ? options.interpolation : TWEEN.Interpolation.CatmullRom
+            interpolation
         };
     }
 

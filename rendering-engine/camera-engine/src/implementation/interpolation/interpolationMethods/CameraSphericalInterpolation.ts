@@ -30,7 +30,7 @@ export class CameraSphericalInterpolation implements ICameraInterpolation {
         this._direction_to = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), this._to.position, this._to.target));
 
         this._axis = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), this._direction_to, this._direction_from));
-        this._c_angle = -Math.acos(vec3.dot(this._direction_to, this._direction_from));
+        this._c_angle = -Math.acos(Math.min(1, Math.max(-1, vec3.dot(this._direction_to, this._direction_from))));
     }
 
     // #endregion Constructors (1)
@@ -55,7 +55,6 @@ export class CameraSphericalInterpolation implements ICameraInterpolation {
 
         let angle = this._c_angle * value.delta;
         let dir = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), this._direction_from, quat.setAxisAngle(quat.create(), this._axis, angle)));
-
 
         let scalar = (this._radius_from * (1 - value.delta) + this._radius_to * value.delta);
         let p: vec3 = vec3.add(vec3.create(), t, vec3.multiply(vec3.create(), dir, vec3.fromValues(scalar, scalar, scalar)));

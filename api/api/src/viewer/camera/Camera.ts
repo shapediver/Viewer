@@ -221,7 +221,7 @@ export abstract class Camera implements ICamera {
      */
     public animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string; duration?: number; default?: boolean; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate: Animating with path ${path} and options ${options}.`);
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate: Animating with path ${path} and options ${JSON.stringify(options)}.`);
             for (let i = 0; i < path.length; i++) {
                 this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].position, 'vec3');
                 this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].target, 'vec3');
@@ -249,7 +249,7 @@ export abstract class Camera implements ICamera {
      */
     public reset(options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting with options ${options}.`);
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting with options ${JSON.stringify(options)}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, options, 'object');
             const o = Object.assign({}, options);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.easing, 'string', false);
@@ -272,7 +272,7 @@ export abstract class Camera implements ICamera {
      */
     public set(position: vec3, target: vec3, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting to position ${position} and target ${target} with options ${options}.`);
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting to position ${position} and target ${target} with options ${JSON.stringify(options)}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, position, 'vec3');
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, target, 'vec3');
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, options, 'object');
@@ -314,7 +314,7 @@ export abstract class Camera implements ICamera {
      */
     public zoomTo(zoomTarget?: string[] | Box, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming to ${zoomTarget} with options ${options}.`);
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming to ${zoomTarget} with options ${JSON.stringify(options)}.`);
             if (zoomTarget) {
                 if (Array.isArray(zoomTarget)) {
                     this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, zoomTarget, 'stringArray');
