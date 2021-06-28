@@ -374,8 +374,8 @@ This just works as it would be two independent sessions.
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 0.3.12
-* __Build date:__ 2021-06-28T09:49:37.725Z
+* __Version:__ 0.3.13
+* __Build date:__ 2021-06-28T12:53:08.095Z
 * __Branch:__ development
-* __Commit:__ a8b682005ed7387018ae815aa0c53214f498ed80
+* __Commit:__ 7068fa452bf6530a0da5e79ccaa2ce52ed720391
 <!--- VERSION_END -->
