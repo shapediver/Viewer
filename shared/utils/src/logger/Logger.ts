@@ -38,6 +38,7 @@ export class Logger {
     private _showMessages: boolean = true;
     private _updateCBs: (() => void)[] = [];
     private _breadCrumbs: Sentry.Breadcrumb[] = [];
+    private _breadCrumbCounter: number = 0;
     private _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private _userId = this._uuidGenerator.create();
 
@@ -56,6 +57,10 @@ export class Logger {
             environment: 'local',
             release: build_data.build_version,
             maxBreadcrumbs: 100,         
+            beforeBreadcrumb: (breadcrumb: Sentry.Breadcrumb, hint?: Sentry.BreadcrumbHint | undefined): Sentry.Breadcrumb | null => {
+                this._breadCrumbCounter++;
+                return breadcrumb;
+            },
             // Set tracesSampleRate to 1.0 to capture 100%
             // of transactions for performance monitoring.
             // We recommend adjusting this value in production
@@ -149,14 +154,15 @@ export class Logger {
     private sentryError(topic: LOGGINGTOPIC, error: Error, msg?: string) {
         this.sentryBreadcrumb(topic, msg || error.message, Sentry.Severity.Error); 
 
-        for(let i = 0; i < this._breadCrumbs.length; i++) {
-            if(i%100 === 0) {
+        const breadcrumbCounter = this._breadCrumbCounter > 100 ? 100 : this._breadCrumbCounter;
+        for(let i = breadcrumbCounter; i < this._breadCrumbs.length + breadcrumbCounter; i++) {
+            if(i%100 === 0 && i !== 0) {
                 Sentry.setTag('topic', topic);
                 Sentry.setUser({ id: this._userId })
-                Sentry.captureMessage('Breadcrumb Issue ' + (i/100 - 1) + ' (' + this._userId, Sentry.Severity.Debug) + ')';
+                Sentry.captureMessage('Breadcrumb Issue ' + (i/100 - 1) + ' (' + this._userId + ')', Sentry.Severity.Debug);
                 Sentry.getCurrentHub().getScope()?.clear()
             }
-            Sentry.addBreadcrumb(this._breadCrumbs[i]);
+            Sentry.addBreadcrumb(this._breadCrumbs[i-breadcrumbCounter]);
         }
 
         Sentry.setTag('topic', topic);
