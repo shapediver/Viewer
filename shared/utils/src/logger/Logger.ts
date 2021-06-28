@@ -61,6 +61,10 @@ export class Logger {
                 this._breadCrumbCounter++;
                 return breadcrumb;
             },
+            beforeSend: (event: Sentry.Event, hint?: Sentry.EventHint | undefined): Sentry.Event | PromiseLike<Sentry.Event | null> | null => {
+                if(event.level === Sentry.Severity.Debug) event.fingerprint ? event.fingerprint.push(this._userId+'') : event.fingerprint = [this._userId+''];
+                return event;
+            },
             // Set tracesSampleRate to 1.0 to capture 100%
             // of transactions for performance monitoring.
             // We recommend adjusting this value in production
