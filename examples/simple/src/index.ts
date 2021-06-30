@@ -88,10 +88,10 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 };
 
 
-(<any>window).addGLTF = async () => {
+(<any>window).addGLTF = async (uri: string) => {
     const node = await dataEngine.loadContent({
         format: 'gltf',
-        href: 'http://localhost:8080/glTF-Sample-Models/scene.gltf'
+        href: uri
     })
     api.sceneTree.addNode(node);
     let viewer = api.getViewer('myViewer')!;

@@ -5,7 +5,6 @@ dist-prod
 lerna-debug.log
 .npmrc
 docs
-examples/simple/glTF-Sample-Models
 api/api/package.json
 documentation/releaseNotes.html
 documentation/migrationGuide.html
