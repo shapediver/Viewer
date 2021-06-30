@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { GeometryData, PrimitiveData, SD_RENDERINGTYPE } from '@shapediver/viewer.shared.types';
+import { GeometryData, MATERIAL_ALPHA, PrimitiveData, SD_RENDERINGTYPE } from '@shapediver/viewer.shared.types';
 import { SDObject } from '../types/SDObject';
 import { Box } from '@shapediver/viewer.shared.math';
 import { MaterialLoader } from './MaterialLoader';
@@ -78,13 +78,54 @@ export class GeometryLoader {
             this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = objNew;
 
         } else {
+            const threeGeometry = this.loadGeometry(geometry.primitive);
+            const materialSettings = {
+                mode: geometry.primitive.mode,
+                useVertexTangents: threeGeometry.attributes.tangent !== undefined,
+                useVertexColors: threeGeometry.attributes.color !== undefined,
+                useFlatShading: threeGeometry.attributes.normal === undefined,
+                useMorphTargets: Object.keys( threeGeometry.morphAttributes ).length > 0,
+                useMorphNormals: Object.keys( threeGeometry.morphAttributes ).length > 0 && threeGeometry.morphAttributes.normal !== undefined
+            }
+
             const obj = new SDObject(geometry.id, geometry.version);
-            const mesh: THREE.Mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!));
-            mesh.geometry.computeVertexNormals();
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
+            let mesh;
+            if(geometry.primitive.mode === 0) { // POINTS
+                mesh = new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            } else if(geometry.primitive.mode === 1) { // LINES
+                mesh = new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            } else if(geometry.primitive.mode === 2) { // LINE LOOP
+                mesh = new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            } else if(geometry.primitive.mode === 3) { // LINE STRIP
+                mesh = new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            } else if(geometry.primitive.mode === 4 || geometry.primitive.mode === 5 || geometry.primitive.mode === 6) { // TRIANGLES || TRIANGLE_STRIP || TRIANGLE_FAN
+                mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+                mesh.geometry.computeVertexNormals();
+                if ( geometry.primitive.mode === 5 ) {
+                    // TODO
+                    // mesh.geometry = toTrianglesDrawMode( mesh.geometry, TriangleStripDrawMode );
+                } else if ( geometry.primitive.mode === 6 ) {
+                    // mesh.geometry = toTrianglesDrawMode( mesh.geometry, TriangleFanDrawMode );
+                }
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+            } else {
+                throw new Error();
+                // TODO error
+            }
+
+            if(geometry.primitive.material?.alphaMode === MATERIAL_ALPHA.BLEND) {
+                mesh.material.transparent = true;
+                mesh.material.depthWrite = false;
+            }
+
+            // TODO can be optimized
+            mesh.geometry.computeBoundingBox()
+            mesh.geometry.computeBoundingSphere()
             obj.add(mesh);
+
             this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = obj;
+            
             geometry.convertedObjects.push(obj)
             parent.add(obj);
         }
@@ -97,11 +138,14 @@ export class GeometryLoader {
             const bufferAttribute = primitive.attributes[attributeId];
             let buffer: THREE.InterleavedBufferAttribute | THREE.BufferAttribute;
 
-            if(bufferAttribute.hasOffset) {
-                buffer = new THREE.InterleavedBufferAttribute(new THREE.InterleavedBuffer(bufferAttribute.array, bufferAttribute.stride!), bufferAttribute.itemSize, bufferAttribute.offset!);
+            if ( bufferAttribute.byteStride && bufferAttribute.byteStride !== bufferAttribute.itemBytes ) {
+                // Integer parameters to IB/IBA are in array elements, not bytes.
+                const ib = new THREE.InterleavedBuffer( bufferAttribute.array, bufferAttribute.byteStride / bufferAttribute.elementBytes );
+                buffer = new THREE.InterleavedBufferAttribute( ib, bufferAttribute.itemSize, ( bufferAttribute.byteOffset % bufferAttribute.byteStride ) / bufferAttribute.elementBytes, bufferAttribute.normalized );
             } else {
-                buffer = new THREE.BufferAttribute(bufferAttribute.array, bufferAttribute.itemSize, bufferAttribute.normalized);
+                buffer = new THREE.BufferAttribute( bufferAttribute.array, bufferAttribute.itemSize, bufferAttribute.normalized );
             }
+
             switch (attributeId) {
                 case 'POSITION':
                     geometry.setAttribute('position', buffer);
@@ -148,7 +192,7 @@ export class GeometryLoader {
             }
 
             if (primitive.indices)
-                geometry.setIndex(new THREE.BufferAttribute( primitive.indices.array, primitive.indices.itemSize ));
+                geometry.setIndex(new THREE.BufferAttribute( primitive.indices!.array, primitive.indices!.itemSize ));
         }
         return geometry;
     }

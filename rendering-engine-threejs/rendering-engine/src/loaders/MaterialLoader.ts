@@ -7,7 +7,7 @@ export class MaterialLoader {
     // #region Properties (5)
 
     private readonly _defaultColor: string = '#00fff7';
-    private readonly _materialLibrary: (THREE.MeshStandardMaterial | THREE.MeshBasicMaterial)[] = [];
+    private readonly _materialLibrary: (THREE.Material | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial)[] = [];
 
     private _blending: number = 0.0;
     private _lightSizeUV: number = 0.025;
@@ -27,8 +27,10 @@ export class MaterialLoader {
     public assignEnvironmentMap(e: THREE.CubeTexture | null) {
         this._envMap = e;
         for(let i = 0; i < this._materialLibrary.length; i++) {
-            this._materialLibrary[i].envMap = e;
-            this._materialLibrary[i].needsUpdate = true;
+            if(this._materialLibrary[i] instanceof THREE.MeshStandardMaterial || this._materialLibrary[i] instanceof THREE.MeshBasicMaterial) {
+                (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).envMap = e;
+                (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).needsUpdate = true;
+            }
         }
     }
 
@@ -38,7 +40,17 @@ export class MaterialLoader {
      * @param material the material data
      * @returns the material object
      */
-    public load(materialProperties?: MaterialData): THREE.Material {
+    public load(
+        materialProperties: MaterialData, 
+        materialSettings?: {
+            mode?: number,
+            useVertexTangents?: boolean,
+            useVertexColors?: boolean,
+            useFlatShading?: boolean,
+            useMorphTargets?: boolean,
+            useMorphNormals?: boolean
+        }
+    ): THREE.Material {
         const properties: any = {};
         if (materialProperties) {
 
@@ -88,7 +100,10 @@ export class MaterialLoader {
 
             // fog
 
-            // opacity
+            if(materialProperties.opacity !== undefined){
+                properties.opacity = materialProperties.opacity;
+                properties.transparent = properties.opacity < 1;
+            }
 
             // polygonOffset
 
@@ -134,7 +149,7 @@ export class MaterialLoader {
             if(!materialProperties.color && materialProperties.map && materialProperties.map.color)
                 properties.color = new THREE.Color(materialProperties.map.color);
 
-            if(!materialProperties.color && !materialProperties.map)
+            if(!materialProperties.color && !materialProperties.map && !(materialSettings && materialSettings.useVertexColors))
                 properties.color = new THREE.Color(this._defaultColor);
 
             // displacementMap
@@ -207,15 +222,33 @@ export class MaterialLoader {
             properties.side = THREE.DoubleSide;
         }
 
-        const material = new THREE.MeshStandardMaterial(properties);
-        material.onBeforeCompile = (shader: THREE.Shader) => {
-            shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
-            shader.uniforms.blending = { value: this._blending };
-            material.userData.shader = shader;
-        };
-        material.needsUpdate = true;
+        let material: THREE.Material;
+        if(materialSettings && materialSettings.mode === 0) {
+            material = new THREE.PointsMaterial(properties);
+        } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
+            material = new THREE.LineBasicMaterial(properties);
+        } else {
+            material = new THREE.MeshStandardMaterial(properties);
+            material.onBeforeCompile = (shader: THREE.Shader) => {
+                shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
+                shader.uniforms.blending = { value: this._blending };
+                material.userData.shader = shader;
+            };
+        }
 
+        if (materialSettings && materialSettings.useVertexTangents) {
+            (<any>material).vertexTangents = true;
+            if ( (<any>material).normalScale ) (<any>material).normalScale.y *= - 1;
+            if ( (<any>material).clearcoatNormalScale ) (<any>material).clearcoatNormalScale.y *= - 1;
+        }
+        if (materialSettings && materialSettings.useVertexColors) (<any>material).vertexColors = true;
+        if (materialSettings && materialSettings.useFlatShading) (<any>material).flatShading = true;
+        if (materialSettings && materialSettings.useMorphTargets) (<any>material).morphTargets = true;
+        if (materialSettings && materialSettings.useMorphNormals) (<any>material).morphNormals = true;
+
+        material.needsUpdate = true;
         this._materialLibrary.push(material);
+        // TODO check if all gltf properties are implemented
         return material;
     }
 

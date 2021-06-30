@@ -96,6 +96,7 @@ export interface IGLTF_v2_Buffer {
     byteLength: number,
     uri?: string,
     name?: string,
+    type?: string,
     extensions?: { [id: string]: any },
     extras?: any
 }

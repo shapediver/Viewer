@@ -21,10 +21,11 @@ export class AttributeData {
   constructor(
     private readonly _array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
     private readonly _itemSize: number,
-    private readonly _hasOffset: boolean = false,
-    private readonly _offset?: number,
-    private readonly _stride?: number,
-    private readonly _normalized?: boolean
+    private readonly _itemBytes: number,
+    private readonly _byteOffset: number,
+    private readonly _elementBytes: number,
+    private readonly _normalized: boolean,
+    private readonly _byteStride?: number,
   ) { }
 
   // #endregion Constructors (1)
@@ -40,11 +41,11 @@ export class AttributeData {
   }
 
   /**
-   * Getter hasOffset
+   * Getter elementBytes
    * @return {boolean}
    */
-  public get hasOffset(): boolean {
-    return this._hasOffset;
+  public get elementBytes(): number {
+    return this._elementBytes;
   }
 
   /**
@@ -56,27 +57,35 @@ export class AttributeData {
   }
 
   /**
-   * Getter normalized
-   * @return {boolean | undefined}
+   * Getter itemBytes
+   * @return {number}
    */
-  public get normalized(): boolean | undefined {
+  public get itemBytes(): number {
+    return this._itemBytes;
+  }
+
+  /**
+   * Getter normalized
+   * @return {boolean}
+   */
+  public get normalized(): boolean {
     return this._normalized;
   }
 
   /**
-   * Getter offset
-   * @return {number | undefined}
+   * Getter byteOffset
+   * @return {number}
    */
-  public get offset(): number | undefined {
-    return this._offset;
+  public get byteOffset(): number {
+    return this._byteOffset;
   }
 
   /**
-   * Getter stride
+   * Getter byteStride
    * @return {number | undefined}
    */
-  public get stride(): number | undefined {
-    return this._stride;
+  public get byteStride(): number | undefined {
+    return this._byteStride;
   }
 
   // #endregion Public Accessors (6)
@@ -92,10 +101,11 @@ export class AttributeData {
     return new AttributeData(
       array,
       this._itemSize,
-      this._hasOffset,
-      this._offset,
-      this._stride,
-      this._normalized
+      this._itemBytes,
+      this._byteOffset,
+      this._elementBytes,
+      this._normalized,
+      this._byteStride,
     );
   }
 

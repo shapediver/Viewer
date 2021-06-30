@@ -22,7 +22,7 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
 (async () => {
     let session = await api.createAndInitializeSession({ ticket: ticket, modelViewUrl: modelViewUrl, id: 'mySession'});
-    let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
+    let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     await new Promise<void>((resolve) => {
         api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
     })
@@ -86,6 +86,28 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
     const session = api.getSession('mySession')!;
     await session.saveSettings();
 };
+
+
+(<any>window).addGLTF = async () => {
+    const node = await dataEngine.loadContent({
+        format: 'gltf',
+        href: 'http://localhost:8080/glTF-Sample-Models/scene.gltf'
+    })
+    api.sceneTree.addNode(node);
+    let viewer = api.getViewer('myViewer')!;
+
+
+    const l = viewer.createLightScene({name: 'gltf'});
+    viewer.updateGridVisibility(false);
+    viewer.updateGroundPlaneVisibility(false);
+    viewer.assignLightScene(l.id);
+    viewer.addAmbientLight({color: 0xffffff, intensity: 0.2})
+    viewer.addDirectionalLight({color: 0xffffff, intensity: 1, direction: vec3.normalize(vec3.create(), vec3.fromValues(1, -1, 2))})
+    viewer.updateClearColor('#000000')
+    await viewer.getCamera()!.set([400, -900, 520], [215, 70, -40], {duration: 0});
+    viewer.updateShow(true);
+    api.update();
+}
 
 // (<any>window).sceneTree = api.sceneTree;
 // (<any>window).api = api;

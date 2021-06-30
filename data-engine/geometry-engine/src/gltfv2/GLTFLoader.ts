@@ -3,10 +3,9 @@ import { Converter, HttpClient, ImageLoader, SDError, UuidGenerator } from '@sha
 import { container } from 'tsyringe';
 
 import { ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
-import { mat4, vec3, vec4 } from 'gl-matrix';
+import { mat4, vec2, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
-import { PbrMaterialConverter } from './PbrSpecularGlossinessConverter';
 
 export class GLTFLoader {
     // #region Properties (6)
@@ -18,12 +17,17 @@ export class GLTFLoader {
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
-    private readonly _implementedExtensions = ['KHR_materials_pbrSpecularGlossiness'];
+    private readonly _implementedExtensions = [''];
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     private _baseUri!: string;
     private _body!: ArrayBuffer;
     private _content!: IGLTF_v2;
+    private _loaded: { 
+        [key: string]: { 
+            [key: string]: any 
+        } 
+    } = {};
 
     // #endregion Properties (6)
 
@@ -104,64 +108,144 @@ export class GLTFLoader {
 
     // #region Private Methods (9)
 
-    private async loadAccessor(accessorId: number): Promise<AttributeData> {
+    private async loadAccessor(accessorId: number): Promise<AttributeData | null> {
         if (!this._content.accessors![accessorId]) throw new SDError('Accessor not available.')
         const accessor = this._content.accessors![accessorId];
+        if(this._loaded['accessor'] && this._loaded['accessor'][accessorId]) return this._loaded['accessor'][accessorId];
+
+        if (accessor.bufferView === undefined) {
+			// Ignore empty accessors, which may be used to declare runtime
+			// information about attributes coming from another source (e.g. Draco
+			// compression extension).
+			return Promise.resolve(null);
+		}
+
         const arrayBuffer = await this.loadBufferView(accessor.bufferView!);
         
         // @ts-ignore
         const itemSize = ACCESSORTYPE[accessor.type!];
         // @ts-ignore
         const ArrayType = ACCESSOR_COMPONENTTYPE[accessor.componentType!];
+
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
         const itemBytes = elementBytes * itemSize;
+        const byteOffset = accessor.byteOffset || 0;
+        const byteStride = accessor.bufferView !== undefined ? this._content.bufferViews[ accessor.bufferView ].byteStride : undefined;
+        const normalized = accessor.normalized === true;
+        let array;
 
-        var byteOffset = accessor.byteOffset || 0;
-        var byteStride = accessor.bufferView !== undefined ? this._content.bufferViews[accessor.bufferView!].byteStride : undefined;
-        var normalized = accessor.normalized === true;
-        
-        // The buffer is not interleaved if the stride is the item size in bytes. 
-        if (byteStride && byteStride !== itemBytes) {
-            var ibSlice = Math.floor( byteOffset / byteStride );
-            return new AttributeData(new ArrayType( arrayBuffer, ibSlice * byteStride, accessor.count * byteStride / elementBytes ), itemSize, true, byteOffset! / elementBytes, byteStride! / elementBytes, normalized);
+        if ( byteStride && byteStride !== itemBytes ) {
+            // Each "slice" of the buffer, as defined by 'count' elements of 'byteStride' bytes, gets its own InterleavedBuffer
+            // This makes sure that IBA.count reflects accessor.count properly
+            const ibSlice = Math.floor( byteOffset / byteStride );
+            array = new ArrayType( arrayBuffer, ibSlice * byteStride, accessor.count * byteStride / elementBytes );
         } else {
-            return new AttributeData(new ArrayType(arrayBuffer).slice(byteOffset / elementBytes, byteOffset / elementBytes + accessor.count * itemBytes / elementBytes), itemSize, false);
+            if ( arrayBuffer === null ) {
+                array = new ArrayType( accessor.count * itemSize );
+            } else {
+                array = new ArrayType( arrayBuffer, byteOffset, accessor.count * itemSize );
+            }
         }
+
+        if (accessor.sparse !== undefined) {
+            // const itemSizeIndices = ACCESSORTYPE.SCALAR;
+            // // @ts-ignore
+            // const IndicesArrayType = ACCESSOR_COMPONENTTYPE[accessor.sparse.indices.componentType];
+
+            // const byteOffsetIndices = accessor.sparse.indices.byteOffset || 0;
+            // const byteOffsetValues = accessor.sparse.values.byteOffset || 0;
+
+            // const sparseIndices = new IndicesArrayType(bufferViews[ 1 ], byteOffsetIndices, accessor.sparse.count * itemSizeIndices);
+            // const sparseValues = new ArrayType(bufferViews[ 2 ], byteOffsetValues, accessor.sparse.count * itemSize);
+
+            // if (bufferView !== null) {
+            //     // Avoid modifying the original ArrayBuffer, if the bufferView wasn't initialized with zeroes.
+            //     bufferAttribute = new BufferAttribute( bufferAttribute.array.slice(), bufferAttribute.itemSize, bufferAttribute.normalized );
+            // }
+
+            // for ( let i = 0, il = sparseIndices.length; i < il; i ++ ) {
+            //     const index = sparseIndices[ i ];
+            //     bufferAttribute.setX( index, sparseValues[ i * itemSize ] );
+            //     if ( itemSize >= 2 ) bufferAttribute.setY( index, sparseValues[ i * itemSize + 1 ] );
+            //     if ( itemSize >= 3 ) bufferAttribute.setZ( index, sparseValues[ i * itemSize + 2 ] );
+            //     if ( itemSize >= 4 ) bufferAttribute.setW( index, sparseValues[ i * itemSize + 3 ] );
+            //     if ( itemSize >= 5 ) throw new Error( 'THREE.GLTFLoader: Unsupported itemSize in sparse BufferAttribute.' );
+            // }
+            throw new SDError(`GLTFLoader.loadAccessor: Sparse accessor. Not implemented yet.`); // TODO
+        } 
+
+        if(!this._loaded['accessor']) this._loaded['accessor'] = {};
+        this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, byteStride);
+        return this._loaded['accessor'][accessorId];
     }
 
     private async loadBuffer(bufferId: number): Promise<ArrayBuffer> {
         if (!this._content.buffers![bufferId]) throw new SDError('Buffer not available.')
         const buffer = this._content.buffers![bufferId];
+        if(this._loaded['buffer'] && this._loaded['buffer'][bufferId]) return this._loaded['buffer'][bufferId];
 
-        if (!buffer.uri && bufferId === 0)
-            return this._body;
+        if (buffer.type && buffer.type !== 'arraybuffer') {
+			throw new SDError(`GLTFLoader.loadBuffer: ${buffer.type} is not supported.`);
+		}
 
-            let result = await this._httpClient.get(this._baseUri + '/' + buffer.uri!, {
+		// If present, GLB container is required to be the first buffer.
+		if (buffer.uri === undefined && bufferId === 0) {
+			return Promise.resolve(this._body);
+		}
+
+        const dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
+		const dataUriRegexResult = buffer.uri!.match( dataUriRegex );
+
+        let result: ArrayBuffer;
+        // Safari can not handle Data URIs through XMLHttpRequest so process manually
+		if ( dataUriRegexResult ) {
+			const isBase64 = !! dataUriRegexResult[ 2 ];
+			let data = dataUriRegexResult[ 3 ];
+			data = decodeURIComponent( data );
+			if ( isBase64 ) data = atob( data );
+
+            const view = new Uint8Array(data.length);
+            for (let i = 0; i < data.length; i++) {
+                view[i] = data.charCodeAt(i);
+            }
+            result = view.buffer;
+        } else {
+            let httpResult = await this._httpClient.get(this._baseUri + '/' + buffer.uri!, {
                 responseType: 'arraybuffer'
             })
+            result = <ArrayBuffer>(httpResult.data);
+        }
 
-        return <ArrayBuffer> result.data;
+        if(!this._loaded['buffer']) this._loaded['buffer'] = {};
+        this._loaded['buffer'][bufferId] = result;
+        return this._loaded['buffer'][bufferId];
     }
 
     private async loadBufferView(bufferViewId: number): Promise<ArrayBuffer> {
         if (!this._content.bufferViews![bufferViewId]) throw new SDError('Buffer View not available.')
         const bufferView = this._content.bufferViews![bufferViewId];
+        if(this._loaded['bufferView'] && this._loaded['bufferView'][bufferViewId]) return this._loaded['bufferView'][bufferViewId];
+
         const byteLength = bufferView.byteLength || 0;
         const byteOffset = bufferView.byteOffset || 0;
-        const arrayBuffer: ArrayBuffer = (await this.loadBuffer(bufferView.buffer!)).slice(byteOffset, byteOffset + byteLength);
-        return arrayBuffer;
+        const buffer = await this.loadBuffer(bufferView.buffer!);
+        const result = buffer.slice(byteOffset, byteOffset + byteLength);
+
+        if(!this._loaded['bufferView']) this._loaded['bufferView'] = {};
+        this._loaded['bufferView'][bufferViewId] = result;
+        return this._loaded['bufferView'][bufferViewId];
     }
 
-    private async loadMap(index: number): Promise<MapData> {
-        let mapData: MapData;
-
-        const texture = this._content.textures[index];
+    private async loadMap(textureId: number): Promise<MapData> {
+        const texture = this._content.textures[textureId];
+        if(this._loaded['texture'] && this._loaded['texture'][textureId]) return this._loaded['texture'][textureId].clone();
         const image = this._content.images[texture.source];
         const sampler = this._content.samplers && this._content.samplers[texture.source] ? this._content.samplers[texture.source] : {};
 
         const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
         const HTTPS_URI_REGEX = /^https:\/\//;
 
+        let mapData: MapData;
         if(image.bufferView !== undefined) {
             const bufferView = await this.loadBufferView(image.bufferView);
             const dataView = new DataView(bufferView);
@@ -171,23 +255,27 @@ export class GLTFLoader {
 
             const blob = new Blob([new Uint8Array(array)], { type: image.mimeType});
             const dataUri = window.URL.createObjectURL(blob);
-            window.open(dataUri);
             mapData = new MapData(await this._imageLoader.load(dataUri!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         } else {
             const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
             mapData = new MapData(await this._imageLoader.load(url!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         }
-        return mapData;
+
+        if(!this._loaded['texture']) this._loaded['texture'] = {};
+        this._loaded['texture'][textureId] = mapData;
+        return this._loaded['texture'][textureId].clone();
     }
 
-    private async loadMaterial(index: number): Promise<MaterialData> {
-        const material: IGLTF_v2_Material = this._content.materials[index];
+    private async loadMaterial(materialId: number): Promise<MaterialData> {
+        const material: IGLTF_v2_Material = this._content.materials[materialId];
+
         const materialData = new MaterialData();
         if(material.name !== undefined) materialData.name = material.name;
 
         if(material.pbrMetallicRoughness !== undefined) {
             if(material.pbrMetallicRoughness.baseColorFactor !== undefined) {
-                materialData.color = this._converter.toColor(material.pbrMetallicRoughness.baseColorFactor);
+                materialData.color = this._converter.toColor([material.pbrMetallicRoughness.baseColorFactor[0]*255, material.pbrMetallicRoughness.baseColorFactor[1]*255, material.pbrMetallicRoughness.baseColorFactor[2]*255]);
+                materialData.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
             }
             if(material.pbrMetallicRoughness.baseColorTexture !== undefined) {
                 materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index);
@@ -205,19 +293,29 @@ export class GLTFLoader {
 
         if(material.normalTexture !== undefined) {
             materialData.normalMap = await this.loadMap(material.normalTexture.index);
+            materialData.normalScale = 1;
+			if (material.normalTexture.scale !== undefined) {
+				materialData.normalScale = material.normalTexture.scale;
+			}
         }
         if(material.occlusionTexture !== undefined) {        
-            materialData.alphaMap = await this.loadMap(material.occlusionTexture.index);
+            // materialData.aoMap = await this.loadMap(material.occlusionTexture.index); // TODO
+            if (material.occlusionTexture.strength !== undefined) {
+				//materialData.aoMapIntensity = material.occlusionTexture.strength;
+			}
         }
         if(material.emissiveTexture !== undefined) {
             materialData.emissiveMap = await this.loadMap(material.emissiveTexture.index);
         }
 
         if(material.emissiveFactor !== undefined) {
-            materialData.emissiveness = this._converter.toColor(material.emissiveFactor);
+            materialData.emissiveness = this._converter.toColor([material.emissiveFactor[0]*255, material.emissiveFactor[1]*255, material.emissiveFactor[2]*255]);
         }        
         if(material.alphaMode !== undefined) {
             materialData.alphaMode = material.alphaMode.toLowerCase() === MATERIAL_ALPHA.MASK ? MATERIAL_ALPHA.MASK : material.alphaMode.toLowerCase() === MATERIAL_ALPHA.BLEND ? MATERIAL_ALPHA.BLEND : MATERIAL_ALPHA.OPAQUE; 
+            if (materialData.alphaMode === MATERIAL_ALPHA.MASK) {
+				// materialData.alphaTest = material.alphaCutoff !== undefined ? material.alphaCutoff : 0.5; // TODO
+			}
         }      
         if(material.alphaCutoff !== undefined) {
             materialData.alphaCutoff = material.alphaCutoff;
@@ -226,26 +324,7 @@ export class GLTFLoader {
             materialData.side = material.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
         }
 
-
-        if(material.extensions && material.extensions.KHR_materials_pbrSpecularGlossiness) {
-            const material_extension: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions.KHR_materials_pbrSpecularGlossiness;
-            const converted = new PbrMaterialConverter().convertToMetallicRoughness({
-                diffuseFactor: material_extension.diffuseFactor !== undefined ? vec4.fromValues(material_extension.diffuseFactor[0], material_extension.diffuseFactor[1], material_extension.diffuseFactor[2], material_extension.diffuseFactor[3]) : vec4.fromValues(1,1,1,1),
-                specularFactor:  material_extension.specularFactor !== undefined ? vec3.fromValues(material_extension.specularFactor[0], material_extension.specularFactor[1], material_extension.specularFactor[2]) : vec3.fromValues(1,1,1),
-                glossinessFactor: material_extension.glossinessFactor !== undefined ? material_extension.glossinessFactor : 1
-            });
-
-            materialData.color = converted.color;
-            materialData.metalness = converted.metalness;
-            materialData.roughness = converted.roughness;
-            if (material_extension.diffuseTexture !== undefined)
-                materialData.map = await this.loadMap(material_extension.diffuseTexture.index);
-
-            if (material_extension.specularGlossinessTexture !== undefined)
-                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: Due to issues with the material conversion, the specularGlossinessTexture is not supported at the moment.');
-        }
-
-        return materialData;
+        return materialData
     }
 
     private async loadMesh(meshId: number): Promise<TreeNode> {
@@ -310,7 +389,7 @@ export class GLTFLoader {
         } = {};
 
         for (let attribute in primitive.attributes)
-            attributes[attribute] = await this.loadAccessor(primitive.attributes[attribute]);
+            attributes[attribute] = (await this.loadAccessor(primitive.attributes[attribute]))!;
 
         let indices = null;
         if(primitive.indices || primitive.indices === 0)

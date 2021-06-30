@@ -109,11 +109,15 @@ export class GLTFLoader {
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
         const itemBytes = elementBytes * itemSize;
 
+        const byteOffset = accessor.byteOffset || 0;
+        const byteStride = accessor.byteStride;
+        const normalized = false;
+
         // The buffer is not interleaved if the stride is the item size in bytes.
         if (accessor.byteStride !== itemBytes) {
-            return new AttributeData(new ArrayType(bufferView), itemSize, true, accessor.byteOffset! / elementBytes, accessor.byteStride! / elementBytes);
+            return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, byteStride);
         } else {
-            return new AttributeData(new ArrayType(bufferView), itemSize, false);
+            return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, byteStride);
         }
     }
 

@@ -166,6 +166,10 @@ export class MapData {
     return this._flipY;
   }
 
+  public clone(): MapData {
+    return new MapData(<HTMLImageElement>this.image.cloneNode(), this.wrapS, this.wrapT, this.minFilter, this.magFilter, this.center, this.color, this.offset, this.repeat, this.rotation, this.flipY);
+  }
+
   // #endregion Public Accessors (10)
 }
 
