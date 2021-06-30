@@ -49,17 +49,18 @@ export class GLTFLoader {
             return new TreeNode();
         }
 
-        const isBinary = axiosResponse.headers['content-type'] &&
+        const magic = new TextDecoder().decode(new Uint8Array(axiosResponse.data, 0, 4));
+        const isBinary = magic === 'glTF' || (axiosResponse.headers['content-type'] &&
             (axiosResponse.headers['content-type'] === 'model/gltf-binary' ||
                 axiosResponse.headers['content-type'] === 'application/octet-stream' ||
-                axiosResponse.headers['content-type'] === 'model/gltf.binary');
+                axiosResponse.headers['content-type'] === 'model/gltf.binary'));
 
         if (isBinary) {
             const binaryGeometry: ArrayBuffer = axiosResponse.data;
             // create header data
             const headerDataView = new DataView(binaryGeometry, 0, this.BINARY_EXTENSION_HEADER_LENGTH);
             const header = {
-                magic: String.fromCharCode(headerDataView.getUint8(0)) + String.fromCharCode(headerDataView.getUint8(1)) + String.fromCharCode(headerDataView.getUint8(2)) + String.fromCharCode(headerDataView.getUint8(3)),
+                magic: magic,
                 version: headerDataView.getUint32(4, true),
                 length: headerDataView.getUint32(8, true),
                 contentLength: headerDataView.getUint32(12, true),
