@@ -77,7 +77,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     (<any>this.showStatistics) = this.#renderingEngine.showStatistics;
   }
 
-  #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE };
+  #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE, logo: string };
   #renderingEngine!: RenderingEngineThreejs;
 
 
@@ -91,7 +91,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param type 
    * @param canvas 
    */
-  constructor(properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE }, callbacks: any) {
+  constructor(properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE, logo: string }, callbacks: any) {
     try {
       this.#properties = properties;
       callbacks.close = async (): Promise<boolean> => {
@@ -913,8 +913,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.visibility the visibility of the viewer
    * @param properties.canvas the canvas that the viewer should use
    * @param properties.id the unique id the session should have 
+   * @param properties.logo an optional logo while the viewer is hidden
    */
-  public async init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<void> {
+  public async init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<void> {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Initializing Viewer with properties ${JSON.stringify(properties)}.`);
       // input validation
@@ -924,10 +925,11 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.canvas, 'HTMLCanvasElement', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.id, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.logo, 'string', false);
 
       const viewerId = (props && props.id) ? props.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
       props.visibility = props.visibility || VISIBILITYMODE.SESSION;
-      if (props) this.#properties = { id: viewerId || this.#properties.id, canvas: props.canvas || this.#properties.canvas, visibility: props.visibility || this.#properties.visibility, type: props.type || RENDERERTYPE.STANDARD };
+      if (props) this.#properties = { id: viewerId || this.#properties.id, canvas: props.canvas || this.#properties.canvas, visibility: props.visibility || this.#properties.visibility, type: props.type || RENDERERTYPE.STANDARD, logo: props.logo || this.#properties.logo };
 
       this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
       this.#renderingEngine.addUpdateCB(this.#updateCB);

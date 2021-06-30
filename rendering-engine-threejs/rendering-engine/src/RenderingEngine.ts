@@ -78,7 +78,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #region Constructors (1)
 
-    constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE }) {
+    constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE, logo: string }) {
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
         this._id = properties.id;
         this._canvas = this._canvasEngine.createCanvasObject(properties.canvas);
@@ -108,7 +108,7 @@ export class RenderingEngine implements IRenderingEngine {
         img.style.top = '50%';
         img.style.left = '50%';
         img.style.transform = 'translateX(-50%) translateY(-50%)';
-        img.src = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
+        img.src = properties.logo;
         this._logoDivElement.appendChild(img)
 
         this._gridObject = new SDObject('grid', '');

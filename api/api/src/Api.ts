@@ -21,6 +21,8 @@ export class Api {
   readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #viewerCallbacks: { [key: string]: { [key: string]: () => any } } = {};
+  readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
+
   readonly loggingLevel!: LOGGINGLEVEL;
   readonly sceneTree: Tree = <Tree>container.resolve(Tree);
   readonly sessions: { [key: string]: Session } = {};
@@ -207,9 +209,10 @@ export class Api {
    * @param properties.visibility the visibility of the viewer
    * @param properties.canvas the canvas that the viewer should use
    * @param properties.id the unique id the session should have 
+   * @param properties.logo an optional logo while the viewer is hidden
    * @returns 
    */
-  public async createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Promise<Viewer> {
+  public async createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<Viewer> {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createAndInitializeViewer', properties, 'object', false);
@@ -218,6 +221,7 @@ export class Api {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.canvas, 'HTMLCanvasElement', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.id, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.logo, 'string', false);
 
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
@@ -226,7 +230,7 @@ export class Api {
 
       // create the actual viewer
       let viewerCallbacks = {};
-      const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
+      const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
       // save the viewer
@@ -305,9 +309,10 @@ export class Api {
    * @param properties.visibility the visibility of the viewer
    * @param properties.canvas the canvas that the viewer should use
    * @param properties.id the unique id the session should have 
+   * @param properties.logo an optional logo while the viewer is hidden
    * @returns 
    */
-  public createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string }): Viewer {
+  public createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Viewer {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating viewer with properties ${JSON.stringify(properties)}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
@@ -316,6 +321,7 @@ export class Api {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.canvas, 'HTMLCanvasElement', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.id, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.logo, 'string', false);
 
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
@@ -324,7 +330,7 @@ export class Api {
 
       // create the actual viewer
       let viewerCallbacks = {};
-      const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD }, viewerCallbacks);
+      const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
 
       // save the viewer
