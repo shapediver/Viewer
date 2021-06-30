@@ -179,6 +179,8 @@ export class MaterialData extends AbstractTreeNodeData {
   private _alphaMap?: MapData;
   private _alphaCutoff: number = 0;
   private _alphaMode: MATERIAL_ALPHA = MATERIAL_ALPHA.OPAQUE;
+  private _aoMap?: MapData;
+  private _aoMapIntensity: number = 1.0;
   private _bumpMap?: MapData;
   private _bumpScale: number = 1.0;
   private _color?: string;
@@ -210,6 +212,8 @@ export class MaterialData extends AbstractTreeNodeData {
       alphaMap?: MapData,
       alphaCutoff?: number,
       alphaMode?: MATERIAL_ALPHA,
+      aoMap?: MapData,
+      aoMapIntensity?: number,
       bumpMap?: MapData,
       bumpScale?: number,
       color?: string,
@@ -236,6 +240,8 @@ export class MaterialData extends AbstractTreeNodeData {
     if(properties.alphaMap) this.alphaMap = properties.alphaMap;
     if(properties.alphaCutoff) this.alphaCutoff = properties.alphaCutoff;
     if(properties.alphaMode) this.alphaMode = properties.alphaMode;
+    if(properties.aoMap) this.aoMap = properties.aoMap;
+    if(properties.aoMapIntensity) this.aoMapIntensity = properties.aoMapIntensity;
     if(properties.bumpMap) this.bumpMap = properties.bumpMap;
     if(properties.bumpScale) this.bumpScale = properties.bumpScale;
     if(properties.color) this.color = properties.color;
@@ -306,6 +312,38 @@ export class MaterialData extends AbstractTreeNodeData {
    */
   public set alphaMode(value: MATERIAL_ALPHA) {
     this._alphaMode = value;
+  }
+
+  /**
+   * Getter aoMap
+   * @return {MapData | undefined}
+   */
+  public get aoMap(): MapData | undefined {
+    return this._aoMap;
+  }
+
+  /**
+   * Setter aoMap
+   * @param {MapData | undefined} value
+   */
+  public set aoMap(value: MapData | undefined) {
+    this._aoMap = value;
+  }
+
+  /**
+   * Getter aoMapIntensity
+   * @return {number}
+   */
+  public get aoMapIntensity(): number {
+    return this._aoMapIntensity;
+  }
+
+  /**
+   * Setter aoMapIntensity
+   * @param {number} value
+   */
+  public set aoMapIntensity(value: number) {
+    this._aoMapIntensity = value;
   }
 
   /**
@@ -608,6 +646,8 @@ export class MaterialData extends AbstractTreeNodeData {
       alphaMap: this.alphaMap,
       alphaCutoff: this.alphaCutoff,
       alphaMode: this.alphaMode,
+      aoMap: this.aoMap,
+      aoMapIntensity: this.aoMapIntensity,
       bumpMap: this.bumpMap,
       bumpScale: this.bumpScale,
       color: this.color,

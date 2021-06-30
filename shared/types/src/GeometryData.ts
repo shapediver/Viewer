@@ -5,6 +5,16 @@ import { MaterialData } from './MaterialData';
 import { ISDObject } from '.';
 import { Box } from '@shapediver/viewer.shared.math';
 
+export enum PRIMITIVE_MODE {
+	POINTS = 0,
+	LINES = 1,
+	LINE_LOOP = 2,
+	LINE_STRIP = 3,
+	TRIANGLES = 4,
+	TRIANGLE_STRIP = 5,
+	TRIANGLE_FAN = 6
+}
+
 export class AttributeData {
   // #region Constructors (1)
 
@@ -26,6 +36,10 @@ export class AttributeData {
     private readonly _elementBytes: number,
     private readonly _normalized: boolean,
     private readonly _byteStride?: number,
+    private readonly _sparse?: boolean,
+    private readonly _sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
+    private readonly _sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
+
   ) { }
 
   // #endregion Constructors (1)
@@ -38,6 +52,22 @@ export class AttributeData {
    */
   public get array(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array {
     return this._array;
+  }
+  
+  /**
+   * Getter sparseIndices
+   * @return {Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined}
+   */
+   public get sparseIndices(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined {
+    return this._sparseIndices;
+  }
+  
+  /**
+   * Getter sparseValues
+   * @return {Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined}
+   */
+   public get sparseValues(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined {
+    return this._sparseValues;
   }
 
   /**
@@ -62,6 +92,14 @@ export class AttributeData {
    */
   public get itemBytes(): number {
     return this._itemBytes;
+  }
+
+  /**
+   * Getter sparse
+   * @return {boolean | undefined}
+   */
+  public get sparse(): boolean | undefined {
+    return this._sparse;
   }
 
   /**
@@ -106,6 +144,9 @@ export class AttributeData {
       this._elementBytes,
       this._normalized,
       this._byteStride,
+      this._sparse,
+      this._sparseIndices,
+      this._sparseValues
     );
   }
 
@@ -131,7 +172,7 @@ export class PrimitiveData {
     private readonly _attributes: {
       [key: string]: AttributeData
     } = {},
-    private readonly _mode: number = 4,
+    private readonly _mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
     private _indices: AttributeData | null = null,
     private _material: MaterialData | null = null,
   ) { 
@@ -195,9 +236,9 @@ export class PrimitiveData {
 
   /**
    * Getter mode
-   * @return {number}
+   * @return {PRIMITIVE_MODE}
    */
-  public get mode(): number {
+  public get mode(): PRIMITIVE_MODE {
     return this._mode;
   }
 

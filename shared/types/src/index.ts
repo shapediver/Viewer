@@ -1,7 +1,7 @@
 import { ISDObject, SD_RENDERINGTYPE } from "./ISDObject";
 
 import { CustomData } from "./CustomData";
-import { AttributeData, GeometryData, PrimitiveData } from "./GeometryData";
+import { AttributeData, GeometryData, PrimitiveData, PRIMITIVE_MODE } from "./GeometryData";
 import { MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE, TEXTURE_FILTERING, TEXTURE_WRAPPING } from "./MaterialData";
 import { HTMLElementAnchorData } from "./HTMLElementAnchorData";
 
@@ -14,7 +14,7 @@ export {
 }
 
 export {
-  GeometryData, AttributeData, PrimitiveData
+  GeometryData, AttributeData, PrimitiveData, PRIMITIVE_MODE
 }
 
 export {

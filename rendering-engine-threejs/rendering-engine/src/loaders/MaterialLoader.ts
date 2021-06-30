@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData } from '@shapediver/viewer.shared.types';
+import { MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
 import { vec4 } from 'gl-matrix';
 import { RenderingEngine } from '../RenderingEngine';
 
@@ -94,7 +94,6 @@ export class MaterialLoader {
 
             // stencilZPass
 
-            // flatShading
             if(materialProperties.shading !== undefined)
                 properties.flatShading = materialProperties.shading !== 'smooth';
 
@@ -119,13 +118,7 @@ export class MaterialLoader {
 
             // shadowSide
 
-            // side
-
             // toneMapped
-
-            // transparent
-
-            // vertexColors
 
             // visible
 
@@ -134,9 +127,13 @@ export class MaterialLoader {
                 properties.transparent = true;
             }
 
-            // aoMap
+            if (materialProperties.aoMap !== undefined) {
+                properties.aoMap = this.createTexture(materialProperties.aoMap);
+            }
 
-            // aoMapIntensity
+            if (materialProperties.aoMapIntensity !== undefined) {
+                properties.aoMapIntensity = materialProperties.aoMapIntensity;
+            }
 
             if (materialProperties.bumpMap !== undefined)
             properties.bumpMap = this.createTexture(materialProperties.bumpMap);
@@ -200,13 +197,12 @@ export class MaterialLoader {
 
             // normalMapType
 
-            properties.normalScale = new THREE.Vector2(materialProperties.normalScale, materialProperties.normalScale);
+            if(materialProperties.normalScale !== undefined)
+                properties.normalScale = new THREE.Vector2(materialProperties.normalScale, -materialProperties.normalScale);
 
             // refractionRatio
 
             // skinning
-
-            // vertexTangents
 
             // wireframe
 
@@ -216,7 +212,8 @@ export class MaterialLoader {
 
             // wireframeLinewidth
 
-            properties.side = THREE.DoubleSide;
+            if(materialProperties.side !== undefined)
+                properties.side = materialProperties.side === MATERIAL_SIDE.BACK ? THREE.BackSide : materialProperties.side === MATERIAL_SIDE.FRONT ? THREE.FrontSide : THREE.DoubleSide;
         } else {
             properties.color = new THREE.Color(this._defaultColor);
             properties.side = THREE.DoubleSide;
@@ -248,7 +245,6 @@ export class MaterialLoader {
 
         material.needsUpdate = true;
         this._materialLibrary.push(material);
-        // TODO check if all gltf properties are implemented
         return material;
     }
 
