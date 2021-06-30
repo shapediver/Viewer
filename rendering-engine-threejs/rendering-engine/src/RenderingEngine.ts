@@ -82,7 +82,14 @@ export class RenderingEngine implements IRenderingEngine {
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
         this._id = properties.id;
         this._canvas = this._canvasEngine.createCanvasObject(properties.canvas);
-        this._environmentMapLoader = new EnvironmentMapLoader(this);
+        this._sceneTree = new SceneTree(this);
+        (<SceneTree>this._sceneTree).scene.background = new THREE.Color('#ffffff');
+        this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
+        this._cameraEngine = new CameraEngine(this._canvas, this._domEventEngine);
+        this._lightEngine = new LightEngine();
+
+        this._renderingLogic = new RenderingLogic(this);
+        this._environmentMapLoader = new EnvironmentMapLoader(this, this._renderingLogic);
         this._materialLoader = new MaterialLoader(this);
         this._geometryLoader = new GeometryLoader(this);
         this._htmlElementAnchorLoader = new HTMLElementAnchorLoader(this);
@@ -103,17 +110,6 @@ export class RenderingEngine implements IRenderingEngine {
         img.style.transform = 'translateX(-50%) translateY(-50%)';
         img.src = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
         this._logoDivElement.appendChild(img)
-
-        this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
-
-        this._lightEngine = new LightEngine();
-        this._cameraEngine = new CameraEngine(this._canvas, this._domEventEngine);
-
-        this._sceneTree = new SceneTree(this);
-
-        (<SceneTree>this._sceneTree).scene.background = new THREE.Color('#ffffff');
-
-        this._renderingLogic = new RenderingLogic(this);
 
         this._gridObject = new SDObject('grid', '');
         this._grid = new THREE.GridHelper();

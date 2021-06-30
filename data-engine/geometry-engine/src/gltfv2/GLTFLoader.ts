@@ -17,7 +17,7 @@ export class GLTFLoader {
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
-    private readonly _implementedExtensions = [''];
+    private readonly _implementedExtensions = ['KHR_materials_pbrSpecularGlossiness'];
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     private _baseUri!: string;
@@ -312,6 +312,34 @@ export class GLTFLoader {
         }
         if (material.doubleSided !== undefined) {
             materialData.side = material.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
+        }
+
+        if (material.extensions && material.extensions.KHR_materials_pbrSpecularGlossiness) {
+            const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions.KHR_materials_pbrSpecularGlossiness;
+            materialData.specularGlossinessWorkflow = true;
+            materialData.color = '#ffffff';
+            materialData.opacity = 1.0;
+
+            if (pbrSpecularGlossiness.diffuseFactor !== undefined) {
+                materialData.color = this._converter.toColor([pbrSpecularGlossiness.diffuseFactor[0] * 255, pbrSpecularGlossiness.diffuseFactor[1] * 255, pbrSpecularGlossiness.diffuseFactor[2] * 255]);
+                materialData.opacity = pbrSpecularGlossiness.diffuseFactor[3];
+            }
+
+            if (pbrSpecularGlossiness.diffuseTexture !== undefined)
+                materialData.map = await this.loadMap(pbrSpecularGlossiness.diffuseTexture.index);
+
+            materialData.emissiveness = '#000000';
+            materialData.glossiness = pbrSpecularGlossiness.glossinessFactor !== undefined ? pbrSpecularGlossiness.glossinessFactor : 1.0;
+            materialData.specular = '#ffffff';
+
+            if (pbrSpecularGlossiness.specularFactor !== undefined) {
+                materialData.specular = this._converter.toColor([pbrSpecularGlossiness.specularFactor[0] * 255, pbrSpecularGlossiness.specularFactor[1] * 255, pbrSpecularGlossiness.specularFactor[2] * 255]);
+            }
+
+            if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
+                materialData.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index);
+            }
+
         }
 
         return materialData

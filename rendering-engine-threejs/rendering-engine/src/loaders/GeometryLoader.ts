@@ -185,6 +185,9 @@ export class GeometryLoader {
                 case 'JOINT':
                     geometry.setAttribute('skinIndex', buffer);
                     break;
+                case 'TANGENT':
+                    geometry.setAttribute('tangent', buffer);
+                    break;
                 default:
                     this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.loadGeometry: Unrecognized attribute id ${attributeId}.`);
             }

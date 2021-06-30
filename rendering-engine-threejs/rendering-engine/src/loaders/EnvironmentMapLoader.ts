@@ -3,6 +3,8 @@ import { RenderingEngine } from "..";
 import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
+import { RGBELoader } from "../three/loaders/RGBELoader";
+import { RenderingLogic } from "../RenderingLogic";
 
 export class EnvironmentMapLoader {
     // #region Properties (4)
@@ -10,10 +12,11 @@ export class EnvironmentMapLoader {
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {
-        [key: string]: THREE.CubeTexture | null
+        [key: string]: THREE.CubeTexture | THREE.Texture | null
     } = {};
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _pmremGenerator: THREE.PMREMGenerator;
 
     private _environmentMapName: string = 'none';
 
@@ -21,15 +24,18 @@ export class EnvironmentMapLoader {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {
+    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _renderingLogic: RenderingLogic) {
         this._environmentMaps['none'] = null;
+            
+        this._pmremGenerator = new THREE.PMREMGenerator(this._renderingLogic.renderer);
+        this._pmremGenerator.compileEquirectangularShader();
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (1)
 
-    public get environmentMap(): THREE.CubeTexture | null {
+    public get environmentMap(): THREE.CubeTexture | THREE.Texture | null {
         return this._environmentMaps[this._environmentMapName];
     }
 
@@ -85,10 +91,15 @@ export class EnvironmentMapLoader {
                     url.push('https://viewer.shapediver.com/v2/envmaps/' + this._renderingEngine.environmentMapResolution + '/' + name_internal + '/' + this._environmentMapFilenames[i] + '.jpg');
             }
             else if (name.startsWith('https://') || name.startsWith('http://')) {
-                if (!name.endsWith('/'))
+                if (name.endsWith('.hdr')) {
+                    await this.loadEnvironmentMap(name, url);
+                } else {
+                    if (!name.endsWith('/'))
                     name += '/';
-                for (i = 0; i < this._environmentMapFilenames.length; i++)
-                    url.push(name + this._environmentMapFilenames[i] + '.jpg');
+
+                    for (i = 0; i < this._environmentMapFilenames.length; i++)
+                        url.push(name + this._environmentMapFilenames[i] + '.jpg');
+                }
             }
             else {
                 this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.'))
@@ -123,19 +134,31 @@ export class EnvironmentMapLoader {
 
     private async loadEnvironmentMap(name: string, url: string[]) {
         return new Promise<void>((resolve, reject) => {
-            new THREE.CubeTextureLoader().load(url,
-                (map: THREE.CubeTexture) => {
-                    map.format = THREE.RGBFormat;
-                    map.mapping = THREE.CubeReflectionMapping;
-                    map.generateMipmaps = false;
-                    map.minFilter = THREE.LinearFilter;
-                    map.magFilter = THREE.LinearFilter;
+            if(name.endsWith('.hdr')) {
+                new RGBELoader().setDataType(THREE.UnsignedByteType).load(name, (texture) => {
+                    const map = this._pmremGenerator.fromEquirectangular(texture).texture;
+                    this._pmremGenerator.dispose();
                     this._environmentMaps[name] = map;
                     this.assignEnvironmentMap(name);
                     resolve();
                 },
                 () => {},
                 (error) =>  reject(error));
+            } else {
+                new THREE.CubeTextureLoader().load(url,
+                    (map: THREE.CubeTexture) => {
+                        map.format = THREE.RGBFormat;
+                        map.mapping = THREE.CubeReflectionMapping;
+                        map.generateMipmaps = false;
+                        map.minFilter = THREE.LinearFilter;
+                        map.magFilter = THREE.LinearFilter;
+                        this._environmentMaps[name] = map;
+                        this.assignEnvironmentMap(name);
+                        resolve();
+                    },
+                    () => {},
+                    (error) =>  reject(error));
+            }
         })
     }
 

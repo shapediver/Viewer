@@ -89,12 +89,14 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
 
 (<any>window).addGLTF = async (uri: string) => {
+    let viewer = api.getViewer('myViewer')!;
+
+    await api.closeSession('mySession')!;
     const node = await dataEngine.loadContent({
         format: 'gltf',
         href: uri
     })
     api.sceneTree.addNode(node);
-    let viewer = api.getViewer('myViewer')!;
 
 
     const l = viewer.createLightScene({name: 'gltf'});
@@ -102,11 +104,12 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
     viewer.updateGroundPlaneVisibility(false);
     viewer.assignLightScene(l.id);
     viewer.addAmbientLight({color: 0xffffff, intensity: 0.2})
-    viewer.addDirectionalLight({color: 0xffffff, intensity: 1, direction: vec3.normalize(vec3.create(), vec3.fromValues(1, -1, 2))})
+    viewer.addDirectionalLight({color: 0xffffff, intensity: 1, direction: vec3.normalize(vec3.create(), vec3.fromValues(0.5, -0.866, 0))})
     viewer.updateClearColor('#000000')
-    await viewer.getCamera()!.set([400, -900, 520], [215, 70, -40], {duration: 0});
+    viewer.updateEnvironmentMap('default')
     viewer.updateShow(true);
     api.update();
+    await viewer.getCamera()!.set([0, -0.5, 0], [0, 0, 0], {duration: 0});
 }
 
 // (<any>window).sceneTree = api.sceneTree;

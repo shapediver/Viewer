@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
 import { vec4 } from 'gl-matrix';
 import { RenderingEngine } from '../RenderingEngine';
+import { main, entry } from "../shaders/PCSS";
+import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial';
 
 export class MaterialLoader {
     // #region Properties (5)
@@ -12,19 +14,26 @@ export class MaterialLoader {
     private _blending: number = 0.0;
     private _lightSizeUV: number = 0.025;
 
-    private _envMap: THREE.CubeTexture | null = null;
+    private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
 
     // #endregion Properties (5)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {}
+    constructor(private readonly _renderingEngine: RenderingEngine) {
+        let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
+        if (!shader.includes('PCSS implementation')) {
+            shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
+            shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
+        }
+        THREE.ShaderChunk.shadowmap_pars_fragment = shader;
+    }
 
     // #endregion Constructors (1)
 
     // #region Public Methods (4)
 
-    public assignEnvironmentMap(e: THREE.CubeTexture | null) {
+    public assignEnvironmentMap(e: THREE.CubeTexture | THREE.Texture | null) {
         this._envMap = e;
         for(let i = 0; i < this._materialLibrary.length; i++) {
             if(this._materialLibrary[i] instanceof THREE.MeshStandardMaterial || this._materialLibrary[i] instanceof THREE.MeshBasicMaterial) {
@@ -214,6 +223,24 @@ export class MaterialLoader {
 
             if(materialProperties.side !== undefined)
                 properties.side = materialProperties.side === MATERIAL_SIDE.BACK ? THREE.BackSide : materialProperties.side === MATERIAL_SIDE.FRONT ? THREE.FrontSide : THREE.DoubleSide;
+        
+        
+            if (materialProperties.specularGlossinessWorkflow === true) {
+                properties.specular = materialProperties.specular;
+                properties.glossiness = materialProperties.glossiness;
+    
+                if (materialProperties.specularGlossinessMap !== undefined) {
+                    properties.specularMap = this.createTexture(materialProperties.specularGlossinessMap);
+                    properties.glossinessMap = properties.specularMap;
+                } else {
+                    if (materialProperties.specularMap !== undefined)
+                        properties.specularMap = this.createTexture(materialProperties.specularMap);
+                    if (materialProperties.glossinessMap !== undefined)
+                        properties.glossinessMap = this.createTexture(materialProperties.glossinessMap);
+                }
+            }
+
+                
         } else {
             properties.color = new THREE.Color(this._defaultColor);
             properties.side = THREE.DoubleSide;
@@ -225,12 +252,25 @@ export class MaterialLoader {
         } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
             material = new THREE.LineBasicMaterial(properties);
         } else {
-            material = new THREE.MeshStandardMaterial(properties);
-            material.onBeforeCompile = (shader: THREE.Shader) => {
-                shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
-                shader.uniforms.blending = { value: this._blending };
-                material.userData.shader = shader;
-            };
+            
+            if(materialProperties.specularGlossinessWorkflow === true) {
+                material = new SpecularGlossinessMaterial(properties);
+                
+                const before = material.onBeforeCompile;
+                material.onBeforeCompile = (shader: THREE.Shader, renderer: THREE.WebGLRenderer) => {
+                    before(shader, renderer);
+                    shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
+                    shader.uniforms.blending = { value: this._blending };
+                    material.userData.shader = shader;
+                };
+            } else {
+                material = new THREE.MeshStandardMaterial(properties);
+                material.onBeforeCompile = (shader: THREE.Shader) => {
+                    shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
+                    shader.uniforms.blending = { value: this._blending };
+                    material.userData.shader = shader;
+                };
+            }
         }
 
         if (materialSettings && materialSettings.useVertexTangents) {

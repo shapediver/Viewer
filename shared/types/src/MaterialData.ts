@@ -76,7 +76,7 @@ export class MapData {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (10)
+  // #region Public Accessors (11)
 
   /**
    * Getter center
@@ -92,6 +92,14 @@ export class MapData {
    */
   public get color(): string | undefined {
     return this._color;
+  }
+
+  /**
+   * Getter flipY
+   * @return {boolean}
+   */
+  public get flipY(): boolean {
+    return this._flipY;
   }
 
   /**
@@ -158,35 +166,33 @@ export class MapData {
     return this._wrapT;
   }
 
-  /**
-   * Getter flipY
-   * @return {boolean}
-   */
-  public get flipY(): boolean {
-    return this._flipY;
-  }
+  // #endregion Public Accessors (11)
+
+  // #region Public Methods (1)
 
   public clone(): MapData {
     return new MapData(<HTMLImageElement>this.image.cloneNode(), this.wrapS, this.wrapT, this.minFilter, this.magFilter, this.center, this.color, this.offset, this.repeat, this.rotation, this.flipY);
   }
 
-  // #endregion Public Accessors (10)
+  // #endregion Public Methods (1)
 }
 
 export class MaterialData extends AbstractTreeNodeData {
-  // #region Constructors (1)
+  // #region Properties (29)
 
-  private _alphaMap?: MapData;
   private _alphaCutoff: number = 0;
+  private _alphaMap?: MapData;
   private _alphaMode: MATERIAL_ALPHA = MATERIAL_ALPHA.OPAQUE;
   private _aoMap?: MapData;
   private _aoMapIntensity: number = 1.0;
   private _bumpMap?: MapData;
   private _bumpScale: number = 1.0;
   private _color?: string;
+  private _convertedObjects: ISDObject[] = [];
   private _emissiveMap?: MapData;
   private _emissiveness?: string;
-  private _shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH;
+  private _glossiness: number = 1;
+  private _glossinessMap?: MapData;
   private _map?: MapData;
   private _metalness = 1.0;
   private _metalnessMap?: MapData;
@@ -197,9 +203,16 @@ export class MaterialData extends AbstractTreeNodeData {
   private _opacity = 1.0;
   private _roughness = 1.0;
   private _roughnessMap?: MapData;
+  private _shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH;
   private _side: MATERIAL_SIDE = MATERIAL_SIDE.DOUBLE;
+  private _specular: string = '#ffffff';
+  private _specularGlossinessMap?: MapData;
+  private _specularGlossinessWorkflow: boolean = false;
+  private _specularMap?: MapData;
 
-  private _convertedObjects: ISDObject[] = [];
+  // #endregion Properties (29)
+
+  // #region Constructors (1)
 
   /**
    * Creates a material data object.
@@ -231,6 +244,12 @@ export class MaterialData extends AbstractTreeNodeData {
       roughness?: number,
       roughnessMap?: MapData,
       side?: MATERIAL_SIDE,
+      specularGlossinessWorkflow?: boolean,
+      glossiness?: number,
+      specular?: string,
+      specularGlossinessMap?: MapData,
+      specularMap?: MapData,
+      glossinessMap?: MapData,
       convertedObjects?: ISDObject[]
     },
     id?: string
@@ -259,12 +278,18 @@ export class MaterialData extends AbstractTreeNodeData {
     if(properties.roughness) this.roughness = properties.roughness;
     if(properties.roughnessMap) this.roughnessMap = properties.roughnessMap;
     if(properties.side) this.side = properties.side;
+    if(properties.specularGlossinessWorkflow) this.specularGlossinessWorkflow = properties.specularGlossinessWorkflow;
+    if(properties.glossiness) this.glossiness = properties.glossiness;
+    if(properties.specular) this.specular = properties.specular;
+    if(properties.specularGlossinessMap) this.specularGlossinessMap = properties.specularGlossinessMap;
+    if(properties.specularMap) this.specularMap = properties.specularMap;
+    if(properties.glossinessMap) this.glossinessMap = properties.glossinessMap;
     if(properties.convertedObjects) this.convertedObjects = properties.convertedObjects;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (42)
+  // #region Public Accessors (58)
 
   /**
    * Getter alphaCutoff
@@ -440,6 +465,38 @@ export class MaterialData extends AbstractTreeNodeData {
    */
   public set emissiveness(value: string | undefined) {
     this._emissiveness = value;
+  }
+
+  /**
+   * Getter glossiness
+   * @return {number}
+   */
+  public get glossiness(): number {
+    return this._glossiness;
+  }
+
+  /**
+   * Setter glossiness
+   * @param {number} value
+   */
+  public set glossiness(value: number) {
+    this._glossiness = value;
+  }
+
+  /**
+   * Getter glossinessMap
+   * @return {MapData | undefined}
+   */
+  public get glossinessMap(): MapData | undefined {
+    return this._glossinessMap;
+  }
+
+  /**
+   * Setter glossinessMap
+   * @param {MapData | undefined} value
+   */
+  public set glossinessMap(value: MapData | undefined) {
+    this._glossinessMap = value;
   }
 
   /**
@@ -634,7 +691,71 @@ export class MaterialData extends AbstractTreeNodeData {
     this._side = value;
   }
 
-  // #endregion Public Accessors (42)
+  /**
+   * Getter specular
+   * @return {string}
+   */
+  public get specular(): string {
+    return this._specular;
+  }
+
+  /**
+   * Setter specular
+   * @param {string} value
+   */
+  public set specular(value: string) {
+    this._specular = value;
+  }
+
+  /**
+   * Getter specularGlossinessMap
+   * @return {MapData | undefined}
+   */
+  public get specularGlossinessMap(): MapData | undefined {
+    return this._specularGlossinessMap;
+  }
+
+  /**
+   * Setter specularGlossinessMap
+   * @param {MapData | undefined} value
+   */
+  public set specularGlossinessMap(value: MapData | undefined) {
+    this._specularGlossinessMap = value;
+  }
+
+  /**
+   * Getter specularGlossinessWorkflow
+   * @return {boolean}
+   */
+  public get specularGlossinessWorkflow(): boolean {
+    return this._specularGlossinessWorkflow;
+  }
+
+  /**
+   * Setter specularGlossinessWorkflow
+   * @param {boolean} value
+   */
+  public set specularGlossinessWorkflow(value: boolean) {
+    this._specularGlossinessWorkflow = value;
+  }
+
+  /**
+   * Getter specularMap
+   * @return {MapData | undefined}
+   */
+  public get specularMap(): MapData | undefined {
+    return this._specularMap;
+  }
+
+  /**
+   * Setter specularMap
+   * @param {MapData | undefined} value
+   */
+  public set specularMap(value: MapData | undefined) {
+    this._specularMap = value;
+  }
+
+  // #endregion Public Accessors (58)
 
   // #region Public Methods (1)
 
@@ -665,6 +786,12 @@ export class MaterialData extends AbstractTreeNodeData {
       roughness: this.roughness,
       roughnessMap: this.roughnessMap,
       side: this.side,
+      specularGlossinessWorkflow: this.specularGlossinessWorkflow,
+      specular: this.specular,
+      specularMap: this.specularMap,
+      specularGlossinessMap: this.specularGlossinessMap,
+      glossiness: this.glossiness,
+      glossinessMap: this.glossinessMap,
       convertedObjects: this.convertedObjects,
     }, this.id);
   }

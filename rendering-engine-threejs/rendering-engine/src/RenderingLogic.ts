@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import { container } from "tsyringe";
 import { RenderingEngine } from "./RenderingEngine";
 import { SceneTree } from "./SceneTree";
-import { main, entry } from "./shaders/PCSS";
 import { BeautyRenderer } from "./BeautyRenderer";
 import * as TWEEN from "@tweenjs/tween.js";
 import * as Stats from "stats.js";
@@ -38,13 +37,6 @@ export class RenderingLogic {
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
-        let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
-        if (!shader.includes('PCSS implementation')) {
-            shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
-            shader = shader.replace(shader.substr(shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )'), shader.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )') - shader.indexOf('#if defined( SHADOWMAP_TYPE_PCF )')), '#if defined( SHADOWMAP_TYPE_PCF )\n' + entry);
-        }
-        THREE.ShaderChunk.shadowmap_pars_fragment = shader;
-
         this._width = this._renderingEngine.canvas.canvasElement.width;
         this._height = this._renderingEngine.canvas.canvasElement.height;
 
@@ -89,7 +81,7 @@ export class RenderingLogic {
             stats1.showPanel(0); // Panel 0 = fps
             stats1.dom.style.cssText = 'position:absolute;top:0px;left:0px;';
             this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats1.dom);
-            
+
             const stats2 = new Stats.default();
             stats2.showPanel(1); // Panel 1 = ms
             stats2.dom.style.cssText = 'position:absolute;top:0px;left:80px;';
@@ -132,6 +124,10 @@ export class RenderingLogic {
      */
     public get minimalRendering(): boolean {
         return this._minimalRendering;
+    }
+
+    public get renderer(): THREE.WebGLRenderer {
+        return this._renderer;
     }
 
     // #endregion Public Accessors (1)
@@ -196,8 +192,8 @@ export class RenderingLogic {
     }
 
     private blurScene() {
-        if(this._renderingEngine.blurSceneWhenBusy && this._renderingEngine.blur && !this._currentlyBlurred) {
-            if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
+        if (this._renderingEngine.blurSceneWhenBusy && this._renderingEngine.blur && !this._currentlyBlurred) {
+            if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
                 return;
             this._renderer.domElement.style.filter = 'blur(3px)';
             this._currentlyBlurred = true;
@@ -208,11 +204,11 @@ export class RenderingLogic {
     }
 
     private showStatistics() {
-        if(this._renderingEngine.showStatistics) {
-            for(let i = 0; i < this._stats.stats.length; i++)
+        if (this._renderingEngine.showStatistics) {
+            for (let i = 0; i < this._stats.stats.length; i++)
                 this._stats.stats[i].dom.style.display = ''
         } else {
-            for(let i = 0; i < this._stats.stats.length; i++)
+            for (let i = 0; i < this._stats.stats.length; i++)
                 this._stats.stats[i].dom.style.display = 'none'
         }
     }
@@ -267,7 +263,7 @@ export class RenderingLogic {
 
         // beauty rendering is active
         if (this._beautyRenderer.beautyRenderingActive) {
-            if(!(this._renderingEngine.shadows || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice))) {
+            if (!(this._renderingEngine.shadows || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice))) {
                 this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
                 this._beautyRenderer.deactivateBeautyRenderShaders();
                 this._noNeedToRender = true;
