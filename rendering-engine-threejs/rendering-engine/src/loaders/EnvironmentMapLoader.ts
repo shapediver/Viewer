@@ -11,6 +11,7 @@ export class EnvironmentMapLoader {
 
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
+    private readonly _environmentMapNamesHDR = ['anniversary_lounge', 'ballroom', 'combination_room', 'large_corridor', 'lythwood_lounge', 'old_hall', 'studio_small'];
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | THREE.Texture | null
     } = {};
@@ -89,10 +90,11 @@ export class EnvironmentMapLoader {
                 // found in list of available environment maps with file type jpg
                 for (i = 0; i < this._environmentMapFilenames.length; i++)
                     url.push('https://viewer.shapediver.com/v2/envmaps/' + this._renderingEngine.environmentMapResolution + '/' + name_internal + '/' + this._environmentMapFilenames[i] + '.jpg');
-            }
-            else if (name.startsWith('https://') || name.startsWith('http://')) {
+            } else if(this._environmentMapNamesHDR.indexOf(name_internal) >= 0) {
+                await this.loadEnvironmentMap('https://viewer.shapediver.com/v3/envmaps/1k/' + name_internal + '_1k.hdr', []);
+            } else if (name.startsWith('https://') || name.startsWith('http://')) {
                 if (name.endsWith('.hdr')) {
-                    await this.loadEnvironmentMap(name, url);
+                    await this.loadEnvironmentMap(name, []);
                 } else {
                     if (!name.endsWith('/'))
                     name += '/';
