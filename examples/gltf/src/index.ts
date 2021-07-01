@@ -38,16 +38,16 @@ let currentNode: TreeNode;
     if (currentNode) api.sceneTree.removeNode(currentNode);
     currentNode = node;
     api.sceneTree.addNode(currentNode);
-    viewer.updateShow(true);
     api.update();
     await viewer.getCamera()!.zoomTo([], { duration: 0 });
     api.update();
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise(resolve => setTimeout(resolve, 10))
     if (viewer.getCamera()?.position[0].toPrecision(4) === viewer.getCamera()?.target[0].toPrecision(4) &&
         viewer.getCamera()?.position[1].toPrecision(4) === viewer.getCamera()?.target[1].toPrecision(4) &&
         viewer.getCamera()?.position[2].toPrecision(4) === viewer.getCamera()?.target[2].toPrecision(4)) {
             await viewer.getCamera()!.set([0, -0.5, 0], [0, 0, 0], { duration: 0 });
         }
+    viewer.updateShow(true);
 }
 document.addEventListener("dragover", (event) => {
     event.preventDefault();
