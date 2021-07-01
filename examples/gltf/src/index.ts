@@ -16,10 +16,10 @@ let currentNode: TreeNode;
     viewer.updateGridVisibility(false);
     viewer.updateGroundPlaneVisibility(false);
     viewer.assignLightScene(l.id);
-    viewer.addAmbientLight({ color: 0xffffff, intensity: 0.2 })
-    viewer.addDirectionalLight({ color: 0xffffff, intensity: 1, direction: vec3.normalize(vec3.create(), vec3.fromValues(0.5, -0.866, 0)) })
+    viewer.addAmbientLight({ color: 0xffffff, intensity: 0.3 })
+    viewer.addDirectionalLight({ color: 0xffffff, intensity: 0.8 * Math.PI, direction: vec3.normalize(vec3.create(), vec3.fromValues(0.5, -0.866, 0)) })
     viewer.updateClearColor('#000000')
-    viewer.updateEnvironmentMap('default');
+    viewer.updateEnvironmentMap('https://gltf-viewer.donmccurdy.com/assets/environment/venice_sunset_1k.hdr');
 })();
 
 

@@ -92,6 +92,7 @@ export class GLTFLoader {
                 this._baseUri = removeLastDirectoryPartOf(window.location.href);
         }
 
+        console.log(this._content)
         try {
             this.validateVersionAndExtensions();
             return await this.loadScene();
@@ -261,6 +262,33 @@ export class GLTFLoader {
 
         const materialData = new MaterialData();
         if (material.name !== undefined) materialData.name = material.name;
+        
+        if (material.extensions && material.extensions.KHR_materials_pbrSpecularGlossiness) {
+            const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions.KHR_materials_pbrSpecularGlossiness;
+            materialData.specularGlossinessWorkflow = true;
+            materialData.color = '#ffffff';
+            materialData.opacity = 1.0;
+
+            if (pbrSpecularGlossiness.diffuseFactor !== undefined) {
+                materialData.color = this._converter.toColor([pbrSpecularGlossiness.diffuseFactor[0] * 255, pbrSpecularGlossiness.diffuseFactor[1] * 255, pbrSpecularGlossiness.diffuseFactor[2] * 255]);
+                materialData.opacity = pbrSpecularGlossiness.diffuseFactor[3];
+            }
+
+            if (pbrSpecularGlossiness.diffuseTexture !== undefined)
+                materialData.map = await this.loadMap(pbrSpecularGlossiness.diffuseTexture.index);
+
+            materialData.emissiveness = '#000000';
+            materialData.glossiness = pbrSpecularGlossiness.glossinessFactor !== undefined ? pbrSpecularGlossiness.glossinessFactor : 1.0;
+            materialData.specular = '#ffffff';
+
+            if (pbrSpecularGlossiness.specularFactor !== undefined) {
+                materialData.specular = this._converter.toColor([pbrSpecularGlossiness.specularFactor[0] * 255, pbrSpecularGlossiness.specularFactor[1] * 255, pbrSpecularGlossiness.specularFactor[2] * 255]);
+            }
+
+            if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
+                materialData.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index);
+            }
+        }
 
         if (material.pbrMetallicRoughness !== undefined) {
             materialData.color = '#ffffff';
@@ -315,33 +343,6 @@ export class GLTFLoader {
             materialData.side = material.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
         }
 
-        if (material.extensions && material.extensions.KHR_materials_pbrSpecularGlossiness) {
-            const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions.KHR_materials_pbrSpecularGlossiness;
-            materialData.specularGlossinessWorkflow = true;
-            materialData.color = '#ffffff';
-            materialData.opacity = 1.0;
-
-            if (pbrSpecularGlossiness.diffuseFactor !== undefined) {
-                materialData.color = this._converter.toColor([pbrSpecularGlossiness.diffuseFactor[0] * 255, pbrSpecularGlossiness.diffuseFactor[1] * 255, pbrSpecularGlossiness.diffuseFactor[2] * 255]);
-                materialData.opacity = pbrSpecularGlossiness.diffuseFactor[3];
-            }
-
-            if (pbrSpecularGlossiness.diffuseTexture !== undefined)
-                materialData.map = await this.loadMap(pbrSpecularGlossiness.diffuseTexture.index);
-
-            materialData.emissiveness = '#000000';
-            materialData.glossiness = pbrSpecularGlossiness.glossinessFactor !== undefined ? pbrSpecularGlossiness.glossinessFactor : 1.0;
-            materialData.specular = '#ffffff';
-
-            if (pbrSpecularGlossiness.specularFactor !== undefined) {
-                materialData.specular = this._converter.toColor([pbrSpecularGlossiness.specularFactor[0] * 255, pbrSpecularGlossiness.specularFactor[1] * 255, pbrSpecularGlossiness.specularFactor[2] * 255]);
-            }
-
-            if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
-                materialData.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index);
-            }
-
-        }
 
         return materialData
     }
