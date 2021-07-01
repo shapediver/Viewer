@@ -20,6 +20,11 @@ let currentNode: TreeNode;
     viewer.addDirectionalLight({ color: 0xffffff, intensity: 0.8 * Math.PI, direction: vec3.normalize(vec3.create(), vec3.fromValues(0.5, -0.866, 0)) })
     viewer.updateClearColor('#000000')
     viewer.updateEnvironmentMap('https://gltf-viewer.donmccurdy.com/assets/environment/venice_sunset_1k.hdr');
+    viewer.updateRenderingSettings({
+        physicallyCorrectLights: true,
+        textureEncoding: 3001,
+        outputEncoding: 3001
+    });
 })();
 
 

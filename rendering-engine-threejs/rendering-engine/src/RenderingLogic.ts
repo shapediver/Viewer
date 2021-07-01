@@ -54,6 +54,8 @@ export class RenderingLogic {
             this._renderer = new THREE.WebGLRenderer(Object.assign({ context }, properties));
             this._renderer.setPixelRatio(window.devicePixelRatio);
 
+            this._renderer.physicallyCorrectLights = false;
+            this._renderer.outputEncoding = THREE.LinearEncoding;
             this._renderer.shadowMap.enabled = true;
             this._renderer.shadowMap.needsUpdate = true;
             this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;

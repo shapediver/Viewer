@@ -15,6 +15,7 @@ export class MaterialLoader {
     private _lightSizeUV: number = 0.025;
 
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
+    private _textureEncoding: THREE.TextureEncoding = THREE.LinearEncoding;
 
     // #endregion Properties (5)
 
@@ -39,6 +40,19 @@ export class MaterialLoader {
             if(this._materialLibrary[i] instanceof THREE.MeshStandardMaterial || this._materialLibrary[i] instanceof THREE.MeshBasicMaterial) {
                 (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).envMap = e;
                 (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).needsUpdate = true;
+            }
+        }
+    }
+    
+    public assignTextureEncoding(e: THREE.TextureEncoding) {
+        this._textureEncoding = e;
+        for(let i = 0; i < this._materialLibrary.length; i++) {
+            if(this._materialLibrary[i] instanceof THREE.MeshStandardMaterial) {
+                if((<THREE.MeshStandardMaterial>this._materialLibrary[i]).emissiveMap)
+                    (<THREE.MeshStandardMaterial>this._materialLibrary[i]).emissiveMap!.encoding = e;
+                if((<THREE.MeshStandardMaterial>this._materialLibrary[i]).map)
+                    (<THREE.MeshStandardMaterial>this._materialLibrary[i]).map!.encoding = e;
+                (<THREE.MeshStandardMaterial>this._materialLibrary[i]).needsUpdate = true;
             }
         }
     }
@@ -167,8 +181,10 @@ export class MaterialLoader {
             if(materialProperties.emissiveness)
                 properties.emissive = new THREE.Color(materialProperties.emissiveness);
 
-            if (materialProperties.emissiveMap !== undefined)
+            if (materialProperties.emissiveMap !== undefined) {
                 properties.emissiveMap = this.createTexture(materialProperties.emissiveMap);
+                properties.emissiveMap.encoding = this._textureEncoding;
+            }
 
             // emissiveIntensity
 
@@ -180,8 +196,10 @@ export class MaterialLoader {
 
             // lightMapIntensity
 
-            if (materialProperties.map !== undefined)
+            if (materialProperties.map !== undefined) {
                 properties.map = this.createTexture(materialProperties.map);
+                properties.map.encoding = this._textureEncoding;
+            }
 
             properties.metalness = materialProperties.metalness;
 

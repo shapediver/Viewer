@@ -51,6 +51,11 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly initialized: boolean = false;
   readonly lightScene!: string;
   readonly pointSize!: number;
+  readonly renderingSettings!: {
+    physicallyCorrectLights: boolean,
+    textureEncoding: number,
+    outputEncoding: number
+  };
   readonly shadows!: boolean;
   readonly show!: boolean;
   readonly showStatistics!: boolean;
@@ -72,6 +77,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     (<any>this.id) = this.#renderingEngine.id;
     (<any>this.lightScene) = this.#renderingEngine.lightScene;
     (<any>this.pointSize) = this.#renderingEngine.pointSize;
+    (<any>this.renderingSettings) = this.#renderingEngine.renderingSettings;
     (<any>this.shadows) = this.#renderingEngine.shadows;
     (<any>this.show) = this.#renderingEngine.show;
     (<any>this.showStatistics) = this.#renderingEngine.showStatistics;
@@ -365,6 +371,26 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updatePointSize: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Rendering Settings
+   * @param {any} value
+   */
+  public updateRenderingSettings(value: {
+    physicallyCorrectLights: boolean,
+    textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
+    outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
+  }) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateRenderingSettings: Rendering settings were set to ${JSON.stringify(value)}.`);
+      this.isInitialized();
+      this.#renderingEngine.renderingSettings = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateRenderingSettings: rendering settings were set to: ${JSON.stringify(value)}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateRenderingSettings: Something unexpected happened.`, true)
     }
   }
 

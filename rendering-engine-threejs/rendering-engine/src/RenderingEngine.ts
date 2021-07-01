@@ -68,6 +68,15 @@ export class RenderingEngine implements IRenderingEngine {
     private _lightScene: string = 'default';
     private _logoDivElement: HTMLDivElement;
     private _pointSize: number = 1.0;
+    private _renderingSettings: {
+        physicallyCorrectLights: boolean,
+        textureEncoding: number,
+        outputEncoding: number
+    } = {
+        physicallyCorrectLights: false,
+        textureEncoding: THREE.LinearEncoding,
+        outputEncoding: THREE.LinearEncoding
+    };
     private _sceneTree!: SceneTree;
     private _shadows: boolean = true;
     private _show: boolean = false;    
@@ -514,6 +523,29 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set pointSize(value: number) {
         this._pointSize = value;
+        this._updateCBs.forEach(v => v());
+    }
+
+    /**
+     * Getter renderingSettings
+     * @return {any}
+     */
+    public get renderingSettings(): any {
+        return this._renderingSettings;
+    }
+
+    /**
+     * Setter renderingSettings
+     * @param {any} value
+     */
+    public set renderingSettings(value: any) {
+        this._renderingSettings = value;
+        if(value.physicallyCorrectLights !== undefined)
+            this._renderingLogic.renderer.physicallyCorrectLights = value.physicallyCorrectLights;
+        if(value.outputEncoding !== undefined)
+            this._renderingLogic.renderer.outputEncoding = value.outputEncoding;
+        if(value.textureEncoding !== undefined)
+            this._materialLoader.assignTextureEncoding(value.textureEncoding);
         this._updateCBs.forEach(v => v());
     }
 
