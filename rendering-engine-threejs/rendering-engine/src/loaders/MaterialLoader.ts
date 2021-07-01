@@ -224,8 +224,10 @@ export class MaterialLoader {
             if(materialProperties.side !== undefined)
                 properties.side = materialProperties.side === MATERIAL_SIDE.BACK ? THREE.BackSide : materialProperties.side === MATERIAL_SIDE.FRONT ? THREE.FrontSide : THREE.DoubleSide;
         
+            if(materialProperties.specularGlossinessWorkflow !== undefined)
+                properties.specularGlossinessWorkflow = materialProperties.specularGlossinessWorkflow;
         
-            if (materialProperties.specularGlossinessWorkflow === true) {
+            if (properties.specularGlossinessWorkflow === true) {
                 properties.specular = materialProperties.specular;
                 properties.glossiness = materialProperties.glossiness;
     
@@ -252,8 +254,7 @@ export class MaterialLoader {
         } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
             material = new THREE.LineBasicMaterial(properties);
         } else {
-            
-            if(materialProperties.specularGlossinessWorkflow === true) {
+            if(properties.specularGlossinessWorkflow === true) {
                 material = new SpecularGlossinessMaterial(properties);
                 
                 const before = material.onBeforeCompile;
