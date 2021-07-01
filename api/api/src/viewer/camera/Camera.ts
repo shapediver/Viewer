@@ -18,6 +18,7 @@ export abstract class Camera implements ICamera {
     readonly defaultTarget!: vec3;
     readonly enableCameraControls!: boolean;
     readonly id!: string;
+    readonly order!: number;
     readonly position!: vec3;
     readonly revertAtMouseUp!: boolean;
     readonly revertAtMouseUpDuration!: number;
@@ -32,6 +33,7 @@ export abstract class Camera implements ICamera {
         (<any>this.defaultTarget) = this.#camera.defaultTarget;
         (<any>this.enableCameraControls) = this.#camera.enableCameraControls;
         (<any>this.id) = this.#camera.id;
+        (<any>this.order) = this.#camera.order;
         (<any>this.position) = this.#camera.position;
         (<any>this.revertAtMouseUp) = this.#camera.revertAtMouseUp;
         (<any>this.revertAtMouseUpDuration) = this.#camera.revertAtMouseUpDuration;
@@ -125,6 +127,21 @@ export abstract class Camera implements ICamera {
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateEnableCameraControls: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * The order of the camera
+     */
+    public updateOrder(value: number | undefined) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateOrder: Updating Order to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateOrder`, value, 'number', false);
+            this.#camera.order = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateOrder: order was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateOrder: Something unexpected happened.`, true)
         }
     }
 

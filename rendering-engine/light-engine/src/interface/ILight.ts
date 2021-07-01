@@ -17,6 +17,7 @@ export interface ILight {
   color: string | number | vec3,
   intensity: number,
   name?: string
+  order?: number
   type: LIGHTTYPE,
 
   // #endregion Properties (5)

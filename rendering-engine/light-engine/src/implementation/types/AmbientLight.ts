@@ -9,13 +9,15 @@ export class AmbientLight extends AbstractLight {
     constructor(properties: {
         color?: string,
         intensity?: number,
-        name?: string
+        name?: string,
+        order?: number
     }) {
         super({
             color: properties.color || '#ffffff', 
             intensity: properties.intensity || 0.5, 
             type: LIGHTTYPE.AMBIENT,
             name: properties.name,
+            order: properties.order,
         });
     }
 
@@ -27,7 +29,8 @@ export class AmbientLight extends AbstractLight {
         return new AmbientLight({
             color: this.color || '#ffffff', 
             intensity: this.intensity || 0.5, 
-            name: this.name
+            name: this.name,
+            order: this.order
         });
     }
 

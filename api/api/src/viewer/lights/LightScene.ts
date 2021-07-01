@@ -1,7 +1,7 @@
 import { Light } from "./Light";
 import { ILight, ILightScene, ILightScene as LightSceneLogic, LightScene as LightSceneLogicImplementation } from "@shapediver/viewer.rendering-engine.light-engine";
 import { vec3 } from "gl-matrix";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
+import { InputValidator, SDError } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
@@ -18,6 +18,7 @@ export class LightScene implements ILightScene {
 
     readonly #lightSceneLogic: LightSceneLogic;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #updateCB = () => {
         (<any>this.id) = this.#lightSceneLogic.id;
         (<any>this.name) = this.#lightSceneLogic.name;
@@ -71,6 +72,21 @@ export class LightScene implements ILightScene {
         (<LightSceneLogicImplementation>this.#lightSceneLogic).addUpdateCB(this.#updateCB);
         this.#updateCB();
         this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).constructor: LightScene api created.`);
+    }
+
+    /**
+     * The name of the light scene
+     */
+    public updateName(value: string | undefined) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).updateName: Updating Name to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).updateName`, value, 'string', false);
+            this.#lightSceneLogic.name = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).updateName: name was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `LightScene(${this.id}).updateName: Something unexpected happened.`, true)
+        }
     }
 
     // #endregion Constructors (1)

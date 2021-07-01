@@ -15,6 +15,7 @@ export interface ICamera {
     defaultTarget: vec3;
     enableCameraControls: boolean;
     position: vec3;
+    order?: number;
     revertAtMouseUp: boolean;
     revertAtMouseUpDuration: number;
     target: vec3;

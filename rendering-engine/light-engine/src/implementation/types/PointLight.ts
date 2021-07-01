@@ -21,12 +21,14 @@ export class PointLight extends AbstractLight {
     distance?: number,
     decay?: number,
     name?: string,
+    order?: number
   }) {
     super({
       color: properties.color || '#ffffff',
       intensity: properties.intensity || 0.5,
       type: LIGHTTYPE.POINT,
       name: properties.name,
+      order: properties.order,
     });
     if (properties.position) this._position = properties.position;
     if (properties.distance) this._distance = properties.distance;
@@ -103,6 +105,7 @@ export class PointLight extends AbstractLight {
       decay: this.decay,
       intensity: this.intensity,
       name: this.name,
+      order: this.order
     });
   }
 

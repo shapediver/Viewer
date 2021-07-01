@@ -145,6 +145,7 @@ export class LightEngine implements ILightEngine {
                     [key: string]: {
                         id: string, 
                         type: LIGHTTYPE,
+                        order?: number,
                         properties: any
                     }
                 }
@@ -165,6 +166,9 @@ export class LightEngine implements ILightEngine {
                     type: light.type,
                     properties: {}
                 }
+                if(light.order !== undefined)
+                    converted[lightSceneName].lights[lightReference].order = light.order;
+                
                 switch (light.type) {
                     case LIGHTTYPE.DIRECTIONAL:
                         converted[lightSceneName].lights[lightReference].properties = {
@@ -231,7 +235,8 @@ export class LightEngine implements ILightEngine {
                             intensity: light.properties.intensity, 
                             direction: this._converter.toVec3(light.properties.direction), 
                             castShadow: light.properties.castShadow, 
-                            name: lightId
+                            name: lightId,
+                            order: light.order
                         });
                         break;
                     case LIGHTTYPE.HEMISPHERE:
@@ -239,7 +244,8 @@ export class LightEngine implements ILightEngine {
                             color: this._converter.toColor(light.properties.skyColor), 
                             intensity: light.properties.intensity, 
                             groundColor: this._converter.toColor(light.properties.groundColor), 
-                            name: lightId
+                            name: lightId,
+                            order: light.order
                         });
                         break;
                     case LIGHTTYPE.POINT:
@@ -249,7 +255,8 @@ export class LightEngine implements ILightEngine {
                             position: this._converter.toVec3(light.properties.position), 
                             distance: light.properties.distance, 
                             decay: light.properties.decay, 
-                            name: lightId
+                            name: lightId,
+                            order: light.order
                         });
                         break;
                     case LIGHTTYPE.SPOT:
@@ -262,7 +269,8 @@ export class LightEngine implements ILightEngine {
                             decay: light.properties.decay, 
                             angle: light.properties.angle, 
                             penumbra: light.properties.penumbra, 
-                            name: lightId
+                            name: lightId,
+                            order: light.order
                         });
                         break;
                     case LIGHTTYPE.AMBIENT:
@@ -270,7 +278,8 @@ export class LightEngine implements ILightEngine {
                         l = new AmbientLight({
                             color: this._converter.toColor(light.properties.color), 
                             intensity: light.properties.intensity, 
-                            name: lightId
+                            name: lightId,
+                            order: light.order
                         });
                 }
                 ls.addLight(l);

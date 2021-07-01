@@ -17,6 +17,7 @@ export abstract class AbstractCamera implements ICamera {
     private _enableCameraControls: boolean = true;
     private _far: number = 1000;
     private _near: number = 1;
+    private _order?: number;
     private _revertAtMouseUp: boolean = false;
     private _revertAtMouseUpDuration: number = 800;
     private _zoomExtentsFactor: number = 1;
@@ -181,6 +182,23 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set near(value: number) {
         this._near = value;
+        this._updateCBs.forEach(v => v());
+    }
+
+    /**
+     * Getter order
+     * @return {number | undefined}
+     */
+    public get order(): number | undefined {
+        return this._order;
+    }
+
+    /**
+     * Setter order
+     * @param {number | undefined} value
+     */
+    public set order(value: number | undefined) {
+        this._order = value;
         this._updateCBs.forEach(v => v());
     }
 

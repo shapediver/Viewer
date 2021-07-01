@@ -17,6 +17,7 @@ export abstract class Light implements ILight {
         (<any>this.id) = this.#light.id;
         (<any>this.intensity) = this.#light.intensity;
         (<any>this.name) = this.#light.name;
+        (<any>this.order) = this.#light.order;
         (<any>this.type) = this.#light.type;
     }
 
@@ -24,6 +25,7 @@ export abstract class Light implements ILight {
     readonly id!: string;
     readonly intensity!: number;
     readonly name!: string | undefined;
+    readonly order!: number | undefined;
     readonly type!: LIGHTTYPE;
 
     // #endregion Properties (10)
@@ -87,6 +89,21 @@ export abstract class Light implements ILight {
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateName: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * The order of the light
+     */
+    public updateOrder(value: number | undefined) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateOrder: Updating Order to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateOrder`, value, 'number', false);
+            this.#light.order = value;
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateOrder: order was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateOrder: Something unexpected happened.`, true)
         }
     }
 

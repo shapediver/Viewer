@@ -14,6 +14,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     private _convertedObjects: ISDObject[] = [];
     private _intensity: number;
     private _name?: string;
+    private _order?: number;
 
     protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     protected _updateCBs: (() => void)[] = [];
@@ -27,12 +28,14 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
         intensity: number,
         type: LIGHTTYPE,
         name?: string,
+        order?: number,
     }) {
         super();
         this._color = properties.color;
         this._intensity = properties.intensity;
         this._type = properties.type;
         this._name = properties.name;
+        this._order = properties.order;
     }
 
     // #endregion Constructors (1)
@@ -82,6 +85,16 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     public set name(value: string | undefined) {
         this._name = value;
+        this.updateVersion();
+        this._updateCBs.forEach(v => v());
+    }
+
+    public get order(): number | undefined {
+        return this._order;
+    }
+
+    public set order(value: number | undefined) {
+        this._order = value;
         this.updateVersion();
         this._updateCBs.forEach(v => v());
     }
