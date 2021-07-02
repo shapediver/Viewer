@@ -193,7 +193,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                             // 1. convertible to number
                             // 2. between 0 and choices.length -1
                             const temp = +v;
-                            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, value, 'number');
+                            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, temp, 'number');
                             if (temp < 0 || temp > this.choices!.length - 1)
                                 this.#logger.error(LOGGINGTOPIC.PARAMETER, new SDError(`Parameter(${this.id}).isValid: The value ${v} is not within the range of the defined number choices.`), '', true);
                         }
@@ -208,9 +208,19 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                                     choicesChecker(values[i]);
                                 }
                             } else {
+                                // to number
+                                let temp: number = value;
+                                if (typeof value === 'string')
+                                    temp = +value;
+                                this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, temp, 'number');
                                 choicesChecker(value);
                             }
                         } else {
+                            // to number
+                            let temp: number = value;
+                            if (typeof value === 'string')
+                                temp = +value;
+                            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, temp, 'number');
                             choicesChecker(value);
                         }
                         break;

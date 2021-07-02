@@ -186,7 +186,7 @@ export class Api {
       // check if the given id is valid
       const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.sessions[sessionId])
-        this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`));
+        throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`));
 
       const session = this.createSession(properties);
       await session.init();
@@ -226,7 +226,7 @@ export class Api {
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.viewers[viewerId])
-        this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`));
+        throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`));
 
       // create the actual viewer
       let viewerCallbacks = {};
@@ -279,7 +279,7 @@ export class Api {
       // check if the given id is valid
       const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.sessions[sessionId])
-        this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.createSession: Session with this id (${sessionId}) already exists.`));
+        throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.createSession: Session with this id (${sessionId}) already exists.`));
 
       // create the actual session 
       let sessionCallbacks = {};
@@ -326,7 +326,7 @@ export class Api {
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.viewers[viewerId])
-        this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`));
+        throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`));
 
       // create the actual viewer
       let viewerCallbacks = {};

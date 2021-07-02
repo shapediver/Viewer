@@ -34,7 +34,7 @@ export class InputValidator {
                 if(this._typeChecker.isTypeOf(value, 'function')) return true;
                 break;
             case 'number':
-                if(this._typeChecker.isTypeOf(value, 'number')) return true;
+                if(this._typeChecker.isTypeOf(value, 'number') && !isNaN(value)) return true;
                 break;
             case 'factor':
                 if(this._typeChecker.isTypeOf(value, 'number') && value >= 0 && value <= 1) return true;
