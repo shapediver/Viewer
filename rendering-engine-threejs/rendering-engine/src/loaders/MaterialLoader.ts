@@ -29,34 +29,34 @@ export class MaterialLoader {
         }
         THREE.ShaderChunk.shadowmap_pars_fragment = shader;
 
-        THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
-            `vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`,
-            `vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.zy ) );`
-        )
+        // THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
+        //     `vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`,
+        //     `vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.zy ) );`
+        // )
         THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
             `vec4 envColor = textureCubeUV( envMap, reflectVec, 0.0 );`,
             `vec4 envColor = textureCubeUV( envMap, reflectVec.xzy, 0.0 );`
         )
-        THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
-            `vec4 envMapColor = textureCubeLodEXT( envMap, queryVec, float( maxMIPLevel ) );`,
-            `vec4 envMapColor = textureCubeLodEXT( envMap, queryVec.xzy, float( maxMIPLevel ) );`
-        )
-        THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
-            `vec4 envMapColor = textureCube( envMap, queryVec, float( maxMIPLevel ) );`,
-            `vec4 envMapColor = textureCube( envMap, queryVec.xzy, float( maxMIPLevel ) );`
-        )
+        // THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        //     `vec4 envMapColor = textureCubeLodEXT( envMap, queryVec, float( maxMIPLevel ) );`,
+        //     `vec4 envMapColor = textureCubeLodEXT( envMap, queryVec.xzy, float( maxMIPLevel ) );`
+        // )
+        // THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        //     `vec4 envMapColor = textureCube( envMap, queryVec, float( maxMIPLevel ) );`,
+        //     `vec4 envMapColor = textureCube( envMap, queryVec.xzy, float( maxMIPLevel ) );`
+        // )
         THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
             `vec4 envMapColor = textureCubeUV( envMap, worldNormal, 1.0 );`,
             `vec4 envMapColor = textureCubeUV( envMap, worldNormal.xzy, 1.0 );`
         )
-        THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
-            `vec4 envMapColor = textureCubeLodEXT( envMap, queryReflectVec, specularMIPLevel );`,
-            `vec4 envMapColor = textureCubeLodEXT( envMap, queryReflectVec.xzy, specularMIPLevel );`
-        )
-        THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
-            `vec4 envMapColor = textureCube( envMap, queryReflectVec, specularMIPLevel );`,
-            `vec4 envMapColor = textureCube( envMap, queryReflectVec.xzy, specularMIPLevel );`
-        )
+        // THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        //     `vec4 envMapColor = textureCubeLodEXT( envMap, queryReflectVec, specularMIPLevel );`,
+        //     `vec4 envMapColor = textureCubeLodEXT( envMap, queryReflectVec.xzy, specularMIPLevel );`
+        // )
+        // THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        //     `vec4 envMapColor = textureCube( envMap, queryReflectVec, specularMIPLevel );`,
+        //     `vec4 envMapColor = textureCube( envMap, queryReflectVec.xzy, specularMIPLevel );`
+        // )
         THREE.ShaderChunk.envmap_physical_pars_fragment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
             `vec4 envMapColor = textureCubeUV( envMap, reflectVec, roughness );`,
             `vec4 envMapColor = textureCubeUV( envMap, reflectVec.xzy, roughness );`
