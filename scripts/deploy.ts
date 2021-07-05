@@ -160,7 +160,7 @@ const execPromise = (cmd: string) => {
             }, (err) => { if (err) console.log(err) });
         });
 
-        const directoryPathNormal = 'examples/simple/dist-prod/';
+        const directoryPathNormal = 'examples/test/dist-prod/';
         const fileContentsNormal = <string[]>recursiveReadSync(directoryPathNormal);
         fileContentsNormal.map(function (f, cb) {
             s3.putObject({
