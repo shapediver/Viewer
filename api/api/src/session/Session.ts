@@ -130,6 +130,7 @@ export class Session {
                         this.#settingsEngine.reset();
                         this.#stateEngine.primarySettingsRegistered.reset();
                     }
+                    this.#stateEngine.getCustomState(this.id + '_settings_registered').reset();
 
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, {});
 
