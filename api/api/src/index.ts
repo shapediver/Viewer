@@ -42,11 +42,9 @@ export {
     Tree, TreeNode, ITransformation, ITreeNodeData, AbstractTreeNodeData, ThreejsData, CustomData, GeometryData, MaterialData, SessionData, SessionOutputData
 }
 
-
 export {
     PerspectiveCamera, PerspectiveCameraControls, OrthographicCamera, OrthographicCameraControls
 }
-
 
 export {
     AmbientLight, DirectionalLight, HemisphereLight, PointLight, SpotLight, LightScene, Light

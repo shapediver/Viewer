@@ -817,12 +817,15 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLight`, id, 'string');
 
-      const lightSceneId = this.#renderingEngine.lightEngine.getLightScene().id;
-      if (!this.#lightScenes[lightSceneId]) {
-        const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(lightSceneId);
-        this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic);
+      const lightSceneIds = this.#renderingEngine.lightEngine.getLightScenes();
+      for(let lightSceneId in lightSceneIds) {
+        if (!this.#lightScenes[lightSceneId]) {
+          const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(lightSceneId);
+          this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic);
+        }
+        return this.#lightScenes[lightSceneId].lights[id];
       }
-      return this.#lightScenes[lightSceneId].lights[id];
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(`Viewer(${this.id}).getLight: Light with the id ${id} was not found.`));
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLight: Something unexpected happened.`, true)
