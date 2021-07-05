@@ -26,6 +26,7 @@ import { LightScene } from "./viewer/lights/LightScene";
 import { Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "./session/Parameter";
 import { FileParameter } from "./session/FileParameter";
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from "@shapediver/api.geometry-api-dto-v1";
+import { Light } from "./viewer/lights/Light";
 
 export const api: Api = <Api>container.resolve(Api);
 
@@ -48,5 +49,5 @@ export {
 
 
 export {
-    AmbientLight, DirectionalLight, HemisphereLight, PointLight, SpotLight, LightScene
+    AmbientLight, DirectionalLight, HemisphereLight, PointLight, SpotLight, LightScene, Light
 }
