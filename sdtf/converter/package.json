@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.sdtf.converter",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -36,11 +36,11 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.sdtf.parser": "^0.3.16",
-    "@shapediver/viewer.sdtf.shared": "^0.3.16",
-    "@shapediver/viewer.shared.node-tree": "^0.3.16",
-    "@shapediver/viewer.shared.services": "^0.3.16",
-    "@shapediver/viewer.shared.utils": "^0.3.16",
+    "@shapediver/viewer.sdtf.parser": "^0.3.17",
+    "@shapediver/viewer.sdtf.shared": "^0.3.17",
+    "@shapediver/viewer.shared.node-tree": "^0.3.17",
+    "@shapediver/viewer.shared.services": "^0.3.17",
+    "@shapediver/viewer.shared.utils": "^0.3.17",
     "gl-matrix": "^3.3.0",
     "tsyringe": "^4.5.0"
   }
