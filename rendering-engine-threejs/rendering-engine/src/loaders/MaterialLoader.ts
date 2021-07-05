@@ -70,7 +70,8 @@ export class MaterialLoader {
     public assignEnvironmentMap(e: THREE.CubeTexture | THREE.Texture | null) {
         this._envMap = e;
         for(let i = 0; i < this._materialLibrary.length; i++) {
-            if(this._materialLibrary[i] instanceof THREE.MeshStandardMaterial || this._materialLibrary[i] instanceof THREE.MeshBasicMaterial) {
+            if((this._materialLibrary[i] instanceof THREE.MeshStandardMaterial || this._materialLibrary[i] instanceof THREE.MeshBasicMaterial)
+                && !(<any>this._materialLibrary[i]).KHR_materials_unlit) {
                 (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).envMap = e;
                 (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).needsUpdate = true;
             }
@@ -275,10 +276,10 @@ export class MaterialLoader {
             if(materialProperties.side !== undefined)
                 properties.side = materialProperties.side === MATERIAL_SIDE.BACK ? THREE.BackSide : materialProperties.side === MATERIAL_SIDE.FRONT ? THREE.FrontSide : THREE.DoubleSide;
         
-            if(materialProperties.specularGlossinessWorkflow !== undefined)
-                properties.specularGlossinessWorkflow = materialProperties.specularGlossinessWorkflow;
+            if(materialProperties.KHR_materials_pbrSpecularGlossiness !== undefined)
+                properties.KHR_materials_pbrSpecularGlossiness = materialProperties.KHR_materials_pbrSpecularGlossiness;
         
-            if (properties.specularGlossinessWorkflow === true) {
+            if (properties.KHR_materials_pbrSpecularGlossiness === true) {
                 properties.specular = materialProperties.specular;
                 properties.glossiness = materialProperties.glossiness;
     
@@ -293,6 +294,9 @@ export class MaterialLoader {
                 }
             }
 
+            if(materialProperties.KHR_materials_unlit !== undefined)
+                properties.KHR_materials_unlit = materialProperties.KHR_materials_unlit;
+
                 
         } else {
             properties.color = new THREE.Color(this._defaultColor);
@@ -305,9 +309,9 @@ export class MaterialLoader {
         } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
             material = new THREE.LineBasicMaterial(properties);
         } else {
-            if(properties.specularGlossinessWorkflow === true) {
+            if(properties.KHR_materials_pbrSpecularGlossiness === true) {
                 material = new SpecularGlossinessMaterial(properties);
-                
+                (<any>material).KHR_materials_pbrSpecularGlossiness = true;
                 const before = material.onBeforeCompile;
                 material.onBeforeCompile = (shader: THREE.Shader, renderer: THREE.WebGLRenderer) => {
                     before(shader, renderer);
@@ -315,6 +319,10 @@ export class MaterialLoader {
                     shader.uniforms.blending = { value: this._blending };
                     material.userData.shader = shader;
                 };
+            } else if(properties.KHR_materials_unlit === true) {
+                if(properties.envMap) delete properties.envMap;
+                material = new THREE.MeshBasicMaterial(properties);
+                (<any>material).KHR_materials_unlit = true;
             } else {
                 material = new THREE.MeshStandardMaterial(properties);
                 material.onBeforeCompile = (shader: THREE.Shader) => {

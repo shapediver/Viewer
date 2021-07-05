@@ -7,6 +7,11 @@ import { mat4, vec2, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
 
+export enum GLTF_EXTENSIONS {
+    KHR_BINARY_GLTF = 'KHR_binary_glTF',
+    KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
+    KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
+}
 export class GLTFLoader {
     // #region Properties (6)
 
@@ -17,7 +22,6 @@ export class GLTFLoader {
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
-    private readonly _implementedExtensions = ['KHR_materials_pbrSpecularGlossiness'];
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     private _baseUri!: string;
@@ -92,15 +96,14 @@ export class GLTFLoader {
                 this._baseUri = removeLastDirectoryPartOf(window.location.href);
         }
 
-        console.log(this._content)
         try {
             this.validateVersionAndExtensions();
             return await this.loadScene();
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed.`, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, false)
             }
             return new TreeNode();
         }
@@ -265,7 +268,7 @@ export class GLTFLoader {
         
         if (material.extensions && material.extensions.KHR_materials_pbrSpecularGlossiness) {
             const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions.KHR_materials_pbrSpecularGlossiness;
-            materialData.specularGlossinessWorkflow = true;
+            materialData.KHR_materials_pbrSpecularGlossiness = true;
             materialData.color = '#ffffff';
             materialData.opacity = 1.0;
 
@@ -288,25 +291,39 @@ export class GLTFLoader {
             if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
                 materialData.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index);
             }
-        }
-
-        if (material.pbrMetallicRoughness !== undefined) {
+        } else if (material.extensions && material.extensions.KHR_materials_unlit) {
+            materialData.KHR_materials_unlit = true;
             materialData.color = '#ffffff';
-            if (material.pbrMetallicRoughness.baseColorFactor !== undefined) {
-                materialData.color = this._converter.toColor([material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255]);
-                materialData.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
+            materialData.opacity = 1.0;
+
+            if (material.pbrMetallicRoughness !== undefined) {
+                if (material.pbrMetallicRoughness.baseColorFactor !== undefined) {
+                    materialData.color = this._converter.toColor([material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255]);
+                    materialData.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
+                }
+                if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
+                    materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index);
+                }
             }
-            if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
-                materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index);
-            }
-            if (material.pbrMetallicRoughness.metallicFactor !== undefined) {
-                materialData.metalness = material.pbrMetallicRoughness.metallicFactor;
-            }
-            if (material.pbrMetallicRoughness.roughnessFactor !== undefined) {
-                materialData.roughness = material.pbrMetallicRoughness.roughnessFactor;
-            }
-            if (material.pbrMetallicRoughness.metallicRoughnessTexture !== undefined) {
-                materialData.metalnessRoughnessMap = await this.loadMap(material.pbrMetallicRoughness.metallicRoughnessTexture.index);
+        } else {
+            if (material.pbrMetallicRoughness !== undefined) {
+                materialData.color = '#ffffff';
+                if (material.pbrMetallicRoughness.baseColorFactor !== undefined) {
+                    materialData.color = this._converter.toColor([material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255]);
+                    materialData.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
+                }
+                if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
+                    materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index);
+                }
+                if (material.pbrMetallicRoughness.metallicFactor !== undefined) {
+                    materialData.metalness = material.pbrMetallicRoughness.metallicFactor;
+                }
+                if (material.pbrMetallicRoughness.roughnessFactor !== undefined) {
+                    materialData.roughness = material.pbrMetallicRoughness.roughnessFactor;
+                }
+                if (material.pbrMetallicRoughness.metallicRoughnessTexture !== undefined) {
+                    materialData.metalnessRoughnessMap = await this.loadMap(material.pbrMetallicRoughness.metallicRoughnessTexture.index);
+                }
             }
         }
 
@@ -434,7 +451,7 @@ export class GLTFLoader {
         if (this._content.extensionsUsed) {
             const notSupported = [];
             for (let i = 0; i < this._content.extensionsUsed.length; i++) {
-                if (!this._implementedExtensions.includes(this._content.extensionsUsed[i]))
+                if (!(<string[]>Object.values(GLTF_EXTENSIONS)).includes(this._content.extensionsUsed[i]))
                     notSupported.push(this._content.extensionsUsed[i]);
             }
             if (notSupported.length > 0) {
@@ -450,7 +467,7 @@ export class GLTFLoader {
         if (this._content.extensionsRequired) {
             const notSupported = [];
             for (let i = 0; i < this._content.extensionsRequired.length; i++) {
-                if (!this._implementedExtensions.includes(this._content.extensionsRequired[i]))
+                if (!(<string[]>Object.values(GLTF_EXTENSIONS)).includes(this._content.extensionsRequired[i]))
                     notSupported.push(this._content.extensionsRequired[i]);
             }
             if (notSupported.length > 0) {

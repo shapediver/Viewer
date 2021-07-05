@@ -207,7 +207,8 @@ export class MaterialData extends AbstractTreeNodeData {
   private _side: MATERIAL_SIDE = MATERIAL_SIDE.DOUBLE;
   private _specular: string = '#ffffff';
   private _specularGlossinessMap?: MapData;
-  private _specularGlossinessWorkflow: boolean = false;
+  private _KHR_materials_pbrSpecularGlossiness: boolean = false;
+  private _KHR_materials_unlit: boolean = false;
   private _specularMap?: MapData;
 
   // #endregion Properties (29)
@@ -244,7 +245,8 @@ export class MaterialData extends AbstractTreeNodeData {
       roughness?: number,
       roughnessMap?: MapData,
       side?: MATERIAL_SIDE,
-      specularGlossinessWorkflow?: boolean,
+      KHR_materials_pbrSpecularGlossiness?: boolean,
+      KHR_materials_unlit?: boolean,
       glossiness?: number,
       specular?: string,
       specularGlossinessMap?: MapData,
@@ -278,7 +280,8 @@ export class MaterialData extends AbstractTreeNodeData {
     if(properties.roughness) this.roughness = properties.roughness;
     if(properties.roughnessMap) this.roughnessMap = properties.roughnessMap;
     if(properties.side) this.side = properties.side;
-    if(properties.specularGlossinessWorkflow) this.specularGlossinessWorkflow = properties.specularGlossinessWorkflow;
+    if(properties.KHR_materials_pbrSpecularGlossiness) this.KHR_materials_pbrSpecularGlossiness = properties.KHR_materials_pbrSpecularGlossiness;
+    if(properties.KHR_materials_unlit) this.KHR_materials_unlit = properties.KHR_materials_unlit;
     if(properties.glossiness) this.glossiness = properties.glossiness;
     if(properties.specular) this.specular = properties.specular;
     if(properties.specularGlossinessMap) this.specularGlossinessMap = properties.specularGlossinessMap;
@@ -724,19 +727,35 @@ export class MaterialData extends AbstractTreeNodeData {
   }
 
   /**
-   * Getter specularGlossinessWorkflow
+   * Getter KHR_materials_pbrSpecularGlossiness
    * @return {boolean}
    */
-  public get specularGlossinessWorkflow(): boolean {
-    return this._specularGlossinessWorkflow;
+  public get KHR_materials_pbrSpecularGlossiness(): boolean {
+    return this._KHR_materials_pbrSpecularGlossiness;
   }
 
   /**
-   * Setter specularGlossinessWorkflow
+   * Setter KHR_materials_pbrSpecularGlossiness
    * @param {boolean} value
    */
-  public set specularGlossinessWorkflow(value: boolean) {
-    this._specularGlossinessWorkflow = value;
+  public set KHR_materials_pbrSpecularGlossiness(value: boolean) {
+    this._KHR_materials_pbrSpecularGlossiness = value;
+  }
+
+  /**
+   * Getter KHR_materials_unlit
+   * @return {boolean}
+   */
+  public get KHR_materials_unlit(): boolean {
+    return this._KHR_materials_unlit;
+  }
+
+  /**
+   * Setter KHR_materials_unlit
+   * @param {boolean} value
+   */
+  public set KHR_materials_unlit(value: boolean) {
+    this._KHR_materials_unlit = value;
   }
 
   /**
@@ -786,7 +805,8 @@ export class MaterialData extends AbstractTreeNodeData {
       roughness: this.roughness,
       roughnessMap: this.roughnessMap,
       side: this.side,
-      specularGlossinessWorkflow: this.specularGlossinessWorkflow,
+      KHR_materials_pbrSpecularGlossiness: this.KHR_materials_pbrSpecularGlossiness,
+      KHR_materials_unlit: this.KHR_materials_unlit,
       specular: this.specular,
       specularMap: this.specularMap,
       specularGlossinessMap: this.specularGlossinessMap,
