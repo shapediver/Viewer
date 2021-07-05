@@ -96,16 +96,16 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
             this.defval = paramDef.defval;
             this.name = paramDef.name;
             this.type = <PARAMETERTYPE>paramDef.type;
-            if (paramDef.choices) this.choices = paramDef.choices;
-            if (paramDef.decimalplaces) this.decimalplaces = +paramDef.decimalplaces;
-            if (paramDef.expression) this.expression = paramDef.expression;
-            if (paramDef.format) this.format = paramDef.format;
-            if (paramDef.min) this.min = +paramDef.min;
-            if (paramDef.max) this.max = +paramDef.max;
-            if (paramDef.visualization) this.visualization = <PARAMETERVISUALIZATION>paramDef.visualization;
-            if (paramDef.structure) this.structure = paramDef.structure;
-            if (paramDef.group) this.group = paramDef.group;
-            if (paramDef.tooltip) this.tooltip = paramDef.tooltip;
+            if (paramDef.choices !== undefined) this.choices = paramDef.choices;
+            if (paramDef.decimalplaces !== undefined) this.decimalplaces = +paramDef.decimalplaces;
+            if (paramDef.expression !== undefined) this.expression = paramDef.expression;
+            if (paramDef.format !== undefined) this.format = paramDef.format;
+            if (paramDef.min !== undefined) this.min = +paramDef.min;
+            if (paramDef.max !== undefined) this.max = +paramDef.max;
+            if (paramDef.visualization !== undefined) this.visualization = <PARAMETERVISUALIZATION>paramDef.visualization;
+            if (paramDef.structure !== undefined) this.structure = paramDef.structure;
+            if (paramDef.group !== undefined) this.group = paramDef.group;
+            if (paramDef.tooltip !== undefined) this.tooltip = paramDef.tooltip;
 
             this.displayName = undefined;
             this.order = undefined;

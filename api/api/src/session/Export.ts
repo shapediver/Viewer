@@ -33,7 +33,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
       this.name = exportDef.name;
       this.type = exportDef.type;
 
-      if (exportDef.uid) this.uid = exportDef.uid;
+      if (exportDef.uid !== undefined) this.uid = exportDef.uid;
 
       this.displayName = undefined;
       this.order = undefined;
