@@ -124,14 +124,7 @@ export class Session {
                     (<Tree>container.resolve(Tree)).removeNode(this.node);
                     this.#api.update();
 
-                    if (this.primarySession) {
-                        this.#stateEngine.primarySessionLoaded.reset();
-                        this.#stateEngine.primarySettingsRegistered.reset();
-                        this.#settingsEngine.reset();
-                        this.#stateEngine.primarySettingsRegistered.reset();
-                    }
-                    this.#stateEngine.getCustomState(this.id + '_settings_registered').reset();
-
+                    this.#settingsEngine.reset();
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, {});
 
                     if (!closeResult) this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).close: Was not able to close session completely, please disregard this session.`);

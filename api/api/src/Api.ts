@@ -96,10 +96,12 @@ export class Api {
       this.#stateEngine.getCustomState(id + '_settings_registered').reset();
 
       if (this.sessions[id].primarySession) {
-        for (let v in this.viewers)
-          this.viewers[v].reset();
         this.#stateEngine.primarySessionLoaded.reset();
         this.#stateEngine.primarySettingsRegistered.reset();
+        this.#stateEngine.boundingBoxCreated.reset();
+        this.#stateEngine.firstViewerShown.reset();
+        for (let v in this.viewers)
+          this.viewers[v].reset();
       }
       this.update();
 
