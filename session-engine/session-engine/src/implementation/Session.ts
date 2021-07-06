@@ -314,8 +314,13 @@ export class Session implements ISession {
         if (exports) {
             for (let exportId in r1.exports)
                 if(r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.EMAIL || r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.DOWNLOAD) {
-                    exports[exportId] = r1.exports[exportId];
-                    exports[exportId].id = exportId;
+                    if(r1.exports[exportId].uid !== undefined) {
+                        exports[r1.exports[exportId].uid!] = r1.exports[exportId];
+                        exports[r1.exports[exportId].uid!].id = exportId;
+                    } else {
+                        exports[exportId] = r1.exports[exportId];
+                        exports[exportId].id = exportId;
+                    }
                 }
         }
 
