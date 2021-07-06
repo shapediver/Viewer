@@ -153,17 +153,25 @@ export class RenderingEngine implements IRenderingEngine {
 
         if (this._visibility === VISIBILITYMODE.SESSION) {
             this._stateEngine.primarySessionLoaded.then(() => {
+                if(this._closed) return;
                 // wait for settings to load before showing the scene
                 this._stateEngine.getCustomState(this.id + '_settings_loaded').then(() => {
+                    if(this._closed) return;
                     this.changeSceneExtents(this._sceneTree.boundingBox);
                     this.show = true;
                 })
             })
         }
         if(this._stateEngine.primarySettingsRegistered.resolved) {
-            this._stateEngine.primarySettingsRegistered.then(() => setTimeout(() => this.applySettings(), 0));
+            this._stateEngine.primarySettingsRegistered.then(() => setTimeout(() => {
+                if(this._closed) return;
+                this.applySettings()
+            }, 0));
         } else {
-            this._stateEngine.primarySettingsRegistered.then(() => this.applySettings());
+            this._stateEngine.primarySettingsRegistered.then(() => {
+                if(this._closed) return;
+                this.applySettings()
+            });
         }
     }
 

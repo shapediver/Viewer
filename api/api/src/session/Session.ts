@@ -125,6 +125,7 @@ export class Session {
                     this.#api.update();
 
                     this.#settingsEngine.reset();
+                    this.#stateEngine.primarySettingsRegistered.reset();
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, {});
 
                     if (!closeResult) this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).close: Was not able to close session completely, please disregard this session.`);

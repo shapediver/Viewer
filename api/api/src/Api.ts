@@ -99,7 +99,6 @@ export class Api {
         this.#stateEngine.primarySessionLoaded.reset();
         this.#stateEngine.primarySettingsRegistered.reset();
         this.#stateEngine.boundingBoxCreated.reset();
-        this.#stateEngine.firstViewerShown.reset();
         for (let v in this.viewers)
           this.viewers[v].reset();
       }
@@ -142,6 +141,9 @@ export class Api {
         this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
         return false;
       }
+
+      this.#stateEngine.getCustomState(id + '_settings_loaded').reset();
+      this.#stateEngine.firstViewerShown.reset();
       const result = await this.#viewerCallbacks[id].close();
       (<any>this.#viewerCallbacks[id]) = undefined;
       delete this.#viewerCallbacks[id];
