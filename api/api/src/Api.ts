@@ -93,7 +93,8 @@ export class Api {
         this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.closeSession: Session with id ${id} was not registered.`));
 
       const result = await this.#sessionCallbacks[id].close();
-      this.#stateEngine.getCustomState(id + '_settings_registered').reset();
+      if(this.#stateEngine.getCustomState(id + '_settings_registered'))
+        this.#stateEngine.getCustomState(id + '_settings_registered').reset();
 
       if (this.sessions[id].primarySession) {
         this.#stateEngine.primarySessionLoaded.reset();
@@ -142,7 +143,8 @@ export class Api {
         return false;
       }
 
-      this.#stateEngine.getCustomState(id + '_settings_loaded').reset();
+      if(this.#stateEngine.getCustomState(id + '_settings_loaded'))
+        this.#stateEngine.getCustomState(id + '_settings_loaded').reset();
       this.#stateEngine.firstViewerShown.reset();
       const result = await this.#viewerCallbacks[id].close();
       (<any>this.#viewerCallbacks[id]) = undefined;
