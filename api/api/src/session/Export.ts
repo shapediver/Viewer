@@ -29,7 +29,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
       this.#sessionEngine = sessionEngine;
 
       if (exportDef.dependency) this.dependency = exportDef.dependency;
-      this.id = exportDef.uid || exportDef.id;
+      this.id = exportDef.id;
       this.name = exportDef.name;
       this.type = exportDef.type;
 
