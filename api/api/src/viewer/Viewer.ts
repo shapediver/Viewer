@@ -823,7 +823,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
           const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(lightSceneId);
           this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic);
         }
-        return this.#lightScenes[lightSceneId].lights[id];
+        if(this.#lightScenes[lightSceneId].lights[id])
+          return this.#lightScenes[lightSceneId].lights[id];
       }
       throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(`Viewer(${this.id}).getLight: Light with the id ${id} was not found.`));
     } catch (e) {
