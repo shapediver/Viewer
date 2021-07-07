@@ -164,6 +164,7 @@ export class GLTFLoader {
             if (values.hasOwnProperty('doubleSided')) 
                 materialData.side = values.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
 
+            materialData.color = '#d3d3d3';
             if (values.hasOwnProperty('diffuse') && Array.isArray(values.diffuse)) {
                 materialData.color = this._converter.toColor(values.diffuse);
                 materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
@@ -211,12 +212,18 @@ export class GLTFLoader {
                 [key: string]: AttributeData
             } = {};
 
-            for (let attribute in primitive.attributes)
+            for (let attribute in primitive.attributes) {
                 attributes[attribute] = await this.loadAccessor(primitive.attributes[attribute]);
+                if(attribute === 'COLOR')
+                    attributes[attribute] = new AttributeData(attributes[attribute].array, attributes[attribute].itemSize, attributes[attribute].itemBytes, attributes[attribute].byteOffset, attributes[attribute].elementBytes, true, attributes[attribute].byteStride)
+            }
 
-            let material = null;
-            if(primitive.material)
+            let material: MaterialData;
+            if(primitive.material) {
                 material = await this.loadMaterial(primitive.material);
+            } else {
+                material = new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 });
+            }
 
             const geometry = new GeometryData(new PrimitiveData(attributes, 4, await this.loadAccessor(primitive.indices!), material));
             primitiveNode.data.push(geometry);

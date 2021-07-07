@@ -197,13 +197,13 @@ export class MaterialLoader {
 
             properties.bumpScale = materialProperties.bumpScale;
 
-            if(materialProperties.color)
+            if(materialProperties.color !== undefined)
                 properties.color = new THREE.Color(materialProperties.color);
             
-            if(!materialProperties.color && materialProperties.map && materialProperties.map.color)
+            if(!materialProperties.color !== undefined && materialProperties.map !== undefined && materialProperties.map.color !== undefined)
                 properties.color = new THREE.Color(materialProperties.map.color);
 
-            if(!materialProperties.color && !materialProperties.map && !(materialSettings && materialSettings.useVertexColors))
+            if(!materialProperties.color !== undefined && !materialProperties.map !== undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
                 properties.color = new THREE.Color(this._defaultColor);
 
             // displacementMap
@@ -212,7 +212,7 @@ export class MaterialLoader {
 
             // displacementBias
 
-            if(materialProperties.emissiveness)
+            if(materialProperties.emissiveness !== undefined)
                 properties.emissive = new THREE.Color(materialProperties.emissiveness);
 
             if (materialProperties.emissiveMap !== undefined) {

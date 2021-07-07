@@ -11,6 +11,7 @@ import { vec3 } from "gl-matrix";
 
 const ticket5 = 'affa36eb1031f3cd6175477dc4d76b785e2ca1c6a70c36adabc1d9547c11660a2957f4ba5e4f55a16225af626c2f25be90d944d355938fd35fc03daaaf9c56cbc85f0c6c7325aeb956145b3a030ad4aa217eefaf2d977b2815aefec5e87912ea1b731507ff24f9109cf74b0aa0eebcea9b9e7b3c807a-8b9959c9e647a0d633136750b78fbf61';
 const ticket = 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e';
+const ticket_cube = 'b9deea346b988b90b45ef359be0e57d3325fb8e089c33008a5c7e41b5a3020b1ba16b5f4926c9d487037cf128455653573096649deee8415afa220b4ec27565e28178f2193c9f66366361de05e866e9c91e0c44f278261692f7c778dbf3ee3c53a139526fded5aea8aa8a52f19a9fc20aed1eab5f6da22eac8e0eff4b8ca4ddd-df2cbd31660c1cd9d38673d8362b9466';
 const ticket2 = '8392f2ab5231da0d1b634ef6eb849be4c6e79c0e84456ca19fe03a4d1078fd02428704e23ee9b51e691ffb60550ea8f91493fa669ac900f86061e755441cf3da11c21d81dacf7975ba024ce9b604f2de708895dcdf4d4a17ca885516399e29111fc6d7f22e8ef1000651f56c91b4841a5527cb3d228b-0c9680ec95458327deab37e9fc1a432c-60d25599bc8a340ddf70ffff0dca331d';
 const ticket3 = 'd97a0d69723018a16376de727c0a6cad943ba65fe9b0d776468ea891fcc80019e98d27e09a75ad8f806f788000bc6abc57ff8bd90390c8c815f951893bea0995d8f754a9941c1db55131fb7c020b1d94be862d1ef65cfab3af6dafc60ca26c92ddb262b5a1e9bf-fc3e6089360835fe91bdda04be4b5e0b';
 // const ticket4 = '5151fd6862510d24c9b9bb6f94fbe6d9579db91bc9d39c8eb5f43e3619da0a332ce29e5466caf24936616dad9bc7706b4cd30a24e2a8072adb490dc082a8ac04a0219b791f724f04f9a68b5e305c1748b3518e5e741f8304ecf940ffa7f5ea03b8e29d70b6cb89fd11fc42d3c35ecb29d2b2d154c1-a31625ab120de0ba812d714cab23ca4b';
@@ -21,7 +22,7 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 (<any>window).settingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
 (async () => {
-    let session = await api.createAndInitializeSession({ ticket: ticket, modelViewUrl: modelViewUrl, id: 'mySession'});
+    let session = await api.createAndInitializeSession({ ticket: ticket_cube, modelViewUrl: modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     await new Promise<void>((resolve) => {
         api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())

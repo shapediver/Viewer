@@ -159,6 +159,32 @@ export class GeometryLoader {
                 }
             }
 
+            if(attributeId === 'NORMAL') {
+                let blnNormalsOk = false;
+                for (let index = 0; index < 10; ++index) {
+                  if (Math.abs(bufferAttribute.array[index * 3]) > 0.001) {
+                    blnNormalsOk = true;
+                    break;
+                  }
+                  if (
+                    Math.abs(bufferAttribute.array[index * 3 + 1]) > 0.001
+                  ) {
+                    blnNormalsOk = true;
+                    break;
+                  }
+                  if (
+                    Math.abs(bufferAttribute.array[index * 3 + 2]) > 0.001
+                  ) {
+                    blnNormalsOk = true;
+                    break;
+                  }
+                }
+                if (!blnNormalsOk) {
+                    geometry.computeVertexNormals();
+                    continue;
+                }
+            }
+
             switch (attributeId) {
                 case 'POSITION':
                     geometry.setAttribute('position', buffer);
