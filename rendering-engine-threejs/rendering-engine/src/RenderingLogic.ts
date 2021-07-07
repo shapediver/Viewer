@@ -72,7 +72,7 @@ export class RenderingLogic {
             })
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
                 // https://shapediver.atlassian.net/browse/SS-2956, add viewer id, could be another one
-                this._beautyRenderer.startBeautyRenderCountdown();
+                if(this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._beautyRenderer.startBeautyRenderCountdown();
             })
 
             window.onresize = () => { this.render(); };
@@ -109,7 +109,7 @@ export class RenderingLogic {
             };
 
             this.animate(0);
-            this._beautyRenderer.startBeautyRenderCountdown();
+            if(this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._beautyRenderer.startBeautyRenderCountdown();
         } catch (e) {
             this._noWebGL = true;
             throw new SDError(e.message, e);
@@ -142,7 +142,7 @@ export class RenderingLogic {
 
     public render() {
         this._noNeedToRender = false;
-        this._beautyRenderer.startBeautyRenderCountdown();
+        if(this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._beautyRenderer.startBeautyRenderCountdown();
     }
 
     public resize(width: number, height: number) {
@@ -239,6 +239,7 @@ export class RenderingLogic {
         const camera = this.adjustCamera(deltaTime, width, height);
 
         if (this._noNeedToRender === true) return;
+        if (this._renderingEngine.show === false) return;
 
         this._renderer.shadowMap.enabled = this._usingSwiftShader ? false : this._renderingEngine.shadows;
         this._renderingEngine.sceneTree.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
