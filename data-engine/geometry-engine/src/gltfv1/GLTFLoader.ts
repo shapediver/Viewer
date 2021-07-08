@@ -6,6 +6,7 @@ import { mat4, vec3, vec4 } from 'gl-matrix';
 import { AttributeData, GeometryData, MaterialData, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
 import { container } from 'tsyringe';
 import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
+import { SDGTFLoader } from './SDGTFLoader';
 
 export class GLTFLoader {
     // #region Properties (5)
@@ -62,14 +63,18 @@ export class GLTFLoader {
         // create body
         this._body = binaryGeometry.slice(this.BINARY_EXTENSION_HEADER_LENGTH + header.contentLength, header.length);
 
+        const sdgtfNode = await new SDGTFLoader().load(binaryGeometry, header.length);
+
         try {
             this.validateVersionAndExtensions();
-            return await this.loadScene();
+            const node = await this.loadScene();
+            node.addChild(sdgtfNode);
+            return node;
         } catch (e) {            
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed.`, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, false)
             }
             return new TreeNode();
         }
@@ -102,10 +107,8 @@ export class GLTFLoader {
         const accessor = this._content.accessors![accessorName];
         const bufferView = await this.loadBufferView(accessor.bufferView!);
 
-        // @ts-ignore
-        const itemSize = ACCESSORTYPE[accessor.type!];
-        // @ts-ignore
-        const ArrayType = ACCESSOR_COMPONENTTYPE[accessor.componentType!];
+        const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
+        const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
         const itemBytes = elementBytes * itemSize;
 
@@ -281,6 +284,5 @@ export class GLTFLoader {
             sceneDef.addChild(await this.loadNode(scene.nodes![i]));
         return sceneDef;
     }
-
     // #endregion Private Methods (6)
 }

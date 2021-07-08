@@ -127,10 +127,8 @@ export class GLTFLoader {
 
         const arrayBuffer = await this.loadBufferView(accessor.bufferView!);
 
-        // @ts-ignore
-        const itemSize = ACCESSORTYPE[accessor.type!];
-        // @ts-ignore
-        const ArrayType = ACCESSOR_COMPONENTTYPE[accessor.componentType!];
+        const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
+        const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
 
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
         const itemBytes = elementBytes * itemSize;
@@ -154,8 +152,7 @@ export class GLTFLoader {
 
         if (accessor.sparse !== undefined) {
             const itemSizeIndices = ACCESSORTYPE.SCALAR;
-            // @ts-ignore
-            const IndicesArrayType = ACCESSOR_COMPONENTTYPE[accessor.sparse.indices.componentType];
+            const IndicesArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.sparse.indices.componentType];
 
             const byteOffsetIndices = accessor.sparse.indices.byteOffset || 0;
             const byteOffsetValues = accessor.sparse.values.byteOffset || 0;

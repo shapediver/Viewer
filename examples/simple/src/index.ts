@@ -1,157 +1,46 @@
 import "reflect-metadata"
-import { container } from "tsyringe";
-import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, EVENTTYPE, LOGGINGLEVEL, PerspectiveCamera } from "@shapediver/viewer"
-import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
-import { Logger, PerformanceEvaluator } from "@shapediver/viewer.shared.utils";
-import { SettingsEngine } from "@shapediver/viewer.shared.services";
-import { vec3 } from "gl-matrix";
+import { api } from "@shapediver/viewer"
 
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;
 
-const ticket5 = 'affa36eb1031f3cd6175477dc4d76b785e2ca1c6a70c36adabc1d9547c11660a2957f4ba5e4f55a16225af626c2f25be90d944d355938fd35fc03daaaf9c56cbc85f0c6c7325aeb956145b3a030ad4aa217eefaf2d977b2815aefec5e87912ea1b731507ff24f9109cf74b0aa0eebcea9b9e7b3c807a-8b9959c9e647a0d633136750b78fbf61';
-const ticket = 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e';
-const ticket_cube = 'b9deea346b988b90b45ef359be0e57d3325fb8e089c33008a5c7e41b5a3020b1ba16b5f4926c9d487037cf128455653573096649deee8415afa220b4ec27565e28178f2193c9f66366361de05e866e9c91e0c44f278261692f7c778dbf3ee3c53a139526fded5aea8aa8a52f19a9fc20aed1eab5f6da22eac8e0eff4b8ca4ddd-df2cbd31660c1cd9d38673d8362b9466';
-const ticket2 = '8392f2ab5231da0d1b634ef6eb849be4c6e79c0e84456ca19fe03a4d1078fd02428704e23ee9b51e691ffb60550ea8f91493fa669ac900f86061e755441cf3da11c21d81dacf7975ba024ce9b604f2de708895dcdf4d4a17ca885516399e29111fc6d7f22e8ef1000651f56c91b4841a5527cb3d228b-0c9680ec95458327deab37e9fc1a432c-60d25599bc8a340ddf70ffff0dca331d';
-const ticket3 = 'd97a0d69723018a16376de727c0a6cad943ba65fe9b0d776468ea891fcc80019e98d27e09a75ad8f806f788000bc6abc57ff8bd90390c8c815f951893bea0995d8f754a9941c1db55131fb7c020b1d94be862d1ef65cfab3af6dafc60ca26c92ddb262b5a1e9bf-fc3e6089360835fe91bdda04be4b5e0b';
-// const ticket4 = '5151fd6862510d24c9b9bb6f94fbe6d9579db91bc9d39c8eb5f43e3619da0a332ce29e5466caf24936616dad9bc7706b4cd30a24e2a8072adb490dc082a8ac04a0219b791f724f04f9a68b5e305c1748b3518e5e741f8304ecf940ffa7f5ea03b8e29d70b6cb89fd11fc42d3c35ecb29d2b2d154c1-a31625ab120de0ba812d714cab23ca4b';
-const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com';
-const modelViewUrl2 = 'https://sddev2.eu-central-1.shapediver.com';
-const bearerToken = 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczpcL1wvZGV2LWFwcC5zaGFwZWRpdmVyLmNvbVwvYXBpXC92MVwvdG9rZW5zIiwic3ViIjoiNGFjMDVjZDYtZmQ3Yy00NzAxLWIyNjAtNTRlYjdjYTc1ZGUwIiwiYXVkIjoiNWE5NzcxNjgtZjQ5ZC00M2VhLTgwNjMtYzg5Y2M5MDQyMzM1IiwiZXhwIjoxNjE5NTM1MzYwLCJzY29wZSI6Imdyb3VwLm93bmVyIGdyb3VwLmV4cG9ydCBncm91cC52aWV3IiwiaWF0IjoxNjE5NTMxNzYwfQ.bWn3V7cu_0TVtZskVmOt341RKWAZ0LWlVaQDx_vWbRO-XwvwpC96wCOiUVMuRMTMxjcqCRfe9jm9AVUF15fBus4DTCO_mdYYsWqW4lsta3YNC8GYr0k4UZW1hWpli4WarCiaViqg6uWSISiCn4-ypYsfAtiGBpwcVfTFSzvm8lCzokMKqRhFXW2W8SAxCrJzRLUQtmShPeXAxqwayEl65HKwasYucVDRASXGeZr_y648rOn0hNsvQKXZZiUE3x62LCeG6tSAYenLFM6u5KQPfZiSwa0xDeByNWlmRLweBxZ0dMnye-9XTVuqQQPiwm9t0qOVe6FYf_hWC27ubmnWfw';
-const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
-(<any>window).settingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-
-(async () => {
-    let session = await api.createAndInitializeSession({ ticket: ticket_cube, modelViewUrl: modelViewUrl, id: 'mySession'});
-    let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    await new Promise<void>((resolve) => {
-        api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-    })
-})();
-
-(<any>window).resetSettings = async () => {
-    const session = api.getSession('mySession')!;
-    session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateDisplayName('COLOR');
-
-    session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateOrder(0);
-    session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.updateOrder(1);
-    session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.updateOrder(2);
-    session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.updateOrder(3);
-    session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.updateOrder(4);
-    session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.updateOrder(5);
-    session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateOrder(6);
-    session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateOrder(7);
-    session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.updateOrder(8);
-    session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateOrder(9);
-    session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateOrder(10);
-
-    session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateHidden(true);
-    session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.updateHidden(true);
-    session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.updateHidden(true);
-    session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.updateHidden(true);
-    session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.updateHidden(true);
-    session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.updateHidden(true);
-    session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateHidden(false);
-    session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.updateHidden(true);
-    session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateHidden(true);
-    session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateHidden(true);
-    session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateHidden(false);
-
-    const viewer = api.getViewer('myViewer')!;
-    viewer.updateBlurSceneWhenBusy(true);
-    const camera = viewer.getCamera();
-    camera!.updateAutoAdjust(false);
-    camera!.updateCameraMovementDuration(800);
-    camera!.updateDefaultPosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
-    camera!.updateDefaultTarget([0, 7, -3.25]);
-    (<PerspectiveCamera>camera!).updateFov(45);
-    (<PerspectiveCamera>camera!).controls.updateAutoRotationSpeed(0);
-    (<PerspectiveCamera>camera!).controls.updateDamping(0.1);
-    viewer.updateEnvironmentMap('none');
-    viewer.updateGridVisibility(true);
-    viewer.updateGroundPlaneVisibility(true);
-    viewer.updateEnvironmentMap('none');
-
-    const lights = viewer.getLights();
-    for(let l in lights) {
-        viewer.removeLight(l)
-    }
-    viewer.addAmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'});
-    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, name: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175});
-    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175});
-    await session.saveSettings();
-};
-
-
-(<any>window).saveSettings = async () => {
-    const session = api.getSession('mySession')!;
-    await session.saveSettings();
-};
-
-
-(<any>window).addGLTF = async (uri: string) => {
-    let viewer = api.getViewer('myViewer')!;
-
-    await api.closeSession('mySession')!;
-    const node = await dataEngine.loadContent({
-        format: 'gltf',
-        href: uri
-    })
-    api.sceneTree.addNode(node);
-
-
-    const l = viewer.createLightScene({name: 'gltf'});
-    viewer.updateGridVisibility(false);
-    viewer.updateGroundPlaneVisibility(false);
-    viewer.assignLightScene(l.id);
-    viewer.addAmbientLight({color: 0xffffff, intensity: 0.2})
-    viewer.addDirectionalLight({color: 0xffffff, intensity: 1, direction: vec3.normalize(vec3.create(), vec3.fromValues(0.5, -0.866, 0))})
-    viewer.updateClearColor('#000000')
-    viewer.updateEnvironmentMap('default')
-    viewer.updateShow(true);
-    api.update();
-    await viewer.getCamera()!.set([0, -0.5, 0], [0, 0, 0], {duration: 0});
+const modelViewUrls = {
+    'eu-central-1': 'https://sdeuc1.eu-central-1.shapediver.com',
+    'eu-central-2': 'https://sddev2.eu-central-1.shapediver.com',
+    'us-east-1': 'https://model-view.shapediver.com',
 }
 
-// (<any>window).sceneTree = api.sceneTree;
-// (<any>window).api = api;
+const models: { [key: string]: { ticket: string, modelViewUrl: string }} = 
+{
+    'BoxAndPoints': { 
+        ticket: 'ead5496b55f2c8cc9ce9d6a5ec9eb8338093fd6a458f38d82e19c7d57022e0931a9106bb20a8c822c20319cd66b7a233c7abf6670612c5a3d68dde1389356faa66c75901ae74c4bcd8fa92efd860092179d073fcbb882b8702f251280dfd28a4ce92ac6c8f758a9dace40fbb8650eec38a42a7e36eb2896997c330e28767b2ca-ec47cfc49ebbcef7746c6f9883e42e33',
+        modelViewUrl: modelViewUrls['us-east-1']
+    },
+    'CubeMizator': {
+        ticket: 'b9deea346b988b90b45ef359be0e57d3325fb8e089c33008a5c7e41b5a3020b1ba16b5f4926c9d487037cf128455653573096649deee8415afa220b4ec27565e28178f2193c9f66366361de05e866e9c91e0c44f278261692f7c778dbf3ee3c53a139526fded5aea8aa8a52f19a9fc20aed1eab5f6da22eac8e0eff4b8ca4ddd-df2cbd31660c1cd9d38673d8362b9466', 
+        modelViewUrl: modelViewUrls['eu-central-1'], 
+    },
+    'Material Test': { 
+        ticket: 'd97a0d69723018a16376de727c0a6cad943ba65fe9b0d776468ea891fcc80019e98d27e09a75ad8f806f788000bc6abc57ff8bd90390c8c815f951893bea0995d8f754a9941c1db55131fb7c020b1d94be862d1ef65cfab3af6dafc60ca26c92ddb262b5a1e9bf-fc3e6089360835fe91bdda04be4b5e0b',
+        modelViewUrl: modelViewUrls['eu-central-2']
+    },
+    'Sdgtf_All_Types': { 
+        ticket: 'e96c426ed1b983bb05ceb78145e6da83eaf111e6da9fca3b2c97d8447c3706930df7825932421d14100886f6967059330f25c3c12b08ce47d150bea84ea9fe4f3541ee7b1cbdb16c5735899871155bfddb76d82ff664155530ea143995a317653a5ab2de3799affbcfd3075af2c53cb8e40f26b2eba37d00f71c74c7c1a5ffd8-a23d9dc0e103d57f8ccd89b6f1d1e951',
+        modelViewUrl: modelViewUrls['eu-central-1']
+    },
+    'Test 5': { 
+        ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e',
+        modelViewUrl: modelViewUrls['eu-central-1']
+    },
+    'Test model for all supported parameter types': { 
+        ticket: 'c9f558e0f553bea84f8e540f1c561aff8fad4015b07d89fab2f2048e8b1fae0a3f61d3538ac8a3966f6827cbe4e4cf867c86f60df63d026a2757db15495ccb99b230337cfb21e03697e14d3593d7a8d7b8fc52fc4f142a686104deb6fb2e884a80a827314097ac1a603bd10065a1129efc28719d93fe0d9760ee83187c4f3012-92b182e5dbe03bc50a6f4e1dabf27def',
+        modelViewUrl: modelViewUrls['eu-central-1']
+    },
+};
 
-// // (<any>window).instances = async (count: number) => {
-// //     const session = api.getSession('mySession');
-// //     for(let x = 0; x < count; x++) {
-// //         for(let y = 0; y < count; y++) {
-// //             for(let z = 0; z < count; z++) {
-// //                 const instanceClone = session.node.cloneInstance();
-// //                 const translation = mat4.create();
-// //                 mat4.fromTranslation(translation, [x*100 - ((count-1)*100) / 2, y*25- ((count-1)*25) / 2, z*25- ((count-1)*25) / 2]);
-// //                 instanceClone.transformations.push({
-// //                     id: `transformation_x_${x}_y_${y}_z_${z}`,
-// //                     name: `transformation_x_${x}_y_${y}_z_${z}`,
-// //                     matrix: translation
-// //                 })
-// //                 api.sceneTree.addNode(instanceClone)
-// //             }
-// //         }
-// //     }
-// //     api.sceneTree.root.updateVersion();
-// //     api.onUpdate()
-// // }
 
-
-// (<any>window).changeParameter = async (name: string, value: string) => {
-//     const param = api.getSession('mySession').getParameterByName(name);
-//     for(let i = 0; i < param.length; i++)
-//         param[i].value = value;
-//     await api.getSession('mySession').customize();
-// }
-
-// (<any>window).addSDTFOutput = async (uri: string) => {
-//     const session = api.getSession('mySession');
-//     const output = session.createOutput('sdtfFile');
-//     output.content = [];
-//     output.content.push({
-//         format: 'sdtf',
-//         href: uri
-//     });
-//     await session.customize();
-// }
+(async () => {
+    const { ticket, modelViewUrl } = models['Sdgtf_All_Types'];
+    let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
+    let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+})();

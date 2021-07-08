@@ -203,7 +203,7 @@ export class MaterialLoader {
             if(!materialProperties.color !== undefined && materialProperties.map !== undefined && materialProperties.map.color !== undefined)
                 properties.color = new THREE.Color(materialProperties.map.color);
 
-            if(!materialProperties.color !== undefined && !materialProperties.map !== undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
+            if(!materialProperties.color !== undefined && materialProperties.map !== undefined && materialProperties.map.color !== undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
                 properties.color = new THREE.Color(this._defaultColor);
 
             // displacementMap

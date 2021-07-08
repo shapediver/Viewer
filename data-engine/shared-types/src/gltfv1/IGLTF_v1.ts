@@ -1,5 +1,5 @@
 
-export const ACCESSOR_COMPONENTTYPE = {
+export const ACCESSORCOMPONENTTYPE = {
     5120: Int8Array,
     5121: Uint8Array,
     5122: Int16Array,
@@ -8,11 +8,23 @@ export const ACCESSOR_COMPONENTTYPE = {
     5126: Float32Array
 }
 
+export const ACCESSORCOMPONENTSIZE = {
+    5120: 1,
+    5121: 1,
+    5122: 2,
+    5123: 2,
+    5125: 4,
+    5126: 4
+}
+
 export const ACCESSORTYPE = {
     SCALAR: 1,
     VEC2: 2,
     VEC3: 3,
     VEC4: 4,
+    VEC7: 7,
+    VEC10: 10,    
+    VEC12: 12,
     MAT2: 4,
     MAT3: 9,
     MAT4: 16

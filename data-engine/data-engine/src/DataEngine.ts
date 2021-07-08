@@ -44,9 +44,9 @@ export class DataEngine {
             }
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `DataEngine.loadContent: An error occurred while loading the ${content.format}.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `DataEngine.loadContent: An error occurred while loading the ${content.format}. ${e.message}`, e.response.status, false)
               } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `DataEngine.loadContent: An error occurred while loading the ${content.format}.`, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `DataEngine.loadContent: An error occurred while loading the ${content.format}. ${e.message}`, false)
             }
             return new TreeNode();
         }
