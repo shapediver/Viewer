@@ -141,6 +141,7 @@ export class LightEngine implements ILightEngine {
         const converted: {
             [key: string]: {
                 id: string,
+                name: string;
                 lights: {
                     [key: string]: {
                         id: string, 
@@ -155,7 +156,8 @@ export class LightEngine implements ILightEngine {
             const lightScene = this._lightScenes[lightSceneId];
             const lightSceneName = lightScene.name || lightSceneId;
             converted[lightSceneName] = {
-                id: lightSceneName,
+                id: lightSceneId,
+                name: lightSceneName,
                 lights: {}
             };
             for(let lightId in lightScene.lights) {
@@ -222,9 +224,12 @@ export class LightEngine implements ILightEngine {
 
     public applySettings(): void {
         this._lightScenes = {};
+        let defaultLS = false;
 
         for (let lightSceneId in this._settingsEngine.lights.lightScenes.value) {
-            const ls = new LightScene({id: this._uuidGenerator.create(), name: lightSceneId});
+            const lightSceneName = this._settingsEngine.lights.lightScenes.value[lightSceneId].name ? this._settingsEngine.lights.lightScenes.value[lightSceneId].name : lightSceneId;
+            if(lightSceneName === 'default') defaultLS = true;
+            const ls = new LightScene({id: lightSceneId, name: lightSceneName});
             for (let lightId in this._settingsEngine.lights.lightScenes.value[lightSceneId].lights) {
                 const light = this._settingsEngine.lights.lightScenes.value[lightSceneId].lights[lightId];
                 let l: AbstractLight;
@@ -287,11 +292,14 @@ export class LightEngine implements ILightEngine {
             this._lightScenes[ls.id] = ls;
         }
 
+        if(!defaultLS)
+            this._lightScenes[this._defaultLightScene.id] = this._defaultLightScene;
+
         if (this._settingsEngine.lights.lightScene.value)
             this.assignLightScene(this._settingsEngine.lights.lightScene.value);
 
-        if(!Object.keys(this._settingsEngine.lights.lightScenes.value).includes('default'))
-            this._lightScenes[this._defaultLightScene.id] = this._defaultLightScene;
+        if(!Object.keys(this._lightScenes).includes(this.getLightScene().id))
+            this.assignLightScene('default');
     }
 
     // #endregion Public Methods (14)
