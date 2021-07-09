@@ -135,6 +135,7 @@ const originalSettings = {
                     "type": "directional",
                 },
             },
+            "name": "default",
         },
     },
     'viewer.scene.material.environmentMap': 'none',
