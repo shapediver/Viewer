@@ -41,7 +41,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${exportDef.uid || exportDef.id}).constructor: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${exportDef.id}).constructor: Something unexpected happened.`, true)
     }
   }
 

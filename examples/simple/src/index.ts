@@ -21,7 +21,7 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
         modelViewUrl: modelViewUrls['eu-central-1'], 
     },
     'Material Test': { 
-        ticket: 'd97a0d69723018a16376de727c0a6cad943ba65fe9b0d776468ea891fcc80019e98d27e09a75ad8f806f788000bc6abc57ff8bd90390c8c815f951893bea0995d8f754a9941c1db55131fb7c020b1d94be862d1ef65cfab3af6dafc60ca26c92ddb262b5a1e9bf-fc3e6089360835fe91bdda04be4b5e0b',
+        ticket: '1e8922035033c9be1e33706b0f57e8b0049387c0a7f6c328b0e9a60de60c77934dc71ecce2efca2c64f24e765e0e56f9bfc18eadcb176e823c51434474997791b4b73615981c685ab1c75d08e986fd7d83763c3021ffaa7b399c8a9bd8de4010542cf9f45a5b525ceeb2b3b63654fe9d6a9310c006-2f92cac8002b6a3ab84643205ee94dcf',
         modelViewUrl: modelViewUrls['eu-central-2']
     },
     'Sdgtf_All_Types': { 
@@ -40,7 +40,7 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 
 
 (async () => {
-    const { ticket, modelViewUrl } = models['Sdgtf_All_Types'];
+    const { ticket, modelViewUrl } = models['Material Test'];
     let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 })();

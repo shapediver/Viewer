@@ -28,7 +28,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
       this.#sessionEngine = sessionEngine;
 
       if (outputDef.dependency !== undefined) this.dependency = outputDef.dependency;
-      this.id = outputDef.uid || outputDef.id;
+      this.id = outputDef.id;
       this.name = outputDef.name;
       if (outputDef.uid !== undefined) this.uid = outputDef.uid;
       if (outputDef.material !== undefined) this.material = outputDef.material;
@@ -36,7 +36,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${outputDef.uid || outputDef.id}).constructor: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${outputDef.id}).constructor: Something unexpected happened.`, true)
     }
   }
 
