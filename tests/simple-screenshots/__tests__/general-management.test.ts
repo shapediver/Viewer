@@ -54,9 +54,6 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api; 
                 await api.getViewer('myViewer')!.init();
                 await api.getSession('mySession')!.init();
-                await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-                })
                 cb();
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/1_2');
@@ -64,13 +61,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 await api.closeSession('mySession');
-                await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-                })
                 cb();
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/1_3');
-            
+
 
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
@@ -92,9 +86,6 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api; 
                 await api.getViewer('myViewer')!.init();
                 await api.getSession('mySession')!.init();
-                await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-                })
                 cb();
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/1_2');
