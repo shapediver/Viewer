@@ -220,6 +220,7 @@ export class LightEngine implements ILightEngine {
                 }
             }
         }
+        console.log(converted)
         this._settingsEngine.lights.lightScenes.value = converted;
     }
 

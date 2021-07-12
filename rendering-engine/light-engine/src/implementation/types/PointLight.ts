@@ -26,7 +26,7 @@ export class PointLight extends AbstractLight {
   }) {
     super({
       color: properties.color || '#ffffff',
-      intensity: properties.intensity || 0.5,
+      intensity: properties.intensity !== undefined ? properties.intensity : 0.5,
       type: LIGHTTYPE.POINT,
       name: properties.name,
       order: properties.order,
