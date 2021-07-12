@@ -24,6 +24,10 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
         ticket: '1e8922035033c9be1e33706b0f57e8b0049387c0a7f6c328b0e9a60de60c77934dc71ecce2efca2c64f24e765e0e56f9bfc18eadcb176e823c51434474997791b4b73615981c685ab1c75d08e986fd7d83763c3021ffaa7b399c8a9bd8de4010542cf9f45a5b525ceeb2b3b63654fe9d6a9310c006-2f92cac8002b6a3ab84643205ee94dcf',
         modelViewUrl: modelViewUrls['eu-central-2']
     },
+    'Pointillist': { 
+        ticket: 'd5b7a2dbb34e54e05dbbd86d5c626b427557636ba743186e3bcbc3103abfda3b2ae3cc722cfa191b493bfb0e72e873cebe39a629ea908e8080d9d68ce45d8c3de8ec8dd680822c03cfe3b636ea3132a7c1da75cf97a56c4918570c7f3766c7b5da29c04eb6904b4c33ec5118420c3ab7b027d1d6b6cb1422c7d8eafd58d61f34-618144e478003c9e4ca81db572d929fc',
+        modelViewUrl: modelViewUrls['eu-central-1']
+    },
     'Sdgtf_All_Types': { 
         ticket: 'e96c426ed1b983bb05ceb78145e6da83eaf111e6da9fca3b2c97d8447c3706930df7825932421d14100886f6967059330f25c3c12b08ce47d150bea84ea9fe4f3541ee7b1cbdb16c5735899871155bfddb76d82ff664155530ea143995a317653a5ab2de3799affbcfd3075af2c53cb8e40f26b2eba37d00f71c74c7c1a5ffd8-a23d9dc0e103d57f8ccd89b6f1d1e951',
         modelViewUrl: modelViewUrls['eu-central-1']
@@ -41,6 +45,6 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 
 (async () => {
     const { ticket, modelViewUrl } = models['Material Test'];
-    let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
+    let session = await api.createAndInitializeSession({ ticket: 'd5b7a2dbb34e54e05dbbd86d5c626b427557636ba743186e3bcbc3103abfda3b2ae3cc722cfa191b493bfb0e72e873cebe39a629ea908e8080d9d68ce45d8c3de8ec8dd680822c03cfe3b636ea3132a7c1da75cf97a56c4918570c7f3766c7b5da29c04eb6904b4c33ec5118420c3ab7b027d1d6b6cb1422c7d8eafd58d61f34-618144e478003c9e4ca81db572d929fc', modelViewUrl: modelViewUrls['eu-central-1'], id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 })();

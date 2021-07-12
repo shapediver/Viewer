@@ -43,7 +43,6 @@ export class SDGTFLoader {
             const contentDataView = new DataView(binaryGeometry, gltfLength + this.BINARY_EXTENSION_HEADER_LENGTH + 1, header.contentLength);
             const contentDecoded = new TextDecoder().decode(contentDataView);
             this._content = JSON.parse(contentDecoded);
-            console.log(this._content)
             this._body = binaryGeometry.slice(gltfLength + this.BINARY_EXTENSION_HEADER_LENGTH + 1 + header.contentLength, gltfLength + header.length);
         } else {
             return new TreeNode();
