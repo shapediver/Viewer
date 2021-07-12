@@ -145,6 +145,7 @@ export class LightEngine implements ILightEngine {
                 lights: {
                     [key: string]: {
                         id: string, 
+                        name?: string,
                         type: LIGHTTYPE,
                         order?: number,
                         properties: any
@@ -155,25 +156,25 @@ export class LightEngine implements ILightEngine {
         for(let lightSceneId in this._lightScenes) {
             const lightScene = this._lightScenes[lightSceneId];
             const lightSceneName = lightScene.name || lightSceneId;
-            converted[lightSceneName] = {
+            converted[lightSceneId] = {
                 id: lightSceneId,
                 name: lightSceneName,
                 lights: {}
             };
             for(let lightId in lightScene.lights) {
                 const light = lightScene.lights[lightId];
-                const lightReference = light.name || light.id;
-                converted[lightSceneName].lights[lightReference] = {
-                    id: lightReference,
+                converted[lightSceneId].lights[lightId] = {
+                    id: lightId,
+                    name: light.name,
                     type: light.type,
                     properties: {}
                 }
                 if(light.order !== undefined)
-                    converted[lightSceneName].lights[lightReference].order = light.order;
+                    converted[lightSceneId].lights[lightId].order = light.order;
                 
                 switch (light.type) {
                     case LIGHTTYPE.DIRECTIONAL:
-                        converted[lightSceneName].lights[lightReference].properties = {
+                        converted[lightSceneId].lights[lightId].properties = {
                             color: light.color,
                             intensity: light.intensity,
                             direction: { x: (<DirectionalLight>light).direction[0], y: (<DirectionalLight>light).direction[1], z: (<DirectionalLight>light).direction[2] },
@@ -183,14 +184,14 @@ export class LightEngine implements ILightEngine {
                         }
                         break;
                     case LIGHTTYPE.HEMISPHERE:
-                        converted[lightSceneName].lights[lightReference].properties = {
+                        converted[lightSceneId].lights[lightId].properties = {
                             skyColor: light.color,
                             intensity: light.intensity,
                             groundColor: (<HemisphereLight>light).groundColor
                         }
                         break;
                     case LIGHTTYPE.POINT:
-                        converted[lightSceneName].lights[lightReference].properties = {
+                        converted[lightSceneId].lights[lightId].properties = {
                             color: light.color,
                             intensity: light.intensity,
                             position: { x: (<PointLight>light).position[0], y: (<PointLight>light).position[1], z: (<PointLight>light).position[2] },
@@ -199,7 +200,7 @@ export class LightEngine implements ILightEngine {
                         }
                         break;
                     case LIGHTTYPE.SPOT:
-                        converted[lightSceneName].lights[lightReference].properties = {
+                        converted[lightSceneId].lights[lightId].properties = {
                             color: light.color,
                             intensity: light.intensity,
                             position: { x: (<SpotLight>light).position[0], y: (<SpotLight>light).position[1], z: (<SpotLight>light).position[2] },
@@ -212,7 +213,7 @@ export class LightEngine implements ILightEngine {
                         break;
                     case LIGHTTYPE.AMBIENT:
                     default:
-                        converted[lightSceneName].lights[lightReference].properties = {
+                        converted[lightSceneId].lights[lightId].properties = {
                             color: light.color,
                             intensity: light.intensity
                         }
@@ -227,10 +228,12 @@ export class LightEngine implements ILightEngine {
         let defaultLS = false;
 
         for (let lightSceneId in this._settingsEngine.lights.lightScenes.value) {
+            const lightSceneUUID = this._uuidGenerator.validate(lightSceneId) ? lightSceneId : this._uuidGenerator.create();
             const lightSceneName = this._settingsEngine.lights.lightScenes.value[lightSceneId].name ? this._settingsEngine.lights.lightScenes.value[lightSceneId].name : lightSceneId;
             if(lightSceneName === 'default') defaultLS = true;
-            const ls = new LightScene({id: lightSceneId, name: lightSceneName});
+            const ls = new LightScene({id: lightSceneUUID, name: lightSceneName});
             for (let lightId in this._settingsEngine.lights.lightScenes.value[lightSceneId].lights) {
+                const lightUUID = this._uuidGenerator.validate(lightId) ? lightId : this._uuidGenerator.create();
                 const light = this._settingsEngine.lights.lightScenes.value[lightSceneId].lights[lightId];
                 let l: AbstractLight;
                 switch (light.type) {
@@ -240,8 +243,9 @@ export class LightEngine implements ILightEngine {
                             intensity: light.properties.intensity, 
                             direction: this._converter.toVec3(light.properties.direction), 
                             castShadow: light.properties.castShadow, 
-                            name: lightId,
-                            order: light.order
+                            name: light.name ? light.name : lightId,
+                            order: light.order,
+                            id: lightUUID
                         });
                         break;
                     case LIGHTTYPE.HEMISPHERE:
@@ -249,8 +253,9 @@ export class LightEngine implements ILightEngine {
                             color: this._converter.toColor(light.properties.skyColor), 
                             intensity: light.properties.intensity, 
                             groundColor: this._converter.toColor(light.properties.groundColor), 
-                            name: lightId,
-                            order: light.order
+                            name: light.name ? light.name : lightId,
+                            order: light.order,
+                            id: lightUUID
                         });
                         break;
                     case LIGHTTYPE.POINT:
@@ -260,8 +265,9 @@ export class LightEngine implements ILightEngine {
                             position: this._converter.toVec3(light.properties.position), 
                             distance: light.properties.distance, 
                             decay: light.properties.decay, 
-                            name: lightId,
-                            order: light.order
+                            name: light.name ? light.name : lightId,
+                            order: light.order,
+                            id: lightUUID
                         });
                         break;
                     case LIGHTTYPE.SPOT:
@@ -274,8 +280,9 @@ export class LightEngine implements ILightEngine {
                             decay: light.properties.decay, 
                             angle: light.properties.angle, 
                             penumbra: light.properties.penumbra, 
-                            name: lightId,
-                            order: light.order
+                            name: light.name ? light.name : lightId,
+                            order: light.order,
+                            id: lightUUID
                         });
                         break;
                     case LIGHTTYPE.AMBIENT:
@@ -283,8 +290,9 @@ export class LightEngine implements ILightEngine {
                         l = new AmbientLight({
                             color: this._converter.toColor(light.properties.color), 
                             intensity: light.properties.intensity, 
-                            name: lightId,
-                            order: light.order
+                            name: light.name ? light.name : lightId,
+                            order: light.order,
+                            id: lightUUID
                         });
                 }
                 ls.addLight(l);

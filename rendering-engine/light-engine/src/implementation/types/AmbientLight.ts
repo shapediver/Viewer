@@ -10,7 +10,8 @@ export class AmbientLight extends AbstractLight {
         color?: string,
         intensity?: number,
         name?: string,
-        order?: number
+        order?: number,
+        id?: string
     }) {
         super({
             color: properties.color || '#ffffff', 
@@ -18,6 +19,7 @@ export class AmbientLight extends AbstractLight {
             type: LIGHTTYPE.AMBIENT,
             name: properties.name,
             order: properties.order,
+            id: properties.id
         });
     }
 

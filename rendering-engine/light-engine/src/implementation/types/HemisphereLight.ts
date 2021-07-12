@@ -17,7 +17,8 @@ export class HemisphereLight extends AbstractLight {
         groundColor?: string,
         intensity?: number,
         name?: string,
-        order?: number
+        order?: number,
+        id?: string
     }) {
         super({
             color: properties.color || '#ffffff',
@@ -25,6 +26,7 @@ export class HemisphereLight extends AbstractLight {
             type: LIGHTTYPE.HEMISPHERE,
             name: properties.name,
             order: properties.order,
+            id: properties.id
         });
 
         if (properties.groundColor) this._groundColor = properties.groundColor;

@@ -27,7 +27,8 @@ export class SpotLight extends AbstractLight {
     angle?: number,
     penumbra?: number,
     name?: string,
-    order?: number
+    order?: number,
+    id?: string
   }) {
     super({
       color: properties.color || '#ffffff',
@@ -35,6 +36,7 @@ export class SpotLight extends AbstractLight {
       type: LIGHTTYPE.SPOT,
       name: properties.name,
       order: properties.order,
+      id: properties.id
     });
     if (properties.position) this._position = properties.position;
     if (properties.target) this._target = properties.target;
