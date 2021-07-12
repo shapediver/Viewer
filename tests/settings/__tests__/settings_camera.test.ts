@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
 import webdriver, { WebDriver } from "selenium-webdriver";
 require('chromedriver');
-import { api as API } from "@shapediver/viewer"
+import { api as API, DirectionalLight } from "@shapediver/viewer"
 import { screenshotCompare } from "../../general/src/setup";
 import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
 
@@ -93,11 +93,22 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
                 const lights = viewer.getLights();
                 for (let l in lights) {
-                    viewer.removeLight(l)
+                    if(l !== '6e219562-c916-4492-b9b9-1dfbac80d51f' && l !== '70bc760c-45dc-46b0-9cd2-8990ac77124f' && l !== '748019ac-ce54-4de7-94d2-737dae6579dd')
+                        viewer.removeLight(l)
                 }
-                viewer.addAmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'});
-                viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, name: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175});
-                viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175});
+                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateName('ambient0')
+                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateIntensity(0.5)
+                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateColor('#ffffff')
+
+                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateName('directional0')
+                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateIntensity(0.75)
+                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateColor('#ffffff');
+                (<DirectionalLight>viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f")).updateDirection([0.5774000287055969, -0.5774000287055969, 0.5774000287055969])
+
+                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateName('directional1')
+                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateIntensity(0.35)
+                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateColor('#ffffff')<
+                (<DirectionalLight>viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f")).updateDirection([0.25, -1, 1])
                 viewer.update();
                 await session.saveSettings();
                 cb();

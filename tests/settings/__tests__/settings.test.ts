@@ -2,7 +2,7 @@ import "reflect-metadata"
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
 import webdriver, { WebDriver } from "selenium-webdriver";
 require('chromedriver');
-import { api as API } from "@shapediver/viewer"
+import { api as API, DirectionalLight } from "@shapediver/viewer"
 import { container } from "tsyringe"
 import { screenshotCompare } from "../../general/src/setup";
 import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
@@ -104,8 +104,24 @@ const originalSettings = {
         "a2a392df-c842-4562-acd4-91df7ed68822": {
             "id": "a2a392df-c842-4562-acd4-91df7ed68822",
             "lights": {
-                "6c398e7e-492b-4702-bf4d-0c878732eee6": {
-                    "id": "6c398e7e-492b-4702-bf4d-0c878732eee6",
+                "6e219562-c916-4492-b9b9-1dfbac80d51f": {
+                    "id": "6e219562-c916-4492-b9b9-1dfbac80d51f",
+                    "name": "directional1","properties": {
+                        "castShadow": false,
+                        "color": "#ffffff",
+                        "direction": {
+                            "x": 0.25,
+                            "y": -1,
+                            "z": 1,
+                        },
+                        "intensity": 0.35,
+                        "shadowMapBias": -0.00175,
+                        "shadowMapResolution": 1024,
+                    },
+                    "type": "directional",
+                },
+                "70bc760c-45dc-46b0-9cd2-8990ac77124f": {
+                    "id": "70bc760c-45dc-46b0-9cd2-8990ac77124f",
                     "name": "directional0",
                     "properties": {
                         "castShadow": true,
@@ -121,30 +137,14 @@ const originalSettings = {
                     },
                     "type": "directional",
                 },
-                "536506f4-57c5-4fa4-8e76-3e626f8a8b22": {
-                    "id": "536506f4-57c5-4fa4-8e76-3e626f8a8b22",
+                "748019ac-ce54-4de7-94d2-737dae6579dd": {
+                    "id": "748019ac-ce54-4de7-94d2-737dae6579dd",
                     "name": "ambient0",
                     "properties": {
                         "color": "#ffffff",
                         "intensity": 0.5,
                     },
                     "type": "ambient",
-                },
-                "f07993e7-83cb-4cd4-b6c8-48de2b64c3b1": {
-                    "id": "f07993e7-83cb-4cd4-b6c8-48de2b64c3b1",
-                    "name": "directional1","properties": {
-                        "castShadow": false,
-                        "color": "#ffffff",
-                        "direction": {
-                            "x": 0.25,
-                            "y": -1,
-                            "z": 1,
-                        },
-                        "intensity": 0.35,
-                        "shadowMapBias": -0.00175,
-                        "shadowMapResolution": 1024,
-                    },
-                    "type": "directional",
                 },
             },
             "name": "default",
@@ -162,6 +162,7 @@ const originalSettings = {
     'viewer.scene.render.shadows': true,
     'viewer.showMessages': true
 };
+
 
 for (let c = 0; c < allCapabilities.length; c++) {
     let name = 'settings_tests';
@@ -252,11 +253,22 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
                 const lights = viewer.getLights();
                 for (let l in lights) {
-                    viewer.removeLight(l)
+                    if(l !== '6e219562-c916-4492-b9b9-1dfbac80d51f' && l !== '70bc760c-45dc-46b0-9cd2-8990ac77124f' && l !== '748019ac-ce54-4de7-94d2-737dae6579dd')
+                        viewer.removeLight(l)
                 }
-                viewer.addAmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'});
-                viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [0.5774000287055969, -0.5774000287055969, 0.5774000287055969], castShadow: true, name: 'directional0', shadowMapResolution: 1024, shadowMapBias: -0.00175});
-                viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1', shadowMapResolution: 1024, shadowMapBias: -0.00175});
+                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateName('ambient0')
+                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateIntensity(0.5)
+                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateColor('#ffffff')
+
+                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateName('directional0')
+                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateIntensity(0.75)
+                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateColor('#ffffff');
+                (<DirectionalLight>viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f")).updateDirection([0.5774000287055969, -0.5774000287055969, 0.5774000287055969])
+
+                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateName('directional1')
+                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateIntensity(0.35)
+                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateColor('#ffffff')<
+                (<DirectionalLight>viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f")).updateDirection([0.25, -1, 1])
                 viewer.update();
                 await session.saveSettings();
                 cb();
