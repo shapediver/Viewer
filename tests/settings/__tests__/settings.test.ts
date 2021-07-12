@@ -101,19 +101,12 @@ const originalSettings = {
     'viewer.scene.groundPlaneVisibility': true,
     'viewer.scene.lights.lightScene': 'default',
     'viewer.scene.lights.lightScenes': {
-        "default": {
-            "id": "default",
+        "a2a392df-c842-4562-acd4-91df7ed68822": {
+            "id": "a2a392df-c842-4562-acd4-91df7ed68822",
             "lights": {
-                "ambient0": {
-                    "id": "ambient0",
-                    "properties": {
-                        "color": "#ffffff",
-                        "intensity": 0.5,
-                    },
-                    "type": "ambient",
-                },
-                "directional0": {
-                    "id": "directional0",
+                "6c398e7e-492b-4702-bf4d-0c878732eee6": {
+                    "id": "6c398e7e-492b-4702-bf4d-0c878732eee6",
+                    "name": "directional0",
                     "properties": {
                         "castShadow": true,
                         "color": "#ffffff",
@@ -128,9 +121,18 @@ const originalSettings = {
                     },
                     "type": "directional",
                 },
-                "directional1": {
-                    "id": "directional1",
+                "536506f4-57c5-4fa4-8e76-3e626f8a8b22": {
+                    "id": "536506f4-57c5-4fa4-8e76-3e626f8a8b22",
+                    "name": "ambient0",
                     "properties": {
+                        "color": "#ffffff",
+                        "intensity": 0.5,
+                    },
+                    "type": "ambient",
+                },
+                "f07993e7-83cb-4cd4-b6c8-48de2b64c3b1": {
+                    "id": "f07993e7-83cb-4cd4-b6c8-48de2b64c3b1",
+                    "name": "directional1","properties": {
                         "castShadow": false,
                         "color": "#ffffff",
                         "direction": {
