@@ -18,6 +18,7 @@ import { LightScene } from "./lights/LightScene";
 import { PointLight } from "./lights/PointLight";
 import { SpotLight } from "./lights/SpotLight";
 import { SDError } from "@shapediver/viewer.shared.utils";
+
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Properties (28)
@@ -129,6 +130,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion`, value, 'boolean');
       this.#renderingEngine.ambientOcclusion = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion: ambientOcclusion was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateAmbientOcclusion: Something unexpected happened.`, true)
@@ -146,6 +148,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing`, value, 'boolean');
       this.#renderingEngine.automaticResizing = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing: automaticResizing was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateAutomaticResizing: Something unexpected happened.`, true)
@@ -163,6 +166,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration`, value, 'positive');
       this.#renderingEngine.beautyRenderBlendingDuration = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBeautyRenderBlendingDuration: Something unexpected happened.`, true)
@@ -180,6 +184,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderDelay`, value, 'positive');
       this.#renderingEngine.beautyRenderDelay = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: beautyRenderDelay was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBeautyBeautyRenderDelay: Something unexpected happened.`, true)
@@ -197,6 +202,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur`, value, 'boolean');
       this.#renderingEngine.blur = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur: blur was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBlur: Something unexpected happened.`, true)
@@ -214,6 +220,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy`, value, 'boolean');
       this.#renderingEngine.blurSceneWhenBusy = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBlurSceneWhenBusy: Something unexpected happened.`, true)
@@ -231,6 +238,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha`, value, 'factor');
       this.#renderingEngine.clearAlpha = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha: clearAlpha was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateClearAlpha: Something unexpected happened.`, true)
@@ -248,6 +256,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor`, value, 'color');
       this.#renderingEngine.clearColor = this.#converter.toColor(value);
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor: clearColor was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateClearColor: Something unexpected happened.`, true)
@@ -265,6 +274,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap`, value, 'cubeMap');
       this.#renderingEngine.environmentMap = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: environmentMap was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMap: Something unexpected happened.`, true)
@@ -281,6 +291,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground`, value, 'boolean');
       this.#renderingEngine.environmentMapAsBackground = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground: environmentMapAsBackground was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMapAsBackground: Something unexpected happened.`, true)
@@ -298,6 +309,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution`, value, 'string');
       this.#renderingEngine.environmentMapResolution = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution: environmentMapResolution was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMapResolution: Something unexpected happened.`, true)
@@ -315,6 +327,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility`, value, 'boolean');
       this.#renderingEngine.gridVisibility = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility: gridVisibility was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateGridVisibility: Something unexpected happened.`, true)
@@ -332,6 +345,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility`, value, 'boolean');
       this.#renderingEngine.groundPlaneVisibility = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateGroundPlaneVisibility: Something unexpected happened.`, true)
@@ -351,6 +365,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
         this.#renderingEngine.lightScene = value;
         this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene: lightScene was set to: ${value}`);
       }
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).updateLightScene: Something unexpected happened.`, true)
@@ -368,6 +383,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize`, value, 'positive');
       this.#renderingEngine.pointSize = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize: pointSize was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updatePointSize: Something unexpected happened.`, true)
@@ -388,6 +404,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.isInitialized();
       this.#renderingEngine.renderingSettings = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateRenderingSettings: rendering settings were set to: ${JSON.stringify(value)}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateRenderingSettings: Something unexpected happened.`, true)
@@ -405,6 +422,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows`, value, 'boolean');
       this.#renderingEngine.shadows = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows: shadows was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShadows: Something unexpected happened.`, true)
@@ -422,6 +440,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow`, value, 'boolean');
       this.#renderingEngine.show = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow: show was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShow: Something unexpected happened.`, true)
@@ -439,6 +458,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics`, value, 'boolean');
       this.#renderingEngine.showStatistics = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics: showStatistics was set to: ${value}`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShowStatistics: Something unexpected happened.`, true)
@@ -637,6 +657,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera`, id, 'string');
       this.#renderingEngine.cameraEngine.assignCamera(id);
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Camera with id ${id} assigned.`);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).assignCamera: Something unexpected happened.`, true)
@@ -712,7 +733,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.name, 'string', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.standard, 'boolean', false);
       const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(props);
-      const lightScene = new LightScene(lightSceneLogic);
+      const lightScene = new LightScene(lightSceneLogic, this);
       this.#lightScenes[lightSceneLogic.id] = lightScene;
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: New light scene with id ${lightSceneLogic.id} created.`);
       if (lightSceneLogic.id) this.assignLightScene(lightSceneLogic.id);
@@ -821,7 +842,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       for(let lightSceneId in lightSceneIds) {
         if (!this.#lightScenes[lightSceneId]) {
           const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(lightSceneId);
-          this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic);
+          this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic, this);
         }
         if(this.#lightScenes[lightSceneId].lights[id])
           return this.#lightScenes[lightSceneId].lights[id];
@@ -848,7 +869,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
       if (!this.#lightScenes[id]) {
         const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(id);
-        this.#lightScenes[lightSceneLogic.id] = new LightScene(lightSceneLogic);
+        this.#lightScenes[lightSceneLogic.id] = new LightScene(lightSceneLogic, this);
       }
       return this.#lightScenes[id];
     } catch (e) {
@@ -979,6 +1000,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
       (<any>this.initialized) = true;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Viewer initialized.`);
+      this.update();
       return Promise.resolve();
     } catch (e) {
       if (e instanceof SDError) throw e;
@@ -1036,6 +1058,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).reset: Resetting Viewer.`);
       this.isInitialized();
       this.#renderingEngine.reset();
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).reset: Something unexpected happened.`, true)
@@ -1050,6 +1073,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, height, 'number');
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resized Viewer to ${width} / ${height}.`);
       this.#renderingEngine.resize(width, height);
+      this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).resize: Something unexpected happened.`, true)

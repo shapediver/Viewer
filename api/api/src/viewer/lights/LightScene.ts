@@ -18,6 +18,7 @@ export class LightScene implements ILightScene {
 
     readonly #lightSceneLogic: LightSceneLogic;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #viewer: Viewer;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #updateCB = () => {
         (<any>this.id) = this.#lightSceneLogic.id;
@@ -28,19 +29,19 @@ export class LightScene implements ILightScene {
             if(this.lights[l]) continue;
             switch (lightLogics[l].type){
                 case LIGHTTYPE.AMBIENT:
-                    this.lights[l] = new AmbientLight(<AmbientLightLogic>lightLogics[l]);
+                    this.lights[l] = new AmbientLight(<AmbientLightLogic>lightLogics[l], this.#viewer);
                     break;
                 case LIGHTTYPE.DIRECTIONAL:
-                    this.lights[l] = new DirectionalLight(<DirectionalLightLogic>lightLogics[l]);
+                    this.lights[l] = new DirectionalLight(<DirectionalLightLogic>lightLogics[l], this.#viewer);
                     break;
                 case LIGHTTYPE.HEMISPHERE:
-                    this.lights[l] = new HemisphereLight(<HemisphereLightLogic>lightLogics[l]);
+                    this.lights[l] = new HemisphereLight(<HemisphereLightLogic>lightLogics[l], this.#viewer);
                     break;
                 case LIGHTTYPE.POINT:
-                    this.lights[l] = new PointLight(<PointLightLogic>lightLogics[l]);
+                    this.lights[l] = new PointLight(<PointLightLogic>lightLogics[l], this.#viewer);
                     break;
                 case LIGHTTYPE.SPOT:
-                    this.lights[l] = new SpotLight(<SpotLightLogic>lightLogics[l]);
+                    this.lights[l] = new SpotLight(<SpotLightLogic>lightLogics[l], this.#viewer);
                     break;
             }
         }
@@ -67,8 +68,9 @@ export class LightScene implements ILightScene {
      * @ignore
      * @param light 
      */
-    constructor(lightSceneLogic: LightSceneLogic) {
+    constructor(lightSceneLogic: LightSceneLogic, viewer: Viewer) {
         this.#lightSceneLogic = lightSceneLogic;
+        this.#viewer = viewer;
         (<LightSceneLogicImplementation>this.#lightSceneLogic).addUpdateCB(this.#updateCB);
         this.#updateCB();
         this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).constructor: LightScene api created.`);
@@ -83,6 +85,7 @@ export class LightScene implements ILightScene {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).updateName`, value, 'string', false);
             this.#lightSceneLogic.name = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).updateName: name was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `LightScene(${this.id}).updateName: Something unexpected happened.`, true)

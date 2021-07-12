@@ -3,6 +3,7 @@ import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
+import { Viewer } from "../../Viewer";
 
 export class OrthographicCameraControls implements IOrthographicCameraControls {
     // #region Properties (23)
@@ -10,6 +11,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
     readonly #controls: OrthographicCameraControlsLogic;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #viewer: Viewer;
 
     readonly damping!: number
     readonly enableKeyPan!: boolean;
@@ -41,9 +43,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
      * @ignore
      * @param controls 
      */
-    constructor(controls: OrthographicCameraControlsLogic) {
+    constructor(controls: OrthographicCameraControlsLogic, viewer: Viewer) {
         try {
             this.#controls = controls;
+            this.#viewer = viewer;
             (<OrthographicCameraControlsLogic>this.#controls).addUpdateCB(this.#updateCB);
             this.#updateCB();
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).constructor: OrthographicCameraControlsLogic api created.`);
@@ -67,6 +70,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateDamping`, value, 'positive');
             this.#controls.damping = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateDamping: damping was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateDamping: Something unexpected happened.`, true)
@@ -83,6 +87,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableKeyPan`, value, 'boolean');
             this.#controls.enableKeyPan = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableKeyPan: enableKeyPan was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableKeyPan: Something unexpected happened.`, true)
@@ -99,6 +104,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnablePan`, value, 'boolean');
             this.#controls.enablePan = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnablePan: enablePan was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnablePan: Something unexpected happened.`, true)
@@ -115,6 +121,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableZoom`, value, 'boolean');
             this.#controls.enableZoom = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableZoom: enableZoom was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableZoom: Something unexpected happened.`, true)
@@ -131,6 +138,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnabled`, value, 'boolean');
             this.#controls.enabled = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnabled: enabled was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnabled: Something unexpected happened.`, true)
@@ -156,6 +164,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.touch.zoom, 'number');
             this.#controls.input = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput: input was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateInput: Something unexpected happened.`, true)
@@ -172,6 +181,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed`, value, 'factor');
             this.#controls.keyPanSpeed = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: keyPanSpeed was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: Something unexpected happened.`, true)
@@ -188,6 +198,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateMovementSmoothness`, value, 'factor');
             this.#controls.movementSmoothness = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateMovementSmoothness: movementSmoothness was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateMovementSmoothness: Something unexpected happened.`, true)
@@ -204,6 +215,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updatePanSpeed`, value, 'factor');
             this.#controls.panSpeed = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updatePanSpeed: panSpeed was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updatePanSpeed: Something unexpected happened.`, true)
@@ -220,6 +232,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomSpeed`, value, 'factor');
             this.#controls.zoomSpeed = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomSpeed: zoomSpeed was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateZoomSpeed: Something unexpected happened.`, true)

@@ -4,6 +4,7 @@ import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
+import { Viewer } from "../Viewer";
 
 export abstract class Light implements ILight {
     // #region Properties (10)
@@ -11,6 +12,7 @@ export abstract class Light implements ILight {
     readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #light: ILight;
+    readonly #viewer: Viewer;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #updateCB = () => {
         (<any>this.color) = this.#light.color;
@@ -36,8 +38,9 @@ export abstract class Light implements ILight {
      * @ignore
      * @param light 
      */
-    constructor(light: ILight) {
+    constructor(light: ILight, viewer: Viewer) {
         this.#light = light;
+        this.#viewer = viewer;
         (<AbstractLight>this.#light).addUpdateCB(this.#updateCB);
         this.#updateCB();
         this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).constructor: Light api created.`);
@@ -56,6 +59,7 @@ export abstract class Light implements ILight {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateColor`, value, 'color');
             this.#light.color = this.#converter.toColor(value);
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateColor: color was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateColor: Something unexpected happened.`, true)
@@ -71,6 +75,7 @@ export abstract class Light implements ILight {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateIntensity`, value, 'positive');
             this.#light.intensity = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateIntensity: intensity was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateIntensity: Something unexpected happened.`, true)
@@ -86,6 +91,7 @@ export abstract class Light implements ILight {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateName`, value, 'string', false);
             this.#light.name = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateName: name was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateName: Something unexpected happened.`, true)
@@ -101,6 +107,7 @@ export abstract class Light implements ILight {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateOrder`, value, 'number', false);
             this.#light.order = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateOrder: order was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateOrder: Something unexpected happened.`, true)

@@ -3,6 +3,7 @@ import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
 import { InputValidator } from "@shapediver/viewer.shared.utils";
 import { vec3 } from "gl-matrix";
 import { container } from "tsyringe";
+import { Viewer } from "../../Viewer";
 
 export class PerspectiveCameraControls implements IPerspectiveCameraControls {
     // #region Properties (23)
@@ -10,6 +11,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
     readonly #controls: PerspectiveCameraControlsLogic;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #viewer: Viewer;
 
     readonly autoRotationSpeed!: number
     readonly cubePositionRestriction!: { min: vec3, max: vec3 };
@@ -61,9 +63,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
      * @ignore
      * @param controls 
      */
-    constructor(controls: PerspectiveCameraControlsLogic) {
+    constructor(controls: PerspectiveCameraControlsLogic, viewer: Viewer) {
         try {
             this.#controls = controls;
+            this.#viewer = viewer;
             (<PerspectiveCameraControlsLogic>this.#controls).addUpdateCB(this.#updateCB);
             this.#updateCB();
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).constructor: PerspectiveCameraControlsLogic api created.`);
@@ -87,6 +90,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed`, value, 'number');
             this.#controls.autoRotationSpeed = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed: autoRotationSpeed was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed: Something unexpected happened.`, true)
@@ -104,6 +108,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubePositionRestriction`, value.max, 'vec3');
             this.#controls.cubePositionRestriction = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubePositionRestriction: cubePositionRestriction was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateCubePositionRestriction: Something unexpected happened.`, true)
@@ -121,6 +126,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction`, value.max, 'vec3');
             this.#controls.cubeTargetRestriction = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction: cubeTargetRestriction was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction: Something unexpected happened.`, true)
@@ -137,6 +143,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateDamping`, value, 'positive');
             this.#controls.damping = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateDamping: damping was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateDamping: Something unexpected happened.`, true)
@@ -153,6 +160,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableAutoRotation`, value, 'boolean');
             this.#controls.enableAutoRotation = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableAutoRotation: enableAutoRotation was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableAutoRotation: Something unexpected happened.`, true)
@@ -169,6 +177,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableKeyPan`, value, 'boolean');
             this.#controls.enableKeyPan = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableKeyPan: enableKeyPan was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableKeyPan: Something unexpected happened.`, true)
@@ -185,6 +194,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnablePan`, value, 'boolean');
             this.#controls.enablePan = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnablePan: enablePan was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnablePan: Something unexpected happened.`, true)
@@ -201,6 +211,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableRotation`, value, 'boolean');
             this.#controls.enableRotation = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableRotation: enableRotation was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableRotation: Something unexpected happened.`, true)
@@ -217,6 +228,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableZoom`, value, 'boolean');
             this.#controls.enableZoom = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableZoom: enableZoom was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableZoom: Something unexpected happened.`, true)
@@ -233,6 +245,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnabled`, value, 'boolean');
             this.#controls.enabled = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnabled: enabled was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnabled: Something unexpected happened.`, true)
@@ -258,6 +271,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.touch.zoom, 'number');
             this.#controls.input = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput: input was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateInput: Something unexpected happened.`, true)
@@ -274,6 +288,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed`, value, 'factor');
             this.#controls.keyPanSpeed = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: keyPanSpeed was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: Something unexpected happened.`, true)
@@ -290,6 +305,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateMovementSmoothness`, value, 'factor');
             this.#controls.movementSmoothness = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateMovementSmoothness: movementSmoothness was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateMovementSmoothness: Something unexpected happened.`, true)
@@ -306,6 +322,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updatePanSpeed`, value, 'factor');
             this.#controls.panSpeed = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updatePanSpeed: panSpeed was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updatePanSpeed: Something unexpected happened.`, true)
@@ -325,6 +342,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationRestriction`, value.maxAzimuthAngle, 'number');
             this.#controls.rotationRestriction = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationRestriction: rotationRestriction was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateRotationRestriction: Something unexpected happened.`, true)
@@ -341,6 +359,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationSpeed`, value, 'factor');
             this.#controls.rotationSpeed = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationSpeed: rotationSpeed was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateRotationSpeed: Something unexpected happened.`, true)
@@ -358,6 +377,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction`, value.radius, 'positive');
             this.#controls.spherePositionRestriction = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction: spherePositionRestriction was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction: Something unexpected happened.`, true)
@@ -375,6 +395,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction`, value.radius, 'positive');
             this.#controls.sphereTargetRestriction = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction: sphereTargetRestriction was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction: Something unexpected happened.`, true)
@@ -392,6 +413,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomRestriction`, value.maxDistance, 'number');
             this.#controls.zoomRestriction = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomRestriction: zoomRestriction was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateZoomRestriction: Something unexpected happened.`, true)
@@ -408,6 +430,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomSpeed`, value, 'factor');
             this.#controls.zoomSpeed = value;
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomSpeed: zoomSpeed was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateZoomSpeed: Something unexpected happened.`, true)

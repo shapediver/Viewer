@@ -29,11 +29,11 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
      * @param camera 
      */
     constructor(camera: PerspectiveCameraLogic, viewer: Viewer) {
-        super(camera);
+        super(camera, viewer);
         try {
             this.#camera = camera;
             this.#viewer = viewer;
-            this.controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls);
+            this.controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls, viewer);
             (<PerspectiveCameraLogic>this.#camera).addUpdateCB(this.#updateCB);
             this.#updateCB();
         } catch (e) {

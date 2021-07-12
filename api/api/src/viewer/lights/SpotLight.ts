@@ -4,12 +4,14 @@ import { vec3 } from "gl-matrix";
 import { InputValidator, SDError } from "@shapediver/viewer.shared.utils";
 import { container } from "tsyringe";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
+import { Viewer } from "../Viewer";
 
 export class SpotLight extends Light {
     // #region Properties (10)
 
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #light: SpotLightLogic;
+    readonly #viewer: Viewer;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #updateCB = () => {
         (<any>this.angle) = this.#light.angle;
@@ -35,9 +37,10 @@ export class SpotLight extends Light {
      * @ignore
      * @param light 
      */
-    constructor(light: SpotLightLogic) {
-        super(light);
+    constructor(light: SpotLightLogic, viewer: Viewer) {
+        super(light, viewer);
         this.#light = light;
+        this.#viewer = viewer;
         (<SpotLightLogic>this.#light).addUpdateCB(this.#updateCB);
         this.#updateCB();
     }
@@ -72,6 +75,7 @@ export class SpotLight extends Light {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay`, value, 'positive');
             this.#light.decay = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDecay: decay was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDecay: Something unexpected happened.`, true)
@@ -88,6 +92,7 @@ export class SpotLight extends Light {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance`, value, 'positive');
             this.#light.distance = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateDistance: distance was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDistance: Something unexpected happened.`, true)
@@ -104,6 +109,7 @@ export class SpotLight extends Light {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePenumbra`, value, 'positive');
             this.#light.penumbra = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePenumbra: penumbra was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updatePenumbra: Something unexpected happened.`, true)
@@ -120,6 +126,7 @@ export class SpotLight extends Light {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition`, value, 'vec3');
             this.#light.position = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updatePosition: position was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updatePosition: Something unexpected happened.`, true)
@@ -136,6 +143,7 @@ export class SpotLight extends Light {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateTarget`, value, 'vec3');
             this.#light.target = value;
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateTarget: target was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateTarget: Something unexpected happened.`, true)

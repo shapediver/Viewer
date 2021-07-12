@@ -30,11 +30,11 @@ export class OrthographicCamera extends Camera implements IOrthographicCamera {
      * @param camera 
      */
     constructor(camera: OrthographicCameraLogic, viewer: Viewer) {
-        super(camera);
+        super(camera, viewer);
         try {
             this.#camera = camera;
             this.#viewer = viewer;
-            this.controls = new OrthographicCameraControls(<OrthographicCameraControlsLogic>camera.controls);
+            this.controls = new OrthographicCameraControls(<OrthographicCameraControlsLogic>camera.controls, viewer);
             (<OrthographicCameraLogic>this.#camera).addUpdateCB(this.#updateCB);
             this.#updateCB();
         } catch (e) {

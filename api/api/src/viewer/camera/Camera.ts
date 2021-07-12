@@ -5,12 +5,14 @@ import { vec3 } from "gl-matrix";
 import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
 import { Box } from "@shapediver/viewer.shared.math";
 import { SDError } from "@shapediver/viewer.shared.utils";
+import { Viewer } from "../Viewer";
 export abstract class Camera implements ICamera {
     // #region Properties (15)
 
     readonly #camera: ICamera;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #viewer: Viewer;
 
     readonly autoAdjust!: boolean;
     readonly cameraMovementDuration!: number;
@@ -50,9 +52,10 @@ export abstract class Camera implements ICamera {
      * @ignore
      * @param camera 
      */
-    constructor(camera: ICamera) {
+    constructor(camera: ICamera, viewer: Viewer) {
         try {
             this.#camera = camera;
+            this.#viewer = viewer;
             (<AbstractCamera>this.#camera).addUpdateCB(this.#updateCB);
             this.#updateCB();
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor: Camera api created.`);
@@ -76,6 +79,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration`, value, 'positive');
             this.#camera.cameraMovementDuration = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration: cameraMovementDuration was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateCameraMovementDuration: Something unexpected happened.`, true)
@@ -92,6 +96,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition`, value, 'vec3');
             this.#camera.defaultPosition = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition: defaultPosition was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateDefaultPosition: Something unexpected happened.`, true)
@@ -108,6 +113,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget`, value, 'vec3');
             this.#camera.defaultTarget = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget: defaultTarget was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateDefaultTarget: Something unexpected happened.`, true)
@@ -124,6 +130,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls`, value, 'boolean');
             this.#camera.enableCameraControls = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls: enableCameraControls was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateEnableCameraControls: Something unexpected happened.`, true)
@@ -139,6 +146,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateOrder`, value, 'number', false);
             this.#camera.order = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateOrder: order was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateOrder: Something unexpected happened.`, true)
@@ -155,6 +163,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition`, value, 'vec3');
             this.#camera.position = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition: position was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updatePosition: Something unexpected happened.`, true)
@@ -171,6 +180,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp`, value, 'boolean');
             this.#camera.revertAtMouseUp = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp: revertAtMouseUp was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateRevertAtMouseUp: Something unexpected happened.`, true)
@@ -187,6 +197,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration`, value, 'positive');
             this.#camera.revertAtMouseUpDuration = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration: revertAtMouseUpDuration was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateRevertAtMouseUpDuration: Something unexpected happened.`, true)
@@ -203,6 +214,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget`, value, 'vec3');
             this.#camera.target = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget: target was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateTarget: Something unexpected happened.`, true)
@@ -219,6 +231,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor`, value, 'positive');
             this.#camera.zoomExtentsFactor = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor: zoomExtentsFactor was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateZoomExtentsFactor: Something unexpected happened.`, true)
@@ -316,6 +329,7 @@ export abstract class Camera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust`, value, 'boolean');
             this.#camera.autoAdjust = value;
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust: autoAdjust was set to: ${value}`);
+            this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateAutoAdjust: Something unexpected happened.`, true)
