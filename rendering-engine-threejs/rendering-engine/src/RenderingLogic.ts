@@ -40,6 +40,8 @@ export class RenderingLogic {
         this._width = this._renderingEngine.canvas.canvasElement.width;
         this._height = this._renderingEngine.canvas.canvasElement.height;
 
+        this._orthographicCameraThree.up.set(0,1,0);
+
         const properties = {
             alpha: true,
             depth: false,
@@ -164,7 +166,7 @@ export class RenderingLogic {
             const camera = <OrthographicCamera>this._renderingEngine.cameraEngine.getCamera()!;
             const aspect = width / height;
             const distance = vec3.distance(position, target) / 2;
-            this._orthographicCameraThree.up.set(0, 0, 1);
+            this._orthographicCameraThree.up.set(camera.up[0], camera.up[1], camera.up[2]);
             this._orthographicCameraThree.left = camera.left = -distance * aspect;
             this._orthographicCameraThree.bottom = camera.bottom = -distance;
             this._orthographicCameraThree.right = camera.right = distance * aspect;

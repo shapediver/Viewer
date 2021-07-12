@@ -17,6 +17,7 @@ export class OrthographicCamera extends AbstractCamera {
    private _left: number = 100;
    private _right: number = 100;
    private _top: number = 100;
+   private _up: vec3 = vec3.fromValues(0, 1, 0);
    private _direction: ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
 
    // #endregion Properties (5)
@@ -62,6 +63,26 @@ export class OrthographicCamera extends AbstractCamera {
     */
    public set direction(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
       this._direction = value;
+      switch (this._direction) {
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.TOP:
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM:
+            this.up = vec3.fromValues(0,1,0);
+            break;
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT:
+            this.up = vec3.fromValues(0,0,1);
+            break;
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT:
+            this.up = vec3.fromValues(0,0,1);
+            break;
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.BACK:
+            this.up = vec3.fromValues(0,0,1);
+            break;
+         case ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT:
+            this.up = vec3.fromValues(0,0,1);
+            break;
+         default:
+            this.up = vec3.fromValues(0,-1,0);
+      }
       this._updateCBs.forEach(v => v());
    }
 
@@ -113,6 +134,23 @@ export class OrthographicCamera extends AbstractCamera {
       this._top = value;
    }
 
+   /**
+    * Getter up
+    * @return {vec3}
+    */
+   public get up(): vec3 {
+      return this._up;
+   }
+
+   /**
+    * Setter up
+    * @param {vec3} value
+    */
+   public set up(value: vec3) {
+      this._up = value;
+      this._updateCBs.forEach(v => v());
+   }
+
    // #endregion Public Accessors (8)
 
    // #region Public Methods (3)
@@ -161,41 +199,40 @@ export class OrthographicCamera extends AbstractCamera {
       const factor = 2 * box.boundingSphere.radius * this.zoomExtentsFactor;
 
       const center = vec3.clone(box.boundingSphere.center);
-      const eps = 0.01;
       switch (this._direction) {
          case ORTHOGRAPHIC_CAMERA_DIRECTION.TOP:
             return {
-               position: vec3.fromValues(center[0], center[1]-eps, center[2] + factor),
+               position: vec3.fromValues(center[0], center[1], center[2] + factor),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM:
             return {
-               position: vec3.fromValues(center[0], center[1]-eps, center[2] - factor),
+               position: vec3.fromValues(center[0], center[1], center[2] - factor),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT:
             return {
-               position: vec3.fromValues(center[0] + factor, center[1], center[2]-eps),
+               position: vec3.fromValues(center[0] + factor, center[1], center[2]),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT:
             return {
-               position: vec3.fromValues(center[0] - factor, center[1], center[2]-eps),
+               position: vec3.fromValues(center[0] - factor, center[1], center[2]),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_CAMERA_DIRECTION.BACK:
             return {
-               position: vec3.fromValues(center[0]-eps, center[1] + factor, center[2]),
+               position: vec3.fromValues(center[0], center[1] + factor, center[2]),
                target: vec3.clone(center)
             }
          case ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT:
             return {
-               position: vec3.fromValues(center[0]-eps, center[1] - factor, center[2]),
+               position: vec3.fromValues(center[0], center[1] - factor, center[2]),
                target: vec3.clone(center)
             }
          default:
             return {
-               position: vec3.fromValues(center[0], center[1]-eps, center[2] + factor),
+               position: vec3.fromValues(center[0], center[1], center[2] + factor),
                target: vec3.clone(center)
             }
       }

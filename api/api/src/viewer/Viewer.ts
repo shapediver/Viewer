@@ -708,6 +708,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
       this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
+      this.assignCamera(cameraLogic.id);
       return this.#cameras[cameraLogic.id];
     } catch (e) {
       if (e instanceof SDError) throw e;
@@ -988,8 +989,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       container.registerInstance('renderingEngine', this.#renderingEngine);
 
       // default camera
-      const camera = this.createCamera(CAMERATYPE.PERSPECTIVE, 'default');
-      this.assignCamera(camera.id);
+      this.createCamera(CAMERATYPE.PERSPECTIVE, 'default');
 
       if (props.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
         await new Promise<void>(resolve => {

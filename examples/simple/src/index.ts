@@ -44,7 +44,7 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 
 
 (async () => {
-    const { ticket, modelViewUrl } = models['Material Test'];
-    let session = await api.createAndInitializeSession({ ticket: 'd5b7a2dbb34e54e05dbbd86d5c626b427557636ba743186e3bcbc3103abfda3b2ae3cc722cfa191b493bfb0e72e873cebe39a629ea908e8080d9d68ce45d8c3de8ec8dd680822c03cfe3b636ea3132a7c1da75cf97a56c4918570c7f3766c7b5da29c04eb6904b4c33ec5118420c3ab7b027d1d6b6cb1422c7d8eafd58d61f34-618144e478003c9e4ca81db572d929fc', modelViewUrl: modelViewUrls['eu-central-1'], id: 'mySession'});
+    const { ticket, modelViewUrl } = models['Test 5'];
+    let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 })();
