@@ -258,6 +258,7 @@ export class RenderingLogic {
             }
         }
         this._renderer.setSize(adjustedWidth, adjustedHeight);
+        this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
 
         this._renderer.domElement.style.width = width + 'px';
         this._renderer.domElement.style.height = height + 'px';

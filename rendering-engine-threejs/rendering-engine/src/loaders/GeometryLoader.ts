@@ -8,6 +8,7 @@ import { RenderingEngine } from '../RenderingEngine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
+import { RenderingLogic } from '../RenderingLogic';
 
 export class GeometryLoader {
     // #region Public Methods (1)
@@ -16,7 +17,7 @@ export class GeometryLoader {
     } = {};
     private _logger: Logger = <Logger>container.resolve(Logger);
 
-    constructor(private readonly _renderingEngine: RenderingEngine) { }
+    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _renderingLogic: RenderingLogic) { }
 
     /**
      * Create a geometry object with the provided geometry data.

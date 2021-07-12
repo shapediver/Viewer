@@ -4,6 +4,7 @@ import { vec4 } from 'gl-matrix';
 import { RenderingEngine } from '../RenderingEngine';
 import { main, entry } from "../shaders/PCSS";
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial';
+import { RenderingLogic } from '../RenderingLogic';
 
 export class MaterialLoader {
     // #region Properties (5)
@@ -16,12 +17,14 @@ export class MaterialLoader {
 
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
     private _textureEncoding: THREE.TextureEncoding = THREE.LinearEncoding;
+    private _pointSize: number = 1.0;
+    private _height: number = 1020;
 
     // #endregion Properties (5)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {
+    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _renderingLogic: RenderingLogic) {
         let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
         if (!shader.includes('PCSS implementation')) {
             shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
@@ -87,6 +90,19 @@ export class MaterialLoader {
                 if((<THREE.MeshStandardMaterial>this._materialLibrary[i]).map)
                     (<THREE.MeshStandardMaterial>this._materialLibrary[i]).map!.encoding = e;
                 (<THREE.MeshStandardMaterial>this._materialLibrary[i]).needsUpdate = true;
+            }
+        }
+    }
+    
+    public assignPointSize(p: number) {
+        const height = this._renderingLogic.renderer ? this._renderingLogic.renderer.getSize(new THREE.Vector2()).y : 1020;
+        if(height === this._height) return;
+        this._height = height;
+        this._pointSize = p * (this._height/3250);
+        for(let i = 0; i < this._materialLibrary.length; i++) {
+            if(this._materialLibrary[i] instanceof THREE.PointsMaterial) {
+                (<THREE.PointsMaterial>this._materialLibrary[i]).size = this._pointSize;
+                (<THREE.PointsMaterial>this._materialLibrary[i]).needsUpdate = true;
             }
         }
     }
@@ -305,6 +321,7 @@ export class MaterialLoader {
 
         let material: THREE.Material;
         if(materialSettings && materialSettings.mode === 0) {
+            properties.size = this._pointSize;
             material = new THREE.PointsMaterial(properties);
         } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
             material = new THREE.LineBasicMaterial(properties);

@@ -99,8 +99,8 @@ export class RenderingEngine implements IRenderingEngine {
 
         this._renderingLogic = new RenderingLogic(this);
         this._environmentMapLoader = new EnvironmentMapLoader(this, this._renderingLogic);
-        this._materialLoader = new MaterialLoader(this);
-        this._geometryLoader = new GeometryLoader(this);
+        this._materialLoader = new MaterialLoader(this, this._renderingLogic);
+        this._geometryLoader = new GeometryLoader(this, this._renderingLogic);
         this._htmlElementAnchorLoader = new HTMLElementAnchorLoader(this);
         this._lightLoader = new LightLoader(this);
         this._visibility = properties.visibility;
@@ -531,6 +531,7 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set pointSize(value: number) {
         this._pointSize = value;
+        this.materialLoader.assignPointSize(value)
         this._updateCBs.forEach(v => v());
     }
 
