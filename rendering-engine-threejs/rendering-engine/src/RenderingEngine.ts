@@ -89,26 +89,26 @@ export class RenderingEngine implements IRenderingEngine {
 
     constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE, logo: string }) {
         const originalConsoleLog = console.log;
-        console.log = (message: string) => { 
-            if(message.startsWith('THREE')) return;
+        console.log = (message) => { 
+            if(typeof message === 'string' && message.startsWith('THREE')) return;
             originalConsoleLog(message); 
         };
         
         const originalConsoleInfo = console.info;
-        console.info = (message: string) => { 
-            if(message.startsWith('THREE')) return;
+        console.info = (message) => { 
+            if(typeof message === 'string' && message.startsWith('THREE')) return;
             originalConsoleInfo(message); 
         };
 
         const originalConsoleWarn = console.warn;
-        console.warn = (message: string) => { 
-            if(message.startsWith('THREE')) return;
+        console.warn = (message) => { 
+            if(typeof message === 'string' && message.startsWith('THREE')) return;
             originalConsoleWarn(message); 
         };
 
         const originalConsoleError = console.error;
-        console.error = (message: string) => { 
-            if(message.startsWith('THREE')) return;
+        console.error = (message) => { 
+            if(typeof message === 'string' && message.startsWith('THREE')) return;
             originalConsoleError(message); 
         };
 
