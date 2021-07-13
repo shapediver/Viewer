@@ -11,11 +11,7 @@ export class SDGTFLoader {
     // #region Properties (5)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _implementedExtensions = ['KHR_materials_common'];
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     private _body!: ArrayBuffer;
     private _content!: ISDGTF_v1;

@@ -1,10 +1,11 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import * as THREE from 'three';
 import { container, singleton } from 'tsyringe';
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils';
+import { HttpClient, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils';
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1';
 import { Converter } from '@shapediver/viewer.shared.utils';
 import { AttributeData, GeometryData, MaterialData, PrimitiveData } from '@shapediver/viewer.shared.types';
+import { StateEngine } from '@shapediver/viewer.shared.services';
 
 enum JUSTIFICATION {
     TOP_LEFT = 'TL',
@@ -38,6 +39,8 @@ export class Tag3dEngine {
 
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private _font!: THREE.Font;
 
     // #endregion Properties (2)
@@ -45,7 +48,10 @@ export class Tag3dEngine {
     // #region Constructors (1)
 
     constructor() {
-        new THREE.FontLoader().load('https://viewer.shapediver.com/graphik_regular.typeface.json', r => this._font = r);
+        this._httpClient.get('https://viewer.shapediver.com/graphik_regular.typeface.json').then((fontJson) => {
+            this._font = new THREE.Font(fontJson.data);
+            this._stateEngine.fontLoaded.resolve(true);
+        });
     }
 
     // #endregion Constructors (1)
@@ -60,6 +66,9 @@ export class Tag3dEngine {
      */
     public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
         const node = new TreeNode('tag3d');
+
+        if(this._stateEngine.fontLoaded.resolved === false)
+            await this._stateEngine.fontLoaded;
 
         if (!content) {
             this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.'));

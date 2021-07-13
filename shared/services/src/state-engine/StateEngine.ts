@@ -10,6 +10,7 @@ export class StateEngine {
     private readonly _primarySessionLoaded: StatePromise<boolean>;
     private readonly _primarySettingsRegistered: StatePromise<boolean>;
     private readonly _firstViewerShown: StatePromise<boolean>;
+    private readonly _fontLoaded: StatePromise<boolean>;
 
     private readonly _customStates:  {
         [key: string]: StatePromise<boolean>
@@ -21,6 +22,7 @@ export class StateEngine {
         this._boundingBoxCreated = new StatePromise();
         this._primarySessionLoaded = new StatePromise();
         this._firstViewerShown = new StatePromise();
+        this._fontLoaded = new StatePromise();
         this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
             if((<any>e).loadAsPrimary) this._primarySettingsRegistered.resolve(true);
             if((<any>e).sessionId) this.getCustomState((<any>e).sessionId + '_settings_registered').resolve(true);
@@ -44,6 +46,10 @@ export class StateEngine {
 
     public get firstViewerShown(): StatePromise<boolean> {
         return this._firstViewerShown;
+    }
+
+    public get fontLoaded(): StatePromise<boolean> {
+        return this._fontLoaded;
     }
 
     
