@@ -89,27 +89,27 @@ export class RenderingEngine implements IRenderingEngine {
 
     constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE, logo: string }) {
         const originalConsoleLog = console.log;
-        console.log = (message) => { 
+        console.log = (message, ...arg) => { 
             if(typeof message === 'string' && message.startsWith('THREE')) return;
-            originalConsoleLog(message); 
+            originalConsoleLog(message, ...arg); 
         };
         
         const originalConsoleInfo = console.info;
-        console.info = (message) => { 
+        console.info = (message, ...arg) => { 
             if(typeof message === 'string' && message.startsWith('THREE')) return;
-            originalConsoleInfo(message); 
+            originalConsoleInfo(message, ...arg); 
         };
 
         const originalConsoleWarn = console.warn;
-        console.warn = (message) => { 
+        console.warn = (message, ...arg) => { 
             if(typeof message === 'string' && message.startsWith('THREE')) return;
-            originalConsoleWarn(message); 
+            originalConsoleWarn(message, ...arg); 
         };
 
         const originalConsoleError = console.error;
-        console.error = (message) => { 
+        console.error = (message, ...arg) => { 
             if(typeof message === 'string' && message.startsWith('THREE')) return;
-            originalConsoleError(message); 
+            originalConsoleError(message, ...arg); 
         };
 
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
