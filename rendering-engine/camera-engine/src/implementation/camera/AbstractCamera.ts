@@ -6,6 +6,7 @@ import { AbstractCameraControls } from '../controls/AbstractCameraControls';
 import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services';
 import { container } from 'tsyringe';
 import { Box } from '@shapediver/viewer.shared.math';
+import * as detectIt from 'detect-it';
 
 export abstract class AbstractCamera implements ICamera {
     // #region Properties (17)
@@ -22,6 +23,7 @@ export abstract class AbstractCamera implements ICamera {
     private _revertAtMouseUpDuration: number = 800;
     private _zoomExtentsFactor: number = 1;
 
+    protected readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     protected readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
@@ -35,7 +37,26 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {}
+    constructor(private readonly _id: string, private readonly _canvas: HTMLCanvasElement, private readonly _type: CAMERATYPE) {
+        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
+            if (this._autoAdjust === true) this.zoomTo();
+        });
+        const revert = () => {
+            if (this._revertAtMouseUp === true)
+                this.reset({ duration: this._revertAtMouseUpDuration });
+        };
+        this._canvas.addEventListener("mouseup", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+        this._canvas.addEventListener("mouseout", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+        this._canvas.addEventListener("touchend", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+
+        let zoomResizeTimeout: NodeJS.Timeout;
+        let mouseWheelEvent = /Firefox/i.test(navigator.userAgent) ? "DOMMouseScroll" : "mousewheel"; //FF doesn't recognize mousewheel as of FF3.x
+        this._canvas.addEventListener(mouseWheelEvent,
+            () => {
+                clearTimeout(zoomResizeTimeout);
+                zoomResizeTimeout = setTimeout(revert, 300);
+            }, detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+    }
 
     // #endregion Constructors (1)
 
@@ -304,14 +325,14 @@ export abstract class AbstractCamera implements ICamera {
     public async animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if (path.length === 0) return Promise.resolve(false);
 
-        if(!this._controls.isWithinRestrictions(path[path.length-1].position, path[path.length-1].target)) 
+        if (!this._controls.isWithinRestrictions(path[path.length - 1].position, path[path.length - 1].target))
             return Promise.resolve(false);
-        
+
         if (!options) options = {};
         options.duration = options.duration! >= 0 ? options.duration : this.cameraMovementDuration;
-    
+
         const res = await this._controls.animate(path, options);
-        if(res) {
+        if (res) {
             this._position = this._controls.position;
             this._target = this._controls.target;
         }
@@ -319,7 +340,7 @@ export abstract class AbstractCamera implements ICamera {
     }
 
     public reset(options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
-        if(vec3.equals(vec3.create(), this.defaultPosition) && vec3.equals(vec3.create(), this.defaultTarget)) {
+        if (vec3.equals(vec3.create(), this.defaultPosition) && vec3.equals(vec3.create(), this.defaultTarget)) {
             return this.zoomTo([], options);
         } else {
             return this.set(vec3.clone(this.defaultPosition), vec3.clone(this.defaultTarget), options);
@@ -329,7 +350,7 @@ export abstract class AbstractCamera implements ICamera {
     public async set(position: vec3, target: vec3, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if (!this._controls.isWithinRestrictions(position, target))
             return Promise.resolve(false);
-        
+
         if (!options) options = {};
         options.duration = options.duration! >= 0 ? options.duration : this.cameraMovementDuration;
 
@@ -354,7 +375,7 @@ export abstract class AbstractCamera implements ICamera {
     }
 
     public zoomTo(zoomTarget?: string[] | Box, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
-        const { position, target} = this.getZoomPositionAndTarget(zoomTarget)
+        const { position, target } = this.getZoomPositionAndTarget(zoomTarget)
         return this.set(position, target, options);
     }
 
@@ -366,7 +387,7 @@ export abstract class AbstractCamera implements ICamera {
     abstract project(p: vec3): vec2;
     abstract applySettings(): void;
 
-    
+
     public addUpdateCB(value: () => void) {
         this._updateCBs.push(value)
     }

@@ -20,9 +20,9 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #region Constructors (1)
 
-  constructor(id: string, _canvas: HTMLCanvasElement) {
-    super(id, CAMERATYPE.PERSPECTIVE);
-    this._controls = new PerspectiveCameraControls(this, _canvas, true);
+  constructor(id: string, canvas: HTMLCanvasElement) {
+    super(id, canvas, CAMERATYPE.PERSPECTIVE);
+    this._controls = new PerspectiveCameraControls(this, canvas, true);
   }
 
   // #endregion Constructors (1)

@@ -24,9 +24,9 @@ export class OrthographicCamera extends AbstractCamera {
 
    // #region Constructors (1)
 
-   constructor(id: string, _canvas: HTMLCanvasElement) {
-      super(id, CAMERATYPE.ORTHOGRAPHIC);
-      this._controls = new OrthographicCameraControls(this, _canvas, true);
+   constructor(id: string, canvas: HTMLCanvasElement) {
+      super(id, canvas, CAMERATYPE.ORTHOGRAPHIC);
+      this._controls = new OrthographicCameraControls(this, canvas, true);
    }
 
    // #endregion Constructors (1)
