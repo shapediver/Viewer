@@ -187,7 +187,7 @@ export class MaterialData extends AbstractTreeNodeData {
   private _aoMapIntensity: number = 1.0;
   private _bumpMap?: MapData;
   private _bumpScale: number = 1.0;
-  private _color?: string;
+  private _color: string = '#00fff7';
   private _convertedObjects: ISDObject[] = [];
   private _emissiveMap?: MapData;
   private _emissiveness?: string;
@@ -408,17 +408,17 @@ export class MaterialData extends AbstractTreeNodeData {
 
   /**
    * Getter color
-   * @return {string | undefined}
+   * @return {string}
    */
-  public get color(): string | undefined {
+  public get color(): string {
     return this._color;
   }
 
   /**
    * Setter color
-   * @param {string | undefined} value
+   * @param {string} value
    */
-  public set color(value: string | undefined) {
+  public set color(value: string) {
     this._color = value;
   }
 

@@ -225,7 +225,7 @@ export class GLTFLoader {
             if(primitive.material) {
                 material = await this.loadMaterial(primitive.material);
             } else {
-                material = new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 });
+                material = new MaterialData({ roughness: 1, metalness: 0 });
             }
 
             const geometry = new GeometryData(new PrimitiveData(attributes, 4, await this.loadAccessor(primitive.indices!), material));
