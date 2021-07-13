@@ -33,7 +33,7 @@ export class HTMLElementAnchorLoader {
         this._htmlElements[anchor.id] = anchor;
     }
 
-    public adjustPositions(): void {
+    public adjustPositions(scaleWidth: number, scaleHeight: number): void {
         for (let anchorId in this._htmlElements) {
             const anchor = this._htmlElements[anchorId];
             const { page, container, client, hidden } = this._renderingEngine.convert3Dto2D(vec3.clone(anchor.location));
@@ -61,6 +61,9 @@ export class HTMLElementAnchorLoader {
             } else {
                 y = container[1] - htmlElement.offsetHeight / 2;
             }
+
+            x = x / scaleWidth;
+            y = y / scaleHeight;
 
             htmlElement.style.left = x + 'px';
             htmlElement.style.top = y + 'px';

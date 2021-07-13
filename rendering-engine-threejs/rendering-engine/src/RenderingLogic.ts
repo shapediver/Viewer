@@ -259,13 +259,14 @@ export class RenderingLogic {
                 adjustedHeight = 1080;
             }
         }
+        
         this._renderer.setSize(adjustedWidth, adjustedHeight);
         this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
 
         this._renderer.domElement.style.width = width + 'px';
         this._renderer.domElement.style.height = height + 'px';
 
-        this._renderingEngine.htmlElementAnchorLoader.adjustPositions();
+        this._renderingEngine.htmlElementAnchorLoader.adjustPositions(adjustedWidth / width, adjustedHeight / height);
 
         // beauty rendering is active
         if (this._beautyRenderer.beautyRenderingActive) {
