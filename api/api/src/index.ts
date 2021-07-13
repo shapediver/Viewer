@@ -27,6 +27,7 @@ import { Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from "./session/Para
 import { FileParameter } from "./session/FileParameter";
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from "@shapediver/api.geometry-api-dto-v1";
 import { Light } from "./viewer/lights/Light";
+import { Camera } from "./viewer/camera/Camera";
 
 export const api: Api = <Api>container.resolve(Api);
 
@@ -43,7 +44,7 @@ export {
 }
 
 export {
-    PerspectiveCamera, PerspectiveCameraControls, OrthographicCamera, OrthographicCameraControls
+    Camera, PerspectiveCamera, PerspectiveCameraControls, OrthographicCamera, OrthographicCameraControls
 }
 
 export {
