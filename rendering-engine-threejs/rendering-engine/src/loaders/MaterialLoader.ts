@@ -319,6 +319,10 @@ export class MaterialLoader {
             properties.side = THREE.DoubleSide;
         }
 
+        // THREE.JS is stupid and logs millions of warnings, this is how we avoid them PART 1
+        const oldConsoleWarn = console.warn;
+        console.warn = () => {};
+
         let material: THREE.Material;
         if(materialSettings && materialSettings.mode === 0) {
             properties.size = this._pointSize;
@@ -349,6 +353,9 @@ export class MaterialLoader {
                 };
             }
         }
+
+        // THREE.JS is stupid and logs millions of warnings, this is how we avoid them PART 2
+        console.warn = oldConsoleWarn;
 
         if (materialSettings && materialSettings.useVertexTangents) {
             (<any>material).vertexTangents = true;
