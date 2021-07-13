@@ -196,7 +196,8 @@ export class GeometryLoader {
                 case 'TEXCOORD_0':
                 case 'TEXCOORD0':
                 case 'TEXCOORD':
-                    geometry.setAttribute('uv', buffer);
+                case 'UV':
+                            geometry.setAttribute('uv', buffer);
                     break;
                 case 'TEXCOORD_1':
                     geometry.setAttribute('uv2', buffer);

@@ -88,6 +88,30 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Constructors (1)
 
     constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE, logo: string }) {
+        const originalConsoleLog = console.log;
+        console.log = (message: string) => { 
+            if(message.startsWith('THREE')) return;
+            originalConsoleLog(message); 
+        };
+        
+        const originalConsoleInfo = console.info;
+        console.info = (message: string) => { 
+            if(message.startsWith('THREE')) return;
+            originalConsoleInfo(message); 
+        };
+
+        const originalConsoleWarn = console.warn;
+        console.warn = (message: string) => { 
+            if(message.startsWith('THREE')) return;
+            originalConsoleWarn(message); 
+        };
+
+        const originalConsoleError = console.error;
+        console.error = (message: string) => { 
+            if(message.startsWith('THREE')) return;
+            originalConsoleError(message); 
+        };
+
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
         this._id = properties.id;
         this._canvas = this._canvasEngine.createCanvasObject(properties.canvas);
