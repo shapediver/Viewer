@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ShapeDiver</title>
+    <!-- ShapeDiver Viewer -->
+    <script defer src="https://viewer.shapediver.com/v2/2.17.0/sdv.concat.min.js"></script>
+    <link rel='stylesheet' type='text/css' href='https://viewer.shapediver.com/v2/2.17.0/sdv.css'>
+</head>
+
+<body>
+    <div style="width: 100%; height: 10%; display: flex; position: absolute; left: 0%; top: 0%">
+        <form>
+            <label for="ticket">Ticket:</label>
+            <input type="text" id="ticket">
+            <label for="modelViewUrl">ModelViewUrl:</label>
+            <input type="text" id="modelViewUrl">
+            <input type="button" id="submitButton">
+        </form>
+    </div>
+    <div style="width: 50%; height: 90%; display: flex; position: absolute; left: 0%; top: 10%">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div id='sdv-container' style="width:50%;height: 90%;display: flex; position: absolute; left: 50%; top: 10%;"></div>
+    <script type="module" src="./bundle.js"></script>
+</body>
+
+</html>
