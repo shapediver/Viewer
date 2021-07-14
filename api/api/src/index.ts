@@ -1,4 +1,4 @@
-import { CAMERATYPE } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { container } from "tsyringe";
 import { LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { RENDERERTYPE, VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
@@ -32,7 +32,7 @@ import { Camera } from "./viewer/camera/Camera";
 export const api: Api = <Api>container.resolve(Api);
 
 export {
-    RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION
+    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION
 }
 
 export {
