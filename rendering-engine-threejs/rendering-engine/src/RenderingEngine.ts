@@ -855,8 +855,8 @@ export class RenderingEngine implements IRenderingEngine {
         const trace = (root: TreeNode) => {
             for (let i = 0; i < root.data.length; i++)
                 if (root.data[i] instanceof GeometryData) {
-                    const distance = (<GeometryData>root.data[i]).boundingBox.intersect(origin, direction);
-                    if (distance) tracingData.push({ distance, data: <GeometryData>root.data[i] })
+                    const dist = (<GeometryData>root.data[i]).intersect(origin, direction);
+                    if (dist) tracingData.push({ distance: dist, data: <GeometryData>root.data[i] })
                 }
             for (let i = 0; i < root.children.length; i++)
                 trace(root.children[i]);
@@ -866,7 +866,6 @@ export class RenderingEngine implements IRenderingEngine {
         tracingData.sort((a: { distance: number, data: GeometryData }, b: { distance: number, data: GeometryData }) => {
             return a.distance - b.distance;
         })
-
         return tracingData;
     }
 

@@ -1,9 +1,9 @@
-import { mat4 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
 import { MaterialData } from './MaterialData';
 import { ISDObject } from '.';
-import { Box } from '@shapediver/viewer.shared.math';
+import { Box, Triangle } from '@shapediver/viewer.shared.math';
 
 export enum PRIMITIVE_MODE {
 	POINTS = 0,
@@ -335,6 +335,11 @@ export class GeometryData extends AbstractTreeNodeData {
   // #endregion Public Accessors (5)
 
   // #region Public Methods (1)
+
+  public intersect(origin: vec3, direction: vec3): number | null {
+    if(this.primitive.mode !== PRIMITIVE_MODE.TRIANGLES) return null;
+    return this.boundingBox.intersect(origin, direction);
+  }
 
   /**
    * Clones the scene graph data.
