@@ -106,28 +106,38 @@ export class OutputLoader {
             }
         };
 
-        const getMaterialData = (node: TreeNode): MaterialData | null => {
+        const getMaterialData = (node: TreeNode, materials: MaterialData[] = []): MaterialData[] => {
             for (let k = 0; k < node.data.length; k++)
                 if (node.data[k] instanceof MaterialData)
-                    return <MaterialData>node.data[k];
+                    materials.push(<MaterialData>node.data[k]);
             
             for (let k = 0; k < node.children.length; k++) {
                 const child = node.children[k];
                 if(!child) continue;
-                let material = getMaterialData(child);
-                if (material) return material;
+                materials.push(...getMaterialData(child));
             }
 
-            return null;
+            return materials;
         }
 
+        const getGeometryData = (node: TreeNode, geometries: GeometryData[] = []): GeometryData[] => {
+            for (let k = 0; k < node.data.length; k++)
+                if (node.data[k] instanceof GeometryData)
+                    geometries.push(<GeometryData>node.data[k]);
+            
+            for (let k = 0; k < node.children.length; k++) {
+                const child = node.children[k];
+                if(!child) continue;
+                geometries.push(...getGeometryData(child));
+            }
+            return geometries;
+        }
 
         for (let m = 0; m < node.children.length; m++) {
             // per output node, we go through the material assignment process
             const outputNode = node.children[m];
             if (!outputNode) continue;
 
-            let material: MaterialData | null = null;
 
             // we go through all data properties, normally, there should ony one, but we just make sure
             for (let i = 0; i < outputNode.data.length; i++) {
@@ -140,35 +150,38 @@ export class OutputLoader {
                 // case 1: we have a specific material id defined, let's use that
                 if(sessionOutputData.sessionOutput.material) {
 
+                    let materials: MaterialData[] = [];
                     // now we have id
                     // get material with it    
                     for (let n = 0; n < node.children.length; n++) {
                         const materialNode = node.children[n];
                         if (!materialNode) continue;
                         if (materialNode.name === sessionOutputData.sessionOutput.material)
-                            material = getMaterialData(materialNode);
+                            materials = getMaterialData(materialNode);
                     }
-                    if (material)
-                        addMaterialToGeometry(outputNode, material);
+
+                    const geometries = getGeometryData(outputNode);
+
+                    if(materials.length === geometries.length) {
+                        for (let n = 0; n < geometries.length; n++)
+                            geometries[n].primitive.material = materials[n];
+                    } else {
+                        if (materials.length >= 1)
+                            for (let n = 0; n < geometries.length; n++)
+                                geometries[n].primitive.material = materials[0];
+                    }
                 } 
                 // case 2: there is no specific material id defined, maybe in the content we can match geometries to ids
                 else {
                     // now we hope that in our content, there are exactly the amount of geometries and material, this will be interesting :)
                     const sessionOutputContent = sessionOutputData.sessionOutput.content;
                     if(sessionOutputContent === undefined) continue;
-                    const materials = [];
-                    const geometries = [];
-                    for (let n = 0; n < outputNode.children.length; n++) {
-                        if(outputNode.children[n].children[0] && outputNode.children[n].children[0].data[0] && outputNode.children[n].children[0].data[0] instanceof MaterialData) {
-                            materials.push(getMaterialData(outputNode.children[n].children[0])!)
-                        } else if(outputNode.children[n].children[0]) {
-                            geometries.push(outputNode.children[n].children[0])
-                        }
-                    }
+                    const materials = getMaterialData(outputNode);
+                    const geometries = getGeometryData(outputNode);
                     
                     if(materials.length === geometries.length) {
                         for (let n = 0; n < geometries.length; n++)
-                            addMaterialToGeometry(geometries[n], materials[n])
+                            geometries[n].primitive.material = materials[n];
                     }
                 }
             }
