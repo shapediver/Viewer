@@ -22,15 +22,15 @@ export class LightEngine implements ILightEngine {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    private readonly _defaultLightScene: LightScene;
+    private readonly _standardLightScene: LightScene;
 
     // #endregion Properties (6)
 
     // #region Constructors (1)
 
     constructor() {
-        this._defaultLightScene = <LightScene>this.createLightScene({ name: 'default', standard: true });
-        this._lightScenes[this._defaultLightScene.id] = this._defaultLightScene;
+        this._standardLightScene = <LightScene>this.createLightScene({ name: 'standard', standard: true });
+        this._lightScenes[this._standardLightScene.id] = this._standardLightScene;
     }
 
     // #endregion Constructors (1)
@@ -121,7 +121,7 @@ export class LightEngine implements ILightEngine {
     }
 
     public removeLightScene(id: string): boolean {
-        if (id === this._defaultLightScene.id) return false;
+        if (id === this._standardLightScene.id) return false;
         if (!this._lightScenes[id]) {
             for(let lightSceneId in this._lightScenes) {
                 const lightScene = this._lightScenes[lightSceneId];
@@ -131,7 +131,7 @@ export class LightEngine implements ILightEngine {
             return false;
         }
         if (this._currentLightScene.id === id)
-            this.assignLightScene(this._defaultLightScene.id);
+            this.assignLightScene(this._standardLightScene.id);
         delete this._lightScenes[id];
         return true;
     }
@@ -225,12 +225,12 @@ export class LightEngine implements ILightEngine {
 
     public applySettings(): void {
         this._lightScenes = {};
-        let defaultLS = false;
+        let standardLS = false;
 
         for (let lightSceneId in this._settingsEngine.lights.lightScenes.value) {
             const lightSceneUUID = this._uuidGenerator.validate(lightSceneId) ? lightSceneId : this._uuidGenerator.create();
             const lightSceneName = this._settingsEngine.lights.lightScenes.value[lightSceneId].name ? this._settingsEngine.lights.lightScenes.value[lightSceneId].name : lightSceneId;
-            if(lightSceneName === 'default') defaultLS = true;
+            if(lightSceneName === 'default' || lightSceneName === 'standard') standardLS = true;
             const ls = new LightScene({id: lightSceneUUID, name: lightSceneName});
             for (let lightId in this._settingsEngine.lights.lightScenes.value[lightSceneId].lights) {
                 const lightUUID = this._uuidGenerator.validate(lightId) ? lightId : this._uuidGenerator.create();
@@ -300,14 +300,14 @@ export class LightEngine implements ILightEngine {
             this._lightScenes[ls.id] = ls;
         }
 
-        if(!defaultLS)
-            this._lightScenes[this._defaultLightScene.id] = this._defaultLightScene;
+        if(!standardLS)
+            this._lightScenes[this._standardLightScene.id] = this._standardLightScene;
 
         if (this._settingsEngine.lights.lightScene.value)
             this.assignLightScene(this._settingsEngine.lights.lightScene.value);
 
         if(!Object.keys(this._lightScenes).includes(this.getLightScene().id))
-            this.assignLightScene('default');
+            this.assignLightScene('standard');
     }
 
     // #endregion Public Methods (14)

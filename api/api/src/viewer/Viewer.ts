@@ -988,8 +988,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#updateCB();
       container.registerInstance('renderingEngine', this.#renderingEngine);
 
-      // default camera
-      this.createCamera(CAMERATYPE.PERSPECTIVE, 'default');
+      // standard camera
+      this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
 
       if (props.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
         await new Promise<void>(resolve => {

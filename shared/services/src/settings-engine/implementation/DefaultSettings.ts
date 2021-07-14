@@ -81,7 +81,7 @@ export const DefaultSettings = {
             gridVisibility: <ISetting<boolean>> new BooleanSetting(true, 'Show / hide the grid'),
             groundPlaneVisibility: <ISetting<boolean>> new BooleanSetting(true, 'Show / hide the ground plane'),
             lights: {
-                lightScene: <ISetting<string>> new StringSetting('default'),
+                lightScene: <ISetting<string>> new StringSetting('standard'),
                 lightScenes: <ISetting<any>> new CustomSetting({}),
             },
             material: {

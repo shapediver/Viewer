@@ -65,7 +65,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _groundPlane!: THREE.Mesh;
     private _groundPlaneObject!: SDObject;
     private _groundPlaneVisibility: boolean = true;
-    private _lightScene: string = 'default';
+    private _lightScene: string = 'standard';
     private _logoDivElement: HTMLDivElement;
     private _pointSize: number = 1.0;
     private _renderingSettings: {

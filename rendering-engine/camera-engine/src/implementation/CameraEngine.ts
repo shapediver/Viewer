@@ -47,42 +47,42 @@ export class CameraEngine implements ICameraEngine {
     public applySettings() {
         switch (this._settingsEngine.camera.cameraTypes.active.value) {
             case 1:
-                const cameraTop = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultTop');
+                const cameraTop = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'standardTop');
                 (<OrthographicCamera>cameraTop).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
                 this.assignCamera(cameraTop.id);
                 break;
             case 2:
-                const cameraBottom = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultBottom');
+                const cameraBottom = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'standardBottom');
                 (<OrthographicCamera>cameraBottom).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM;
                 this.assignCamera(cameraBottom.id);
                 break;
             case 3:
-                const cameraRight = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultRight');
+                const cameraRight = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'standardRight');
                 (<OrthographicCamera>cameraRight).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT;
                 this.assignCamera(cameraRight.id);
                 break;
             case 4:
-                const cameraLeft = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultLeft');
+                const cameraLeft = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'standardLeft');
                 (<OrthographicCamera>cameraLeft).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT;
                 this.assignCamera(cameraLeft.id);
                 break;
             case 5:
-                const cameraBack = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultBack');
+                const cameraBack = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'standardBack');
                 (<OrthographicCamera>cameraBack).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
                 this.assignCamera(cameraBack.id);
                 break;
             case 6:
-                const cameraFront = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'defaultFront');
+                const cameraFront = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, 'standardFront');
                 (<OrthographicCamera>cameraFront).direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
                 this.assignCamera(cameraFront.id);
                 break;
             default:
                 let cameraPerspective;
                 for(let c in this.getCameras()) 
-                    if(this.getCameras()[c].id === 'default' && this.getCameras()[c].type === CAMERATYPE.PERSPECTIVE)
+                    if(this.getCameras()[c].id === 'standard' && this.getCameras()[c].type === CAMERATYPE.PERSPECTIVE)
                         cameraPerspective = this.getCameras()[c];
 
-                if(!cameraPerspective) cameraPerspective = this.createCamera(CAMERATYPE.PERSPECTIVE, 'default');
+                if(!cameraPerspective) cameraPerspective = this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
                 this.assignCamera(cameraPerspective.id);
         }
         for (let c in this._cameras)
