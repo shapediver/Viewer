@@ -185,6 +185,34 @@ const execPromise = (cmd: string) => {
             }, (err) => { if (err) console.log(err) });
         });
 
+        const directoryPathGltf = 'examples/gltf/dist-prod/';
+        const fileContentsGltf = <string[]>recursiveReadSync(directoryPathGltf);
+        fileContentsGltf.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + 'gltf/' + f.substring(directoryPathGltf.length, f.length).replace(/\\/g, '/'),
+                Body: pako.gzip(fs.readFileSync(f)),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        const directoryPathCompare = 'examples/compare/dist-prod/';
+        const fileContentsCompare = <string[]>recursiveReadSync(directoryPathCompare);
+        fileContentsCompare.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + 'compare/' + f.substring(directoryPathCompare.length, f.length).replace(/\\/g, '/'),
+                Body: pako.gzip(fs.readFileSync(f)),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
+            }, (err) => { if (err) console.log(err) });
+        });
+
         await execPromise(`git tag -a v${'3.' + newVersion} -m "deployed viewer version ${'3.' + newVersion}"`);
         await execPromise(`git push origin v${'3.' + newVersion}`);
 

@@ -36,22 +36,6 @@ const execPromise = (cmd: string) => {
                 ContentEncoding: 'gzip'
             }, (err) => { if (err) console.log(err) });
         });
-
-        console.log(await execPromise('cd examples/gltf && npm run build-prod && cd ../..'));
-
-        const directoryPathGltf = 'examples/gltf/dist-prod/';
-        const fileContentsGltf = <string[]>recursiveReadSync(directoryPathGltf);
-        fileContentsGltf.map(function (f, cb) {
-            s3.putObject({
-                Bucket: bucketName,
-                Key: prefixLatest + 'gltf/' + f.substring(directoryPathGltf.length, f.length).replace(/\\/g, '/'),
-                Body: pako.gzip(fs.readFileSync(f)),
-                ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
-                CacheControl: 'max-age=3600',
-                ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err) });
-        });
     } catch (e) {
         console.log(e)
     }
