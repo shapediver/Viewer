@@ -18,6 +18,9 @@ export class CameraEngine implements ICameraEngine {
     private readonly _cameras: {
         [key: string]: Camera
     } = {};
+    private readonly _camerasDomEventListenerToken: {
+        [key: string]: string
+    } = {};
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -25,7 +28,7 @@ export class CameraEngine implements ICameraEngine {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     protected _boundingBox: Box = new Box();
 
-    private _camera!: Camera;
+    private _camera: Camera | null = null;
     private _settingsApplied: boolean = false;
 
     // #endregion Properties (3)
@@ -102,7 +105,7 @@ export class CameraEngine implements ICameraEngine {
         if (this._cameras[cameraId]) this._logger.error(LOGGINGTOPIC.CAMERA, new SDError(`Camera: Camera (${type}) with this id (${cameraId}) already exists.`));
         if (CAMERATYPE.ORTHOGRAPHIC === type) {
             const camera = new OrthographicCamera(cameraId, this._canvas.canvasElement);
-            this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
+            this._camerasDomEventListenerToken[cameraId] = this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
             camera.boundingBox = this._boundingBox.clone();
             if(this._settingsApplied) {
@@ -113,7 +116,7 @@ export class CameraEngine implements ICameraEngine {
             return camera;
         } else {
             const camera = new PerspectiveCamera(cameraId, this._canvas.canvasElement);
-            this._domEventEngine.addDomEventListener((<PerspectiveCameraControls>camera.controls).cameraControlsEventDistribution);
+            this._camerasDomEventListenerToken[cameraId] = this._domEventEngine.addDomEventListener((<PerspectiveCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
             camera.boundingBox = this._boundingBox.clone();
             if(this._settingsApplied) {
@@ -144,6 +147,17 @@ export class CameraEngine implements ICameraEngine {
 
     public hasCamera(): boolean {
         return this._camera ? true : false;
+    }
+
+    public removeCamera(id: string): boolean {
+        const camera = this._cameras[id];
+        if(!camera) return false;
+        this._domEventEngine.removeDomEventListener(this._camerasDomEventListenerToken[id])
+        if(this._camera && this._camera.id === id) 
+            this._camera = null;
+        delete this._cameras[id];
+        delete this._camerasDomEventListenerToken[id];
+        return true;
     }
 
     // #endregion Public Methods (5)

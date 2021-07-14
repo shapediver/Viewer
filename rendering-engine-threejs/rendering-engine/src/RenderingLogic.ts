@@ -224,7 +224,6 @@ export class RenderingLogic {
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
 
-        if (!this._renderingEngine.cameraEngine.hasCamera()) return;
         this._stats.begin();
 
         this.blurScene();
@@ -235,9 +234,13 @@ export class RenderingLogic {
             height = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientHeight;
         }
 
-        this._renderingEngine.logoDivElement.style.display = this._renderingEngine.show ? 'none' : 'inherit';
-        this._renderingEngine.canvas.canvasElement.style.display = !this._renderingEngine.show ? 'none' : 'inherit';
+        const logo: boolean = this._renderingEngine.cameraEngine.hasCamera() && this._renderingEngine.show;
+        if(this._renderingEngine.logoDivElement) {
+            this._renderingEngine.logoDivElement.style.display = logo ? 'none' : 'inherit';
+            this._renderingEngine.canvas.canvasElement.style.display = !logo ? 'none' : 'inherit';
+        }
 
+        if (!this._renderingEngine.cameraEngine.hasCamera()) return;
         const camera = this.adjustCamera(deltaTime, width, height);
 
         if (this._noNeedToRender === true) return;

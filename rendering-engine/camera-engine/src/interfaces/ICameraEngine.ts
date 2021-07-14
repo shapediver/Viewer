@@ -12,4 +12,5 @@ export interface ICameraEngine {
     getCamera(id?: string): ICamera | null;
     getCameras(): { [key: string]: ICamera };
     hasCamera(): boolean;
+    removeCamera(id: string): boolean;
 }

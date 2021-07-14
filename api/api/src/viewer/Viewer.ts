@@ -753,12 +753,12 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param id the id of the camera
    * @returns 
    */
-  public createOrthographicCamera(id?: string): Camera {
+  public createOrthographicCamera(id?: string): OrthographicCamera {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Creating OrthographicCamera with id ${id}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera`, id, 'string', false);
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Orthographic camera with id ${id} created.`);
-      return this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
+      return <OrthographicCamera>this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).createOrthographicCamera: Something unexpected happened.`, true)
@@ -772,12 +772,12 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param id the id of the camera
    * @returns 
    */
-  public createPerspectiveCamera(id?: string): Camera {
+  public createPerspectiveCamera(id?: string): PerspectiveCamera {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Creating PerspectiveCamera with id ${id}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera`, id, 'string', false);
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Perspective camera with id ${id} created.`);
-      return this.createCamera(CAMERATYPE.PERSPECTIVE, id);
+      return <PerspectiveCamera>this.createCamera(CAMERATYPE.PERSPECTIVE, id);
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
@@ -1005,6 +1005,30 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).init: Something unexpected happened.`, true)
+    }
+  }
+  
+
+  /**
+   * Remove the camera with the specified id.
+   * 
+   * @param id the id of the camera
+   * @returns 
+   */
+   public removeCamera(id: string): boolean {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Removing Camera with id ${id}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera`, id, 'string');
+      const r = this.#renderingEngine.cameraEngine.removeCamera(id);
+      if (r) delete this.#cameras[id];
+      if (r) this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Camera with id ${id} removed.`);
+      if (!r) this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Could not remove camera with id ${id}.`);
+      this.update();
+      return r;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).removeCamera: Something unexpected happened.`, true)
     }
   }
 
