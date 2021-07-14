@@ -218,7 +218,7 @@ describe('light-engine', () => {
     });
 
     it('getLightScene name', async () => {
-        expect(lightEngine.getLightScene().name).toBe('default')
+        expect(lightEngine.getLightScene().name).toBe('standard')
     });
     
     it('removeLight empty', async () => {
@@ -230,13 +230,13 @@ describe('light-engine', () => {
     });
 
     it('removeLightScene 1', async () => {
-        expect(lightEngine.removeLightScene('default')).toBe(false)
+        expect(lightEngine.removeLightScene('standard')).toBe(false)
     });
 
     it('removeLightScene 2', async () => {
         const lightScene = lightEngine.createLightScene({name: 'something'});
         lightEngine.assignLightScene(lightScene.id)
         expect(lightEngine.removeLightScene(lightScene.id)).toBe(true)
-        expect(lightEngine.getLightScene().name).toBe('default')
+        expect(lightEngine.getLightScene().name).toBe('standard')
     });
 });
