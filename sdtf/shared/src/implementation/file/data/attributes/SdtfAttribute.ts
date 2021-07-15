@@ -1,4 +1,4 @@
-import { AbstractSdtfData } from "../AbstractSdtfData";
+import { AbstractSdtfData } from '../AbstractSdtfData'
 
 export class SdtfAttribute<T> extends AbstractSdtfData<T> {
   // #region Public Accessors (2)

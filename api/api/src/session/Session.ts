@@ -1,19 +1,20 @@
-import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { ISession, Session as SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
-import { Export } from "./Export";
-import { Output } from "./Output";
-import { container, injectable } from "tsyringe";
-import { Viewer } from "../viewer/Viewer";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
-import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
-import { RenderingEngine } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
-import { build_data } from "@shapediver/viewer.shared.build-data";
-import { Api } from "../Api";
-import { Parameter, PARAMETERTYPE } from "./Parameter";
-import { FileParameter } from "./FileParameter";
-import { vec3 } from "gl-matrix";
-import { SDError } from "@shapediver/viewer.shared.utils";
+import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ISession, Session as SessionEngine } from '@shapediver/viewer.session-engine.session-engine'
+import { container, injectable } from 'tsyringe'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { InputValidator } from '@shapediver/viewer.shared.utils'
+import { RenderingEngine } from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
+import { build_data } from '@shapediver/viewer.shared.build-data'
+import { vec3 } from 'gl-matrix'
+import { SDError } from '@shapediver/viewer.shared.utils'
+
+import { Export } from './Export'
+import { Output } from './Output'
+import { Viewer } from '../viewer/Viewer'
+import { Api } from '../Api'
+import { Parameter, PARAMETERTYPE } from './Parameter'
+import { FileParameter } from './FileParameter'
 
 @injectable()
 export class Session {

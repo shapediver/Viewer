@@ -1,8 +1,24 @@
-import "reflect-metadata"
-import { container } from "tsyringe";
-import { api, Viewer, Session, Parameter, Export, Output, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, EVENTTYPE, LOGGINGLEVEL, PerspectiveCamera, TreeNode } from "@shapediver/viewer"
-import { DataEngine } from "@shapediver/viewer.data-engine.data-engine"
-import { vec3 } from "gl-matrix";
+import 'reflect-metadata'
+
+import { container } from 'tsyringe'
+import {
+  api,
+  CAMERATYPE,
+  EVENTTYPE,
+  Export,
+  LIGHTTYPE,
+  LOGGINGLEVEL,
+  Output,
+  Parameter,
+  PerspectiveCamera,
+  RENDERERTYPE,
+  Session,
+  TreeNode,
+  Viewer,
+  VISIBILITYMODE,
+} from '@shapediver/viewer'
+import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
+import { vec3 } from 'gl-matrix'
 
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;

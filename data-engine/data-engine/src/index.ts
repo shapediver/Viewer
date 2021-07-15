@@ -1,4 +1,4 @@
-import { DataEngine } from "./DataEngine";
+import { DataEngine } from './DataEngine'
 
 export {
     DataEngine

@@ -1,7 +1,8 @@
-import { container, singleton } from "tsyringe";
-import { Logger, LOGGINGTOPIC } from "../logger/Logger"
-import { SDError } from "../logger/SDError";
-import { TypeChecker } from "../type-check/TypeChecker";
+import { container, singleton } from 'tsyringe'
+
+import { Logger, LOGGINGTOPIC } from '../logger/Logger'
+import { SDError } from '../logger/SDError'
+import { TypeChecker } from '../type-check/TypeChecker'
 
 export type Types = 'string' | 'boolean' | 'function' |
                     'HTMLCanvasElement' | 'enum' | 

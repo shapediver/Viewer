@@ -1,7 +1,7 @@
-import { IDomEventListener } from '@shapediver/viewer.shared.services';
-import { mat4, vec3 } from 'gl-matrix';
+import { IDomEventListener } from '@shapediver/viewer.shared.services'
+import { mat4, vec3 } from 'gl-matrix'
 
-import { ICameraControls } from './ICameraControls';
+import { ICameraControls } from './ICameraControls'
 
 export interface ICameraControlsUsage extends ICameraControls {
     // #region Properties (4)

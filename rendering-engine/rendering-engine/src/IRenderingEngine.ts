@@ -1,7 +1,7 @@
-import { ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
-import { ILightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
-import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
-import { vec3 } from 'gl-matrix';
+import { ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine'
+import { ILightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
+import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
+import { vec3 } from 'gl-matrix'
 
 export enum RENDERERTYPE {
     /** The standard rendering engine */

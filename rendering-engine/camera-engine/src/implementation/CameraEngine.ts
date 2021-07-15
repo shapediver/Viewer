@@ -1,16 +1,17 @@
-import { DomEventEngine, EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
-import { SDError, UuidGenerator } from "@shapediver/viewer.shared.utils";
-import { container, singleton } from "tsyringe";
-import { CAMERATYPE, ICameraEngine } from "../interfaces/ICameraEngine";
-import { AbstractCamera as Camera } from "./camera/AbstractCamera";
-import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
-import { Box } from "@shapediver/viewer.shared.math";
-import { OrthographicCameraControls } from "./controls/OrthographicCameraControls";
-import { PerspectiveCamera } from "./camera/PerspectiveCamera";
-import { OrthographicCamera } from "./camera/OrthographicCamera";
-import { PerspectiveCameraControls } from "./controls/PerspectiveCameraControls";
-import { ORTHOGRAPHIC_CAMERA_DIRECTION } from "../interfaces/camera/IOrthographicCamera";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
+import { DomEventEngine, EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { container, singleton } from 'tsyringe'
+import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
+import { Box } from '@shapediver/viewer.shared.math'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+
+import { CAMERATYPE, ICameraEngine } from '../interfaces/ICameraEngine'
+import { AbstractCamera as Camera } from './camera/AbstractCamera'
+import { OrthographicCameraControls } from './controls/OrthographicCameraControls'
+import { PerspectiveCamera } from './camera/PerspectiveCamera'
+import { OrthographicCamera } from './camera/OrthographicCamera'
+import { PerspectiveCameraControls } from './controls/PerspectiveCameraControls'
+import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../interfaces/camera/IOrthographicCamera'
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (3)

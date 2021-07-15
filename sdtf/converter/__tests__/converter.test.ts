@@ -1,5 +1,6 @@
-import "reflect-metadata"
-import { Reader } from "../src/index"
+import 'reflect-metadata'
+
+import { Reader } from '../src/index'
 
 describe('sdtf-converter', () => {
     let reader: Reader;

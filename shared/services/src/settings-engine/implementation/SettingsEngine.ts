@@ -1,14 +1,15 @@
-import { container, singleton } from 'tsyringe';
-import { EventEngine } from '../../event-engine/EventEngine';
-import { EVENTTYPE } from '../../event-engine/EventTypes';
-import { StateEngine } from '../../state-engine/StateEngine';
-import { ISetting } from '../interfaces/ISetting';
-import { DefaultSettings } from './DefaultSettings';
-import { Settings_2_0 } from './shapedivernodemodule-viewersettings/main';
-import { SettingsConversion } from './shapedivernodemodule-viewersettings/SettingsConversion';
-import { AbstractSetting } from './types/AbstractSetting';
-import { CustomSetting } from './types/CustomSetting';
-import { Vec3Setting } from './types/Vec3Setting';
+import { container, singleton } from 'tsyringe'
+
+import { EventEngine } from '../../event-engine/EventEngine'
+import { EVENTTYPE } from '../../event-engine/EventTypes'
+import { StateEngine } from '../../state-engine/StateEngine'
+import { ISetting } from '../interfaces/ISetting'
+import { DefaultSettings } from './DefaultSettings'
+import { Settings_2_0 } from './shapedivernodemodule-viewersettings/main'
+import { SettingsConversion } from './shapedivernodemodule-viewersettings/SettingsConversion'
+import { AbstractSetting } from './types/AbstractSetting'
+import { CustomSetting } from './types/CustomSetting'
+import { Vec3Setting } from './types/Vec3Setting'
 
 type GeneralSettings = typeof DefaultSettings;
 type SceneSettings = typeof DefaultSettings.viewer.scene;

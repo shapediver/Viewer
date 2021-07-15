@@ -1,6 +1,8 @@
-import "reflect-metadata"
-import { container } from "tsyringe";
-import { MaterialEngine } from "../src/index"
+import 'reflect-metadata'
+
+import { container } from 'tsyringe'
+
+import { MaterialEngine } from '../src/index'
 
 describe('material-engine', () => {
     let materialEngine: MaterialEngine;

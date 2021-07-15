@@ -1,5 +1,5 @@
-import { IOrthographicCameraControls } from "../controls/IOrthographicCameraControls";
-import { ICamera } from "./ICamera";
+import { IOrthographicCameraControls } from '../controls/IOrthographicCameraControls'
+import { ICamera } from './ICamera'
 
 export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
     TOP = 'top',

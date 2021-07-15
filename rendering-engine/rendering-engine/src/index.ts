@@ -1,4 +1,4 @@
-import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from "./IRenderingEngine";
+import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from './IRenderingEngine'
 
 export {
   IRenderingEngine, RENDERERTYPE, VISIBILITYMODE

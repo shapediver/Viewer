@@ -1,6 +1,6 @@
-import { SdtfAccessor } from "../SdtfAccessor";
-import { SdtfAttributes } from "./attributes/SdtfAttributes";
-import { SdtfTypeHint } from "../SdtfTypeHint";
+import { SdtfAccessor } from '../SdtfAccessor'
+import { SdtfAttributes } from './attributes/SdtfAttributes'
+import { SdtfTypeHint } from '../SdtfTypeHint'
 
 export abstract class AbstractSdtfData<T> {
   // #region Constructors (1)

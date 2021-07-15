@@ -1,10 +1,11 @@
-import { Light } from "./Light";
-import { SpotLight as SpotLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
-import { vec3 } from "gl-matrix";
-import { InputValidator, SDError } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
-import { Viewer } from "../Viewer";
+import { SpotLight as SpotLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
+import { vec3 } from 'gl-matrix'
+import { InputValidator, SDError } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+
+import { Light } from './Light'
+import { Viewer } from '../Viewer'
 
 export class SpotLight extends Light {
     // #region Properties (10)

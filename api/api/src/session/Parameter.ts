@@ -1,9 +1,13 @@
-import { ShapeDiverResponseParameterStructure, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameter } from "@shapediver/api.geometry-api-dto-v1";
-import { Session } from "@shapediver/viewer.session-engine.session-engine";
-import { SDError } from "@shapediver/viewer.shared.utils";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
-import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
+import {
+  ShapeDiverResponseParameter,
+  ShapeDiverResponseParameterGroup,
+  ShapeDiverResponseParameterStructure,
+} from '@shapediver/api.geometry-api-dto-v1'
+import { Session } from '@shapediver/viewer.session-engine.session-engine'
+import { SDError } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import { Converter, InputValidator } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
 
 export enum PARAMETERTYPE {
     FLOAT = 'Float',

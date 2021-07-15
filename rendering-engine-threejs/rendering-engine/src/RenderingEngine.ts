@@ -1,29 +1,38 @@
-import { vec2, vec3, vec4 } from 'gl-matrix';
-import * as THREE from 'three';
+import * as THREE from 'three'
+import { vec2, vec3, vec4 } from 'gl-matrix'
 import { container } from 'tsyringe'
+import {
+  AbstractCamera,
+  CameraEngine,
+  CAMERATYPE,
+  ICameraEngine,
+  ORTHOGRAPHIC_CAMERA_DIRECTION,
+  OrthographicCamera,
+  OrthographicCameraControls,
+  PerspectiveCamera,
+  PerspectiveCameraControls,
+} from '@shapediver/viewer.rendering-engine.camera-engine'
+import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
+import { Tree } from '@shapediver/viewer.shared.node-tree'
+import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
+import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { DomEventEngine, EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { MATERIAL_SIDE, MaterialData } from '@shapediver/viewer.shared.types'
+import { Converter, SDError } from '@shapediver/viewer.shared.utils'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { GeometryData } from '@shapediver/viewer.shared.types'
+import { Box } from '@shapediver/viewer.shared.math'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 
-import { AbstractCamera, CameraEngine, CAMERATYPE, ICameraEngine, OrthographicCamera, OrthographicCameraControls, ORTHOGRAPHIC_CAMERA_DIRECTION, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer.rendering-engine.camera-engine';
-import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
-import { Tree } from '@shapediver/viewer.shared.node-tree';
-
-import { SceneTreeManager } from './managers/SceneTreeManager';
-import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
-import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine';
-import { StateEngine, SettingsEngine, DomEventEngine, EVENTTYPE, EventEngine } from '@shapediver/viewer.shared.services';
-import { SDObject } from './types/SDObject';
-import { MaterialData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
-import { RenderingManager } from './managers/RenderingManager';
-import { MaterialLoader } from './loaders/MaterialLoader';
-import { Converter, SDError } from '@shapediver/viewer.shared.utils';
-import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader';
-import { GeometryLoader } from './loaders/GeometryLoader';
-import { LightLoader } from './loaders/LightLoader';
-import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader';
-import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { GeometryData } from '@shapediver/viewer.shared.types';
-import { Box } from '@shapediver/viewer.shared.math';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
-import { BeautyRenderingManager } from './managers/BeautyRenderingManager';
+import { SceneTreeManager } from './managers/SceneTreeManager'
+import { SDObject } from './types/SDObject'
+import { RenderingManager } from './managers/RenderingManager'
+import { MaterialLoader } from './loaders/MaterialLoader'
+import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader'
+import { GeometryLoader } from './loaders/GeometryLoader'
+import { LightLoader } from './loaders/LightLoader'
+import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader'
+import { BeautyRenderingManager } from './managers/BeautyRenderingManager'
 
 export class RenderingEngine implements IRenderingEngine {
     // #region Properties (51)

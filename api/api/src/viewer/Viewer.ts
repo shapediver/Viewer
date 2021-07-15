@@ -1,23 +1,38 @@
-import { RenderingEngine as RenderingEngineThreejs } from "@shapediver/viewer.rendering-engine-threejs.rendering-engine";
-import { CAMERATYPE, ICameraEngine, PerspectiveCamera as PerspectiveCameraLogic, OrthographicCamera as OrthographicCameraLogic } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
-import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from "@shapediver/viewer.shared.utils";
-import { EventEngine, EVENTTYPE, StateEngine } from "@shapediver/viewer.shared.services";
-import { Converter, InputValidator, UuidGenerator } from "@shapediver/viewer.shared.utils";
-import { vec3 } from "gl-matrix";
-import { container, injectable } from "tsyringe";
-import { Camera } from "./camera/Camera";
-import { OrthographicCamera } from "./camera/OrthographicCamera";
-import { PerspectiveCamera } from "./camera/PerspectiveCamera";
-import { AmbientLight } from "./lights/AmbientLight";
-import { DirectionalLight } from "./lights/DirectionalLight";
-import { HemisphereLight } from "./lights/HemisphereLight";
-import { Light } from "./lights/Light";
-import { LightScene } from "./lights/LightScene";
-import { PointLight } from "./lights/PointLight";
-import { SpotLight } from "./lights/SpotLight";
-import { SDError } from "@shapediver/viewer.shared.utils";
+import { RenderingEngine as RenderingEngineThreejs } from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
+import {
+  CAMERATYPE,
+  ICameraEngine,
+  OrthographicCamera as OrthographicCameraLogic,
+  PerspectiveCamera as PerspectiveCameraLogic,
+} from '@shapediver/viewer.rendering-engine.camera-engine'
+import {
+  AbstractLight,
+  AmbientLight as AmbientLightLogic,
+  DirectionalLight as DirectionalLightLogic,
+  HemisphereLight as HemisphereLightLogic,
+  ILightEngine,
+  LIGHTTYPE,
+  PointLight as PointLightLogic,
+  SpotLight as SpotLightLogic,
+} from '@shapediver/viewer.rendering-engine.light-engine'
+import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from '@shapediver/viewer.shared.utils'
+import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter, InputValidator, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { vec3 } from 'gl-matrix'
+import { container, injectable } from 'tsyringe'
+import { SDError } from '@shapediver/viewer.shared.utils'
+
+import { Camera } from './camera/Camera'
+import { OrthographicCamera } from './camera/OrthographicCamera'
+import { PerspectiveCamera } from './camera/PerspectiveCamera'
+import { AmbientLight } from './lights/AmbientLight'
+import { DirectionalLight } from './lights/DirectionalLight'
+import { HemisphereLight } from './lights/HemisphereLight'
+import { Light } from './lights/Light'
+import { LightScene } from './lights/LightScene'
+import { PointLight } from './lights/PointLight'
+import { SpotLight } from './lights/SpotLight'
 
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {

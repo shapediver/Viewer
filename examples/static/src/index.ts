@@ -1,5 +1,6 @@
-import "reflect-metadata"
-import { api, Session, Viewer, Parameter, Export } from "@shapediver/viewer";
+import 'reflect-metadata'
+
+import { api, Export, Parameter, Session, Viewer } from '@shapediver/viewer'
 
 let viewer: Viewer, session: Session;
 

@@ -1,12 +1,13 @@
-import { ICameraControls } from '../../interfaces/controls/ICameraControls';
-import { ICamera } from '../../interfaces/camera/ICamera';
-import { mat4, quat, vec2, vec3 } from 'gl-matrix';
-import { CAMERATYPE } from '../../interfaces/ICameraEngine';
-import { AbstractCameraControls } from '../controls/AbstractCameraControls';
-import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services';
-import { container } from 'tsyringe';
-import { Box } from '@shapediver/viewer.shared.math';
-import * as detectIt from 'detect-it';
+import * as detectIt from 'detect-it'
+import { mat4, quat, vec2, vec3 } from 'gl-matrix'
+import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
+import { Box } from '@shapediver/viewer.shared.math'
+
+import { ICameraControls } from '../../interfaces/controls/ICameraControls'
+import { ICamera } from '../../interfaces/camera/ICamera'
+import { CAMERATYPE } from '../../interfaces/ICameraEngine'
+import { AbstractCameraControls } from '../controls/AbstractCameraControls'
 
 export abstract class AbstractCamera implements ICamera {
     // #region Properties (17)

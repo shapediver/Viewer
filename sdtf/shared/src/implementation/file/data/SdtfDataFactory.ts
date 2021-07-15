@@ -1,11 +1,11 @@
-import { SdtfAccessor } from "../SdtfAccessor";
-import { PRIMITIVETYPEHINT } from "../../../enums";
-import { AbstractSdtfData } from "./AbstractSdtfData";
-import { SdtfCustomItem } from "./items/SdtfCustomItem";
-import { SdtfPrimitiveItem } from "./items/SdtfPrimitiveItem";
-import { SdtfAttributes } from "./attributes/SdtfAttributes";
-import { SdtfTypeHint } from "../SdtfTypeHint";
-import { SdtfAttribute } from "./attributes/SdtfAttribute";
+import { SdtfAccessor } from '../SdtfAccessor'
+import { PRIMITIVETYPEHINT } from '../../../enums'
+import { AbstractSdtfData } from './AbstractSdtfData'
+import { SdtfCustomItem } from './items/SdtfCustomItem'
+import { SdtfPrimitiveItem } from './items/SdtfPrimitiveItem'
+import { SdtfAttributes } from './attributes/SdtfAttributes'
+import { SdtfTypeHint } from '../SdtfTypeHint'
+import { SdtfAttribute } from './attributes/SdtfAttribute'
 
 export class SdtfDataFactory {
 

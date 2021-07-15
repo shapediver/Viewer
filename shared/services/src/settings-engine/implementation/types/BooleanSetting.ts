@@ -1,5 +1,5 @@
-import { ISetting } from '../../interfaces/ISetting';
-import { AbstractSetting } from './AbstractSetting';
+import { ISetting } from '../../interfaces/ISetting'
+import { AbstractSetting } from './AbstractSetting'
 
 export class BooleanSetting extends AbstractSetting implements ISetting<boolean> {
     // #region Properties (1)

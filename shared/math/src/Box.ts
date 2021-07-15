@@ -1,6 +1,7 @@
 import { mat4, vec3 } from 'gl-matrix'
-import { IGeometry } from './IGeometry';
-import { Sphere } from './Sphere';
+
+import { IGeometry } from './IGeometry'
+import { Sphere } from './Sphere'
 
 export class Box implements IGeometry {
     // #region Properties (2)

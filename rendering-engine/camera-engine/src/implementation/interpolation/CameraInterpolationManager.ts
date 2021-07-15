@@ -1,12 +1,13 @@
-import * as TWEEN from "@tweenjs/tween.js";
-import { CameraMultipleInterpolation } from "./interpolationMethods/CameraMultipleInterpolation";
-import { CameraSphericalInterpolation } from "./interpolationMethods/CameraSphericalInterpolation";
-import { vec3 } from "gl-matrix";
-import { ICameraControlsUsage } from "../../interfaces/controls/ICameraControlsUsage";
-import { ICamera } from "../../interfaces/camera/ICamera";
-import { CameraLinearInterpolation } from "./interpolationMethods/CameraLinearInterpolation";
-import { CameraCylindricalInterpolation } from "./interpolationMethods/CameraCylindricalInterpolation";
-import { ICameraInterpolation } from "../../interfaces/interpolation/ICameraInterpolation";
+import * as TWEEN from '@tweenjs/tween.js'
+import { vec3 } from 'gl-matrix'
+
+import { CameraMultipleInterpolation } from './interpolationMethods/CameraMultipleInterpolation'
+import { CameraSphericalInterpolation } from './interpolationMethods/CameraSphericalInterpolation'
+import { ICameraControlsUsage } from '../../interfaces/controls/ICameraControlsUsage'
+import { ICamera } from '../../interfaces/camera/ICamera'
+import { CameraLinearInterpolation } from './interpolationMethods/CameraLinearInterpolation'
+import { CameraCylindricalInterpolation } from './interpolationMethods/CameraCylindricalInterpolation'
+import { ICameraInterpolation } from '../../interfaces/interpolation/ICameraInterpolation'
 
 export class CameraInterpolationManager {
     // #region Properties (3)

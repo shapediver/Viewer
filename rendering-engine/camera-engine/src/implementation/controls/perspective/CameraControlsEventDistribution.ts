@@ -1,7 +1,6 @@
-import { CameraControlsLogic } from './CameraControlsLogic';
-
-import { ICameraControlsEventDistribution } from '../../../interfaces/controls/ICameraControlsEventDistribution';
-import { PerspectiveCameraControls } from '../PerspectiveCameraControls';
+import { CameraControlsLogic } from './CameraControlsLogic'
+import { ICameraControlsEventDistribution } from '../../../interfaces/controls/ICameraControlsEventDistribution'
+import { PerspectiveCameraControls } from '../PerspectiveCameraControls'
 
 export class CameraControlsEventDistribution implements ICameraControlsEventDistribution {
   // #region Properties (2)

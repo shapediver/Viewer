@@ -1,7 +1,8 @@
-import { Box } from '@shapediver/viewer.shared.math';
-import { mat4, vec2, vec3 } from 'gl-matrix';
-import { ICameraControls } from '../controls/ICameraControls';
-import { CAMERATYPE } from '../ICameraEngine';
+import { Box } from '@shapediver/viewer.shared.math'
+import { mat4, vec2, vec3 } from 'gl-matrix'
+
+import { ICameraControls } from '../controls/ICameraControls'
+import { CAMERATYPE } from '../ICameraEngine'
 
 export interface ICamera {
     // #region Properties (13)

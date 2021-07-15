@@ -1,5 +1,5 @@
-import { AbstractTreeNodeData, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { SdtfAttributes, SdtfData as SdtfFileData } from "@shapediver/viewer.sdtf.shared"
+import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { SdtfAttributes, SdtfData as SdtfFileData } from '@shapediver/viewer.sdtf.shared'
 
 export class SdtfAttributeData extends AbstractTreeNodeData {
     constructor(

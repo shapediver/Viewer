@@ -1,4 +1,4 @@
-import { ICameraControls } from "./ICameraControls";
+import { ICameraControls } from './ICameraControls'
 
 export interface IOrthographicCameraControls extends ICameraControls {
     damping: number;

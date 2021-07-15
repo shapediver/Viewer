@@ -1,11 +1,11 @@
-import { container, singleton } from "tsyringe";
-import { EVENTTYPE, MAINEVENTTYPE } from "./EventTypes";
-import { IListener } from "./interfaces/IListener";
-import { ICallback } from "./interfaces/ICallback";
-import { IEvent } from "./interfaces/IEvent";
+import { container, singleton } from 'tsyringe'
+import { SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 
-import { SDError, UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
+import { EVENTTYPE, MAINEVENTTYPE } from './EventTypes'
+import { IListener } from './interfaces/IListener'
+import { ICallback } from './interfaces/ICallback'
+import { IEvent } from './interfaces/IEvent'
 
 @singleton()
 export class EventEngine {

@@ -1,5 +1,6 @@
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { ILight } from "./ILight";
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+
+import { ILight } from './ILight'
 
 export interface ILightScene {
     // #region Properties (3)

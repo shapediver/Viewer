@@ -1,6 +1,7 @@
-import { Light } from "./Light";
-import { AmbientLight as AmbientLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
-import { Viewer } from "../Viewer";
+import { AmbientLight as AmbientLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
+
+import { Light } from './Light'
+import { Viewer } from '../Viewer'
 
 export class AmbientLight extends Light {
     // #region Properties (1)

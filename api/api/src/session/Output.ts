@@ -1,9 +1,14 @@
-import { container } from "tsyringe";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
-import { ShapeDiverResponseOutputPart as OutputPart, ShapeDiverResponseOutputChunk as OutputChunk, ShapeDiverResponseOutput, ShapeDiverResponseOutputDefinition } from "@shapediver/api.geometry-api-dto-v1";
-import { Session } from "@shapediver/viewer.session-engine.session-engine";
-import { SDError } from "@shapediver/viewer.shared.utils";
+import { container } from 'tsyringe'
+import { InputValidator } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import {
+  ShapeDiverResponseOutput,
+  ShapeDiverResponseOutputChunk as OutputChunk,
+  ShapeDiverResponseOutputDefinition,
+  ShapeDiverResponseOutputPart as OutputPart,
+} from '@shapediver/api.geometry-api-dto-v1'
+import { Session } from '@shapediver/viewer.session-engine.session-engine'
+import { SDError } from '@shapediver/viewer.shared.utils'
 
 export class Output implements ShapeDiverResponseOutputDefinition {
   // #region Properties (15)

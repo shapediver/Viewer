@@ -1,8 +1,8 @@
-import { ISetting } from '../interfaces/ISetting';
-import { BooleanSetting } from './types/BooleanSetting';
-import { CustomSetting } from './types/CustomSetting';
-import { NumberSetting } from './types/NumberSetting';
-import { StringSetting } from './types/StringSetting';
+import { ISetting } from '../interfaces/ISetting'
+import { BooleanSetting } from './types/BooleanSetting'
+import { CustomSetting } from './types/CustomSetting'
+import { NumberSetting } from './types/NumberSetting'
+import { StringSetting } from './types/StringSetting'
 
 export const DefaultSettings = {
     build_date: <ISetting<string>> new StringSetting('', ''),

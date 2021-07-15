@@ -1,7 +1,7 @@
-import { AbstractSdtfData } from "./data/AbstractSdtfData";
-import { SdtfAttributes } from "./data/attributes/SdtfAttributes";
-import { SdtfNode } from "./SdtfNode";
-import { SdtfTypeHint } from "./SdtfTypeHint";
+import { AbstractSdtfData } from './data/AbstractSdtfData'
+import { SdtfAttributes } from './data/attributes/SdtfAttributes'
+import { SdtfNode } from './SdtfNode'
+import { SdtfTypeHint } from './SdtfTypeHint'
 
 export class SdtfChunk extends SdtfNode {
   // #region Constructors (1)

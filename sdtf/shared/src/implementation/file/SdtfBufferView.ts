@@ -1,8 +1,9 @@
-import { CONTENTTYPE, CONTENT_ENCODING } from "../../enums";
-import { SdtfBuffer } from "./SdtfBuffer";
-import { ungzip } from "pako"
-import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
+import { ungzip } from 'pako'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+
+import { CONTENT_ENCODING, CONTENTTYPE } from '../../enums'
+import { SdtfBuffer } from './SdtfBuffer'
 
 export class SdtfBufferView {
   // #region Properties (1)

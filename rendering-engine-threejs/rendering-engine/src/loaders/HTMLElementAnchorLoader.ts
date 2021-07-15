@@ -1,7 +1,8 @@
-import { HTMLElementAnchorData } from "@shapediver/viewer.shared.types";
-import { vec3 } from "gl-matrix";
-import { ILoader } from "../interfaces/ILoader";
-import { RenderingEngine } from "../RenderingEngine";
+import { HTMLElementAnchorData } from '@shapediver/viewer.shared.types'
+import { vec3 } from 'gl-matrix'
+
+import { ILoader } from '../interfaces/ILoader'
+import { RenderingEngine } from '../RenderingEngine'
 
 export class HTMLElementAnchorLoader implements ILoader {
     // #region Properties (2)

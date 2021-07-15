@@ -1,10 +1,10 @@
-import { mat4 } from 'gl-matrix';
+import { mat4 } from 'gl-matrix'
 import { container } from 'tsyringe'
+import { UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { Box } from '@shapediver/viewer.shared.math'
 
-import { UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { ITreeNodeData } from './interfaces/ITreeNodeData';
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
-import { Box } from '@shapediver/viewer.shared.math';
+import { ITreeNodeData } from './interfaces/ITreeNodeData'
 
 export interface ITransformation {
   // #region Properties (3)

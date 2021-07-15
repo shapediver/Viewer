@@ -1,6 +1,7 @@
-import { vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix'
 import { singleton } from 'tsyringe'
-import { TreeNode } from './TreeNode';
+
+import { TreeNode } from './TreeNode'
 
 @singleton()
 export class Tree {

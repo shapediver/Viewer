@@ -1,5 +1,6 @@
-import { vec3 } from "gl-matrix";
-import { ICameraControls } from "./ICameraControls";
+import { vec3 } from 'gl-matrix'
+
+import { ICameraControls } from './ICameraControls'
 
 export interface IPerspectiveCameraControls extends ICameraControls {
     autoRotationSpeed: number;

@@ -1,11 +1,25 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Converter, HttpClient, ImageLoader, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { container } from 'tsyringe';
-
-import { ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V2 as ACCESSORTYPE, IGLTF_v2, IGLTF_v2_Material, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types';
-import { mat4, vec2, vec3, vec4 } from 'gl-matrix';
-import { AttributeData, GeometryData, MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE, PrimitiveData } from '@shapediver/viewer.shared.types';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Converter, HttpClient, ImageLoader, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+import {
+  ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
+  ACCESSORTYPE_V2 as ACCESSORTYPE,
+  IGLTF_v2,
+  IGLTF_v2_Material,
+  IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
+  IGLTF_v2_Primitive,
+} from '@shapediver/viewer.data-engine.shared-types'
+import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
+import {
+  AttributeData,
+  GeometryData,
+  MapData,
+  MATERIAL_ALPHA,
+  MATERIAL_SIDE,
+  MaterialData,
+  PrimitiveData,
+} from '@shapediver/viewer.shared.types'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',

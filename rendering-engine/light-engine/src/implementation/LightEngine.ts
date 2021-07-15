@@ -1,17 +1,18 @@
-import { container, singleton } from "tsyringe"
-import { vec3 } from "gl-matrix";
-import { AmbientLight } from "./types/AmbientLight";
-import { DirectionalLight } from "./types/DirectionalLight";
-import { HemisphereLight } from "./types/HemisphereLight";
-import { PointLight } from "./types/PointLight";
-import { SpotLight } from "./types/SpotLight";
-import { UuidGenerator, Converter } from '@shapediver/viewer.shared.utils';
-import { StateEngine, SettingsEngine } from "@shapediver/viewer.shared.services"
-import { LightScene } from "./LightScene";
-import { AbstractLight } from "./AbstractLight";
-import { ILightEngine } from "../interface/ILightEngine";
-import { ILight, LIGHTTYPE } from "../interface/ILight";
-import { ILightScene } from "../interface/ILightScene";
+import { container, singleton } from 'tsyringe'
+import { vec3 } from 'gl-matrix'
+import { Converter, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+
+import { AmbientLight } from './types/AmbientLight'
+import { DirectionalLight } from './types/DirectionalLight'
+import { HemisphereLight } from './types/HemisphereLight'
+import { PointLight } from './types/PointLight'
+import { SpotLight } from './types/SpotLight'
+import { LightScene } from './LightScene'
+import { AbstractLight } from './AbstractLight'
+import { ILightEngine } from '../interface/ILightEngine'
+import { ILight, LIGHTTYPE } from '../interface/ILight'
+import { ILightScene } from '../interface/ILightScene'
 
 export class LightEngine implements ILightEngine {
     // #region Properties (6)

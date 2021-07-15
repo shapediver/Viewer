@@ -1,7 +1,9 @@
-import "reflect-metadata"
-import { container } from "tsyringe";
-import { CanvasEngine } from "../src/CanvasEngine";
-import { Canvas } from "../src/Canvas";
+import 'reflect-metadata'
+
+import { container } from 'tsyringe'
+
+import { CanvasEngine } from '../src/CanvasEngine'
+import { Canvas } from '../src/Canvas'
 
 describe('canvas engine test', () => {
     let instance: CanvasEngine;

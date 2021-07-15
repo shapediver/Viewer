@@ -1,6 +1,6 @@
-import { Box } from '@shapediver/viewer.shared.math';
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { vec2, vec3 } from 'gl-matrix';
+import { Box } from '@shapediver/viewer.shared.math'
+import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { vec2, vec3 } from 'gl-matrix'
 
 interface AnchorDataImage {
     // #region Properties (6)

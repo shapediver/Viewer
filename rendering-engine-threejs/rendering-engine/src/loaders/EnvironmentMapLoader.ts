@@ -1,11 +1,12 @@
-import * as THREE from "three";
-import { RenderingEngine } from "..";
-import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
-import { RGBELoader } from "../three/loaders/RGBELoader";
-import { RenderingManager } from "../managers/RenderingManager";
-import { ILoader } from "../interfaces/ILoader";
+import * as THREE from 'three'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
+
+import { RenderingEngine } from '..'
+import { RGBELoader } from '../three/loaders/RGBELoader'
+import { RenderingManager } from '../managers/RenderingManager'
+import { ILoader } from '../interfaces/ILoader'
 
 export class EnvironmentMapLoader implements ILoader {
     // #region Properties (8)

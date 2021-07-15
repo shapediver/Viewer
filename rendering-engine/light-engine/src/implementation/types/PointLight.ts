@@ -1,7 +1,8 @@
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { vec3 } from "gl-matrix";
-import { LIGHTTYPE } from "../../interface/ILight";
-import { AbstractLight } from "../AbstractLight";
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { vec3 } from 'gl-matrix'
+
+import { LIGHTTYPE } from '../../interface/ILight'
+import { AbstractLight } from '../AbstractLight'
 
 export class PointLight extends AbstractLight {
   // #region Properties (3)

@@ -1,6 +1,8 @@
-import "reflect-metadata"
-import { container } from "tsyringe";
-import { GeometryEngine } from "../src/index"
+import 'reflect-metadata'
+
+import { container } from 'tsyringe'
+
+import { GeometryEngine } from '../src/index'
 
 describe('geometry-engine', () => {
     let geometryEngine: GeometryEngine;

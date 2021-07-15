@@ -1,11 +1,18 @@
-import * as THREE from 'three';
-import { MaterialData, TEXTURE_WRAPPING, TEXTURE_FILTERING, MapData, MATERIAL_SIDE } from '@shapediver/viewer.shared.types';
-import { vec4 } from 'gl-matrix';
-import { RenderingEngine } from '../RenderingEngine';
-import { main, entry } from "../shaders/PCSS";
-import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial';
-import { RenderingManager } from '../managers/RenderingManager';
-import { ILoader } from '../interfaces/ILoader';
+import * as THREE from 'three'
+import {
+  MapData,
+  MATERIAL_SIDE,
+  MaterialData,
+  TEXTURE_FILTERING,
+  TEXTURE_WRAPPING,
+} from '@shapediver/viewer.shared.types'
+import { vec4 } from 'gl-matrix'
+
+import { RenderingEngine } from '../RenderingEngine'
+import { entry, main } from '../shaders/PCSS'
+import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
+import { RenderingManager } from '../managers/RenderingManager'
+import { ILoader } from '../interfaces/ILoader'
 
 export class MaterialLoader implements ILoader {
     // #region Properties (8)

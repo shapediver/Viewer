@@ -1,6 +1,6 @@
 import { vec3, vec4 } from 'gl-matrix'
-import { TinyColor } from '@ctrl/tinycolor';
-import { singleton } from 'tsyringe';
+import { TinyColor } from '@ctrl/tinycolor'
+import { singleton } from 'tsyringe'
 
 @singleton()
 export class Converter {

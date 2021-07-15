@@ -1,5 +1,6 @@
-import "reflect-metadata"
-import { LightEngine } from "../src/index"
+import 'reflect-metadata'
+
+import { LightEngine } from '../src/index'
 
 describe('light-engine', () => {
     let lightEngine: LightEngine;

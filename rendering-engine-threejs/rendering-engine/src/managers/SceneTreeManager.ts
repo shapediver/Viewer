@@ -1,17 +1,16 @@
-import * as THREE from 'three';
+import * as THREE from 'three'
+import { GeometryData, HTMLElementAnchorData, MaterialData } from '@shapediver/viewer.shared.types'
+import { ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Box } from '@shapediver/viewer.shared.math'
+import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
+import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
+import { vec3 } from 'gl-matrix'
+import { container } from 'tsyringe'
 
-import { GeometryData, HTMLElementAnchorData, MaterialData } from '@shapediver/viewer.shared.types';
-import { ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree';
-
-import { SDObject } from '../types/SDObject';
-import { ThreejsData } from '../types/ThreejsData';
-import { Box } from '@shapediver/viewer.shared.math';
-import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services';
-import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
-import { vec3 } from 'gl-matrix';
-import { container } from 'tsyringe';
-import { RenderingEngine } from '../RenderingEngine';
-import { IManager } from '../interfaces/IManager';
+import { SDObject } from '../types/SDObject'
+import { ThreejsData } from '../types/ThreejsData'
+import { RenderingEngine } from '../RenderingEngine'
+import { IManager } from '../interfaces/IManager'
 
 export class SceneTreeManager implements IManager {
     // #region Properties (5)

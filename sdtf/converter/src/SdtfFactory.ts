@@ -1,7 +1,24 @@
-import { SdtfFile, SdtfTypeHint, SdtfBuffer, SdtfBufferView, SdtfAccessor, SdtfAttributes, SdtfData, SdtfNode, SdtfChunk, SdtfDataFactory } from "@shapediver/viewer.sdtf.shared";
-import { PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, RHINOTYPEHINT, CONTENTTYPE, CONTENT_ENCODING } from "@shapediver/viewer.sdtf.shared";
-import { JsonSdtf } from "@shapediver/viewer.sdtf.shared";
-import { JsonAttribute } from "@shapediver/viewer.sdtf.shared";
+import {
+  SdtfAccessor,
+  SdtfAttributes,
+  SdtfBuffer,
+  SdtfBufferView,
+  SdtfChunk,
+  SdtfData,
+  SdtfDataFactory,
+  SdtfFile,
+  SdtfNode,
+  SdtfTypeHint,
+} from '@shapediver/viewer.sdtf.shared'
+import {
+  CONTENT_ENCODING,
+  CONTENTTYPE,
+  GEOMETRYTYPEHINT,
+  PRIMITIVETYPEHINT,
+  RHINOTYPEHINT,
+} from '@shapediver/viewer.sdtf.shared'
+import { JsonSdtf } from '@shapediver/viewer.sdtf.shared'
+import { JsonAttribute } from '@shapediver/viewer.sdtf.shared'
 
 export class SdtfFactory {
 

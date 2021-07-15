@@ -1,4 +1,5 @@
-import "reflect-metadata"
+import 'reflect-metadata'
+
 import { Encoder } from '../src/Encoder'
 
 describe('sdtf-parser', () => {

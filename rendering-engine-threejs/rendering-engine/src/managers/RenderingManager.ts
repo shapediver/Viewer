@@ -1,15 +1,21 @@
-import { AbstractCamera, CAMERATYPE, OrthographicCamera, PerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { EventEngine, EVENTTYPE, StateEngine, SystemInfo } from "@shapediver/viewer.shared.services";
-import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
-import { vec3 } from "gl-matrix";
-import * as THREE from 'three';
-import { container } from "tsyringe";
-import { RenderingEngine } from "../RenderingEngine";
-import { SceneTreeManager } from "./SceneTreeManager";
-import { BeautyRenderingManager } from "./BeautyRenderingManager";
-import * as TWEEN from "@tweenjs/tween.js";
-import * as Stats from "stats.js";
-import { IManager } from "../interfaces/IManager";
+import * as TWEEN from '@tweenjs/tween.js'
+import * as Stats from 'stats.js'
+import * as THREE from 'three'
+import {
+  AbstractCamera,
+  CAMERATYPE,
+  OrthographicCamera,
+  PerspectiveCamera,
+} from '@shapediver/viewer.rendering-engine.camera-engine'
+import { EventEngine, EVENTTYPE, StateEngine, SystemInfo } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { vec3 } from 'gl-matrix'
+import { container } from 'tsyringe'
+
+import { RenderingEngine } from '../RenderingEngine'
+import { SceneTreeManager } from './SceneTreeManager'
+import { BeautyRenderingManager } from './BeautyRenderingManager'
+import { IManager } from '../interfaces/IManager'
 
 export class RenderingManager implements IManager {
     // #region Properties (13)

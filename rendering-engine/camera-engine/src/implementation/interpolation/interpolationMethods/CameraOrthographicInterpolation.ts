@@ -1,7 +1,8 @@
-import { mat4, vec3 } from "gl-matrix";
-import { ICamera } from "../../../interfaces/camera/ICamera";
-import { ICameraControlsUsage } from "../../../interfaces/controls/ICameraControlsUsage";
-import { ICameraInterpolation } from "../../../interfaces/interpolation/ICameraInterpolation";
+import { mat4, vec3 } from 'gl-matrix'
+
+import { ICamera } from '../../../interfaces/camera/ICamera'
+import { ICameraControlsUsage } from '../../../interfaces/controls/ICameraControlsUsage'
+import { ICameraInterpolation } from '../../../interfaces/interpolation/ICameraInterpolation'
 
 export class CameraOrthographicInterpolation implements ICameraInterpolation {
     // #region Constructors (1)

@@ -1,4 +1,4 @@
-import { AbstractSdtfData } from "../AbstractSdtfData";
+import { AbstractSdtfData } from '../AbstractSdtfData'
 
 export class SdtfAttributes {
   // #region Constructors (1)

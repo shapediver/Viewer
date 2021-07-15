@@ -1,7 +1,9 @@
-import "reflect-metadata";
-import { container } from "tsyringe";
-import { EventEngine, EVENTTYPE } from "../src/index";
-import { IEvent } from "../src/event-engine/interfaces/IEvent";
+import 'reflect-metadata'
+
+import { container } from 'tsyringe'
+
+import { EventEngine, EVENTTYPE } from '../src/index'
+import { IEvent } from '../src/event-engine/interfaces/IEvent'
 
 describe('test', () => {
     let instance: EventEngine;

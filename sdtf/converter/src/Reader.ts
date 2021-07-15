@@ -1,6 +1,7 @@
-import { JsonSdtf, SdtfFile } from "@shapediver/viewer.sdtf.shared";
-import { Encoder } from "@shapediver/viewer.sdtf.parser";
-import { SdtfFactory } from "./SdtfFactory"
+import { JsonSdtf, SdtfFile } from '@shapediver/viewer.sdtf.shared'
+import { Encoder } from '@shapediver/viewer.sdtf.parser'
+
+import { SdtfFactory } from './SdtfFactory'
 
 export class Reader {
 

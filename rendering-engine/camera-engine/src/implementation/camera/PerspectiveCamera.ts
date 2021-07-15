@@ -1,12 +1,13 @@
-import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
-import { Converter } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
-import { CAMERATYPE } from "../../interfaces/ICameraEngine";
-import { AbstractCamera } from "./AbstractCamera";
-import { mat4, quat, vec2, vec3 } from "gl-matrix";
-import { PerspectiveCameraControls } from "../controls/PerspectiveCameraControls";
-import { Box, Plane } from "@shapediver/viewer.shared.math";
-import { IPerspectiveCamera } from "../../interfaces/camera/IPerspectiveCamera";
+import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+import { mat4, quat, vec2, vec3 } from 'gl-matrix'
+import { Box, Plane } from '@shapediver/viewer.shared.math'
+
+import { CAMERATYPE } from '../../interfaces/ICameraEngine'
+import { AbstractCamera } from './AbstractCamera'
+import { PerspectiveCameraControls } from '../controls/PerspectiveCameraControls'
+import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera'
 
 export class PerspectiveCamera extends AbstractCamera {
   // #region Properties (3)

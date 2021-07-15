@@ -1,9 +1,16 @@
-import { ISDObject, SD_RENDERINGTYPE } from "./ISDObject";
-
-import { CustomData } from "./CustomData";
-import { AttributeData, GeometryData, PrimitiveData, PRIMITIVE_MODE } from "./GeometryData";
-import { MapData, MaterialData, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE, TEXTURE_FILTERING, TEXTURE_WRAPPING } from "./MaterialData";
-import { HTMLElementAnchorData } from "./HTMLElementAnchorData";
+import { ISDObject, SD_RENDERINGTYPE } from './ISDObject'
+import { CustomData } from './CustomData'
+import { AttributeData, GeometryData, PRIMITIVE_MODE, PrimitiveData } from './GeometryData'
+import {
+  MapData,
+  MATERIAL_ALPHA,
+  MATERIAL_SHADING,
+  MATERIAL_SIDE,
+  MaterialData,
+  TEXTURE_FILTERING,
+  TEXTURE_WRAPPING,
+} from './MaterialData'
+import { HTMLElementAnchorData } from './HTMLElementAnchorData'
 
 export {
   ISDObject, SD_RENDERINGTYPE

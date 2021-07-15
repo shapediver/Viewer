@@ -1,7 +1,7 @@
-import { HttpClient, SDError } from '@shapediver/viewer.shared.utils';
+import { HttpClient, SDError } from '@shapediver/viewer.shared.utils'
 import { JsonSdtf } from '@shapediver/viewer.sdtf.shared'
-import { container } from 'tsyringe';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
+import { container } from 'tsyringe'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 
 /**
  * Encoder that can encode from uri to json with various steps.

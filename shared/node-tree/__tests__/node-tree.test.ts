@@ -1,7 +1,8 @@
-import "reflect-metadata"
-import { Tree } from '../src/Tree';
-import { ITransformation, TreeNode } from '../src/TreeNode';
-import { ITreeNodeData } from '../src/interfaces/ITreeNodeData';
+import 'reflect-metadata'
+
+import { Tree } from '../src/Tree'
+import { ITransformation, TreeNode } from '../src/TreeNode'
+import { ITreeNodeData } from '../src/interfaces/ITreeNodeData'
 
 describe('scene graph engine - test', () => {
   let tree: Tree;

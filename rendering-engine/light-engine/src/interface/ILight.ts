@@ -1,4 +1,4 @@
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix'
 
 export enum LIGHTTYPE {

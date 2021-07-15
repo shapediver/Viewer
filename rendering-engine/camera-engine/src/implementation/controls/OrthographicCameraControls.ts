@@ -1,11 +1,13 @@
-import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
-import { container } from "tsyringe";
-import { CAMERATYPE, ICamera } from "../..";
-import { IOrthographicCameraControls } from "../../interfaces/controls/IOrthographicCameraControls";
-import { AbstractCameraControls } from "./AbstractCameraControls";
+import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
 
-import { CameraControlsEventDistribution as OrthographicCameraControlsEventDistribution } from './orthographic/CameraControlsEventDistribution';
-import { CameraControlsLogic as OrthographicCameraControlsLogic } from './orthographic/CameraControlsLogic';
+import { CAMERATYPE, ICamera } from '../..'
+import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls'
+import { AbstractCameraControls } from './AbstractCameraControls'
+import {
+  CameraControlsEventDistribution as OrthographicCameraControlsEventDistribution,
+} from './orthographic/CameraControlsEventDistribution'
+import { CameraControlsLogic as OrthographicCameraControlsLogic } from './orthographic/CameraControlsLogic'
 
 export class OrthographicCameraControls extends AbstractCameraControls implements IOrthographicCameraControls {
     // #region Properties (9)

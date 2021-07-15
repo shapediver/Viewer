@@ -1,7 +1,8 @@
-import { mat4, vec2, vec3 } from 'gl-matrix';
-import { OrthographicCameraControls } from '../../..';
-import { ICameraControlsLogic } from '../../../interfaces/controls/ICameraControlsLogic';
-import { OrthographicCamera } from '../../camera/OrthographicCamera';
+import { mat4, vec2, vec3 } from 'gl-matrix'
+
+import { OrthographicCameraControls } from '../../..'
+import { ICameraControlsLogic } from '../../../interfaces/controls/ICameraControlsLogic'
+import { OrthographicCamera } from '../../camera/OrthographicCamera'
 
 export class CameraControlsLogic implements ICameraControlsLogic {
   // #region Properties (16)

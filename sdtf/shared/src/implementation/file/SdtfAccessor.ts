@@ -1,4 +1,4 @@
-import { SdtfBufferView } from "./SdtfBufferView";
+import { SdtfBufferView } from './SdtfBufferView'
 
 export class SdtfAccessor {
   // #region Properties (1)

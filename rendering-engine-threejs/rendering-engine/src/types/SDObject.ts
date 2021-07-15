@@ -1,7 +1,6 @@
-import * as THREE from 'three';
-
-import { ISDObject, SD_RENDERINGTYPE } from '@shapediver/viewer.shared.types';
-import { mat4 } from 'gl-matrix';
+import * as THREE from 'three'
+import { ISDObject, SD_RENDERINGTYPE } from '@shapediver/viewer.shared.types'
+import { mat4 } from 'gl-matrix'
 
 export class SDObject extends THREE.Object3D implements ISDObject {
     // #region Constructors (1)

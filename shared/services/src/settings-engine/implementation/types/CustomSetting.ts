@@ -1,5 +1,5 @@
-import { AbstractSetting } from "./AbstractSetting";
-import { ISetting } from "../../interfaces/ISetting";
+import { AbstractSetting } from './AbstractSetting'
+import { ISetting } from '../../interfaces/ISetting'
 
 export class CustomSetting extends AbstractSetting implements ISetting<any> {
     // #region Properties (1)

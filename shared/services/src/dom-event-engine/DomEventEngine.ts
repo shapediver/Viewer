@@ -1,6 +1,7 @@
 import { container } from 'tsyringe'
-import { UuidGenerator } from "@shapediver/viewer.shared.utils";
-import { IDomEventListener } from "./IDomEventListener";
+import { UuidGenerator } from '@shapediver/viewer.shared.utils'
+
+import { IDomEventListener } from './IDomEventListener'
 
 export class DomEventEngine {
     // #region Properties (3)

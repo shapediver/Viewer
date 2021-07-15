@@ -1,12 +1,13 @@
-import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
-import { Converter } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
-import { CAMERATYPE } from "../../interfaces/ICameraEngine";
-import { AbstractCamera } from "./AbstractCamera";
-import { mat4, vec2, vec3 } from "gl-matrix";
-import { OrthographicCameraControls } from "../controls/OrthographicCameraControls";
-import { Box } from "@shapediver/viewer.shared.math";
-import { ORTHOGRAPHIC_CAMERA_DIRECTION } from "../../interfaces/camera/IOrthographicCamera";
+import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+import { mat4, vec2, vec3 } from 'gl-matrix'
+import { Box } from '@shapediver/viewer.shared.math'
+
+import { CAMERATYPE } from '../../interfaces/ICameraEngine'
+import { AbstractCamera } from './AbstractCamera'
+import { OrthographicCameraControls } from '../controls/OrthographicCameraControls'
+import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera'
 
 export class OrthographicCamera extends AbstractCamera {
    // #region Properties (5)

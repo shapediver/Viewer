@@ -1,4 +1,4 @@
-import { MaterialEngine } from "./MaterialEngine";
+import { MaterialEngine } from './MaterialEngine'
 
 export {
   MaterialEngine

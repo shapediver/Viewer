@@ -1,4 +1,4 @@
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, vec3 } from 'gl-matrix'
 
 export interface IGeometry {
     containsPoint(point: vec3): boolean;

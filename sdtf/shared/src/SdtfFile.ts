@@ -1,5 +1,5 @@
-import { SdtfTypeHint } from "./implementation/file/SdtfTypeHint";
-import { SdtfChunk } from "./implementation/file/SdtfChunk";
+import { SdtfTypeHint } from './implementation/file/SdtfTypeHint'
+import { SdtfChunk } from './implementation/file/SdtfChunk'
 
 /**
  * Main class for the representation of an Sdtf file.

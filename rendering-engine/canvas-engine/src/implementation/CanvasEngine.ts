@@ -1,10 +1,9 @@
-import { container, singleton } from 'tsyringe';
+import { container, singleton } from 'tsyringe'
+import { UuidGenerator } from '@shapediver/viewer.shared.utils'
 
-import { Canvas } from './Canvas';
-
-import { UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { ICanvasEngine } from '../interfaces/ICanvasEngine';
-import { ICanvas } from '../interfaces/ICanvas';
+import { Canvas } from './Canvas'
+import { ICanvasEngine } from '../interfaces/ICanvasEngine'
+import { ICanvas } from '../interfaces/ICanvas'
 
 @singleton()
 export class CanvasEngine implements ICanvasEngine {

@@ -1,15 +1,22 @@
-import { OutputDelayException } from './OutputDelayException';
-import { OutputLoader } from './OutputLoader';
-import { SessionTreeNode } from './SessionTreeNode';
+import { HttpClient, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+import { SettingsEngine, StateEngine, SystemInfo } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import { AxiosResponse } from 'axios'
+import {
+  ShapeDiverResponseBase,
+  ShapeDiverResponseExport,
+  ShapeDiverResponseExportDefinitionType,
+  ShapeDiverResponseOutput,
+  ShapeDiverResponseParameter,
+} from '@shapediver/api.geometry-api-dto-v1'
 
-import { HttpClient, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils';
-import { container } from 'tsyringe';
-import { SettingsEngine, SystemInfo, StateEngine } from '@shapediver/viewer.shared.services';
-import { ISession } from '../interfaces/ISession';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
-import { AxiosResponse } from 'axios';
-import { ShapeDiverResponseBase, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from '@shapediver/api.geometry-api-dto-v1';
-import { SessionData } from './SessionData';
+import { OutputDelayException } from './OutputDelayException'
+import { OutputLoader } from './OutputLoader'
+import { SessionTreeNode } from './SessionTreeNode'
+import { ISession } from '../interfaces/ISession'
+import { SessionData } from './SessionData'
+
 export class Session implements ISession {
     // #region Properties (19)
 

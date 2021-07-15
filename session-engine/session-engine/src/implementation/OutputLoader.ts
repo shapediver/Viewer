@@ -1,13 +1,16 @@
-import { container } from 'tsyringe';
-
-import { MaterialData, GeometryData } from '@shapediver/viewer.shared.types';
+import { container } from 'tsyringe'
+import { GeometryData, MaterialData } from '@shapediver/viewer.shared.types'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import {
+  ShapeDiverResponseBase as ShapeDiverResponse,
+  ShapeDiverResponseOutput,
+  ShapeDiverResponseOutputPart,
+} from '@shapediver/api.geometry-api-dto-v1'
 
-import { OutputDelayException } from './OutputDelayException';
-import { SessionTreeNode } from './SessionTreeNode';
-import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { SessionOutputData } from './SessionOutputData';
-import { ShapeDiverResponseBase as ShapeDiverResponse, ShapeDiverResponseOutput, ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1"
+import { OutputDelayException } from './OutputDelayException'
+import { SessionTreeNode } from './SessionTreeNode'
+import { SessionOutputData } from './SessionOutputData'
 
 export class OutputLoader {
     // #region Properties (2)

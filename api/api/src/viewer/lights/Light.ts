@@ -1,10 +1,11 @@
-import { AbstractLight, ILight, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
-import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
-import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { Converter, InputValidator } from "@shapediver/viewer.shared.utils";
-import { vec3 } from "gl-matrix";
-import { container } from "tsyringe";
-import { Viewer } from "../Viewer";
+import { AbstractLight, ILight, LIGHTTYPE } from '@shapediver/viewer.rendering-engine.light-engine'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { Converter, InputValidator } from '@shapediver/viewer.shared.utils'
+import { vec3 } from 'gl-matrix'
+import { container } from 'tsyringe'
+
+import { Viewer } from '../Viewer'
 
 export abstract class Light implements ILight {
     // #region Properties (10)

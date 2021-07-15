@@ -1,6 +1,7 @@
-import { vec3 } from "gl-matrix";
-import { ILight } from "./ILight";
-import { ILightScene } from "./ILightScene";
+import { vec3 } from 'gl-matrix'
+
+import { ILight } from './ILight'
+import { ILightScene } from './ILightScene'
 
 export interface ILightEngine {
     // #region Public Methods (12)

@@ -1,7 +1,8 @@
-import { mat4, quat, vec3 } from "gl-matrix";
-import { ICamera } from "../../../interfaces/camera/ICamera";
-import { ICameraControlsUsage } from "../../../interfaces/controls/ICameraControlsUsage";
-import { ICameraInterpolation } from "../../../interfaces/interpolation/ICameraInterpolation";
+import { mat4, quat, vec3 } from 'gl-matrix'
+
+import { ICamera } from '../../../interfaces/camera/ICamera'
+import { ICameraControlsUsage } from '../../../interfaces/controls/ICameraControlsUsage'
+import { ICameraInterpolation } from '../../../interfaces/interpolation/ICameraInterpolation'
 
 export class CameraSphericalInterpolation implements ICameraInterpolation {
     // #region Properties (6)

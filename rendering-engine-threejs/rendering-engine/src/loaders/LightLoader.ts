@@ -1,10 +1,18 @@
-import * as THREE from 'three';
-import { Box, Sphere } from '@shapediver/viewer.shared.math';
-import { AbstractLight, AmbientLight, DirectionalLight, HemisphereLight, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine';
-import { SDObject } from '../types/SDObject';
-import { RenderingEngine } from '../RenderingEngine';
-import { vec3 } from 'gl-matrix';
-import { ILoader } from '../interfaces/ILoader';
+import * as THREE from 'three'
+import { Box, Sphere } from '@shapediver/viewer.shared.math'
+import {
+  AbstractLight,
+  AmbientLight,
+  DirectionalLight,
+  HemisphereLight,
+  PointLight,
+  SpotLight,
+} from '@shapediver/viewer.rendering-engine.light-engine'
+import { vec3 } from 'gl-matrix'
+
+import { SDObject } from '../types/SDObject'
+import { RenderingEngine } from '../RenderingEngine'
+import { ILoader } from '../interfaces/ILoader'
 
 export class LightLoader implements ILoader {
     // #region Constructors (1)

@@ -1,7 +1,8 @@
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { ILight } from "../interface/ILight";
-import { ILightScene } from "../interface/ILightScene";
-import { AbstractLight } from "./AbstractLight";
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+
+import { ILight } from '../interface/ILight'
+import { ILightScene } from '../interface/ILightScene'
+import { AbstractLight } from './AbstractLight'
 
 export class LightScene implements ILightScene {
     // #region Properties (2)

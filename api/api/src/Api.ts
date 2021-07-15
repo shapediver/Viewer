@@ -1,14 +1,15 @@
-import { Tree } from "@shapediver/viewer.shared.node-tree";
-import { container, singleton } from "tsyringe";
-import { Session } from "./session/Session";
-import { Viewer } from "./viewer/Viewer";
-import { StateEngine, EventEngine, EVENTTYPE, MAINEVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services';
-import { UuidGenerator, InputValidator } from '@shapediver/viewer.shared.utils';
-import { RENDERERTYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
-import { VISIBILITYMODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
-import { build_data } from "@shapediver/viewer.shared.build-data";
-import { SDError } from "@shapediver/viewer.shared.utils";
+import { Tree } from '@shapediver/viewer.shared.node-tree'
+import { container, singleton } from 'tsyringe'
+import { EventEngine, EVENTTYPE, MAINEVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { InputValidator, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { build_data } from '@shapediver/viewer.shared.build-data'
+import { SDError } from '@shapediver/viewer.shared.utils'
+
+import { Session } from './session/Session'
+import { Viewer } from './viewer/Viewer'
 
 @singleton()
 export class Api {

@@ -1,6 +1,7 @@
 import { container, singleton } from 'tsyringe'
-import { EventEngine, EVENTTYPE } from '../index';
-import { StatePromise } from './StatePromise';
+
+import { EventEngine, EVENTTYPE } from '../index'
+import { StatePromise } from './StatePromise'
 
 @singleton()
 export class StateEngine {

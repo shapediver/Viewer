@@ -1,6 +1,5 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { singleton } from 'tsyringe';
-
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { singleton } from 'tsyringe'
 
 @singleton()
 export class HttpClient {

@@ -1,5 +1,6 @@
-import "reflect-metadata"
-import { api, RENDERERTYPE, CAMERATYPE, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE } from "@shapediver/viewer"
+import 'reflect-metadata'
+
+import { api, CAMERATYPE, EVENTTYPE, LIGHTTYPE, LOGGINGLEVEL, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
 
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;

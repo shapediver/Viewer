@@ -1,7 +1,6 @@
-import { CameraControlsLogic } from './CameraControlsLogic';
-
-import { ICameraControlsEventDistribution } from '../../../interfaces/controls/ICameraControlsEventDistribution';
-import { OrthographicCameraControls } from '../OrthographicCameraControls';
+import { CameraControlsLogic } from './CameraControlsLogic'
+import { ICameraControlsEventDistribution } from '../../../interfaces/controls/ICameraControlsEventDistribution'
+import { OrthographicCameraControls } from '../OrthographicCameraControls'
 
 export class CameraControlsEventDistribution implements ICameraControlsEventDistribution {
     // #region Properties (2)

@@ -1,7 +1,8 @@
-import "reflect-metadata"
-import * as SD from "@shapediver/viewer"
-import { SettingsEngine } from "@shapediver/viewer.shared.services"
-import { container } from "tsyringe";
+import 'reflect-metadata'
+
+import * as SD from '@shapediver/viewer'
+import { SettingsEngine } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
 
 (<any>window).RENDERERTYPE = SD.RENDERERTYPE;
 (<any>window).CAMERATYPE = SD.CAMERATYPE;

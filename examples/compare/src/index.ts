@@ -1,5 +1,6 @@
-import "reflect-metadata"
-import { api, EVENTTYPE } from "@shapediver/viewer"
+import 'reflect-metadata'
+
+import { api, EVENTTYPE } from '@shapediver/viewer'
 
 (<any>window).api_v3 = api;
 (<any>window).sceneTree = api.sceneTree;

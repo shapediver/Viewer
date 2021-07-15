@@ -1,9 +1,9 @@
-import "reflect-metadata"
-import { container } from "tsyringe";
-import { UuidGenerator } from "../src/index"
 import 'reflect-metadata'
 
-import { PerformanceEvaluator, Logger, LOGGINGTOPIC } from '../src/index'
+import { container } from 'tsyringe'
+
+import { UuidGenerator } from '../src/index'
+import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from '../src/index'
 
 jest.setTimeout(100000);
 

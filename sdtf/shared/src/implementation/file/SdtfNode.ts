@@ -1,6 +1,6 @@
-import { SdtfAttributes } from "./data/attributes/SdtfAttributes";
-import { AbstractSdtfData } from "./data/AbstractSdtfData";
-import { SdtfTypeHint } from "./SdtfTypeHint";
+import { SdtfAttributes } from './data/attributes/SdtfAttributes'
+import { AbstractSdtfData } from './data/AbstractSdtfData'
+import { SdtfTypeHint } from './SdtfTypeHint'
 
 export class SdtfNode {
   // #region Constructors (1)

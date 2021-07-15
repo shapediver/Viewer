@@ -1,5 +1,9 @@
-import { ShapeDiverResponseExport, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from "@shapediver/api.geometry-api-dto-v1";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
+import {
+  ShapeDiverResponseExport,
+  ShapeDiverResponseOutput,
+  ShapeDiverResponseParameter,
+} from '@shapediver/api.geometry-api-dto-v1'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 export interface ISession {
     id: string;

@@ -1,8 +1,9 @@
-import { singleton,container } from "tsyringe";
-import * as Sentry from "@sentry/browser";
-import { Integrations } from "@sentry/tracing";
-import { build_data } from "@shapediver/viewer.shared.build-data";
-import { UuidGenerator } from "../uuid-generator/UuidGenerator";
+import * as Sentry from '@sentry/browser'
+import { container, singleton } from 'tsyringe'
+import { Integrations } from '@sentry/tracing'
+import { build_data } from '@shapediver/viewer.shared.build-data'
+
+import { UuidGenerator } from '../uuid-generator/UuidGenerator'
 
 export enum LOGGINGLEVEL {
     NONE = 'none',

@@ -1,4 +1,4 @@
-import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, RHINOTYPEHINT } from "../../enums";
+import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, RHINOTYPEHINT } from '../../enums'
 
 export class SdtfTypeHint {
   // #region Constructors (1)

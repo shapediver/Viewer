@@ -1,5 +1,5 @@
-import { singleton } from "tsyringe";
-import { parse as parseUUID, stringify as stringifyUUID, v4, validate as validateUUID } from 'uuid';
+import { singleton } from 'tsyringe'
+import { parse as parseUUID, stringify as stringifyUUID, v4, validate as validateUUID } from 'uuid'
 
 @singleton()
 export class UuidGenerator {

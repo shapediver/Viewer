@@ -1,9 +1,9 @@
-import { mat4, vec3 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix'
+import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { Box, Triangle } from '@shapediver/viewer.shared.math'
 
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
-import { MaterialData } from './MaterialData';
-import { ISDObject } from '.';
-import { Box, Triangle } from '@shapediver/viewer.shared.math';
+import { MaterialData } from './MaterialData'
+import { ISDObject } from '.'
 
 export enum PRIMITIVE_MODE {
 	POINTS = 0,

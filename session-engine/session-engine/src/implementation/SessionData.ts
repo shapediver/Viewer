@@ -1,5 +1,5 @@
-import { ShapeDiverResponseBase as ShapeDiverResponse } from '@shapediver/api.geometry-api-dto-v1';
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree';
+import { ShapeDiverResponseBase as ShapeDiverResponse } from '@shapediver/api.geometry-api-dto-v1'
+import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
 export class SessionData extends AbstractTreeNodeData {
     // #region Constructors (1)

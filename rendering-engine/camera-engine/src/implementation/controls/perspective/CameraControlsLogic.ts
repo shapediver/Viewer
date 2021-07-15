@@ -1,9 +1,9 @@
-import { mat4, quat, vec2, vec3 } from 'gl-matrix';
-import { Box, Sphere, Spherical } from '@shapediver/viewer.shared.math';
+import { mat4, quat, vec2, vec3 } from 'gl-matrix'
+import { Box, Sphere, Spherical } from '@shapediver/viewer.shared.math'
 
-import { PerspectiveCameraControls } from '../PerspectiveCameraControls';
-import { ICameraControlsLogic } from '../../../interfaces/controls/ICameraControlsLogic';
-import { PerspectiveCamera } from '../../camera/PerspectiveCamera';
+import { PerspectiveCameraControls } from '../PerspectiveCameraControls'
+import { ICameraControlsLogic } from '../../../interfaces/controls/ICameraControlsLogic'
+import { PerspectiveCamera } from '../../camera/PerspectiveCamera'
 
 export class CameraControlsLogic implements ICameraControlsLogic {
     // #region Properties (15)

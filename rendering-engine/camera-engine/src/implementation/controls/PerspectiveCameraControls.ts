@@ -1,13 +1,15 @@
-import { SettingsEngine, StateEngine } from "@shapediver/viewer.shared.services";
-import { Converter } from "@shapediver/viewer.shared.utils";
-import { vec3 } from "gl-matrix";
-import { container } from "tsyringe";
-import { CAMERATYPE, ICamera } from "../..";
-import { IPerspectiveCameraControls } from "../../interfaces/controls/IPerspectiveCameraControls";
-import { AbstractCameraControls } from "./AbstractCameraControls";
+import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter } from '@shapediver/viewer.shared.utils'
+import { vec3 } from 'gl-matrix'
+import { container } from 'tsyringe'
 
-import { CameraControlsEventDistribution as OrbitCameraControlsEventDistribution } from './perspective/CameraControlsEventDistribution';
-import { CameraControlsLogic as OrbitCameraControlsLogic } from './perspective/CameraControlsLogic';
+import { CAMERATYPE, ICamera } from '../..'
+import { IPerspectiveCameraControls } from '../../interfaces/controls/IPerspectiveCameraControls'
+import { AbstractCameraControls } from './AbstractCameraControls'
+import {
+  CameraControlsEventDistribution as OrbitCameraControlsEventDistribution,
+} from './perspective/CameraControlsEventDistribution'
+import { CameraControlsLogic as OrbitCameraControlsLogic } from './perspective/CameraControlsLogic'
 
 export class PerspectiveCameraControls extends AbstractCameraControls implements IPerspectiveCameraControls {
     // #region Properties (19)

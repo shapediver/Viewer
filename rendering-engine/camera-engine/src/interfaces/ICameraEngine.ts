@@ -1,5 +1,6 @@
-import { vec3 } from 'gl-matrix';
-import { ICamera } from './camera/ICamera';
+import { vec3 } from 'gl-matrix'
+
+import { ICamera } from './camera/ICamera'
 
 export enum CAMERATYPE {
     PERSPECTIVE = 'perspective',

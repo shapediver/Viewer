@@ -1,4 +1,4 @@
-import { AbstractSdtfData } from "../AbstractSdtfData";
+import { AbstractSdtfData } from '../AbstractSdtfData'
 
 export class SdtfCustomItem extends AbstractSdtfData<any> {
   // #region Public Accessors (2)

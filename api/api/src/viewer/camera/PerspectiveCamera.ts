@@ -1,10 +1,15 @@
-import { PerspectiveCamera as PerspectiveCameraLogic, PerspectiveCameraControls as PerspectiveCameraControlsLogic, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
-import { Viewer } from "../Viewer";
-import { Camera } from "./Camera";
-import { PerspectiveCameraControls } from "./controls/PerspectiveCameraControls";
+import {
+  IPerspectiveCamera,
+  PerspectiveCamera as PerspectiveCameraLogic,
+  PerspectiveCameraControls as PerspectiveCameraControlsLogic,
+} from '@shapediver/viewer.rendering-engine.camera-engine'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { InputValidator } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+
+import { Viewer } from '../Viewer'
+import { Camera } from './Camera'
+import { PerspectiveCameraControls } from './controls/PerspectiveCameraControls'
 
 export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
     // #region Properties (6)

@@ -1,17 +1,32 @@
-import { Light } from "./Light";
-import { ILight, ILightScene, ILightScene as LightSceneLogic, LightScene as LightSceneLogicImplementation } from "@shapediver/viewer.rendering-engine.light-engine";
-import { vec3 } from "gl-matrix";
-import { InputValidator, SDError } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { Viewer } from "../Viewer";
-import { AmbientLight } from "../lights/AmbientLight";
-import { PointLight } from "../lights/PointLight";
-import { SpotLight } from "../lights/SpotLight";
-import { DirectionalLight } from "../lights/DirectionalLight";
-import { HemisphereLight } from "../lights/HemisphereLight";
-import { AbstractLight, ILightEngine, AmbientLight as AmbientLightLogic, DirectionalLight as DirectionalLightLogic, HemisphereLight as HemisphereLightLogic, PointLight as PointLightLogic, SpotLight as SpotLightLogic, LIGHTTYPE } from "@shapediver/viewer.rendering-engine.light-engine";
+import {
+  ILight,
+  ILightScene,
+  ILightScene as LightSceneLogic,
+  LightScene as LightSceneLogicImplementation,
+} from '@shapediver/viewer.rendering-engine.light-engine'
+import { vec3 } from 'gl-matrix'
+import { InputValidator, SDError } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import {
+  AbstractLight,
+  AmbientLight as AmbientLightLogic,
+  DirectionalLight as DirectionalLightLogic,
+  HemisphereLight as HemisphereLightLogic,
+  ILightEngine,
+  LIGHTTYPE,
+  PointLight as PointLightLogic,
+  SpotLight as SpotLightLogic,
+} from '@shapediver/viewer.rendering-engine.light-engine'
+
+import { Light } from './Light'
+import { Viewer } from '../Viewer'
+import { AmbientLight } from '../lights/AmbientLight'
+import { PointLight } from '../lights/PointLight'
+import { SpotLight } from '../lights/SpotLight'
+import { DirectionalLight } from '../lights/DirectionalLight'
+import { HemisphereLight } from '../lights/HemisphereLight'
 
 export class LightScene implements ILightScene {
     // #region Properties (8)

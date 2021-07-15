@@ -1,13 +1,13 @@
-import { mat4, vec3 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix'
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
 
-import { CAMERATYPE } from '../../interfaces/ICameraEngine';
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services';
-import { container } from 'tsyringe';
-import { ICamera } from '../../interfaces/camera/ICamera';
-import { ICameraControlsUsage } from '../../interfaces/controls/ICameraControlsUsage';
-import { CameraInterpolationManager } from '../interpolation/CameraInterpolationManager';
-import { ICameraControlsEventDistribution } from '../../interfaces/controls/ICameraControlsEventDistribution';
-import { ICameraControlsLogic } from '../../interfaces/controls/ICameraControlsLogic';
+import { CAMERATYPE } from '../../interfaces/ICameraEngine'
+import { ICamera } from '../../interfaces/camera/ICamera'
+import { ICameraControlsUsage } from '../../interfaces/controls/ICameraControlsUsage'
+import { CameraInterpolationManager } from '../interpolation/CameraInterpolationManager'
+import { ICameraControlsEventDistribution } from '../../interfaces/controls/ICameraControlsEventDistribution'
+import { ICameraControlsLogic } from '../../interfaces/controls/ICameraControlsLogic'
 
 export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Properties (11)

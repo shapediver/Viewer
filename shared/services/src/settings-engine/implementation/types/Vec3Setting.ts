@@ -1,6 +1,7 @@
-import { AbstractSetting } from "./AbstractSetting";
-import { ISetting } from "../../interfaces/ISetting";
-import { vec3 } from "gl-matrix";
+import { vec3 } from 'gl-matrix'
+
+import { AbstractSetting } from './AbstractSetting'
+import { ISetting } from '../../interfaces/ISetting'
 
 export class Vec3Setting extends AbstractSetting implements ISetting<vec3> {
     // #region Properties (1)

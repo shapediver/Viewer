@@ -1,11 +1,17 @@
-import { IOrthographicCamera, OrthographicCamera as OrthographicCameraLogic, OrthographicCameraControls as OrthographicCameraControlsLogic, ORTHOGRAPHIC_CAMERA_DIRECTION } from "@shapediver/viewer.rendering-engine.camera-engine";
-import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
-import { InputValidator } from "@shapediver/viewer.shared.utils";
-import { vec3 } from "gl-matrix";
-import { container } from "tsyringe";
-import { Viewer } from "../Viewer";
-import { Camera } from "./Camera";
-import { OrthographicCameraControls } from "./controls/OrthographicCameraControls";
+import {
+  IOrthographicCamera,
+  ORTHOGRAPHIC_CAMERA_DIRECTION,
+  OrthographicCamera as OrthographicCameraLogic,
+  OrthographicCameraControls as OrthographicCameraControlsLogic,
+} from '@shapediver/viewer.rendering-engine.camera-engine'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { InputValidator } from '@shapediver/viewer.shared.utils'
+import { vec3 } from 'gl-matrix'
+import { container } from 'tsyringe'
+
+import { Viewer } from '../Viewer'
+import { Camera } from './Camera'
+import { OrthographicCameraControls } from './controls/OrthographicCameraControls'
 
 export class OrthographicCamera extends Camera implements IOrthographicCamera {
     // #region Properties (2)

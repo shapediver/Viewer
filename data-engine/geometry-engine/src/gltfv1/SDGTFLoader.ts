@@ -1,11 +1,23 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Converter, HttpClient, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils';
-
-import { ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE, ACCESSORTYPE_V1 as ACCESSORTYPE, IGLTF_v1, IGLTF_v1_Material, ISDGTF_v1 } from '@shapediver/viewer.data-engine.shared-types';
-import { AttributeData, GeometryData, MaterialData, MATERIAL_SIDE, PrimitiveData, PRIMITIVE_MODE } from '@shapediver/viewer.shared.types';
-import { container } from 'tsyringe';
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils';
-import { mat4, vec2, vec3, vec4 } from 'gl-matrix';
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Converter, HttpClient, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import {
+  ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
+  ACCESSORTYPE_V1 as ACCESSORTYPE,
+  IGLTF_v1,
+  IGLTF_v1_Material,
+  ISDGTF_v1,
+} from '@shapediver/viewer.data-engine.shared-types'
+import {
+  AttributeData,
+  GeometryData,
+  MATERIAL_SIDE,
+  MaterialData,
+  PRIMITIVE_MODE,
+  PrimitiveData,
+} from '@shapediver/viewer.shared.types'
+import { container } from 'tsyringe'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 
 export class SDGTFLoader {
     // #region Properties (5)

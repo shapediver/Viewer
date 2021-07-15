@@ -1,12 +1,13 @@
-import { SystemInfo } from '@shapediver/viewer.shared.services';
-import * as THREE from 'three';
-import { EffectComposer } from '../three/postprocessing/EffectComposer.js';
-import { RenderPass } from '../three/postprocessing/RenderPass.js';
-import { SAOPass } from '../three/postprocessing/SAOPass.js';
-import { SSAARenderPass } from '../three/postprocessing/SSAARenderPass.js';
-import { container } from 'tsyringe';
-import { RenderingEngine } from '../RenderingEngine';
-import { IManager } from '../interfaces/IManager.js';
+import * as THREE from 'three'
+import { SystemInfo } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
+
+import { EffectComposer } from '../three/postprocessing/EffectComposer.js'
+import { RenderPass } from '../three/postprocessing/RenderPass.js'
+import { SAOPass } from '../three/postprocessing/SAOPass.js'
+import { SSAARenderPass } from '../three/postprocessing/SSAARenderPass.js'
+import { RenderingEngine } from '../RenderingEngine'
+import { IManager } from '../interfaces/IManager.js'
 
 export class BeautyRenderingManager implements IManager {
     // #region Properties (12)

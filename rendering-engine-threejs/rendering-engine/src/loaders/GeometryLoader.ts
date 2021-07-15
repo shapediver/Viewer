@@ -1,15 +1,21 @@
-import * as THREE from 'three';
+import * as THREE from 'three'
+import {
+  GeometryData,
+  MATERIAL_ALPHA,
+  PRIMITIVE_MODE,
+  PrimitiveData,
+  SD_RENDERINGTYPE,
+} from '@shapediver/viewer.shared.types'
+import { Box } from '@shapediver/viewer.shared.math'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
 
-import { GeometryData, MATERIAL_ALPHA, PrimitiveData, PRIMITIVE_MODE, SD_RENDERINGTYPE } from '@shapediver/viewer.shared.types';
-import { SDObject } from '../types/SDObject';
-import { Box } from '@shapediver/viewer.shared.math';
-import { MaterialLoader } from './MaterialLoader';
-import { RenderingEngine } from '../RenderingEngine';
-import { TreeNode } from '@shapediver/viewer.shared.node-tree';
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils';
-import { container } from 'tsyringe';
-import { RenderingManager } from '../managers/RenderingManager';
-import { ILoader } from '../interfaces/ILoader';
+import { SDObject } from '../types/SDObject'
+import { MaterialLoader } from './MaterialLoader'
+import { RenderingEngine } from '../RenderingEngine'
+import { RenderingManager } from '../managers/RenderingManager'
+import { ILoader } from '../interfaces/ILoader'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (2)

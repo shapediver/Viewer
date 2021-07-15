@@ -1,10 +1,11 @@
-import { Light } from "./Light";
-import { HemisphereLight as HemisphereLightLogic } from "@shapediver/viewer.rendering-engine.light-engine";
-import { vec3 } from "gl-matrix";
-import { Converter, InputValidator, SDError } from "@shapediver/viewer.shared.utils";
-import { container } from "tsyringe";
-import { Logger, LOGGINGTOPIC } from "@shapediver/viewer.shared.utils";
-import { Viewer } from "../Viewer";
+import { HemisphereLight as HemisphereLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
+import { vec3 } from 'gl-matrix'
+import { Converter, InputValidator, SDError } from '@shapediver/viewer.shared.utils'
+import { container } from 'tsyringe'
+import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+
+import { Light } from './Light'
+import { Viewer } from '../Viewer'
 
 export class HemisphereLight extends Light {
     // #region Properties (1)

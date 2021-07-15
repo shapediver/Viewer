@@ -1,12 +1,11 @@
-import { container, singleton } from "tsyringe"
-import { HTMLElementAnchorData } from "@shapediver/viewer.shared.types";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
-import { Converter } from "@shapediver/viewer.shared.utils";
-import { vec3, vec4 } from "gl-matrix";
-import { Box } from "@shapediver/viewer.shared.math";
-import { ShapeDiverResponseOutputPart } from "@shapediver/api.geometry-api-dto-v1";
-
+import { container, singleton } from 'tsyringe'
+import { HTMLElementAnchorData } from '@shapediver/viewer.shared.types'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { Converter } from '@shapediver/viewer.shared.utils'
+import { vec3, vec4 } from 'gl-matrix'
+import { Box } from '@shapediver/viewer.shared.math'
+import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
 
 interface Tag2D {
     version: string,
