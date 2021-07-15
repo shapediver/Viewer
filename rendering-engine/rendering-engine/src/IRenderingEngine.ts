@@ -39,10 +39,6 @@ export interface IRenderingEngine {
     shadows: boolean;
     show: boolean;
 
-    cameraEngine: ICameraEngine;
-    lightEngine: ILightEngine;
-    canvas: ICanvas;
-
     // #endregion Properties (2)
 
     // #region Public Methods (1)

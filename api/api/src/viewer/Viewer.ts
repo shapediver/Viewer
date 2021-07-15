@@ -502,7 +502,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.intensity, 'positive', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.name, 'string', false);
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
-      const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(props)
+      const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(<any>props)
       const light = this.getLightScene().lights[lightLogic.id];
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Ambient light with id ${light.id} created.`);
       this.update();
@@ -539,7 +539,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapBias, 'number', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.name, 'string', false);
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
-      const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(props);
+      const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(<any>props);
       const light = this.getLightScene().lights[lightLogic.id];
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Directional light with id ${light.id} created.`);
       this.update();
@@ -571,7 +571,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.name, 'string', false);
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
       if (props.groundColor !== undefined) props.groundColor = this.#converter.toColor(props.groundColor);
-      const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(props);
+      const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(<any>props);
       const light = this.getLightScene().lights[lightLogic.id];
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Hemisphere light with id ${light.id} created.`);
       this.update();
@@ -606,7 +606,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.decay, 'positive', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.name, 'string', false);
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
-      const lightLogic = this.#renderingEngine.lightEngine.addPointLight(props);
+      const lightLogic = this.#renderingEngine.lightEngine.addPointLight(<any>props);
       const light = this.getLightScene().lights[lightLogic.id];
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Point light with id ${light.id} created.`);
       this.update();
@@ -648,7 +648,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.name, 'string', false);
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
 
-      const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(props);
+      const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(<any>props);
       const light = this.getLightScene().lights[lightLogic.id];
 
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Spot light with id ${light.id} created.`);
