@@ -90,19 +90,23 @@ export class BeautyRenderingManager implements IManager {
     // #region Public Methods (7)
 
     public activateBeautyRenderShaders() {
-        this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
-        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
-        this._renderingEngine.materialLoader.updateMaterials();
+        if(this._systemInfo.isMobileDevice) {
+            this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+            this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+            this._renderingEngine.materialLoader.updateMaterials();
+        }
     }
 
     public deactivateBeautyRenderShaders() {
         this._beautyRenderingTimeout = null;
         this._beautyRenderingActive = false;
         this._beautyRenderingDurationActive = 0;
-        this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
-        this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
-        this._renderingEngine.materialLoader.updateMaterials();
+        if(this._systemInfo.isMobileDevice) {
+            this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
+            this._renderingEngine.materialLoader.updateMaterials();
+        }
     }
 
     public init(): void {
@@ -114,7 +118,7 @@ export class BeautyRenderingManager implements IManager {
         this._ssaaPass = new SSAARenderPass(this._renderingEngine.scene, tempCamera, this._renderingEngine.renderer.getClearColor(new THREE.Color()), this._renderingEngine.renderer.getClearAlpha());
         this._effectComposer.addPass(this._ssaaPass);
 
-        this._saoPass = new SAOPass(this._renderingEngine.scene, tempCamera, true, true);
+        this._saoPass = new SAOPass(this._renderingEngine.scene, tempCamera, false, true);
 
         const saoRenderFunction = this._saoPass.render.bind(this._saoPass);
 
@@ -148,6 +152,12 @@ export class BeautyRenderingManager implements IManager {
         this._saoPass.params.saoBlurRadius = 4;
         this._saoPass.params.saoBlurStdDev = 4;
         this._saoPass.params.saoBlurDepthCutoff = 0.01;
+
+        this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVEnd, 1.0);
+
+        this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.materialLoader.updateMaterials();
     }
 
     public render(time: number, camera: THREE.Camera, width: number, height: number) {
@@ -194,14 +204,16 @@ export class BeautyRenderingManager implements IManager {
         const deltaTime = Math.min(this._beautyRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration)
         const percentage = deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
 
-        if (percentage < 0.25) {
-            const percentageMapped = percentage / 0.25;
-            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
-
-        } else {
-            const percentageMapped = (percentage - 0.25) / (1 - 0.25);
-            // this._lightSizeUVStart -> this._lightSizeUVEnd
-            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
+        if(this._systemInfo.isMobileDevice) {
+            if (percentage < 0.25) {
+                const percentageMapped = percentage / 0.25;
+                this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
+    
+            } else {
+                const percentageMapped = (percentage - 0.25) / (1 - 0.25);
+                // this._lightSizeUVStart -> this._lightSizeUVEnd
+                this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
+            }
         }
         return percentage;
     }

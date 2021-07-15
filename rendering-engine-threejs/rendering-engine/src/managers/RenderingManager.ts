@@ -234,7 +234,9 @@ export class RenderingManager implements IManager {
 
         // animation loop - part 11: adjust some scene settings
         // enable / disable the shadow map
+        const enabled = this._renderingEngine.renderer.shadowMap.enabled;
         this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader ? false : this._renderingEngine.shadows;
+        if(enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials()
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         // set the background color / alpha
@@ -242,14 +244,14 @@ export class RenderingManager implements IManager {
 
         // animation loop - part 12: actual rendering separation
         if (states.beautyRendering === true) {
-            this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive += deltaTime;
             this._renderingEngine.beautyRenderingManager.render(deltaTime, camera, width, height);
-
             // if the duration was long enough, disable the beauty rendering
             if (this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
                 this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
                 this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
                 this._activeRendering = false;
+            } else {
+                this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive += deltaTime;
             }
         } else {
             this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);
@@ -373,7 +375,7 @@ export class RenderingManager implements IManager {
         // If we should render in beauty mode
         let beautyRendering = false;
         if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
-            (this._renderingEngine.shadows || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice)) &&
+            ((this._renderingEngine.shadows && this._systemInfo.isMobileDevice) || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice)) &&
             this._renderingEngine.usingSwiftShader === false)
             beautyRendering = true;
 

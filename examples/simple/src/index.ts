@@ -21,6 +21,10 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
         ticket: 'b9deea346b988b90b45ef359be0e57d3325fb8e089c33008a5c7e41b5a3020b1ba16b5f4926c9d487037cf128455653573096649deee8415afa220b4ec27565e28178f2193c9f66366361de05e866e9c91e0c44f278261692f7c778dbf3ee3c53a139526fded5aea8aa8a52f19a9fc20aed1eab5f6da22eac8e0eff4b8ca4ddd-df2cbd31660c1cd9d38673d8362b9466', 
         modelViewUrl: modelViewUrls['eu-central-1'], 
     },
+    'Donau City': { 
+        ticket: 'c5a3d0e56b3cae3d3cd8aef1a4f4c6e2faf2ad949173676d1fa85a3565a9b0ec062f07fc780ba8df27d162ca2796fc31f381f204ccfab89f223cd259d2ca8f1ce13f8aeaddc49c6b710d40c072a114c77815f19c3b2d8ca7aa8eb7848c6a06ef756b4e302cd19811c08eef298f216bcac2dfa59a34-c5b926b079fb1e63e38a576edf2a7838',
+        modelViewUrl: modelViewUrls['eu-central-2']
+    },
     'Material Test': { 
         ticket: '1e8922035033c9be1e33706b0f57e8b0049387c0a7f6c328b0e9a60de60c77934dc71ecce2efca2c64f24e765e0e56f9bfc18eadcb176e823c51434474997791b4b73615981c685ab1c75d08e986fd7d83763c3021ffaa7b399c8a9bd8de4010542cf9f45a5b525ceeb2b3b63654fe9d6a9310c006-2f92cac8002b6a3ab84643205ee94dcf',
         modelViewUrl: modelViewUrls['eu-central-2']
