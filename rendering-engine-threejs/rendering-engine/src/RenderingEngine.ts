@@ -35,6 +35,7 @@ import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader'
 import { BeautyRenderingManager } from './managers/BeautyRenderingManager'
 import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager'
 import { SceneTracingManager } from './managers/SceneTracingManager'
+import { CameraManager } from './managers/CameraManager'
 
 export class RenderingEngine implements IRenderingEngine {
     // #region Properties (51)
@@ -54,6 +55,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     // managers
     private readonly _beautyRenderingManager: BeautyRenderingManager;
+    private readonly _cameraManager: CameraManager;
     private readonly _environmentGeometryManager: EnvironmentGeometryManager;
     private readonly _renderingManager: RenderingManager;
     private readonly _sceneTracingManager: SceneTracingManager;
@@ -133,6 +135,7 @@ export class RenderingEngine implements IRenderingEngine {
 
         // creation of the managers (all singleton engines were created already)
         this._beautyRenderingManager = new BeautyRenderingManager(this);
+        this._cameraManager = new CameraManager(this);
         this._environmentGeometryManager = new EnvironmentGeometryManager(this);
         this._sceneTracingManager = new SceneTracingManager(this);
         this._sceneTreeManager = new SceneTreeManager(this);
@@ -151,6 +154,7 @@ export class RenderingEngine implements IRenderingEngine {
 
         // creation of the managers (all singleton engines were created already)
         this._beautyRenderingManager.init();
+        this._cameraManager.init();
         this._environmentGeometryManager.init();
         this._sceneTracingManager.init();
         this._sceneTreeManager.init();
@@ -313,6 +317,14 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public get cameraEngine(): CameraEngine {
         return this._cameraEngine;
+    }
+
+    /**
+     * Getter cameraManager
+     * @return {CameraManager}
+     */
+    public get cameraManager(): CameraManager {
+        return this._cameraManager;
     }
 
     /**
