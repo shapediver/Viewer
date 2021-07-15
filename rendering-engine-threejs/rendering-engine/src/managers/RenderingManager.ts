@@ -18,24 +18,24 @@ import { BeautyRenderingManager } from './BeautyRenderingManager'
 import { IManager } from '../interfaces/IManager'
 
 export class RenderingManager implements IManager {
-    // #region Properties (15)
+    // #region Properties (13)
 
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
 
+    private _activeRendering: boolean = true;
     private _currentlyBlurred: boolean = false;
     private _height: number = 0;
     private _lastTime: number = 0;
     private _minimalRendering: boolean = false;
-    private _activeRendering: boolean = true;
     private _noWebGL: boolean = false;
     private _stats: any;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
 
-    // #endregion Properties (15)
+    // #endregion Properties (13)
 
     // #region Constructors (1)
 
@@ -46,17 +46,17 @@ export class RenderingManager implements IManager {
     // #region Public Accessors (2)
 
     /**
-         * Getter minimalRendering
-         * @return {boolean}
-         */
+           * Getter minimalRendering
+           * @return {boolean}
+           */
     public get minimalRendering(): boolean {
         return this._minimalRendering;
     }
 
     /**
-         * Getter usingSwiftShader
-         * @return {boolean}
-         */
+           * Getter usingSwiftShader
+           * @return {boolean}
+           */
     public get usingSwiftShader(): boolean {
         return this._usingSwiftShader;
     }
@@ -117,12 +117,11 @@ export class RenderingManager implements IManager {
         try {
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
                 // https://shapediver.atlassian.net/browse/SS-2956, add viewer id, could be another one
-                this._activeRendering = true;
-                this._renderingEngine.beautyRenderingManager.stopBeautyRenderCountdown();
+                this.startRendering();
             })
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
                 // https://shapediver.atlassian.net/browse/SS-2956, add viewer id, could be another one
-                if (this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+                this.stopRendering();
             })
 
             window.onresize = () => { this.render(); };
@@ -131,17 +130,17 @@ export class RenderingManager implements IManager {
 
             const stats1 = new Stats.default();
             stats1.showPanel(0); // Panel 0 = fps
-            stats1.dom.style.cssText = 'position:absolute;top:0px;left:0px;';
+            stats1.dom.style.cssText = 'position:absolute;top:0px;left:0px;display:none;';
             this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats1.dom);
 
             const stats2 = new Stats.default();
             stats2.showPanel(1); // Panel 1 = ms
-            stats2.dom.style.cssText = 'position:absolute;top:0px;left:80px;';
+            stats2.dom.style.cssText = 'position:absolute;top:0px;left:80px;display:none;';
             this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats2.dom);
 
             const stats3 = new Stats.default();
-            stats3.showPanel(2); // Panel 1 = ms
-            stats3.dom.style.cssText = 'position:absolute;top:0px;left:160px;';
+            stats3.showPanel(2); // Panel 2 = ms
+            stats3.dom.style.cssText = 'position:absolute;top:0px;left:160px;display:none;';
             this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats3.dom);
 
             this._stats = {
@@ -164,8 +163,7 @@ export class RenderingManager implements IManager {
     }
 
     public render() {
-        this._activeRendering = true;
-        if (this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+        this.startAndStopRendering();
     }
 
     public resize(width: number, height: number) {
@@ -174,51 +172,98 @@ export class RenderingManager implements IManager {
 
     public start() {
         this.animate(0);
-        if (this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+        this.startAndStopRendering();
     }
 
     public updateShadowMap() {
         this._renderingEngine.renderer.shadowMap.needsUpdate = true;
     }
 
-    private evaluateRenderingState(): {
-        showScene: boolean,
-        rendering: boolean,
-        blurScene: boolean,
-        beautyRendering: boolean
-    } {
-        // If there is a camera to show the scene and the setting for it is set to true, we show the scene
-        let showScene = false;
-        if(this._renderingEngine.cameraEngine.hasCamera() === true && this._renderingEngine.show === true)
-            showScene = true;
-
-        // If we should render at all
-        let rendering = false;
-        if(this._activeRendering === true)
-            rendering = true;
-
-        // If the scene should be blurred
-        let blurScene = false;
-        if(this._renderingEngine.blurSceneWhenBusy && this._renderingEngine.blur)
-            blurScene = true;
-
-        // If we should render in beauty mode
-        let beautyRendering = false;
-        if(this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
-            (this._renderingEngine.shadows || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice)) &&
-            this._renderingEngine.usingSwiftShader === false)
-            beautyRendering = true;
-
-        return { showScene, rendering, blurScene, beautyRendering };
-    }
-
     // #endregion Public Methods (8)
 
-    private toggleLogo(toggle: boolean) {
-        if (this._renderingEngine.logoDivElement) 
-            this._renderingEngine.logoDivElement.style.display = toggle ? 'inherit' : 'none';
-        if (this._renderingEngine.canvas.canvasElement)  
-            this._renderingEngine.canvas.canvasElement.style.display = !toggle ? 'inherit': 'none';
+    // #region Private Methods (10)
+
+    private animate(time: number): void {
+        // animation loop - part 1: initial discarding
+        if (this._renderingEngine.closed || this._noWebGL) return;
+
+        // animation loop - part 2: requesting and timings
+        requestAnimationFrame((time: number) => this.animate(time));
+        TWEEN.update(time);
+        const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
+        this._lastTime = time;
+
+        // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
+        const { position, target } = this._renderingEngine.cameraEngine.hasCamera() ? this._renderingEngine.cameraManager.updateCamera(deltaTime) : { position: vec3.create(), target: vec3.create() };
+
+        // animation loop - part 4: evaluating state
+        const states = this.evaluateRenderingState();
+
+        // animation loop - part 5: the scene is not even shown
+        if (states.showScene === false) {
+            // toggle on logo
+            this.toggleLogo(true);
+            return;
+        } else {
+            this.toggleLogo(false);
+        }
+
+        // animation loop - part 6: the scene is shown, but there is no active rendering happening
+        if (states.rendering === false) return;
+
+        // animation loop - part 7: there is actual rendering happening
+        // do the things that have to be done for standard and beauty rendering in the same way
+        this._stats.begin();
+        this.showStatistics();
+
+        // toggle the blurring
+        this.toggleBlur(states.blurScene);
+
+        // animation loop - part 8: calculate the current size
+        const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
+        const aspect = width / height;
+        this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
+        this._renderingEngine.renderer.domElement.style.width = width + 'px';
+        this._renderingEngine.renderer.domElement.style.height = height + 'px';
+
+        // animation loop - part 9: adjust the camera
+        const camera = this._renderingEngine.cameraManager.adjustCamera(position, target, aspect);
+
+        // animation loop - part 10: adjust the anchor elements
+        this._renderingEngine.htmlElementAnchorLoader.adjustPositions(adjustedWidth / width, adjustedHeight / height);
+
+        // animation loop - part 11: adjust some scene settings
+        // enable / disable the shadow map
+        this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader ? false : this._renderingEngine.shadows;
+        // enable / disable the background
+        this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
+        // set the background color / alpha
+        this._renderingEngine.renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor), this._renderingEngine.clearAlpha);
+
+        // animation loop - part 12: actual rendering separation
+        if (states.beautyRendering === true) {
+            this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive += deltaTime;
+            this._renderingEngine.beautyRenderingManager.render(deltaTime, camera, width, height);
+
+            // if the duration was long enough, disable the beauty rendering
+            if (this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
+                this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
+                this._activeRendering = false;
+            }
+        } else {
+            this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);
+
+            // if the beauty rendering was active, disable it
+            if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive) {
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
+                this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
+                this._activeRendering = false;
+            }
+        }
+
+        if (!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
+        this._stats.end();
     }
 
     private calculateSize(): { adjustedWidth: number, adjustedHeight: number, width: number, height: number } {
@@ -226,8 +271,8 @@ export class RenderingManager implements IManager {
         if (this._renderingEngine.automaticResizing) {
             width = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientWidth;
             height = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientHeight;
-        }        
-        
+        }
+
         const aspect = width / height;
         let adjustedWidth = width,
             adjustedHeight = height;
@@ -243,93 +288,6 @@ export class RenderingManager implements IManager {
         return {
             width, adjustedWidth,
             height, adjustedHeight
-        }
-    }
-    // #region Private Methods (5)
-
-    private animate(time: number): void {
-        // animation loop - part 1: initial discarding
-        if (this._renderingEngine.closed || this._noWebGL) return;
-        
-        // animation loop - part 2: requesting and timings
-        requestAnimationFrame((time: number) => this.animate(time));
-        TWEEN.update(time);
-        const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
-        this._lastTime = time;
-
-        // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
-        const { position, target } = this._renderingEngine.cameraEngine.hasCamera() ? this._renderingEngine.cameraManager.updateCamera(deltaTime) : { position: vec3.create(), target: vec3.create() };
-
-        // animation loop - part 4: evaluating state
-        const states = this.evaluateRenderingState();
-
-        // animation loop - part 5: the scene is not even shown
-        if(states.showScene === false) {
-            // toggle on logo
-            this.toggleLogo(true);
-            return;
-        } else {
-            this.toggleLogo(false);
-        }
-
-        // animation loop - part 6: the scene is shown, but there is no active rendering happening
-        if(states.rendering === false) return;
-        
-        // animation loop - part 7: there is actual rendering happening
-        // do the things that have to be done for standard and beauty rendering in the same way
-        this._stats.begin();
-        this.showStatistics();
-        
-        // toggle the blurring
-        this.toggleBlur(states.blurScene);
-        
-        // animation loop - part 8: calculate the current size
-        const {width, height, adjustedWidth, adjustedHeight} = this.calculateSize();
-        const aspect = width / height;
-        this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
-        this._renderingEngine.renderer.domElement.style.width = width + 'px';
-        this._renderingEngine.renderer.domElement.style.height = height + 'px';
-        
-        // animation loop - part 9: adjust the camera
-        const camera = this._renderingEngine.cameraManager.adjustCamera(position, target, aspect);
-        
-        // animation loop - part 10: adjust the anchor elements
-        this._renderingEngine.htmlElementAnchorLoader.adjustPositions(adjustedWidth / width, adjustedHeight / height);
-
-        // animation loop - part 11: adjust some scene settings
-        // enable / disable the shadow map
-        this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader ? false : this._renderingEngine.shadows;
-        // enable / disable the background
-        this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
-        // set the background color / alpha
-        this._renderingEngine.renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor), this._renderingEngine.clearAlpha);
-
-        // animation loop - part 12: actual rendering separation
-        if(states.beautyRendering === true) {
-            this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive += deltaTime;
-            this._renderingEngine.beautyRenderingManager.render(deltaTime, camera, width, height);
-            if (this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
-                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
-                this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
-                this._activeRendering = false;
-            }
-        } else {
-            this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);
-        }
-
-        if (!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
-        this._stats.end();
-    }
-
-    private toggleBlur(toggle: boolean) {
-        if (toggle && !this._currentlyBlurred) {
-            if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
-                return;
-            this._renderingEngine.renderer.domElement.style.filter = 'blur(3px)';
-            this._currentlyBlurred = true;
-        } else if (!this._renderingEngine.blur && this._currentlyBlurred) {
-            this._renderingEngine.renderer.domElement.style.filter = '';
-            this._currentlyBlurred = false;
         }
     }
 
@@ -391,6 +349,37 @@ export class RenderingManager implements IManager {
         }
     }
 
+    private evaluateRenderingState(): {
+        showScene: boolean,
+        rendering: boolean,
+        blurScene: boolean,
+        beautyRendering: boolean
+    } {
+        // If there is a camera to show the scene and the setting for it is set to true, we show the scene
+        let showScene = false;
+        if (this._renderingEngine.cameraEngine.hasCamera() === true && this._renderingEngine.show === true)
+            showScene = true;
+
+        // If we should render at all
+        let rendering = false;
+        if (this._activeRendering === true)
+            rendering = true;
+
+        // If the scene should be blurred
+        let blurScene = false;
+        if (this._renderingEngine.blurSceneWhenBusy && this._renderingEngine.blur)
+            blurScene = true;
+
+        // If we should render in beauty mode
+        let beautyRendering = false;
+        if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
+            (this._renderingEngine.shadows || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice)) &&
+            this._renderingEngine.usingSwiftShader === false)
+            beautyRendering = true;
+
+        return { showScene, rendering, blurScene, beautyRendering };
+    }
+
     private showStatistics() {
         if (this._renderingEngine.showStatistics) {
             for (let i = 0; i < this._stats.stats.length; i++)
@@ -401,5 +390,39 @@ export class RenderingManager implements IManager {
         }
     }
 
-    // #endregion Private Methods (5)
+    private startAndStopRendering() {
+        this._activeRendering = true;
+        this._renderingEngine.beautyRenderingManager.stopBeautyRenderCountdown();
+        this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+    }
+
+    private startRendering() {
+        this._activeRendering = true;
+        this._renderingEngine.beautyRenderingManager.stopBeautyRenderCountdown();
+    }
+
+    private stopRendering() {
+        this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+    }
+
+    private toggleBlur(toggle: boolean) {
+        if (toggle && !this._currentlyBlurred) {
+            if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
+                return;
+            this._renderingEngine.renderer.domElement.style.filter = 'blur(3px)';
+            this._currentlyBlurred = true;
+        } else if (!this._renderingEngine.blur && this._currentlyBlurred) {
+            this._renderingEngine.renderer.domElement.style.filter = '';
+            this._currentlyBlurred = false;
+        }
+    }
+
+    private toggleLogo(toggle: boolean) {
+        if (this._renderingEngine.logoDivElement)
+            this._renderingEngine.logoDivElement.style.display = toggle ? 'inherit' : 'none';
+        if (this._renderingEngine.canvas.canvasElement)
+            this._renderingEngine.canvas.canvasElement.style.display = !toggle ? 'inherit' : 'none';
+    }
+
+    // #endregion Private Methods (10)
 }
