@@ -1,37 +1,35 @@
 import { HTMLElementAnchorData } from "@shapediver/viewer.shared.types";
 import { vec3 } from "gl-matrix";
+import { ILoader } from "../interfaces/ILoader";
 import { RenderingEngine } from "../RenderingEngine";
 
-export class HTMLElementAnchorLoader {
+export class HTMLElementAnchorLoader implements ILoader {
+    // #region Properties (2)
+
     private readonly _htmlElements: {
         [key: string]: HTMLElementAnchorData
     } = {};
     private readonly _parentDiv: HTMLDivElement;
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {
+    // #endregion Properties (2)
+
+    // #region Constructors (1)
+
+    constructor(private readonly _renderingEngine: RenderingEngine) {        
         this._parentDiv = document.createElement('div');
-        this._renderingEngine.canvas.canvasElement.parentNode?.appendChild(this._parentDiv);
     }
+
+    // #endregion Constructors (1)
+
+    // #region Public Accessors (1)
 
     public get parentDiv(): HTMLDivElement {
         return this._parentDiv;
     }
 
-    public load(anchor: HTMLElementAnchorData): void {
-        const htmlElement = anchor.createViewerHtmlElement(this._renderingEngine.id);
-        if (!htmlElement) return;
-        this._parentDiv.appendChild(htmlElement);
-        this._parentDiv.style.userSelect = 'none';
-        this._parentDiv.style.cursor = 'default';
-        this._parentDiv.style.pointerEvents = 'none';
-        this._parentDiv.style.overflow = 'hidden';
-        this._parentDiv.style.position = 'absolute';
-        this._parentDiv.style.width = '100%';
-        this._parentDiv.style.height = '100%';
-        this._parentDiv.style.left = '0%';
-        this._parentDiv.style.top = '0%';
-        this._htmlElements[anchor.id] = anchor;
-    }
+    // #endregion Public Accessors (1)
+
+    // #region Public Methods (3)
 
     public adjustPositions(scaleWidth: number, scaleHeight: number): void {
         for (let anchorId in this._htmlElements) {
@@ -69,4 +67,26 @@ export class HTMLElementAnchorLoader {
             htmlElement.style.top = y + 'px';
         }
     }
+
+    public init(): void {
+        this._renderingEngine.canvas.canvasElement.parentNode?.appendChild(this._parentDiv);
+    }
+
+    public load(anchor: HTMLElementAnchorData): void {
+        const htmlElement = anchor.createViewerHtmlElement(this._renderingEngine.id);
+        if (!htmlElement) return;
+        this._parentDiv.appendChild(htmlElement);
+        this._parentDiv.style.userSelect = 'none';
+        this._parentDiv.style.cursor = 'default';
+        this._parentDiv.style.pointerEvents = 'none';
+        this._parentDiv.style.overflow = 'hidden';
+        this._parentDiv.style.position = 'absolute';
+        this._parentDiv.style.width = '100%';
+        this._parentDiv.style.height = '100%';
+        this._parentDiv.style.left = '0%';
+        this._parentDiv.style.top = '0%';
+        this._htmlElements[anchor.id] = anchor;
+    }
+
+    // #endregion Public Methods (3)
 }

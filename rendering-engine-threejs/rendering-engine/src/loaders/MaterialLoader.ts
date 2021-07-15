@@ -4,27 +4,27 @@ import { vec4 } from 'gl-matrix';
 import { RenderingEngine } from '../RenderingEngine';
 import { main, entry } from "../shaders/PCSS";
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial';
-import { RenderingLogic } from '../RenderingLogic';
+import { RenderingManager } from '../managers/RenderingManager';
+import { ILoader } from '../interfaces/ILoader';
 
-export class MaterialLoader {
-    // #region Properties (5)
+export class MaterialLoader implements ILoader {
+    // #region Properties (8)
 
     private readonly _defaultColor: string = '#00fff7';
     private readonly _materialLibrary: (THREE.Material | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial)[] = [];
 
     private _blending: number = 0.0;
-    private _lightSizeUV: number = 0.025;
-
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
-    private _textureEncoding: THREE.TextureEncoding = THREE.LinearEncoding;
-    private _pointSize: number = 1.0;
     private _height: number = 1020;
+    private _lightSizeUV: number = 0.025;
+    private _pointSize: number = 1.0;
+    private _textureEncoding: THREE.TextureEncoding = THREE.LinearEncoding;
 
-    // #endregion Properties (5)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _renderingLogic: RenderingLogic) {
+    constructor(private readonly _renderingEngine: RenderingEngine) {
         let shader = THREE.ShaderChunk.shadowmap_pars_fragment;
         if (!shader.includes('PCSS implementation')) {
             shader = shader.replace('#ifdef USE_SHADOWMAP', '#ifdef USE_SHADOWMAP' + main);
@@ -68,7 +68,7 @@ export class MaterialLoader {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (4)
+    // #region Public Methods (7)
 
     public assignEnvironmentMap(e: THREE.CubeTexture | THREE.Texture | null) {
         this._envMap = e;
@@ -80,7 +80,20 @@ export class MaterialLoader {
             }
         }
     }
-    
+
+    public assignPointSize(p: number) {
+        const height = this._renderingEngine.renderer ? this._renderingEngine.renderer.getSize(new THREE.Vector2()).y : 1020;
+        if(height === this._height) return;
+        this._height = height;
+        this._pointSize = p * (this._height/3250);
+        for(let i = 0; i < this._materialLibrary.length; i++) {
+            if(this._materialLibrary[i] instanceof THREE.PointsMaterial) {
+                (<THREE.PointsMaterial>this._materialLibrary[i]).size = this._pointSize;
+                (<THREE.PointsMaterial>this._materialLibrary[i]).needsUpdate = true;
+            }
+        }
+    }
+
     public assignTextureEncoding(e: THREE.TextureEncoding) {
         this._textureEncoding = e;
         for(let i = 0; i < this._materialLibrary.length; i++) {
@@ -93,19 +106,8 @@ export class MaterialLoader {
             }
         }
     }
-    
-    public assignPointSize(p: number) {
-        const height = this._renderingLogic.renderer ? this._renderingLogic.renderer.getSize(new THREE.Vector2()).y : 1020;
-        if(height === this._height) return;
-        this._height = height;
-        this._pointSize = p * (this._height/3250);
-        for(let i = 0; i < this._materialLibrary.length; i++) {
-            if(this._materialLibrary[i] instanceof THREE.PointsMaterial) {
-                (<THREE.PointsMaterial>this._materialLibrary[i]).size = this._pointSize;
-                (<THREE.PointsMaterial>this._materialLibrary[i]).needsUpdate = true;
-            }
-        }
-    }
+
+    public init(): void {}
 
     /**
      * Create a material object with the provided material data.
@@ -126,7 +128,6 @@ export class MaterialLoader {
     ): THREE.Material {
         const properties: any = {};
         if (materialProperties) {
-
             properties.alphaTest = materialProperties.alphaCutoff;
 
             // blendDst
@@ -312,7 +313,6 @@ export class MaterialLoader {
 
             if(materialProperties.KHR_materials_unlit !== undefined)
                 properties.KHR_materials_unlit = materialProperties.KHR_materials_unlit;
-
                 
         } else {
             properties.color = new THREE.Color(this._defaultColor);
@@ -388,7 +388,7 @@ export class MaterialLoader {
         }
     }
 
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (7)
 
     // #region Private Methods (1)
 

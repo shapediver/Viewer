@@ -3,7 +3,7 @@ import { SDError, UuidGenerator } from "@shapediver/viewer.shared.utils";
 import { container, singleton } from "tsyringe";
 import { CAMERATYPE, ICameraEngine } from "../interfaces/ICameraEngine";
 import { AbstractCamera as Camera } from "./camera/AbstractCamera";
-import { Canvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
+import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { Box } from "@shapediver/viewer.shared.math";
 import { OrthographicCameraControls } from "./controls/OrthographicCameraControls";
 import { PerspectiveCamera } from "./camera/PerspectiveCamera";
@@ -35,7 +35,7 @@ export class CameraEngine implements ICameraEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _canvas: Canvas, private readonly _domEventEngine: DomEventEngine) {        
+    constructor(private readonly _canvas: ICanvas, private readonly _domEventEngine: DomEventEngine) {        
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (bb: any) => {
             this._boundingBox = bb.clone()
             

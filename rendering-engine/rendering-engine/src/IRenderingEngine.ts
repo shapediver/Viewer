@@ -1,3 +1,6 @@
+import { ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine';
+import { ILightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
+import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine';
 import { vec3 } from 'gl-matrix';
 
 export enum RENDERERTYPE {
@@ -19,7 +22,6 @@ export enum RENDERERTYPE {
 export interface IRenderingEngine {
     // #region Properties (2)
 
-
     ambientOcclusion: boolean;
     automaticResizing: boolean;
     beautyRenderDelay: number;
@@ -36,6 +38,10 @@ export interface IRenderingEngine {
     pointSize: number;
     shadows: boolean;
     show: boolean;
+
+    cameraEngine: ICameraEngine;
+    lightEngine: ILightEngine;
+    canvas: ICanvas;
 
     // #endregion Properties (2)
 

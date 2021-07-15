@@ -34,7 +34,3 @@ submitButton.onclick = async () => {
         initSdvApp();
     }
 }
-
-(async () => {
-
-})();

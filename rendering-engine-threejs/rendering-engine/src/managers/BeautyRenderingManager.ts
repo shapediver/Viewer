@@ -1,23 +1,22 @@
 import { SystemInfo } from '@shapediver/viewer.shared.services';
 import * as THREE from 'three';
-import { EffectComposer } from './three/postprocessing/EffectComposer.js';
-import { RenderPass } from './three/postprocessing/RenderPass.js';
-import { SAOPass } from './three/postprocessing/SAOPass.js';
-import { SSAARenderPass } from './three/postprocessing/SSAARenderPass.js';
+import { EffectComposer } from '../three/postprocessing/EffectComposer.js';
+import { RenderPass } from '../three/postprocessing/RenderPass.js';
+import { SAOPass } from '../three/postprocessing/SAOPass.js';
+import { SSAARenderPass } from '../three/postprocessing/SSAARenderPass.js';
 import { container } from 'tsyringe';
-import { RenderingEngine } from './RenderingEngine';
+import { RenderingEngine } from '../RenderingEngine';
+import { IManager } from '../interfaces/IManager.js';
 
-export class BeautyRenderer {
-    // #region Properties (11)
+export class BeautyRenderingManager implements IManager {
+    // #region Properties (12)
 
-    //private readonly _postProcessingEngine: PostProcessingEngine;
-    private readonly _effectComposer: EffectComposer;
     private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
 
     private _beautyRenderingActive: boolean = false;
     private _beautyRenderingDurationActive: number = 0;
     private _beautyRenderingTimeout: NodeJS.Timeout | null = null;
-    private _initialized = false;
+    private _effectComposer!: EffectComposer;
     private _lastTime: number = 0;
     private _lightSizeUVEnd = 0.15;
     private _lightSizeUVStart = 0.025;
@@ -25,18 +24,13 @@ export class BeautyRenderer {
     private _saoPass!: SAOPass;
     private _ssaaPass!: SSAARenderPass;
 
-    // #endregion Properties (11)
+    // #endregion Properties (12)
 
     // #region Constructors (1)
 
     constructor(
-        private readonly _renderingEngine: RenderingEngine,
-        private readonly _renderer: THREE.WebGLRenderer,
-        private readonly _scene: THREE.Scene
-    ) {
-        //this._postProcessingEngine = new PostProcessingEngine()
-        this._effectComposer = new EffectComposer(this._renderer);
-    }
+        private readonly _renderingEngine: RenderingEngine
+    ) {}
 
     // #endregion Constructors (1)
 
@@ -92,11 +86,11 @@ export class BeautyRenderer {
 
     // #endregion Public Accessors (6)
 
-    // #region Public Methods (6)
+    // #region Public Methods (7)
 
     public activateBeautyRenderShaders() {
-        this._renderer.shadowMap.type = THREE.PCFShadowMap;
-        this._renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
         this._renderingEngine.materialLoader.updateMaterials();
     }
 
@@ -104,26 +98,28 @@ export class BeautyRenderer {
         this._beautyRenderingTimeout = null;
         this._beautyRenderingActive = false;
         this._beautyRenderingDurationActive = 0;
-        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this._renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
         this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
         this._renderingEngine.materialLoader.updateMaterials();
     }
 
-    public initialize(camera: THREE.Camera, width: number, height: number) {
-        this._renderPass = new RenderPass(this._scene, camera);
+    public init(): void {
+        const tempCamera = new THREE.PerspectiveCamera();
+        this._effectComposer = new EffectComposer(this._renderingEngine.renderer);
+        this._renderPass = new RenderPass(this._renderingEngine.scene, tempCamera);
         //this._effectComposer.addPass(this._renderPass);
 
-        this._ssaaPass = new SSAARenderPass(this._scene, camera, this._renderer.getClearColor(new THREE.Color()), this._renderer.getClearAlpha());
+        this._ssaaPass = new SSAARenderPass(this._renderingEngine.scene, tempCamera, this._renderingEngine.renderer.getClearColor(new THREE.Color()), this._renderingEngine.renderer.getClearAlpha());
         this._effectComposer.addPass(this._ssaaPass);
 
-        this._saoPass = new SAOPass(this._scene, camera, true, true);
+        this._saoPass = new SAOPass(this._renderingEngine.scene, tempCamera, true, true);
 
         const saoRenderFunction = this._saoPass.render.bind(this._saoPass);
 
         this._saoPass.render = (renderer: THREE.WebGLRenderer, writeBuffer: THREE.WebGLRenderTarget, readBuffer: THREE.WebGLRenderTarget, deltaTime: number, maskActive: boolean) => {
             const materialsNotRenderer: THREE.Object3D[] = [];
-            this._scene.traverse(function (object) {
+            this._renderingEngine.scene.traverse(function (object) {
                 if (object instanceof THREE.Mesh && object.material) {
                     if (object.material instanceof THREE.MeshStandardMaterial && object.material.transparent && object.visible) {
                         materialsNotRenderer.push(object);
@@ -151,17 +147,14 @@ export class BeautyRenderer {
         this._saoPass.params.saoBlurRadius = 4;
         this._saoPass.params.saoBlurStdDev = 4;
         this._saoPass.params.saoBlurDepthCutoff = 0.01;
-
-        this._initialized = true;
     }
 
     public render(time: number, camera: THREE.Camera, width: number, height: number) {
-        if (!this._initialized) this.initialize(camera, width, height);
         const percentage = this.setShaderProperties();
 
         if((this._renderingEngine.ambientOcclusion && !(this._systemInfo.isIOSDevice || this._systemInfo.isMobileDevice || this._systemInfo.runningInSafari))) {
-            this._ssaaPass.clearColor = this._renderer.getClearColor(new THREE.Color());
-            this._ssaaPass.clearAlpha = this._renderer.getClearAlpha();
+            this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
+            this._ssaaPass.clearAlpha = this._renderingEngine.renderer.getClearAlpha();
     
             const saoIntensity = this._saoPass.params.saoIntensity;
             this._saoPass.params.saoIntensity = percentage * saoIntensity;
@@ -174,7 +167,7 @@ export class BeautyRenderer {
             this._effectComposer.render(time);
             this._saoPass.params.saoIntensity = saoIntensity;
         } else {
-            this._renderer.render(this._scene, camera)
+            this._renderingEngine.renderer.render(this._renderingEngine.scene, camera)
         }
     }
 
@@ -192,7 +185,7 @@ export class BeautyRenderer {
         this.deactivateBeautyRenderShaders();
     }
 
-    // #endregion Public Methods (6)
+    // #endregion Public Methods (7)
 
     // #region Private Methods (1)
 

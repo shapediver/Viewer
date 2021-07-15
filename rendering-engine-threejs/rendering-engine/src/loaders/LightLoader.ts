@@ -4,15 +4,18 @@ import { AbstractLight, AmbientLight, DirectionalLight, HemisphereLight, PointLi
 import { SDObject } from '../types/SDObject';
 import { RenderingEngine } from '../RenderingEngine';
 import { vec3 } from 'gl-matrix';
+import { ILoader } from '../interfaces/ILoader';
 
-export class LightLoader {
+export class LightLoader implements ILoader {
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {}
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
+
+    public init(): void {}
 
     public load(light: AbstractLight, parent: SDObject, scene: THREE.Scene, boundingBox: Box) {
         let converted = null;
@@ -92,5 +95,5 @@ export class LightLoader {
         parent.add(converted);
     }
 
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (2)
 }

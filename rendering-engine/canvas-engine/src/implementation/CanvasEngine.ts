@@ -3,19 +3,22 @@ import { container, singleton } from 'tsyringe';
 import { Canvas } from './Canvas';
 
 import { UuidGenerator } from '@shapediver/viewer.shared.utils';
+import { ICanvasEngine } from '../interfaces/ICanvasEngine';
+import { ICanvas } from '../interfaces/ICanvas';
 
 @singleton()
-export class CanvasEngine {
-    // #region Properties (2)
+export class CanvasEngine implements ICanvasEngine {
+    // #region Properties (4)
 
     private readonly _canvasDictionary: {
         [key: string]: Canvas
     } = {};
+
     protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
-    // #endregion Properties (2)
+    // #endregion Properties (4)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
 
     /**
      * Creates a canvas object that could in the future be expanded to hold more information
@@ -29,38 +32,44 @@ export class CanvasEngine {
      * 
      * @param canvasDefinition the definition of this canvas
      */
-    public createCanvasObject(canvasDefinition?: string | HTMLCanvasElement): Canvas {
+    public createCanvasObject(canvasDefinition?: string | HTMLCanvasElement, storageId?: string): string {
+        storageId = storageId !== undefined && this._uuidGenerator.validate(storageId) ? storageId : this._uuidGenerator.create();
+
         if (canvasDefinition instanceof HTMLCanvasElement) {
             // a canvas was provided
             const canvasElement = (<HTMLCanvasElement>canvasDefinition);
             if (!canvasElement.id)
                 canvasElement.id = this._uuidGenerator.create();
-            this._canvasDictionary[canvasElement.id] = new Canvas(canvasElement.id, canvasDefinition, canvasElement);
-            return this._canvasDictionary[canvasElement.id];
+            this._canvasDictionary[storageId] = new Canvas(canvasElement.id, canvasDefinition, canvasElement);
+            return storageId;
         }
 
         if (canvasDefinition) {
             const id: string = canvasDefinition;
             const canvasElement = document.getElementById(id);
 
-            if (this._canvasDictionary[id])
-                return this._canvasDictionary[id];
+            for (let canvasId in this._canvasDictionary)
+                if (this._canvasDictionary[canvasId].id === id)
+                    return canvasId;
 
             if (canvasElement instanceof HTMLCanvasElement) {
                 // id of a canvas was provided
-                this._canvasDictionary[id] = new Canvas(id, canvasDefinition, canvasElement);
-                return this._canvasDictionary[id];
+                this._canvasDictionary[storageId] = new Canvas(id, canvasDefinition, canvasElement);
+                return storageId;
             } else if(!canvasElement) {
                 // no HTMLElement could be found, create Canvas with the id
-                this._canvasDictionary[id] = new Canvas(id, canvasDefinition);
-                return this._canvasDictionary[id];
+                this._canvasDictionary[storageId] = new Canvas(id, canvasDefinition);
+                return storageId;
             }
         }
 
-        const id = this._uuidGenerator.create();
-        this._canvasDictionary[id] = new Canvas(id, canvasDefinition);
-        return this._canvasDictionary[id];
+        this._canvasDictionary[storageId] = new Canvas(storageId, canvasDefinition);
+        return storageId;
     }
 
-    // #endregion Public Methods (1)
+    public getCanvas(storageId: string): ICanvas {
+        return this._canvasDictionary[storageId];
+    }
+
+    // #endregion Public Methods (2)
 }

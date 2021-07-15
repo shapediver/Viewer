@@ -3,17 +3,18 @@ import * as THREE from 'three';
 import { GeometryData, HTMLElementAnchorData, MaterialData } from '@shapediver/viewer.shared.types';
 import { ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree';
 
-import { SDObject } from './types/SDObject';
-import { ThreejsData } from './types/ThreejsData';
+import { SDObject } from '../types/SDObject';
+import { ThreejsData } from '../types/ThreejsData';
 import { Box } from '@shapediver/viewer.shared.math';
 import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services';
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine';
 import { vec3 } from 'gl-matrix';
 import { container } from 'tsyringe';
-import { RenderingEngine } from './RenderingEngine';
+import { RenderingEngine } from '../RenderingEngine';
+import { IManager } from '../interfaces/IManager';
 
-export class SceneTree {
-    // #region Properties (7)
+export class SceneTreeManager implements IManager {
+    // #region Properties (5)
 
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _scene: THREE.Scene = new THREE.Scene();
@@ -22,10 +23,15 @@ export class SceneTree {
     private _boundingBox: Box = new Box();
     private _mainNode!: SDObject;
 
+    // #endregion Properties (5)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {}
+    // #region Constructors (1)
 
-    // #endregion Properties (7)
+    constructor(private readonly _renderingEngine: RenderingEngine) {
+        this._scene.background = new THREE.Color('#ffffff');
+    }
+
+    // #endregion Constructors (1)
 
     // #region Public Accessors (2)
 
@@ -39,7 +45,7 @@ export class SceneTree {
 
     // #endregion Public Accessors (2)
 
-    // #region Public Methods (2)
+    // #region Public Methods (4)
 
     /**
      * Convert the data of the scene graph node into the format of the implementation.
@@ -76,6 +82,12 @@ export class SceneTree {
         return new Box();
     }
 
+    public init(): void {}
+
+    public isEmpty() {
+        return vec3.equals(this._boundingBox.min, vec3.create()) && vec3.equals(this._boundingBox.max, vec3.create());
+    }
+
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
@@ -107,11 +119,7 @@ export class SceneTree {
         }
     }
 
-    public isEmpty() {
-        return vec3.equals(this._boundingBox.min, vec3.create()) && vec3.equals(this._boundingBox.max, vec3.create());
-    }
-
-    // #endregion Public Methods (2)
+    // #endregion Public Methods (4)
 
     // #region Private Methods (1)
 

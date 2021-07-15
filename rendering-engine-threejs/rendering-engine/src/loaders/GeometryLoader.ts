@@ -8,16 +8,32 @@ import { RenderingEngine } from '../RenderingEngine';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils';
 import { container } from 'tsyringe';
-import { RenderingLogic } from '../RenderingLogic';
+import { RenderingManager } from '../managers/RenderingManager';
+import { ILoader } from '../interfaces/ILoader';
 
-export class GeometryLoader {
-    // #region Public Methods (1)
+export class GeometryLoader implements ILoader {
+    // #region Properties (2)
+
     private _geometryCache: {
         [key: string]: SDObject
     } = {};
     private _logger: Logger = <Logger>container.resolve(Logger);
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _renderingLogic: RenderingLogic) { }
+    // #endregion Properties (2)
+
+    // #region Constructors (1)
+
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
+
+    // #endregion Constructors (1)
+
+    // #region Public Methods (4)
+
+    public emptyGeometryCache() {
+        this._geometryCache = {};
+    }
+
+    public init(): void {}
 
     /**
      * Create a geometry object with the provided geometry data.
@@ -226,9 +242,9 @@ export class GeometryLoader {
         return geometry;
     }
 
-    public emptyGeometryCache() {
-        this._geometryCache = {};
-    }
+    // #endregion Public Methods (4)
+
+    // #region Private Methods (1)
 
     private convertToTriangleMode(geometry: THREE.BufferGeometry, drawMode: PRIMITIVE_MODE) {
         let index = geometry.getIndex();
@@ -283,5 +299,5 @@ export class GeometryLoader {
         return newGeometry;
     }
 
-    // #endregion Public Methods (1)
+    // #endregion Private Methods (1)
 }

@@ -4,33 +4,29 @@ import { Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewer.shared.utils";
 import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 import { RGBELoader } from "../three/loaders/RGBELoader";
-import { RenderingLogic } from "../RenderingLogic";
+import { RenderingManager } from "../managers/RenderingManager";
+import { ILoader } from "../interfaces/ILoader";
 
-export class EnvironmentMapLoader {
-    // #region Properties (4)
+export class EnvironmentMapLoader implements ILoader {
+    // #region Properties (8)
 
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']
-    private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMapNamesHDR = ['anniversary_lounge', 'ballroom', 'combination_room', 'large_corridor', 'lythwood_lounge', 'old_hall', 'studio_small'];
+    private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | THREE.Texture | null
     } = {};
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _pmremGenerator: THREE.PMREMGenerator;
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private _pmremGenerator!: THREE.PMREMGenerator;
 
     private _environmentMapName: string = 'none';
 
-    // #endregion Properties (4)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine, private readonly _renderingLogic: RenderingLogic) {
-        this._environmentMaps['none'] = null;
-            
-        this._pmremGenerator = new THREE.PMREMGenerator(this._renderingLogic.renderer);
-        this._pmremGenerator.compileEquirectangularShader();
-    }
+    constructor(private readonly _renderingEngine: RenderingEngine) {}
 
     // #endregion Constructors (1)
 
@@ -42,7 +38,14 @@ export class EnvironmentMapLoader {
 
     // #endregion Public Accessors (1)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
+
+    public init(): void {
+        this._environmentMaps['none'] = null;
+            
+        this._pmremGenerator = new THREE.PMREMGenerator(this._renderingEngine.renderer);
+        this._pmremGenerator.compileEquirectangularShader();
+    }
 
     public async load(name: string | string[]): Promise<boolean> {
         const name_original = name;
@@ -124,7 +127,7 @@ export class EnvironmentMapLoader {
         }
     }
 
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (2)
 
     // #region Private Methods (2)
 

@@ -1,4 +1,6 @@
-export class Canvas {
+import { ICanvas } from "../interfaces/ICanvas";
+
+export class Canvas implements ICanvas {
     // #region Constructors (1)
 
     constructor(private readonly _id: string, private readonly _originalDefinition?: HTMLCanvasElement | string, private readonly _canvasElement?: HTMLCanvasElement) {
