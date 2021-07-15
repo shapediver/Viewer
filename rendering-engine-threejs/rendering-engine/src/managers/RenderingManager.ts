@@ -18,7 +18,7 @@ import { BeautyRenderingManager } from './BeautyRenderingManager'
 import { IManager } from '../interfaces/IManager'
 
 export class RenderingManager implements IManager {
-    // #region Properties (13)
+    // #region Properties (15)
 
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
@@ -30,27 +30,93 @@ export class RenderingManager implements IManager {
     private _currentlyBlurred: boolean = false;
     private _height: number = 0;
     private _lastTime: number = 0;
+    private _minimalRendering: boolean = false;
     private _noNeedToRender: boolean = false;
     private _noWebGL: boolean = false;
     private _stats: any;
+    private _usingSwiftShader: boolean = false;
     private _width: number = 0;
 
-    // #endregion Properties (13)
+    // #endregion Properties (15)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {}
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (6)
+    // #region Public Accessors (2)
+
+    /**
+         * Getter minimalRendering
+         * @return {boolean}
+         */
+    public get minimalRendering(): boolean {
+        return this._minimalRendering;
+    }
+
+    /**
+         * Getter usingSwiftShader
+         * @return {boolean}
+         */
+    public get usingSwiftShader(): boolean {
+        return this._usingSwiftShader;
+    }
+
+    // #endregion Public Accessors (2)
+
+    // #region Public Methods (8)
+
+    public addLogo(canvas: HTMLCanvasElement, logo: string): HTMLDivElement {
+        const logoDivElement = document.createElement('div');
+        logoDivElement.style.background = '#030531';
+        logoDivElement.style.position = 'relative';
+        logoDivElement.style.height = '100%';
+        logoDivElement.style.width = '100%';
+        canvas.parentElement?.insertBefore(logoDivElement, canvas.parentElement?.firstChild);
+
+        const img = new Image();
+        img.style.position = 'absolute';
+        img.style.top = '50%';
+        img.style.left = '50%';
+        img.style.transform = 'translateX(-50%) translateY(-50%)';
+        img.src = logo;
+        logoDivElement.appendChild(img)
+
+        return logoDivElement;
+    }
+
+    public createRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
+        const renderingProperties = {
+            alpha: true,
+            depth: false,
+            antialias: true,
+            preserveDrawingBuffer: true,
+            canvas
+        };
+
+        const context = this.createWebGLContext(renderingProperties);
+
+        const renderer = new THREE.WebGLRenderer(Object.assign({ context }, renderingProperties));
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        renderer.physicallyCorrectLights = false;
+        renderer.outputEncoding = THREE.LinearEncoding;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.needsUpdate = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.autoUpdate = false;
+        renderer.setSize(canvas.width, canvas.height);
+        renderer.setClearColor(new THREE.Color('#ffffff'), 1);
+        return renderer
+    }
 
     public getScreenshot(type: string = 'image/png', encoderOptions: number = 1): string {
         return this._renderingEngine.renderer.domElement.toDataURL(type, encoderOptions);
     }
 
     public init(): void {
-        this._orthographicCameraThree.up.set(0,1,0);
+        this._orthographicCameraThree.up.set(0, 1, 0);
 
         try {
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
@@ -60,7 +126,7 @@ export class RenderingManager implements IManager {
             })
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
                 // https://shapediver.atlassian.net/browse/SS-2956, add viewer id, could be another one
-                if(this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+                if (this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
             })
 
             window.onresize = () => { this.render(); };
@@ -98,12 +164,12 @@ export class RenderingManager implements IManager {
         } catch (e) {
             this._noWebGL = true;
             throw new SDError(e.message, e);
-        }    
+        }
     }
 
     public render() {
         this._noNeedToRender = false;
-        if(this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+        if (this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
     }
 
     public resize(width: number, height: number) {
@@ -112,16 +178,16 @@ export class RenderingManager implements IManager {
 
     public start() {
         this.animate(0);
-        if(this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
+        if (this._renderingEngine.shadows === true || this._renderingEngine.ambientOcclusion === true) this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
     }
 
     public updateShadowMap() {
         this._renderingEngine.renderer.shadowMap.needsUpdate = true;
     }
 
-    // #endregion Public Methods (6)
+    // #endregion Public Methods (8)
 
-    // #region Private Methods (4)
+    // #region Private Methods (5)
 
     private adjustCamera(time: number, width: number, height: number): THREE.Camera {
         let cameraThree: THREE.Camera;
@@ -177,7 +243,7 @@ export class RenderingManager implements IManager {
         }
 
         const logo: boolean = this._renderingEngine.cameraEngine.hasCamera() && this._renderingEngine.show;
-        if(this._renderingEngine.logoDivElement) {
+        if (this._renderingEngine.logoDivElement) {
             this._renderingEngine.logoDivElement.style.display = logo ? 'none' : 'inherit';
             this._renderingEngine.canvas.canvasElement.style.display = !logo ? 'none' : 'inherit';
         }
@@ -204,7 +270,7 @@ export class RenderingManager implements IManager {
                 adjustedHeight = 1080;
             }
         }
-        
+
         this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
         this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
 
@@ -247,6 +313,64 @@ export class RenderingManager implements IManager {
         }
     }
 
+    private createWebGLContext(properties: {
+        alpha: boolean,
+        depth: boolean,
+        antialias: boolean,
+        preserveDrawingBuffer: boolean,
+        canvas: HTMLCanvasElement,
+    }): WebGLRenderingContext {
+        try {
+            let canvas = properties.canvas;
+            canvas.addEventListener('webglcontextlost', () => { }, false);
+            canvas.addEventListener('webglcontextrestored', () => { }, false);
+
+            const props = Object.assign({
+                stencil: true,
+                premultipliedAlpha: true,
+                powerPreference: 'default'
+            }, properties);
+
+            let _gl: WebGLRenderingContext | null = <WebGLRenderingContext>canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
+
+            // creation failed
+            if (_gl === null) {
+                // create without the attributes
+                _gl = <WebGLRenderingContext>canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+                if (_gl !== null) {
+                    this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
+                } else {
+                    throw new SDError('We were unable to get a WebGL context.');
+                }
+            }
+
+            // Some experimental-webgl implementations do not have getShaderPrecisionFormat
+            if (_gl.getShaderPrecisionFormat === undefined) {
+                _gl.getShaderPrecisionFormat = function () {
+                    return { 'rangeMin': 1, 'rangeMax': 1, 'precision': 1 };
+                };
+            }
+
+            const debugInfo = _gl.getExtension("WEBGL_debug_renderer_info");
+            if (debugInfo) {
+                const vendor = _gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                const renderer = _gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                if (renderer === "Google SwiftShader") {
+                    this._usingSwiftShader = true;
+                    this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
+                }
+            }
+
+            if (!_gl.getExtension("EXT_shader_texture_lod"))
+                this._minimalRendering = true;
+
+            return _gl;
+        } catch (error) {
+            throw this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', error), '', true);
+        }
+    }
+
     private showStatistics() {
         if (this._renderingEngine.showStatistics) {
             for (let i = 0; i < this._stats.stats.length; i++)
@@ -257,5 +381,5 @@ export class RenderingManager implements IManager {
         }
     }
 
-    // #endregion Private Methods (4)
+    // #endregion Private Methods (5)
 }

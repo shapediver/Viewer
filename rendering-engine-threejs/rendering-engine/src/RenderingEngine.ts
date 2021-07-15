@@ -33,6 +33,8 @@ import { GeometryLoader } from './loaders/GeometryLoader'
 import { LightLoader } from './loaders/LightLoader'
 import { HTMLElementAnchorLoader } from './loaders/HTMLElementAnchorLoader'
 import { BeautyRenderingManager } from './managers/BeautyRenderingManager'
+import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager'
+import { SceneTracingManager } from './managers/SceneTracingManager'
 
 export class RenderingEngine implements IRenderingEngine {
     // #region Properties (51)
@@ -52,7 +54,9 @@ export class RenderingEngine implements IRenderingEngine {
 
     // managers
     private readonly _beautyRenderingManager: BeautyRenderingManager;
+    private readonly _environmentGeometryManager: EnvironmentGeometryManager;
     private readonly _renderingManager: RenderingManager;
+    private readonly _sceneTracingManager: SceneTracingManager;
     private readonly _sceneTreeManager: SceneTreeManager;
 
     // loaders
@@ -84,9 +88,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _environmentMap: string | string[] = 'none';
     private _environmentMapAsBackground: boolean = false;
     private _environmentMapResolution: string = '1024';
-    private _grid!: THREE.GridHelper;
     private _gridVisibility: boolean = true;
-    private _groundPlane!: THREE.Mesh;
     private _groundPlaneVisibility: boolean = true;
     private _lightScene: string = 'standard';
     private _pointSize: number = 1.0;
@@ -105,13 +107,8 @@ export class RenderingEngine implements IRenderingEngine {
 
     // viewer global vars
     private _closed: boolean = false;
-    private _gridObject!: SDObject;
-    private _groundPlaneObject!: SDObject;
     private _logoDivElement: HTMLDivElement;
-    private _minimalRendering: boolean = false;
     private _updateCBs: (() => void)[] = [];
-    private _usingSwiftShader: boolean = false;
-
 
     // #endregion Properties (51)
 
@@ -135,9 +132,11 @@ export class RenderingEngine implements IRenderingEngine {
         this._lightEngine = new LightEngine();
 
         // creation of the managers (all singleton engines were created already)
+        this._beautyRenderingManager = new BeautyRenderingManager(this);
+        this._environmentGeometryManager = new EnvironmentGeometryManager(this);
+        this._sceneTracingManager = new SceneTracingManager(this);
         this._sceneTreeManager = new SceneTreeManager(this);
         this._renderingManager = new RenderingManager(this);
-        this._beautyRenderingManager = new BeautyRenderingManager(this);
 
         // loaders
         this._environmentMapLoader = new EnvironmentMapLoader(this);
@@ -146,80 +145,16 @@ export class RenderingEngine implements IRenderingEngine {
         this._htmlElementAnchorLoader = new HTMLElementAnchorLoader(this);
         this._lightLoader = new LightLoader(this);
 
-        // part 0
-        const renderingProperties = {
-            alpha: true,
-            depth: false,
-            antialias: true,
-            preserveDrawingBuffer: true,
-            canvas: this.canvas.canvasElement,
-        };
-
-        const context = this.createWebGLContext(renderingProperties);
-
-        this._renderer = new THREE.WebGLRenderer(Object.assign({ context }, renderingProperties));
-        this._renderer.setPixelRatio(window.devicePixelRatio);
-
-        this._renderer.physicallyCorrectLights = false;
-        this._renderer.outputEncoding = THREE.LinearEncoding;
-        this._renderer.shadowMap.enabled = true;
-        this._renderer.shadowMap.needsUpdate = true;
-        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this._renderer.shadowMap.autoUpdate = false;
-        this._renderer.setSize(this.canvas.canvasElement.width, this.canvas.canvasElement.height);
-        this._renderer.setClearColor(new THREE.Color('#ffffff'), 1);
-        // part 0
-
-        // part 1
-        this._logoDivElement = document.createElement('div');
-        this._logoDivElement.style.background = '#030531';
-        this._logoDivElement.style.position = 'relative';
-        this._logoDivElement.style.height = '100%';
-        this._logoDivElement.style.width = '100%';
-        this._canvas.canvasElement.parentElement?.insertBefore(this._logoDivElement, this._canvas.canvasElement.parentElement?.firstChild);
-
-        const img = new Image();
-        img.style.position = 'absolute';
-        img.style.top = '50%';
-        img.style.left = '50%';
-        img.style.transform = 'translateX(-50%) translateY(-50%)';
-        img.src = this._logo;
-        this._logoDivElement.appendChild(img)
-        // part 1
-
-        // part 2
-        this._gridObject = new SDObject('grid', '');
-        this._grid = new THREE.GridHelper();
-        (<THREE.Material>this._grid.material).opacity = 0.15;
-        (<THREE.Material>this._grid.material).transparent = true;
-        this._grid.rotateX(Math.PI / 2);
-        this._grid.visible = this.gridVisibility;
-        this._gridObject.add(this._grid);
-        this._gridObject.userData.ambientOcclusion = false;
-        this._sceneTreeManager.scene.add(this._gridObject);
-
-        this._groundPlaneObject = new SDObject('grid', '');
-        let mat = new MaterialData();
-        mat.color = '#d3d3d3';
-        mat.side = MATERIAL_SIDE.FRONT;
-        mat.roughness = 1;
-        mat.metalness = 0;
-        this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(), this._materialLoader.load(mat));
-        this._groundPlane.receiveShadow = true;
-        this._groundPlane.visible = this.groundPlaneVisibility;
-        this._groundPlaneObject.add(this._groundPlane);
-        this._groundPlaneObject.userData.ambientOcclusion = false;
-        this._sceneTreeManager.scene.add(this._groundPlaneObject);
-
-        let eps = 0.005;
-        this._grid.position.set(0, 0, -eps);
-        this._groundPlane.position.set(0, 0, -eps);
-        // part 2
+        // start the creation and initialization process 
+        this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
+        this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._logo);
 
         // creation of the managers (all singleton engines were created already)
+        this._beautyRenderingManager.init();
+        this._environmentGeometryManager.init();
+        this._sceneTracingManager.init();
         this._sceneTreeManager.init();
         this._renderingManager.init();
-        this._beautyRenderingManager.init();
 
         // loaders
         this._environmentMapLoader.init();
@@ -230,7 +165,6 @@ export class RenderingEngine implements IRenderingEngine {
 
         this._renderingManager.start()
 
-        // part 3
         this._stateEngine.createCustomState(this.id + '_settings_loaded');
 
         if (this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
@@ -241,7 +175,7 @@ export class RenderingEngine implements IRenderingEngine {
                 // wait for settings to load before showing the scene
                 this._stateEngine.getCustomState(this.id + '_settings_loaded').then(() => {
                     if(this._closed) return;
-                    this.changeSceneExtents(this._sceneTreeManager.boundingBox);
+                    this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
                     this.show = true;
                 })
             })
@@ -257,7 +191,6 @@ export class RenderingEngine implements IRenderingEngine {
                 this.applySettings()
             });
         }       
-        // part 3
     }
 
     // #endregion Constructors (1)
@@ -538,7 +471,7 @@ export class RenderingEngine implements IRenderingEngine {
      * @param {boolean} value
      */
     public set gridVisibility(value: boolean) {
-        if (this._grid) this._grid.visible = value;
+        if (this._environmentGeometryManager.grid) this._environmentGeometryManager.grid.visible = value;
         this._gridVisibility = value;
         this._updateCBs.forEach(v => v());
     }
@@ -556,7 +489,7 @@ export class RenderingEngine implements IRenderingEngine {
      * @param {boolean} value
      */
     public set groundPlaneVisibility(value: boolean) {
-        if (this._groundPlane) this._groundPlane.visible = value;
+        if (this._environmentGeometryManager.groundPlane) this._environmentGeometryManager.groundPlane.visible = value;
         this._groundPlaneVisibility = value;
         this._updateCBs.forEach(v => v());
     }
@@ -631,7 +564,7 @@ export class RenderingEngine implements IRenderingEngine {
      * @return {boolean}
      */
     public get minimalRendering(): boolean {
-        return this._minimalRendering;
+        return this.renderingManager.minimalRendering;
     }
 
     /**
@@ -697,6 +630,14 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public get scene(): THREE.Scene {
         return this._sceneTreeManager.scene;
+    }
+
+    /**
+     * Getter sceneTracingManager
+     * @return {SceneTracingManager}
+     */
+    public get sceneTracingManager(): SceneTracingManager {
+        return this._sceneTracingManager;
     }
 
     /**
@@ -779,7 +720,7 @@ export class RenderingEngine implements IRenderingEngine {
      * @return {boolean}
      */
     public get usingSwiftShader(): boolean {
-        return this._usingSwiftShader;
+        return this.renderingManager.usingSwiftShader;
     }
 
     // #endregion Public Accessors (61)
@@ -788,58 +729,6 @@ export class RenderingEngine implements IRenderingEngine {
 
     public addUpdateCB(value: () => void) {
         this._updateCBs.push(value)
-    }
-
-    // this
-    public changeSceneExtents(bb: Box) {
-        if (vec3.equals(bb.min, vec3.create()) && vec3.equals(bb.max, vec3.create()))
-            bb = new Box(vec3.fromValues(-10, -10, -10), vec3.fromValues(10, 10, 10));
-
-        let sceneExtents = vec3.distance(bb.min, bb.max);
-
-        /**
-         * https://shapediver.atlassian.net/browse/SS-2961 evaluate this magic
-         * 
-         * magic begin
-         */
-
-        let divisions = 0.1;
-        let gridExtents = sceneExtents;
-        if (sceneExtents > 1) {
-            let tmp = Math.floor(sceneExtents).toString();
-            let temp = Math.pow(10, tmp.length - 1);
-            gridExtents = Math.max(Math.ceil(sceneExtents / temp) * temp, 1);
-            temp = temp / 10;
-            divisions = gridExtents / temp;
-        }
-        else {
-            let zeros = 1 - Math.floor(Math.log(sceneExtents) / Math.log(10)) - 2;
-            let r = sceneExtents.toFixed(zeros + 1);
-            let firstDigit = parseInt(r.substr(r.length - 1)) + 1;
-            let gridExtentsS = '0.';
-            for (let i = 0; i < zeros; ++i)
-                gridExtentsS = gridExtentsS + '0';
-            gridExtents = parseFloat(gridExtentsS + firstDigit);
-            divisions = firstDigit * 10;
-        }
-
-        /**
-         * magic end
-         */
-        this._gridObject.remove(this._grid);
-        this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
-        (<THREE.Material>this._grid.material).opacity = 0.15;
-        (<THREE.Material>this._grid.material).transparent = true;
-        this._grid.rotateX(Math.PI / 2);
-        this._grid.visible = this.gridVisibility;
-        this._gridObject.add(this._grid);
-
-        this._groundPlane.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
-
-        let eps = 0.005;
-        let bs = bb.boundingSphere;
-        this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-        this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
     }
 
     public async close(): Promise<boolean> {
@@ -852,42 +741,12 @@ export class RenderingEngine implements IRenderingEngine {
         return true;
     }
 
-    // this
-    public convert3Dto2D(p: vec3): {
-        container: vec2, client: vec2, page: vec2, hidden: boolean
-    } {
-        const canvasPageCoordinates = this.canvas.canvasElement.getBoundingClientRect(),
-            width = this.canvas.canvasElement.width,
-            height = this.canvas.canvasElement.height;
-
-        const camera = this.cameraEngine.getCamera();
-        if (!camera) throw this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('RenderingEngine: No camera is defined for this viewer.'));
-
-        const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));
-        const tracing = this.trace(camera.position, direction);
-        const pos: vec2 = (<AbstractCamera>camera).project(vec3.clone(p));
-
-        pos[0] = (pos[0] * (width / 2)) + (width / 2);
-        pos[1] = - (pos[1] * (height / 2)) + (height / 2);
-
-        // take care of correction by device pixel ratio
-        pos[0] = pos[0] / devicePixelRatio;
-        pos[1] = pos[1] / devicePixelRatio;
-
-        return {
-            hidden: tracing.length > 1 && tracing[0].distance > 0 && tracing[0].distance < Infinity && tracing[0].distance < vec3.distance(camera.position, p),
-            container: vec2.clone(pos),
-            client: vec2.fromValues(pos[0] + canvasPageCoordinates.left, pos[1] + canvasPageCoordinates.top),
-            page: vec2.fromValues(pos[0] + canvasPageCoordinates.left + window.pageXOffset, pos[1] + canvasPageCoordinates.top + window.pageYOffset)
-        };
-    }
-
     public getScreenshot(type?: string, encoderOptions?: number): string {
         return this._renderingManager.getScreenshot(type, encoderOptions);
     }
 
     public reset() {
-        this.changeSceneExtents(this._sceneTreeManager.boundingBox)
+        this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox)
         if(this._visibility === VISIBILITYMODE.SESSION) this.show = false;
         this._stateEngine.getCustomState(this.id + '_settings_loaded').reset();
     }
@@ -1020,27 +879,6 @@ export class RenderingEngine implements IRenderingEngine {
             }
         }
     }
-
-    // this
-    public trace(origin: vec3, direction: vec3, root: TreeNode = this._tree.root) {
-        const tracingData: { distance: number, data: GeometryData }[] = [];
-        const trace = (root: TreeNode) => {
-            for (let i = 0; i < root.data.length; i++)
-                if (root.data[i] instanceof GeometryData) {
-                    const dist = (<GeometryData>root.data[i]).intersect(origin, direction);
-                    if (dist) tracingData.push({ distance: dist, data: <GeometryData>root.data[i] })
-                }
-            for (let i = 0; i < root.children.length; i++)
-                trace(root.children[i]);
-        }
-        trace(root);
-
-        tracingData.sort((a: { distance: number, data: GeometryData }, b: { distance: number, data: GeometryData }) => {
-            return a.distance - b.distance;
-        })
-        return tracingData;
-    }
-
     public update(): void {
         this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
         this._renderingManager.updateShadowMap();
@@ -1081,64 +919,6 @@ export class RenderingEngine implements IRenderingEngine {
         this._environmentMapResolution = this._settingsEngine.scene.material.environmentMapResolution.value;
         this.environmentMap = this._settingsEngine.scene.material.environmentMap.value;
         this._updateCBs.forEach(v => v());
-    }
-
-    private createWebGLContext(properties: {
-        alpha: boolean,
-        depth: boolean,
-        antialias: boolean,
-        preserveDrawingBuffer: boolean,
-        canvas: HTMLCanvasElement,
-    }): WebGLRenderingContext {
-        try {
-            let canvas = properties.canvas;
-            canvas.addEventListener('webglcontextlost', () => { }, false);
-            canvas.addEventListener('webglcontextrestored', () => { }, false);
-
-            const props = Object.assign({
-                stencil: true,
-                premultipliedAlpha: true,
-                powerPreference: 'default'
-            }, properties);
-
-            let _gl: WebGLRenderingContext | null = <WebGLRenderingContext>canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
-
-            // creation failed
-            if (_gl === null) {
-                // create without the attributes
-                _gl = <WebGLRenderingContext>canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-
-                if (_gl !== null) {
-                    this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
-                } else {
-                    throw new SDError('We were unable to get a WebGL context.');
-                }
-            }
-
-            // Some experimental-webgl implementations do not have getShaderPrecisionFormat
-            if (_gl.getShaderPrecisionFormat === undefined) {
-                _gl.getShaderPrecisionFormat = function () {
-                    return { 'rangeMin': 1, 'rangeMax': 1, 'precision': 1 };
-                };
-            }
-
-            const debugInfo = _gl.getExtension("WEBGL_debug_renderer_info");
-            if (debugInfo) {
-                const vendor = _gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-                const renderer = _gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                if (renderer === "Google SwiftShader") {
-                    this._usingSwiftShader = true;
-                    this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
-                }
-            }
-
-            if (!_gl.getExtension("EXT_shader_texture_lod"))
-                this._minimalRendering = true;
-
-            return _gl;
-        } catch (error) {
-            throw this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', error), '', true);
-        }
     }
 
     // #endregion Private Methods (2)
