@@ -3,6 +3,7 @@ import {
 	Color,
 	CustomBlending,
 	DepthTexture,
+	DoubleSide,
 	DstAlphaFactor,
 	DstColorFactor,
 	LinearFilter,
@@ -51,11 +52,9 @@ class SAOPass extends Pass {
 
 		this.params = {
 			output: 0,
-			saoBias: 0.5,
 			saoIntensity: 0.18,
 			saoScale: 1,
 			saoKernelRadius: 100,
-			saoMinResolution: 0,
 			saoBlur: true,
 			saoBlurRadius: 8,
 			saoBlurStdDev: 4,
@@ -65,8 +64,8 @@ class SAOPass extends Pass {
 		this.resolution = ( resolution !== undefined ) ? new Vector2( resolution.x, resolution.y ) : new Vector2( 256, 256 );
 
 		this.saoRenderTarget = new WebGLRenderTarget( this.resolution.x, this.resolution.y, {
-			minFilter: LinearFilter,
-			magFilter: LinearFilter,
+			minFilter: NearestFilter,
+			magFilter: NearestFilter,
 			format: RGBAFormat
 		} );
 		this.blurIntermediateRenderTarget = this.saoRenderTarget.clone();
@@ -92,9 +91,11 @@ class SAOPass extends Pass {
 		this.depthMaterial = new MeshDepthMaterial();
 		this.depthMaterial.depthPacking = RGBADepthPacking;
 		this.depthMaterial.blending = NoBlending;
+		this.depthMaterial.side = DoubleSide;
 
 		this.normalMaterial = new MeshNormalMaterial();
 		this.normalMaterial.blending = NoBlending;
+		this.normalMaterial.side = DoubleSide;
 
 		if ( SAOShader === undefined ) {
 
@@ -109,7 +110,6 @@ class SAOPass extends Pass {
 			uniforms: UniformsUtils.clone( SAOShader.uniforms )
 		} );
 		this.saoMaterial.extensions.derivatives = true;
-		this.saoMaterial.defines[ 'DEPTH_PACKING' ] = this.supportsDepthTextureExtension ? 0 : 1;
 		this.saoMaterial.defines[ 'NORMAL_TEXTURE' ] = this.supportsNormalTexture ? 1 : 0;
 		this.saoMaterial.defines[ 'PERSPECTIVE_CAMERA' ] = this.camera.isPerspectiveCamera ? 1 : 0;
 		this.saoMaterial.uniforms[ 'tDepth' ].value = ( this.supportsDepthTextureExtension ) ? depthTexture : this.depthRenderTarget.texture;
@@ -131,7 +131,6 @@ class SAOPass extends Pass {
 			vertexShader: DepthLimitedBlurShader.vertexShader,
 			fragmentShader: DepthLimitedBlurShader.fragmentShader
 		} );
-		this.vBlurMaterial.defines[ 'DEPTH_PACKING' ] = this.supportsDepthTextureExtension ? 0 : 1;
 		this.vBlurMaterial.defines[ 'PERSPECTIVE_CAMERA' ] = this.camera.isPerspectiveCamera ? 1 : 0;
 		this.vBlurMaterial.uniforms[ 'tDiffuse' ].value = this.saoRenderTarget.texture;
 		this.vBlurMaterial.uniforms[ 'tDepth' ].value = ( this.supportsDepthTextureExtension ) ? depthTexture : this.depthRenderTarget.texture;
@@ -144,7 +143,6 @@ class SAOPass extends Pass {
 			vertexShader: DepthLimitedBlurShader.vertexShader,
 			fragmentShader: DepthLimitedBlurShader.fragmentShader
 		} );
-		this.hBlurMaterial.defines[ 'DEPTH_PACKING' ] = this.supportsDepthTextureExtension ? 0 : 1;
 		this.hBlurMaterial.defines[ 'PERSPECTIVE_CAMERA' ] = this.camera.isPerspectiveCamera ? 1 : 0;
 		this.hBlurMaterial.uniforms[ 'tDiffuse' ].value = this.blurIntermediateRenderTarget.texture;
 		this.hBlurMaterial.uniforms[ 'tDepth' ].value = ( this.supportsDepthTextureExtension ) ? depthTexture : this.depthRenderTarget.texture;
@@ -217,14 +215,11 @@ class SAOPass extends Pass {
 		renderer.setRenderTarget( this.depthRenderTarget );
 		renderer.clear();
 
-		this.saoMaterial.uniforms[ 'bias' ].value = this.params.saoBias;
 		this.saoMaterial.uniforms[ 'intensity' ].value = this.params.saoIntensity;
 		this.saoMaterial.uniforms[ 'scale' ].value = this.params.saoScale;
 		this.saoMaterial.uniforms[ 'kernelRadius' ].value = this.params.saoKernelRadius;
-		this.saoMaterial.uniforms[ 'minResolution' ].value = this.params.saoMinResolution;
 		this.saoMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
 		this.saoMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
-		// this.saoMaterial.uniforms['randomSeed'].value = Math.random();
 
 		const depthCutoff = this.params.saoBlurDepthCutoff * ( this.camera.far - this.camera.near );
 		this.vBlurMaterial.uniforms[ 'depthCutoff' ].value = depthCutoff;
@@ -255,7 +250,7 @@ class SAOPass extends Pass {
 		if ( ! this.supportsDepthTextureExtension ) {
 
 			// Clear rule : far clipping plane in both RGBA and Basic encoding
-			this.renderOverride( renderer, this.depthMaterial, this.depthRenderTarget, 0x000000, 1.0 );
+			this.renderOverride( renderer, this.depthMaterial, this.depthRenderTarget, 0xffffff, 1.0 );
 
 		}
 
