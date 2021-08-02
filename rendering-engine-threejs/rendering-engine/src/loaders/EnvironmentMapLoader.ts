@@ -155,9 +155,6 @@ export class EnvironmentMapLoader implements ILoader {
                     (map: THREE.CubeTexture) => {
                         map.format = THREE.RGBFormat;
                         map.mapping = THREE.CubeReflectionMapping;
-                        map.generateMipmaps = false;
-                        map.minFilter = THREE.LinearFilter;
-                        map.magFilter = THREE.LinearFilter;
                         this._environmentMaps[name] = map;
                         this.assignEnvironmentMap(name);
                         resolve();
