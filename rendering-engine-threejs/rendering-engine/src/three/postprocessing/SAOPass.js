@@ -248,17 +248,19 @@ class SAOPass extends Pass {
 
 		// Re-render scene if depth texture extension is not supported
 		if ( ! this.supportsDepthTextureExtension ) {
-
+			const background = this.scene.background;
+			this.scene.background = null;
 			// Clear rule : far clipping plane in both RGBA and Basic encoding
 			this.renderOverride( renderer, this.depthMaterial, this.depthRenderTarget, 0xffffff, 1.0 );
-
+			this.scene.background = background;
 		}
 
 		if ( this.supportsNormalTexture ) {
-
+			const background = this.scene.background;
+			this.scene.background = null;
 			// Clear rule : default normal is facing the camera
 			this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0x7777ff, 1.0 );
-
+			this.scene.background = background;
 		}
 
 		// Rendering SAO texture
