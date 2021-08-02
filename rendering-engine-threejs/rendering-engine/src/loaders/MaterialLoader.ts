@@ -230,6 +230,8 @@ export class MaterialLoader implements ILoader {
             if(!materialProperties.color !== undefined && materialProperties.map !== undefined && materialProperties.map.color !== undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
                 properties.color = new THREE.Color(this._defaultColor);
 
+            if((materialSettings !== undefined && materialSettings.useVertexColors) && materialProperties.color === this._defaultColor)
+                properties.color = new THREE.Color('#d3d3d3');
             // displacementMap
 
             // displacementScale

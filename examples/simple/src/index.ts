@@ -17,6 +17,10 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
         ticket: 'ead5496b55f2c8cc9ce9d6a5ec9eb8338093fd6a458f38d82e19c7d57022e0931a9106bb20a8c822c20319cd66b7a233c7abf6670612c5a3d68dde1389356faa66c75901ae74c4bcd8fa92efd860092179d073fcbb882b8702f251280dfd28a4ce92ac6c8f758a9dace40fbb8650eec38a42a7e36eb2896997c330e28767b2ca-ec47cfc49ebbcef7746c6f9883e42e33',
         modelViewUrl: modelViewUrls['us-east-1']
     },
+    'Coral': { 
+        ticket: 'b66e4927343abbfe6f18c38eb160c2120a7b9012e7e10bab4b6666137f1e37ac219c151ce457ec0a896b52fc838c0f9a10c1b36d597c7ff138e0f6ec4179cdf108a56fb1fc802164e74fa3550a03909f38dbb97c7d71fa62cbac58021419889ab819ea122edc59d94b759483824de6d016b6e32087fa06b1ac9a8bdb2c40d321-1f039bfad2e2af6ac84da5c7916c5f71',
+        modelViewUrl: modelViewUrls['eu-central-1']
+    },
     'CubeMizator': {
         ticket: 'b9deea346b988b90b45ef359be0e57d3325fb8e089c33008a5c7e41b5a3020b1ba16b5f4926c9d487037cf128455653573096649deee8415afa220b4ec27565e28178f2193c9f66366361de05e866e9c91e0c44f278261692f7c778dbf3ee3c53a139526fded5aea8aa8a52f19a9fc20aed1eab5f6da22eac8e0eff4b8ca4ddd-df2cbd31660c1cd9d38673d8362b9466', 
         modelViewUrl: modelViewUrls['eu-central-1'], 
@@ -49,7 +53,7 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 
 
 (async () => {
-    const { ticket, modelViewUrl } = models['Test 5'];
+    const { ticket, modelViewUrl } = models['Coral'];
     let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 })();
