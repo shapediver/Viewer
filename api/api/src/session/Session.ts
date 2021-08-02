@@ -421,8 +421,15 @@ export class Session {
             this.node.excludeViewers = this.#excludeViewers;
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
 
+            const viewerPromises = [];
+            const viewerIds = Object.keys(this.#api.viewers);
+            for(let i = 0; i < viewerIds.length; i++)
+              viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.getCustomState(this.#api.viewers[viewerIds[i]].id + '_settings_loaded'); state.resolved === true ? resolve() : state.then(() => resolve()) }));
+
             this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
             await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
+
+            if(this.primarySession !== false) await Promise.all(viewerPromises);
 
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
             this.#api.update();

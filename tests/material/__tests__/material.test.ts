@@ -48,11 +48,6 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 let viewer = await api.createAndInitializeViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createAndInitializeSession({ ticket: 'b66e4927343abbfe6f18c38eb160c2120a7b9012e7e10bab4b6666137f1e37ac219c151ce457ec0a896b52fc838c0f9a10c1b36d597c7ff138e0f6ec4179cdf108a56fb1fc802164e74fa3550a03909f38dbb97c7d71fa62cbac58021419889ab819ea122edc59d94b759483824de6d016b6e32087fa06b1ac9a8bdb2c40d321-1f039bfad2e2af6ac84da5c7916c5f71', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
-                await new Promise(resolve => setTimeout(resolve, 100));
-                const camera = api.viewers["myViewer"].getCamera()!;
-                (<PerspectiveCamera>camera).controls.updateEnableAutoRotation(false);
-
-                camera.reset({});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })

@@ -185,10 +185,8 @@ export class RenderingEngine implements IRenderingEngine {
             })
         }
         if(this._stateEngine.primarySettingsRegistered.resolved) {
-            this._stateEngine.primarySettingsRegistered.then(() => setTimeout(() => {
-                if(this._closed) return;
-                this.applySettings()
-            }, 0));
+            if(this._closed) return;
+            this.applySettings()
         } else {
             this._stateEngine.primarySettingsRegistered.then(() => {
                 if(this._closed) return;

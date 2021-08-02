@@ -6,6 +6,7 @@ import {
   CAMERATYPE,
   OrthographicCamera,
   PerspectiveCamera,
+  PerspectiveCameraControls
 } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { EventEngine, EVENTTYPE, StateEngine, SystemInfo } from '@shapediver/viewer.shared.services'
 import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
@@ -366,6 +367,17 @@ export class RenderingManager implements IManager {
         let rendering = false;
         if (this._activeRendering === true)
             rendering = true;
+
+        // special case, autorotation
+        if(this._renderingEngine.cameraEngine.hasCamera()) {
+            const camera = this._renderingEngine.cameraEngine.getCamera()!;
+            if(camera.type === CAMERATYPE.PERSPECTIVE) {
+                const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
+                if(controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
+                    return { showScene, rendering: true, blurScene: false, beautyRendering: false };
+            }
+        }
+
 
         // If the scene should be blurred
         let blurScene = false;
