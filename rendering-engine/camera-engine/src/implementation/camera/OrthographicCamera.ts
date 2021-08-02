@@ -240,7 +240,7 @@ export class OrthographicCamera extends AbstractCamera {
    }
 
    public project(pos: vec3): vec2 {
-      const m = mat4.targetTo(mat4.create(), this.position, this.target, vec3.fromValues(0, 0, 1));
+      const m = mat4.targetTo(mat4.create(), this.position, this.target, this.up);
       const p = mat4.ortho(mat4.create(), this.left, this.right, this.bottom, this.top, this.near, this.far);
       vec3.transformMat4(pos, pos, mat4.invert(m, m))
       vec3.transformMat4(pos, pos, p)
