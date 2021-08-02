@@ -234,6 +234,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 (<any>camera!).controls.updateAutoRotationSpeed(0);
                 (<any>camera!).controls.updateDamping(0.1);
                 viewer.updateEnvironmentMap('none');
+                viewer.updateEnvironmentMapAsBackground(false);
                 viewer.updateGridVisibility(true);
                 viewer.updateGroundPlaneVisibility(true);
                 viewer.updateEnvironmentMap('none');
