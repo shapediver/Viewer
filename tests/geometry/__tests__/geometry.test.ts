@@ -6,14 +6,14 @@ import { screenshotCompare } from "../../general/src/setup";
 import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
 
 for(let c = 0; c < allCapabilities.length; c++) {
-    let name = 'material_tests';
-    const capabilities = Object.assign({ 'name': 'material_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
+    let name = 'geometry_tests';
+    const capabilities = Object.assign({ 'name': 'geometry_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
 
     if(process.env.PORT !== 'browserstack') {
-        name = 'material_tests';
+        name = 'geometry_tests';
         c = allCapabilities.length;
     } else {
-        name = 'material_tests/' + ((allCapabilities[c] as DesktopCapabilities).os ? 
+        name = 'geometry_tests/' + ((allCapabilities[c] as DesktopCapabilities).os ? 
         (<DesktopCapabilities>capabilities).os + '_' + (<DesktopCapabilities>capabilities).os_version + '_' + (<DesktopCapabilities>capabilities).browserName + '_' + (<DesktopCapabilities>capabilities).browser_version : 
         (<MobileCapabilities>capabilities).device + '_' + (<MobileCapabilities>capabilities).os_version);
     }
@@ -46,13 +46,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = await api.createAndInitializeViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
-                let session = await api.createAndInitializeSession({ ticket: 'b66e4927343abbfe6f18c38eb160c2120a7b9012e7e10bab4b6666137f1e37ac219c151ce457ec0a896b52fc838c0f9a10c1b36d597c7ff138e0f6ec4179cdf108a56fb1fc802164e74fa3550a03909f38dbb97c7d71fa62cbac58021419889ab819ea122edc59d94b759483824de6d016b6e32087fa06b1ac9a8bdb2c40d321-1f039bfad2e2af6ac84da5c7916c5f71', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                let session = await api.createAndInitializeSession({ ticket: '96397ab9f94076b64885c3ff3a83cf23178bec2263fffa1dd1766a6778b25090a1a9caef95f267d22309d0c96438075246395b835991d4305fe534f53953153f164b872714e1bed6a004e99fe768c561a1efd3d4eff83cf2cfea1e3b37b03e5a9860102741e7819d97dc37249827c421dd0562415c5bde10eb5eb033b3e07fc1-5575b7a8fe6e3a53825ed5d052675142', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
-                await new Promise(resolve => setTimeout(resolve, 100));
                 const camera = api.viewers["myViewer"].getCamera()!;
-                (<PerspectiveCamera>camera).controls.updateEnableAutoRotation(false);
-
-                camera.reset({});
+                camera.set([-1400, -3400, 840], [-900, 490, 1330], {})
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
@@ -60,24 +57,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             });
             
             // TAKE A SCREENSHOT
-            await screenshotCompare(await driver.takeScreenshot(), name + '/test_vertexColors');
-        });
-
-        test(name, async () => {
-            // DO SOMETHING WITH THE API
-            await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).api; 
-                let viewer = await api.createAndInitializeViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
-                let session = await api.createAndInitializeSession({ ticket: 'd5b7a2dbb34e54e05dbbd86d5c626b427557636ba743186e3bcbc3103abfda3b2ae3cc722cfa191b493bfb0e72e873cebe39a629ea908e8080d9d68ce45d8c3de8ec8dd680822c03cfe3b636ea3132a7c1da75cf97a56c4918570c7f3766c7b5da29c04eb6904b4c33ec5118420c3ab7b027d1d6b6cb1422c7d8eafd58d61f34-618144e478003c9e4ca81db572d929fc', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
-
-                await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-                })
-                cb();
-            });
-            
-            // TAKE A SCREENSHOT
-            await screenshotCompare(await driver.takeScreenshot(), name + '/test_vertexColors2');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/external_geometry');
         });
     });
 }

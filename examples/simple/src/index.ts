@@ -37,6 +37,10 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
         ticket: 'd5b7a2dbb34e54e05dbbd86d5c626b427557636ba743186e3bcbc3103abfda3b2ae3cc722cfa191b493bfb0e72e873cebe39a629ea908e8080d9d68ce45d8c3de8ec8dd680822c03cfe3b636ea3132a7c1da75cf97a56c4918570c7f3766c7b5da29c04eb6904b4c33ec5118420c3ab7b027d1d6b6cb1422c7d8eafd58d61f34-618144e478003c9e4ca81db572d929fc',
         modelViewUrl: modelViewUrls['eu-central-1']
     },
+    'Perforated Panel': { 
+        ticket: '96397ab9f94076b64885c3ff3a83cf23178bec2263fffa1dd1766a6778b25090a1a9caef95f267d22309d0c96438075246395b835991d4305fe534f53953153f164b872714e1bed6a004e99fe768c561a1efd3d4eff83cf2cfea1e3b37b03e5a9860102741e7819d97dc37249827c421dd0562415c5bde10eb5eb033b3e07fc1-5575b7a8fe6e3a53825ed5d052675142',
+        modelViewUrl: modelViewUrls['eu-central-1']
+    },
     'Sdgtf_All_Types': { 
         ticket: 'e96c426ed1b983bb05ceb78145e6da83eaf111e6da9fca3b2c97d8447c3706930df7825932421d14100886f6967059330f25c3c12b08ce47d150bea84ea9fe4f3541ee7b1cbdb16c5735899871155bfddb76d82ff664155530ea143995a317653a5ab2de3799affbcfd3075af2c53cb8e40f26b2eba37d00f71c74c7c1a5ffd8-a23d9dc0e103d57f8ccd89b6f1d1e951',
         modelViewUrl: modelViewUrls['eu-central-1']
@@ -49,11 +53,15 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
         ticket: 'c9f558e0f553bea84f8e540f1c561aff8fad4015b07d89fab2f2048e8b1fae0a3f61d3538ac8a3966f6827cbe4e4cf867c86f60df63d026a2757db15495ccb99b230337cfb21e03697e14d3593d7a8d7b8fc52fc4f142a686104deb6fb2e884a80a827314097ac1a603bd10065a1129efc28719d93fe0d9760ee83187c4f3012-92b182e5dbe03bc50a6f4e1dabf27def',
         modelViewUrl: modelViewUrls['eu-central-1']
     },
+    'Test Texture': { 
+        ticket: '1eea8b3f90167ec21f51d020b74185af24ffb458c92b0169cef937046669cde4ac5fcab314a89ecb9014ba2320ba23d9da69c005d4083bd6982f66cd1b4d45a5241b3a123d5013c64f562fb16c2168575c318e6a8017c6b49e1e7a63e0936830042ffd92d2ead06e6db0c899eaf4ac30ae2fa0927f3d932b610df8bf286093d1-b0adeb03344a0179fd05f99f42303d52',
+        modelViewUrl: modelViewUrls['eu-central-1']
+    },
 };
 
 
 (async () => {
-    const { ticket, modelViewUrl } = models['Coral'];
+    const { ticket, modelViewUrl } = models['Perforated Panel'];
     let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 })();

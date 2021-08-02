@@ -3,13 +3,14 @@ import { CustomData } from '@shapediver/viewer.shared.types'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITransformation, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Reader } from '@shapediver/viewer.sdtf.converter'
 import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine'
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
 
 import { TreeNodeConverter } from './TreeNodeConverter'
+import { mat4 } from 'gl-matrix'
 
 @singleton()
 export class DataEngine {
@@ -26,21 +27,48 @@ export class DataEngine {
         }
 
         try {
+            const transformations: ITransformation[] = [];
+            if (content.transformations && Array.isArray(content.transformations)) {
+                for(let i = 0; i < content.transformations.length; i++) {
+                    const t = content.transformations[i];
+                    if(Array.isArray(t) && t.length === 16)
+                        transformations.push({
+                            id: 'content_' + i,
+                            matrix: mat4.fromValues(t[0], t[1], t[2], t[3], 
+                                                    t[4], t[5], t[6], t[7], 
+                                                    t[8], t[9], t[10], t[11], 
+                                                    t[12], t[13], t[14], t[15]),
+                            name: 'content_' + i,
+                        })
+                }
+            } 
+
             if (content.format === 'glb' || content.format === 'gltf') {
-                return await this._geometryEngine.loadContent(content);
+                const node = await this._geometryEngine.loadContent(content);
+                node.transformations.push(...transformations);
+                return node;
             } else if (content.format === 'material') {
-                return await this._materialEngine.loadContent(content);
+                const node = await this._materialEngine.loadContent(content);
+                node.transformations.push(...transformations);
+                return node;
             } else if (content.format === 'tag2d' || content.format === 'anchor') {
-                return await this._htmlElementAnchorEngine.loadContent(content);
+                const node = await this._htmlElementAnchorEngine.loadContent(content);
+                node.transformations.push(...transformations);
+                return node;
             } else if (content.format === 'tag3d') {
-                return await this._tag3dEngine.loadContent(content);
+                const node = await this._tag3dEngine.loadContent(content);
+                node.transformations.push(...transformations);
+                return node;
             } else if (content.format === 'sdtf') {
                 const sdtfFile = await new Reader().readFromUri(content.href!);
                 if(!sdtfFile) return new TreeNode();
-                return new TreeNodeConverter().convertToTreeNode(sdtfFile);
+                const node = new TreeNodeConverter().convertToTreeNode(sdtfFile);
+                node.transformations.push(...transformations);
+                return node;
             } else {
                 const customNode = new TreeNode('custom');
                 customNode.data.push(new CustomData({ ...content }));
+                customNode.transformations.push(...transformations);
                 return customNode;
             }
         } catch (e) {
