@@ -116,8 +116,15 @@ export class LightEngine implements ILightEngine {
     }
 
     public removeLight(id: string): boolean {
-        const light = this._currentLightScene.getLight(id);
-        if (!light) return false;
+        let light = this._currentLightScene.getLight(id);
+        if (!light) {
+            for(let ls in this._lightScenes) {
+                light = this._lightScenes[ls].getLight(id);
+                if(light) 
+                    return this._lightScenes[ls].removeLight(id);
+            }
+            return false;
+        } 
         return this._currentLightScene.removeLight(id);
     }
 

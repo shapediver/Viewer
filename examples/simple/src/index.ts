@@ -65,7 +65,7 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 
 
 (async () => {
-    const { ticket, modelViewUrl } = models['Donau City'];
+    const { ticket, modelViewUrl } = models['Test 5'];
     let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 })();
