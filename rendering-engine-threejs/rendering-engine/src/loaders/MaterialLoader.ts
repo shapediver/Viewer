@@ -89,10 +89,10 @@ export class MaterialLoader implements ILoader {
     }
 
     public assignPointSize(p: number) {
-        const height = this._renderingEngine.renderer ? this._renderingEngine.renderer.getSize(new THREE.Vector2()).y : 1020;
+        const height = this._renderingEngine.renderer ? this._renderingEngine.renderer.getSize(new THREE.Vector2()).y : 1080;
         if(height === this._height) return;
         this._height = height;
-        this._pointSize = p * (this._height/3250);
+        this._pointSize = p * (this._height/1080);
         for(let i = 0; i < this._materialLibrary.length; i++) {
             if(this._materialLibrary[i] instanceof THREE.PointsMaterial) {
                 (<THREE.PointsMaterial>this._materialLibrary[i]).size = this._pointSize;

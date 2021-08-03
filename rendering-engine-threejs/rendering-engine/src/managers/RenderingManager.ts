@@ -226,6 +226,7 @@ export class RenderingManager implements IManager {
         this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
         this._renderingEngine.renderer.domElement.style.width = width + 'px';
         this._renderingEngine.renderer.domElement.style.height = height + 'px';
+        this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
 
         // animation loop - part 9: adjust the camera
         const camera = this._renderingEngine.cameraManager.adjustCamera(position, target, aspect);
