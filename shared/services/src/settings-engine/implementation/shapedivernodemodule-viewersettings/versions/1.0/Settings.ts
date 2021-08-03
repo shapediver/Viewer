@@ -71,7 +71,7 @@ export class Settings extends BaseSettings {
         };
 
         if(settingsJSON) {
-            if((!settingsJSON.clearAlpha || !settingsJSON.clearColor) && settingsJSON.backgroundColor && typeof settingsJSON.backgroundColor === 'string') {
+            if((settingsJSON.clearAlpha === undefined || !settingsJSON.clearColor) && settingsJSON.backgroundColor && typeof settingsJSON.backgroundColor === 'string') {
                 settingsJSON.clearColor = settingsJSON.backgroundColor.substring(0, 8);
                 settingsJSON.clearAlpha = parseInt(settingsJSON.backgroundColor.substring(8), 16) / 255;
             }
