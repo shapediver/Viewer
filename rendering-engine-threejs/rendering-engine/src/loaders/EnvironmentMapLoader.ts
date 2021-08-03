@@ -12,7 +12,7 @@ export class EnvironmentMapLoader implements ILoader {
     // #region Properties (8)
 
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']
-    private readonly _environmentMapNamesHDR = ['anniversary_lounge', 'ballroom', 'combination_room', 'large_corridor', 'lythwood_lounge', 'old_hall', 'studio_small'];
+    private readonly _environmentMapNamesHDR = ['anniversary_lounge', 'ballroom', 'combination_room', 'large_corridor', 'lythwood_lounge', 'old_hall', 'paul_lobe_haus', 'studio_small'];
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | THREE.Texture | null

@@ -46,7 +46,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = await api.createAndInitializeViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
-                let session = await api.createAndInitializeSession({ ticket: 'b66e4927343abbfe6f18c38eb160c2120a7b9012e7e10bab4b6666137f1e37ac219c151ce457ec0a896b52fc838c0f9a10c1b36d597c7ff138e0f6ec4179cdf108a56fb1fc802164e74fa3550a03909f38dbb97c7d71fa62cbac58021419889ab819ea122edc59d94b759483824de6d016b6e32087fa06b1ac9a8bdb2c40d321-1f039bfad2e2af6ac84da5c7916c5f71', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                let session = await api.createAndInitializeSession({ ticket: '3017a44322f7cd5dc4e1bfbe4d3e8bfdd9a265fd00c6bf2415f345c28ec76cda9a60a41f41c16af7ddc429ab1d19967469c8a5c3fb73ac8c45288a2a0387a4566ae3d45d2ff44e21493b36be5138e6b7ca92b250b4c7b6f01f7efe120d1e990df4b0237478023040c1965ad40f85043e1c4b1553bb2bc8b45777d9b5fde21f-3655c2562cc577697d3bff8bf250a6fb', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
                 const camera = api.viewers["myViewer"].getCamera()!;
                 (<PerspectiveCamera>camera).controls.updateEnableAutoRotation(false);
@@ -59,7 +59,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             });
             
             // TAKE A SCREENSHOT
-            await screenshotCompare(await driver.takeScreenshot(), name + '/test_vertexColors');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/vertexColors');
         });
 
         test(name, async () => {
@@ -67,7 +67,25 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = await api.createAndInitializeViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
-                let session = await api.createAndInitializeSession({ ticket: 'd5b7a2dbb34e54e05dbbd86d5c626b427557636ba743186e3bcbc3103abfda3b2ae3cc722cfa191b493bfb0e72e873cebe39a629ea908e8080d9d68ce45d8c3de8ec8dd680822c03cfe3b636ea3132a7c1da75cf97a56c4918570c7f3766c7b5da29c04eb6904b4c33ec5118420c3ab7b027d1d6b6cb1422c7d8eafd58d61f34-618144e478003c9e4ca81db572d929fc', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                let session = await api.createAndInitializeSession({ ticket: 'b9deea346b988b90b45ef359be0e57d3325fb8e089c33008a5c7e41b5a3020b1ba16b5f4926c9d487037cf128455653573096649deee8415afa220b4ec27565e28178f2193c9f66366361de05e866e9c91e0c44f278261692f7c778dbf3ee3c53a139526fded5aea8aa8a52f19a9fc20aed1eab5f6da22eac8e0eff4b8ca4ddd-df2cbd31660c1cd9d38673d8362b9466', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+                const camera = viewer.getCamera()!;
+                (<PerspectiveCamera>camera).controls.updateEnableAutoRotation(false)
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                cb();
+            });
+            
+            // TAKE A SCREENSHOT
+            await screenshotCompare(await driver.takeScreenshot(), name + '/vertexColors2');
+        });
+
+        test(name, async () => {
+            // DO SOMETHING WITH THE API
+            await driver.executeAsyncScript(async (cb: any) => {
+                const api: typeof API = (<any>window).api; 
+                let viewer = await api.createAndInitializeViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
+                let session = await api.createAndInitializeSession({ ticket: '75f6f416a8200ed5d64f9c15f39320df0c9a630878d235332451657e1a1524fa7a39ef96d4a0b866c6ebacbf202b32e5fad90f4fe6a54276d892831f5aa4bc2cbd4cdd73231a2db23055c7a9d6d2707eb329315ab0f8d5a489cdff33b99e9b49ed68af70f4b139c941000063d19fff574b7c3b2b55460eac6ec23a86f3fd0d-a2beded2e997ea7d1d6e9b03cd3c86d1', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -76,7 +94,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             });
             
             // TAKE A SCREENSHOT
-            await screenshotCompare(await driver.takeScreenshot(), name + '/test_vertexColors2');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/standard_material');
         });
     });
 }
