@@ -18,6 +18,8 @@ const execPromise = (cmd: string) => {
     try {
         console.log(await execPromise('npm run build-current'));
         console.log(await execPromise('cd examples/test && npm run build-prod && cd ../..'));
+        console.log(await execPromise('cd examples/gltf && npm run build-prod && cd ../..'));
+        console.log(await execPromise('cd examples/multiple && npm run build-prod && cd ../..'));
 
         const bucketName = 'shapediverviewer';
         const prefixLatest = 'v3/latest/';
@@ -29,6 +31,34 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefixLatest + 'test/' + f.substring(directoryPathTest.length, f.length).replace(/\\/g, '/'),
+                Body: pako.gzip(fs.readFileSync(f)),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        const directoryPathGltf = 'examples/gltf/dist-prod/';
+        const fileContentsGltf = <string[]>recursiveReadSync(directoryPathGltf);
+        fileContentsGltf.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + 'gltf/' + f.substring(directoryPathGltf.length, f.length).replace(/\\/g, '/'),
+                Body: pako.gzip(fs.readFileSync(f)),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        const directoryPathMultiple = 'examples/multiple/dist-prod/';
+        const fileContentsMultiple = <string[]>recursiveReadSync(directoryPathMultiple);
+        fileContentsMultiple.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + 'multiple/' + f.substring(directoryPathMultiple.length, f.length).replace(/\\/g, '/'),
                 Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
