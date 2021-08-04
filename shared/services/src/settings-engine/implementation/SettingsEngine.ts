@@ -113,7 +113,7 @@ export class SettingsEngine {
     public fromJson(json: any, sessionId: string, loadAsPrimary: boolean = false) {
         const objJSON = json ? new SettingsConversion().convert(json, '2.0') : json;
         this._fromJson(objJSON, this._defaultSettings, loadAsPrimary);
-        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId, loadAsPrimary });
+        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
     }
     
     private _toJson(settings: SettingsObject, json: any) {
@@ -154,7 +154,7 @@ export class SettingsEngine {
         this._reset(this._defaultSettings);
         const objJSON = new SettingsConversion().convert(new Settings_2_0().toJSON(), '2.0');
         this._fromJson(objJSON, this._defaultSettings, true);
-        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { loadAsPrimary: true });
+        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId: '' });
     }
 
     private _deconstruct(settings: any, deconstructed: any, parentName: string) {

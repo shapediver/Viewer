@@ -8,7 +8,7 @@ import {
   PerspectiveCamera,
   PerspectiveCameraControls
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { EventEngine, EVENTTYPE, StateEngine, SystemInfo } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, IViewerEvent, StateEngine, SystemInfo } from '@shapediver/viewer.shared.services'
 import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
@@ -117,12 +117,14 @@ export class RenderingManager implements IManager {
     public init(): void {
         try {
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
-                // https://shapediver.atlassian.net/browse/SS-2956, add viewer id, could be another one
-                this.startRendering();
+                const viewerEvent = <IViewerEvent>e;
+                if(viewerEvent.viewerId === this._renderingEngine.id) 
+                    this.startRendering();
             })
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
-                // https://shapediver.atlassian.net/browse/SS-2956, add viewer id, could be another one
-                this.stopRendering();
+                const viewerEvent = <IViewerEvent>e;
+                if(viewerEvent.viewerId === this._renderingEngine.id) 
+                    this.stopRendering();
             })
 
             window.onresize = () => { this.render(); };
@@ -249,7 +251,7 @@ export class RenderingManager implements IManager {
             this._renderingEngine.beautyRenderingManager.render(deltaTime, camera, width, height);
             // if the duration was long enough, disable the beauty rendering
             if (this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
-                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, { viewerId: this._renderingEngine.id });
                 this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
                 this._activeRendering = false;
             } else {
@@ -260,7 +262,7 @@ export class RenderingManager implements IManager {
 
             // if the beauty rendering was active, disable it
             if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive) {
-                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, {});
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, { viewerId: this._renderingEngine.id });
                 this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
                 this._activeRendering = false;
             }

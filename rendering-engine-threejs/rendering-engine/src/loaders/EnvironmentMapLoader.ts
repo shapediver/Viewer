@@ -36,6 +36,7 @@ export class EnvironmentMapLoader implements ILoader {
     private _pmremGenerator!: THREE.PMREMGenerator;
 
     private _environmentMapName: string = 'none';
+    private _environmentMapNameInternal: string = 'none';
 
     // #endregion Properties (8)
 
@@ -65,8 +66,8 @@ export class EnvironmentMapLoader implements ILoader {
     public async load(name: string | string[]): Promise<boolean> {
         const name_original = name;
         if (name === 'none') {
+            this._environmentMapNameInternal = name;
             this.assignEnvironmentMap(name);
-            this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { name: name_original })
             return true;
         };
 
@@ -85,18 +86,18 @@ export class EnvironmentMapLoader implements ILoader {
         } else {
             if (name.length !== 6) {
                 this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.'))
-                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
+                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { viewerId: this._renderingEngine.id,  environmentMapId: this._environmentMapNameInternal })
                 return false;
             }
             name_internal = JSON.stringify(name, null, 0);
             name_caching = name_internal;
         }
+        this._environmentMapNameInternal = name_internal;
 
         // check if environment map is already cached
         for (let environmentMap in this._environmentMaps)
             if (environmentMap === name_caching) {
                 this.assignEnvironmentMap(environmentMap);
-                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { name: name_original })
                 return true;
             }
 
@@ -123,7 +124,7 @@ export class EnvironmentMapLoader implements ILoader {
             }
             else {
                 this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.'))
-                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
+                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { viewerId: this._renderingEngine.id,  environmentMapId: this._environmentMapNameInternal })
                 return false;
             }
         } else {
@@ -132,12 +133,11 @@ export class EnvironmentMapLoader implements ILoader {
 
         try {
             await this.loadEnvironmentMap(name_caching, url);
-            this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { name: name_original })
             return Promise.resolve(true);
         }
         catch (error) {
             this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map.'))
-            this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, {})
+            this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { viewerId: this._renderingEngine.id,  environmentMapId: this._environmentMapNameInternal })
             return Promise.resolve(false);
         }
     }
@@ -150,6 +150,7 @@ export class EnvironmentMapLoader implements ILoader {
         if(name in this._environmentMaps === false) return;
         this._environmentMapName = name;
         this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name]);
+        this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { viewerId: this._renderingEngine.id,  environmentMapId: this._environmentMapNameInternal })
     }
 
     private async loadEnvironmentMap(name: string, url: string[]) {

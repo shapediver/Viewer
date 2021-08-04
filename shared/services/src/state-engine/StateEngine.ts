@@ -1,4 +1,5 @@
 import { container, singleton } from 'tsyringe'
+import { ISessionEvent } from '../event-engine/interfaces/IEvent';
 
 import { EventEngine, EVENTTYPE } from '../index'
 import { StatePromise } from './StatePromise'
@@ -25,11 +26,8 @@ export class StateEngine {
         this._firstViewerShown = new StatePromise();
         this._fontLoaded = new StatePromise();
         this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
-            if((<any>e).loadAsPrimary) this._primarySettingsRegistered.resolve(true);
-            if((<any>e).sessionId) this.getCustomState((<any>e).sessionId + '_settings_registered').resolve(true);
-        })
-        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_INITIALIZED, (e) => { 
-            if((<any>e).session.primarySession) this._primarySessionLoaded.resolve(true);
+            const sessionEvent = <ISessionEvent>e;
+            if(sessionEvent.sessionId) this.getCustomState(sessionEvent.sessionId + '_settings_registered').resolve(true);
         })
     }
 

@@ -1,6 +1,6 @@
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { EventEngine, EVENTTYPE, MAINEVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, IEvent, ISessionEvent, MAINEVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { InputValidator, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
@@ -49,6 +49,21 @@ export class Api {
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Viewer version: ${build_data.build_version}`);
       this.#logger.addUpdateCB(this.#updateCB);
       this.#updateCB();
+
+      this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
+        const sessionEvent: ISessionEvent = <ISessionEvent>e;
+        if(sessionEvent.sessionId)
+          if(this.sessions[sessionEvent.sessionId].primarySession)
+            this.#stateEngine.primarySettingsRegistered.resolve(true);
+        if(sessionEvent.sessionId) 
+          this.#stateEngine.getCustomState((<any>e).sessionId + '_settings_registered').resolve(true);
+      })
+      this.#eventEngine.addListener(EVENTTYPE.SESSION.SESSION_INITIALIZED, (e) => { 
+        const sessionEvent: ISessionEvent = <ISessionEvent>e;
+        if(sessionEvent.sessionId)
+          if(this.sessions[sessionEvent.sessionId].primarySession) this.#stateEngine.primarySessionLoaded.resolve(true);
+      })
+
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
@@ -67,7 +82,7 @@ export class Api {
    * @param cb the callback
    * @returns 
    */
-  public addListener(type: string | MAINEVENTTYPE, cb: (event: any) => {}): string {
+  public addListener(type: string | MAINEVENTTYPE, cb: (event: IEvent) => {}): string {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
@@ -238,7 +253,7 @@ export class Api {
       // create the actual viewer
       let viewerCallbacks = {};
       const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
 
       // save the viewer
       this.viewers[viewerId] = viewer;
@@ -247,7 +262,7 @@ export class Api {
       // init and update the viewer with the current scene tree
       await viewer.init(prop);
       viewer.update();
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer });
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId });
 
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Viewer(${viewer.id}) created and initialized.`);
       return this.viewers[viewerId];
@@ -291,7 +306,7 @@ export class Api {
       // create the actual session 
       let sessionCallbacks = {};
       const session = new Session(Object.assign({}, properties, { id: sessionId }), sessionCallbacks);
-      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { session });
+      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId });
 
       // save the session
       this.sessions[sessionId] = session;
@@ -338,7 +353,7 @@ export class Api {
       // create the actual viewer
       let viewerCallbacks = {};
       const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewer });
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
 
       // save the viewer
       this.viewers[viewerId] = viewer;

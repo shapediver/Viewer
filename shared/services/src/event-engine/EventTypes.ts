@@ -6,31 +6,11 @@ export enum CAMERA {
 export enum ENVIRONMENTMAP {
     ENVIRONMENTMAP_LOADED = "environmentmap.loaded",
 }
-
-export enum EXPORT {
-    // EXPORT_AVAILABLE = "export.available",
-    // EXPORT_REGISTERED = "export.registered",
-    // EXPORT_REGISTEREDBATCH = "export.registeredbatch",
-    // EXPORT_UPDATE = "export.update",
-    // EXPORT_STATUS = "export.status",
-}
-
 export enum HTML {
     // HTML_ANCHORADD = "html.anchoradd",
     // HTML_ANCHORREMOVE = "html.anchorremove",
 }
-
-export enum INTERACTION {
-    // INTERACTION_DRAGSTART = 'interaction.dragstart',
-    // INTERACTION_DRAGMOVE = 'interaction.dragmove',
-    // INTERACTION_DRAGEND = 'interaction.dragend',
-    // INTERACTION_HOVERON = 'interaction.hoveron',
-    // INTERACTION_HOVEROVER = 'interaction.hoverover',
-    // INTERACTION_HOVEROFF = 'interaction.hoveroff',
-    // INTERACTION_SELECTON = 'interaction.selecton',
-    // INTERACTION_SELECTOFF = 'interaction.selectoff',
-}
-
+export enum INTERACTION {}
 export enum LIGHT {
     LIGHT_ADDED = "light.added",
     LIGHT_REMOVED = "light.removed",
@@ -39,34 +19,37 @@ export enum LIGHT {
     LIGHT_SCENE_REMOVED = "light.scene.removed",
     LIGHT_SCENE_CHANGED = "light.scene.changed",
 }
+export enum RENDERING {
+    BEAUTY_RENDERING_FINISHED = "rendering.beautyrenderingfinished"
+    //RENDERING_FRAMERATE = "rendering.framerate",
+}
+export enum SCENE {
+    SCENE_BOUNDING_BOX_CHANGE = "scene.boundingboxchange"
+    // SCENE_VISIBLE = "scene.visible",
+    // SCENE_HIDDEN = "scene.hidden",
+}
+export enum VIEWER {
+    VIEWER_CREATED = "viewer.created",
+    VIEWER_INITIALIZED = "viewer.initialized",
+    VIEWER_UPDATED = "viewer.updated",
+    VIEWER_CLOSED = "viewer.closed"
+}
 
+
+
+export enum EXPORT {
+    // EXPORT_AVAILABLE = "export.available",
+    // EXPORT_REGISTERED = "export.registered",
+    // EXPORT_REGISTEREDBATCH = "export.registeredbatch",
+    // EXPORT_UPDATE = "export.update",
+    // EXPORT_STATUS = "export.status",
+}
 export enum PARAMETER {
     // PARAMETER_REGISTERED = "parameter.registered",
     // PARAMETER_REGISTEREDBATCH = "parameter.registeredbatch",
     // PARAMETER_UPDATE = "parameter.update",
     // PARAMETER_VALUEUPDATE = "parameter.valueupdate",
 }
-
-export enum RENDERING {
-    BEAUTY_RENDERING_FINISHED = "rendering.beautyrenderingfinished"
-    //RENDERING_FRAMERATE = "rendering.framerate",
-}
-
-export enum SCENE {
-    SCENE_BOUNDING_BOX_CHANGE = "scene.boundingboxchange"
-    // SCENE_VISIBLE = "scene.visible",
-    // SCENE_HIDDEN = "scene.hidden",
-}
-
-export enum SETTINGS {
-    SETTINGS_REGISTERED = "settings.registered",
-    SETTINGS_UPDATE = "settings.update",
-}
-
-export enum UPDATE {
-    UPDATE_READY = "update.ready"
-}
-
 export enum SESSION {
     SESSION_CREATED = "session.created",
     SESSION_INITIALIZED = "session.initialized",
@@ -75,12 +58,14 @@ export enum SESSION {
     SESSION_CLOSED = "session.closed"
 }
 
-export enum VIEWER {
-    VIEWER_CREATED = "viewer.created",
-    VIEWER_INITIALIZED = "viewer.initialized",
-    VIEWER_UPDATED = "viewer.updated",
-    VIEWER_CLOSED = "viewer.closed"
+
+
+export enum SETTINGS {
+    SETTINGS_REGISTERED = "settings.registered",
+    SETTINGS_UPDATE = "settings.update",
 }
+
+
 
 export const EVENTTYPE = { 
     CAMERA, 
@@ -94,9 +79,8 @@ export const EVENTTYPE = {
     SCENE, 
     SESSION,
     SETTINGS,
-    UPDATE,
     VIEWER
 };
 export type EVENTTYPE = typeof EVENTTYPE;
 
-export type MAINEVENTTYPE = typeof CAMERA | typeof ENVIRONMENTMAP | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof UPDATE | typeof VIEWER;
+export type MAINEVENTTYPE = typeof CAMERA | typeof ENVIRONMENTMAP | typeof EXPORT | typeof HTML | typeof INTERACTION | typeof LIGHT | typeof PARAMETER | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER;

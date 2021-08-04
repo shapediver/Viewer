@@ -114,7 +114,10 @@ export class SceneTreeManager implements IManager {
             if (!this._stateEngine.boundingBoxCreated.resolved)
                 this._stateEngine.boundingBoxCreated.resolve(true);
 
-            this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, this._boundingBox);
+            this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, { viewerId: this._renderingEngine.id, boundingBox: {
+                min: vec3.clone(this._boundingBox.min),
+                max: vec3.clone(this._boundingBox.max),
+            }});
         }
     }
 

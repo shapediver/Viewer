@@ -50,6 +50,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Constructors (1)
 
     constructor(
+        private readonly _viewerId: string, 
         private _camera: ICamera,
         private _canvas: HTMLCanvasElement,
         private _enabled: boolean,
@@ -297,13 +298,13 @@ export class AbstractCameraControls implements ICameraControlsUsage {
 
         switch(true) {
             case oldMovement !== this._moving && this._moving === true:
-                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, { cameraDefinition, movementDuration: 0 });
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, { viewerId: this._viewerId, cameraId: this.camera.id });
                 break;
             case oldMovement !== this._moving && this._moving === false:
-                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, { cameraDefinition, movementDuration: this._movingDuration });
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, { viewerId: this._viewerId, cameraId: this.camera.id });
                 break;
             default: 
-                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, { cameraDefinition, movementDuration: this._movingDuration });
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, { viewerId: this._viewerId, cameraId: this.camera.id });
         }
         
         if (!this._moving) this._movingDuration = 0;

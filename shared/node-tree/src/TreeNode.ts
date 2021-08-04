@@ -335,7 +335,6 @@ export class TreeNode {
       this.#children[i].updateVersion();
 
     this.#version = this.#uuidGenerator.create();
-    this.#eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
   /**
@@ -343,7 +342,6 @@ export class TreeNode {
    */
   public updateVersionAtomic(): void {
     this.#version = this.#uuidGenerator.create();
-    this.#eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
   // #endregion Public Methods (9)

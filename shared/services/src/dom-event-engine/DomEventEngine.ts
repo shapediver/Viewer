@@ -17,7 +17,7 @@ export class DomEventEngine {
 
     // #region Constructors (1)
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(private readonly _viewerId: string, canvas: HTMLCanvasElement) {
         this._canvas = canvas;
         this.addEventListeners();
     }

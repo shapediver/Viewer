@@ -19,9 +19,9 @@ describe('test', () => {
             count++;
         })
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(3);
     });
@@ -32,11 +32,11 @@ describe('test', () => {
             count++;
         })
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(1);
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(2);
     });
@@ -50,11 +50,11 @@ describe('test', () => {
             count--;
         })
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(0);
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(0);
     });
@@ -69,11 +69,11 @@ describe('test', () => {
             count--;
         })
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(1);
 
-        instance.emitEvent(EVENTTYPE.SCENE, {});
+        instance.emitEvent(EVENTTYPE.SCENE, { viewerId: '' });
 
         expect(count).toBe(0);
     });  
@@ -84,13 +84,13 @@ describe('test', () => {
             count++;
         })
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(1);
 
         instance.removeListener(token1);
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(1);
     });
@@ -104,17 +104,17 @@ describe('test', () => {
             count--;
         })
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(1);
 
-        instance.emitEvent(EVENTTYPE.SCENE, {});
+        instance.emitEvent(EVENTTYPE.SCENE, { viewerId: '' });
 
         expect(count).toBe(0);
 
         instance.removeListener(token1);
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(0);
 
@@ -122,18 +122,18 @@ describe('test', () => {
             count++;
         })
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(2);
 
-        instance.emitEvent(EVENTTYPE.SCENE, {});
+        instance.emitEvent(EVENTTYPE.SCENE, { viewerId: '' });
 
         expect(count).toBe(1);
 
         instance.removeListener(token2);
 
-        instance.emitEvent(EVENTTYPE.SCENE, {});
+        instance.emitEvent(EVENTTYPE.SCENE, { viewerId: '' });
 
         expect(count).toBe(1);
     });
@@ -153,25 +153,25 @@ describe('test', () => {
             count++;
         })
 
-        instance.emitEvent(EVENTTYPE.CAMERA, {});
+        instance.emitEvent(EVENTTYPE.CAMERA, { viewerId: '' });
 
         expect(count).toBe(1);
 
-        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, {});
+        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, { viewerId: '' });
 
         expect(count).toBe(3);
 
-        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, {});
+        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, { viewerId: '' });
 
         expect(count).toBe(5);
         
-        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, {});
+        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, { viewerId: '' });
 
         expect(count).toBe(7);
 
         instance.removeListener(token1);
 
-        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, {});
+        instance.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, { viewerId: '' });
 
         expect(count).toBe(8);
     });

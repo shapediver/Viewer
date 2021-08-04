@@ -1,6 +1,6 @@
 import * as detectIt from 'detect-it'
 import { mat4, quat, vec2, vec3 } from 'gl-matrix'
-import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { Box } from '@shapediver/viewer.shared.math'
 
@@ -38,9 +38,12 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, private readonly _canvas: HTMLCanvasElement, private readonly _type: CAMERATYPE) {
-        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
-            if (this._autoAdjust === true) this.zoomTo();
+    constructor(private readonly _viewerId: string, private readonly _id: string, private readonly _canvas: HTMLCanvasElement, private readonly _type: CAMERATYPE) {
+        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e: IEvent) => {
+            const viewerEvent = <IViewerEvent>e;
+            if (viewerEvent.viewerId === this._viewerId) 
+                if (this._autoAdjust === true) 
+                    this.zoomTo();
         });
         const revert = () => {
             if (this._revertAtMouseUp === true)

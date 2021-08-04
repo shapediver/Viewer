@@ -1,4 +1,4 @@
-import { DomEventEngine, EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { container, singleton } from 'tsyringe'
 import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
@@ -36,12 +36,15 @@ export class CameraEngine implements ICameraEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _canvas: ICanvas, private readonly _domEventEngine: DomEventEngine) {        
-        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (bb: any) => {
-            this._boundingBox = bb.clone()
-            
-            for (let c in this._cameras)
-                this._cameras[c].boundingBox = bb.clone();
+    constructor(private readonly _viewerId: string, private readonly _canvas: ICanvas, private readonly _domEventEngine: DomEventEngine) {        
+        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
+            const viewerEvent = <IViewerEvent>e;
+            if(viewerEvent.viewerId === this._viewerId) {
+                this._boundingBox = new Box(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max);
+                
+                for (let c in this._cameras)
+                    this._cameras[c].boundingBox = this._boundingBox.clone();
+            }
         });
     }
 
@@ -105,7 +108,7 @@ export class CameraEngine implements ICameraEngine {
         const cameraId = id || this._uuidGenerator.create();
         if (this._cameras[cameraId]) this._logger.error(LOGGINGTOPIC.CAMERA, new SDError(`Camera: Camera (${type}) with this id (${cameraId}) already exists.`));
         if (CAMERATYPE.ORTHOGRAPHIC === type) {
-            const camera = new OrthographicCamera(cameraId, this._canvas.canvasElement);
+            const camera = new OrthographicCamera(this._viewerId, cameraId, this._canvas.canvasElement);
             this._camerasDomEventListenerToken[cameraId] = this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
             camera.boundingBox = this._boundingBox.clone();
@@ -116,7 +119,7 @@ export class CameraEngine implements ICameraEngine {
             }
             return camera;
         } else {
-            const camera = new PerspectiveCamera(cameraId, this._canvas.canvasElement);
+            const camera = new PerspectiveCamera(this._viewerId, cameraId, this._canvas.canvasElement);
             this._camerasDomEventListenerToken[cameraId] = this._domEventEngine.addDomEventListener((<PerspectiveCameraControls>camera.controls).cameraControlsEventDistribution);
             this._cameras[cameraId] = camera;
             camera.boundingBox = this._boundingBox.clone();

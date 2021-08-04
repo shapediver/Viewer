@@ -56,7 +56,6 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
    */
   public updateVersion(): void {
     this._version = this._uuidGenerator.create();
-    this._eventEngine.emitEvent(EVENTTYPE.UPDATE.UPDATE_READY, {});
   }
 
   // #endregion Public Methods (1)

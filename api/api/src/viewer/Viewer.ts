@@ -17,7 +17,7 @@ import {
 } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from '@shapediver/viewer.shared.utils'
-import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, StateEngine, IViewerEvent, IEvent } from '@shapediver/viewer.shared.services'
 import { Converter, InputValidator, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
@@ -118,7 +118,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#properties = properties;
       callbacks.close = async (): Promise<boolean> => {
         const closeResult = await this.#renderingEngine.close();
-        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, {});
+        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, { viewerId: this.id });
 
         if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}): Was not able to close viewer completely, please disregard this viewer.`);
         return closeResult;
@@ -282,12 +282,22 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Name of the environment map to use, or an array of 6 image URLs making up the cube mapped environment map (px, nx, pz, nz, py, ny)
    * @param {string | string[]} value
    */
-  public updateEnvironmentMap(value: string | string[]) {
+  public async updateEnvironmentMap(value: string | string[]) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: Updating EnvironmentMap to ${value}.`);
       this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap`, value, 'cubeMap');
-      this.#renderingEngine.environmentMap = value;
+
+      await new Promise<void>(resolve => {
+        const token = this.#eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: IEvent) => {
+          if((<IViewerEvent>e).viewerId === this.id) {
+            this.#eventEngine.removeListener(token);
+            resolve();
+          }
+        });
+        this.#renderingEngine.environmentMap = value;
+      })
+      
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: environmentMap was set to: ${value}`);
       this.update();
     } catch (e) {
@@ -1017,7 +1027,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
         })
       }
 
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewer: this });
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId: this.id });
       (<any>this.initialized) = true;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Viewer initialized.`);
       this.update();
@@ -1133,7 +1143,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       if (!this.#renderingEngine) return;
       this.#renderingEngine.update();
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updated viewer.`);
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewer: this });
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewerId: this.id });
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).update: Something unexpected happened.`, true)

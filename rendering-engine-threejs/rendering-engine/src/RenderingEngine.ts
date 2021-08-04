@@ -16,7 +16,7 @@ import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engi
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { DomEventEngine, EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { MATERIAL_SIDE, MaterialData } from '@shapediver/viewer.shared.types'
 import { Converter, SDError } from '@shapediver/viewer.shared.utils'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -129,9 +129,9 @@ export class RenderingEngine implements IRenderingEngine {
         this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(properties.canvas));
 
         // creation of the engines (all singleton engines were created already)
-        this._domEventEngine = new DomEventEngine(this.canvas.canvasElement);
-        this._cameraEngine = new CameraEngine(this.canvas, this._domEventEngine);
-        this._lightEngine = new LightEngine();
+        this._domEventEngine = new DomEventEngine(this._id, this.canvas.canvasElement);
+        this._cameraEngine = new CameraEngine(this._id, this.canvas, this._domEventEngine);
+        this._lightEngine = new LightEngine(this._id);
 
         // creation of the managers (all singleton engines were created already)
         this._beautyRenderingManager = new BeautyRenderingManager(this);
@@ -911,9 +911,13 @@ export class RenderingEngine implements IRenderingEngine {
 
     private applySettings() {
         // as the environment map is the only thing that needs time to load, load it first
-        const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: any) => {
+        const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: IEvent) => {
+            const viewerEvent = <IViewerEvent>e;
+            if(viewerEvent.viewerId !== this.id) return;
+
+            this._eventEngine.removeListener(token);
             // return if a different env map was loaded
-            if (!e.name || (e.name && e.name !== this._settingsEngine.scene.material.environmentMap.value)) return;
+            if (!viewerEvent.environmentMapId || (viewerEvent.environmentMapId && viewerEvent.environmentMapId !== this._settingsEngine.scene.material.environmentMap.value)) return;
 
             this.environmentMapAsBackground = this._settingsEngine.scene.material.environmentMapAsBackground.value;
             this.ambientOcclusion = this._settingsEngine.scene.render.ambientOcclusion.value;
@@ -927,7 +931,6 @@ export class RenderingEngine implements IRenderingEngine {
             this.lightScene = this._settingsEngine.scene.lights.lightScene.value;
             this.pointSize = this._settingsEngine.rendering.pointSize.value;
             this.shadows = this._settingsEngine.scene.render.shadows.value;
-            this._eventEngine.removeListener(token);
             (<LightEngine>this.lightEngine).applySettings();
             (<CameraEngine>this.cameraEngine).applySettings();
             this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);

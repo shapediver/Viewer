@@ -42,8 +42,8 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
 
     // #region Constructors (1)
 
-    constructor(camera: ICamera, canvas: HTMLCanvasElement, enabled: boolean) {
-        super(camera, canvas, enabled, CAMERATYPE.PERSPECTIVE);
+    constructor(viewerId: string, camera: ICamera, canvas: HTMLCanvasElement, enabled: boolean) {
+        super(viewerId, camera, canvas, enabled, CAMERATYPE.PERSPECTIVE);
         this._cameraLogic = new OrbitCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
     }

@@ -107,10 +107,10 @@ export class Session {
             callbacks.setAsPrimary = async () => {
                 try {
                     (<any>this.primarySession) = true;
-                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
+                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
                     this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
                     await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
-                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
+                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { sessionId: this.id });
                     this.#api.update();
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
                 } catch (e) {
@@ -127,7 +127,7 @@ export class Session {
 
                     this.#settingsEngine.reset();
                     this.#stateEngine.primarySettingsRegistered.reset();
-                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, {});
+                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: this.id });
 
                     if (!closeResult) this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).close: Was not able to close session completely, please disregard this session.`);
                     return closeResult;
@@ -206,7 +206,7 @@ export class Session {
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
             (<Tree>container.resolve(Tree)).addNode(this.node);
             this.node.excludeViewers = this.#excludeViewers;
-            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { session: this });
+            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
             for (let viewerId in this.#api.viewers)
                 this.#api.viewers[viewerId].updateBlur(blurValues[viewerId]);
             this.#api.update();
@@ -419,7 +419,7 @@ export class Session {
 
             (<Tree>container.resolve(Tree)).addNode(this.node);
             this.node.excludeViewers = this.#excludeViewers;
-            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { session: this });
+            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
 
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
@@ -432,7 +432,7 @@ export class Session {
 
             if(this.primarySession !== false) await Promise.all(viewerPromises);
 
-            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { session: this });
+            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { sessionId: this.id });
             this.#api.update();
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).init: Session initialized.`);
             return this.node;

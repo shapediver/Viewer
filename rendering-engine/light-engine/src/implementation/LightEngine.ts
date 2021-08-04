@@ -29,7 +29,7 @@ export class LightEngine implements ILightEngine {
 
     // #region Constructors (1)
 
-    constructor() {
+    constructor(private readonly _viewerId: string) {
         this._standardLightScene = <LightScene>this.createLightScene({ name: 'standard', standard: true });
         this._lightScenes[this._standardLightScene.id] = this._standardLightScene;
     }
