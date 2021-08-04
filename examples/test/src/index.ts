@@ -6,6 +6,7 @@ import { container } from 'tsyringe'
 
 (<any>window).RENDERERTYPE = SD.RENDERERTYPE;
 (<any>window).CAMERATYPE = SD.CAMERATYPE;
+(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = SD.ORTHOGRAPHIC_CAMERA_DIRECTION;
 (<any>window).LIGHTTYPE = SD.LIGHTTYPE;
 (<any>window).VISIBILITYMODE = SD.VISIBILITYMODE;
 (<any>window).LOGGINGLEVEL = SD.LOGGINGLEVEL;
@@ -13,6 +14,7 @@ import { container } from 'tsyringe'
 (<any>window).EXPORTTYPE = SD.EXPORTTYPE;
 (<any>window).PARAMETERTYPE = SD.PARAMETERTYPE;
 (<any>window).PARAMETERVISUALIZATION = SD.PARAMETERVISUALIZATION;
+(<any>window).ENVIRONMENTMAP = SD.ENVIRONMENTMAP;
 
 (<any>window).api = SD.api;
 (<any>window).sceneTree = SD.api.sceneTree;

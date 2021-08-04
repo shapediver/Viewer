@@ -39,7 +39,12 @@ let currentNode: TreeNode;
     viewer.updateRenderingSettings({
         physicallyCorrectLights: true,
         textureEncoding: 3001,
-        outputEncoding: 3001
+        outputEncoding: 3001,
+        envMapIntensity: 1,
+        envMapIntensityGroundPlane: 1,
+        groundPlaneColor: '#d3d3d3',
+        toneMapping: 0,
+        toneMappingExposure: 1,
     });
 })();
 

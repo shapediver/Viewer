@@ -625,6 +625,16 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set renderingSettings(value: any) {
         this._renderingSettings = value;
+        if(value.envMapIntensity !== undefined)
+            this._materialLoader.assignEnvironmentMapIntensity(value.envMapIntensity);
+        if(value.envMapIntensityGroundPlane !== undefined)
+            this._environmentGeometryManager.assignGroundPlaneEnvironmentIntensity(value.envMapIntensityGroundPlane);
+        if(value.groundPlaneColor !== undefined)
+            this._environmentGeometryManager.assignGroundPlaneColor(value.groundPlaneColor)
+        if(value.toneMapping !== undefined)
+            this._renderer.toneMapping = value.toneMapping;
+        if(value.toneMappingExposure !== undefined)
+            this._renderer.toneMappingExposure = value.toneMappingExposure;
         if(value.physicallyCorrectLights !== undefined)
             this._renderer.physicallyCorrectLights = value.physicallyCorrectLights;
         if(value.outputEncoding !== undefined)

@@ -46,6 +46,16 @@ export class EnvironmentGeometryManager implements IManager {
 
     // #region Public Methods (2)
 
+    public assignGroundPlaneColor(color: string) {
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).color = new THREE.Color(color);
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).needsUpdate = true;
+    }    
+    
+    public assignGroundPlaneEnvironmentIntensity(intensity: number) {
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).envMapIntensity = intensity;
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).needsUpdate = true;
+    }
+
     public changeSceneExtents(bb: Box) {
         if (vec3.equals(bb.min, vec3.create()) && vec3.equals(bb.max, vec3.create()))
             bb = new Box(vec3.fromValues(-10, -10, -10), vec3.fromValues(10, 10, 10));

@@ -411,6 +411,11 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public updateRenderingSettings(value: {
     physicallyCorrectLights: boolean,
+    envMapIntensity: number,
+    envMapIntensityGroundPlane: number,
+    groundPlaneColor: string,
+    toneMapping: 0 | 1 | 2 | 3 | 4,
+    toneMappingExposure: number,
     textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
     outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
   }) {

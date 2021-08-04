@@ -22,6 +22,7 @@ export class MaterialLoader implements ILoader {
 
     private _blending: number = 0.0;
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
+    private _envMapIntensity: number = 1;
     private _height: number = 1020;
     private _lightSizeUV: number = 0.025;
     private _pointSize: number = 1.0;
@@ -84,6 +85,17 @@ export class MaterialLoader implements ILoader {
                 && !(<any>this._materialLibrary[i]).KHR_materials_unlit) {
                 (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).envMap = e;
                 (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).needsUpdate = true;
+            }
+        }
+    }
+
+    public assignEnvironmentMapIntensity(e: number) {
+        this._envMapIntensity = e;
+        for(let i = 0; i < this._materialLibrary.length; i++) {
+            if((this._materialLibrary[i] instanceof THREE.MeshStandardMaterial)
+                && !(<any>this._materialLibrary[i]).KHR_materials_unlit) {
+                (<THREE.MeshStandardMaterial>this._materialLibrary[i]).envMapIntensity = e;
+                (<THREE.MeshStandardMaterial>this._materialLibrary[i]).needsUpdate = true;
             }
         }
     }
@@ -249,8 +261,7 @@ export class MaterialLoader implements ILoader {
             // emissiveIntensity
 
             properties.envMap = this._envMap;
-
-            // envMapIntensity
+            properties.envMapIntensity = this._envMapIntensity;
 
             // lightMap
 

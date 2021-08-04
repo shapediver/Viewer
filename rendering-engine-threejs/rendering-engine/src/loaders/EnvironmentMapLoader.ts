@@ -8,11 +8,25 @@ import { RGBELoader } from '../three/loaders/RGBELoader'
 import { RenderingManager } from '../managers/RenderingManager'
 import { ILoader } from '../interfaces/ILoader'
 
+export enum ENVIRONMENTMAP {
+    ANNIVERSARY_LOUNGE = 'anniversary_lounge', 
+    BALLROOM = 'ballroom', 
+    CHRISTMAS_PHOTO_STUDIO = 'christmas_photo_studio', 
+    COMBINATION_ROOM = 'combination_room', 
+    LARGE_CORRIDOR = 'large_corridor', 
+    LYTHWOOD_LOUNGE = 'lythwood_lounge', 
+    OLD_HALL = 'old_hall', 
+    PAUL_LOBE_HAUS = 'paul_lobe_haus', 
+    PHOTO_STUDIO = 'photo_studio', 
+    PHOTO_STUDIO_BROADWAY_HALL = 'photo_studio_broadway_hall', 
+    STUDIO_SMALL = 'studio_small'
+}
+
 export class EnvironmentMapLoader implements ILoader {
     // #region Properties (8)
 
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']
-    private readonly _environmentMapNamesHDR = ['anniversary_lounge', 'ballroom', 'combination_room', 'large_corridor', 'lythwood_lounge', 'old_hall', 'paul_lobe_haus', 'studio_small'];
+    private readonly _environmentMapNamesHDR = ['anniversary_lounge', 'ballroom', 'christmas_photo_studio', 'combination_room', 'large_corridor', 'lythwood_lounge', 'old_hall', 'paul_lobe_haus', 'photo_studio', 'photo_studio_broadway_hall', 'studio_small'];
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | THREE.Texture | null
