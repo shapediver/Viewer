@@ -296,11 +296,11 @@ export class GLTFLoader {
         if (!this._content.scenes![this._content.scene!]) throw new SDError('Scene not available.')
         const scene = this._content.scenes![this._content.scene!];
         const sceneDef = new TreeNode(this._content.scene!);
-        sceneDef.transformations.push({
-            id: this._uuidGenerator.create(),
-            name: 'glTF_global_transformation',
-            matrix: this._globalTransformation
-        })
+        // sceneDef.transformations.push({
+        //     id: this._uuidGenerator.create(),
+        //     name: 'glTF_global_transformation',
+        //     matrix: this._globalTransformation
+        // })
         if(scene.nodes)
             for (let i = 0, len = scene.nodes!.length; i < len; i++)
                 sceneDef.addChild(await this.loadNode(scene.nodes![i]));
