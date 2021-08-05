@@ -218,6 +218,7 @@ export class GLTFLoader {
         const mesh = this._content.meshes![meshName];
         const meshNode = new TreeNode(meshName);
 
+        if(!mesh.primitives) return new TreeNode('primitive');
         for (let i = 0, len = mesh.primitives!.length; i < len; i++) {
             const primitiveNode = new TreeNode('primitive_' + i);
             meshNode.addChild(primitiveNode);
@@ -272,9 +273,11 @@ export class GLTFLoader {
             });
         }
 
-        for (let i = 0, len = node.meshes!.length; i < len; i++) {
-            // we create a child node as we one want to have one mesh as in the GLTF2 def
-            nodeDef.addChild(await this.loadMesh(node.meshes![i]));
+        if(node.meshes) {
+            for (let i = 0, len = node.meshes!.length; i < len; i++) {
+                // we create a child node as we one want to have one mesh as in the GLTF2 def
+                nodeDef.addChild(await this.loadMesh(node.meshes![i]));
+            }
         }
 
         if (node.children) {
@@ -292,8 +295,9 @@ export class GLTFLoader {
         if (!this._content.scenes![this._content.scene!]) throw new SDError('Scene not available.')
         const scene = this._content.scenes![this._content.scene!];
         const sceneDef = new TreeNode(this._content.scene!);
-        for (let i = 0, len = scene.nodes!.length; i < len; i++)
-            sceneDef.addChild(await this.loadNode(scene.nodes![i]));
+        if(scene.nodes)
+            for (let i = 0, len = scene.nodes!.length; i < len; i++)
+                sceneDef.addChild(await this.loadNode(scene.nodes![i]));
         return sceneDef;
     }
     // #endregion Private Methods (6)
