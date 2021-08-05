@@ -119,6 +119,7 @@ export class GLTFLoader {
         const bufferView = await this.loadBufferView(accessor.bufferView!);
 
         const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
+        if(accessor.componentType === 5124) this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
         const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
         const itemBytes = elementBytes * itemSize;
