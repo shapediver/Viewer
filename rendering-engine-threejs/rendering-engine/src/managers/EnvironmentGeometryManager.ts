@@ -2,13 +2,16 @@ import * as THREE from 'three'
 import { MATERIAL_SIDE, MaterialData } from '@shapediver/viewer.shared.types'
 import { vec3 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
+import { EventEngine, EVENTTYPE, IViewerEvent } from '@shapediver/viewer.shared.services'
 
 import { RenderingEngine } from '..'
 import { IManager } from '../interfaces/IManager'
 import { SDObject } from '../types/SDObject'
+import { container } from 'tsyringe'
 
 export class EnvironmentGeometryManager implements IManager {
     // #region Properties (5)
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
     private _environmentGeometryObject!: SDObject;
     private _grid!: THREE.GridHelper;
@@ -20,7 +23,18 @@ export class EnvironmentGeometryManager implements IManager {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {}
+    constructor(private readonly _renderingEngine: RenderingEngine) {
+        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
+            const viewerEvent = <IViewerEvent>e;
+            if(viewerEvent.viewerId !== this._renderingEngine.id) return;
+
+            const bb = new Box(viewerEvent.boundingBox?.min, viewerEvent.boundingBox?.max);
+            let eps = 0.005;
+            let bs = bb.boundingSphere;
+            if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+            if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+        })
+    }
 
     // #endregion Constructors (1)
 
