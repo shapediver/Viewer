@@ -110,6 +110,8 @@ export class SceneTreeManager implements IManager {
             this.updateNode(lightScene.node, lightSceneChild);
         }
 
+        this._boundingBox.applyMatrix(root.nodeMatrix);
+
         if (!(vec3.equals(oldBB.min, this._boundingBox.min) && vec3.equals(oldBB.max, this._boundingBox.max))) {
             if (!this._stateEngine.boundingBoxCreated.resolved)
                 this._stateEngine.boundingBoxCreated.resolve(true);
@@ -171,6 +173,7 @@ export class SceneTreeManager implements IManager {
             }
             node.boundingBox.union(nodeChild.boundingBox);
         }
+        node.boundingBox.applyMatrix(node.nodeMatrix);
     }
 
     // #endregion Private Methods (1)

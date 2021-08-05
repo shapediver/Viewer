@@ -285,7 +285,6 @@ export class GeometryData extends AbstractTreeNodeData {
   ) {
     super(id);
     this._boundingBox = this.primitive.boundingBox.clone();
-    this._boundingBox.applyMatrix(this.matrix);
   }
 
   // #endregion Constructors (1)

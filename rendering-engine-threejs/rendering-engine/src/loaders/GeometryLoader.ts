@@ -149,7 +149,7 @@ export class GeometryLoader implements ILoader {
             geometry.convertedObjects.push(obj)
             parent.add(obj);
         }
-        return geometry.boundingBox.clone().applyMatrix(realObject.worldMatrix);
+        return geometry.boundingBox.clone().applyMatrix(geometry.matrix);
     }
 
     public loadGeometry(primitive: PrimitiveData): THREE.BufferGeometry {
