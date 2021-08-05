@@ -1,6 +1,18 @@
 import 'reflect-metadata'
 
-import { api } from '@shapediver/viewer'
+import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
+
+(<any>window).RENDERERTYPE = RENDERERTYPE;
+(<any>window).CAMERATYPE = CAMERATYPE;
+(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION;
+(<any>window).LIGHTTYPE = LIGHTTYPE;
+(<any>window).VISIBILITYMODE = VISIBILITYMODE;
+(<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
+(<any>window).EVENTTYPE = EVENTTYPE;
+(<any>window).EXPORTTYPE = EXPORTTYPE;
+(<any>window).PARAMETERTYPE = PARAMETERTYPE;
+(<any>window).PARAMETERVISUALIZATION = PARAMETERVISUALIZATION;
+(<any>window).ENVIRONMENTMAP = ENVIRONMENTMAP;
 
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;
@@ -49,6 +61,10 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
         ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e',
         modelViewUrl: modelViewUrls['eu-central-1']
     },
+    'Solar System - Cubes': { 
+        ticket: 'cbbbcf46757400d733216ff689df5ed9a6831eef95add63449deff35853637171260c362c2b00b1f037eea317620a7c0a816c26cd62e76dd5977fafe997aa8f305bc455fbe2775851f9f51d011e8146881d7143e3089d8b551211b07f9f0b283fa78e77767bdb8bff6a4db8d2a5456e38d9ea108e083898334e75a9dc26856f6-27dd8df325649b7ebff7e42d34f43f13',
+        modelViewUrl: modelViewUrls['eu-central-1']
+    },
     'Test model for all supported parameter types': { 
         ticket: 'c9f558e0f553bea84f8e540f1c561aff8fad4015b07d89fab2f2048e8b1fae0a3f61d3538ac8a3966f6827cbe4e4cf867c86f60df63d026a2757db15495ccb99b230337cfb21e03697e14d3593d7a8d7b8fc52fc4f142a686104deb6fb2e884a80a827314097ac1a603bd10065a1129efc28719d93fe0d9760ee83187c4f3012-92b182e5dbe03bc50a6f4e1dabf27def',
         modelViewUrl: modelViewUrls['eu-central-1']
@@ -57,7 +73,7 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 
 
 (async () => {
-    const { ticket, modelViewUrl } = models['Shelf'];
+    const { ticket, modelViewUrl } = models['Perforated Panel'];
     let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 })();

@@ -109,6 +109,8 @@ export class PerspectiveCamera extends AbstractCamera {
       box = this._boundingBox.clone();
     }
 
+    if(box.isEmpty()) return { position: vec3.create(), target: vec3.create() }
+
     let target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
 
     // if the camera position and the target are the same, we set a corner position
@@ -125,7 +127,7 @@ export class PerspectiveCamera extends AbstractCamera {
     let cross = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), vec3.fromValues(0, 0, 1), direction));
     let up = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), cross, direction));
 
-    let position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-1, -1, -1)));
+    let position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-0.00000001, -0.00000001, -0.00000001)));
 
     let points = [];
     points.push(vec3.fromValues(box.min[0], box.min[1], box.min[2]));
@@ -137,12 +139,12 @@ export class PerspectiveCamera extends AbstractCamera {
     points.push(vec3.fromValues(box.max[0], box.max[1], box.min[2]));
     points.push(vec3.fromValues(box.max[0], box.max[1], box.max[2]));
 
-    let fovDown = vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, (this.fov / 2) * (Math.PI / 180)));
-    let fovUp = vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, -(this.fov / 2) * (Math.PI / 180)));
+    let fovDown = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, (this.fov / 2) * (Math.PI / 180))));
+    let fovUp = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, -(this.fov / 2) * (Math.PI / 180))));
 
     let hFoV = 2 * Math.atan(Math.tan(this.fov * Math.PI / 180 / 2) * this.aspect);
-    let fovRight = vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, hFoV / 2));
-    let fovLeft = vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, -hFoV / 2));
+    let fovRight = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, hFoV / 2)));
+    let fovLeft = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, -hFoV / 2)));
 
     let planeCross = new Plane(vec3.clone(cross), 0);
     planeCross.setFromNormalAndCoplanarPoint(vec3.clone(cross), vec3.clone(target));

@@ -14,10 +14,9 @@ export class Box implements IGeometry {
     // #endregion Properties (2)
 
     // #region Constructors (1)
-
     constructor(
-        private _min: vec3 = vec3.create(),
-        private _max: vec3 = vec3.create()
+        private _min: vec3 = vec3.fromValues(Infinity, Infinity, Infinity),
+        private _max: vec3 = vec3.fromValues(-Infinity, -Infinity, -Infinity)
     ) { }
 
     // #endregion Constructors (1)
@@ -92,8 +91,23 @@ export class Box implements IGeometry {
     // #region Public Methods (5)
 
     public applyMatrix(matrix: mat4): Box {
-        vec3.transformMat4(this.min, this.min, matrix);
-        vec3.transformMat4(this.max, this.max, matrix);
+        const points: vec3[] = [];
+        points.push(vec3.transformMat4(vec3.create(), vec3.fromValues(this.min[0], this.min[1], this.min[2]), matrix));
+        points.push(vec3.transformMat4(vec3.create(), vec3.fromValues(this.min[0], this.min[1], this.max[2]), matrix));
+        points.push(vec3.transformMat4(vec3.create(), vec3.fromValues(this.min[0], this.max[1], this.min[2]), matrix));
+        points.push(vec3.transformMat4(vec3.create(), vec3.fromValues(this.min[0], this.max[1], this.max[2]), matrix));
+        points.push(vec3.transformMat4(vec3.create(), vec3.fromValues(this.max[0], this.min[1], this.min[2]), matrix));
+        points.push(vec3.transformMat4(vec3.create(), vec3.fromValues(this.max[0], this.min[1], this.max[2]), matrix));
+        points.push(vec3.transformMat4(vec3.create(), vec3.fromValues(this.max[0], this.max[1], this.min[2]), matrix));
+        points.push(vec3.transformMat4(vec3.create(), vec3.fromValues(this.max[0], this.max[1], this.max[2]), matrix));
+
+        this.min = vec3.fromValues(Infinity, Infinity, Infinity);
+        this.max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
+
+		for ( let i = 0, il = points.length; i < il; i ++ ) {
+            this.min = vec3.fromValues(Math.min(this.min[0], points[i][0]), Math.min(this.min[1], points[i][1]), Math.min(this.min[2], points[i][2]));
+            this.max = vec3.fromValues(Math.max(this.max[0], points[i][0]), Math.max(this.max[1], points[i][1]), Math.max(this.max[2], points[i][2]));
+		}
         return this;
     }
 
@@ -143,6 +157,11 @@ export class Box implements IGeometry {
         if (box.max[1] > this.max[1]) this.max[1] = box.max[1];
         if (box.max[2] > this.max[2]) this.max[2] = box.max[2];
         return this;
+    }
+
+    public isEmpty(): boolean {
+        return this.min[0] === Infinity && this.min[1] === Infinity && this.min[2] === Infinity && 
+            this.max[0] === -Infinity && this.max[1] === -Infinity && this.max[2] === -Infinity;
     }
 
     // #endregion Public Methods (5)

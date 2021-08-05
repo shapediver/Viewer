@@ -27,6 +27,7 @@ export class GLTFLoader {
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _implementedExtensions = ['KHR_materials_common'];
+    private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     private _body!: ArrayBuffer;
@@ -295,6 +296,11 @@ export class GLTFLoader {
         if (!this._content.scenes![this._content.scene!]) throw new SDError('Scene not available.')
         const scene = this._content.scenes![this._content.scene!];
         const sceneDef = new TreeNode(this._content.scene!);
+        sceneDef.transformations.push({
+            id: this._uuidGenerator.create(),
+            name: 'glTF_global_transformation',
+            matrix: this._globalTransformation
+        })
         if(scene.nodes)
             for (let i = 0, len = scene.nodes!.length; i < len; i++)
                 sceneDef.addChild(await this.loadNode(scene.nodes![i]));

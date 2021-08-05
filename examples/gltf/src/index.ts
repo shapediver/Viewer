@@ -4,12 +4,17 @@ import { container } from 'tsyringe'
 import {
   api,
   CAMERATYPE,
+  ENVIRONMENTMAP,
   EVENTTYPE,
   Export,
+  EXPORTTYPE,
   LIGHTTYPE,
   LOGGINGLEVEL,
+  ORTHOGRAPHIC_CAMERA_DIRECTION,
   Output,
   Parameter,
+  PARAMETERTYPE,
+  PARAMETERVISUALIZATION,
   PerspectiveCamera,
   RENDERERTYPE,
   Session,
@@ -20,32 +25,31 @@ import {
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { vec3 } from 'gl-matrix'
 
+(<any>window).RENDERERTYPE = RENDERERTYPE;
+(<any>window).CAMERATYPE = CAMERATYPE;
+(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION;
+(<any>window).LIGHTTYPE = LIGHTTYPE;
+(<any>window).VISIBILITYMODE = VISIBILITYMODE;
+(<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
+(<any>window).EVENTTYPE = EVENTTYPE;
+(<any>window).EXPORTTYPE = EXPORTTYPE;
+(<any>window).PARAMETERTYPE = PARAMETERTYPE;
+(<any>window).PARAMETERVISUALIZATION = PARAMETERVISUALIZATION;
+(<any>window).ENVIRONMENTMAP = ENVIRONMENTMAP;
+
 (<any>window).api = api;
 (<any>window).sceneTree = api.sceneTree;
+(<any>window).gltfVersion = '2.0'
 
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 let currentNode: TreeNode;
 
 (async () => {
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png' });
-    const l = viewer.createLightScene({ name: 'gltf' });
-    viewer.updateGridVisibility(false);
+    viewer.updateAmbientOcclusion(false);
     viewer.updateGroundPlaneVisibility(false);
-    viewer.assignLightScene(l.id);
-    viewer.addAmbientLight({ color: 0xffffff, intensity: 0.3 })
-    viewer.addDirectionalLight({ color: 0xffffff, intensity: 0.8 * Math.PI, direction: vec3.normalize(vec3.create(), vec3.fromValues(0.5, -0.866, 0)) })
-    viewer.updateClearColor('#000000')
-    viewer.updateEnvironmentMap('https://gltf-viewer.donmccurdy.com/assets/environment/venice_sunset_1k.hdr');
-    viewer.updateRenderingSettings({
-        physicallyCorrectLights: true,
-        textureEncoding: 3001,
-        outputEncoding: 3001,
-        envMapIntensity: 1,
-        envMapIntensityGroundPlane: 1,
-        groundPlaneColor: '#d3d3d3',
-        toneMapping: 0,
-        toneMappingExposure: 1,
-    });
+    viewer.updateGridVisibility(false);
+    viewer.updateClearColor('rgb(3, 5, 49)')
 })();
 
 
@@ -53,21 +57,14 @@ let currentNode: TreeNode;
     let viewer = api.getViewer('myViewer')!;
 
     const node = await dataEngine.loadContent({
-        format: 'gltf',
+        format: (<any>window).gltfVersion === '1.0' ? 'glb': 'gltf',
         href: uri
     })
     if (currentNode) api.sceneTree.removeNode(currentNode);
     currentNode = node;
     api.sceneTree.addNode(currentNode);
-    api.update();
+    api.update()
     await viewer.getCamera()!.zoomTo([], { duration: 0 });
-    api.update();
-    await new Promise(resolve => setTimeout(resolve, 10))
-    if (viewer.getCamera()?.position[0].toPrecision(4) === viewer.getCamera()?.target[0].toPrecision(4) &&
-        viewer.getCamera()?.position[1].toPrecision(4) === viewer.getCamera()?.target[1].toPrecision(4) &&
-        viewer.getCamera()?.position[2].toPrecision(4) === viewer.getCamera()?.target[2].toPrecision(4)) {
-            await viewer.getCamera()!.set([0, -0.5, 0], [0, 0, 0], { duration: 0 });
-        }
     viewer.updateShow(true);
 }
 document.addEventListener("dragover", (event) => {

@@ -1,12 +1,24 @@
 import 'reflect-metadata'
 
-import { api, Export, Parameter, Session, Viewer } from '@shapediver/viewer'
+import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, Export, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, Session, Viewer, VISIBILITYMODE } from '@shapediver/viewer'
 
 let viewer: Viewer, session: Session;
 
 (async () => {
     viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
 })();
+
+(<any>window).RENDERERTYPE = RENDERERTYPE;
+(<any>window).CAMERATYPE = CAMERATYPE;
+(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION;
+(<any>window).LIGHTTYPE = LIGHTTYPE;
+(<any>window).VISIBILITYMODE = VISIBILITYMODE;
+(<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
+(<any>window).EVENTTYPE = EVENTTYPE;
+(<any>window).EXPORTTYPE = EXPORTTYPE;
+(<any>window).PARAMETERTYPE = PARAMETERTYPE;
+(<any>window).PARAMETERVISUALIZATION = PARAMETERVISUALIZATION;
+(<any>window).ENVIRONMENTMAP = ENVIRONMENTMAP;
 
 (<any>window).sceneTree = api.sceneTree;
 (<any>window).api = api;
