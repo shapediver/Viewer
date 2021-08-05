@@ -127,5 +127,35 @@ for(let c = 0; c < allCapabilities.length; c++) {
             // TAKE A SCREENSHOT
             await screenshotCompare(await driver.takeScreenshot(), name + '/all_types');
         });
+        
+        test(name, async () => {
+            // DO SOMETHING WITH THE API
+            await driver.executeAsyncScript(async (cb: any) => {
+                const api: typeof API = (<any>window).api; 
+                let viewer = await api.createAndInitializeViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
+                let session = await api.createAndInitializeSession({id: 'mySession',  ticket: 'cbbbcf46757400d733216ff689df5ed9a6831eef95add63449deff35853637171260c362c2b00b1f037eea317620a7c0a816c26cd62e76dd5977fafe997aa8f305bc455fbe2775851f9f51d011e8146881d7143e3089d8b551211b07f9f0b283fa78e77767bdb8bff6a4db8d2a5456e38d9ea108e083898334e75a9dc26856f6-27dd8df325649b7ebff7e42d34f43f13', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                cb();
+            });
+
+            for(let i = 0; i < 9; i++) {
+                await driver.executeAsyncScript(async (i: number, cb: any) => {
+                    const api: typeof API = (<any>window).api; 
+                    api.sessions["mySession"].parameters["d5fa299b-d1f8-481e-b095-77ebd4c19e1e"].updateValue(i+'')
+                    await api.sessions["mySession"].customize();
+                    await new Promise<void>((resolve) => {
+                        api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    })
+                    cb();
+                }, i);
+
+                // TAKE A SCREENSHOT
+                await screenshotCompare(await driver.takeScreenshot(), name + '/plugins_' + i);
+            }
+            
+        });
     });
 }
