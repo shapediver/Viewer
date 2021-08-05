@@ -6,7 +6,7 @@ describe('light-engine', () => {
     let lightEngine: LightEngine;
     // IN DEPTH TESTS ARE DONE IN THE TESTS MODULE
     beforeEach(() => {
-        lightEngine = new LightEngine();
+        lightEngine = new LightEngine('');
     });
 
     it('addAmbientLight', async () => {
