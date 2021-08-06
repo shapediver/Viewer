@@ -73,7 +73,7 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 
 
 (async () => {
-    const { ticket, modelViewUrl } = models['Perforated Panel'];
+    const { ticket, modelViewUrl } = models['Shelf'];
     let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 })();

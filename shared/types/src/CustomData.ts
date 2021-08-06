@@ -44,7 +44,6 @@ export class CustomData extends AbstractTreeNodeData {
      * Clones the scene graph data.
      */
     public clone(): ITreeNodeData {
-        // https://shapediver.atlassian.net/browse/SS-2959 real deep copy + test
         return new CustomData({...this.data}, this._id);
     }
 
