@@ -1,7 +1,7 @@
 import { container } from 'tsyringe'
 import { GeometryData, MaterialData } from '@shapediver/viewer.shared.types'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
   ShapeDiverResponseBase as ShapeDiverResponse,
   ShapeDiverResponseOutput,
@@ -11,11 +11,13 @@ import {
 import { OutputDelayException } from './OutputDelayException'
 import { SessionTreeNode } from './SessionTreeNode'
 import { SessionOutputData } from './SessionOutputData'
+import { PerformanceEvaluator } from '@shapediver/viewer.shared.utils'
 
 export class OutputLoader {
     // #region Properties (2)
 
     private readonly _dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
+    private readonly _performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     private readonly _outputNodes: { 
         [key: string]: {
             [key: string]: SessionTreeNode
@@ -45,13 +47,15 @@ export class OutputLoader {
      * @returns promise with a scene graph node
      */
     public async loadOutputs(session: ShapeDiverResponse, outputs?: { [key: string]: ShapeDiverResponseOutput; }): Promise<SessionTreeNode> {
+        this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(session.name);
         let currentNodes: { 
             [key: string]: {
-                [key: string]: Promise<SessionTreeNode>
+                [key: string]: SessionTreeNode
             }; 
         } = {};
-        let promises: Promise<SessionTreeNode>[] = [];
+        let promises: Promise<TreeNode>[] = [];
+        let promisesNodes: SessionTreeNode[] = [];
         let maxDelay = 0;
 
         for (let outputID in outputs) {
@@ -63,9 +67,16 @@ export class OutputLoader {
                 if(outputs[outputID].delay) {
                     maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
                 } else {
-                    // check for overhead https://shapediver.atlassian.net/browse/SS-2958
-                    currentNodes[outputID][outputs[outputID].version] = this.loadOutput(outputID, outputs[outputID]);
-                    promises.push(currentNodes[outputID][outputs[outputID].version]);
+                    currentNodes[outputID][outputs[outputID].version] = new SessionTreeNode(outputID);
+                    currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
+                    if(outputs[outputID].content) {
+                        for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
+                            const {contentNode, content} = this.loadContent('content_' + i, outputs[outputID].content![i])
+                            currentNodes[outputID][outputs[outputID].version].addChild(contentNode);
+                            promises.push(content)
+                            promisesNodes.push(contentNode)
+                        }
+                    }
                 }
             }
         }
@@ -76,10 +87,13 @@ export class OutputLoader {
         await Promise.all(promises);
 
         // all promises are resolved, await in the next lines is just for structural purposes
+        for(let i = 0; i < promises.length; i++) 
+            promisesNodes[i].addChild(await promises[i])
+
         // here we assign all outputs just to the node and return it
         for (let outputID in outputs) {
             if(!this._outputNodes[outputID][outputs[outputID].version])
-                this._outputNodes[outputID][outputs[outputID].version] = await currentNodes[outputID][outputs[outputID].version];
+                this._outputNodes[outputID][outputs[outputID].version] = currentNodes[outputID][outputs[outputID].version];
             node.addChild(this._outputNodes[outputID][outputs[outputID].version]);
         }
 
@@ -91,6 +105,7 @@ export class OutputLoader {
         }
 
         this.assignMaterials(node);
+        this._performanceEvaluator.endSection('outputLoading');
         return node;
     }
 
@@ -191,22 +206,6 @@ export class OutputLoader {
 
         }
     }
-
-    /**
-     * Loads a single output and returns the according scene graph node.
-     * 
-     * @param id the id of the output
-     * @param output the output definition
-     * @returns promise with a scene graph node
-     */
-    private async loadOutput(id: string, output: ShapeDiverResponseOutput): Promise<SessionTreeNode> {
-        const outputNode = new SessionTreeNode(id);
-        outputNode.data.push(new SessionOutputData(output));
-        if(output.content)
-            for (let i = 0, len = output.content.length; i < len; i++)
-                outputNode.addChild(await this.loadContent('content_' + i, output.content[i]));
-        return outputNode;
-    }
     
     /**
      * Loads a single content of the content array
@@ -215,10 +214,9 @@ export class OutputLoader {
      * @param content the content definition
      * @returns promise with a scene graph node
      */
-    public async loadContent(name: string, content: ShapeDiverResponseOutputPart): Promise<SessionTreeNode> {
+    public loadContent(name: string, content: ShapeDiverResponseOutputPart): { contentNode: SessionTreeNode, content: Promise<TreeNode> } {
         const contentNode = new SessionTreeNode(name);
-        contentNode.addChild(await this._dataEngine.loadContent(content));
-        return contentNode;
+        return { contentNode, content: this._dataEngine.loadContent(content) };
     }
 
     // #endregion Private Methods (1)

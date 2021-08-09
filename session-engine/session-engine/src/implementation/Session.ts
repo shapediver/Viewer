@@ -1,4 +1,4 @@
-import { HttpClient, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { HttpClient, PerformanceEvaluator, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { container } from 'tsyringe'
 import { SettingsEngine, StateEngine, SystemInfo } from '@shapediver/viewer.shared.services'
 import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
@@ -30,6 +30,7 @@ export class Session implements ISession {
     private readonly _outputsCreated: { [key: string]: ShapeDiverResponseOutput; } = {};
     private readonly _parameters: { [key: string]: ShapeDiverResponseParameter; } = {};
     private readonly _parameterValues: { [key: string]: string; } = {};
+    private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
     private readonly _ticket: string;
 
@@ -223,7 +224,9 @@ export class Session implements ISession {
         try {
             let sessionResponse;
             try {
+                this._performanceEvaluator.startSection('sessionResponse');
                 sessionResponse = <ShapeDiverResponseBase>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
+                this._performanceEvaluator.endSection('sessionResponse');
             } catch (e) {                
                 if (e.response && e.response.status) {
                     this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.init: Session init failed.`, e.response.status, false)
@@ -413,7 +416,9 @@ export class Session implements ISession {
         try {
             let responseCustomize;
             try {
+                this._performanceEvaluator.startSection('sessionResponse');
                 responseCustomize = <ShapeDiverResponseBase>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
+                this._performanceEvaluator.endSection('sessionResponse');
             } catch (e) {
                 if (e.response && e.response.status) {
                     if (e.response && e.response.status && e.response.status === 410 && !this._closed) {

@@ -1,7 +1,7 @@
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ISession, Session as SessionEngine } from '@shapediver/viewer.session-engine.session-engine'
 import { container, injectable } from 'tsyringe'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from '@shapediver/viewer.shared.utils'
 import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { InputValidator } from '@shapediver/viewer.shared.utils'
 import { RenderingEngine } from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
@@ -24,6 +24,7 @@ export class Session {
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -160,6 +161,9 @@ export class Session {
      */
     public async customize(): Promise<TreeNode> {
         try {
+            this.#performanceEvaluator.start();
+            this.#performanceEvaluator.startSection('init');
+
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customizing session.`);
             const blurValues: { [key: string]: boolean } = {};
             for (let viewerId in this.#api.viewers) {
@@ -197,7 +201,13 @@ export class Session {
                 this.#sessionEngine.parameterValues[parameterId] = parameterSet[parameterId].valueString;
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customizing session with parameters ${JSON.stringify(this.#sessionEngine.parameterValues)}.`);
 
+            this.#performanceEvaluator.endSection('init');
+            this.#performanceEvaluator.startSection('customize');
+
             (<any>this.node) = await this.#sessionEngine.customize();
+            
+            this.#performanceEvaluator.endSection('customize');
+            this.#performanceEvaluator.startSection('finish');
 
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
@@ -206,11 +216,13 @@ export class Session {
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
             (<Tree>container.resolve(Tree)).addNode(this.node);
             this.node.excludeViewers = this.#excludeViewers;
-            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
             for (let viewerId in this.#api.viewers)
                 this.#api.viewers[viewerId].updateBlur(blurValues[viewerId]);
             this.#api.update();
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
+            this.#performanceEvaluator.endSection('finish');
+            this.#performanceEvaluator.end();
+            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
             return this.node;
         } catch (e) {
             if (e instanceof SDError) throw e;
@@ -388,8 +400,19 @@ export class Session {
      */
     public async init(): Promise<TreeNode> {
         try {
+            
+            this.#performanceEvaluator.start();
+            this.#performanceEvaluator.startSection('init');
+
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).init: Initializing Session.`);
+            this.#performanceEvaluator.endSection('init');
+            this.#performanceEvaluator.startSection('customize');
+
             (<any>this.node) = await this.#sessionEngine.init();
+            
+            this.#performanceEvaluator.endSection('customize');
+            this.#performanceEvaluator.startSection('finish');
+
             for (let p in this.#sessionEngine.parameters) {
                 const param = this.#sessionEngine.parameters[p];
                 switch (true) {
@@ -435,6 +458,9 @@ export class Session {
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { sessionId: this.id });
             this.#api.update();
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).init: Session initialized.`);
+           
+            this.#performanceEvaluator.endSection('finish');
+            this.#performanceEvaluator.end();
             return this.node;
         } catch (e) {
             if (e instanceof SDError) throw e;

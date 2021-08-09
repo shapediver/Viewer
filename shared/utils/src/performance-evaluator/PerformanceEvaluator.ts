@@ -3,68 +3,58 @@ import { singleton } from 'tsyringe'
 @singleton()
 export class PerformanceEvaluator {
 
-    private readonly _eval: {
-        [key: string]: {
-            start: number,
-            pauses: {
-                pause: number,
-                continue?: number,
-                duration?: number
-            }[],
-            end?: number,
-            duration?: number,
-        }
-    } = {};
+    private _eval: {
+        start: number;
+        section: {
+            [key: string]: {
+                start: number;
+                end?: number;
+                duration?: number;
+            };
+        };
+        end?: number;
+        duration?: number;
+    } | undefined;
 
     /**
      * Start the evaluation with a specific id.
      * 
      * @param id 
      */
-    public start(id: string, time?: number): void {
-        this._eval[id] = {
-            start: time || new Date().getTime(),
-            pauses: []
-        }
-    }
-    
-    /**
-     * Pause the evaluation for a specific id.
-     * If already paused, it does nothing.
-     * 
-     * @param id 
-     */
-    public pause(id: string): void {
-        if(!this._eval[id]) return;
-        if(this._eval[id].end) return;
-
-        if(this._eval[id].pauses.length === 0) {
-            this._eval[id].pauses.push({
-                pause: new Date().getTime()
-            });
-        } else if(this._eval[id].pauses[this._eval[id].pauses.length-1].continue) {
-            this._eval[id].pauses.push({
-                pause: new Date().getTime()
-            });
+    public start(time?: number): void {
+        this._eval = {
+            start: time || performance.now(),
+            section: {}
         }
     }
 
     /**
-     * Continue the evaluation for a specific id.
-     * If already continued, it does nothing.
+     * Start the evaluation of a section with a specific id.
      * 
      * @param id 
      */
-    public continue(id: string): void {
-        if(!this._eval[id]) return;
-        if(this._eval[id].pauses.length === 0) return;
-        if(this._eval[id].end) return;
-            
-        const pause = this._eval[id].pauses[this._eval[id].pauses.length-1];
-        if(!pause.continue) {
-            pause.continue = new Date().getTime();
-            pause.duration = pause.continue - pause.pause;
+    public startSection(sectionId: string, time?: number): void {
+        if (!this._eval) return;
+        if (this._eval.end) return;
+        this._eval.section[sectionId] = {
+            start: time || performance.now(),
         }
+    }
+
+    /**
+     * End the performance evaluation of a section and calculate the duration.
+     * 
+     * @param id 
+     */
+    public endSection(sectionId: string): void {
+        if (!this._eval) return;
+        if (this._eval.end) return;
+        if (!this._eval.section[sectionId]) return;
+        if (this._eval.section[sectionId].end) return;
+
+        this._eval.section[sectionId].end = performance.now();
+
+        this._eval.section[sectionId].duration = this._eval.section[sectionId].end! - this._eval.section[sectionId].start;
     }
 
     /**
@@ -72,18 +62,12 @@ export class PerformanceEvaluator {
      * 
      * @param id 
      */
-    public end(id: string): void {
-        if(!this._eval[id]) return;
-        if(this._eval[id].end) return;
+    public end(): void {
+        if (!this._eval) return;
+        if (this._eval.end) return;
 
-        this._eval[id].end = new Date().getTime();
-
-        let pauseDuration = 0;
-        for(let i = 0; i < this._eval[id].pauses.length; i++) {
-            pauseDuration += this._eval[id].pauses[i].duration ? this._eval[id].pauses[i].duration! : this._eval[id].end! - this._eval[id].pauses[i].pause;
-        }
-
-        this._eval[id].duration = this._eval[id].end! - this._eval[id].start - pauseDuration;
+        this._eval.end = performance.now();
+        this._eval.duration = this._eval.end! - this._eval.start;
     }
 
     /**
@@ -91,18 +75,19 @@ export class PerformanceEvaluator {
      * 
      * @param id 
      */
-    public getEvaluation(id: string): 
-    {
+    public getEvaluation(): {
         start: number,
-        pauses: {
-            pause: number,
-            continue?: number,
-            duration?: number
-        }[],
+        section: {
+            [key: string]: {
+                start: number,
+                end?: number,
+                duration?: number
+            }
+        },
         end?: number,
         duration?: number,
-    } {
-        return this._eval[id];
+    } | undefined {
+        return this._eval;
     }
 
     /**
@@ -110,8 +95,8 @@ export class PerformanceEvaluator {
      * 
      * @param id 
      */
-    public getEvaluationToString(id: string): string {
-        const e = this._eval[id];
-        return `Performance Evaluation for ${id}: ${e.duration}ms\n`;
+    public getEvaluationToString(): string {
+        const e = this._eval;
+        return `Performance Evaluation: ${e!.duration}ms\n`;
     }
 }

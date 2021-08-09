@@ -82,7 +82,7 @@ export class Api {
    * @param cb the callback
    * @returns 
    */
-  public addListener(type: string | MAINEVENTTYPE, cb: (event: IEvent) => {}): string {
+  public addListener(type: string | MAINEVENTTYPE, cb: (event: IEvent) => void): string {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);

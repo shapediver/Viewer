@@ -1,5 +1,5 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { Converter, HttpClient, PerformanceEvaluator, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import {
   ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
   ACCESSORTYPE_V1 as ACCESSORTYPE,
@@ -29,6 +29,7 @@ export class GLTFLoader {
     private readonly _implementedExtensions = ['KHR_materials_common'];
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 
     private _body!: ArrayBuffer;
     private _content!: IGLTF_v1;
@@ -38,12 +39,15 @@ export class GLTFLoader {
     // #region Public Methods (1)
 
     public async load(url?: string | undefined): Promise<TreeNode> {
+        this._performanceEvaluator.startSection('gltfProcessing.' + url);
         let binaryGeometry: ArrayBuffer;
 
         try {
+            this._performanceEvaluator.startSection('loadGltf.' + url);
             binaryGeometry = (await this._httpClient.get(url!, {
                 responseType: 'arraybuffer'
             })).data;
+            this._performanceEvaluator.endSection('loadGltf.' + url);
         } catch (e) {            
             if (e.response && e.response.status) {
                 this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `GLTFLoader.load: Initial loading of geometry failed.`, e.response.status, false)
@@ -81,6 +85,7 @@ export class GLTFLoader {
             this.validateVersionAndExtensions();
             const node = await this.loadScene();
             node.addChild(sdgtfNode);
+            this._performanceEvaluator.endSection('gltfProcessing.' + url);
             return node;
         } catch (e) {            
             if (e.response && e.response.status) {
