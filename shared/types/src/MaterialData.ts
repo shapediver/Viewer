@@ -189,7 +189,6 @@ export class MaterialData extends AbstractTreeNodeData {
   private _bumpMap?: MapData;
   private _bumpScale: number = 1.0;
   private _color: string = '#00fff7';
-  private _convertedObjects: ISDObject[] = [];
   private _emissiveMap?: MapData;
   private _emissiveness?: string;
   private _glossiness: number = 1;
@@ -253,7 +252,6 @@ export class MaterialData extends AbstractTreeNodeData {
       specularGlossinessMap?: MapData,
       specularMap?: MapData,
       glossinessMap?: MapData,
-      convertedObjects?: ISDObject[]
     },
     id?: string
   ) {
@@ -288,7 +286,6 @@ export class MaterialData extends AbstractTreeNodeData {
     if(properties.specularGlossinessMap !== undefined) this.specularGlossinessMap = properties.specularGlossinessMap;
     if(properties.specularMap !== undefined) this.specularMap = properties.specularMap;
     if(properties.glossinessMap !== undefined) this.glossinessMap = properties.glossinessMap;
-    if(properties.convertedObjects !== undefined) this.convertedObjects = properties.convertedObjects;
   }
 
   // #endregion Constructors (1)
@@ -421,22 +418,6 @@ export class MaterialData extends AbstractTreeNodeData {
    */
   public set color(value: string) {
     this._color = value;
-  }
-
-  /**
-   * Getter convertedObjects
-   * @return {ISDObject[]}
-   */
-  public get convertedObjects(): ISDObject[] {
-    return this._convertedObjects;
-  }
-
-  /**
-   * Setter convertedObjects
-   * @param {ISDObject[]} value
-   */
-  public set convertedObjects(value: ISDObject[]) {
-    this._convertedObjects = value;
   }
 
   /**
@@ -813,7 +794,6 @@ export class MaterialData extends AbstractTreeNodeData {
       specularGlossinessMap: this.specularGlossinessMap,
       glossiness: this.glossiness,
       glossinessMap: this.glossinessMap,
-      convertedObjects: this.convertedObjects,
     }, this.id);
   }
 

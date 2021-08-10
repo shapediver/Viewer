@@ -5,7 +5,7 @@ export class ImageLoader {
   private readonly _imageCache: { [key: string]: HTMLImageElement } = {};
 
   public async load(url: string): Promise<HTMLImageElement> {
-    if (this._imageCache[url]) return this._imageCache[url];
+    // if (this._imageCache[url]) return this._imageCache[url];
     this._imageCache[url] = <HTMLImageElement>document.createElementNS('http://www.w3.org/1999/xhtml', 'img');
     const imagePromise: Promise<HTMLImageElement> = new Promise((resolve) => {
       this._imageCache[url].onload = (e) => {

@@ -13,9 +13,7 @@ export class HttpClient {
     }
 
     public async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
-        if (!this._cache[url])
-            this._cache[url] = axios(url, Object.assign({method: 'get'}, config));
-        return this._cache[url];
+        return axios(url, Object.assign({method: 'get'}, config));
     };
 
     public async post(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {

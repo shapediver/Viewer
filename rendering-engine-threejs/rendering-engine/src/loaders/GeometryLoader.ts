@@ -99,8 +99,6 @@ export class GeometryLoader implements ILoader {
             objNew.add(instancedMesh);
             parent.add(objNew);
 
-            geometry.convertedObjects.push(objNew);
-
             this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = objNew;
 
         } else {
@@ -146,7 +144,6 @@ export class GeometryLoader implements ILoader {
 
             this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = obj;
 
-            geometry.convertedObjects.push(obj)
             parent.add(obj);
         }
         return geometry.boundingBox.clone().applyMatrix(geometry.matrix);

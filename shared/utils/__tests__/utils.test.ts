@@ -13,22 +13,6 @@ const sleep = (delay: number) => {
     })
 };
 
-describe('performance evaluator - test', () => {
-    let pe: PerformanceEvaluator;
-
-    beforeEach(() => {
-        pe = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    });
-
-    test('simple', async () => {
-        pe.start();
-        await sleep(200);
-        pe.end();
-        expect(pe.getEvaluation().duration).toBeDefined();
-        expect(pe.getEvaluation().duration).toBeGreaterThanOrEqual(200);
-    });
-})
-
 describe('uuid - test', () => {
     let uuidGenerator: UuidGenerator;
 

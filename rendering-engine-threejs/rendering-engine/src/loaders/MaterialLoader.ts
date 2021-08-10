@@ -18,7 +18,7 @@ export class MaterialLoader implements ILoader {
     // #region Properties (8)
 
     private readonly _defaultColor: string = '#00fff7';
-    private readonly _materialLibrary: (THREE.Material | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial)[] = [];
+    private _materialCache: { [key:string]: (THREE.Material | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial)} = {};
 
     private _blending: number = 0.0;
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
@@ -80,22 +80,22 @@ export class MaterialLoader implements ILoader {
 
     public assignEnvironmentMap(e: THREE.CubeTexture | THREE.Texture | null) {
         this._envMap = e;
-        for(let i = 0; i < this._materialLibrary.length; i++) {
-            if((this._materialLibrary[i] instanceof THREE.MeshStandardMaterial || this._materialLibrary[i] instanceof THREE.MeshBasicMaterial)
-                && !(<any>this._materialLibrary[i]).KHR_materials_unlit) {
-                (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).envMap = e;
-                (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialLibrary[i]).needsUpdate = true;
+        for(let m in this._materialCache) {
+            if((this._materialCache[m] instanceof THREE.MeshStandardMaterial || this._materialCache[m] instanceof THREE.MeshBasicMaterial)
+                && !(<any>this._materialCache[m]).KHR_materials_unlit) {
+                (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialCache[m]).envMap = e;
+                (<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialCache[m]).needsUpdate = true;
             }
         }
     }
 
     public assignEnvironmentMapIntensity(e: number) {
         this._envMapIntensity = e;
-        for(let i = 0; i < this._materialLibrary.length; i++) {
-            if((this._materialLibrary[i] instanceof THREE.MeshStandardMaterial)
-                && !(<any>this._materialLibrary[i]).KHR_materials_unlit) {
-                (<THREE.MeshStandardMaterial>this._materialLibrary[i]).envMapIntensity = e;
-                (<THREE.MeshStandardMaterial>this._materialLibrary[i]).needsUpdate = true;
+        for(let m in this._materialCache) {
+            if((this._materialCache[m] instanceof THREE.MeshStandardMaterial)
+                && !(<any>this._materialCache[m]).KHR_materials_unlit) {
+                (<THREE.MeshStandardMaterial>this._materialCache[m]).envMapIntensity = e;
+                (<THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
             }
         }
     }
@@ -105,25 +105,29 @@ export class MaterialLoader implements ILoader {
         if(height === this._height && p * (this._height/1080) === this._pointSize) return;
         this._height = height;
         this._pointSize = p * (this._height/1080);
-        for(let i = 0; i < this._materialLibrary.length; i++) {
-            if(this._materialLibrary[i] instanceof THREE.PointsMaterial) {
-                (<THREE.PointsMaterial>this._materialLibrary[i]).size = this._pointSize;
-                (<THREE.PointsMaterial>this._materialLibrary[i]).needsUpdate = true;
+        for(let m in this._materialCache) {
+            if(this._materialCache[m] instanceof THREE.PointsMaterial) {
+                (<THREE.PointsMaterial>this._materialCache[m]).size = this._pointSize;
+                (<THREE.PointsMaterial>this._materialCache[m]).needsUpdate = true;
             }
         }
     }
 
     public assignTextureEncoding(e: THREE.TextureEncoding) {
         this._textureEncoding = e;
-        for(let i = 0; i < this._materialLibrary.length; i++) {
-            if(this._materialLibrary[i] instanceof THREE.MeshStandardMaterial) {
-                if((<THREE.MeshStandardMaterial>this._materialLibrary[i]).emissiveMap)
-                    (<THREE.MeshStandardMaterial>this._materialLibrary[i]).emissiveMap!.encoding = e;
-                if((<THREE.MeshStandardMaterial>this._materialLibrary[i]).map)
-                    (<THREE.MeshStandardMaterial>this._materialLibrary[i]).map!.encoding = e;
-                (<THREE.MeshStandardMaterial>this._materialLibrary[i]).needsUpdate = true;
+        for(let m in this._materialCache) {
+            if(this._materialCache[m] instanceof THREE.MeshStandardMaterial) {
+                if((<THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap)
+                    (<THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap!.encoding = e;
+                if((<THREE.MeshStandardMaterial>this._materialCache[m]).map)
+                    (<THREE.MeshStandardMaterial>this._materialCache[m]).map!.encoding = e;
+                (<THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
             }
         }
+    }
+
+    public emptyMaterialCache() {
+        this._materialCache = {};
     }
 
     public init(): void {}
@@ -388,22 +392,22 @@ export class MaterialLoader implements ILoader {
         if (materialSettings && materialSettings.useMorphNormals) (<any>material).morphNormals = true;
 
         material.needsUpdate = true;
-        this._materialLibrary.push(material);
+        this._materialCache[materialProperties.id] = material;
         return material;
     }
 
     public updateMaterials(): void {
-        for(let i = 0; i < this._materialLibrary.length; i++)
-            this._materialLibrary[i].needsUpdate = true;
+        for(let m in this._materialCache)
+            this._materialCache[m].needsUpdate = true;
     }
 
     public updateSoftShadow(lightSizeUV: number, blending: number) {
         this._lightSizeUV = lightSizeUV;
         this._blending = blending;
-        for(let i = 0; i < this._materialLibrary.length; i++) {
-            if(this._materialLibrary[i].userData.shader) {
-                this._materialLibrary[i].userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
-                this._materialLibrary[i].userData.shader.uniforms.blending.value = blending;
+        for(let m in this._materialCache) {
+            if(this._materialCache[m].userData.shader) {
+                this._materialCache[m].userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
+                this._materialCache[m].userData.shader.uniforms.blending.value = blending;
             }
         }
     }

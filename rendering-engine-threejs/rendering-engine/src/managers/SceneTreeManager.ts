@@ -92,6 +92,8 @@ export class SceneTreeManager implements IManager {
         this._boundingBox = new Box();
 
         this._renderingEngine.geometryLoader.emptyGeometryCache();
+        this._renderingEngine.materialLoader.emptyMaterialCache();
+
         if (!this._mainNode) {
             this._mainNode = new SDObject(root.id, root.version);
             this._scene.add(this._mainNode);
@@ -155,8 +157,28 @@ export class SceneTreeManager implements IManager {
         const childrenToRemove = obj.children.filter(oc => (!nodeIds.includes((<SDObject>oc).SDid)) && !(dataIds.includes((<SDObject>oc).SDid) && dataVersions.includes((<SDObject>oc).SDversion)));
 
         // remove children that are not anymore in there
-        for (const objChild of childrenToRemove) 
+        for (const objChild of childrenToRemove) {
             obj.remove(objChild);
+            objChild.traverse((o) => {
+                if (o instanceof THREE.Mesh) {
+                    for (const key in o.geometry.attributes) 
+                        o.geometry.deleteAttribute(key);
+                    o.geometry.setIndex(null);
+                    o.geometry.dispose();
+                    if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
+                    if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
+                    if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
+                    o.material.dispose();
+                }
+            })
+        }
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.children.length; i < len; i++) {

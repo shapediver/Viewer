@@ -280,7 +280,6 @@ export class GeometryData extends AbstractTreeNodeData {
   constructor(
     private readonly _primitive: PrimitiveData,
     private readonly _matrix: mat4 = mat4.create(),
-    private _convertedObjects: ISDObject[] = [],
     id?: string
   ) {
     super(id);
@@ -297,22 +296,6 @@ export class GeometryData extends AbstractTreeNodeData {
    */
   public get boundingBox(): Box {
     return this._boundingBox;
-  }
-
-  /**
-   * Getter convertedObjects
-   * @return {ISDObject[]}
-   */
-  public get convertedObjects(): ISDObject[] {
-    return this._convertedObjects;
-  }
-
-  /**
-   * Setter convertedObjects
-   * @param {ISDObject[]} value
-   */
-  public set convertedObjects(value: ISDObject[]) {
-    this._convertedObjects = value;
   }
 
   /**
@@ -344,7 +327,7 @@ export class GeometryData extends AbstractTreeNodeData {
    * Clones the scene graph data.
    */
   public clone(): ITreeNodeData {
-    return new GeometryData(this._primitive.clone(), mat4.clone(this.matrix), this.convertedObjects, this._id);
+    return new GeometryData(this._primitive.clone(), mat4.clone(this.matrix), this._id);
   }
 
   // #endregion Public Methods (1)

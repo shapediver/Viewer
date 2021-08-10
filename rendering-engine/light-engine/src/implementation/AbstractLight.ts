@@ -12,7 +12,6 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     private readonly _type: LIGHTTYPE;
 
     private _color: string;
-    private _convertedObjects: ISDObject[] = [];
     private _intensity: number;
     private _name?: string;
     private _order?: number;
@@ -51,23 +50,6 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     public set color(value: string) {
         this._color = value;
         this.updateVersion();
-        this._updateCBs.forEach(v => v());
-    }
-
-    /**
-     * Getter convertedObjects
-     * @return {ISDObject[]}
-     */
-    public get convertedObjects(): ISDObject[] {
-        return this._convertedObjects;
-    }
-
-    /**
-     * Setter convertedObjects
-     * @param {ISDObject[]} value
-     */
-    public set convertedObjects(value: ISDObject[]) {
-        this._convertedObjects = value;
         this._updateCBs.forEach(v => v());
     }
 

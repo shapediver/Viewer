@@ -26,15 +26,7 @@ export class LightLoader implements ILoader {
     public init(): void {}
 
     public load(light: AbstractLight, parent: SDObject, scene: THREE.Scene, boundingBox: Box) {
-        let converted = null;
-        for (let k = 0; k < light.convertedObjects.length; k++)
-            if (light.convertedObjects[k] instanceof SDObject)
-                converted = <SDObject>light.convertedObjects[k];
-
-        if (!converted) {
-            converted = new SDObject(light.id, light.version);
-            light.convertedObjects.push(converted);
-        }
+        let converted = new SDObject(light.id, light.version);
 
         if (light instanceof AmbientLight) {
             const threeLight: THREE.AmbientLight = converted.children[0] instanceof THREE.AmbientLight ? (<THREE.AmbientLight>converted.children[0]) : new THREE.AmbientLight();

@@ -63,19 +63,17 @@ export class OutputLoader {
             if(!this._outputNodes[outputID]) 
                 this._outputNodes[outputID] = {};
                 
-            if(!this._outputNodes[outputID][outputs[outputID].version]) {
-                if(outputs[outputID].delay) {
-                    maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
-                } else {
-                    currentNodes[outputID][outputs[outputID].version] = new SessionTreeNode(outputID);
-                    currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
-                    if(outputs[outputID].content) {
-                        for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                            const {contentNode, content} = this.loadContent('content_' + i, outputs[outputID].content![i])
-                            currentNodes[outputID][outputs[outputID].version].addChild(contentNode);
-                            promises.push(content)
-                            promisesNodes.push(contentNode)
-                        }
+            if(outputs[outputID].delay) {
+                maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
+            } else {
+                currentNodes[outputID][outputs[outputID].version] = new SessionTreeNode(outputID);
+                currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
+                if(outputs[outputID].content) {
+                    for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
+                        const {contentNode, content} = this.loadContent('content_' + i, outputs[outputID].content![i])
+                        currentNodes[outputID][outputs[outputID].version].addChild(contentNode);
+                        promises.push(content)
+                        promisesNodes.push(contentNode)
                     }
                 }
             }
@@ -92,16 +90,7 @@ export class OutputLoader {
 
         // here we assign all outputs just to the node and return it
         for (let outputID in outputs) {
-            if(!this._outputNodes[outputID][outputs[outputID].version])
-                this._outputNodes[outputID][outputs[outputID].version] = currentNodes[outputID][outputs[outputID].version];
-            node.addChild(this._outputNodes[outputID][outputs[outputID].version]);
-        }
-
-        for (let outputID in outputs) {
-            for(let outputVersion in this._outputNodes[outputID]) {
-                if(outputVersion !== outputs[outputID].version)
-                    delete this._outputNodes[outputID][outputVersion];
-            }
+            node.addChild(currentNodes[outputID][outputs[outputID].version]);
         }
 
         this.assignMaterials(node);
