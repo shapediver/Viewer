@@ -108,7 +108,6 @@ export class PerspectiveCamera extends AbstractCamera {
       // scene paths https://shapediver.atlassian.net/browse/SS-2951
       box = this._boundingBox.clone();
     }
-    console.log(box)
 
     if(box.isEmpty()) return { position: vec3.create(), target: vec3.create() }
 
@@ -121,7 +120,6 @@ export class PerspectiveCamera extends AbstractCamera {
     // extend box by the factor
     const boxDir = vec3.subtract(vec3.create(), box.max, target)
     vec3.multiply(boxDir, boxDir, vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
-    console.log(this.zoomExtentsFactor)
     box = new Box(vec3.subtract(vec3.create(), target, boxDir), vec3.add(vec3.create(), target, boxDir))
 
     const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), target, this.position));
@@ -183,7 +181,6 @@ export class PerspectiveCamera extends AbstractCamera {
 
     position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-distanceCamera, -distanceCamera, -distanceCamera)));
   
-    console.log(position)
     return {
       position, target
     }

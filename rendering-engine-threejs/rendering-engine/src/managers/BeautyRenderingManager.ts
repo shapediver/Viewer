@@ -8,6 +8,8 @@ import { SAOPass } from '../three/postprocessing/SAOPass.js'
 import { SSAARenderPass } from '../three/postprocessing/SSAARenderPass.js'
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager.js'
+import { ShaderPass } from '../three/postprocessing/ShaderPass.js'
+import { GammaCorrectionShader } from '../three/shaders/GammaCorrectionShader.js'
 
 export class BeautyRenderingManager implements IManager {
     // #region Properties (12)
@@ -24,6 +26,7 @@ export class BeautyRenderingManager implements IManager {
     private _renderPass!: RenderPass;
     private _saoPass!: SAOPass;
     private _ssaaPass!: SSAARenderPass;
+    private _gammaCorrectionPass!: ShaderPass
 
     // #endregion Properties (12)
 
@@ -97,6 +100,16 @@ export class BeautyRenderingManager implements IManager {
         }
     }
 
+    public assignOutputEncoding(encoding: number) {
+        if(encoding === 3001) {
+            if(!this._effectComposer.passes.includes(this._gammaCorrectionPass))
+                this._effectComposer.addPass(this._gammaCorrectionPass);
+        } else {
+            if(this._effectComposer.passes.includes(this._gammaCorrectionPass))
+                this._effectComposer.removePass(this._gammaCorrectionPass);
+        }
+    }
+
     public deactivateBeautyRenderShaders() {
         this._beautyRenderingTimeout = null;
         this._beautyRenderingActive = false;
@@ -152,6 +165,9 @@ export class BeautyRenderingManager implements IManager {
         this._saoPass.params.saoBlurStdDev = 4;
         this._saoPass.params.saoBlurDepthCutoff = 1;
 
+        this._gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
+        //this._effectComposer.addPass(this._gammaCorrectionPass);
+
         this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVEnd, 1.0);
 
         this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -172,6 +188,7 @@ export class BeautyRenderingManager implements IManager {
             this._renderPass.camera = camera;
             this._saoPass.camera = camera;
             this._ssaaPass.camera = camera;
+            this._gammaCorrectionPass.setSize(width, height);
             this._saoPass.setSize(width, height)
             this._effectComposer.setSize(width, height);
             this._effectComposer.render(time);

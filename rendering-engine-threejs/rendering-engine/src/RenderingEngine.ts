@@ -637,8 +637,15 @@ export class RenderingEngine implements IRenderingEngine {
             this._renderer.toneMappingExposure = value.toneMappingExposure;
         if(value.physicallyCorrectLights !== undefined)
             this._renderer.physicallyCorrectLights = value.physicallyCorrectLights;
-        if(value.outputEncoding !== undefined)
+        if(value.outputEncoding !== undefined) {
             this._renderer.outputEncoding = value.outputEncoding;
+
+            if(value.outputEncoding === 3000 || value.outputEncoding === 3001) {
+                this._beautyRenderingManager.assignOutputEncoding(value.outputEncoding)
+            } else {
+                this._logger.warn(LOGGINGTOPIC.VIEWER, 'Output encoding of this type cannot be used in combination with Ambient Occlusion at the moment.')
+            }
+        }
         if(value.textureEncoding !== undefined)
             this._materialLoader.assignTextureEncoding(value.textureEncoding);
         this._updateCBs.forEach(v => v());

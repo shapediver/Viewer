@@ -9,7 +9,7 @@ import {
   Tree,
   TreeNode,
 } from '@shapediver/viewer.shared.node-tree'
-import { ENVIRONMENTMAP, ThreejsData } from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
+import { ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE, ThreejsData } from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
 import { CustomData, GeometryData, MaterialData } from '@shapediver/viewer.shared.types'
 import { LOGGINGLEVEL } from '@shapediver/viewer.shared.utils'
 import { EVENTTYPE } from '@shapediver/viewer.shared.services'
@@ -39,7 +39,7 @@ import { Camera } from './viewer/camera/Camera'
 export const api: Api = <Api>container.resolve(Api);
 
 export {
-    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENTMAP
+    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE
 }
 
 export {
