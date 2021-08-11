@@ -39,6 +39,11 @@ export class GeometryLoader implements ILoader {
         this._geometryCache = {};
     }
 
+    public removeFromGeometryCache(id: string) {
+        if(this._geometryCache[id])
+            delete this._geometryCache[id];
+    }
+
     public init(): void {}
 
     /**
@@ -47,105 +52,52 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDObject, realObject: TreeNode): Box {
-        if (this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS]) {
-            // if already in geo cache
-
-            const obj = <SDObject>this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS];
-            let mesh = (<SDObject>obj).children.pop(); // careful, at some point there might be more
-
-            let instancedMesh: THREE.InstancedMesh;
-
-            parent.updateWorldMatrix(true, true);
-            // reverse transform of first parents;
-            const initialMatrix = parent.matrixWorld.clone().invert();
-
-            if (mesh instanceof THREE.InstancedMesh) {
-                const oldInstancedMesh = <THREE.InstancedMesh>mesh;
-                const count = oldInstancedMesh.count + 1;
-
-                instancedMesh = new THREE.InstancedMesh(oldInstancedMesh.geometry, oldInstancedMesh.material, count);
-                instancedMesh.castShadow = true;
-                instancedMesh.receiveShadow = true;
-                instancedMesh.applyMatrix4(initialMatrix)
-
-                // update the matrix to our mesh
-                instancedMesh.setMatrixAt(0, parent.matrixWorld.clone());
-
-                for (let i = 0; i < oldInstancedMesh.count; i++) {
-                    const matrix = new THREE.Matrix4();
-                    oldInstancedMesh.getMatrixAt(i, matrix);
-                    instancedMesh.setMatrixAt(i + 1, matrix);
-                }
-            } else {
-                const count = 2;
-
-                instancedMesh = new THREE.InstancedMesh((<THREE.Mesh>mesh).geometry, (<THREE.Mesh>mesh).material, count);
-                instancedMesh.castShadow = true;
-                instancedMesh.receiveShadow = true;
-                instancedMesh.applyMatrix4(initialMatrix)
-
-                // update the matrix to our mesh
-                instancedMesh.setMatrixAt(0, parent.matrixWorld.clone());
-
-                // update the matrix to the other obj
-                obj.updateWorldMatrix(true, true);
-                instancedMesh.setMatrixAt(1, obj.matrixWorld.clone());
-            }
-
-            instancedMesh.instanceMatrix.needsUpdate = true;
-
-            const objNew = new SDObject(geometry.id, geometry.version);
-            objNew.add(instancedMesh);
-            parent.add(objNew);
-
-            this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = objNew;
-
-        } else {
-            const threeGeometry = this.loadGeometry(geometry.primitive);
-            const materialSettings = {
-                mode: geometry.primitive.mode,
-                useVertexTangents: threeGeometry.attributes.tangent !== undefined,
-                useVertexColors: threeGeometry.attributes.color !== undefined,
-                useFlatShading: threeGeometry.attributes.normal === undefined,
-                useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
-                useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
-            }
-
-            const obj = new SDObject(geometry.id, geometry.version);
-            let mesh;
-            if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
-                mesh = new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
-            } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {
-                mesh = new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
-            } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_LOOP) {
-                mesh = new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
-            } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
-                mesh = new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
-            } else if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLES || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
-                mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
-                if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN) 
-                    mesh.geometry = this.convertToTriangleMode(mesh.geometry, geometry.primitive.mode);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-            } else {
-                throw new SDError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
-            }
-
-            if (geometry.primitive.material?.alphaMode === MATERIAL_ALPHA.BLEND) {
-                mesh.material.transparent = true;
-                mesh.material.depthWrite = false;
-            }
-
-            // https://shapediver.atlassian.net/browse/SS-3177
-            mesh.geometry.computeBoundingBox()
-            mesh.geometry.computeBoundingSphere()
-            obj.add(mesh);
-
-            this._geometryCache[geometry.id + '_' + SD_RENDERINGTYPE.THREEJS] = obj;
-
-            parent.add(obj);
+    public load(geometry: GeometryData, parent: SDObject, realObject: TreeNode): Box {            const threeGeometry = this.loadGeometry(geometry.primitive);
+        const materialSettings = {
+            mode: geometry.primitive.mode,
+            useVertexTangents: threeGeometry.attributes.tangent !== undefined,
+            useVertexColors: threeGeometry.attributes.color !== undefined,
+            useFlatShading: threeGeometry.attributes.normal === undefined,
+            useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
+            useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
         }
+
+        const obj = new SDObject(geometry.id, geometry.version);
+        let mesh;
+        if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
+            mesh = new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+        } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {
+            mesh = new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+        } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_LOOP) {
+            mesh = new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+        } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
+            mesh = new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+        } else if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLES || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
+            mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
+                mesh.geometry = this.convertToTriangleMode(mesh.geometry, geometry.primitive.mode);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+        } else {
+            throw new SDError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
+        }
+
+        if (geometry.primitive.material?.alphaMode === MATERIAL_ALPHA.BLEND) {
+            mesh.material.transparent = true;
+            mesh.material.depthWrite = false;
+        }
+
+        // https://shapediver.atlassian.net/browse/SS-3177
+        mesh.geometry.computeBoundingBox()
+        mesh.geometry.computeBoundingSphere()
+        obj.add(mesh);
+        mesh.geometry.userData = {
+            SDid: geometry.id,
+            SDversion: geometry.version
+        }
+        this._geometryCache[geometry.id + '_' + geometry.version] = obj;
+
+        parent.add(obj);
         return geometry.boundingBox.clone().applyMatrix(geometry.matrix);
     }
 

@@ -91,9 +91,6 @@ export class SceneTreeManager implements IManager {
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
 
-        this._renderingEngine.geometryLoader.emptyGeometryCache();
-        this._renderingEngine.materialLoader.emptyMaterialCache();
-
         if (!this._mainNode) {
             this._mainNode = new SDObject(root.id, root.version);
             this._scene.add(this._mainNode);
@@ -161,6 +158,8 @@ export class SceneTreeManager implements IManager {
             obj.remove(objChild);
             objChild.traverse((o) => {
                 if (o instanceof THREE.Mesh) {
+                    this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
+                    this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
                     for (const key in o.geometry.attributes) 
                         o.geometry.deleteAttribute(key);
                     o.geometry.setIndex(null);

@@ -119,7 +119,6 @@ export class Api {
         for (let v in this.viewers)
           this.viewers[v].reset();
       }
-      this.update();
 
       (<any>this.#sessionCallbacks[id]) = undefined;
       delete this.#sessionCallbacks[id];

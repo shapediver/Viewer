@@ -218,7 +218,6 @@ export class Session {
             this.node.excludeViewers = this.#excludeViewers;
             for (let viewerId in this.#api.viewers)
                 this.#api.viewers[viewerId].updateBlur(blurValues[viewerId]);
-            this.#api.update();
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();

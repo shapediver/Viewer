@@ -130,6 +130,11 @@ export class MaterialLoader implements ILoader {
         this._materialCache = {};
     }
 
+    public removeFromMaterialCache(id: string) {
+        if(this._materialCache[id])
+            delete this._materialCache[id];
+    }
+
     public init(): void {}
 
     /**
@@ -392,7 +397,11 @@ export class MaterialLoader implements ILoader {
         if (materialSettings && materialSettings.useMorphNormals) (<any>material).morphNormals = true;
 
         material.needsUpdate = true;
-        this._materialCache[materialProperties.id] = material;
+        material.userData = {
+            SDid: materialProperties.id,
+            SDversion: materialProperties.version
+        }
+        this._materialCache[materialProperties.id + '_' + materialProperties.version] = material;
         return material;
     }
 
