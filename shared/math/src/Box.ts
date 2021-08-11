@@ -60,7 +60,8 @@ export class Box implements IGeometry {
 
 
     public get boundingSphere(): Sphere {
-        if (!(vec3.equals(this._boundingSphereState.min, this.min) && vec3.equals(this._boundingSphereState.max, this.max))) {
+        if (!(this._boundingSphereState.min[0] === this.min[0] && this._boundingSphereState.min[1] === this.min[1] && this._boundingSphereState.min[2] === this.min[2] &&
+            this._boundingSphereState.max[0] === this.max[0] && this._boundingSphereState.max[1] === this.max[1] && this._boundingSphereState.max[2] === this.max[2])) {
             this._boundingSphere.setFromBox(this);
             this._boundingSphereState = {
                 min: vec3.clone(this.min),

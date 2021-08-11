@@ -172,7 +172,7 @@ export class OrthographicCamera extends AbstractCamera {
       this.position = position;
       this.target = target;
 
-      if (vec3.equals(position, target)) {
+      if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
          this._stateEngine.boundingBoxCreated.then(async () => {
             await this.zoomTo([], { duration: 0 });
             this.defaultPosition = vec3.clone(this._controls.position);

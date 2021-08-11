@@ -83,7 +83,7 @@ export class PerspectiveCamera extends AbstractCamera {
     this.position = position;
     this.target = target;
 
-    if (vec3.equals(position, target)) {
+    if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
       this._stateEngine.boundingBoxCreated.then(async () => {
         await this.zoomTo([], { duration: 0 });
         this.defaultPosition = vec3.clone(this._controls.position);
@@ -108,18 +108,20 @@ export class PerspectiveCamera extends AbstractCamera {
       // scene paths https://shapediver.atlassian.net/browse/SS-2951
       box = this._boundingBox.clone();
     }
+    console.log(box)
 
     if(box.isEmpty()) return { position: vec3.create(), target: vec3.create() }
 
     let target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
 
     // if the camera position and the target are the same, we set a corner position
-    if (vec3.equals(this.position, this.target)) 
+    if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])
       this.position = vec3.fromValues(0, -7.5, target[2]+5);
 
     // extend box by the factor
     const boxDir = vec3.subtract(vec3.create(), box.max, target)
     vec3.multiply(boxDir, boxDir, vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
+    console.log(this.zoomExtentsFactor)
     box = new Box(vec3.subtract(vec3.create(), target, boxDir), vec3.add(vec3.create(), target, boxDir))
 
     const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), target, this.position));
@@ -181,6 +183,7 @@ export class PerspectiveCamera extends AbstractCamera {
 
     position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-distanceCamera, -distanceCamera, -distanceCamera)));
   
+    console.log(position)
     return {
       position, target
     }

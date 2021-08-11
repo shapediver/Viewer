@@ -71,7 +71,7 @@ export class EnvironmentGeometryManager implements IManager {
     }
 
     public changeSceneExtents(bb: Box) {
-        if (vec3.equals(bb.min, vec3.create()) && vec3.equals(bb.max, vec3.create()))
+        if  (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty())
             bb = new Box(vec3.fromValues(-10, -10, -10), vec3.fromValues(10, 10, 10));
 
         let sceneExtents = vec3.distance(bb.min, bb.max);

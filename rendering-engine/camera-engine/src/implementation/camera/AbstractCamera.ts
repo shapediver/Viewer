@@ -344,7 +344,7 @@ export abstract class AbstractCamera implements ICamera {
     }
 
     public reset(options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
-        if (vec3.equals(vec3.create(), this.defaultPosition) && vec3.equals(vec3.create(), this.defaultTarget)) {
+        if ((this.defaultPosition[0] === 0 && this.defaultPosition[1] === 0 && this.defaultPosition[2] === 0) && (this.defaultTarget[0] === 0 && this.defaultTarget[1] === 0 && this.defaultTarget[2] === 0)) {
             return this.zoomTo([], options);
         } else {
             return this.set(vec3.clone(this.defaultPosition), vec3.clone(this.defaultTarget), options);

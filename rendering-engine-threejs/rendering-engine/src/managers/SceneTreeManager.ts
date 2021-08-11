@@ -84,7 +84,8 @@ export class SceneTreeManager implements IManager {
     public init(): void {}
 
     public isEmpty() {
-        return vec3.equals(this._boundingBox.min, vec3.create()) && vec3.equals(this._boundingBox.max, vec3.create());
+        return ((this._boundingBox.min[0] === 0 && this._boundingBox.min[1] === 0 && this._boundingBox.min[2] === 0 && 
+            this._boundingBox.max[0] === 0 && this._boundingBox.max[1] === 0 && this._boundingBox.max[2] === 0) || this._boundingBox.isEmpty());
     }
 
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
@@ -111,7 +112,8 @@ export class SceneTreeManager implements IManager {
 
         this._boundingBox.applyMatrix(root.nodeMatrix);
 
-        if (!(vec3.equals(oldBB.min, this._boundingBox.min) && vec3.equals(oldBB.max, this._boundingBox.max))) {
+        if (!(this._boundingBox.min[0] === oldBB.min[0] && this._boundingBox.min[1] === oldBB.min[1] && this._boundingBox.min[2] === oldBB.min[2] && 
+            this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2])) {
             if (!this._stateEngine.boundingBoxCreated.resolved)
                 this._stateEngine.boundingBoxCreated.resolve(true);
 
