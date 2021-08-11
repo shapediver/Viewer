@@ -25,8 +25,9 @@ export enum ENVIRONMENTMAP {
 export class EnvironmentMapLoader implements ILoader {
     // #region Properties (8)
 
-    private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']
-    private readonly _environmentMapNamesHDR = ['anniversary_lounge', 'ballroom', 'christmas_photo_studio', 'combination_room', 'large_corridor', 'lythwood_lounge', 'old_hall', 'paul_lobe_haus', 'photo_studio', 'photo_studio_broadway_hall', 'studio_small'];
+    private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']    
+    private readonly _environmentMapNamesHDR = ['anniversary_lounge', 'ballroom', 'cape_hill', 'christmas_photo_studio', 'circus_maximus', 'combination_room', 'green_point_park', 'hilltop_construction', 'large_corridor', 'lythwood_lounge', 'oberer_kuhberg', 'old_hall', 'paul_lobe_haus', 'photo_studio', 'photo_studio_broadway_hall', 'snowy_field', 'studio_small', 'sunflowers', 'table_mountain'];
+    private readonly _environmentMapNamesHDRKhronos = ['cannon_exterior', 'colorful_studio', 'neutral', 'wide_street'];
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {
         [key: string]: THREE.CubeTexture | THREE.Texture | null
@@ -105,12 +106,14 @@ export class EnvironmentMapLoader implements ILoader {
         if (!Array.isArray(name)) {
             url = [];
             let i;
-            if (this._environmentMapNamesJPG.indexOf(name_internal) >= 0) {
+            if(this._environmentMapNamesHDR.indexOf(name_internal) >= 0) {
+                await this.loadEnvironmentMap('https://viewer.shapediver.com/v3/envmaps/1k/' + name_internal + '_1k.hdr', []);
+            } else if(this._environmentMapNamesHDRKhronos.indexOf(name_internal) >= 0) {
+                await this.loadEnvironmentMap('https://viewer.shapediver.com/v3/envmaps/khronos/' + name_internal + '.hdr', []);
+            } else if (this._environmentMapNamesJPG.indexOf(name_internal) >= 0) {
                 // found in list of available environment maps with file type jpg
                 for (i = 0; i < this._environmentMapFilenames.length; i++)
                     url.push('https://viewer.shapediver.com/v2/envmaps/' + this._renderingEngine.environmentMapResolution + '/' + name_internal + '/' + this._environmentMapFilenames[i] + '.jpg');
-            } else if(this._environmentMapNamesHDR.indexOf(name_internal) >= 0) {
-                await this.loadEnvironmentMap('https://viewer.shapediver.com/v3/envmaps/1k/' + name_internal + '_1k.hdr', []);
             } else if (name.startsWith('https://') || name.startsWith('http://')) {
                 if (name.endsWith('.hdr')) {
                     await this.loadEnvironmentMap(name, []);
