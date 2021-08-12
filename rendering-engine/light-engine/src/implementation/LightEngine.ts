@@ -1,6 +1,6 @@
 import { container, singleton } from 'tsyringe'
 import { vec3 } from 'gl-matrix'
-import { Converter, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { Converter, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 
 import { AmbientLight } from './types/AmbientLight'
@@ -13,7 +13,6 @@ import { AbstractLight } from './AbstractLight'
 import { ILightEngine } from '../interface/ILightEngine'
 import { ILight, LIGHTTYPE } from '../interface/ILight'
 import { ILightScene } from '../interface/ILightScene'
-import { SDError } from '../../../../shared/utils/dist'
 
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
