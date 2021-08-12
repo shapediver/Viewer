@@ -13,6 +13,7 @@ import { AbstractLight } from './AbstractLight'
 import { ILightEngine } from '../interface/ILightEngine'
 import { ILight, LIGHTTYPE } from '../interface/ILight'
 import { ILightScene } from '../interface/ILightScene'
+import { SDError } from '../../../../shared/utils/dist'
 
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
@@ -23,46 +24,47 @@ export class LightEngine implements ILightEngine {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    private readonly _standardLightScene: LightScene;
 
     // #endregion Properties (6)
 
     // #region Constructors (1)
 
-    constructor(private readonly _viewerId: string) {
-        this._standardLightScene = <LightScene>this.createLightScene({ name: 'standard', standard: true });
-        this._lightScenes[this._standardLightScene.id] = this._standardLightScene;
-    }
+    constructor(private readonly _viewerId: string) {}
 
     // #endregion Constructors (1)
 
     // #region Public Methods (14)
 
     public addAmbientLight(properties: {color?: string, intensity?: number, name?: string}): AmbientLight {
+        if(!this._currentLightScene) this.createLightScene({});
         const light = new AmbientLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
 
     public addDirectionalLight(properties: {color?: string, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, name?: string}): DirectionalLight {
+        if(!this._currentLightScene) this.createLightScene({});
         const light = new DirectionalLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
 
     public addHemisphereLight(properties: {color?: string, intensity?: number, groundColor?: string, name?: string}): HemisphereLight {
+        if(!this._currentLightScene) this.createLightScene({});
         const light = new HemisphereLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
 
     public addPointLight(properties: {color?: string, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string}): PointLight {
+        if(!this._currentLightScene) this.createLightScene({});
         const light = new PointLight(properties);
         this._currentLightScene.addLight(light);
         return light;
     }
 
     public addSpotLight(properties: {color?: string, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string}): SpotLight {
+        if(!this._currentLightScene) this.createLightScene({});
         const light = new SpotLight(properties);
         this._currentLightScene.addLight(light);
         return light;
@@ -84,17 +86,15 @@ export class LightEngine implements ILightEngine {
     public createLightScene(properties: {name?: string, standard?: boolean}): ILightScene {
         const lightSceneId = this._uuidGenerator.create();
         const lightScene = new LightScene({id: lightSceneId, name: properties.name});
-        if (properties.standard === true) {
-            //lightScene.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
-            lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 5, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
-            //lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
-        }
+        if (properties.standard === true) 
+            lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 1, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
         this._lightScenes[lightSceneId] = lightScene;
         this._currentLightScene = lightScene;
         return lightScene;
     }
 
     public getLight(id: string): ILight {
+        if(!this._currentLightScene) throw new SDError('No light scene selected.')
         return this._currentLightScene.getLight(id);
     }
 
@@ -103,19 +103,17 @@ export class LightEngine implements ILightEngine {
         return this._currentLightScene;
     }
 
-    public getLightSceneObject(): LightScene {
-        return this._currentLightScene;
-    }
-
     public getLightScenes(): {[key: string]: ILightScene} {
         return this._lightScenes;
     }
 
     public getLights(): { [key: string]: ILight; } {
+        if(!this._currentLightScene) return {};
         return this._currentLightScene.lights;
     }
 
     public removeLight(id: string): boolean {
+        if(!this._currentLightScene) return false;
         let light = this._currentLightScene.getLight(id);
         if (!light) {
             for(let ls in this._lightScenes) {
@@ -129,7 +127,6 @@ export class LightEngine implements ILightEngine {
     }
 
     public removeLightScene(id: string): boolean {
-        if (id === this._standardLightScene.id) return false;
         if (!this._lightScenes[id]) {
             for(let lightSceneId in this._lightScenes) {
                 const lightScene = this._lightScenes[lightSceneId];
@@ -138,9 +135,9 @@ export class LightEngine implements ILightEngine {
             }
             return false;
         }
-        if (this._currentLightScene.id === id)
-            this.assignLightScene(this._standardLightScene.id);
         delete this._lightScenes[id];
+        if(this._currentLightScene.id === id)
+            (<any>this._currentLightScene) = undefined;
         return true;
     }
 
@@ -308,14 +305,32 @@ export class LightEngine implements ILightEngine {
             this._lightScenes[ls.id] = ls;
         }
 
-        if(!standardLS)
-            this._lightScenes[this._standardLightScene.id] = this._standardLightScene;
+        // there is no standard light scene in the light scenes, but a light scene name is specified (old viewer)
+        if(!standardLS && this._settingsEngine.lights.lightScene.value) {
+            const ls = <LightScene>this.createLightScene({ name: 'default', standard: false });
+            ls.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
+            ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
+            ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
+            this._lightScenes[ls.id] = ls;
+        }
 
-        if (this._settingsEngine.lights.lightScene.value)
-            this.assignLightScene(this._settingsEngine.lights.lightScene.value);
-
-        if(!Object.keys(this._lightScenes).includes(this.getLightScene().id))
-            this.assignLightScene('standard');
+        if (this._settingsEngine.lights.lightScene.value) {
+            const res = this.assignLightScene(this._settingsEngine.lights.lightScene.value);
+            if(res === false && this._settingsEngine.lights.lightScene.value === 'default') {
+                const ls = <LightScene>this.createLightScene({ name: 'default', standard: false });
+                ls.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
+                ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
+                ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
+                this._lightScenes[ls.id] = ls;
+            } else if(res === false){
+                const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
+                this._lightScenes[ls.id] = ls;
+            }
+        } else {        
+            // this can only be the case if the settings were empty, therefore we assign the new light scene
+            const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
+            this._lightScenes[ls.id] = ls;
+        }
     }
 
     // #endregion Public Methods (14)

@@ -100,14 +100,16 @@ export class SceneTreeManager implements IManager {
         this.updateNode(root, this._mainNode);
         this._boundingBox = root.boundingBox.clone();
 
-        const lightScene = lightEngine.getLightSceneObject();
-        const lightSceneChildren = <SDObject[]>this._mainNode.children.filter(oc => lightScene.node.id === (<SDObject>oc).SDid);
-        if (lightSceneChildren.length > 1) {
-            this.updateNode(lightScene.node, lightSceneChildren[0]);
-        } else {
-            const lightSceneChild = new SDObject(lightScene.node.id, lightScene.node.version);
-            this._mainNode.add(lightSceneChild)
-            this.updateNode(lightScene.node, lightSceneChild);
+        const lightScene = lightEngine.getLightScene();
+        if(lightScene) {
+            const lightSceneChildren = <SDObject[]>this._mainNode.children.filter(oc => lightScene.node.id === (<SDObject>oc).SDid);
+            if (lightSceneChildren.length > 1) {
+                this.updateNode(lightScene.node, lightSceneChildren[0]);
+            } else {
+                const lightSceneChild = new SDObject(lightScene.node.id, lightScene.node.version);
+                this._mainNode.add(lightSceneChild)
+                this.updateNode(lightScene.node, lightSceneChild);
+            }
         }
 
         this._boundingBox.applyMatrix(root.nodeMatrix);

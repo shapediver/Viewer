@@ -74,7 +74,7 @@ export class EnvironmentMapLoader implements ILoader {
     private readonly _newSettings = {
         physicallyCorrectLights: true, // should be set to true (out old default was false, but this should definitely change) (old default: false)
         envMapIntensity: 1, // change the intensity of the environment Map (old default: 1)
-        envMapIntensityGroundPlane: 1, // change the intensity of the environment Map for the groundPlane (old default: 1)
+        envMapIntensityGroundPlane: 0.5, // change the intensity of the environment Map for the groundPlane (old default: 1)
         groundPlaneColor: '#D3D3D3', // change the color of the ground plane (old default: '#D3D3D3')
         toneMapping: 0, // Use a different tone mapping (0: none, 1: linear, 2: reinhard, 3: cineon, 4: ACESFilmic) (old default: 0)
         toneMappingExposure: 1, // change the exposure of the tone mapping (old default: 1)

@@ -81,11 +81,11 @@ export const DefaultSettings = {
             gridVisibility: <ISetting<boolean>> new BooleanSetting(true, 'Show / hide the grid'),
             groundPlaneVisibility: <ISetting<boolean>> new BooleanSetting(true, 'Show / hide the ground plane'),
             lights: {
-                lightScene: <ISetting<string>> new StringSetting('standard'),
+                lightScene: <ISetting<string>> new StringSetting(''),
                 lightScenes: <ISetting<any>> new CustomSetting({}),
             },
             material: {
-                environmentMap: <ISetting<string>> new StringSetting('table_mountain', 'Name of the environment map to use, or an array of 6 image URLs making up the cube mapped environment map (px, nx, pz, nz, py, ny)', (value: string | String | string[] | String[]) => true),
+                environmentMap: <ISetting<string>> new StringSetting('photo_studio', 'Name of the environment map to use, or an array of 6 image URLs making up the cube mapped environment map (px, nx, pz, nz, py, ny)', (value: string | String | string[] | String[]) => true),
                 environmentMapAsBackground: <ISetting<boolean>> new BooleanSetting(false, 'Show / hide the environment map in the background'),
                 environmentMapResolution: <ISetting<string>> new StringSetting('1024', 'Image resolution to be used for the named environment maps (available resolutions: 256, 512, 1024)', (value: string) => (['256', '512', '1024', '2048'].includes(value))),
             },

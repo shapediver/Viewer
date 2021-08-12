@@ -48,6 +48,7 @@ let currentNode: TreeNode;
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png' });
     viewer.updateAmbientOcclusion(false);
     viewer.updateGroundPlaneVisibility(false);
+    viewer.updateEnvironmentMap(ENVIRONMENTMAP.CANNON_EXTERIOR);
     viewer.updateGridVisibility(false);
     viewer.updateClearColor('rgb(3, 5, 49)')
 })();
