@@ -52,7 +52,8 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDObject, realObject: TreeNode): Box {            const threeGeometry = this.loadGeometry(geometry.primitive);
+    public load(geometry: GeometryData, parent: SDObject, realObject: TreeNode): Box {            
+        const threeGeometry = this.loadGeometry(geometry.primitive);
         const materialSettings = {
             mode: geometry.primitive.mode,
             useVertexTangents: threeGeometry.attributes.tangent !== undefined,

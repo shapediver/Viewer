@@ -37,7 +37,7 @@ export interface IGLTF_v2_Accessor {
     max?: number[],
     min?: number[],
     type: string,
-    sparse: {
+    sparse?: {
         count: number,
         indices: {
             bufferView: number,
@@ -326,7 +326,7 @@ export interface IGLTF_v2_Skin {
 // }
 
 export interface IGLTF_v2_Texture {
-    sampler: number,
+    sampler?: number,
     source: number,
     name?: string,
     extensions?: { [id: string]: any },
@@ -335,21 +335,21 @@ export interface IGLTF_v2_Texture {
 export interface IGLTF_v2 {
     extensionsUsed?: string[],
     extensionsRequired?: string[],
-    accessors: IGLTF_v2_Accessor[],
-    animations: IGLTF_v2_Animation[],
+    accessors?: IGLTF_v2_Accessor[],
+    animations?: IGLTF_v2_Animation[],
     asset: IGLTF_v2_Asset,
-    buffers: IGLTF_v2_Buffer[],
-    bufferViews: IGLTF_v2_BufferView[],
-    cameras: IGLTF_v2_Camera[],
-    images: IGLTF_v2_Image[],
-    materials: IGLTF_v2_Material[],
-    meshes: IGLTF_v2_Mesh[],
-    nodes: IGLTF_v2_Node[],
-    samplers: IGLTF_v2_Sampler[],
-    scene: number,
-    scenes: IGLTF_v2_Scene[],
-    skins: IGLTF_v2_Skin[],
-    textures: IGLTF_v2_Texture[],
-    extensions: { [id: string]: any },
+    buffers?: IGLTF_v2_Buffer[],
+    bufferViews?: IGLTF_v2_BufferView[],
+    cameras?: IGLTF_v2_Camera[],
+    images?: IGLTF_v2_Image[],
+    materials?: IGLTF_v2_Material[],
+    meshes?: IGLTF_v2_Mesh[],
+    nodes?: IGLTF_v2_Node[],
+    samplers?: IGLTF_v2_Sampler[],
+    scene?: number,
+    scenes?: IGLTF_v2_Scene[],
+    skins?: IGLTF_v2_Skin[],
+    textures?: IGLTF_v2_Texture[],
+    extensions?: { [id: string]: any },
     extras?: any
 }

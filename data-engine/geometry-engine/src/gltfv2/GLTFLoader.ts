@@ -128,8 +128,9 @@ export class GLTFLoader {
     // #region Private Methods (9)
 
     private async loadAccessor(accessorId: number): Promise<AttributeData | null> {
-        if (!this._content.accessors![accessorId]) throw new SDError('Accessor not available.')
-        const accessor = this._content.accessors![accessorId];
+        if (!this._content.accessors) throw new SDError('Accessors not available.')
+        if (!this._content.accessors[accessorId]) throw new SDError('Accessor not available.')
+        const accessor = this._content.accessors[accessorId];
         if (this._loaded['accessor'] && this._loaded['accessor'][accessorId]) return this._loaded['accessor'][accessorId];
 
         if (accessor.bufferView === undefined) {
@@ -148,7 +149,7 @@ export class GLTFLoader {
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
         const itemBytes = elementBytes * itemSize;
         const byteOffset = accessor.byteOffset || 0;
-        const byteStride = accessor.bufferView !== undefined ? this._content.bufferViews[accessor.bufferView].byteStride : undefined;
+        const byteStride = accessor.bufferView !== undefined ? this._content.bufferViews ? this._content.bufferViews[accessor.bufferView].byteStride : undefined : undefined;
         const normalized = accessor.normalized === true;
         let array;
 
@@ -172,22 +173,25 @@ export class GLTFLoader {
             const byteOffsetIndices = accessor.sparse.indices.byteOffset || 0;
             const byteOffsetValues = accessor.sparse.values.byteOffset || 0;
 
+            if(!accessor.sparse.indices.bufferView || !accessor.sparse.values.bufferView) throw new SDError('Sparse Mesh not properly defined.')
+
             const sparseIndices = new IndicesArrayType(await this.loadBufferView(accessor.sparse.indices.bufferView!), byteOffsetIndices, accessor.sparse.count * itemSizeIndices);
             const sparseValues = new ArrayType(await this.loadBufferView(accessor.sparse.values.bufferView!), byteOffsetValues, accessor.sparse.count * itemSize);
 
             if (!this._loaded['accessor']) this._loaded['accessor'] = {};
-            this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, byteStride, true, sparseIndices, sparseValues);
+            this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, byteStride, true, sparseIndices, sparseValues);
             return this._loaded['accessor'][accessorId];
         }
 
         if (!this._loaded['accessor']) this._loaded['accessor'] = {};
-        this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, byteStride);
+        this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, byteStride);
         return this._loaded['accessor'][accessorId];
     }
 
     private async loadBuffer(bufferId: number): Promise<ArrayBuffer> {
-        if (!this._content.buffers![bufferId]) throw new SDError('Buffer not available.')
-        const buffer = this._content.buffers![bufferId];
+        if (!this._content.buffers) throw new SDError('Buffers not available.')
+        if (!this._content.buffers[bufferId]) throw new SDError('Buffer not available.')
+        const buffer = this._content.buffers[bufferId];
         if (this._loaded['buffer'] && this._loaded['buffer'][bufferId]) return this._loaded['buffer'][bufferId];
 
         if (buffer.type && buffer.type !== 'arraybuffer') {
@@ -228,12 +232,15 @@ export class GLTFLoader {
     }
 
     private async loadBufferView(bufferViewId: number): Promise<ArrayBuffer> {
-        if (!this._content.bufferViews![bufferViewId]) throw new SDError('Buffer View not available.')
-        const bufferView = this._content.bufferViews![bufferViewId];
+        if (!this._content.bufferViews) throw new SDError('BufferViews not available.')
+        if (!this._content.bufferViews[bufferViewId]) throw new SDError('BufferView not available.')
+        const bufferView = this._content.bufferViews[bufferViewId];
         if (this._loaded['bufferView'] && this._loaded['bufferView'][bufferViewId]) return this._loaded['bufferView'][bufferViewId];
 
         const byteLength = bufferView.byteLength || 0;
         const byteOffset = bufferView.byteOffset || 0;
+
+        if(bufferView.buffer === undefined) throw new SDError('BufferView has no buffer defined.')
         const buffer = await this.loadBuffer(bufferView.buffer!);
         const result = buffer.slice(byteOffset, byteOffset + byteLength);
 
@@ -243,10 +250,12 @@ export class GLTFLoader {
     }
 
     private async loadMap(textureId: number): Promise<MapData> {
+        if(!this._content.textures) throw new SDError('Textures not available.')
         const texture = this._content.textures[textureId];
         if (this._loaded['texture'] && this._loaded['texture'][textureId]) return this._loaded['texture'][textureId].clone();
+        if(!this._content.images) throw new SDError('Images not available.')
         const image = this._content.images[texture.source];
-        const sampler = this._content.samplers && this._content.samplers[texture.source] ? this._content.samplers[texture.source] : {};
+        const sampler = this._content.samplers && texture.sampler && this._content.samplers[texture.sampler] ? this._content.samplers[texture.sampler] : {};
 
         const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
         const HTTPS_URI_REGEX = /^https:\/\//;
@@ -273,6 +282,7 @@ export class GLTFLoader {
     }
 
     private async loadMaterial(materialId: number): Promise<MaterialData> {
+        if(!this._content.materials) throw new SDError('Materials not available.')
         const material: IGLTF_v2_Material = this._content.materials[materialId];
 
         const materialData = new MaterialData();
@@ -377,7 +387,8 @@ export class GLTFLoader {
     }
 
     private async loadMesh(meshId: number): Promise<TreeNode> {
-        if (!this._content.meshes || !this._content.meshes[meshId]) throw new SDError('Mesh not available.')
+        if (!this._content.meshes) throw new SDError('Meshes not available.')
+        if (!this._content.meshes[meshId]) throw new SDError('Mesh not available.')
         const mesh = this._content.meshes[meshId];
         const meshNode = new TreeNode(mesh.name || 'mesh_' + meshId);
 
@@ -390,7 +401,8 @@ export class GLTFLoader {
     }
 
     private async loadNode(nodeId: number): Promise<TreeNode> {
-        if (!this._content.nodes || !this._content.nodes[nodeId]) throw new SDError('Node not available.')
+        if (!this._content.nodes) throw new SDError('Nodes not available.')
+        if (!this._content.nodes[nodeId]) throw new SDError('Node not available.')
         const node = this._content.nodes[nodeId];
         const nodeDef = new TreeNode(node.name || 'node_' + nodeId);
 
@@ -494,8 +506,9 @@ export class GLTFLoader {
     }
 
     private async loadScene(): Promise<TreeNode> {
+        if (!this._content.scenes) throw new SDError('Scenes not available.')
         const sceneID = this._content.scene || 0;
-        if (!this._content.scenes || !this._content.scenes[sceneID]) throw new SDError('Scene not available.')
+        if (!this._content.scenes[sceneID]) throw new SDError('Scene not available.')
         const scene = this._content.scenes[sceneID];
         const sceneDef = new TreeNode('scene_' + scene.name || sceneID + '');
         sceneDef.transformations.push({

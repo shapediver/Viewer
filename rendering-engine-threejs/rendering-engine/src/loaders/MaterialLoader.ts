@@ -144,7 +144,7 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        materialProperties: MaterialData, 
+        materialProperties?: MaterialData, 
         materialSettings?: {
             mode?: number,
             useVertexTangents?: boolean,
@@ -397,11 +397,13 @@ export class MaterialLoader implements ILoader {
         if (materialSettings && materialSettings.useMorphNormals) (<any>material).morphNormals = true;
 
         material.needsUpdate = true;
-        material.userData = {
-            SDid: materialProperties.id,
-            SDversion: materialProperties.version
+        if(materialProperties) {
+            material.userData = {
+                SDid: materialProperties.id,
+                SDversion: materialProperties.version
+            }
+            this._materialCache[materialProperties.id + '_' + materialProperties.version] = material;
         }
-        this._materialCache[materialProperties.id + '_' + materialProperties.version] = material;
         return material;
     }
 

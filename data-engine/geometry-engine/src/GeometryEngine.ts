@@ -5,6 +5,7 @@ import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v
 
 import { GLTFLoader as GLTF_v1Loader } from './gltfv1/GLTFLoader'
 import { GLTFLoader as GLTF_v2Loader } from './gltfv2/GLTFLoader'
+import { GLTFConverter } from './gltfv2/GLTFConverter'
 
 @singleton()
 export class GeometryEngine {
@@ -43,6 +44,10 @@ export class GeometryEngine {
             node.addChild(await new GLTF_v2Loader().load(content.href));
         }
         return node;
+    }
+
+    public async convertSceneToGLTF(node: TreeNode): Promise<any | string | ArrayBuffer | null> {
+        return new GLTFConverter().convert(node);
     }
 
     // #endregion Public Methods (1)
