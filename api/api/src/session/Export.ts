@@ -20,7 +20,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
 
   readonly dependency!: string[];
   readonly displayName?: string;
-  readonly hidden: boolean;
+  readonly hidden: boolean = false;
   readonly id: string;
   readonly name: string;
   readonly order?: number;
@@ -42,9 +42,10 @@ export class Export implements ShapeDiverResponseExportDefinition {
 
       if (exportDef.uid !== undefined) this.uid = exportDef.uid;
 
-      this.displayName = undefined;
-      this.order = undefined;
-      this.hidden = false;
+      if (exportDef.displayname !== undefined) this.displayName = exportDef.displayname;
+      if (exportDef.order !== undefined) this.order = exportDef.order;
+      if (exportDef.hidden !== undefined) this.hidden = exportDef.hidden;
+
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;

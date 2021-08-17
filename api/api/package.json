@@ -36,7 +36,7 @@
     "testEnvironment": "jsdom"
   },
   "dependencies": {
-    "@shapediver/api.geometry-api-dto-v1": "^1.0.6",
+    "@shapediver/api.geometry-api-dto-v1": "^1.0.9",
     "@shapediver/viewer.rendering-engine-threejs.rendering-engine": "^0.4.5",
     "@shapediver/viewer.rendering-engine.camera-engine": "^0.4.5",
     "@shapediver/viewer.rendering-engine.light-engine": "^0.4.5",

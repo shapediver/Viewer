@@ -74,7 +74,7 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
     readonly expression?: string;
     readonly format?: string[];
     readonly group?: ShapeDiverResponseParameterGroup;
-    readonly hidden: boolean;
+    readonly hidden: boolean = false;
     readonly id: string;
     readonly lastValidatedValue: T | string;
     readonly max?: number;
@@ -111,9 +111,9 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
             if (paramDef.group !== undefined) this.group = paramDef.group;
             if (paramDef.tooltip !== undefined) this.tooltip = paramDef.tooltip;
 
-            this.displayName = undefined;
-            this.order = undefined;
-            this.hidden = false;
+            if (paramDef.displayname !== undefined) this.displayName = paramDef.displayname;
+            if (paramDef.order !== undefined) this.order = paramDef.order;
+            if (paramDef.hidden !== undefined) this.hidden = paramDef.hidden;
 
             if (this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL) {
                 this.#defaultValue = <T><unknown>(this.defval === 'true');

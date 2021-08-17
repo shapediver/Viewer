@@ -19,9 +19,12 @@ export class Output implements ShapeDiverResponseOutputDefinition {
 
   readonly chunks?: OutputChunk[];
   readonly dependency!: string[];
+  readonly displayName?: string;
+  readonly hidden: boolean = false;
   readonly id: string;
   readonly material?: string;
   readonly name: string;
+  readonly order?: number;
   readonly uid?: string;
 
   // #endregion Properties (15)
@@ -38,6 +41,11 @@ export class Output implements ShapeDiverResponseOutputDefinition {
       if (outputDef.uid !== undefined) this.uid = outputDef.uid;
       if (outputDef.material !== undefined) this.material = outputDef.material;
       if (outputDef.chunks !== undefined) this.chunks = outputDef.chunks;
+      
+      if (outputDef.displayname !== undefined) this.displayName = outputDef.displayname;
+      if (outputDef.order !== undefined) this.order = outputDef.order;
+      if (outputDef.hidden !== undefined) this.hidden = outputDef.hidden;
+
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
