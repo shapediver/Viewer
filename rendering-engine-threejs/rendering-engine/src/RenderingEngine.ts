@@ -85,6 +85,7 @@ export class RenderingEngine implements IRenderingEngine {
     private _beautyRenderDelay: number = 50;
     private _blur: boolean = false;
     private _blurSceneWhenBusy: boolean = true;
+    private _busy: boolean = false;
     private _clearAlpha: number = 1.0;
     private _clearColor: string = '#ffffff';
     private _environmentMap: string | string[] = 'none';
@@ -307,6 +308,22 @@ export class RenderingEngine implements IRenderingEngine {
     public set blurSceneWhenBusy(value: boolean) {
         this._blurSceneWhenBusy = value;
         this._updateCBs.forEach(v => v());
+    }
+
+    /**
+     * Getter busy
+     * @return {boolean}
+     */
+    public get busy(): boolean {
+        return this._busy;
+    }
+
+    /**
+     * Setter busy
+     * @param {boolean} value
+     */
+    public set busy(value: boolean) {
+        this._busy = value;
     }
 
     /**

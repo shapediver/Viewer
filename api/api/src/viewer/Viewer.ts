@@ -99,6 +99,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     (<any>this.showStatistics) = this.#renderingEngine.showStatistics;
   }
 
+  #busyModeIDs: string[] = [];
   #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE, logo: string };
   #renderingEngine!: RenderingEngineThreejs;
 
@@ -1147,6 +1148,47 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).update: Something unexpected happened.`, true)
+    }
+  }
+
+  public registerBusyMode(value: string): boolean {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Registering busy mode for id ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, value, 'string');
+
+      if(this.#busyModeIDs.includes(value)) return false;
+      this.#busyModeIDs.push(value);
+
+      if(this.blurSceneWhenBusy === true)
+        this.#renderingEngine.busy = true;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Busy mode was registered for id: ${value}`);
+      this.update();
+      return true;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).registerBusyMode: Something unexpected happened.`, true)
+    }
+  }
+
+  public deregisterBusyMode(value: string): boolean {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Deregistering busy mode for id ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, value, 'string');
+
+      if(!this.#busyModeIDs.includes(value)) return false;
+      this.#busyModeIDs.splice(this.#busyModeIDs.indexOf(value), 1);
+
+      console.log(this.#busyModeIDs)
+      if(this.#busyModeIDs.length === 0)
+        this.#renderingEngine.busy = false;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Busy mode was deregistered for id: ${value}`);
+      this.update();
+      return true;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).deregisterBusyMode: Something unexpected happened.`, true)
     }
   }
 
