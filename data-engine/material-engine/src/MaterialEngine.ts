@@ -279,7 +279,8 @@ export class MaterialEngine {
             material.roughness = 1 - (Math.min(1, data.shine));
         }
 
-        material.opacity = data.hasOwnProperty('transparency') ? 1 - data.transparency! : 1;
+        if(data.hasOwnProperty('transparency'))
+            material.opacity = 1 - data.transparency!;
 
         if(data.bitmaptexture) {
             const map = await this.loadMap(data.bitmaptexture);
@@ -326,7 +327,8 @@ export class MaterialEngine {
         if(data.roughness || data.roughness === 0)
             material.roughness = data.roughness;
 
-        material.opacity = data.hasOwnProperty('transparency') ? 1 - data.transparency! : 1;
+        if(data.hasOwnProperty('transparency'))
+            material.opacity = 1 - data.transparency!;
         
         if(data.alphaThreshold || data.alphaThreshold === 0)
             material.alphaCutoff = data.alphaThreshold;
@@ -398,8 +400,9 @@ export class MaterialEngine {
         if(data.roughness || data.roughness === 0)
             material.roughness = data.roughness;
 
-        material.opacity = data.hasOwnProperty('transparency') ? 1 - data.transparency! : 1;
-        
+        if(data.hasOwnProperty('transparency'))
+            material.opacity = 1 - data.transparency!;
+
         if(data.alphaThreshold || data.alphaThreshold === 0)
             material.alphaCutoff = data.alphaThreshold;
 
