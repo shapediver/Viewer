@@ -52,6 +52,60 @@ export class Session {
 
     #customizationProcess!: string;
     #excludeViewers: string[] = [];
+    #useSessionSettings: boolean = true;
+
+    readonly #saveSessionSettings = () => {
+        const parameters = this.parameters;
+        const exports = this.exports;
+        const displayNames: { [key: string]: string } = {};
+        for (let p in parameters)
+            if (parameters[p].displayName !== undefined)
+                displayNames[p] = parameters[p].displayName!;
+        for (let e in exports)
+            if (exports[e].displayName !== undefined)
+                displayNames[e] = exports[e].displayName!;
+        this.#settingsEngine.general.parameters.controlNames.value = displayNames;
+
+        let ordered: (Parameter<any> | Export)[] = [];
+        for (let p in parameters) ordered.push(parameters[p]);
+        for (let e in exports) ordered.push(exports[e]);
+        ordered.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
+        let zeros = ordered.filter(x => x.order === 0);
+        ordered = ordered.filter((el) => { return !zeros.includes(el); });
+        ordered = zeros.concat(ordered);
+        this.#settingsEngine.general.parameters.controlOrder.value = ordered.map((value) => { return value.id; });
+
+        const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
+        for (let i = 0; i < controlOrder.length; i++) {
+            if (this.parameters[controlOrder[i]])
+                if(this.parameters[controlOrder[i]]!.order !== i)
+                    this.parameters[controlOrder[i]]!.updateOrder(i);
+            if (this.exports[controlOrder[i]])
+                if(this.exports[controlOrder[i]]!.order !== i)
+                    this.exports[controlOrder[i]]!.updateOrder(i);
+        }
+
+        let orderedOutputs: Output[] = [];
+        for (let o in this.outputs) orderedOutputs.push(this.outputs[o]);
+        orderedOutputs.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
+        let zerosOutputs = orderedOutputs.filter(x => x.order === 0);
+        orderedOutputs = orderedOutputs.filter((el) => { return !zerosOutputs.includes(el); });
+        orderedOutputs = zerosOutputs.concat(orderedOutputs);
+
+        const controlOrderOutputs = orderedOutputs.map((value) => { return value.id; });
+        for (let i = 0; i < controlOrderOutputs.length; i++) {
+            if (this.outputs[controlOrderOutputs[i]])
+                if(this.outputs[controlOrderOutputs[i]]!.order !== i)
+                    this.outputs[controlOrderOutputs[i]]!.updateOrder(i);
+        }
+
+        const hidden: string[] = [];
+        for (let p in parameters)
+            if (parameters[p].hidden !== undefined) hidden.push(p);
+        for (let e in exports)
+            if (exports[e].hidden !== undefined) hidden.push(e);
+        this.#settingsEngine.general.parameters.parametersHidden.value = hidden;
+    }
 
     // #endregion Properties (23)
 
@@ -81,28 +135,31 @@ export class Session {
                     (<any>this.commitParameters) = this.#settingsEngine.general.viewer.commitParameters.value;
                     (<any>this.commitSettings) = this.#settingsEngine.general.viewer.commitSettings.value;
 
-                    const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
-                    for (let k in controlNames) {
-                        if (this.parameters[k])
-                            this.parameters[k]!.updateDisplayName(controlNames[k]);
-                        if (this.exports[k])
-                            this.exports[k]!.updateDisplayName(controlNames[k]);
-                    }
-
-                    const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
-                    for (let i = 0; i < controlOrder.length; i++) {
-                        if (this.parameters[controlOrder[i]])
-                            this.parameters[controlOrder[i]]!.updateOrder(i);
-                        if (this.exports[controlOrder[i]])
-                            this.exports[controlOrder[i]]!.updateOrder(i);
-                    }
-
-                    const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
-                    for (let i = 0; i < parametersHidden.length; i++) {
-                        if (this.parameters[parametersHidden[i]])
-                            this.parameters[parametersHidden[i]]!.updateHidden(true);
-                        if (this.exports[parametersHidden[i]])
-                            this.exports[parametersHidden[i]]!.updateHidden(true);
+                    // only update the displayNames, order and hidden properties if the parameters / exports / outputs don't have these properties defined
+                    if(this.#useSessionSettings === true) {
+                        const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
+                        for (let k in controlNames) {
+                            if (this.parameters[k])
+                                this.parameters[k]!.updateDisplayName(controlNames[k]);
+                            if (this.exports[k])
+                                this.exports[k]!.updateDisplayName(controlNames[k]);
+                        }
+    
+                        const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
+                        for (let i = 0; i < controlOrder.length; i++) {
+                            if (this.parameters[controlOrder[i]])
+                                this.parameters[controlOrder[i]]!.updateOrder(i);
+                            if (this.exports[controlOrder[i]])
+                                this.exports[controlOrder[i]]!.updateOrder(i);
+                        }
+    
+                        const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
+                        for (let i = 0; i < parametersHidden.length; i++) {
+                            if (this.parameters[parametersHidden[i]])
+                                this.parameters[parametersHidden[i]]!.updateHidden(true);
+                            if (this.exports[parametersHidden[i]])
+                                this.exports[parametersHidden[i]]!.updateHidden(true);
+                        }
                     }
                 })
             }
@@ -440,7 +497,6 @@ export class Session {
      */
     public async init(): Promise<TreeNode> {
         try {
-            
             this.#performanceEvaluator.start();
             this.#performanceEvaluator.startSection('init');
 
@@ -455,6 +511,8 @@ export class Session {
 
             for (let p in this.#sessionEngine.parameters) {
                 const param = this.#sessionEngine.parameters[p];
+                if(param.displayname !== undefined || param.order !== undefined)
+                    this.#useSessionSettings = false;
                 switch (true) {
                     case param.type === PARAMETERTYPE.BOOL || param.type === PARAMETERTYPE.SBOOL:
                         this.parameters[p] = new Parameter<boolean>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
@@ -474,11 +532,17 @@ export class Session {
                 }
             }
 
-            for (let e in this.#sessionEngine.exports)
+            for (let e in this.#sessionEngine.exports) {
+                if(this.#sessionEngine.exports[e].displayname !== undefined || this.#sessionEngine.exports[e].order !== undefined)
+                    this.#useSessionSettings = false;
                 this.exports[e] = new Export(this.#sessionEngine, this.#sessionEngine.exports[e]);
+            }
 
-            for (let o in this.#sessionEngine.outputs)
+            for (let o in this.#sessionEngine.outputs) {
+                if(this.#sessionEngine.outputs[o].displayname !== undefined || this.#sessionEngine.outputs[o].order !== undefined)
+                    this.#useSessionSettings = false;
                 this.outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
+            }
 
             (<Tree>container.resolve(Tree)).addNode(this.node);
             this.node.excludeViewers = this.#excludeViewers;
@@ -530,6 +594,72 @@ export class Session {
         }
     }
 
+    
+    /**
+     * Save the session properties (displayname, order and hidden properties for parameters, exports and outputs).
+     * This only works when this session was created with an author ticket.
+     * 
+     * @returns 
+     */
+     public async saveSessionProperties() {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saving session properties.`);
+                    
+            // settings saving 
+            this.#saveSessionSettings();
+
+            let properties: {
+                [key: string]: {
+                    displayname: string,
+                    hidden: boolean,
+                    order: number
+                }
+            } = {};
+            for(let p in this.parameters) {
+                properties[p] = {
+                    displayname: this.parameters[p].displayName !== undefined ? this.parameters[p].displayName! : '',
+                    hidden: this.parameters[p].hidden !== undefined ? this.parameters[p].hidden : false,
+                    order: this.parameters[p].order !== undefined ? this.parameters[p].order! : 0,
+                };
+            }
+            const responseP = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveParameterProperties(properties) : true;
+
+            properties = {};
+            for(let e in this.exports) {
+                properties[e] = {
+                    displayname: this.exports[e].displayName !== undefined ? this.exports[e].displayName! : '',
+                    hidden: this.exports[e].hidden !== undefined ? this.exports[e].hidden : false,
+                    order: this.exports[e].order !== undefined ? this.exports[e].order! : 0,
+                };
+            }
+            const responseE = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveExportProperties(properties) : true;
+
+            properties = {};
+            for(let o in this.outputs) {
+                properties[o] = {
+                    displayname: this.outputs[o].displayName !== undefined ? this.outputs[o].displayName! : '',
+                    hidden: this.outputs[o].hidden !== undefined ? this.outputs[o].hidden : false,
+                    order: this.outputs[o].order !== undefined ? this.outputs[o].order! : 0,
+                };
+            }
+            const responseO = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveOutputProperties(properties) : true;
+
+            // save partial settings
+            const json = this.#settingsEngine.toJson();
+            const response = await this.#sessionEngine.saveSettings(json);
+
+            if (response && responseP && responseO && responseE) {
+                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saved session properties.`);
+            } else {
+                this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Session(${this.id}).saveSessionProperties: Could not save session properties.`));
+            }
+            return response && responseP && responseO && responseE;
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).saveSessionProperties: Something unexpected happened.`, true)
+        }
+    }
+
     /**
      * Save the settings that are currently used for this session.
      * If there is multiple viewers, the first one will be used for the settings.
@@ -543,33 +673,7 @@ export class Session {
             this.#settingsEngine.general.viewer.commitParameters.value = this.commitParameters;
             this.#settingsEngine.general.viewer.commitSettings.value = this.commitSettings;
 
-            const parameters = this.parameters;
-            const exports = this.exports;
-            const displayNames: { [key: string]: string } = {};
-            for (let p in parameters)
-                if (parameters[p].displayName)
-                    displayNames[p] = parameters[p].displayName!;
-            for (let e in exports)
-                if (exports[e].displayName)
-                    displayNames[e] = exports[e].displayName!;
-            this.#settingsEngine.general.parameters.controlNames.value = displayNames;
-
-            let ordered: (Parameter<any> | Export)[] = [];
-            for (let p in parameters) ordered.push(parameters[p]);
-            for (let e in exports) ordered.push(exports[e]);
-            ordered.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
-            let zeros = ordered.filter(x => x.order === 0);
-            ordered = ordered.filter((el) => { return !zeros.includes(el); });
-            ordered = zeros.concat(ordered);
-            this.#settingsEngine.general.parameters.controlOrder.value = ordered.map((value) => { return value.id; });
-
-            const hidden: string[] = [];
-            for (let p in parameters)
-                if (parameters[p].hidden) hidden.push(p);
-            for (let e in exports)
-                if (exports[e].hidden) hidden.push(e);
-            this.#settingsEngine.general.parameters.parametersHidden.value = hidden;
-
+            this.#saveSessionSettings();
             this.#settingsEngine.general.build_version.value = build_data.build_version;
             this.#settingsEngine.general.build_date.value = build_data.build_date;
             this.#settingsEngine.general.settings_version.value = '2.0';

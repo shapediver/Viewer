@@ -4,11 +4,11 @@ import { SettingsEngine, StateEngine, SystemInfo } from '@shapediver/viewer.shar
 import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 import { AxiosResponse } from 'axios'
 import {
-  ShapeDiverResponseBase,
-  ShapeDiverResponseExport,
-  ShapeDiverResponseExportDefinitionType,
-  ShapeDiverResponseOutput,
-  ShapeDiverResponseParameter,
+    ShapeDiverResponseBase,
+    ShapeDiverResponseExport,
+    ShapeDiverResponseExportDefinitionType,
+    ShapeDiverResponseOutput,
+    ShapeDiverResponseParameter,
 } from '@shapediver/api.geometry-api-dto-v1'
 
 import { OutputDelayException } from './OutputDelayException'
@@ -27,7 +27,6 @@ export class Session implements ISession {
     private readonly _modelViewUrl: string;
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: ShapeDiverResponseOutput; } = {};
-    private readonly _outputsCreated: { [key: string]: ShapeDiverResponseOutput; } = {};
     private readonly _parameters: { [key: string]: ShapeDiverResponseParameter; } = {};
     private readonly _parameterValues: { [key: string]: string; } = {};
     private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
@@ -87,7 +86,7 @@ export class Session implements ISession {
     public set authorTicket(value: boolean | undefined) {
         this._authorTicket = value;
         this._updateCBs.forEach(v => v());
-}
+    }
 
     /**
      * Getter bearerToken
@@ -191,7 +190,7 @@ export class Session implements ISession {
             } catch (e) {
                 if (e.response && e.response.status) {
                     this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.close: Session closing failed.`, e.response.status, false)
-                  } else {
+                } else {
                     this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.close: Session closing failed.`, false)
                 }
                 return false;
@@ -227,7 +226,7 @@ export class Session implements ISession {
                 this._performanceEvaluator.startSection('sessionResponse');
                 sessionResponse = <ShapeDiverResponseBase>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
                 this._performanceEvaluator.endSection('sessionResponse');
-            } catch (e) {                
+            } catch (e) {
                 if (e.response && e.response.status) {
                     this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.init: Session init failed.`, e.response.status, false)
                 } else {
@@ -315,7 +314,7 @@ export class Session implements ISession {
 
         if (parameters) {
             for (let parameterId in r1.parameters) {
-                if(parameters[parameterId]) continue;
+                if (parameters[parameterId]) continue;
                 parameters[parameterId] = r1.parameters[parameterId];
                 parameters[parameterId].id = parameterId;
             }
@@ -323,7 +322,7 @@ export class Session implements ISession {
 
         if (exports) {
             for (let exportId in r1.exports)
-                if(r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.EMAIL || r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.DOWNLOAD) {
+                if (r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.EMAIL || r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.DOWNLOAD) {
                     exports[exportId] = r1.exports[exportId];
                     exports[exportId].id = exportId;
                 }
@@ -347,11 +346,101 @@ export class Session implements ISession {
         try {
             await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].method!, this._parameterValues, 'application/json');
             return true;
-        } catch (e) {                
+        } catch (e) {
             if (e.response && e.response.status) {
                 this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveDefaultParameters: Saving of default parameters failed.`, e.response.status, false)
             } else {
                 this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveDefaultParameters: Saving of default parameters failed.`, false)
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Save the parameter properties for displayname, order and hidden
+     * 
+     * @param parameters 
+     * @returns 
+     */
+    public async saveParameterProperties(parameters: {
+        [key: string]: {
+            displayname: string,
+            hidden: boolean,
+            order: number
+        }
+    }): Promise<boolean> {
+        if (!this._sessionResponse.actions?.filter(v => v.name === 'parameter-definition')[0]) {
+            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.saveParameterProperties: Session has to be in edit mode to be able to save parameter properties.'));
+            return false;
+        }
+        try {
+            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'parameter-definition')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'parameter-definition')[0].method!, parameters, 'application/json');
+            return true;
+        } catch (e) {
+            if (e.response && e.response.status) {
+                this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveParameterProperties: Saving of parameter properties failed.`, e.response.status, false)
+            } else {
+                this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveParameterProperties: Saving of parameter properties failed.`, false)
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Save the export properties for displayname, order and hidden
+     * 
+     * @param exports 
+     * @returns 
+     */
+    public async saveExportProperties(exports: {
+        [key: string]: {
+            displayname: string,
+            hidden: boolean,
+            order: number
+        }
+    }): Promise<boolean> {
+        if (!this._sessionResponse.actions?.filter(v => v.name === 'export-definition')[0]) {
+            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.saveExportProperties: Session has to be in edit mode to be able to save export properties.'));
+            return false;
+        }
+        try {
+            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'export-definition')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'export-definition')[0].method!, exports, 'application/json');
+            return true;
+        } catch (e) {
+            if (e.response && e.response.status) {
+                this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveExportProperties: Saving of export properties failed.`, e.response.status, false)
+            } else {
+                this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveExportProperties: Saving of export properties failed.`, false)
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Save the output properties for displayname, order and hidden
+     * 
+     * @param outputs 
+     * @returns 
+     */
+    public async saveOutputProperties(outputs: {
+        [key: string]: {
+            displayname: string,
+            hidden: boolean,
+            order: number
+        }
+    }): Promise<boolean> {
+        if (!this._sessionResponse.actions?.filter(v => v.name === 'output-definition')[0]) {
+            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.saveOutputProperties: Session has to be in edit mode to be able to save output properties.'));
+            return false;
+        }
+        try {
+            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'output-definition')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'output-definition')[0].method!, outputs, 'application/json');
+            return true;
+        } catch (e) {
+            if (e.response && e.response.status) {
+                this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveOutputProperties: Saving of output properties failed.`, e.response.status, false)
+            } else {
+                this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveOutputProperties: Saving of output properties failed.`, false)
             }
             return false;
         }
@@ -375,12 +464,12 @@ export class Session implements ISession {
         }
     }
 
-    public async sessionCommunication(href: string, method: string | 'post' | 'get', data: any, contentType?: string): Promise<AxiosResponse<any>> {
+    public async sessionCommunication(href: string, method: string | 'post' | 'get' | 'patch', data: any, contentType?: string): Promise<AxiosResponse<any>> {
         let headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
         if (contentType) headers = Object.assign({ "Content-Type": contentType }, this._headers);
 
         method = method.toLowerCase();
-        if (method !== 'post' && method !== 'get') throw this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session: Method ' + method + ' not recognized.'));
+        if (method !== 'post' && method !== 'get' && method !== 'patch') throw this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session: Method ' + method + ' not recognized.'));
         try {
             return await this._httpClient[method](href, { data, headers });
         } catch (e) {
@@ -456,7 +545,7 @@ export class Session implements ISession {
      * @returns promise with a scene graph node
      */
     private async loadOutputs(parameters: { [key: string]: string }, cancelRequest: () => boolean = () => false): Promise<SessionTreeNode> {
-        const o = Object.assign({}, this._outputs, this._outputsCreated);
+        const o = Object.assign({}, this._outputs);
         try {
             const node = await this._outputLoader.loadOutputs(this._sessionResponse, o);
             node.data.push(new SessionData(this._sessionResponse));

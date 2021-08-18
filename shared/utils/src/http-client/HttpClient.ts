@@ -23,4 +23,8 @@ export class HttpClient {
     public async put(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
         return axios(url, Object.assign({method: 'put'}, config));
     };
+
+    public async patch(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
+        return axios(url, Object.assign({method: 'patch'}, config));
+    };
 }
