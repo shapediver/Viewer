@@ -206,8 +206,8 @@ export class Session implements ISession {
      * @param parameters the parameter set to update the session
      * @returns promise with a scene graph node
      */
-    public async customize(): Promise<SessionTreeNode> {
-        return this.customizeSession(this._parameterValues);
+    public async customize(cancelRequest: () => boolean): Promise<SessionTreeNode> {
+        return this.customizeSession(this._parameterValues, cancelRequest);
     }
 
     /**
@@ -408,7 +408,7 @@ export class Session implements ISession {
 
     // #region Private Methods (3)
 
-    private async customizeSession(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean): Promise<SessionTreeNode> {
         if (this._initialized === false) {
             this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.customizeSession: Session not initialized.'));
             return new SessionTreeNode();
@@ -419,6 +419,7 @@ export class Session implements ISession {
                 this._performanceEvaluator.startSection('sessionResponse');
                 responseCustomize = <ShapeDiverResponseBase>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
                 this._performanceEvaluator.endSection('sessionResponse');
+                if(cancelRequest()) return new SessionTreeNode();
             } catch (e) {
                 if (e.response && e.response.status) {
                     if (e.response && e.response.status && e.response.status === 410 && !this._closed) {
@@ -426,7 +427,8 @@ export class Session implements ISession {
                         this._initialized = false;
                         this._updateCBs.forEach(v => v());
                         await this.init();
-                        return this.customizeSession(parameters);
+                        if(cancelRequest()) return new SessionTreeNode();
+                        return this.customizeSession(parameters, cancelRequest);
                     }
                 }
 
@@ -438,7 +440,7 @@ export class Session implements ISession {
                 return new SessionTreeNode();
             }
             this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);
-            return this.loadOutputs(parameters);
+            return this.loadOutputs(parameters, cancelRequest);
         } catch (e) {
             this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), 'Session.customizeSession: Something went wrong at session customization.');
             return new SessionTreeNode();
@@ -453,7 +455,7 @@ export class Session implements ISession {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    private async loadOutputs(parameters: { [key: string]: string }): Promise<SessionTreeNode> {
+    private async loadOutputs(parameters: { [key: string]: string }, cancelRequest: () => boolean = () => false): Promise<SessionTreeNode> {
         const o = Object.assign({}, this._outputs, this._outputsCreated);
         try {
             const node = await this._outputLoader.loadOutputs(this._sessionResponse, o);
@@ -464,13 +466,15 @@ export class Session implements ISession {
             if (e instanceof OutputDelayException)
                 await this.timeout(e.delay);
 
+            if(cancelRequest()) return new SessionTreeNode();
             let outputMapping: { [key: string]: string } = {};
             for (let output in o)
                 outputMapping[output] = o[output].version;
 
             let responseCache = (await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].method!.toLowerCase()!, outputMapping, 'application/json')).data;
+            if(cancelRequest()) return new SessionTreeNode();
             this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCache, this._parameters, this._outputs, this._exports);
-            return await this.loadOutputs(parameters);
+            return await this.loadOutputs(parameters, cancelRequest);
         }
     }
 

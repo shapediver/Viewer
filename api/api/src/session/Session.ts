@@ -1,7 +1,7 @@
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ISession, Session as SessionEngine } from '@shapediver/viewer.session-engine.session-engine'
 import { container, injectable } from 'tsyringe'
-import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, PerformanceEvaluator, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { EventEngine, EVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { InputValidator } from '@shapediver/viewer.shared.utils'
 import { RenderingEngine } from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
@@ -28,6 +28,7 @@ export class Session {
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     readonly #updateCB = () => {
         (<any>this.authorTicket) = this.#sessionEngine.authorTicket;
         (<any>this.bearerToken) = this.#sessionEngine.bearerToken;
@@ -49,6 +50,7 @@ export class Session {
     readonly primarySessionRequest: boolean = false;
     readonly ticket: string;
 
+    #customizationProcess!: string;
     #excludeViewers: string[] = [];
 
     // #endregion Properties (23)
@@ -161,25 +163,49 @@ export class Session {
      */
     public async customize(): Promise<TreeNode> {
         try {
+            const customizationID = this.#uuidGenerator.create();
+            this.#customizationProcess = customizationID;
+
             this.#performanceEvaluator.start();
             this.#performanceEvaluator.startSection('init');
 
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customizing session.`);
-            const blurValues: { [key: string]: boolean } = {};
-            for (let viewerId in this.#api.viewers) {
-                blurValues[viewerId] = this.#api.viewers[viewerId].blur;
-                this.#api.viewers[viewerId].updateBlur(true);
-            }
 
-            (<Tree>container.resolve(Tree)).removeNode(this.node);
+            for (let viewerId in this.#api.viewers) 
+                if(this.#api.viewers[viewerId].blurSceneWhenBusy)
+                    this.#api.viewers[viewerId].registerBusyMode(customizationID);
 
+            const fileParameterIds: { [key: string]: string } = {}
             // load file parameter first
             for (const parameterId in this.parameters) {
                 if (this.parameters[parameterId] instanceof FileParameter) {
-                    const id = await (<FileParameter>this.parameters[parameterId]).upload();
-                    this.parameters[parameterId].updateValue(id);
+                    fileParameterIds[parameterId] = await (<FileParameter>this.parameters[parameterId]).upload();
+                                
+                    // OPTION TO SKIP - PART 1a
+                    if(this.#customizationProcess !== customizationID) {
+                        this.#performanceEvaluator.endSection('init');
+                        this.#performanceEvaluator.end();
+                        for (let viewerId in this.#api.viewers) 
+                            this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+                        this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                        return new TreeNode();
+                    }
                 }
             }
+
+            // OPTION TO SKIP - PART 1b
+            if(this.#customizationProcess !== customizationID) {
+                this.#performanceEvaluator.endSection('init');
+                this.#performanceEvaluator.end();
+                for (let viewerId in this.#api.viewers) 
+                    this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                return new TreeNode();
+            }
+
+            // assign the uploaded parameters
+            for (const parameterId in fileParameterIds) 
+                this.parameters[parameterId].updateValue(fileParameterIds[parameterId]);
 
             const parameterSet: {
                 [key: string]: {
@@ -203,24 +229,39 @@ export class Session {
 
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('customize');
-
-            (<any>this.node) = await this.#sessionEngine.customize();
-            
+            const node = await this.#sessionEngine.customize(() => this.#customizationProcess !== customizationID);
             this.#performanceEvaluator.endSection('customize');
-            this.#performanceEvaluator.startSection('finish');
 
+            // OPTION TO SKIP - PART 2
+            if(this.#customizationProcess !== customizationID) {
+                this.#performanceEvaluator.end();
+                for (let viewerId in this.#api.viewers) 
+                    this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                return node;
+            }
+
+            this.#performanceEvaluator.startSection('finish');
+            (<Tree>container.resolve(Tree)).removeNode(this.node);
+            (<any>this.node) = node;
+            (<Tree>container.resolve(Tree)).addNode(this.node);
+            
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
             // set the session values to the current ones in all parameters
             for (const parameterId in this.parameters)
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
-            (<Tree>container.resolve(Tree)).addNode(this.node);
+            
             this.node.excludeViewers = this.#excludeViewers;
-            for (let viewerId in this.#api.viewers)
-                this.#api.viewers[viewerId].updateBlur(blurValues[viewerId]);
+
+            for (let viewerId in this.#api.viewers) 
+                this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+            
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
+            
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
+
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
             return this.node;
         } catch (e) {

@@ -384,7 +384,7 @@ export class RenderingManager implements IManager {
 
         // If the scene should be blurred
         let blurScene = false;
-        if (this._renderingEngine.blurSceneWhenBusy && this._renderingEngine.blur)
+        if ((this._renderingEngine.blurSceneWhenBusy && this._renderingEngine.busy) || this._renderingEngine.blur)
             blurScene = true;
 
         // If we should render in beauty mode
@@ -423,14 +423,12 @@ export class RenderingManager implements IManager {
     }
 
     private toggleBlur(toggle: boolean) {
-        if (toggle && !this._currentlyBlurred) {
+        if (toggle) {
             if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
                 return;
             this._renderingEngine.renderer.domElement.style.filter = 'blur(3px)';
-            this._currentlyBlurred = true;
-        } else if (!this._renderingEngine.blur && this._currentlyBlurred) {
+        } else {
             this._renderingEngine.renderer.domElement.style.filter = '';
-            this._currentlyBlurred = false;
         }
     }
 

@@ -17,7 +17,7 @@ export interface ISession {
     exports: { [key: string]: ShapeDiverResponseExport };
     outputs: { [key: string]: ShapeDiverResponseOutput };
 
-    customize(): Promise<TreeNode>;
+    customize(cancelRequest: () => boolean): Promise<TreeNode>;
     init(): Promise<TreeNode>;
 
     refreshBearerToken: () => string;
