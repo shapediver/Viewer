@@ -41,7 +41,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
       if (outputDef.uid !== undefined) this.uid = outputDef.uid;
       if (outputDef.material !== undefined) this.material = outputDef.material;
       if (outputDef.chunks !== undefined) this.chunks = outputDef.chunks;
-      
+
       if (outputDef.displayname !== undefined) this.displayName = outputDef.displayname;
       if (outputDef.order !== undefined) this.order = outputDef.order;
       if (outputDef.hidden !== undefined) this.hidden = outputDef.hidden;
@@ -50,6 +50,42 @@ export class Output implements ShapeDiverResponseOutputDefinition {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${outputDef.id}).constructor: Something unexpected happened.`, true)
+    }
+  }
+
+  public updateDisplayName(value: string | undefined) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateDisplayName: Updating DisplayName to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateDisplayName`, value, 'string', false);
+      (<any>this.displayName) = value;
+      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateDisplayName: DisplayName was updated to ${this.displayName}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${this.id}).updateDisplayName: Something unexpected happened.`, true)
+    }
+  }
+
+  public updateHidden(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateHidden: Updating Hidden to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateHidden`, value, 'boolean');
+      (<any>this.hidden) = value;
+      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateHidden: Hidden was updated to ${this.hidden}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${this.id}).updateHidden: Something unexpected happened.`, true)
+    }
+  }
+
+  public updateOrder(value: number | undefined) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateOrder: Updating Order to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateOrder`, value, 'number', false);
+      (<any>this.order) = value;
+      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateOrder: Order was updated to ${this.order}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${this.id}).updateOrder: Something unexpected happened.`, true)
     }
   }
 
