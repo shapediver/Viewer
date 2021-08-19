@@ -111,15 +111,16 @@ export class PerspectiveCamera extends AbstractCamera {
 
     if(box.isEmpty()) return { position: vec3.create(), target: vec3.create() }
 
+    const samePosition = this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2];
     let target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
 
     // if the camera position and the target are the same, we set a corner position
     if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])
-      this.position = vec3.fromValues(0, -7.5, target[2]+5);
+      this.position = vec3.fromValues(target[0], target[1]-7.5, target[2]+5);
 
     // extend box by the factor
     const boxDir = vec3.subtract(vec3.create(), box.max, target)
-    vec3.multiply(boxDir, boxDir, vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
+    vec3.multiply(boxDir, boxDir, samePosition ? vec3.fromValues(2, 2, 2) : vec3.fromValues(this.zoomExtentsFactor, this.zoomExtentsFactor, this.zoomExtentsFactor));
     box = new Box(vec3.subtract(vec3.create(), target, boxDir), vec3.add(vec3.create(), target, boxDir))
 
     const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), target, this.position));
