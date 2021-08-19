@@ -150,7 +150,7 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
     a.appendChild(document.createTextNode('Shelf'));
 
     const title = 'Michael Oppitz is the AR-God!';
-    const file = 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/Shelf/shelfScaled.glb';
+    const file = 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/Shelf/shelfScaled';
     const mode: '3d_preferred' | '3d_only' | 'ar_preferred' | 'ar_only' = 'ar_only';
     const resizable = false;
     const browser_fallback_url = 'https://shapediver.com/';
