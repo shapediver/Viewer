@@ -101,9 +101,9 @@ export class Session {
 
         const hidden: string[] = [];
         for (let p in parameters)
-            if (parameters[p].hidden !== undefined) hidden.push(p);
+            if (parameters[p].hidden !== undefined && parameters[p].hidden === true) hidden.push(p);
         for (let e in exports)
-            if (exports[e].hidden !== undefined) hidden.push(e);
+            if (exports[e].hidden !== undefined && exports[e].hidden === true) hidden.push(e);
         this.#settingsEngine.general.parameters.parametersHidden.value = hidden;
     }
 
