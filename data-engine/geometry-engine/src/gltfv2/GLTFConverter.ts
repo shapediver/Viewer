@@ -78,6 +78,8 @@ export class GLTFConverter {
         }
     } = {};
 
+    private _promises: Promise<any>[] = [];
+
     // #endregion Properties (17)
 
     // #region Public Methods (1)
@@ -89,12 +91,12 @@ export class GLTFConverter {
 
         if (node.children.length > 0) sceneDef.nodes = [];
         for (let i = 0; i < node.children.length; i++) {
-            const nodeId = this.convertNode(node.children[i]);
-            this._content.nodes![nodeId].matrix = [this._globalTransformationInverse[0], this._globalTransformationInverse[1], this._globalTransformationInverse[2], this._globalTransformationInverse[3],
-            this._globalTransformationInverse[4], this._globalTransformationInverse[5], this._globalTransformationInverse[6], this._globalTransformationInverse[7],
-            this._globalTransformationInverse[8], this._globalTransformationInverse[9], this._globalTransformationInverse[10], this._globalTransformationInverse[11],
-            this._globalTransformationInverse[12], this._globalTransformationInverse[13], this._globalTransformationInverse[14], this._globalTransformationInverse[15]];
-            sceneDef.nodes?.push(nodeId);
+            node.children[i].transformations.push({
+                id: '',
+                name: '',
+                matrix: this._globalTransformationInverse,
+            })
+            sceneDef.nodes?.push(this.convertNode(node.children[i]));
         }
         this._content.scenes = [];
         this._content.scenes.push(sceneDef);
@@ -105,6 +107,7 @@ export class GLTFConverter {
         const extensionsRequiredList = Object.keys(this._extensionsRequired);
         if (extensionsRequiredList.length > 0) this._content.extensionsRequired = extensionsRequiredList;
 
+        await Promise.all(this._promises);
         // Merge buffers.
         const blob = new Blob(this._buffers, { type: 'application/octet-stream' });
 
@@ -257,12 +260,69 @@ export class GLTFConverter {
         return this._content.bufferViews.length - 1;
     }
 
+    private async convertBufferViewImage(blob: Blob): Promise<number> {
+        if (!this._content.bufferViews) this._content.bufferViews = [];
+        return new Promise((resolve) => {
+            const reader = new window.FileReader();
+            reader.readAsArrayBuffer(blob);
+            reader.onloadend = () => {
+                const buffer = this.getPaddedArrayBuffer(<ArrayBuffer>reader.result);
+                const bufferViewDef = {
+                    buffer: this.convertBuffer(buffer),
+                    byteOffset: this._byteOffset,
+                    byteLength: buffer.byteLength
+                };
+                this._byteOffset += buffer.byteLength;
+                this._content.bufferViews!.push(bufferViewDef);
+                resolve(this._content.bufferViews!.length - 1);
+            };
+        });
+    }
+
     private convertImage(data: MapData): number {
         if (!this._content.images) this._content.images = [];
         if (this._imageCache[data.image.src]) return this._imageCache[data.image.src];
-        const imageDef: IGLTF_v2_Image = {
-            uri: data.image.src
-        };
+        const imageDef: IGLTF_v2_Image = {};
+        const canvas = document.createElement('canvas');
+
+        canvas.width = data.image.width;
+        canvas.height = data.image.height;
+
+        const ctx: CanvasRenderingContext2D = canvas.getContext('2d')!;
+        if (data.flipY === true) {
+            ctx.translate(0, canvas.height);
+            ctx.scale(1, - 1);
+        }
+
+        let mimeType = 'image/png';
+        if(data.image.src.endsWith('.jpg') || data.image.src.includes('image/jpeg'))
+            mimeType = 'image/jpeg';
+
+        const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
+        if(DATA_URI_REGEX.test(data.image.src)) {
+            const byteString = atob(data.image.src.split(',')[1]);
+            const mimeType = data.image.src.split(',')[0].split(':')[1].split(';')[0]
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++)
+                ia[i] = byteString.charCodeAt(i);
+            const blob = new Blob([ab], {type: mimeType});
+            this._promises.push(new Promise<void>(async (resolve) => {
+                const bufferViewIndex = await this.convertBufferViewImage(blob!);
+                imageDef.bufferView = bufferViewIndex;
+                resolve();
+            }));      
+        } else {
+            ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
+            this._promises.push(new Promise<void>((resolve) => {
+                canvas.toBlob(async (blob) => {
+                    const bufferViewIndex = await this.convertBufferViewImage(blob!);
+                    imageDef.bufferView = bufferViewIndex;
+                    resolve();
+                }, mimeType);
+            }));
+        }
+
         this._content.images.push(imageDef);
         this._imageCache[data.image.src] = this._content.images.length - 1;
         return this._content.images.length - 1;

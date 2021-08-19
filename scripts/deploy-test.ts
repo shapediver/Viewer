@@ -21,6 +21,7 @@ const execPromise = (cmd: string) => {
         console.log(await execPromise('cd examples/gltf && npm run build-prod && cd ../..'));
         console.log(await execPromise('cd examples/multiple && npm run build-prod && cd ../..'));
         console.log(await execPromise('cd examples/performance && npm run build-prod && cd ../..'));
+        console.log(await execPromise('cd examples/ar && npm run build-prod && cd ../..'));
 
         const bucketName = 'shapediverviewer';
         const prefixLatest = 'v3/latest/';
@@ -74,6 +75,20 @@ const execPromise = (cmd: string) => {
             s3.putObject({
                 Bucket: bucketName,
                 Key: prefixLatest + 'performance/' + f.substring(directoryPathPerformance.length, f.length).replace(/\\/g, '/'),
+                Body: pako.gzip(fs.readFileSync(f)),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        const directoryPathAr = 'examples/ar/dist-prod/';
+        const fileContentsAr = <string[]>recursiveReadSync(directoryPathAr);
+        fileContentsAr.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefixLatest + 'ar/' + f.substring(directoryPathAr.length, f.length).replace(/\\/g, '/'),
                 Body: pako.gzip(fs.readFileSync(f)),
                 ACL: 'public-read',
                 ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',

@@ -17,6 +17,10 @@ export class SDObject extends THREE.Object3D implements ISDObject {
     
     public applyTransformation(transformation: mat4): void {
         this.matrix.identity();
+        this.matrixWorld.identity();
+        this.position.set(0,0,0)
+        this.scale.set(1,1,1)
+        this.quaternion.set(0,0,0,1)
         this.applyMatrix4(new THREE.Matrix4().fromArray(transformation));
     }
 
