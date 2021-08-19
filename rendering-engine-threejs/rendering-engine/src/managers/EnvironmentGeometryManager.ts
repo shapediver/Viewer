@@ -19,6 +19,8 @@ export class EnvironmentGeometryManager implements IManager {
     private _groundPlane!: THREE.Mesh;
     private _groundPlaneObject!: SDObject;
 
+    private _initialized: boolean = false;
+
     // #endregion Properties (5)
 
     // #region Constructors (1)
@@ -27,12 +29,18 @@ export class EnvironmentGeometryManager implements IManager {
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
             const viewerEvent = <IViewerEvent>e;
             if(viewerEvent.viewerId !== this._renderingEngine.id) return;
-
             const bb = new Box(viewerEvent.boundingBox?.min, viewerEvent.boundingBox?.max);
-            let eps = 0.005;
-            let bs = bb.boundingSphere;
-            if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-            if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+
+            if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
+
+            if(!this._initialized) {
+                this.changeSceneExtents(bb)
+            } else {
+                let eps = 0.005;
+                let bs = bb.boundingSphere;
+                if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+                if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+            }
         })
     }
 
@@ -71,9 +79,9 @@ export class EnvironmentGeometryManager implements IManager {
     }
 
     public changeSceneExtents(bb: Box) {
-        if  (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty())
-            bb = new Box(vec3.fromValues(-10, -10, -10), vec3.fromValues(10, 10, 10));
+        if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
 
+        this._initialized = true;
         let sceneExtents = vec3.distance(bb.min, bb.max);
 
         /**

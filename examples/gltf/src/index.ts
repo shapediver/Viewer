@@ -46,11 +46,21 @@ let currentNode: TreeNode;
 
 (async () => {
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png' });
-    viewer.updateAmbientOcclusion(false);
-    viewer.updateGroundPlaneVisibility(false);
-    viewer.updateEnvironmentMap(ENVIRONMENTMAP.CANNON_EXTERIOR);
-    viewer.updateGridVisibility(false);
-    viewer.updateClearColor('rgb(3, 5, 49)')
+    viewer.createLightScene()
+    viewer.addAmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'});
+    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'});
+    viewer.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'});
+    viewer.updateEnvironmentMap('none')
+    viewer.updateRenderingSettings({
+        physicallyCorrectLights: false, // should be set to true (out old default was false, but this should definitely change) (old default: false)
+        envMapIntensity: 1, // change the intensity of the environment Map (old default: 1)
+        envMapIntensityGroundPlane: 1, // change the intensity of the environment Map for the groundPlane (old default: 1)
+        groundPlaneColor: '#D3D3D3', // change the color of the ground plane (old default: '#D3D3D3')
+        toneMapping: 0, // Use a different tone mapping (0: none, 1: linear, 2: reinhard, 3: cineon, 4: ACESFilmic) (old default: 0)
+        toneMappingExposure: 1, // change the exposure of the tone mapping (old default: 1)
+        textureEncoding: 3000, // change the encoding of the textures in the scene (3000: linear, 3001: sRGB) (old default: 3000)
+        outputEncoding: 3000, // change the encoding of the textures in the scene (3000: linear, 3001: sRGB) (old default: 3000)
+    })
 })();
 
 

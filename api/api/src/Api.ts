@@ -1,6 +1,7 @@
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { EventEngine, EVENTTYPE, IEvent, ISessionEvent, MAINEVENTTYPE, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import { InputValidator, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
@@ -16,6 +17,7 @@ export class Api {
   // #region Properties (13)
 
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+  readonly #geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
@@ -394,6 +396,25 @@ export class Api {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.getViewer: Getting viewer with id ${id}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.getViewer', id, 'string');
       return this.viewers[id];
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.getViewer: Something unexpected happened.`, true)
+    }
+  }
+
+  public async convertSceneToGLTF(name: string): Promise<void> {
+    try {
+      const result = await this.#geometryEngine.convertSceneToGLTF(this.sceneTree.root);
+      
+      
+      const link = document.createElement( 'a' );
+      link.style.display = 'none';
+      document.body.appendChild( link );
+      const blob = new Blob( [ result ], { type: 'application/octet-stream' } );	       
+      link.href = URL.createObjectURL( blob );
+      link.download = 'test.glb';
+      link.click();
+
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.getViewer: Something unexpected happened.`, true)

@@ -84,7 +84,7 @@ export class SDGTFLoader {
         const itemBytes = elementBytes * itemSize;
         const byteOffset = accessor.byteOffset || 0;
 
-        return new AttributeData(new ArrayType(bufferView, byteOffset, itemSize * accessor.count), itemSize, itemBytes, byteOffset, elementBytes, false);
+        return new AttributeData(new ArrayType(bufferView, byteOffset, itemSize * accessor.count), itemSize, itemBytes, byteOffset, elementBytes, false, accessor.count);
     }
 
     private async loadArcs(): Promise<TreeNode> {
@@ -139,7 +139,7 @@ export class SDGTFLoader {
             const attributes: {
                 [key: string]: AttributeData
             } = {};
-            attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false)
+            attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false, array.length / 3)
 
             const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null, new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
             singleArcNode.data.push(geometry);
@@ -268,7 +268,7 @@ export class SDGTFLoader {
         const attributes: {
             [key: string]: AttributeData
         } = {};
-        attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false)
+        attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false, array.length / 3)
 
         const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null, new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
         beziercurveNode.data.push(geometry);
@@ -322,7 +322,7 @@ export class SDGTFLoader {
             const attributes: {
                 [key: string]: AttributeData
             } = {};
-            attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false)
+            attributes['POSITION'] = new AttributeData(array, 3, 0, 0, 0, false, array.length / 3)
 
             const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null, new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
             singleCircleNode.data.push(geometry);
@@ -454,11 +454,11 @@ export class SDGTFLoader {
             const attributes: {
                 [key: string]: AttributeData
             } = {};
-            attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false)
-            attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false)
-            attributes['TEXCOORD'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false)
+            attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false, vertices.length / 3)
+            attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false, normals.length / 3)
+            attributes['TEXCOORD'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
+            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
             singleCylinderNode.data.push(geometry);
 
             singleCylinderNode.transformations.push({
@@ -576,11 +576,11 @@ export class SDGTFLoader {
             const attributes: {
                 [key: string]: AttributeData
             } = {};
-            attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false)
-            attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false)
-            attributes['TEXCOORD'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false)
+            attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false, vertices.length / 3)
+            attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false, normals.length / 3)
+            attributes['TEXCOORD'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
+            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
             singleSphereNode.data.push(geometry);
 
             singleSphereNode.transformations.push({
@@ -604,7 +604,7 @@ export class SDGTFLoader {
         } = {};
 
         const data = await this.loadAccessor(point.attributes['POINTS']);
-        attributes['POSITION'] = new AttributeData(data.array, 3, data.itemBytes, data.byteOffset, data.elementBytes, data.normalized)
+        attributes['POSITION'] = new AttributeData(data.array, 3, data.itemBytes, data.byteOffset, data.elementBytes, data.normalized, data.count)
 
         const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.POINTS, null, new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
         pointNode.data.push(geometry);
@@ -622,7 +622,7 @@ export class SDGTFLoader {
         } = {};
 
         const data = await this.loadAccessor(polyLine.attributes['VERTICES']);
-        attributes['POSITION'] = new AttributeData(data.array, 3, data.itemBytes, data.byteOffset, data.elementBytes, data.normalized)
+        attributes['POSITION'] = new AttributeData(data.array, 3, data.itemBytes, data.byteOffset, data.elementBytes, data.normalized, data.count)
 
         const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null, new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
         polyLineNode.data.push(geometry);
@@ -776,12 +776,12 @@ export class SDGTFLoader {
         const attributes: {
             [key: string]: AttributeData
         } = {};
-        attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false);
+        attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false, vertices.length / 3);
         // to not compute normals ourselves, we just let three.js do it
         // in our geometry loader, this array will cause the computation of vertex normals
-        attributes['NORMAL'] = new AttributeData(new Float32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 3, 0, 0, 0, false);
+        attributes['NORMAL'] = new AttributeData(new Float32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 3, 0, 0, 0, false, vertices.length / 3);
         
-        const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
+        const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
         surfacepatchNode.data.push(geometry);
 
         return surfacepatchNode;

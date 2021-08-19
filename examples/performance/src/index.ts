@@ -82,8 +82,6 @@ const createChart = (canvasId: string) => {
     if(charts[canvasId]) charts[canvasId].destroy();
     const performanceEvaluation = performanceEvaluator.getEvaluation();
     const sections = performanceEvaluation?.section!;
-    console.log(performanceEvaluation)
-
 
     Chart.register(...registerables);
     var ctx = <CanvasRenderingContext2D>(<HTMLCanvasElement>document.getElementById(canvasId)).getContext('2d');

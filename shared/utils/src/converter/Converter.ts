@@ -1,6 +1,7 @@
 import { vec3, vec4 } from 'gl-matrix'
 import { TinyColor } from '@ctrl/tinycolor'
 import { singleton } from 'tsyringe'
+import { SDError } from '../logger/SDError';
 
 @singleton()
 export class Converter {
@@ -8,17 +9,147 @@ export class Converter {
     private tinyColorToString(color: TinyColor): string {
         return color.toHexString();
     }
-    
+
     /**
      * @param color 
      * @param defColor 
      */
-     public toHex8Color(color: any, defColorString: string = '#00fff7'): string {
+    public toHex8Color(color: any, defColorString: string = '#00fff7'): string {
         const c = this.toColor(color, defColorString);
         const tColor = new TinyColor(c);
         const cH8 = tColor.toHex8String();
         return cH8.replace('#', '0x');
     }
+
+    public toColorArray(color: string): number[] {
+        const tColor = new TinyColor(color);
+        const rgb = tColor.toRgb()
+        return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
+    }
+
+
+    public combineImages(redChannel?: HTMLImageElement, greenChannel?: HTMLImageElement, blueChannel?: HTMLImageElement): HTMLImageElement {
+        if (!redChannel && !greenChannel && !blueChannel) throw new SDError('No channels provided.');
+
+        if (redChannel && greenChannel && blueChannel) {
+            if (redChannel.width !== greenChannel.width || redChannel.width !== blueChannel.width || redChannel.height !== greenChannel.height || redChannel.height !== blueChannel.height) throw new SDError('Image sizes are different.');
+
+            const image: HTMLImageElement = redChannel;
+            const canvas = document.createElement("canvas");
+            canvas.width = image.width;
+            canvas.height = image.height;
+
+            // Copy the image contents to the canvas
+            const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
+            ctx.drawImage(image, 0, 0);
+
+            const imageDataR = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(greenChannel, 0, 0);
+            const imageDataG = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(blueChannel, 0, 0);
+            const imageDataB = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < imageDataR.data.length; i += 4) {
+                // G
+                imageDataR.data[i + 1] = imageDataG.data[i + 1];
+                // B
+                imageDataR.data[i + 2] = imageDataB.data[i + 2];
+            }
+            // put the altered data back on the canvas  
+            ctx.putImageData(imageDataR, 0, 0);
+
+            const resultImage = document.createElement('img');
+            resultImage.src = canvas.toDataURL();
+            return resultImage;
+        } else if (redChannel && blueChannel || redChannel && greenChannel || blueChannel && greenChannel) {
+
+            let mainImage, secondImage;
+            if (!greenChannel) {
+                mainImage = redChannel;
+                secondImage = blueChannel;
+            } else if (!blueChannel) {
+                mainImage = redChannel;
+                secondImage = greenChannel;
+            } else {
+                mainImage = greenChannel;
+                secondImage = blueChannel;
+            }
+
+            if (mainImage!.width !== secondImage!.width || mainImage!.height !== secondImage!.height) throw new SDError('Image sizes are different.');
+
+            const image: HTMLImageElement = mainImage!;
+            const canvas = document.createElement("canvas");
+            canvas.width = image.width;
+            canvas.height = image.height;
+
+            // Copy the image contents to the canvas
+            const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
+            ctx.drawImage(image, 0, 0);
+
+            const imageDataMain = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(mainImage!, 0, 0);
+            const imageDataSecond = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(secondImage!, 0, 0);
+
+            for (let i = 0; i < imageDataMain.data.length; i += 4) {
+                // R
+                if (!redChannel) {
+                    imageDataMain.data[i + 0] = 0;
+                    imageDataMain.data[i + 2] = imageDataSecond.data[i + 2];
+                }
+                // G
+                if (!greenChannel) {
+                    imageDataMain.data[i + 1] = 0;
+                    imageDataMain.data[i + 2] = imageDataSecond.data[i + 2];
+                }
+                // B
+                if (!blueChannel) {
+                    imageDataMain.data[i + 1] = imageDataSecond.data[i + 2];
+                    imageDataMain.data[i + 2] = 0;
+                }
+            }
+            // put the altered data back on the canvas  
+            ctx.putImageData(imageDataMain, 0, 0);
+
+            const resultImage = document.createElement('img');
+            resultImage.src = canvas.toDataURL();
+            return resultImage;
+        } else {
+            const image: HTMLImageElement = (redChannel || blueChannel || greenChannel)!;
+            const canvas = document.createElement("canvas");
+            canvas.width = image.width;
+            canvas.height = image.height;
+
+            // Copy the image contents to the canvas
+            const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
+            ctx.drawImage(image, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                // R
+                if (redChannel) {
+                    imageData.data[i + 1] = 0;
+                    imageData.data[i + 2] = 0;
+                }
+                // G
+                if (greenChannel) {
+                    imageData.data[i + 0] = 0;
+                    imageData.data[i + 2] = 0;
+                }
+                // B
+                if (blueChannel) {
+                    imageData.data[i + 0] = 0;
+                    imageData.data[i + 1] = 0;
+                }
+            }
+            // put the altered data back on the canvas  
+            ctx.putImageData(imageData, 0, 0);
+
+            const resultImage = document.createElement('img');
+            resultImage.src = canvas.toDataURL();
+            return resultImage;
+        }
+    }
+
 
     /**
      * This color converter is mostly left 'as-is' from viewer v2.
@@ -35,7 +166,7 @@ export class Converter {
 
         const tColor = new TinyColor(color);
 
-        if(color instanceof TinyColor)
+        if (color instanceof TinyColor)
             return this.tinyColorToString(tColor);
 
         // check if we got a number
@@ -115,13 +246,13 @@ export class Converter {
     }
 
     public toVec3(point: any): vec3 {
-        if(Array.isArray(point) && point.length >= 3 && typeof point[0] === 'number' && typeof point[1] === 'number'&& typeof point[2] === 'number')
+        if (Array.isArray(point) && point.length >= 3 && typeof point[0] === 'number' && typeof point[1] === 'number' && typeof point[2] === 'number')
             return vec3.fromValues(point[0], point[1], point[2]);
 
-        if(((point.x || point.x === 0) && typeof point.x === 'number') && ((point.y || point.y === 0) && typeof point.y === 'number') && ((point.z || point.z === 0) && typeof point.z === 'number'))
+        if (((point.x || point.x === 0) && typeof point.x === 'number') && ((point.y || point.y === 0) && typeof point.y === 'number') && ((point.z || point.z === 0) && typeof point.z === 'number'))
             return vec3.fromValues(point.x, point.y, point.z);
 
-        if(((point.X || point.X === 0) && typeof point.X === 'number') && ((point.Y || point.Y === 0) && typeof point.Y === 'number') && ((point.Z || point.Z === 0) && typeof point.Z === 'number'))
+        if (((point.X || point.X === 0) && typeof point.X === 'number') && ((point.Y || point.Y === 0) && typeof point.Y === 'number') && ((point.Z || point.Z === 0) && typeof point.Z === 'number'))
             return vec3.fromValues(point.X, point.Y, point.Z);
 
         return vec3.create();

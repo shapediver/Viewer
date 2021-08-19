@@ -1,6 +1,7 @@
 {
-  "name": "@shapediver/viewer.data-engine.geometry-engine",
-  "version": "1.0.2",
+  "name": "@shapediver/viewer.examples.ar",
+  "version": "0.0.0",
+  "private": true,
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -23,8 +24,9 @@
     "test": "bash ../../scripts/test.sh",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
-    "build-watch": "bash ../../scripts/build-watch.sh",
-    "build-dep": "bash ../../scripts/build-dep.sh"
+    "build-dep": "bash ../../scripts/build-dep.sh",
+    "build-dev": "bash ../../scripts/build-dev.sh",
+    "build-prod": "bash ../../scripts/build-prod.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
@@ -32,18 +34,16 @@
   "homepage": "https://github.com/shapediver/Viewer#readme",
   "typings": "dist/index.d.ts",
   "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
+    "preset": "jest-puppeteer",
+    "transform": {
+      "^.+\\.ts?$": "ts-jest"
+    }
   },
   "dependencies": {
-    "@shapediver/api.geometry-api-dto-v1": "^1.0.9",
-    "@shapediver/viewer.data-engine.shared-types": "^1.0.2",
-    "@shapediver/viewer.shared.build-data": "^1.0.2",
-    "@shapediver/viewer.shared.node-tree": "^1.0.2",
-    "@shapediver/viewer.shared.services": "^1.0.2",
-    "@shapediver/viewer.shared.types": "^1.0.2",
-    "@shapediver/viewer.shared.utils": "^1.0.2",
+    "@shapediver/viewer": "*",
+    "@shapediver/viewer.data-engine.data-engine": "*",
     "gl-matrix": "^3.3.0",
+    "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"
   }
 }

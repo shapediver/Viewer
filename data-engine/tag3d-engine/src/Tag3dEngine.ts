@@ -173,7 +173,7 @@ export class Tag3dEngine {
                         [key: string]: AttributeData
                     } = {};
                     for (let attribute in line.attributes) {
-                        attributes[attribute.toUpperCase()] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false)
+                        attributes[attribute.toUpperCase()] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false, line.attributes[attribute].array.length)
                     }
                     node.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialData({color: tag3dInfo.color}))));
                 }   

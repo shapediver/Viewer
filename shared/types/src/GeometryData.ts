@@ -35,6 +35,7 @@ export class AttributeData {
     private readonly _byteOffset: number,
     private readonly _elementBytes: number,
     private readonly _normalized: boolean,
+    private readonly _count: number,
     private readonly _byteStride?: number,
     private readonly _sparse?: boolean,
     private readonly _sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
@@ -76,6 +77,14 @@ export class AttributeData {
    */
   public get elementBytes(): number {
     return this._elementBytes;
+  }
+
+  /**
+   * Getter count
+   * @return {number}
+   */
+  public get count(): number {
+    return this._count;
   }
 
   /**
@@ -143,6 +152,7 @@ export class AttributeData {
       this._byteOffset,
       this._elementBytes,
       this._normalized,
+      this._count,
       this._byteStride,
       this._sparse,
       this._sparseIndices,

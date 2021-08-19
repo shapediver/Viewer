@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@shapediver/api.geometry-api-dto-v1": "^1.0.9",
+    "@shapediver/viewer.data-engine.geometry-engine": "^1.0.2",
     "@shapediver/viewer.rendering-engine-threejs.rendering-engine": "^1.0.2",
     "@shapediver/viewer.rendering-engine.camera-engine": "^1.0.2",
     "@shapediver/viewer.rendering-engine.light-engine": "^1.0.2",

@@ -112,10 +112,11 @@ export class SceneTreeManager implements IManager {
             }
         }
 
-        this._boundingBox.applyMatrix(root.nodeMatrix);
+        if(!this._boundingBox.isEmpty())
+            this._boundingBox.applyMatrix(root.nodeMatrix);
 
         if (!(this._boundingBox.min[0] === oldBB.min[0] && this._boundingBox.min[1] === oldBB.min[1] && this._boundingBox.min[2] === oldBB.min[2] && 
-            this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2])) {
+            this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2]) && !this._boundingBox.isEmpty()) {
             if (!this._stateEngine.boundingBoxCreated.resolved)
                 this._stateEngine.boundingBoxCreated.resolve(true);
 
@@ -196,9 +197,12 @@ export class SceneTreeManager implements IManager {
             } else if (objChild.SDversion !== nodeChild.version) {
                 this.updateNode(nodeChild, objChild);
             }
-            node.boundingBox.union(nodeChild.boundingBox);
+
+            if(!nodeChild.boundingBox.isEmpty())
+                node.boundingBox.union(nodeChild.boundingBox);
         }
-        node.boundingBox.applyMatrix(node.nodeMatrix);
+        if(!node.boundingBox.isEmpty())
+            node.boundingBox.applyMatrix(node.nodeMatrix);
     }
 
     // #endregion Private Methods (1)
