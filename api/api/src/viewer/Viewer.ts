@@ -1180,7 +1180,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       if(!this.#busyModeIDs.includes(value)) return false;
       this.#busyModeIDs.splice(this.#busyModeIDs.indexOf(value), 1);
 
-      console.log(this.#busyModeIDs)
       if(this.#busyModeIDs.length === 0)
         this.#renderingEngine.busy = false;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Busy mode was deregistered for id: ${value}`);
