@@ -35,7 +35,7 @@ export enum LOGGINGTOPIC {
 export class Logger {
     // #region Properties (2)
 
-    private _loggingLevel: LOGGINGLEVEL = LOGGINGLEVEL.NONE;
+    private _loggingLevel: LOGGINGLEVEL = LOGGINGLEVEL.WARN;
     private _showMessages: boolean = true;
     private _updateCBs: (() => void)[] = [];
     private _breadCrumbs: Sentry.Breadcrumb[] = [];
