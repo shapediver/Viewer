@@ -14,8 +14,9 @@ import { Viewer } from './viewer/Viewer'
 
 @singleton()
 export class Api {
-  // #region Properties (13)
+  // #region Properties (15)
 
+  readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -23,20 +24,19 @@ export class Api {
   readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
   readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-  readonly #viewerCallbacks: { [key: string]: { [key: string]: () => any } } = {};
-  readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
-
-  readonly loggingLevel!: LOGGINGLEVEL;
-  readonly sceneTree: Tree = <Tree>container.resolve(Tree);
-  readonly sessions: { [key: string]: Session } = {};
-  readonly showMessages!: boolean;
-  readonly viewers: { [key: string]: Viewer } = {};
   readonly #updateCB = () => {
     (<any>this.loggingLevel) = this.#logger.loggingLevel;
     (<any>this.showMessages) = this.#logger.showMessages;
   }
 
-  // #endregion Properties (13)
+  readonly #viewerCallbacks: { [key: string]: { [key: string]: () => any } } = {};
+  readonly loggingLevel!: LOGGINGLEVEL;
+  readonly sceneTree: Tree = <Tree>container.resolve(Tree);
+  readonly sessions: { [key: string]: Session } = {};
+  readonly showMessages!: boolean;
+  readonly viewers: { [key: string]: Viewer } = {};
+
+  // #endregion Properties (15)
 
   // #region Constructors (1)
 
@@ -75,7 +75,7 @@ export class Api {
 
   // #endregion Constructors (1)
 
-  // #region Public Methods (13)
+  // #region Public Methods (15)
 
   /**
    * Adds an event listener.
@@ -174,6 +174,21 @@ export class Api {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.closeViewer: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Converts the whole scene (without the groundplane or grid) into a GlTF v2.
+   * 
+   * @returns
+   */
+  public async convertSceneToGLTF(): Promise<Blob> {
+    try {
+      const result = await this.#geometryEngine.convertSceneToGLTF(this.sceneTree.root);
+      return new Blob([result], { type: 'application/octet-stream' });
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.convertSceneToGLTF: Something unexpected happened.`, true)
     }
   }
 
@@ -402,25 +417,6 @@ export class Api {
     }
   }
 
-  public async convertSceneToGLTF(name: string): Promise<void> {
-    try {
-      const result = await this.#geometryEngine.convertSceneToGLTF(this.sceneTree.root);
-      
-      
-      const link = document.createElement( 'a' );
-      link.style.display = 'none';
-      document.body.appendChild( link );
-      const blob = new Blob( [ result ], { type: 'application/octet-stream' } );	       
-      link.href = URL.createObjectURL( blob );
-      link.download = 'test.glb';
-      link.click();
-
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.getViewer: Something unexpected happened.`, true)
-    }
-  }
-
   /**
    * Removes an event listener.
    * 
@@ -485,5 +481,27 @@ export class Api {
     }
   }
 
-  // #endregion Public Methods (13)
+  // public async viewInAR(title: string = '', mode: '3d_preferred' | '3d_only' | 'ar_preferred' | 'ar_only' = 'ar_only', resizable = false, browser_fallback_url = 'https://shapediver.com/'): Promise<void> {
+  //   try {
+  //     let arSession;
+  //     for(let s in this.sessions)
+  //       if(this.sessions[s].arSession)
+  //         arSession = this.sessions[s];
+  //     if(!arSession) throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError('None of the sessions that are registered are capable of using the AR feature.'), 'None of the sessions that are registered are capable of using the AR feature.', true);
+      
+  //     const blob = await this.convertSceneToGLTF();
+  //     const href = await arSession.uploadGLTF(blob);
+
+  //     const file = href;
+  //     const a = document.createElement('a');
+  //     a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${resizable}&title=${title}&file=${file}&mode=${mode}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${browser_fallback_url};end;`
+  //     document.body.appendChild(a)
+  //     a.click()
+  //   } catch (e) {
+  //     if (e instanceof SDError) throw e;
+  //     throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.viewInAR: Something unexpected happened.`, true)
+  //   }
+  // }
+
+  // #endregion Public Methods (15)
 }
