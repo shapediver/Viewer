@@ -162,6 +162,8 @@ export class SceneTreeManager implements IManager {
         for (const objChild of childrenToRemove) {
             obj.remove(objChild);
             objChild.traverse((o) => {
+                if (o instanceof SDObject && o.children.length === 0)
+                    this._renderingEngine.htmlElementAnchorLoader.removeData(o.SDid, o.SDversion);
                 if (o instanceof THREE.Mesh) {
                     this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
                     this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)

@@ -16,8 +16,17 @@ export class HTMLElementAnchorLoader implements ILoader {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {        
+    constructor(private readonly _renderingEngine: RenderingEngine) {
         this._parentDiv = document.createElement('div');
+        this._parentDiv.style.userSelect = 'none';
+        this._parentDiv.style.cursor = 'default';
+        this._parentDiv.style.pointerEvents = 'none';
+        this._parentDiv.style.overflow = 'hidden';
+        this._parentDiv.style.position = 'absolute';
+        this._parentDiv.style.width = '100%';
+        this._parentDiv.style.height = '100%';
+        this._parentDiv.style.left = '0%';
+        this._parentDiv.style.top = '0%';
     }
 
     // #endregion Constructors (1)
@@ -30,7 +39,7 @@ export class HTMLElementAnchorLoader implements ILoader {
 
     // #endregion Public Accessors (1)
 
-    // #region Public Methods (3)
+    // #region Public Methods (5)
 
     public adjustPositions(scaleWidth: number, scaleHeight: number): void {
         for (let anchorId in this._htmlElements) {
@@ -41,8 +50,8 @@ export class HTMLElementAnchorLoader implements ILoader {
             if (!htmlElement) continue;
 
             htmlElement.style.display = '';
-            if(hidden) htmlElement.style.display = 'none';
-            
+            if (hidden) htmlElement.style.display = 'none';
+
             let x, y;
 
             if (anchor.data.position && anchor.data.position.horizontal === 'right') {
@@ -77,17 +86,26 @@ export class HTMLElementAnchorLoader implements ILoader {
         const htmlElement = anchor.createViewerHtmlElement(this._renderingEngine.id);
         if (!htmlElement) return;
         this._parentDiv.appendChild(htmlElement);
-        this._parentDiv.style.userSelect = 'none';
-        this._parentDiv.style.cursor = 'default';
-        this._parentDiv.style.pointerEvents = 'none';
-        this._parentDiv.style.overflow = 'hidden';
-        this._parentDiv.style.position = 'absolute';
-        this._parentDiv.style.width = '100%';
-        this._parentDiv.style.height = '100%';
-        this._parentDiv.style.left = '0%';
-        this._parentDiv.style.top = '0%';
-        this._htmlElements[anchor.id] = anchor;
+        this._htmlElements[anchor.id + '_' + anchor.version] = anchor;
     }
 
-    // #endregion Public Methods (3)
+    public removeData(id: string, version: string) {
+        const anchor = this._htmlElements[id + '_' + version];
+        if (anchor && anchor.getViewerHtmlElement(this._renderingEngine.id)) {
+            this._parentDiv.removeChild(anchor.getViewerHtmlElement(this._renderingEngine.id)!);
+            delete this._htmlElements[id + '_' + version]
+        }
+    }
+
+    public toggleBlur(toggle: boolean) {
+        if (toggle) {
+            if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
+                return;
+            this._parentDiv.style.filter = 'blur(3px)';
+        } else {
+            this._parentDiv.style.filter = '';
+        }
+    }
+
+    // #endregion Public Methods (5)
 }

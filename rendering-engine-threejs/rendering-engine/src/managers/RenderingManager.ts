@@ -27,7 +27,6 @@ export class RenderingManager implements IManager {
     private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
 
     private _activeRendering: boolean = true;
-    private _currentlyBlurred: boolean = false;
     private _height: number = 0;
     private _lastTime: number = 0;
     private _minimalRendering: boolean = false;
@@ -423,6 +422,7 @@ export class RenderingManager implements IManager {
     }
 
     private toggleBlur(toggle: boolean) {
+        this._renderingEngine.htmlElementAnchorLoader.toggleBlur(toggle);
         if (toggle) {
             if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
                 return;

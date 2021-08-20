@@ -148,6 +148,11 @@ export class HTMLElementAnchorData extends AbstractTreeNodeData {
         return null;
 	}
 
+    public getViewerHtmlElement(viewer: string): HTMLDivElement | null {
+        if(this._viewerHtmlElement[viewer]) return this._viewerHtmlElement[viewer];
+        return null;
+	}
+
     /**
      * Getter hideable
      * @return {boolean}
