@@ -298,6 +298,8 @@ export class GLTFConverter {
         if(data.image.src.endsWith('.jpg') || data.image.src.includes('image/jpeg'))
             mimeType = 'image/jpeg';
 
+        imageDef.mimeType = mimeType;
+
         const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
         if(DATA_URI_REGEX.test(data.image.src)) {
             const byteString = atob(data.image.src.split(',')[1]);
