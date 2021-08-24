@@ -481,27 +481,24 @@ export class Api {
     }
   }
 
-  // public async viewInAR(title: string = '', mode: '3d_preferred' | '3d_only' | 'ar_preferred' | 'ar_only' = 'ar_only', resizable = false, browser_fallback_url = 'https://shapediver.com/'): Promise<void> {
-  //   try {
-  //     let arSession;
-  //     for(let s in this.sessions)
-  //       if(this.sessions[s].arSession)
-  //         arSession = this.sessions[s];
-  //     if(!arSession) throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError('None of the sessions that are registered are capable of using the AR feature.'), 'None of the sessions that are registered are capable of using the AR feature.', true);
+  public async viewInAR(title: string = '', mode: '3d_preferred' | '3d_only' | 'ar_preferred' | 'ar_only' = 'ar_only', resizable = false, browser_fallback_url = 'https://shapediver.com/'): Promise<void> {
+    try {
+      let arSession;
+      for(let s in this.sessions)
+        if(this.sessions[s].canUploadGLTF)
+          arSession = this.sessions[s];
+      if(!arSession) throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError('None of the sessions that are registered are capable of using the AR feature.'), 'None of the sessions that are registered are capable of using the AR feature.', true);
       
-  //     const blob = await this.convertSceneToGLTF();
-  //     const href = await arSession.uploadGLTF(blob);
-
-  //     const file = href;
-  //     const a = document.createElement('a');
-  //     a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${resizable}&title=${title}&file=${file}&mode=${mode}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${browser_fallback_url};end;`
-  //     document.body.appendChild(a)
-  //     a.click()
-  //   } catch (e) {
-  //     if (e instanceof SDError) throw e;
-  //     throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.viewInAR: Something unexpected happened.`, true)
-  //   }
-  // }
+      const file = await arSession.uploadGLTF();
+      const a = document.createElement('a');
+      a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${resizable}&title=${title}&file=${file}&mode=${mode}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${browser_fallback_url};end;`
+      document.body.appendChild(a)
+      a.click()
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.viewInAR: Something unexpected happened.`, true)
+    }
+  }
 
   // #endregion Public Methods (15)
 }

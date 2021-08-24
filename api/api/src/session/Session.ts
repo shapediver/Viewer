@@ -37,6 +37,7 @@ export class Session {
 
     readonly authorTicket: boolean | undefined;
     readonly bearerToken: string | undefined;
+    readonly canUploadGLTF: boolean = false;
     readonly commitParameters: boolean = false;
     readonly commitSettings: boolean = false;
     readonly exports: { [key: string]: Export; } = {};
@@ -544,6 +545,8 @@ export class Session {
                 this.outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
             }
 
+            (<any>this.canUploadGLTF) = this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload').length !== 0;
+
             (<Tree>container.resolve(Tree)).addNode(this.node);
             this.node.excludeViewers = this.#excludeViewers;
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
@@ -788,28 +791,27 @@ export class Session {
         }
     }
 
-    // /**  */
-    // public async uploadGLTF(blob: Blob) {
-    //     // if not action, return
+    /**
+     * Creates a gltf from the current scene and uploads it to the server.
+     * Returns the href to the gltf.
+     * 
+     * @returns 
+     */
+    public async uploadGLTF() {
+        try {
+            if(this.canUploadGLTF === false)
+                throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError('GLTF upload not available in this session.'), `Session(${this.id}).uploadGLTF: GLTF upload not available in this session.`, true)
 
-    //     // upload and return href
-
-    //     try {
-    //         let uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].method!.toLowerCase()!, { [this.id]: { size: data.size, format: this.format![0] } }, 'application/json')).data;
-    //         if(!this.arSession) return false;
-    //         this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploading GLTF.`);
-    //         const response = await this.#sessionEngine.uploadGLTF(blob);
-    //         if (response) {
-    //             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploaded GLTF.`);
-    //         } else {
-    //             this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Session(${this.id}).uploadGLTF: Could not upload GLTF.`));
-    //         }
-    //         return response;
-    //     } catch (e) {
-    //         if (e instanceof SDError) throw e;
-    //         throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).uploadGLTF: Something unexpected happened.`, true)
-    //     }
-    // }
+            const blob = await this.#api.convertSceneToGLTF();
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploading GLTF.`);
+            const uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].method!.toLowerCase()!, blob, 'model/gltf-binary')).data;
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploaded GLTF.`);
+            return uploadReply.gltf.href;
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).uploadGLTF: Something unexpected happened.`, true)
+        }
+    }
 
     // #endregion Public Methods (18)
 }
