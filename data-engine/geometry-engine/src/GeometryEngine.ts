@@ -57,9 +57,9 @@ export class GeometryEngine {
                 this._performanceEvaluator.endSection('loadGltf.' + url);
             } catch (e) {
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `GLTFLoader.load: Initial loading of geometry failed.`, e.response.status, false)
+                    this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `GeometryEngine.loadContent: Initial loading of geometry failed.`, e.response.status, false)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `GLTFLoader.load: Initial loading of geometry failed.`, false)
+                    this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `GeometryEngine.loadContent: Initial loading of geometry failed.`, false)
                 }
                 return new TreeNode();
             }
@@ -82,7 +82,7 @@ export class GeometryEngine {
                     contentFormat: headerDataView.getUint32(16, true)
                 }
                 if (gltfHeader.magic != 'glTF') {
-                    this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GLTFLoader.load: Invalid data: glTF magic wrong.'));
+                    this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GeometryEngine.loadContent: Invalid data: glTF magic wrong.'));
                     return new TreeNode();
                 }
                 // create content
@@ -91,10 +91,11 @@ export class GeometryEngine {
                 gltfContent = JSON.parse(contentDecoded);
 
                 if(gltfContent && gltfContent.asset && gltfContent.asset.version) {
-                    if(gltfHeader.version + '.0' === gltfContent.asset.version) {
+                    const assetVersion = (gltfContent.asset.version + '').endsWith('.0') ? gltfContent.asset.version : gltfContent.asset.version + '.0';
+                    if(gltfHeader.version + '.0' === assetVersion) {
                         version = gltfHeader.version + '.0';
                     } else {
-                        this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GLTFLoader.load: glTF header version (' + gltfHeader.version + ') is not the same as asset version (' + gltfContent.asset.version + ').'));
+                        this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GeometryEngine.loadContent: glTF header version (' + gltfHeader.version + ') is not the same as asset version (' + assetVersion + ').'));
                         return new TreeNode();
                     }
                 } else {
@@ -105,11 +106,11 @@ export class GeometryEngine {
 
                 if(gltfContent && gltfContent.asset && gltfContent.asset.version) {
                     if(gltfContent.asset.version !== '2.0'){
-                        this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GLTFLoader.load: Only gltf v2 is supported in a non-binary format.'));
+                        this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GeometryEngine.loadContent: Only gltf v2 is supported in a non-binary format.'));
                         return new TreeNode();
                     }
                 } else {
-                    this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.load: No version specified in asset, trying to load as v2.');
+                    this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'GeometryEngine.loadContent: No version specified in asset, trying to load as v2.');
                     version = '2.0';
                 }
 
