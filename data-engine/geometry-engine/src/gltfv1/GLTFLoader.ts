@@ -31,14 +31,40 @@ export class GLTFLoader {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 
-    private _body!: ArrayBuffer;
+    private _baseUri: string | undefined;
+    private _body: ArrayBuffer | undefined;
     private _content!: IGLTF_v1;
 
     // #endregion Properties (5)
 
     // #region Public Methods (1)
 
-    public async load(url?: string | undefined): Promise<TreeNode> {
+    public async load(content: IGLTF_v1, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
+        this._baseUri = baseUri;
+        if(gltfBinary && gltfHeader)
+            this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength, gltfHeader.length);
+        this._content = content;
+
+        let sdgtfNode;
+        if(gltfBinary && gltfHeader)
+            sdgtfNode = await new SDGTFLoader().load(gltfBinary, gltfHeader.length);
+
+        try {
+            this.validateVersionAndExtensions();
+            const node = await this.loadScene();
+            if(sdgtfNode) node.addChild(sdgtfNode);
+            return node;
+        } catch (e) {            
+            if (e.response && e.response.status) {
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, e.response.status, false)
+            } else {
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, false)
+            }
+            return new TreeNode();
+        }
+    }
+
+    public async loadWithUrl(url?: string | undefined): Promise<TreeNode> {
         this._performanceEvaluator.startSection('gltfProcessing.' + url);
         let binaryGeometry: ArrayBuffer;
 
@@ -147,7 +173,7 @@ export class GLTFLoader {
         const buffer = this._content.buffers![bufferName];
 
         if (bufferName === 'binary_glTF')
-            return this._body;
+            return this._body!;
 
         if (buffer.type === 'arraybuffer') {
             const binaryGeometry: ArrayBuffer = (await this._httpClient.get(buffer.uri!, {
@@ -155,6 +181,7 @@ export class GLTFLoader {
             })).data;
             return binaryGeometry;
         }
+        if(!this._body) throw new SDError('Buffer not available.');
         return this._body;
     }
 

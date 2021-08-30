@@ -1,5 +1,5 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, ImageLoader, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { Converter, HttpClient, ImageLoader, PerformanceEvaluator, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { container } from 'tsyringe'
 import {
   ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
@@ -37,9 +37,10 @@ export class GLTFLoader {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 
-    private _baseUri!: string;
-    private _body!: ArrayBuffer;
+    private _baseUri: string | undefined;
+    private _body: ArrayBuffer | undefined;
     private _content!: IGLTF_v2;
     private _loaded: {
         [key: string]: {
@@ -51,13 +52,35 @@ export class GLTFLoader {
 
     // #region Public Methods (1)
 
-    public async load(url?: string | undefined): Promise<TreeNode> {
+    public async load(content: IGLTF_v2, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
+        this._baseUri = baseUri;
+        if(gltfBinary && gltfHeader)
+            this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength + 8, gltfHeader.length);
+        this._content = content;
+        try {
+            this.validateVersionAndExtensions();
+            const node = await this.loadScene();
+            return node;
+        } catch (e) {
+            if (e.response && e.response.status) {
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, e.response.status, false)
+            } else {
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, false)
+            }
+            return new TreeNode();
+        }
+    }
+
+    public async loadWithUrl(url?: string | undefined): Promise<TreeNode> {
+        this._performanceEvaluator.startSection('gltfProcessing.' + url);
         let axiosResponse;
 
         try {
+            this._performanceEvaluator.startSection('loadGltf.' + url);
             axiosResponse = await this._httpClient.get(url!, {
                 responseType: 'arraybuffer'
             });
+            this._performanceEvaluator.endSection('loadGltf.' + url);
         } catch (e) {
             if (e.response && e.response.status) {
                 this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `GLTFLoader.load: Initial loading of geometry failed.`, e.response.status, false)
@@ -112,7 +135,9 @@ export class GLTFLoader {
 
         try {
             this.validateVersionAndExtensions();
-            return await this.loadScene();
+            const node = await this.loadScene();
+            this._performanceEvaluator.endSection('gltfProcessing.' + url);
+            return node;
         } catch (e) {
             if (e.response && e.response.status) {
                 this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GLTFLoader.load: Loading of geometry failed. ${e.message}`, e.response.status, false)
@@ -200,6 +225,7 @@ export class GLTFLoader {
 
         // If present, GLB container is required to be the first buffer.
         if (buffer.uri === undefined && bufferId === 0) {
+            if(!this._body) throw new SDError(`GLTFLoader.loadBuffer: Buffer not available.`);
             return Promise.resolve(this._body);
         }
 
