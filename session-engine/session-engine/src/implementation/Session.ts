@@ -236,7 +236,10 @@ export class Session implements ISession {
             }
 
             this._settingsConfig = sessionResponse.config;
-            this._sessionResponse = this.mergeResponses(this._sessionResponse, sessionResponse, this._parameters, this._outputs, this._exports);
+            (<any>this._parameters) = {};
+            (<any>this._outputs) = {};
+            (<any>this._exports) = {};
+            this._sessionResponse = this.mergeResponses(sessionResponse, sessionResponse, this._parameters, this._outputs, this._exports);
             this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
 
             this._initialized = true;
