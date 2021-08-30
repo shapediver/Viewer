@@ -89,6 +89,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.updateEnvironmentMap('none');
                 viewer.updateEnvironmentMapAsBackground(false);
                 viewer.updateGridVisibility(true);
+                viewer.updateClearAlpha(1);
+                viewer.updateClearColor('#ffffff');
+
                 viewer.updateGroundPlaneVisibility(true);
                 viewer.updateEnvironmentMap('none');
 
