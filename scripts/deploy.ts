@@ -59,7 +59,7 @@ const execPromise = (cmd: string) => {
         const timestamp = new Date().toISOString();
 
         fs.writeFileSync('shared/build-data/src/build_data.ts', 'export const build_data = ' + JSON.stringify({
-            build_version: newVersion,
+            build_version: '3.' + newVersion,
             build_date: timestamp,
             build_branch: git_branch,
             build_commit: git_commit
