@@ -62,7 +62,7 @@ export class SpotLight extends Light {
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateAngle: angle was set to: ${value}`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateAngle: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateAngle: Something unexpected happened.`, true)
         }
     }
 
@@ -79,7 +79,7 @@ export class SpotLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDecay: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateDecay: Something unexpected happened.`, true)
         }
     }
 
@@ -96,7 +96,7 @@ export class SpotLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDistance: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateDistance: Something unexpected happened.`, true)
         }
     }
 
@@ -113,7 +113,7 @@ export class SpotLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updatePenumbra: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updatePenumbra: Something unexpected happened.`, true)
         }
     }
 
@@ -130,7 +130,7 @@ export class SpotLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updatePosition: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updatePosition: Something unexpected happened.`, true)
         }
     }
 
@@ -147,7 +147,7 @@ export class SpotLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateTarget: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateTarget: Something unexpected happened.`, true)
         }
     }
 

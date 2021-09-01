@@ -189,9 +189,9 @@ export class Session implements ISession {
                 await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'close')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'close')[0].method!, null, 'application/json');
             } catch (e) {
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.close: Session closing failed.`, e.response.status, false)
+                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.close: Session closing failed.`, e.response.status, false)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.close: Session closing failed.`, false)
+                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.close: Session closing failed.`, false)
                 }
                 return false;
             }
@@ -228,9 +228,9 @@ export class Session implements ISession {
                 this._performanceEvaluator.endSection('sessionResponse');
             } catch (e) {
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.init: Session init failed.`, e.response.status, false)
+                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, e.response.status, false)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.init: Session init failed.`, false)
+                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, false)
                 }
                 return new SessionTreeNode();
             }
@@ -246,7 +246,7 @@ export class Session implements ISession {
             this._updateCBs.forEach(v => v());
             return this.loadOutputs(this._parameterValues);
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), 'Session.init: Something went wrong at session init.');
+            this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.init: Something went wrong at session init.');
             return new SessionTreeNode();
         }
     }
@@ -351,9 +351,9 @@ export class Session implements ISession {
             return true;
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveDefaultParameters: Saving of default parameters failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveDefaultParameters: Saving of default parameters failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveDefaultParameters: Saving of default parameters failed.`, false)
+                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveDefaultParameters: Saving of default parameters failed.`, false)
             }
             return false;
         }
@@ -381,9 +381,9 @@ export class Session implements ISession {
             return true;
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveParameterProperties: Saving of parameter properties failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveParameterProperties: Saving of parameter properties failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveParameterProperties: Saving of parameter properties failed.`, false)
+                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveParameterProperties: Saving of parameter properties failed.`, false)
             }
             return false;
         }
@@ -411,9 +411,9 @@ export class Session implements ISession {
             return true;
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveExportProperties: Saving of export properties failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveExportProperties: Saving of export properties failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveExportProperties: Saving of export properties failed.`, false)
+                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveExportProperties: Saving of export properties failed.`, false)
             }
             return false;
         }
@@ -441,9 +441,9 @@ export class Session implements ISession {
             return true;
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveOutputProperties: Saving of output properties failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveOutputProperties: Saving of output properties failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveOutputProperties: Saving of output properties failed.`, false)
+                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveOutputProperties: Saving of output properties failed.`, false)
             }
             return false;
         }
@@ -459,9 +459,9 @@ export class Session implements ISession {
             return true;
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveSettings: Saving of settings failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveSettings: Saving of settings failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.saveSettings: Saving of settings failed.`, false)
+                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveSettings: Saving of settings failed.`, false)
             }
             return false;
         }
@@ -525,16 +525,16 @@ export class Session implements ISession {
                 }
 
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.customizeSession: Session customization failed.`, e.response.status, false)
+                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, e.response.status, false)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.customizeSession: Session customization failed.`, false)
+                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, false)
                 }
                 return new SessionTreeNode();
             }
             this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);
             return this.loadOutputs(parameters, cancelRequest);
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), 'Session.customizeSession: Something went wrong at session customization.');
+            this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.customizeSession: Something went wrong at session customization.');
             return new SessionTreeNode();
         }
     }

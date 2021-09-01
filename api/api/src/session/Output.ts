@@ -49,7 +49,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${outputDef.id}).constructor: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${outputDef.id}).constructor: Something unexpected happened.`, true)
     }
   }
 
@@ -61,7 +61,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
       this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateDisplayName: DisplayName was updated to ${this.displayName}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${this.id}).updateDisplayName: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.id}).updateDisplayName: Something unexpected happened.`, true)
     }
   }
 
@@ -73,7 +73,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
       this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateHidden: Hidden was updated to ${this.hidden}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${this.id}).updateHidden: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.id}).updateHidden: Something unexpected happened.`, true)
     }
   }
 
@@ -85,7 +85,7 @@ export class Output implements ShapeDiverResponseOutputDefinition {
       this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateOrder: Order was updated to ${this.order}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Output(${this.id}).updateOrder: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.id}).updateOrder: Something unexpected happened.`, true)
     }
   }
 

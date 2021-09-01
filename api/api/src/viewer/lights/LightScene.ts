@@ -103,7 +103,7 @@ export class LightScene implements ILightScene {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `LightScene(${this.id}).updateName: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `LightScene(${this.id}).updateName: Something unexpected happened.`, true)
         }
     }
 

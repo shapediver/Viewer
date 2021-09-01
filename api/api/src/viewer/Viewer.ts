@@ -127,7 +127,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).constructor: Viewer api created.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).constructor: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).constructor: Something unexpected happened.`, true)
     }
   }
 
@@ -149,7 +149,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateAmbientOcclusion: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateAmbientOcclusion: Something unexpected happened.`, true)
     }
   }
 
@@ -167,7 +167,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateAutomaticResizing: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateAutomaticResizing: Something unexpected happened.`, true)
     }
   }
 
@@ -185,7 +185,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBeautyRenderBlendingDuration: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: Something unexpected happened.`, true)
     }
   }
 
@@ -203,7 +203,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBeautyBeautyRenderDelay: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: Something unexpected happened.`, true)
     }
   }
 
@@ -221,7 +221,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBlur: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateBlur: Something unexpected happened.`, true)
     }
   }
 
@@ -239,7 +239,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateBlurSceneWhenBusy: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateBlurSceneWhenBusy: Something unexpected happened.`, true)
     }
   }
 
@@ -257,7 +257,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateClearAlpha: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateClearAlpha: Something unexpected happened.`, true)
     }
   }
 
@@ -275,7 +275,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateClearColor: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateClearColor: Something unexpected happened.`, true)
     }
   }
 
@@ -303,7 +303,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMap: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateEnvironmentMap: Something unexpected happened.`, true)
     }
   }
 
@@ -320,7 +320,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMapAsBackground: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateEnvironmentMapAsBackground: Something unexpected happened.`, true)
     }
   }
 
@@ -338,7 +338,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateEnvironmentMapResolution: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateEnvironmentMapResolution: Something unexpected happened.`, true)
     }
   }
 
@@ -356,7 +356,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateGridVisibility: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateGridVisibility: Something unexpected happened.`, true)
     }
   }
 
@@ -374,7 +374,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateGroundPlaneVisibility: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateGroundPlaneVisibility: Something unexpected happened.`, true)
     }
   }
 
@@ -394,7 +394,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).updateLightScene: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).updateLightScene: Something unexpected happened.`, true)
     }
   }
 
@@ -412,7 +412,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updatePointSize: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updatePointSize: Something unexpected happened.`, true)
     }
   }
 
@@ -438,7 +438,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateRenderingSettings: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateRenderingSettings: Something unexpected happened.`, true)
     }
   }
 
@@ -456,7 +456,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShadows: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateShadows: Something unexpected happened.`, true)
     }
   }
 
@@ -474,7 +474,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShow: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateShow: Something unexpected happened.`, true)
     }
   }
 
@@ -492,7 +492,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).updateShowStatistics: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateShowStatistics: Something unexpected happened.`, true)
     }
   }
 
@@ -525,7 +525,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return <AmbientLight>light;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addAmbientLight: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addAmbientLight: Something unexpected happened.`, true)
     }
   }
 
@@ -562,7 +562,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return <DirectionalLight>light;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addDirectionalLight: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addDirectionalLight: Something unexpected happened.`, true)
     }
   }
 
@@ -594,7 +594,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return <HemisphereLight>light;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addHemisphereLight: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addHemisphereLight: Something unexpected happened.`, true)
     }
   }
 
@@ -629,7 +629,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return <PointLight>light;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addPointLight: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addPointLight: Something unexpected happened.`, true)
     }
   }
 
@@ -672,7 +672,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return <SpotLight>light;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).addSpotLight: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addSpotLight: Something unexpected happened.`, true)
     }
   }
 
@@ -691,7 +691,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).assignCamera: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).assignCamera: Something unexpected happened.`, true)
     }
   }
 
@@ -718,7 +718,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return r;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).assignLightScene: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).assignLightScene: Something unexpected happened.`, true)
     }
   }
 
@@ -743,7 +743,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return this.#cameras[cameraLogic.id];
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).createCamera: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createCamera: Something unexpected happened.`, true)
     }
   }
 
@@ -773,7 +773,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return lightScene;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).createLightScene: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).createLightScene: Something unexpected happened.`, true)
     }
   }
 
@@ -792,7 +792,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return <OrthographicCamera>this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).createOrthographicCamera: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createOrthographicCamera: Something unexpected happened.`, true)
     }
   }
 
@@ -811,7 +811,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return <PerspectiveCamera>this.createCamera(CAMERATYPE.PERSPECTIVE, id);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
     }
   }
 
@@ -832,7 +832,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return this.#cameras[cameraLogic.id];
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).getCamera: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).getCamera: Something unexpected happened.`, true)
     }
   }
 
@@ -854,7 +854,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return cameras;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).getCameras: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).getCameras: Something unexpected happened.`, true)
     }
   }
 
@@ -879,10 +879,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
         if(this.#lightScenes[lightSceneId].lights[id])
           return this.#lightScenes[lightSceneId].lights[id];
       }
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(`Viewer(${this.id}).getLight: Light with the id ${id} was not found.`));
+      {
+        const error = new SDError(`Viewer(${this.id}).getLight: Light with the id ${id} was not found.`);
+        this.#logger.warn(LOGGINGTOPIC.LIGHT, error.message);
+        throw error;
+      }
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLight: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).getLight: Something unexpected happened.`, true)
     }
   }
 
@@ -906,7 +910,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return this.#lightScenes[id];
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLightScene: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).getLightScene: Something unexpected happened.`, true)
     }
   }
 
@@ -926,7 +930,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return lightScenes;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLightScenes: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).getLightScenes: Something unexpected happened.`, true)
     }
   }
 
@@ -946,7 +950,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return lights;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).getLights: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).getLights: Something unexpected happened.`, true)
     }
   }
 
@@ -967,7 +971,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return this.#renderingEngine.getScreenshot(type, quality);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).getScreenshot: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).getScreenshot: Something unexpected happened.`, true)
     }
   }
 
@@ -983,7 +987,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return this.#renderingEngine.cameraEngine.hasCamera();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).hasCamera: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).hasCamera: Something unexpected happened.`, true)
     }
   }
 
@@ -1035,7 +1039,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return Promise.resolve();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).init: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).init: Something unexpected happened.`, true)
     }
   }
   
@@ -1059,7 +1063,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return r;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Viewer(${this.id}).removeCamera: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).removeCamera: Something unexpected happened.`, true)
     }
   }
 
@@ -1081,7 +1085,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return r;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).removeLight: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).removeLight: Something unexpected happened.`, true)
     }
   }
 
@@ -1104,7 +1108,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return r;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Viewer(${this.id}).removeLightScene: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).removeLightScene: Something unexpected happened.`, true)
     }
   }
 
@@ -1116,7 +1120,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).reset: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).reset: Something unexpected happened.`, true)
     }
   }
 
@@ -1131,7 +1135,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).resize: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).resize: Something unexpected happened.`, true)
     }
   }
 
@@ -1147,7 +1151,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewerId: this.id });
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).update: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).update: Something unexpected happened.`, true)
     }
   }
 
@@ -1167,7 +1171,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return true;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).registerBusyMode: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).registerBusyMode: Something unexpected happened.`, true)
     }
   }
 
@@ -1187,7 +1191,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       return true;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).deregisterBusyMode: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).deregisterBusyMode: Something unexpected happened.`, true)
     }
   }
 
@@ -1198,11 +1202,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   private isInitialized() {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).isInitialized: Checking if Viewer was initialized.`);
-      if (!this.#renderingEngine)
-        this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Viewer has not been initialized. Please initialize it first.`));
+      if (!this.#renderingEngine) {
+        const error = new SDError(`Viewer has not been initialized. Please initialize it first.`);
+        this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
+        throw error;
+      }
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Viewer(${this.id}).isInitialized: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).isInitialized: Something unexpected happened.`, true)
     }
   }
 

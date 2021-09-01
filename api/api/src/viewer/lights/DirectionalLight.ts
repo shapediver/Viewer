@@ -59,7 +59,7 @@ export class DirectionalLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateCastShadow: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateCastShadow: Something unexpected happened.`, true)
         }
     }
 
@@ -76,7 +76,7 @@ export class DirectionalLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDirection: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateDirection: Something unexpected happened.`, true)
         }
     }
 
@@ -93,7 +93,7 @@ export class DirectionalLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateShadowMapBias: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateShadowMapBias: Something unexpected happened.`, true)
         }
     }
 
@@ -110,7 +110,7 @@ export class DirectionalLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateShadowMapResolution: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateShadowMapResolution: Something unexpected happened.`, true)
         }
     }
 

@@ -63,7 +63,7 @@ export abstract class Light implements ILight {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateColor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateColor: Something unexpected happened.`, true)
         }
     }
 
@@ -79,7 +79,7 @@ export abstract class Light implements ILight {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateIntensity: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateIntensity: Something unexpected happened.`, true)
         }
     }
 
@@ -95,7 +95,7 @@ export abstract class Light implements ILight {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateName: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateName: Something unexpected happened.`, true)
         }
     }
 
@@ -111,7 +111,7 @@ export abstract class Light implements ILight {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateOrder: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateOrder: Something unexpected happened.`, true)
         }
     }
 

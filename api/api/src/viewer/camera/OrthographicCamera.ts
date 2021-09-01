@@ -45,7 +45,7 @@ export class OrthographicCamera extends Camera implements IOrthographicCamera {
             this.#updateCB();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).constructor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).constructor: Something unexpected happened.`, true)
         }
     }
 
@@ -63,7 +63,7 @@ export class OrthographicCamera extends Camera implements IOrthographicCamera {
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDirection: direction was set to: ${value}`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateDirection: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateDirection: Something unexpected happened.`, true)
         }
     }
 

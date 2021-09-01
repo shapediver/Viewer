@@ -43,7 +43,7 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
             this.#updateCB();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).constructor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).constructor: Something unexpected happened.`, true)
         }
     }
 
@@ -64,7 +64,7 @@ export class PerspectiveCamera extends Camera implements IPerspectiveCamera {
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateFov: fov was set to: ${value}`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateFov: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateFov: Something unexpected happened.`, true)
         }
     }
 

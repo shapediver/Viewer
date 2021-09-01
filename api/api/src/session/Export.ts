@@ -49,7 +49,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${exportDef.id}).constructor: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${exportDef.id}).constructor: Something unexpected happened.`, true)
     }
   }
 
@@ -85,14 +85,14 @@ export class Export implements ShapeDiverResponseExportDefinition {
         return exportResult;
       } catch (e) {
         if (e.response && e.response.status) {
-          throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${this.id}).request: Request failed.`, e.response.status, true);
+          throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).request: Request failed.`, e.response.status, true);
         } else {
-          throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${this.id}).request: Request failed.`, true);
+          throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).request: Request failed.`, true);
         }
       }
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${this.id}).request: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).request: Something unexpected happened.`, true)
     }
   }
 
@@ -104,7 +104,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateDisplayName: DisplayName was updated to ${this.displayName}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${this.id}).updateDisplayName: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).updateDisplayName: Something unexpected happened.`, true)
     }
   }
 
@@ -116,7 +116,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateHidden: Hidden was updated to ${this.hidden}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${this.id}).updateHidden: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).updateHidden: Something unexpected happened.`, true)
     }
   }
 
@@ -128,7 +128,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateOrder: Order was updated to ${this.order}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${this.id}).updateOrder: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).updateOrder: Something unexpected happened.`, true)
     }
   }
 
@@ -163,7 +163,7 @@ export class Export implements ShapeDiverResponseExportDefinition {
       }
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Export(${this.id}).cacheRequest: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).cacheRequest: Something unexpected happened.`, true)
     }
   }
 

@@ -57,7 +57,7 @@ export class PointLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDecay: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateDecay: Something unexpected happened.`, true)
         }
     }
 
@@ -74,7 +74,7 @@ export class PointLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updateDistance: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateDistance: Something unexpected happened.`, true)
         }
     }
 
@@ -91,7 +91,7 @@ export class PointLight extends Light {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(e.message, e), `Light(${this.id}).updatePosition: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updatePosition: Something unexpected happened.`, true)
         }
     }
 

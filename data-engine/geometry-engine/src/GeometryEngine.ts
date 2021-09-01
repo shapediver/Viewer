@@ -57,9 +57,9 @@ export class GeometryEngine {
                 this._performanceEvaluator.endSection('loadGltf.' + url);
             } catch (e) {
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `GeometryEngine.loadContent: Initial loading of geometry failed.`, e.response.status, false)
+                    this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `GeometryEngine.loadContent: Initial loading of geometry failed.`, e.response.status, false)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `GeometryEngine.loadContent: Initial loading of geometry failed.`, false)
+                    this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `GeometryEngine.loadContent: Initial loading of geometry failed.`, false)
                 }
                 return new TreeNode();
             }

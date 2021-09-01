@@ -69,7 +69,7 @@ export class Api {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.constructor: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.constructor: Something unexpected happened.`, true)
     }
   }
 
@@ -91,7 +91,7 @@ export class Api {
       return this.#eventEngine.addListener(type, cb);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.addListener: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.addListener: Something unexpected happened.`, true)
     }
   }
 
@@ -107,8 +107,10 @@ export class Api {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
-      if (!this.sessions[id])
-        this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.closeSession: Session with id ${id} was not registered.`));
+      if (!this.sessions[id]){
+        this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.closeSession: Session with id ${id} was not registered.`);
+        return false;
+      }
 
       const result = await this.#sessionCallbacks[id].close();
       if(this.#stateEngine.getCustomState(id + '_settings_registered'))
@@ -141,7 +143,7 @@ export class Api {
       return result;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Api.closeSession: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Api.closeSession: Something unexpected happened.`, true)
     }
   }
 
@@ -173,7 +175,7 @@ export class Api {
       return result;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.closeViewer: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.closeViewer: Something unexpected happened.`, true)
     }
   }
 
@@ -188,7 +190,7 @@ export class Api {
       return new Blob([result], { type: 'application/octet-stream' });
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.convertSceneToGLTF: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.convertSceneToGLTF: Something unexpected happened.`, true)
     }
   }
 
@@ -223,8 +225,11 @@ export class Api {
 
       // check if the given id is valid
       const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-      if (this.sessions[sessionId])
-        throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`));
+      if (this.sessions[sessionId]) {
+        const error = new SDError(`Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`);
+        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
+        throw error;
+      }
 
       const session = this.createSession(properties);
       await session.init();
@@ -232,7 +237,7 @@ export class Api {
       return session;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Api.createAndInitializeSession: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Api.createAndInitializeSession: Something unexpected happened.`, true)
     }
   }
 
@@ -263,8 +268,11 @@ export class Api {
 
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-      if (this.viewers[viewerId])
-        throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`));
+      if (this.viewers[viewerId]) {
+        const error = new SDError(`Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`);
+        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
+        throw error;
+      }
 
       // create the actual viewer
       let viewerCallbacks = {};
@@ -284,7 +292,7 @@ export class Api {
       return this.viewers[viewerId];
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.createAndInitializeViewer: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.createAndInitializeViewer: Something unexpected happened.`, true)
     }
   }
 
@@ -316,8 +324,11 @@ export class Api {
 
       // check if the given id is valid
       const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-      if (this.sessions[sessionId])
-        throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Api.createSession: Session with this id (${sessionId}) already exists.`));
+      if (this.sessions[sessionId]) {
+        const error = new SDError(`Api.createSession: Session with this id (${sessionId}) already exists.`);
+        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
+        throw error;
+      }
 
       // create the actual session 
       let sessionCallbacks = {};
@@ -332,7 +343,7 @@ export class Api {
       return session;
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Api.createSession: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Api.createSession: Something unexpected happened.`, true)
     }
   }
 
@@ -363,8 +374,11 @@ export class Api {
 
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-      if (this.viewers[viewerId])
-        throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`));
+      if (this.viewers[viewerId]) {
+        const error = new SDError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`);
+        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
+        throw error;
+      }
 
       // create the actual viewer
       let viewerCallbacks = {};
@@ -379,7 +393,7 @@ export class Api {
       return this.viewers[viewerId];
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.createViewer: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.createViewer: Something unexpected happened.`, true)
     }
   }
 
@@ -396,7 +410,7 @@ export class Api {
       return this.sessions[id];
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Api.getSession: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Api.getSession: Something unexpected happened.`, true)
     }
   }
 
@@ -413,7 +427,7 @@ export class Api {
       return this.viewers[id];
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.getViewer: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.getViewer: Something unexpected happened.`, true)
     }
   }
 
@@ -429,7 +443,7 @@ export class Api {
       return this.#eventEngine.removeListener(id);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.removeListener: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.removeListener: Something unexpected happened.`, true)
     }
   }
 
@@ -444,7 +458,7 @@ export class Api {
         this.viewers[v].update();
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.update: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.update: Something unexpected happened.`, true)
     }
   }
 
@@ -460,7 +474,7 @@ export class Api {
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateLoggingLevel: LoggingLevel was set to: ${value}`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.updateLoggingLevel: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.updateLoggingLevel: Something unexpected happened.`, true)
     }
   }
 
@@ -477,7 +491,7 @@ export class Api {
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: ShowMessages was set to: ${value}`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, new SDError(e.message, e), `Api.updateShowMessages: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.updateShowMessages: Something unexpected happened.`, true)
     }
   }
 
@@ -487,8 +501,12 @@ export class Api {
       for(let s in this.sessions)
         if(this.sessions[s].canUploadGLTF)
           arSession = this.sessions[s];
-      if(!arSession) throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError('None of the sessions that are registered are capable of using the AR feature.'), 'None of the sessions that are registered are capable of using the AR feature.', true);
-      
+      if(!arSession) {
+        const error = new SDError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
+        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
+        throw error;
+      }
+
       const file = await arSession.uploadGLTF();
       const a = document.createElement('a');
       a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${resizable}&title=${title}&file=${file}&mode=${mode}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${browser_fallback_url};end;`
@@ -496,7 +514,7 @@ export class Api {
       a.click()
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, new SDError(e.message, e), `Api.viewInAR: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.viewInAR: Something unexpected happened.`, true)
     }
   }
 

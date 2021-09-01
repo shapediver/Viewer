@@ -189,7 +189,7 @@ export class Session {
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
                 } catch (e) {
                     if (e instanceof SDError) throw e;
-                    throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).setAsPrimary: Something unexpected happened.`, true)
+                    throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).setAsPrimary: Something unexpected happened.`, true)
                 }
             }
 
@@ -207,7 +207,7 @@ export class Session {
                     return closeResult;
                 } catch (e) {
                     if (e instanceof SDError) throw e;
-                    throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).close: Something unexpected happened.`, true)
+                    throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).close: Something unexpected happened.`, true)
                 }
             }
 
@@ -216,7 +216,7 @@ export class Session {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).constructor: Session api created.`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session.constructor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session.constructor: Something unexpected happened.`, true)
         }
     }
 
@@ -363,7 +363,7 @@ export class Session {
             return this.node;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).customize: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).customize: Something unexpected happened.`, true)
         }
     }
 
@@ -380,7 +380,7 @@ export class Session {
             return this.exports[id];
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Session(${this.id}).getExportById: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Session(${this.id}).getExportById: Something unexpected happened.`, true)
         }
     }
 
@@ -402,7 +402,7 @@ export class Session {
             return exports;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Session(${this.id}).getExportByName: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Session(${this.id}).getExportByName: Something unexpected happened.`, true)
         }
     }
 
@@ -424,7 +424,7 @@ export class Session {
             return exports;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.EXPORT, new SDError(e.message, e), `Session(${this.id}).getExportByType: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Session(${this.id}).getExportByType: Something unexpected happened.`, true)
         }
     }
 
@@ -441,7 +441,7 @@ export class Session {
             return this.outputs[id];
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Session(${this.id}).getOutputById: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Session(${this.id}).getOutputById: Something unexpected happened.`, true)
         }
     }
 
@@ -463,7 +463,7 @@ export class Session {
             return outputs;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.OUTPUT, new SDError(e.message, e), `Session(${this.id}).getOutputByName: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Session(${this.id}).getOutputByName: Something unexpected happened.`, true)
         }
     }
 
@@ -480,7 +480,7 @@ export class Session {
             return this.parameters[id];
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, new SDError(e.message, e), `Session(${this.id}).getParameterById: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Session(${this.id}).getParameterById: Something unexpected happened.`, true)
         }
     }
 
@@ -502,7 +502,7 @@ export class Session {
             return parameters;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, new SDError(e.message, e), `Session(${this.id}).getParameterByName: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Session(${this.id}).getParameterByName: Something unexpected happened.`, true)
         }
     }
 
@@ -524,7 +524,7 @@ export class Session {
             return parameters;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, new SDError(e.message, e), `Session(${this.id}).getParameterByType: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Session(${this.id}).getParameterByType: Something unexpected happened.`, true)
         }
     }
 
@@ -557,7 +557,7 @@ export class Session {
             return node;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).goBack: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).goBack: Something unexpected happened.`, true)
         }
     }
 
@@ -587,7 +587,7 @@ export class Session {
             return node;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).goForward: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).goForward: Something unexpected happened.`, true)
         }
     }
 
@@ -688,7 +688,7 @@ export class Session {
             return this.node;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).init: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).init: Something unexpected happened.`, true)
         }
     }
 
@@ -710,7 +710,7 @@ export class Session {
             return response;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).saveDefaultParameters: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).saveDefaultParameters: Something unexpected happened.`, true)
         }
     }
 
@@ -775,7 +775,7 @@ export class Session {
             return response && responseP && responseO && responseE;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).saveSessionProperties: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).saveSessionProperties: Something unexpected happened.`, true)
         }
     }
 
@@ -824,7 +824,7 @@ export class Session {
             return false;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).saveSettings: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).saveSettings: Something unexpected happened.`, true)
         }
     }
 
@@ -839,7 +839,7 @@ export class Session {
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateAuthorTicket: authorTicket was set to: ${value}`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).updateAuthorTicket: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateAuthorTicket: Something unexpected happened.`, true)
         }
     }
 
@@ -854,7 +854,7 @@ export class Session {
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateBearerToken: bearerToken was set to: ${value}`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).updateBearerToken: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateBearerToken: Something unexpected happened.`, true)
         }
     }
 
@@ -870,7 +870,7 @@ export class Session {
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateCommitParameters: commitParameters was set to: ${value}`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).updateCommitParameters: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateCommitParameters: Something unexpected happened.`, true)
         }
     }
 
@@ -886,7 +886,7 @@ export class Session {
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateCommitSettings: commitSettings was set to: ${value}`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).updateCommitSettings: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateCommitSettings: Something unexpected happened.`, true)
         }
     }
 
@@ -903,7 +903,7 @@ export class Session {
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateRefreshBearerToken: refreshBearerToken was set to: ${value}`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).updateRefreshBearerToken: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateRefreshBearerToken: Something unexpected happened.`, true)
         }
     }
 
@@ -915,8 +915,11 @@ export class Session {
      */
     public async uploadGLTF() {
         try {
-            if(this.canUploadGLTF === false)
-                throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError('GLTF upload not available in this session.'), `Session(${this.id}).uploadGLTF: GLTF upload not available in this session.`, true)
+            if(this.canUploadGLTF === false) {
+                const error = new SDError(`Session(${this.id}).uploadGLTF: GLTF upload not available in this session.`);
+                this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
+                throw error;
+            }
 
             const blob = await this.#api.convertSceneToGLTF();
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploading GLTF.`);
@@ -925,7 +928,7 @@ export class Session {
             return uploadReply.gltf.href;
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).uploadGLTF: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).uploadGLTF: Something unexpected happened.`, true)
         }
     }
 

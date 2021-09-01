@@ -56,7 +56,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).constructor: OrthographicCameraControlsLogic api created.`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls.constructor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls.constructor: Something unexpected happened.`, true)
         }
     }
 
@@ -77,7 +77,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateDamping: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateDamping: Something unexpected happened.`, true)
         }
     }
 
@@ -94,7 +94,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableKeyPan: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableKeyPan: Something unexpected happened.`, true)
         }
     }
 
@@ -111,7 +111,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnablePan: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnablePan: Something unexpected happened.`, true)
         }
     }
 
@@ -128,7 +128,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableZoom: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableZoom: Something unexpected happened.`, true)
         }
     }
 
@@ -145,7 +145,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnabled: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnabled: Something unexpected happened.`, true)
         }
     }
 
@@ -171,7 +171,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateInput: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateInput: Something unexpected happened.`, true)
         }
     }
 
@@ -188,7 +188,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: Something unexpected happened.`, true)
         }
     }
 
@@ -205,7 +205,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateMovementSmoothness: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateMovementSmoothness: Something unexpected happened.`, true)
         }
     }
 
@@ -222,7 +222,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updatePanSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updatePanSpeed: Something unexpected happened.`, true)
         }
     }
 
@@ -239,7 +239,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateZoomSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateZoomSpeed: Something unexpected happened.`, true)
         }
     }
 

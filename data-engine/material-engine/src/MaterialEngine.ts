@@ -209,9 +209,9 @@ export class MaterialEngine {
             }
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `MaterialEngine.loadMap: Loading of map failed.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMap: Loading of map failed.`, e.response.status, false)
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), `MaterialEngine.loadMap: Loading of map failed.`, false)
+                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMap: Loading of map failed.`, false)
             }
             return null;
         }

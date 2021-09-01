@@ -106,7 +106,12 @@ export class CameraEngine implements ICameraEngine {
 
     public createCamera(type: CAMERATYPE, id?: string): Camera {
         const cameraId = id || this._uuidGenerator.create();
-        if (this._cameras[cameraId]) this._logger.error(LOGGINGTOPIC.CAMERA, new SDError(`Camera: Camera (${type}) with this id (${cameraId}) already exists.`));
+        if (this._cameras[cameraId]) {
+            const error = new SDError(`Camera: Camera (${type}) with this id (${cameraId}) already exists.`);
+            this._logger.warn(LOGGINGTOPIC.CAMERA, error.message);
+            throw error;
+        }
+        
         if (CAMERATYPE.ORTHOGRAPHIC === type) {
             const camera = new OrthographicCamera(this._viewerId, cameraId, this._canvas.canvasElement);
             this._camerasDomEventListenerToken[cameraId] = this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);

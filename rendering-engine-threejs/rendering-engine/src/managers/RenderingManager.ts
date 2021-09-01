@@ -160,7 +160,7 @@ export class RenderingManager implements IManager {
             };
         } catch (e) {
             this._noWebGL = true;
-            throw new SDError(e.message, e);
+            throw e
         }
     }
 

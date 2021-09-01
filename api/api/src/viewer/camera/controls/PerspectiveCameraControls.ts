@@ -76,7 +76,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).constructor: PerspectiveCameraControlsLogic api created.`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls.constructor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls.constructor: Something unexpected happened.`, true)
         }
     }
 
@@ -97,7 +97,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed: Something unexpected happened.`, true)
         }
     }
 
@@ -115,7 +115,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateCubePositionRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateCubePositionRestriction: Something unexpected happened.`, true)
         }
     }
 
@@ -133,7 +133,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction: Something unexpected happened.`, true)
         }
     }
 
@@ -150,7 +150,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateDamping: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateDamping: Something unexpected happened.`, true)
         }
     }
 
@@ -167,7 +167,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableAutoRotation: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableAutoRotation: Something unexpected happened.`, true)
         }
     }
 
@@ -184,7 +184,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableKeyPan: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableKeyPan: Something unexpected happened.`, true)
         }
     }
 
@@ -201,7 +201,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnablePan: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnablePan: Something unexpected happened.`, true)
         }
     }
 
@@ -218,7 +218,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableRotation: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableRotation: Something unexpected happened.`, true)
         }
     }
 
@@ -235,7 +235,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnableZoom: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableZoom: Something unexpected happened.`, true)
         }
     }
 
@@ -252,7 +252,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateEnabled: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnabled: Something unexpected happened.`, true)
         }
     }
 
@@ -278,7 +278,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateInput: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateInput: Something unexpected happened.`, true)
         }
     }
 
@@ -295,7 +295,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: Something unexpected happened.`, true)
         }
     }
 
@@ -312,7 +312,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateMovementSmoothness: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateMovementSmoothness: Something unexpected happened.`, true)
         }
     }
 
@@ -329,7 +329,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updatePanSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updatePanSpeed: Something unexpected happened.`, true)
         }
     }
 
@@ -349,7 +349,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateRotationRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateRotationRestriction: Something unexpected happened.`, true)
         }
     }
 
@@ -366,7 +366,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateRotationSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateRotationSpeed: Something unexpected happened.`, true)
         }
     }
 
@@ -384,7 +384,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction: Something unexpected happened.`, true)
         }
     }
 
@@ -402,7 +402,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction: Something unexpected happened.`, true)
         }
     }
 
@@ -420,7 +420,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateZoomRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateZoomRestriction: Something unexpected happened.`, true)
         }
     }
 
@@ -437,7 +437,7 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, new SDError(e.message, e), `Controls(${this.#controls.camera.id}).updateZoomSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateZoomSpeed: Something unexpected happened.`, true)
         }
     }
 

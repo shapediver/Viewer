@@ -32,9 +32,9 @@ export class Encoder {
             });
         } catch (e) {
             if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SDTF, new SDError(e.message, e), `Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, e.response.status, false)
+                this._logger.httpError(LOGGINGTOPIC.SDTF, e, `Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, e.response.status, false)
               } else {
-                this._logger.error(LOGGINGTOPIC.SDTF, new SDError(e.message, e), `Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, false)
+                this._logger.error(LOGGINGTOPIC.SDTF, e, `Encoder.encodeFromUriToArrayBuffer: Was not able to get array buffer from uri.`, false)
             }
             return null;
         }

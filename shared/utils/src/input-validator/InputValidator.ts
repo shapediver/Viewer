@@ -18,7 +18,9 @@ export class InputValidator {
     public validateAndError(topic: LOGGINGTOPIC, scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
         const res = this.validate(value, type, defined, enumValues);
         if(res) return;
-        this._logger.error(topic, new SDError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`), `${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, true);
+        const error = new SDError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`);
+        this._logger.warn(topic, error.message);
+        throw error;
     }
 
     private validate(value: any, stringLiteral: Types, defined: boolean = true, enumValues: string[] = []): boolean {

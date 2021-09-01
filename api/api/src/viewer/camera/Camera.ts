@@ -61,7 +61,7 @@ export abstract class Camera implements ICamera {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor: Camera api created.`);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).constructor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).constructor: Something unexpected happened.`, true)
         }
     }
 
@@ -82,7 +82,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateCameraMovementDuration: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateCameraMovementDuration: Something unexpected happened.`, true)
         }
     }
 
@@ -99,7 +99,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateDefaultPosition: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateDefaultPosition: Something unexpected happened.`, true)
         }
     }
 
@@ -116,7 +116,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateDefaultTarget: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateDefaultTarget: Something unexpected happened.`, true)
         }
     }
 
@@ -133,7 +133,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateEnableCameraControls: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateEnableCameraControls: Something unexpected happened.`, true)
         }
     }
 
@@ -149,7 +149,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateOrder: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateOrder: Something unexpected happened.`, true)
         }
     }
 
@@ -166,7 +166,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updatePosition: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updatePosition: Something unexpected happened.`, true)
         }
     }
 
@@ -183,7 +183,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateRevertAtMouseUp: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateRevertAtMouseUp: Something unexpected happened.`, true)
         }
     }
 
@@ -200,7 +200,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateRevertAtMouseUpDuration: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateRevertAtMouseUpDuration: Something unexpected happened.`, true)
         }
     }
 
@@ -217,7 +217,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateTarget: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateTarget: Something unexpected happened.`, true)
         }
     }
 
@@ -234,7 +234,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateZoomExtentsFactor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateZoomExtentsFactor: Something unexpected happened.`, true)
         }
     }
 
@@ -267,7 +267,7 @@ export abstract class Camera implements ICamera {
             return this.#camera.animate(path, o);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).animate: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).animate: Something unexpected happened.`, true)
         }
     }
 
@@ -290,7 +290,7 @@ export abstract class Camera implements ICamera {
             return this.#camera.reset(o);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).reset: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).reset: Something unexpected happened.`, true)
         }
     }
 
@@ -315,7 +315,7 @@ export abstract class Camera implements ICamera {
             return this.#camera.set(vec3.fromValues(position[0], position[1], position[2]), vec3.fromValues(target[0], target[1], target[2]), o);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).set: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).set: Something unexpected happened.`, true)
         }
     }
 
@@ -332,7 +332,7 @@ export abstract class Camera implements ICamera {
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).updateAutoAdjust: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateAutoAdjust: Something unexpected happened.`, true)
         }
     }
 
@@ -361,7 +361,7 @@ export abstract class Camera implements ICamera {
             return this.#camera.zoomTo(zoomTarget, o);
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(e.message, e), `Camera(${this.id}).zoomTo: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).zoomTo: Something unexpected happened.`, true)
         }
     }
 

@@ -145,7 +145,7 @@ export class HTMLElementAnchorEngine {
             }
             return node;
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError(e.message, e), 'HTMLElementAnchorEngine.load: Loading of anchors failed.');
+            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, 'HTMLElementAnchorEngine.load: Loading of anchors failed.');
             return new TreeNode();
         }
     }
