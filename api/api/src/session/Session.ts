@@ -18,43 +18,13 @@ import { FileParameter } from './FileParameter'
 
 @injectable()
 export class Session {
-    // #region Properties (23)
+    // #region Properties (32)
 
     readonly #api: Api = <Api>container.resolve(Api);
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    readonly #sessionEngine: SessionEngine;
-    readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    readonly #updateCB = () => {
-        (<any>this.authorTicket) = this.#sessionEngine.authorTicket;
-        (<any>this.bearerToken) = this.#sessionEngine.bearerToken;
-        (<any>this.initialized) = this.#sessionEngine.initialized;
-    }
-
-    readonly authorTicket: boolean | undefined;
-    readonly bearerToken: string | undefined;
-    readonly canUploadGLTF: boolean = false;
-    readonly commitParameters: boolean = false;
-    readonly commitSettings: boolean = false;
-    readonly exports: { [key: string]: Export; } = {};
-    readonly id: string;
-    readonly initialized: boolean = false;
-    readonly modelViewUrl: string;
-    readonly node: TreeNode;
-    readonly outputs: { [key: string]: Output; } = {};
-    readonly parameters: { [key: string]: Parameter<any> } = {};
-    readonly primarySession: boolean = false;
-    readonly primarySessionRequest: boolean = false;
-    readonly ticket: string;
-
-    #customizationProcess!: string;
-    #excludeViewers: string[] = [];
-    #useSessionSettings: boolean = true;
-
     readonly #saveSessionSettings = () => {
         const parameters = this.parameters;
         const exports = this.exports;
@@ -108,7 +78,50 @@ export class Session {
         this.#settingsEngine.general.parameters.parametersHidden.value = hidden;
     }
 
-    // #endregion Properties (23)
+    readonly #sessionEngine: SessionEngine;
+    readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    readonly #updateCB = () => {
+        (<any>this.authorTicket) = this.#sessionEngine.authorTicket;
+        (<any>this.bearerToken) = this.#sessionEngine.bearerToken;
+        (<any>this.initialized) = this.#sessionEngine.initialized;
+    }
+
+    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    readonly authorTicket: boolean | undefined;
+    readonly bearerToken: string | undefined;
+    readonly canUploadGLTF: boolean = false;
+    readonly commitParameters: boolean = false;
+    readonly commitSettings: boolean = false;
+    readonly exports: { [key: string]: Export; } = {};
+    readonly id: string;
+    readonly initialized: boolean = false;
+    readonly modelViewUrl: string;
+    readonly node: TreeNode;
+    readonly outputs: { [key: string]: Output; } = {};
+    readonly parameters: { [key: string]: Parameter<any> } = {};
+    readonly primarySession: boolean = false;
+    readonly primarySessionRequest: boolean = false;
+    readonly ticket: string;
+
+    #customizationProcess!: string;
+    #excludeViewers: string[] = [];
+    #parameterHistory: {
+        [key: string]: {
+            value: any,
+            valueString: string
+        }
+    }[] = [];
+    #parameterHistoryCall = false;
+    #parameterHistoryForward: {
+        [key: string]: {
+            value: any,
+            valueString: string
+        }
+    }[] = [];
+    #useSessionSettings: boolean = true;
+
+    // #endregion Properties (32)
 
     // #region Constructors (1)
 
@@ -209,7 +222,27 @@ export class Session {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (18)
+    // #region Public Methods (23)
+
+    /**
+     * If the session history allows to go back to the last customization call.
+     * 
+     * @returns 
+     */
+    public canGoBack(): boolean {
+        // the first entry is always the one from the init call
+        // all additional entries can be undone
+        return this.#parameterHistory.length > 1;
+    }
+
+    /**
+     * If the session history allows to go forward to the next customization call.
+     * 
+     * @returns 
+     */
+    public canGoForward(): boolean {
+        return this.#parameterHistoryForward.length > 0;
+    }
 
     /**
      * Customize the session.
@@ -297,6 +330,12 @@ export class Session {
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return node;
+            }
+
+            // if this is not a call by the goBack or goForward functions, add the parameter values to the history and delete the forward history
+            if(!this.#parameterHistoryCall) {
+                this.#parameterHistory.push(parameterSet);
+                this.#parameterHistoryForward = [];
             }
 
             this.#performanceEvaluator.startSection('finish');
@@ -490,6 +529,69 @@ export class Session {
     }
 
     /**
+     * Go back to the last customization call.
+     * 
+     * @returns 
+     */
+    public async goBack(): Promise<TreeNode> { 
+        try {
+            if(!this.canGoBack()) {
+                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).goBack: Cannot go further back.`);
+                return new TreeNode();
+            }
+            // get the current parameter set and store it in the forward history later on
+            const currentParameterSet = this.#parameterHistory.pop()!;
+
+            // adjust the parameters according to the last parameter set
+            const lastParameterSet = this.#parameterHistory[this.#parameterHistory.length - 1];
+            for (const parameterId in lastParameterSet)
+                this.parameters[parameterId].updateValue(lastParameterSet[parameterId].value);
+        
+            // call the customization function with the parameterHistoryCall value set to true
+            this.#parameterHistoryCall = true;
+            const node = await this.customize();
+            this.#parameterHistoryCall = false;
+
+            // add the current (not anymore current) parameter set to the forward history
+            this.#parameterHistoryForward.push(currentParameterSet);
+            return node;
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).goBack: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * Go forward to the next customization call.
+     * 
+     * @returns 
+     */
+    public async goForward(): Promise<TreeNode> {
+        try {
+            if(!this.canGoForward()) {
+                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).goBack: Cannot go further forward.`);
+                return new TreeNode();
+            }
+            // get the last undone parameter set and apply the values to the parameters
+            const lastParameterSet = this.#parameterHistoryForward.pop()!;
+            for (const parameterId in lastParameterSet)
+                this.parameters[parameterId].updateValue(lastParameterSet[parameterId].value);
+
+            // call the customization function with the parameterHistoryCall value set to true
+            this.#parameterHistoryCall = true;
+            const node = await this.customize();
+            this.#parameterHistoryCall = false;
+            
+            // add the current parameter set to the history
+            this.#parameterHistory.push(lastParameterSet);
+            return node;
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(e.message, e), `Session(${this.id}).goForward: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
      * Initialize the session.
      * Normally, there is no need to call this function.
      * The initialization is done on creation via the api.
@@ -509,6 +611,13 @@ export class Session {
             
             this.#performanceEvaluator.endSection('customize');
             this.#performanceEvaluator.startSection('finish');
+
+            const parameterSet: {
+                [key: string]: {
+                    value: any,
+                    valueString: string
+                }
+            } = {};
 
             for (let p in this.#sessionEngine.parameters) {
                 const param = this.#sessionEngine.parameters[p];
@@ -531,7 +640,15 @@ export class Session {
                         this.parameters[p] = new Parameter<string>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                 }
+                
+                parameterSet[p] = {
+                    value: this.parameters[p].value,
+                    valueString: this.parameters[p].stringify()
+                }
             }
+
+            // store the initialization as the first parameter set in the history
+            this.#parameterHistory.push(parameterSet);
 
             for (let e in this.#sessionEngine.exports) {
                 if(this.#sessionEngine.exports[e].displayname !== undefined || this.#sessionEngine.exports[e].order !== undefined)
@@ -597,14 +714,13 @@ export class Session {
         }
     }
 
-    
     /**
      * Save the session properties (displayname, order and hidden properties for parameters, exports and outputs).
      * This only works when this session was created with an author ticket.
      * 
      * @returns 
      */
-     public async saveSessionProperties() {
+    public async saveSessionProperties() {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saving session properties.`);
                     
@@ -813,5 +929,5 @@ export class Session {
         }
     }
 
-    // #endregion Public Methods (18)
+    // #endregion Public Methods (23)
 }
