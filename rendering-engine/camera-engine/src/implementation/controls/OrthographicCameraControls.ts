@@ -1,3 +1,4 @@
+import { IOrthographicControlsSettingsV3 } from '@shapediver/viewer.settings'
 import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
@@ -37,15 +38,18 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     }
 
     public applySettings() {
-        this.damping = this._settingsEngine.cameraOrthographicControls.damping.value;
-        this.enableKeyPan = this._settingsEngine.cameraOrthographicControls.enableKeyPan.value;
-        this.enablePan = this._settingsEngine.cameraOrthographicControls.enablePan.value;
-        this.enableZoom = this._settingsEngine.cameraOrthographicControls.enableZoom.value;
-        this.input = this._settingsEngine.cameraOrthographicControls.input.value;
-        this.keyPanSpeed = this._settingsEngine.cameraOrthographicControls.keyPanSpeed.value;
-        this.movementSmoothness = this._settingsEngine.cameraOrthographicControls.movementSmoothness.value;
-        this.panSpeed = this._settingsEngine.cameraOrthographicControls.panSpeed.value;
-        this.zoomSpeed = this._settingsEngine.cameraOrthographicControls.zoomSpeed.value;
+        const cameraSetting = this._settingsEngine.camera.cameras[this.camera.id];
+        if(!cameraSetting) return;
+        const controlsSettings = <IOrthographicControlsSettingsV3>cameraSetting.controls;
+        this.damping = controlsSettings.damping;
+        this.enableKeyPan = controlsSettings.enableKeyPan;
+        this.enablePan = controlsSettings.enablePan;
+        this.enableZoom = controlsSettings.enableZoom;
+        this.input = controlsSettings.input;
+        this.keyPanSpeed = controlsSettings.keyPanSpeed;
+        this.movementSmoothness = controlsSettings.movementSmoothness;
+        this.panSpeed = controlsSettings.panSpeed;
+        this.zoomSpeed = controlsSettings.zoomSpeed;
     }
 
     // #endregion Constructors (1)

@@ -58,33 +58,29 @@ export class Session {
     readonly #saveSessionSettings = () => {
         const parameters = this.parameters;
         const exports = this.exports;
-        const displayNames: { [key: string]: string } = {};
-        for (let p in parameters)
-            if (parameters[p].displayName !== undefined)
-                displayNames[p] = parameters[p].displayName!;
-        for (let e in exports)
-            if (exports[e].displayName !== undefined)
-                displayNames[e] = exports[e].displayName!;
-        this.#settingsEngine.general.parameters.controlNames.value = displayNames;
 
-        let ordered: (Parameter<any> | Export)[] = [];
-        for (let p in parameters) ordered.push(parameters[p]);
-        for (let e in exports) ordered.push(exports[e]);
-        ordered.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
-        let zeros = ordered.filter(x => x.order === 0);
-        ordered = ordered.filter((el) => { return !zeros.includes(el); });
-        ordered = zeros.concat(ordered);
-        this.#settingsEngine.general.parameters.controlOrder.value = ordered.map((value) => { return value.id; });
-
-        const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
-        for (let i = 0; i < controlOrder.length; i++) {
-            if (this.parameters[controlOrder[i]])
-                if(this.parameters[controlOrder[i]]!.order !== i)
-                    this.parameters[controlOrder[i]]!.updateOrder(i);
-            if (this.exports[controlOrder[i]])
-                if(this.exports[controlOrder[i]]!.order !== i)
-                    this.exports[controlOrder[i]]!.updateOrder(i);
+        const sessionProperties: {
+            [key: string]: {
+                order: number;
+                displayName: string;
+                hidden: boolean;
+            }
+        } = {};
+        for (let p in parameters) {
+            sessionProperties[p] = {
+                order: parameters[p].order || 0,
+                displayName: parameters[p].displayName || '',
+                hidden: parameters[p].hidden
+            }
         }
+        for (let e in exports) {
+            sessionProperties[e] = {
+                order: exports[e].order || 0,
+                displayName: exports[e].displayName || '',
+                hidden: exports[e].hidden
+            }
+        }
+        this.#settingsEngine.session = sessionProperties;
 
         let orderedOutputs: Output[] = [];
         for (let o in this.outputs) orderedOutputs.push(this.outputs[o]);
@@ -96,16 +92,9 @@ export class Session {
         const controlOrderOutputs = orderedOutputs.map((value) => { return value.id; });
         for (let i = 0; i < controlOrderOutputs.length; i++) {
             if (this.outputs[controlOrderOutputs[i]])
-                if(this.outputs[controlOrderOutputs[i]]!.order !== i)
+                if (this.outputs[controlOrderOutputs[i]]!.order !== i)
                     this.outputs[controlOrderOutputs[i]]!.updateOrder(i);
         }
-
-        const hidden: string[] = [];
-        for (let p in parameters)
-            if (parameters[p].hidden !== undefined && parameters[p].hidden === true) hidden.push(p);
-        for (let e in exports)
-            if (exports[e].hidden !== undefined && exports[e].hidden === true) hidden.push(e);
-        this.#settingsEngine.general.parameters.parametersHidden.value = hidden;
     }
 
     // #endregion Properties (23)
@@ -133,33 +122,23 @@ export class Session {
                 }
 
                 this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
-                    (<any>this.commitParameters) = this.#settingsEngine.general.viewer.commitParameters.value;
-                    (<any>this.commitSettings) = this.#settingsEngine.general.viewer.commitSettings.value;
+                    (<any>this.commitParameters) = this.#settingsEngine.general.commitParameters;
+                    (<any>this.commitSettings) = this.#settingsEngine.general.commitSettings;
 
                     // only update the displayNames, order and hidden properties if the parameters / exports / outputs don't have these properties defined
-                    if(this.#useSessionSettings === true) {
-                        const controlNames = this.#settingsEngine.general.parameters.controlNames.value;
-                        for (let k in controlNames) {
-                            if (this.parameters[k])
-                                this.parameters[k]!.updateDisplayName(controlNames[k]);
-                            if (this.exports[k])
-                                this.exports[k]!.updateDisplayName(controlNames[k]);
-                        }
-    
-                        const controlOrder = this.#settingsEngine.general.parameters.controlOrder.value;
-                        for (let i = 0; i < controlOrder.length; i++) {
-                            if (this.parameters[controlOrder[i]])
-                                this.parameters[controlOrder[i]]!.updateOrder(i);
-                            if (this.exports[controlOrder[i]])
-                                this.exports[controlOrder[i]]!.updateOrder(i);
-                        }
-    
-                        const parametersHidden = this.#settingsEngine.general.parameters.parametersHidden.value;
-                        for (let i = 0; i < parametersHidden.length; i++) {
-                            if (this.parameters[parametersHidden[i]])
-                                this.parameters[parametersHidden[i]]!.updateHidden(true);
-                            if (this.exports[parametersHidden[i]])
-                                this.exports[parametersHidden[i]]!.updateHidden(true);
+                    if (this.#useSessionSettings === true) {
+                        for (let s in this.#settingsEngine.session) {
+                            const temp = this.#settingsEngine.session[s];
+                            if (this.parameters[s]) {
+                                if(temp.displayName !== undefined) this.parameters[s]!.updateDisplayName(temp.displayName);
+                                if(temp.order !== undefined) this.parameters[s]!.updateOrder(temp.order);
+                                if(temp.hidden !== undefined) this.parameters[s]!.updateHidden(temp.hidden);
+                            }
+                            if (this.exports[s]) {
+                                if(temp.displayName !== undefined) this.exports[s]!.updateDisplayName(temp.displayName);
+                                if(temp.order !== undefined) this.exports[s]!.updateOrder(temp.order);
+                                if(temp.hidden !== undefined) this.exports[s]!.updateHidden(temp.hidden);
+                            }
                         }
                     }
                 })
@@ -169,7 +148,7 @@ export class Session {
                 try {
                     (<any>this.primarySession) = true;
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
-                    this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
+                    this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
                     await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { sessionId: this.id });
                     this.#api.update();
@@ -229,8 +208,8 @@ export class Session {
 
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customizing session.`);
 
-            for (let viewerId in this.#api.viewers) 
-                if(this.#api.viewers[viewerId].blurSceneWhenBusy)
+            for (let viewerId in this.#api.viewers)
+                if (this.#api.viewers[viewerId].blurSceneWhenBusy)
                     this.#api.viewers[viewerId].registerBusyMode(customizationID);
 
             const fileParameterIds: { [key: string]: string } = {}
@@ -238,12 +217,12 @@ export class Session {
             for (const parameterId in this.parameters) {
                 if (this.parameters[parameterId] instanceof FileParameter) {
                     fileParameterIds[parameterId] = await (<FileParameter>this.parameters[parameterId]).upload();
-                                
+
                     // OPTION TO SKIP - PART 1a
-                    if(this.#customizationProcess !== customizationID) {
+                    if (this.#customizationProcess !== customizationID) {
                         this.#performanceEvaluator.endSection('init');
                         this.#performanceEvaluator.end();
-                        for (let viewerId in this.#api.viewers) 
+                        for (let viewerId in this.#api.viewers)
                             this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
                         this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                         return new TreeNode();
@@ -252,17 +231,17 @@ export class Session {
             }
 
             // OPTION TO SKIP - PART 1b
-            if(this.#customizationProcess !== customizationID) {
+            if (this.#customizationProcess !== customizationID) {
                 this.#performanceEvaluator.endSection('init');
                 this.#performanceEvaluator.end();
-                for (let viewerId in this.#api.viewers) 
+                for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return new TreeNode();
             }
 
             // assign the uploaded parameters
-            for (const parameterId in fileParameterIds) 
+            for (const parameterId in fileParameterIds)
                 this.parameters[parameterId].updateValue(fileParameterIds[parameterId]);
 
             const parameterSet: {
@@ -291,9 +270,9 @@ export class Session {
             this.#performanceEvaluator.endSection('customize');
 
             // OPTION TO SKIP - PART 2
-            if(this.#customizationProcess !== customizationID) {
+            if (this.#customizationProcess !== customizationID) {
                 this.#performanceEvaluator.end();
-                for (let viewerId in this.#api.viewers) 
+                for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return node;
@@ -303,20 +282,20 @@ export class Session {
             (<Tree>container.resolve(Tree)).removeNode(this.node);
             (<any>this.node) = node;
             (<Tree>container.resolve(Tree)).addNode(this.node);
-            
+
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
             // set the session values to the current ones in all parameters
             for (const parameterId in this.parameters)
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
-            
+
             this.node.excludeViewers = this.#excludeViewers;
 
-            for (let viewerId in this.#api.viewers) 
+            for (let viewerId in this.#api.viewers)
                 this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
-            
+
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
-            
+
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
 
@@ -506,13 +485,13 @@ export class Session {
             this.#performanceEvaluator.startSection('customize');
 
             (<any>this.node) = await this.#sessionEngine.init();
-            
+
             this.#performanceEvaluator.endSection('customize');
             this.#performanceEvaluator.startSection('finish');
 
             for (let p in this.#sessionEngine.parameters) {
                 const param = this.#sessionEngine.parameters[p];
-                if(param.displayname !== undefined || param.order !== undefined)
+                if (param.displayname !== undefined || param.order !== undefined)
                     this.#useSessionSettings = false;
                 switch (true) {
                     case param.type === PARAMETERTYPE.BOOL || param.type === PARAMETERTYPE.SBOOL:
@@ -534,13 +513,13 @@ export class Session {
             }
 
             for (let e in this.#sessionEngine.exports) {
-                if(this.#sessionEngine.exports[e].displayname !== undefined || this.#sessionEngine.exports[e].order !== undefined)
+                if (this.#sessionEngine.exports[e].displayname !== undefined || this.#sessionEngine.exports[e].order !== undefined)
                     this.#useSessionSettings = false;
                 this.exports[e] = new Export(this.#sessionEngine, this.#sessionEngine.exports[e]);
             }
 
             for (let o in this.#sessionEngine.outputs) {
-                if(this.#sessionEngine.outputs[o].displayname !== undefined || this.#sessionEngine.outputs[o].order !== undefined)
+                if (this.#sessionEngine.outputs[o].displayname !== undefined || this.#sessionEngine.outputs[o].order !== undefined)
                     this.#useSessionSettings = false;
                 this.outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
             }
@@ -553,19 +532,19 @@ export class Session {
 
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
-            for(let i = 0; i < viewerIds.length; i++)
-                if(this.#api.viewers[viewerIds[i]].initialized)
+            for (let i = 0; i < viewerIds.length; i++)
+                if (this.#api.viewers[viewerIds[i]].initialized)
                     viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.getCustomState(this.#api.viewers[viewerIds[i]].id + '_settings_loaded'); state.resolved === true ? resolve() : state.then(() => resolve()) }));
 
-            this.#settingsEngine.fromJson(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
+            this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
             await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
 
-            if(this.primarySession !== false) await Promise.all(viewerPromises);
+            if (this.primarySession !== false) await Promise.all(viewerPromises);
 
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { sessionId: this.id });
             this.#api.update();
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).init: Session initialized.`);
-           
+
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
             return this.node;
@@ -597,17 +576,17 @@ export class Session {
         }
     }
 
-    
+
     /**
      * Save the session properties (displayname, order and hidden properties for parameters, exports and outputs).
      * This only works when this session was created with an author ticket.
      * 
      * @returns 
      */
-     public async saveSessionProperties() {
+    public async saveSessionProperties() {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saving session properties.`);
-                    
+
             // settings saving 
             this.#saveSessionSettings();
 
@@ -618,7 +597,7 @@ export class Session {
                     order: number
                 }
             } = {};
-            for(let p in this.parameters) {
+            for (let p in this.parameters) {
                 properties[p] = {
                     displayname: this.parameters[p].displayName !== undefined ? this.parameters[p].displayName! : '',
                     hidden: this.parameters[p].hidden !== undefined ? this.parameters[p].hidden : false,
@@ -628,7 +607,7 @@ export class Session {
             const responseP = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveParameterProperties(properties) : true;
 
             properties = {};
-            for(let e in this.exports) {
+            for (let e in this.exports) {
                 properties[e] = {
                     displayname: this.exports[e].displayName !== undefined ? this.exports[e].displayName! : '',
                     hidden: this.exports[e].hidden !== undefined ? this.exports[e].hidden : false,
@@ -638,7 +617,7 @@ export class Session {
             const responseE = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveExportProperties(properties) : true;
 
             properties = {};
-            for(let o in this.outputs) {
+            for (let o in this.outputs) {
                 properties[o] = {
                     displayname: this.outputs[o].displayName !== undefined ? this.outputs[o].displayName! : '',
                     hidden: this.outputs[o].hidden !== undefined ? this.outputs[o].hidden : false,
@@ -648,8 +627,7 @@ export class Session {
             const responseO = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveOutputProperties(properties) : true;
 
             // save partial settings
-            const json = this.#settingsEngine.toJson();
-            const response = await this.#sessionEngine.saveSettings(json);
+            const response = await this.#sessionEngine.saveSettings(this.#settingsEngine.convertToTargetVersion());
 
             if (response && responseP && responseO && responseE) {
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saved session properties.`);
@@ -673,13 +651,13 @@ export class Session {
     public async saveSettings(viewerId?: string): Promise<boolean> {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Saving settings.`);
-            this.#settingsEngine.general.viewer.commitParameters.value = this.commitParameters;
-            this.#settingsEngine.general.viewer.commitSettings.value = this.commitSettings;
+            this.#settingsEngine.general.commitParameters = this.commitParameters;
+            this.#settingsEngine.general.commitSettings = this.commitSettings;
 
             this.#saveSessionSettings();
-            this.#settingsEngine.general.build_version.value = build_data.build_version;
-            this.#settingsEngine.general.build_date.value = build_data.build_date;
-            this.#settingsEngine.general.settings_version.value = '2.0';
+            this.#settingsEngine.settings.build_version = build_data.build_version;
+            this.#settingsEngine.settings.build_date = build_data.build_date;
+            this.#settingsEngine.settings.settings_version = '3.0';
 
             if (Object.values(this.#api.viewers).length !== 0) {
                 let viewer = viewerId ? this.#api.viewers[viewerId] : null;
@@ -693,9 +671,7 @@ export class Session {
                         renderingEngine = renderingEngines[i];
 
                 renderingEngine!.saveSettings();
-
-                const json = this.#settingsEngine.toJson();
-                const response = await this.#sessionEngine.saveSettings(json);
+                const response = await this.#sessionEngine.saveSettings(this.#settingsEngine.convertToTargetVersion());
                 if (response) {
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Saved settings.`);
                 } else {
@@ -799,7 +775,7 @@ export class Session {
      */
     public async uploadGLTF() {
         try {
-            if(this.canUploadGLTF === false)
+            if (this.canUploadGLTF === false)
                 throw this.#logger.error(LOGGINGTOPIC.SESSION, new SDError('GLTF upload not available in this session.'), `Session(${this.id}).uploadGLTF: GLTF upload not available in this session.`, true)
 
             const blob = await this.#api.convertSceneToGLTF();

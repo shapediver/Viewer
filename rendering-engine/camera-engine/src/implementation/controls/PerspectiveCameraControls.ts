@@ -1,3 +1,4 @@
+import { IOrbitControlsSettingsV3 } from '@shapediver/viewer.settings'
 import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { Converter } from '@shapediver/viewer.shared.utils'
 import { vec3 } from 'gl-matrix'
@@ -49,38 +50,41 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
     }
 
     public applySettings() {
-        this.autoRotationSpeed = this._settingsEngine.cameraOrbitControls.autoRotationSpeed.value;
-        this.damping = this._settingsEngine.cameraOrbitControls.damping.value;
-        this.enableAutoRotation = this._settingsEngine.cameraOrbitControls.enableAutoRotation.value;
-        this.enableKeyPan = this._settingsEngine.cameraOrbitControls.enableKeyPan.value;
-        this.enablePan = this._settingsEngine.cameraOrbitControls.enablePan.value;
-        this.enableRotation = this._settingsEngine.cameraOrbitControls.enableRotation.value;
-        this.enableZoom = this._settingsEngine.cameraOrbitControls.enableZoom.value;
-        this.input = this._settingsEngine.cameraOrbitControls.input.value;
-        this.keyPanSpeed = this._settingsEngine.cameraOrbitControls.keyPanSpeed.value;
-        this.movementSmoothness = this._settingsEngine.cameraOrbitControls.movementSmoothness.value;
-        this.rotationSpeed = this._settingsEngine.cameraOrbitControls.rotationSpeed.value;
-        this.panSpeed = this._settingsEngine.cameraOrbitControls.panSpeed.value;
-        this.zoomSpeed = this._settingsEngine.cameraOrbitControls.zoomSpeed.value;
+        const cameraSetting = this._settingsEngine.camera.cameras[this.camera.id];
+        if(!cameraSetting) return;
+        const controlsSettings = <IOrbitControlsSettingsV3>cameraSetting.controls;
+        this.autoRotationSpeed = controlsSettings.autoRotationSpeed;
+        this.damping = controlsSettings.damping;
+        this.enableAutoRotation = controlsSettings.enableAutoRotation;
+        this.enableKeyPan = controlsSettings.enableKeyPan;
+        this.enablePan = controlsSettings.enablePan;
+        this.enableRotation = controlsSettings.enableRotation;
+        this.enableZoom = controlsSettings.enableZoom;
+        this.input = controlsSettings.input;
+        this.keyPanSpeed = controlsSettings.keyPanSpeed;
+        this.movementSmoothness = controlsSettings.movementSmoothness;
+        this.rotationSpeed = controlsSettings.rotationSpeed;
+        this.panSpeed = controlsSettings.panSpeed;
+        this.zoomSpeed = controlsSettings.zoomSpeed;
 
         this.cubePositionRestriction = { 
-            min: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.position.cube.value.min),
-            max: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.position.cube.value.max)
+            min: this._converter.toVec3(controlsSettings.restrictions.position.cube.min),
+            max: this._converter.toVec3(controlsSettings.restrictions.position.cube.max)
         };
         this.spherePositionRestriction = { 
-            center: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.position.sphere.value.center),
-            radius: this._settingsEngine.cameraOrbitControls.restrictions.position.sphere.value.radius
+            center: this._converter.toVec3(controlsSettings.restrictions.position.sphere.center),
+            radius: controlsSettings.restrictions.position.sphere.radius
         };
         this.cubeTargetRestriction = { 
-            min: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.target.cube.value.min),
-            max: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.target.cube.value.max)
+            min: this._converter.toVec3(controlsSettings.restrictions.target.cube.min),
+            max: this._converter.toVec3(controlsSettings.restrictions.target.cube.max)
         };
         this.sphereTargetRestriction = { 
-            center: this._converter.toVec3(this._settingsEngine.cameraOrbitControls.restrictions.target.sphere.value.center),
-            radius: this._settingsEngine.cameraOrbitControls.restrictions.target.sphere.value.radius
+            center: this._converter.toVec3(controlsSettings.restrictions.target.sphere.center),
+            radius: controlsSettings.restrictions.target.sphere.radius
         };
-        this.rotationRestriction = this._settingsEngine.cameraOrbitControls.restrictions.rotation.value;
-        this.zoomRestriction = this._settingsEngine.cameraOrbitControls.restrictions.zoom.value;
+        this.rotationRestriction = controlsSettings.restrictions.rotation;
+        this.zoomRestriction = controlsSettings.restrictions.zoom;
     }
 
     // #endregion Constructors (1)

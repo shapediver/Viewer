@@ -118,7 +118,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
         it(name + '_save_perspective_front', async () => {
             // check starting default
-            const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
+            await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let viewer = await api.createAndInitializeViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createAndInitializeSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
@@ -126,12 +126,12 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb();
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/save_perspective_front_1');
 
             // change and save
-            const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
+            await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer')!;
                 let session = api.getSession('mySession')!;
@@ -145,13 +145,13 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb();
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/save_perspective_front_2');
 
 
             // reset and save
-            const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
+            await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession')!;
                 let viewer = api.getViewer('myViewer')!;
@@ -162,7 +162,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb();
             });
 
             await screenshotCompare(await driver.takeScreenshot(), name + '/save_perspective_front_1');

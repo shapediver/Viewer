@@ -46,7 +46,7 @@ export class Api {
   constructor() {
     try {
       this.#stateEngine.primarySettingsRegistered.then(() => {
-        this.#logger.showMessages = this.#settingsEngine.general.viewer.showMessages.value;
+        this.#logger.showMessages = this.#settingsEngine.general.showMessages;
       })
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Viewer version: ${build_data.build_version}`);
       this.#logger.addUpdateCB(this.#updateCB);
@@ -473,7 +473,7 @@ export class Api {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: Updating ShowMessages to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.updateShowMessages', value, 'boolean');
       this.#logger.showMessages = value;
-      this.#settingsEngine.general.viewer.showMessages.value = this.#logger.showMessages;
+      this.#settingsEngine.general.showMessages = this.#logger.showMessages;
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: ShowMessages was set to: ${value}`);
     } catch (e) {
       if (e instanceof SDError) throw e;

@@ -144,9 +144,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.gridVisibility']).toBe(true);
+            expect(settings1['environmentGeometry.gridVisibility']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/gridVisibility');
 
             // change and save
@@ -160,9 +160,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.gridVisibility']).toBe(false);
+            expect(settings2['environmentGeometry.gridVisibility']).toBe(false);
             await screenshotCompare(await driver.takeScreenshot(), name + '/gridVisibility_switch');
 
             // reset and save
@@ -176,9 +176,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.gridVisibility']).toBe(true);
+            expect(settings3['environmentGeometry.gridVisibility']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/gridVisibility');
         });
 
@@ -193,9 +193,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.groundPlaneVisibility']).toBe(true);
+            expect(settings1['environmentGeometry.groundPlaneVisibility']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/groundPlaneVisibility');
 
             // change and save
@@ -209,9 +209,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.groundPlaneVisibility']).toBe(false);
+            expect(settings2['environmentGeometry.groundPlaneVisibility']).toBe(false);
             await screenshotCompare(await driver.takeScreenshot(), name + '/groundPlaneVisibility_switch');
 
             // reset and save
@@ -225,9 +225,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.groundPlaneVisibility']).toBe(true);
+            expect(settings3['environmentGeometry.groundPlaneVisibility']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/groundPlaneVisibility');
         });
 
@@ -243,9 +243,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.material.environmentMap']).toBe('none');
+            expect(settings1['environment.map']).toBe('none');
             await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMap');
 
             // change and save
@@ -260,9 +260,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 })
                 await new Promise(resolve  => setTimeout(resolve, 500));
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.material.environmentMap']).toBe('georgentor');
+            expect(settings2['environment.map']).toBe('georgentor');
             await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMap_switch');
 
             // reset and save
@@ -277,9 +277,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 })
                 await new Promise(resolve  => setTimeout(resolve, 500));
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.material.environmentMap']).toBe('none');
+            expect(settings3['environment.map']).toBe('none');
             await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMap');
         });
 
@@ -294,9 +294,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.material.environmentMapAsBackground']).toBe(false);
+            expect(settings1['environment.mapAsBackground']).toBe(false);
             await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMapAsBackground');
 
             // change and save
@@ -312,9 +312,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 })
                 await new Promise(resolve  => setTimeout(resolve, 500));
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.material.environmentMapAsBackground']).toBe(true);
+            expect(settings2['environment.mapAsBackground']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMapAsBackground_switch');
 
             // reset and save
@@ -330,9 +330,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 })
                 await new Promise(resolve  => setTimeout(resolve, 500));
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.material.environmentMapAsBackground']).toBe(false);
+            expect(settings3['environment.mapAsBackground']).toBe(false);
             await screenshotCompare(await driver.takeScreenshot(), name + '/environmentMapAsBackground');
         });
 
@@ -347,9 +347,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.material.environmentMapResolution']).toBe('1024');
+            expect(settings1['environment.mapResolution']).toBe('1024');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -358,9 +358,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 viewer.updateEnvironmentMapResolution('512');
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.material.environmentMapResolution']).toBe('512');
+            expect(settings2['environment.mapResolution']).toBe('512');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -369,9 +369,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 viewer.updateEnvironmentMapResolution('1024');
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.material.environmentMapResolution']).toBe('1024');
+            expect(settings3['environment.mapResolution']).toBe('1024');
         });
 
         it(name + '_ambientOcclusion', async () => {
@@ -384,9 +384,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.render.ambientOcclusion']).toBe(true);
+            expect(settings1['rendering.ambientOcclusion']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/ambientOcclusion');
 
             // change and save
@@ -400,9 +400,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.render.ambientOcclusion']).toBe(false);
+            expect(settings2['rendering.ambientOcclusion']).toBe(false);
             await screenshotCompare(await driver.takeScreenshot(), name + '/ambientOcclusion_switch');
 
             // reset and save
@@ -416,9 +416,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.render.ambientOcclusion']).toBe(true);
+            expect(settings3['rendering.ambientOcclusion']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/ambientOcclusion');
         });
 
@@ -433,9 +433,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.render.beautyRenderBlendingDuration']).toBe(1500);
+            expect(settings1['rendering.beautyRenderBlendingDuration']).toBe(1500);
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -444,9 +444,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 viewer.updateBeautyRenderBlendingDuration(500);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.render.beautyRenderBlendingDuration']).toBe(500);
+            expect(settings2['rendering.beautyRenderBlendingDuration']).toBe(500);
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -455,9 +455,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 viewer.updateBeautyRenderBlendingDuration(1500);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.render.beautyRenderBlendingDuration']).toBe(1500);
+            expect(settings3['rendering.beautyRenderBlendingDuration']).toBe(1500);
         });
 
         it(name + '_beautyRenderDelay', async () => {
@@ -470,9 +470,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.render.beautyRenderDelay']).toBe(50);
+            expect(settings1['rendering.beautyRenderDelay']).toBe(50);
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -481,9 +481,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 viewer.updateBeautyRenderDelay(500);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.render.beautyRenderDelay']).toBe(500);
+            expect(settings2['rendering.beautyRenderDelay']).toBe(500);
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -492,9 +492,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 viewer.updateBeautyRenderDelay(50);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.render.beautyRenderDelay']).toBe(50);
+            expect(settings3['rendering.beautyRenderDelay']).toBe(50);
         });
 
         it(name + '_clearAlpha', async () => {
@@ -508,9 +508,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.render.clearAlpha']).toBe(1);
+            expect(settings1['environment.clearAlpha']).toBe(1);
             await screenshotCompare(await driver.takeScreenshot(), name + '/clearAlpha');
 
             // change and save
@@ -524,9 +524,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.render.clearAlpha']).toBe(0);
+            expect(settings2['environment.clearAlpha']).toBe(0);
             await screenshotCompare(await driver.takeScreenshot(), name + '/clearAlpha_switch');
 
             // reset and save
@@ -540,9 +540,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.render.clearAlpha']).toBe(1);
+            expect(settings3['environment.clearAlpha']).toBe(1);
             await screenshotCompare(await driver.takeScreenshot(), name + '/clearAlpha');
         });
 
@@ -556,9 +556,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.render.clearColor']).toBe('#ffffff');
+            expect(settings1['environment.clearColor']).toBe('#ffffff');
             await screenshotCompare(await driver.takeScreenshot(), name + '/clearColor');
 
             // change and save
@@ -572,9 +572,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.render.clearColor']).toBe('#ff0000');
+            expect(settings2['environment.clearColor']).toBe('#ff0000');
             await screenshotCompare(await driver.takeScreenshot(), name + '/clearColor_switch');
 
             // reset and save
@@ -588,9 +588,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.render.clearColor']).toBe('#ffffff');
+            expect(settings3['environment.clearColor']).toBe('#ffffff');
             await screenshotCompare(await driver.takeScreenshot(), name + '/clearColor');
         });
 
@@ -610,9 +610,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.scene.render.shadows']).toBe(true);
+            expect(settings1['rendering.shadows']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/shadows');
 
             // change and save
@@ -626,9 +626,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.scene.render.shadows']).toBe(false);
+            expect(settings2['rendering.shadows']).toBe(false);
             await screenshotCompare(await driver.takeScreenshot(), name + '/shadows_switch');
 
             // reset and save
@@ -642,9 +642,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.scene.render.shadows']).toBe(true);
+            expect(settings3['rendering.shadows']).toBe(true);
             await screenshotCompare(await driver.takeScreenshot(), name + '/shadows');
         });
 
@@ -659,9 +659,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['viewer.showMessages']).toBe(true);
+            expect(settings1['general.showMessages']).toBe(true);
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -670,9 +670,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 api.updateShowMessages(false);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['viewer.showMessages']).toBe(false);
+            expect(settings2['general.showMessages']).toBe(false);
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -681,9 +681,9 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 api.updateShowMessages(true);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['viewer.showMessages']).toBe(true);
+            expect(settings3['general.showMessages']).toBe(true);
         });
     });
 }
