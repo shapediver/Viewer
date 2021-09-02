@@ -1,4 +1,4 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { mat3, mat4, vec3 } from 'gl-matrix'
 
 import { IGeometry } from './IGeometry'
 
@@ -49,8 +49,11 @@ export class Plane implements IGeometry {
     // #region Public Methods (7)
 
     public applyMatrix(matrix: mat4): IGeometry {
-        // https://shapediver.atlassian.net/browse/SS-2960
-        throw new Error("Method not implemented.");
+        const normalMatrix = mat3.transpose(mat3.create(), mat3.invert(mat3.create(), mat3.fromMat4(mat3.create(), matrix)))
+        const p = vec3.transformMat4(vec3.create(), vec3.multiply(vec3.create(), vec3.clone(this.normal), vec3.fromValues(this._constant, this._constant, this._constant)), matrix)
+        this._normal = vec3.normalize(vec3.create(), vec3.transformMat3(vec3.create(), this._normal, normalMatrix));
+		this.constant = -vec3.dot(p, this._normal);
+		return this;
     }
 
     public clampPoint(point: vec3): vec3 {
@@ -63,8 +66,7 @@ export class Plane implements IGeometry {
     }
 
     public containsPoint(point: vec3): boolean {
-        // https://shapediver.atlassian.net/browse/SS-2960
-        throw new Error("Method not implemented.");
+         return this.distanceToPoint(point) === 0;
     }
 
     public distanceToPoint(point: vec3): number {

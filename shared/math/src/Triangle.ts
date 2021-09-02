@@ -9,14 +9,6 @@ export class Triangle implements IGeometry {
         private _v2: vec3 = vec3.create(),
     ) { }
 
-    containsPoint(point: vec3): boolean {
-        throw new Error('Method not implemented.');
-    }
-
-    clampPoint(point: vec3): vec3 {
-        throw new Error('Method not implemented.');
-    }
-
     applyMatrix(matrix: mat4): IGeometry {
         vec3.transformMat4(this._v0, this._v0, matrix);
         vec3.transformMat4(this._v1, this._v1, matrix);
