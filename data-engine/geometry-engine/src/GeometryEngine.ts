@@ -1,6 +1,6 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { HttpClient, Logger, LOGGINGTOPIC, PerformanceEvaluator, SDError } from '@shapediver/viewer.shared.utils'
+import { HttpClient, Logger, LOGGINGTOPIC, PerformanceEvaluator, SDError } from '@shapediver/viewer.shared.services'
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
 
 import { GLTFLoader as GLTF_v1Loader } from './gltfv1/GLTFLoader'

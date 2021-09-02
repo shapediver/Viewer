@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@shapediver/viewer": "*",
-    "@shapediver/viewer.shared.utils": "*",
+    "@shapediver/viewer.shared.services": "*",
     "chart.js": "^3.5.0",
     "gl-matrix": "^3.3.0",
     "reflect-metadata": "^0.1.13",

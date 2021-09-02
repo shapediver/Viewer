@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "@shapediver/viewer.shared.services": "^1.0.5",
-    "@shapediver/viewer.shared.utils": "^1.0.5",
     "@types/pako": "^1.0.1",
     "gl-matrix": "^3.3.0",
     "pako": "^2.0.3",

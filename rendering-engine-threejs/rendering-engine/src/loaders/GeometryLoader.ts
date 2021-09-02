@@ -7,7 +7,7 @@ import {
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { SDObject } from '../types/SDObject'

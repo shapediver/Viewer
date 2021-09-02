@@ -1,6 +1,5 @@
 import * as THREE from 'three'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, SDError, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'

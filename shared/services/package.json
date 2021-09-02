@@ -36,9 +36,15 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "@ctrl/tinycolor": "^3.4.0",
+    "@sentry/browser": "^6.7.2",
+    "@sentry/tracing": "^6.7.2",
+    "@shapediver/viewer.shared.build-data": "^1.0.5",
     "@shapediver/viewer.settings": "^0.1.5",
-    "@shapediver/viewer.shared.utils": "^1.0.5",
+    "@types/uuid": "^8.3.0",
+    "axios": "^0.21.1",
     "gl-matrix": "^3.3.0",
-    "tsyringe": "^4.5.0"
+    "tsyringe": "^4.5.0",
+    "uuid": "^8.3.2"
   }
 }

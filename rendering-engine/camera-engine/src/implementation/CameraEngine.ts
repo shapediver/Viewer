@@ -1,9 +1,7 @@
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
-import { SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, SDError, UuidGenerator, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import { container, singleton } from 'tsyringe'
 import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { Box } from '@shapediver/viewer.shared.math'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 
 import { CAMERATYPE, ICameraEngine } from '../interfaces/ICameraEngine'
 import { AbstractCamera as Camera } from './camera/AbstractCamera'

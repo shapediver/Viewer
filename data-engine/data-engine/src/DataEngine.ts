@@ -5,7 +5,7 @@ import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine'
 import { ITransformation, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Reader } from '@shapediver/viewer.sdtf.converter'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine'
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
 

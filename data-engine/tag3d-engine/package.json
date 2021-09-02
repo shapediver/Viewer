@@ -40,7 +40,6 @@
     "@shapediver/viewer.shared.node-tree": "^1.0.5",
     "@shapediver/viewer.shared.services": "^1.0.5",
     "@shapediver/viewer.shared.types": "^1.0.5",
-    "@shapediver/viewer.shared.utils": "^1.0.5",
     "gl-matrix": "^3.3.0",
     "three": "^0.129.0",
     "tsyringe": "^4.5.0"

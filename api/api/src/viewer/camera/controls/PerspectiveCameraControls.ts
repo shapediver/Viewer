@@ -2,8 +2,7 @@ import {
   IPerspectiveCameraControls,
   PerspectiveCameraControls as PerspectiveCameraControlsLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
-import { InputValidator } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, SDError, InputValidator } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 

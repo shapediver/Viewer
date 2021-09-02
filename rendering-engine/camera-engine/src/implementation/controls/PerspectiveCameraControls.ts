@@ -1,6 +1,5 @@
 import { IOrbitControlsSettingsV3 } from '@shapediver/viewer.settings'
-import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
-import { Converter } from '@shapediver/viewer.shared.utils'
+import { SettingsEngine, StateEngine, Converter } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 

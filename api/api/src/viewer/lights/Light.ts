@@ -1,7 +1,6 @@
 import { AbstractLight, ILight, LIGHTTYPE } from '@shapediver/viewer.rendering-engine.light-engine'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, SDError, Converter, InputValidator } from '@shapediver/viewer.shared.services'
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { Converter, InputValidator } from '@shapediver/viewer.shared.utils'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 

@@ -1,5 +1,5 @@
 import { container, singleton } from 'tsyringe'
-import { UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { UuidGenerator } from '@shapediver/viewer.shared.services'
 
 import { Canvas } from './Canvas'
 import { ICanvasEngine } from '../interfaces/ICanvasEngine'

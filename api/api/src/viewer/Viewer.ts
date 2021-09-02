@@ -16,12 +16,9 @@ import {
   SpotLight as SpotLightLogic,
 } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { Logger, LOGGINGTOPIC, PerformanceEvaluator } from '@shapediver/viewer.shared.utils'
-import { EventEngine, EVENTTYPE, StateEngine, IViewerEvent, IEvent } from '@shapediver/viewer.shared.services'
-import { Converter, InputValidator, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, PerformanceEvaluator, EventEngine, EVENTTYPE, StateEngine, IViewerEvent, IEvent, Converter, InputValidator, UuidGenerator, SDError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
-import { SDError } from '@shapediver/viewer.shared.utils'
 
 import { Camera } from './camera/Camera'
 import { OrthographicCamera } from './camera/OrthographicCamera'

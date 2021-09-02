@@ -1,7 +1,6 @@
 import { container, singleton } from 'tsyringe'
 import { vec3 } from 'gl-matrix'
-import { Converter, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
-import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter, SDError, UuidGenerator, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 
 import { AmbientLight } from './types/AmbientLight'
 import { DirectionalLight } from './types/DirectionalLight'

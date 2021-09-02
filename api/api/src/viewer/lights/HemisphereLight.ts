@@ -1,8 +1,7 @@
 import { HemisphereLight as HemisphereLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
-import { Converter, InputValidator, SDError } from '@shapediver/viewer.shared.utils'
+import { Converter, InputValidator, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 
 import { Light } from './Light'
 import { Viewer } from '../Viewer'

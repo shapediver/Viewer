@@ -1,5 +1,4 @@
-import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
-import { Converter } from '@shapediver/viewer.shared.utils'
+import { SettingsEngine, StateEngine, Converter } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { mat4, vec2, vec3 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'

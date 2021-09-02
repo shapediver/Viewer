@@ -2,7 +2,7 @@ import 'reflect-metadata'
 
 import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
 import { Chart, ChartData, ChartTypeRegistry, LegendItem, registerables, TooltipItem } from 'chart.js';
-import { PerformanceEvaluator } from '@shapediver/viewer.shared.utils';
+import { PerformanceEvaluator } from '@shapediver/viewer.shared.services';
 import { container } from 'tsyringe';
 
 (<any>window).RENDERERTYPE = RENDERERTYPE;

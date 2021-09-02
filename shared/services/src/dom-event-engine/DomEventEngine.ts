@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { UuidGenerator } from '../uuid-generator/UuidGenerator';
 
 import { IDomEventListener } from './IDomEventListener'
 

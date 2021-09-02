@@ -3,8 +3,7 @@ import {
   PerspectiveCamera as PerspectiveCameraLogic,
   PerspectiveCameraControls as PerspectiveCameraControlsLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
-import { InputValidator } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, SDError, InputValidator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { Viewer } from '../Viewer'

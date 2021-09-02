@@ -3,7 +3,7 @@ import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { container } from 'tsyringe'
 import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 
 import { IManager } from '../interfaces/IManager'
 import { RenderingEngine } from '../RenderingEngine'

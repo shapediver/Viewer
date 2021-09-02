@@ -11,7 +11,7 @@ import {
 import { OutputDelayException } from './OutputDelayException'
 import { SessionTreeNode } from './SessionTreeNode'
 import { SessionOutputData } from './SessionOutputData'
-import { PerformanceEvaluator } from '@shapediver/viewer.shared.utils'
+import { PerformanceEvaluator } from '@shapediver/viewer.shared.services'
 
 export class OutputLoader {
     // #region Properties (2)

@@ -8,8 +8,7 @@ import {
   PerspectiveCamera,
   PerspectiveCameraControls
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { EventEngine, EVENTTYPE, IViewerEvent, StateEngine, SystemInfo } from '@shapediver/viewer.shared.services'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { EventEngine, EVENTTYPE, IViewerEvent, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 

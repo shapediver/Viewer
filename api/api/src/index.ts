@@ -11,8 +11,7 @@ import {
 } from '@shapediver/viewer.shared.node-tree'
 import { ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE, ThreejsData } from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
 import { CustomData, GeometryData, MaterialData } from '@shapediver/viewer.shared.types'
-import { LOGGINGLEVEL } from '@shapediver/viewer.shared.utils'
-import { EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { LOGGINGLEVEL, EVENTTYPE } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/api.geometry-api-dto-v1'
 

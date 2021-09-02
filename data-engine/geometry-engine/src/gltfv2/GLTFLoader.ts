@@ -1,5 +1,5 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, ImageLoader, PerformanceEvaluator, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { Converter, HttpClient, ImageLoader, PerformanceEvaluator, SDError, UuidGenerator, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import {
   ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
@@ -19,7 +19,6 @@ import {
   MaterialData,
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',

@@ -1,7 +1,5 @@
-import { HttpClient, PerformanceEvaluator, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
 import { container } from 'tsyringe'
-import { SettingsEngine, StateEngine, SystemInfo } from '@shapediver/viewer.shared.services'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
+import { HttpClient, PerformanceEvaluator, SDError, UuidGenerator, SettingsEngine, StateEngine, SystemInfo, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import { AxiosResponse } from 'axios'
 import {
     ShapeDiverResponseBase,

@@ -1,6 +1,6 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { Converter, HttpClient, ImageLoader, SDError } from '@shapediver/viewer.shared.utils'
+import { Converter, HttpClient, ImageLoader, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import {
   MapData,
   MATERIAL_SIDE,
@@ -9,7 +9,6 @@ import {
   TEXTURE_WRAPPING,
 } from '@shapediver/viewer.shared.types'
 import { vec2, vec3, vec4 } from 'gl-matrix'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
 
 import { materialDatabase } from './materialDatabase'

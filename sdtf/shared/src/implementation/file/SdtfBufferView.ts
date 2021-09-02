@@ -1,5 +1,5 @@
 import { ungzip } from 'pako'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
+import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { CONTENT_ENCODING, CONTENTTYPE } from '../../enums'

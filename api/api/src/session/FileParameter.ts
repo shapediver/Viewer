@@ -1,8 +1,6 @@
 import { ShapeDiverResponseParameter } from '@shapediver/api.geometry-api-dto-v1'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { SDError } from '@shapediver/viewer.shared.utils'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
-import { HttpClient, InputValidator, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { SDError, Logger, LOGGINGTOPIC, HttpClient, InputValidator, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { Parameter } from './Parameter'

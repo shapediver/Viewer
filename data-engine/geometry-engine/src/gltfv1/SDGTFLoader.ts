@@ -1,5 +1,5 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, SDError, UuidGenerator } from '@shapediver/viewer.shared.utils'
+import { Converter, HttpClient, SDError, UuidGenerator, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import {
   ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
   ACCESSORTYPE_V1 as ACCESSORTYPE,
@@ -16,7 +16,6 @@ import {
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'
 import { container } from 'tsyringe'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.utils'
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 
 export class SDGTFLoader {
