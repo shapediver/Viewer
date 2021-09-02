@@ -37,10 +37,6 @@ import { SpotLight } from './lights/SpotLight'
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   // #region Properties (28)
-
-  readonly #cameras: {
-    [key: string]: Camera
-  } = {};
   readonly #converter: Converter = <Converter>container.resolve(Converter);
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -56,6 +52,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly beautyRenderDelay!: number;
   readonly blur!: boolean;
   readonly blurSceneWhenBusy!: boolean;
+  readonly camera: Camera | null = null;
+  readonly cameras: {
+    [key: string]: Camera
+  } = {};
   readonly clearAlpha!: number;
   readonly clearColor!: string | number | vec3;
   readonly environmentMap!: string | string[];
@@ -77,6 +77,22 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly showStatistics!: boolean;
   readonly #updateCB = () => {
     if (!this.#renderingEngine) return;
+
+    // add new cameras
+    for(let c in this.#renderingEngine.cameraEngine.cameras) {
+      if(!this.cameras[c]) 
+        this.cameras[c] = this.#renderingEngine.cameraEngine.cameras[c].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this) : new PerspectiveCamera(<PerspectiveCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this);
+    }
+
+    // delete cameras that don't exist
+    for(let c in this.cameras) {
+      if(!this.#renderingEngine.cameraEngine.cameras) 
+        delete this.cameras[c];
+    }
+
+    if(this.#renderingEngine.cameraEngine.camera)
+      (<any>this.camera) = this.cameras[this.#renderingEngine.cameraEngine.camera.id];
+
     (<any>this.ambientOcclusion) = this.#renderingEngine.ambientOcclusion;
     (<any>this.automaticResizing) = this.#renderingEngine.automaticResizing;
     (<any>this.beautyRenderBlendingDuration) = this.#renderingEngine.beautyRenderBlendingDuration;
@@ -737,10 +753,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, type, 'enum', true, Object.values(CAMERATYPE));
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, id, 'string', false);
       const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
-      this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
       this.assignCamera(cameraLogic.id);
-      return this.#cameras[cameraLogic.id];
+      return this.cameras[cameraLogic.id];
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createCamera: Something unexpected happened.`, true)
@@ -812,49 +827,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Return the camera with the specified id.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
-  public getCamera(id?: string): Camera | null {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCamera: Getting Camera with id ${id}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCamera`, id, 'string', false);
-      const cameraLogic = this.#renderingEngine.cameraEngine.getCamera(id);
-      if (!cameraLogic) return null;
-      if (!this.#cameras[cameraLogic.id]) this.#cameras[cameraLogic.id] = cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic, this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic, this);
-      return this.#cameras[cameraLogic.id];
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).getCamera: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Return all camera as key-value pairs with the id of the camera being the key.
-   * 
-   * @returns 
-   */
-  public getCameras(): { [key: string]: Camera } {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).getCameras: Getting Cameras.`);
-      this.isInitialized();
-      const cameraLogic = this.#renderingEngine.cameraEngine.getCameras();
-      const cameras: { [key: string]: Camera; } = {};
-      for (let e in cameraLogic) {
-        if (!this.#cameras[cameraLogic[e].id]) this.#cameras[cameraLogic[e].id] = cameraLogic[e].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>cameraLogic[e], this) : new PerspectiveCamera(<PerspectiveCameraLogic>cameraLogic[e], this);
-        cameras[e] = this.#cameras[cameraLogic[e].id];
-      }
-      return cameras;
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).getCameras: Something unexpected happened.`, true)
     }
   }
 
@@ -976,22 +948,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
-   * Return if the viewer has currently a camera assigned.
-   * 
-   * @returns 
-   */
-  public hasCamera(): boolean {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).hasCamera: Checking existence of Camera.`);
-      this.isInitialized();
-      return this.#renderingEngine.cameraEngine.hasCamera();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).hasCamera: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
    * Initialize the viewer.
    * Normally, there is no need to call this function.
    * The initialization is done on creation via the api.
@@ -1023,7 +979,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#updateCB();
       container.registerInstance('renderingEngine', this.#renderingEngine);
 
-      if(!this.hasCamera())
+      if(!this.camera)
         this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
 
       if (props.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
@@ -1056,7 +1012,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera`, id, 'string');
       const r = this.#renderingEngine.cameraEngine.removeCamera(id);
-      if (r) delete this.#cameras[id];
       if (r) this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Camera with id ${id} removed.`);
       if (!r) this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Could not remove camera with id ${id}.`);
       this.update();

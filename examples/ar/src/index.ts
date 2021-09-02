@@ -91,7 +91,7 @@ submit.onclick = async () => {
     })   
     api.sessions['mySession'].node.updateVersion(); 
     api.update();
-    api.viewers['myViewer'].getCamera()?.zoomTo([], {})
+    api.viewers['myViewer'].camera?.zoomTo()
 }
 
 (<any>window).loadAR = async () => {

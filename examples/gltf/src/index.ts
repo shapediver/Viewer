@@ -65,7 +65,7 @@ let currentNode: TreeNode;
     currentNode = node;
     api.sceneTree.addNode(currentNode);
     api.update()
-    await viewer.getCamera()!.zoomTo([], { duration: 0 });
+    await viewer.camera!.zoomTo([], { duration: 0 });
     viewer.updateShow(true);
 }
 document.addEventListener("dragover", (event) => {

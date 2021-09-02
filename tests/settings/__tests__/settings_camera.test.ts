@@ -155,7 +155,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession')!;
                 let viewer = api.getViewer('myViewer')!;
-                viewer.assignCamera(Object.values(viewer.getCameras())[0].id);
+                viewer.assignCamera(Object.values(viewer.cameras)[0].id);
                 viewer.update();
 
                 await new Promise<void>((resolve) => {

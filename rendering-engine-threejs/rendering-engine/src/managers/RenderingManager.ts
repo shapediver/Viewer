@@ -208,7 +208,7 @@ export class RenderingManager implements IManager {
         const aspect = width / height;
 
         // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
-        const { position, target } = this._renderingEngine.cameraEngine.hasCamera() ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : { position: vec3.create(), target: vec3.create() };
+        const { position, target } = this._renderingEngine.cameraEngine.camera ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : { position: vec3.create(), target: vec3.create() };
 
         // evaluate if the camera changed
         this._cameraChanged = true;
@@ -379,7 +379,7 @@ export class RenderingManager implements IManager {
     } {
         // If there is a camera to show the scene and the setting for it is set to true, we show the scene
         let showScene = false;
-        if (this._renderingEngine.cameraEngine.hasCamera() === true && this._renderingEngine.show === true)
+        if (this._renderingEngine.cameraEngine.camera && this._renderingEngine.show === true)
             showScene = true;
 
         // If we should render at all
@@ -388,8 +388,8 @@ export class RenderingManager implements IManager {
             rendering = true;
 
         // special case, autorotation
-        if(this._renderingEngine.cameraEngine.hasCamera()) {
-            const camera = this._renderingEngine.cameraEngine.getCamera()!;
+        if(this._renderingEngine.cameraEngine.camera) {
+            const camera = this._renderingEngine.cameraEngine.camera!;
             if(camera.type === CAMERATYPE.PERSPECTIVE) {
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
                 if(controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)

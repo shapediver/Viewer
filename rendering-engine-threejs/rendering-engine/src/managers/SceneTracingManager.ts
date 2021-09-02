@@ -31,7 +31,7 @@ export class SceneTracingManager implements IManager {
             width = this._renderingEngine.canvas.canvasElement.width,
             height = this._renderingEngine.canvas.canvasElement.height;
 
-        const camera = this._renderingEngine.cameraEngine.getCamera();
+        const camera = this._renderingEngine.cameraEngine.camera;
         if (!camera){
             const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
             this._logger.warn(LOGGINGTOPIC.VIEWER, error.message);

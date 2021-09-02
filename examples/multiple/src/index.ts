@@ -26,10 +26,10 @@ const ticket = '75f6f416a8200ed5d64f9c15f39320df0c9a630878d235332451657e1a1524fa
     let session1 = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession1', excludeViewers: ['myViewer2', 'myViewer3', 'myViewer4'] });
     let session2 = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4']});
 
-    (<any>viewer1.getCamera()!).controls.updateEnableAutoRotation(true);
-    (<any>viewer1.getCamera()!).controls.updateAutoRotationSpeed(1);
-    (<any>viewer2.getCamera()!).controls.updateEnableAutoRotation(true);
-    (<any>viewer2.getCamera()!).controls.updateAutoRotationSpeed(1);
+    (<any>viewer1.camera!).controls.updateEnableAutoRotation(true);
+    (<any>viewer1.camera!).controls.updateAutoRotationSpeed(1);
+    (<any>viewer2.camera!).controls.updateEnableAutoRotation(true);
+    (<any>viewer2.camera!).controls.updateAutoRotationSpeed(1);
 
     await new Promise<void>((resolve) => {
         api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())

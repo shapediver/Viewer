@@ -31,6 +31,7 @@ export class CameraEngine implements ICameraEngine {
 
     private _camera: Camera | null = null;
     private _settingsApplied: boolean = false;
+    private _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (3)
 
@@ -46,6 +47,20 @@ export class CameraEngine implements ICameraEngine {
                     this._cameras[c].boundingBox = this._boundingBox.clone();
             }
         });
+    }
+
+    public addUpdateCB(value: () => void) {
+        this._updateCBs.push(value);
+    }
+
+    public get camera(): Camera | null {
+        return this._camera;
+    }
+
+    public get cameras(): {
+        [key: string]: Camera
+    } {
+        return this._cameras;
     }
 
     public applySettings() {
@@ -82,9 +97,9 @@ export class CameraEngine implements ICameraEngine {
                 break;
             default:
                 let cameraPerspective;
-                for(let c in this.getCameras()) 
-                    if(this.getCameras()[c].id === 'standard' && this.getCameras()[c].type === CAMERATYPE.PERSPECTIVE)
-                        cameraPerspective = this.getCameras()[c];
+                for(let c in this._cameras) 
+                    if(this._cameras[c].id === 'standard' &&  this._cameras[c].type === CAMERATYPE.PERSPECTIVE)
+                        cameraPerspective = this._cameras[c];
 
                 if(!cameraPerspective) cameraPerspective = this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
                 this.assignCamera(cameraPerspective.id);
@@ -99,9 +114,10 @@ export class CameraEngine implements ICameraEngine {
     // #region Public Methods (5)
 
     public assignCamera(id: string): void {
-        const camera = this.getCamera(id);
+        const camera = this._cameras[id];
         if (!camera) return;
         this._camera = camera;
+        this._updateCBs.forEach(v => v());
     }
 
     public createCamera(type: CAMERATYPE, id?: string): Camera {
@@ -122,6 +138,7 @@ export class CameraEngine implements ICameraEngine {
             } else {
                 camera.zoomTo([], { duration: 0 });
             }
+            this._updateCBs.forEach(v => v());
             return camera;
         } else {
             const camera = new PerspectiveCamera(this._viewerId, cameraId, this._canvas.canvasElement);
@@ -133,29 +150,9 @@ export class CameraEngine implements ICameraEngine {
             } else {
                 camera.zoomTo([], { duration: 0 });
             }
+            this._updateCBs.forEach(v => v());
             return camera;
         }
-    }
-
-    public getCamera(id?: string): Camera | null {
-        if(!id) {
-            if(this._camera) return this._camera;
-            return null;
-        }
-        const camera = this._cameras[id];
-        if (!camera) return null;
-        return camera;
-    }
-
-    public getCameras(): { [key: string]: Camera } {
-        const r: { [key: string]: Camera } = {};
-        for (let c in this._cameras)
-            r[c] = this._cameras[c];
-        return r;
-    }
-
-    public hasCamera(): boolean {
-        return this._camera ? true : false;
     }
 
     public removeCamera(id: string): boolean {
@@ -166,6 +163,7 @@ export class CameraEngine implements ICameraEngine {
             this._camera = null;
         delete this._cameras[id];
         delete this._camerasDomEventListenerToken[id];
+        this._updateCBs.forEach(v => v());
         return true;
     }
 

@@ -772,7 +772,8 @@ export class RenderingEngine implements IRenderingEngine {
     // #region Public Methods (10)
 
     public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value)
+        this._updateCBs.push(value);
+        this.cameraEngine.addUpdateCB(value);
     }
 
     public async close(): Promise<boolean> {
@@ -818,7 +819,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._settingsEngine.scene.render.pointSize.value = this.pointSize;
         this._settingsEngine.scene.render.shadows.value = this.shadows;
 
-        const camera = this.cameraEngine.getCamera();
+        const camera = this.cameraEngine.camera;
         if (camera) {
             this._settingsEngine.scene.camera.autoAdjust.value = camera.autoAdjust;
             this._settingsEngine.scene.camera.cameraMovementDuration.value = camera.cameraMovementDuration;

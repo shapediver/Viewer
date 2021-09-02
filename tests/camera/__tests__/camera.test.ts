@@ -51,10 +51,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 })
                 
                 cb({
-                    defaultPosition: viewer.getCamera()!.defaultPosition,
-                    defaultTarget: viewer.getCamera()!.defaultTarget,
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    defaultPosition: viewer.camera!.defaultPosition,
+                    defaultTarget: viewer.camera!.defaultTarget,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -76,10 +76,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 })
                 
                 cb({
-                    defaultPosition: viewer.getCamera()!.defaultPosition,
-                    defaultTarget: viewer.getCamera()!.defaultTarget,
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    defaultPosition: viewer.camera!.defaultPosition,
+                    defaultTarget: viewer.camera!.defaultTarget,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -93,13 +93,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.set([100, 100, 100], [-100, -100, -100], {});
+                await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r2.position[0]).toBeCloseTo(100)
@@ -122,10 +122,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 })
                 
                 cb({
-                    defaultPosition: viewer.getCamera()!.defaultPosition,
-                    defaultTarget: viewer.getCamera()!.defaultTarget,
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    defaultPosition: viewer.camera!.defaultPosition,
+                    defaultTarget: viewer.camera!.defaultTarget,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -139,13 +139,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.set([100, 100, 100], [-100, -100, -100], {});
+                await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r2.position[0]).toBeCloseTo(100)
@@ -159,13 +159,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.reset({});
+                await viewer.camera!.reset({});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r3.position[0])
@@ -188,10 +188,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 })
                 
                 cb({
-                    defaultPosition: viewer.getCamera()!.defaultPosition,
-                    defaultTarget: viewer.getCamera()!.defaultTarget,
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    defaultPosition: viewer.camera!.defaultPosition,
+                    defaultTarget: viewer.camera!.defaultTarget,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -205,13 +205,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.set([100, 0, 0], [-100, 0, 0], {});
+                await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r2.position[0]).toBeCloseTo(100)
@@ -225,13 +225,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.zoomTo();
+                await viewer.camera!.zoomTo();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/zoom_3');
@@ -257,10 +257,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 })
 
                 cb({
-                    defaultPosition: viewer.getCamera()!.defaultPosition,
-                    defaultTarget: viewer.getCamera()!.defaultTarget,
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    defaultPosition: viewer.camera!.defaultPosition,
+                    defaultTarget: viewer.camera!.defaultTarget,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -289,10 +289,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 })
 
                 cb({
-                    defaultPosition: viewer.getCamera()!.defaultPosition,
-                    defaultTarget: viewer.getCamera()!.defaultTarget,
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    defaultPosition: viewer.camera!.defaultPosition,
+                    defaultTarget: viewer.camera!.defaultTarget,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -306,13 +306,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.set([100, 100, 100], [-100, -100, -100], {});
+                await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r2.position[0]).toBeCloseTo(100)
@@ -344,10 +344,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
                 
                 cb({
-                    defaultPosition: viewer.getCamera()!.defaultPosition,
-                    defaultTarget: viewer.getCamera()!.defaultTarget,
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    defaultPosition: viewer.camera!.defaultPosition,
+                    defaultTarget: viewer.camera!.defaultTarget,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -361,13 +361,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.set([100, 100, 100], [-100, -100, -100], {});
+                await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r2.position[0]).toBeCloseTo(100)
@@ -381,13 +381,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.reset({});
+                await viewer.camera!.reset({});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -419,10 +419,10 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
                 
                 cb({
-                    defaultPosition: viewer.getCamera()!.defaultPosition,
-                    defaultTarget: viewer.getCamera()!.defaultTarget,
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    defaultPosition: viewer.camera!.defaultPosition,
+                    defaultTarget: viewer.camera!.defaultTarget,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r.defaultPosition[0]).toBeCloseTo(r.position[0])
@@ -436,13 +436,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.set([100, 0, 0], [-100, 0, 0], {});
+                await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             expect(r2.position[0]).toBeCloseTo(100)
@@ -456,13 +456,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 let viewer = api.getViewer('myViewer')!;
-                await viewer.getCamera()!.zoomTo();
+                await viewer.camera!.zoomTo();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
-                    position: viewer.getCamera()!.position,
-                    target: viewer.getCamera()!.target,
+                    position: viewer.camera!.position,
+                    target: viewer.camera!.target,
                 });
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
