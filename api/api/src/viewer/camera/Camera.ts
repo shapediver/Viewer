@@ -280,7 +280,7 @@ export abstract class Camera implements ICamera {
     public reset(options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting with options ${JSON.stringify(options)}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, options, 'object');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, options, 'object', false);
             const o = Object.assign({}, options);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.easing, 'string', false);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.duration, 'number', false);
@@ -305,7 +305,7 @@ export abstract class Camera implements ICamera {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting to position ${position} and target ${target} with options ${JSON.stringify(options)}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, position, 'vec3');
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, target, 'vec3');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, options, 'object');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, options, 'object', false);
             const o = Object.assign({}, options);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.easing, 'string', false);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.duration, 'number', false);
@@ -352,6 +352,7 @@ export abstract class Camera implements ICamera {
                 } else if (!(zoomTarget instanceof Box))
                     this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(`Camera(${this.id}).zoomTo: The specified zoom target does not have a valid type`));
             }
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, options, 'object', false);
             const o = Object.assign({}, options);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.easing, 'string', false);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.duration, 'number', false);
