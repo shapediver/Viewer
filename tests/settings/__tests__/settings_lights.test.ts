@@ -239,24 +239,24 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.updateGroundPlaneVisibility(true);
                 viewer.updateEnvironmentMap('none');
 
-                const lights = viewer.getLights();
+                const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
                     if(l !== '6e219562-c916-4492-b9b9-1dfbac80d51f' && l !== '70bc760c-45dc-46b0-9cd2-8990ac77124f' && l !== '748019ac-ce54-4de7-94d2-737dae6579dd')
                         viewer.removeLight(l)
                 }
-                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateName('ambient0')
-                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateIntensity(0.5)
-                viewer.getLight("748019ac-ce54-4de7-94d2-737dae6579dd").updateColor('#ffffff')
+                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateName('ambient0')
+                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateIntensity(0.5)
+                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateColor('#ffffff')
 
-                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateName('directional0')
-                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateIntensity(0.75)
-                viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f").updateColor('#ffffff');
-                (<DirectionalLight>viewer.getLight("70bc760c-45dc-46b0-9cd2-8990ac77124f")).updateDirection([0.5774000287055969, -0.5774000287055969, 0.5774000287055969])
+                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].updateName('directional0')
+                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].updateIntensity(0.75)
+                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].updateColor('#ffffff');
+                (<DirectionalLight>viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"]).updateDirection([0.5774000287055969, -0.5774000287055969, 0.5774000287055969])
 
-                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateName('directional1')
-                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateIntensity(0.35)
-                viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f").updateColor('#ffffff')<
-                (<DirectionalLight>viewer.getLight("6e219562-c916-4492-b9b9-1dfbac80d51f")).updateDirection([0.25, -1, 1])
+                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].updateName('directional1')
+                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].updateIntensity(0.35)
+                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].updateColor('#ffffff')<
+                (<DirectionalLight>viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"]).updateDirection([0.25, -1, 1])
 
                 viewer.assignLightScene("default")
                 viewer.update();
@@ -286,7 +286,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer')!;
-                const lights = viewer.getLights();
+                const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
                     if (lights[l].name === 'ambient0')
                         lights[l].updateColor('#ff0000');
@@ -314,7 +314,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.getViewer('myViewer')!;
                 let session = api.getSession('mySession')!;
-                const lights = viewer.getLights();
+                const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
                     for (let l in lights) {
                         if (lights[l].name === 'ambient0')
@@ -389,7 +389,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
 
                 viewer.assignLightScene('default');
-                let lightScenes = viewer.getLightScenes();
+                let lightScenes = viewer.lightScenes;
                 for(let ls in lightScenes)
                     if(ls !== 'a2a392df-c842-4562-acd4-91df7ed68822')
                         viewer.removeLightScene(ls)

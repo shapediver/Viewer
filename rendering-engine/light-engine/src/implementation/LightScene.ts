@@ -63,10 +63,6 @@ export class LightScene implements ILightScene {
         this._updateCBs.forEach(v => v());
     }
 
-    public getLight(id: string): AbstractLight {
-        return <AbstractLight>this._lights[id];
-    }
-
     public removeLight(id: string): boolean {
         if (!this._lights[id]) return false;
 

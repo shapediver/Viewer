@@ -34,7 +34,7 @@ export interface IRenderingEngine {
     gridVisibility: boolean;
     groundPlaneVisibility: boolean;
     id: string;
-    lightScene: string;
+    // lightScene: string;
     pointSize: number;
     shadows: boolean;
     show: boolean;

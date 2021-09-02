@@ -774,6 +774,7 @@ export class RenderingEngine implements IRenderingEngine {
     public addUpdateCB(value: () => void) {
         this._updateCBs.push(value);
         this.cameraEngine.addUpdateCB(value);
+        this.lightEngine.addUpdateCB(value);
     }
 
     public async close(): Promise<boolean> {

@@ -40,9 +40,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly #converter: Converter = <Converter>container.resolve(Converter);
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-  readonly #lightScenes: {
-    [key: string]: LightScene
-  } = {};
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -65,7 +62,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly groundPlaneVisibility!: boolean;
   readonly id!: string;
   readonly initialized: boolean = false;
-  readonly lightScene!: string;
+  readonly lightScene: LightScene | null = null;
+  readonly lightScenes: {
+    [key: string]: LightScene
+  } = {};
   readonly pointSize!: number;
   readonly renderingSettings!: {
     physicallyCorrectLights: boolean,
@@ -93,6 +93,21 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     if(this.#renderingEngine.cameraEngine.camera)
       (<any>this.camera) = this.cameras[this.#renderingEngine.cameraEngine.camera.id];
 
+    // add new lightScenes
+    for(let l in this.#renderingEngine.lightEngine.lightScenes) {
+      if(!this.lightScenes[l]) 
+        this.lightScenes[l] = new LightScene(this.#renderingEngine.lightEngine.lightScenes[l], this);
+    }
+
+    // delete lightScenes that don't exist
+    for(let l in this.lightScenes) {
+      if(!this.#renderingEngine.lightEngine.lightScenes[l]) 
+        delete this.lightScenes[l];
+    }
+
+    if(this.#renderingEngine.lightEngine.lightScene)
+      (<any>this.lightScene) = this.lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
+
     (<any>this.ambientOcclusion) = this.#renderingEngine.ambientOcclusion;
     (<any>this.automaticResizing) = this.#renderingEngine.automaticResizing;
     (<any>this.beautyRenderBlendingDuration) = this.#renderingEngine.beautyRenderBlendingDuration;
@@ -107,7 +122,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     (<any>this.gridVisibility) = this.#renderingEngine.gridVisibility;
     (<any>this.groundPlaneVisibility) = this.#renderingEngine.groundPlaneVisibility;
     (<any>this.id) = this.#renderingEngine.id;
-    (<any>this.lightScene) = this.#renderingEngine.lightScene;
     (<any>this.pointSize) = this.#renderingEngine.pointSize;
     (<any>this.renderingSettings) = this.#renderingEngine.renderingSettings;
     (<any>this.shadows) = this.#renderingEngine.shadows;
@@ -534,8 +548,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.intensity, 'positive', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.name, 'string', false);
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
-      const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(<any>props)
-      const light = this.getLightScene().lights[lightLogic.id];
+      const lightLogic = this.#renderingEngine.lightEngine.addAmbientLight(<any>props);
+      const light = this.lightScene!.lights[lightLogic.id];
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Ambient light with id ${light.id} created.`);
       this.update();
       return <AmbientLight>light;
@@ -572,7 +586,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.name, 'string', false);
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
       const lightLogic = this.#renderingEngine.lightEngine.addDirectionalLight(<any>props);
-      const light = this.getLightScene().lights[lightLogic.id];
+      const light = this.lightScene!.lights[lightLogic.id];
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Directional light with id ${light.id} created.`);
       this.update();
       return <DirectionalLight>light;
@@ -604,7 +618,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
       if (props.groundColor !== undefined) props.groundColor = this.#converter.toColor(props.groundColor);
       const lightLogic = this.#renderingEngine.lightEngine.addHemisphereLight(<any>props);
-      const light = this.getLightScene().lights[lightLogic.id];
+      const light = this.lightScene!.lights[lightLogic.id];
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Hemisphere light with id ${light.id} created.`);
       this.update();
       return <HemisphereLight>light;
@@ -639,7 +653,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.name, 'string', false);
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
       const lightLogic = this.#renderingEngine.lightEngine.addPointLight(<any>props);
-      const light = this.getLightScene().lights[lightLogic.id];
+      const light = this.lightScene!.lights[lightLogic.id];
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Point light with id ${light.id} created.`);
       this.update();
       return <PointLight>light;
@@ -681,7 +695,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
 
       const lightLogic = this.#renderingEngine.lightEngine.addSpotLight(<any>props);
-      const light = this.getLightScene().lights[lightLogic.id];
+      const light = this.lightScene!.lights[lightLogic.id];
 
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Spot light with id ${light.id} created.`);
       this.update();
@@ -722,7 +736,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigning LightScene with id ${id}.`);
       this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene`, id, 'string');
-      if (this.lightScene === id) {
+      if (this.lightScene && this.lightScene.id === id) {
         this.#logger.warn(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: The light scene with id ${id} was already assigned.`);
         return true;
       }
@@ -780,12 +794,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.name, 'string', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.standard, 'boolean', false);
       const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(props);
-      const lightScene = new LightScene(lightSceneLogic, this);
-      this.#lightScenes[lightSceneLogic.id] = lightScene;
       this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: New light scene with id ${lightSceneLogic.id} created.`);
       if (lightSceneLogic.id) this.assignLightScene(lightSceneLogic.id);
       this.update();
-      return lightScene;
+      return this.lightScenes[lightSceneLogic.id];
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).createLightScene: Something unexpected happened.`, true)
@@ -827,102 +839,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Return the light with the specified id.
-   * 
-   * @param id the id of the light
-   * @returns 
-   */
-  public getLight(id: string): Light {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLight: Getting Light with id ${id}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLight`, id, 'string');
-
-      const lightSceneIds = this.#renderingEngine.lightEngine.getLightScenes();
-      for(let lightSceneId in lightSceneIds) {
-        if (!this.#lightScenes[lightSceneId]) {
-          const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(lightSceneId);
-          this.#lightScenes[lightSceneId] = new LightScene(lightSceneLogic, this);
-        }
-        if(this.#lightScenes[lightSceneId].lights[id])
-          return this.#lightScenes[lightSceneId].lights[id];
-      }
-      {
-        const error = new SDError(`Viewer(${this.id}).getLight: Light with the id ${id} was not found.`);
-        this.#logger.warn(LOGGINGTOPIC.LIGHT, error.message);
-        throw error;
-      }
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).getLight: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Return the id of the current light scene.
-   * 
-   * @returns 
-   */
-  public getLightScene(id?: string): LightScene {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScene: Getting LightScene with id ${id}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScene`, id, 'string', false);
-      if (!id)
-        id = this.#renderingEngine.lightEngine.getLightScene().id;
-
-      if (!this.#lightScenes[id]) {
-        const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScene(id);
-        this.#lightScenes[lightSceneLogic.id] = new LightScene(lightSceneLogic, this);
-      }
-      return this.#lightScenes[id];
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).getLightScene: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Return the ids of all light scene in an array.
-   * 
-   * @returns 
-   */
-  public getLightScenes(): { [key: string]: LightScene } {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLightScenes: Getting LightScenes.`);
-      this.isInitialized();
-      const lightSceneLogic = this.#renderingEngine.lightEngine.getLightScenes();
-      const lightScenes: { [key: string]: LightScene } = {};
-      for (let l in lightSceneLogic)
-        lightScenes[l] = this.getLightScene(l);
-      return lightScenes;
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).getLightScenes: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Return all lights as key-value pairs with the id of the light being the key.
-   * 
-   * @returns 
-   */
-  public getLights(): { [key: string]: Light } {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).getLights: Getting Lights.`);
-      this.isInitialized();
-      const lightLogic = this.#renderingEngine.lightEngine.getLights();
-      const lights: { [key: string]: Light } = {};
-      for (let l in lightLogic)
-        lights[l] = this.getLight(l);
-      return lights;
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).getLights: Something unexpected happened.`, true)
     }
   }
 
@@ -1056,7 +972,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene`, id, 'string');
       const r = this.#renderingEngine.lightEngine.removeLightScene(id);
-      if (r) delete this.#lightScenes[id];
       if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Light scene with id ${id} removed.`);
       if (!r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Could not remove light scene with id ${id}.`);
       this.update();
