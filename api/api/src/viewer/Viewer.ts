@@ -60,6 +60,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly id!: string;
   readonly initialized: boolean = false;
   readonly lightScene: LightScene | null = null;
+  readonly lightSceneId!: string;
   readonly lightScenes: {
     [key: string]: LightScene
   } = {};
@@ -102,8 +103,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
         delete this.lightScenes[l];
     }
 
-    if(this.#renderingEngine.lightEngine.lightScene)
+    if(this.#renderingEngine.lightEngine.lightScene) {
       (<any>this.lightScene) = this.lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
+      (<any>this.lightSceneId) = this.#renderingEngine.lightEngine.lightScene.id;
+    }
 
     (<any>this.ambientOcclusion) = this.#renderingEngine.ambientOcclusion;
     (<any>this.automaticResizing) = this.#renderingEngine.automaticResizing;
@@ -671,7 +674,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * @param properties.distance the distance of the light radiance
    * @param properties.decay the decay of the light radiance
    * @param properties.angle the angle of the light cone
-   * @param properties.penumbra the percentage of the cone that is part of the penmubra
+   * @param properties.penumbra the percentage of the cone that is part of the penumbra
    * @returns 
    */
   public addSpotLight(properties?: { color?: string | number | vec3, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string }): SpotLight {
