@@ -161,11 +161,7 @@ export class GLTFLoader {
         const normalized = false;
 
         // The buffer is not interleaved if the stride is the item size in bytes.
-        if (accessor.byteStride !== itemBytes) {
-            return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, byteStride);
-        } else {
-            return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, byteStride);
-        }
+        return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, [], [], byteStride);
     }
 
     private async loadBuffer(bufferName: string): Promise<ArrayBuffer> {
@@ -264,7 +260,7 @@ export class GLTFLoader {
             for (let attribute in primitive.attributes) {
                 attributes[attribute] = await this.loadAccessor(primitive.attributes[attribute]);
                 if(attribute === 'COLOR')
-                    attributes[attribute] = new AttributeData(attributes[attribute].array, attributes[attribute].itemSize, attributes[attribute].itemBytes, attributes[attribute].byteOffset, attributes[attribute].elementBytes, true, attributes[attribute].count, attributes[attribute].byteStride)
+                    attributes[attribute] = new AttributeData(attributes[attribute].array, attributes[attribute].itemSize, attributes[attribute].itemBytes, attributes[attribute].byteOffset, attributes[attribute].elementBytes, true, attributes[attribute].count, [], [], attributes[attribute].byteStride)
             }
 
             let material: MaterialData;

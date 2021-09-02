@@ -36,6 +36,8 @@ export class AttributeData {
     private readonly _elementBytes: number,
     private readonly _normalized: boolean,
     private readonly _count: number,
+    private readonly _min: number[] = [],
+    private readonly _max: number[] = [],
     private readonly _byteStride?: number,
     private readonly _sparse?: boolean,
     private readonly _sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
@@ -112,6 +114,22 @@ export class AttributeData {
   }
 
   /**
+   * Getter min
+   * @return {number[]}
+   */
+  public get min(): number[] {
+    return this._min;
+  }
+
+  /**
+   * Getter max
+   * @return {number[]}
+   */
+  public get max(): number[] {
+    return this._max;
+  }
+
+  /**
    * Getter normalized
    * @return {boolean}
    */
@@ -153,6 +171,8 @@ export class AttributeData {
       this._elementBytes,
       this._normalized,
       this._count,
+      this._min,
+      this._max,
       this._byteStride,
       this._sparse,
       this._sparseIndices,
@@ -186,8 +206,13 @@ export class PrimitiveData {
     private _indices: AttributeData | null = null,
     private _material: MaterialData | null = null,
   ) { 
-    if(this._attributes['POSITION'])
-      this._boundingBox.setFromAttributeArray(this._attributes['POSITION'].array);
+    if(this._attributes['POSITION']) {
+      if(this._attributes['POSITION'].min.length === 3 && this._attributes['POSITION'].max.length === 3) {
+        this._boundingBox = new Box(vec3.fromValues(this._attributes['POSITION'].min[0], this._attributes['POSITION'].min[1], this._attributes['POSITION'].min[2]), vec3.fromValues(this._attributes['POSITION'].max[0], this._attributes['POSITION'].max[1], this._attributes['POSITION'].max[2]));
+      } else {
+        this._boundingBox.setFromAttributeArray(this._attributes['POSITION'].array);
+      }
+    }
   }
 
   // #endregion Constructors (1)

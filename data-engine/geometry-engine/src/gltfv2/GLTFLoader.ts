@@ -204,12 +204,12 @@ export class GLTFLoader {
             const sparseValues = new ArrayType(await this.loadBufferView(accessor.sparse.values.bufferView!), byteOffsetValues, accessor.sparse.count * itemSize);
 
             if (!this._loaded['accessor']) this._loaded['accessor'] = {};
-            this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, byteStride, true, sparseIndices, sparseValues);
+            this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride, true, sparseIndices, sparseValues);
             return this._loaded['accessor'][accessorId];
         }
 
         if (!this._loaded['accessor']) this._loaded['accessor'] = {};
-        this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, byteStride);
+        this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride);
         return this._loaded['accessor'][accessorId];
     }
 

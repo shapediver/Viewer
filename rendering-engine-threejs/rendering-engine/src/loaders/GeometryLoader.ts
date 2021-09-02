@@ -4,7 +4,6 @@ import {
   MATERIAL_ALPHA,
   PRIMITIVE_MODE,
   PrimitiveData,
-  SD_RENDERINGTYPE,
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -12,9 +11,7 @@ import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.utils'
 import { container } from 'tsyringe'
 
 import { SDObject } from '../types/SDObject'
-import { MaterialLoader } from './MaterialLoader'
 import { RenderingEngine } from '../RenderingEngine'
-import { RenderingManager } from '../managers/RenderingManager'
 import { ILoader } from '../interfaces/ILoader'
 
 export class GeometryLoader implements ILoader {
@@ -88,9 +85,8 @@ export class GeometryLoader implements ILoader {
             mesh.material.depthWrite = false;
         }
 
-        // https://shapediver.atlassian.net/browse/SS-3177
-        mesh.geometry.computeBoundingBox()
-        mesh.geometry.computeBoundingSphere()
+        mesh.geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0],  geometry.boundingBox.min[1],  geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0],  geometry.boundingBox.max[1],  geometry.boundingBox.max[2]));
+        mesh.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius)
         obj.add(mesh);
         mesh.geometry.userData = {
             SDid: geometry.id,
