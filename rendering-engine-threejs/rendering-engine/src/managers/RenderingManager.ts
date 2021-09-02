@@ -27,7 +27,15 @@ export class RenderingManager implements IManager {
     private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
 
     private _activeRendering: boolean = true;
+    private _cameraChanged: boolean = false;
     private _height: number = 0;
+    private _lastCamera: {
+        position: vec3,
+        target: vec3
+    } = {
+        position: vec3.create(),
+        target: vec3.create()
+    };
     private _lastTime: number = 0;
     private _minimalRendering: boolean = false;
     private _noWebGL: boolean = false;
@@ -195,8 +203,19 @@ export class RenderingManager implements IManager {
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
 
+        // get the current size
+        const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
+        const aspect = width / height;
+
         // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
-        const { position, target } = this._renderingEngine.cameraEngine.hasCamera() ? this._renderingEngine.cameraManager.updateCamera(deltaTime) : { position: vec3.create(), target: vec3.create() };
+        const { position, target } = this._renderingEngine.cameraEngine.hasCamera() ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : { position: vec3.create(), target: vec3.create() };
+
+        // evaluate if the camera changed
+        this._cameraChanged = true;
+        if(position[0] === this._lastCamera.position[0] && position[1] === this._lastCamera.position[1] && position[2] === this._lastCamera.position[2] && 
+            target[0] === this._lastCamera.target[0] && target[1] === this._lastCamera.target[1] && target[2] === this._lastCamera.target[2])
+            this._cameraChanged = false;
+        this._lastCamera = { position, target };
 
         // animation loop - part 4: evaluating state
         const states = this.evaluateRenderingState();
@@ -222,8 +241,6 @@ export class RenderingManager implements IManager {
         this.toggleBlur(states.blurScene);
 
         // animation loop - part 8: calculate the current size
-        const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
-        const aspect = width / height;
         this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
         this._renderingEngine.renderer.domElement.style.width = width + 'px';
         this._renderingEngine.renderer.domElement.style.height = height + 'px';
@@ -367,7 +384,7 @@ export class RenderingManager implements IManager {
 
         // If we should render at all
         let rendering = false;
-        if (this._activeRendering === true)
+        if (this._activeRendering === true || this._cameraChanged === true)
             rendering = true;
 
         // special case, autorotation

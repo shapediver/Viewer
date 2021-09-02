@@ -14,7 +14,7 @@ export class PerspectiveCamera extends AbstractCamera {
 
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
-  private _aspect: number = 60;
+  private _aspect: number | undefined;
   private _fov: number = 60;
 
   // #endregion Properties (3)
@@ -32,17 +32,17 @@ export class PerspectiveCamera extends AbstractCamera {
 
   /**
    * Getter aspect
-   * @return {number }
+   * @return {number| undefined}
    */
-  public get aspect(): number {
+  public get aspect(): number| undefined {
     return this._aspect;
   }
 
   /**
    * Setter aspect
-   * @param {number } value
+   * @param {number| undefined} value
    */
-  public set aspect(value: number) {
+  public set aspect(value: number | undefined) {
     this._aspect = value;
   }
 
@@ -143,7 +143,8 @@ export class PerspectiveCamera extends AbstractCamera {
     let fovDown = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, (this.fov / 2) * (Math.PI / 180))));
     let fovUp = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, -(this.fov / 2) * (Math.PI / 180))));
 
-    let hFoV = 2 * Math.atan(Math.tan(this.fov * Math.PI / 180 / 2) * this.aspect);
+    const aspect = this.aspect || 1.5;
+    let hFoV = 2 * Math.atan(Math.tan(this.fov * Math.PI / 180 / 2) * aspect);
     let fovRight = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, hFoV / 2)));
     let fovLeft = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, -hFoV / 2)));
 
@@ -189,7 +190,8 @@ export class PerspectiveCamera extends AbstractCamera {
 
   public project(pos: vec3, position = this.position, target = this.target): vec2 {
     const m = mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
-    const p = mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), this.aspect, this.near, this.far);
+    const aspect = this.aspect || 1.5;
+    const p = mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), aspect, this.near, this.far);
     vec3.transformMat4(pos, pos, mat4.invert(m, m))
     vec3.transformMat4(pos, pos, p)
     return vec2.fromValues(pos[0], pos[1])

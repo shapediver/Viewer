@@ -26,7 +26,9 @@ export class CameraManager implements IManager {
 
     // #region Public Methods (2)
 
-    public updateCamera(time: number): { position: vec3, target: vec3 } {
+    public updateCamera(time: number, aspect: number): { position: vec3, target: vec3 } {
+        if(this._renderingEngine.cameraEngine.getCamera()?.type === 'perspective') 
+            (<PerspectiveCamera>this._renderingEngine.cameraEngine.getCamera()).aspect = aspect;
         return (<AbstractCamera>this._renderingEngine.cameraEngine.getCamera())!.update(time);
 
     }
