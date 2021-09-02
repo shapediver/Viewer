@@ -4,6 +4,7 @@ import { Integrations } from '@sentry/tracing'
 import { build_data } from '@shapediver/viewer.shared.build-data'
 
 import { UuidGenerator } from '../uuid-generator/UuidGenerator'
+import { SDError } from './SDError'
 
 export enum LOGGINGLEVEL {
     NONE = 'none',
@@ -29,6 +30,7 @@ export enum LOGGINGTOPIC {
     CAMERACONTROL = 'cameracontrol',
     DATAPROCESSING = 'dataprocessing',
     SDTF = 'sdtf',
+    THREE = 'three',
 }
 
 @singleton()
@@ -46,6 +48,42 @@ export class Logger {
     // #endregion Properties (2)
 
     constructor() {
+        
+
+        // THREE.JS is stupid and logs millions of errors, warnings, etc. this is how we avoid them
+        const oldConsoleDebug = console.debug;
+        console.debug = (...data) => {
+            if(data && Array.isArray(data) && typeof data[0] === 'string' && data[0].startsWith('THREE')) return;
+            oldConsoleDebug(...data);
+        };
+
+        const oldConsoleInfo = console.info;
+        console.info = (...data) => {
+            if(data && Array.isArray(data) && typeof data[0] === 'string' && data[0].startsWith('THREE')) return;
+            oldConsoleInfo(...data);
+        };
+
+        const oldConsoleLog = console.log;
+        console.log = (...data) => {
+            if(data && Array.isArray(data) && typeof data[0] === 'string' && data[0].startsWith('THREE')) return;
+            oldConsoleLog(...data);
+        };
+
+        const oldConsoleWarn = console.warn;
+        console.warn = (...data) => {
+            if(data && Array.isArray(data) && typeof data[0] === 'string' && data[0].startsWith('THREE')) return;
+            oldConsoleWarn(...data);
+        };
+
+        const oldConsoleError = console.error;
+        console.error = (...data) => {
+            if(data && Array.isArray(data) && typeof data[0] === 'string' && data[0].startsWith('THREE')) {
+                this.error(LOGGINGTOPIC.THREE, new SDError(data[0]), data[0])
+                return;
+            };
+            oldConsoleError(...data);
+        };
+
         Sentry.init({
             dsn: "https://0510990697b04b9da3ad07868e94e378@o363881.ingest.sentry.io/5828729",
             integrations: [
