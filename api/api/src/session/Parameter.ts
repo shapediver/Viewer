@@ -121,6 +121,12 @@ export class Parameter<T> implements ShapeDiverResponseParameter {
                 this.#defaultValue = this.defval;
             }
 
+            if (this.type === PARAMETERTYPE.COLOR) {
+                (<any>this).convertColor = (color: any): string =>  {
+                    return this.#converter.toColor(color);
+                }
+            }
+
             this.value = this.#defaultValue;
             this.sessionValue = this.value;
             this.lastValidatedValue = this.value;
