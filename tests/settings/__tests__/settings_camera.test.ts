@@ -155,7 +155,14 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let session = api.getSession('mySession')!;
                 let viewer = api.getViewer('myViewer')!;
-                viewer.assignCamera(Object.values(viewer.cameras)[0].id);
+                const camera = viewer.createPerspectiveCamera();
+                viewer.assignCamera(camera.id);
+                camera!.updateAutoAdjust(false);
+                camera!.updateCameraMovementDuration(800);
+                camera!.updateDefaultPosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
+                camera!.updateDefaultTarget([0, 7, -3.25]);
+                camera!.updatePosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
+                camera!.updateTarget([0, 7, -3.25]);
                 viewer.update();
 
                 await new Promise<void>((resolve) => {
