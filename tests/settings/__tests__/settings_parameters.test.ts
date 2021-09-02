@@ -125,11 +125,10 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['parameters.controlNames']).toStrictEqual({
-                'dd319731-fb8a-4aa2-9aef-ac85e96a3060': 'COLOR',
-            });
+            expect(settings1['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayName']).toBe('COLOR');
+            expect(settings1['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayName']).toBe('');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -137,12 +136,10 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateDisplayName('THE LENGTH');
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['parameters.controlNames']).toStrictEqual({
-                'dd319731-fb8a-4aa2-9aef-ac85e96a3060': 'COLOR',
-                'de76cade-0cea-47b1-879e-1a0b717910e1': 'THE LENGTH'
-            });
+            expect(settings2['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayName']).toBe('COLOR');
+            expect(settings2['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayName']).toBe('THE LENGTH');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -150,11 +147,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateDisplayName(undefined);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['parameters.controlNames']).toStrictEqual({
-                'dd319731-fb8a-4aa2-9aef-ac85e96a3060': 'COLOR',
-            });
+            expect(settings3['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayName']).toBe('COLOR');
+            expect(settings3['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayName']).toBe('');
+
 
         });
 
@@ -168,21 +165,19 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['parameters.controlOrder']).toStrictEqual([
-                '7ad4db6d-dc94-48b1-8e89-486b75b29df9',
-                '23033d60-7078-4836-99ce-990668e4429d',
-                '5a5aad86-8173-4bbe-8184-54656370cd4b',
-                '30c907b3-dbcf-4266-9f8f-835bb2353cb6',
-                'd0ecb53a-90f1-44d6-a6a5-fa47d4a38771',
-                '1d1af051-22fd-4f3a-a34c-1882c60a7fda',
-                'de76cade-0cea-47b1-879e-1a0b717910e1',
-                'dd319731-fb8a-4aa2-9aef-ac85e96a3060',
-                '9d9e7f0b-385c-495d-825e-3fec2ce9762d',
-                '55b36bef-a2e8-47cb-bd96-8631f95b11be',
-                '136b5b03-c3a3-40a1-bc51-009a71c9fc44'
-            ]);
+            expect(settings1['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.order']).toBe(0);
+            expect(settings1['session.23033d60-7078-4836-99ce-990668e4429d.order']).toBe(1);
+            expect(settings1['session.5a5aad86-8173-4bbe-8184-54656370cd4b.order']).toBe(2);
+            expect(settings1['session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.order']).toBe(3);
+            expect(settings1['session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.order']).toBe(4);
+            expect(settings1['session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.order']).toBe(5);
+            expect(settings1['session.de76cade-0cea-47b1-879e-1a0b717910e1.order']).toBe(6);
+            expect(settings1['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.order']).toBe(7);
+            expect(settings1['session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.order']).toBe(8);
+            expect(settings1['session.55b36bef-a2e8-47cb-bd96-8631f95b11be.order']).toBe(9);
+            expect(settings1['session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.order']).toBe(10);
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -191,21 +186,19 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateOrder(9);
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateOrder(10);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['parameters.controlOrder']).toStrictEqual([
-                '7ad4db6d-dc94-48b1-8e89-486b75b29df9',
-                '23033d60-7078-4836-99ce-990668e4429d',
-                '5a5aad86-8173-4bbe-8184-54656370cd4b',
-                '30c907b3-dbcf-4266-9f8f-835bb2353cb6',
-                'd0ecb53a-90f1-44d6-a6a5-fa47d4a38771',
-                '1d1af051-22fd-4f3a-a34c-1882c60a7fda',
-                'de76cade-0cea-47b1-879e-1a0b717910e1',
-                'dd319731-fb8a-4aa2-9aef-ac85e96a3060',
-                '9d9e7f0b-385c-495d-825e-3fec2ce9762d',
-                '136b5b03-c3a3-40a1-bc51-009a71c9fc44',
-                '55b36bef-a2e8-47cb-bd96-8631f95b11be'
-            ]);
+            expect(settings2['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.order']).toBe(0);
+            expect(settings2['session.23033d60-7078-4836-99ce-990668e4429d.order']).toBe(1);
+            expect(settings2['session.5a5aad86-8173-4bbe-8184-54656370cd4b.order']).toBe(2);
+            expect(settings2['session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.order']).toBe(3);
+            expect(settings2['session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.order']).toBe(4);
+            expect(settings2['session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.order']).toBe(5);
+            expect(settings2['session.de76cade-0cea-47b1-879e-1a0b717910e1.order']).toBe(6);
+            expect(settings2['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.order']).toBe(7);
+            expect(settings2['session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.order']).toBe(8);
+            expect(settings2['session.55b36bef-a2e8-47cb-bd96-8631f95b11be.order']).toBe(10);
+            expect(settings2['session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.order']).toBe(9);
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -214,21 +207,19 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateOrder(10);
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateOrder(9);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['parameters.controlOrder']).toStrictEqual([
-                '7ad4db6d-dc94-48b1-8e89-486b75b29df9',
-                '23033d60-7078-4836-99ce-990668e4429d',
-                '5a5aad86-8173-4bbe-8184-54656370cd4b',
-                '30c907b3-dbcf-4266-9f8f-835bb2353cb6',
-                'd0ecb53a-90f1-44d6-a6a5-fa47d4a38771',
-                '1d1af051-22fd-4f3a-a34c-1882c60a7fda',
-                'de76cade-0cea-47b1-879e-1a0b717910e1',
-                'dd319731-fb8a-4aa2-9aef-ac85e96a3060',
-                '9d9e7f0b-385c-495d-825e-3fec2ce9762d',
-                '55b36bef-a2e8-47cb-bd96-8631f95b11be',
-                '136b5b03-c3a3-40a1-bc51-009a71c9fc44'
-            ]);
+            expect(settings3['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.order']).toBe(0);
+            expect(settings3['session.23033d60-7078-4836-99ce-990668e4429d.order']).toBe(1);
+            expect(settings3['session.5a5aad86-8173-4bbe-8184-54656370cd4b.order']).toBe(2);
+            expect(settings3['session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.order']).toBe(3);
+            expect(settings3['session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.order']).toBe(4);
+            expect(settings3['session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.order']).toBe(5);
+            expect(settings3['session.de76cade-0cea-47b1-879e-1a0b717910e1.order']).toBe(6);
+            expect(settings3['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.order']).toBe(7);
+            expect(settings3['session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.order']).toBe(8);
+            expect(settings3['session.55b36bef-a2e8-47cb-bd96-8631f95b11be.order']).toBe(9);
+            expect(settings3['session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.order']).toBe(10);
 
         });
 
@@ -242,19 +233,17 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['parameters.parametersHidden']).toStrictEqual([
-                '7ad4db6d-dc94-48b1-8e89-486b75b29df9',
-                '23033d60-7078-4836-99ce-990668e4429d',
-                '5a5aad86-8173-4bbe-8184-54656370cd4b',
-                '30c907b3-dbcf-4266-9f8f-835bb2353cb6',
-                'd0ecb53a-90f1-44d6-a6a5-fa47d4a38771',
-                '1d1af051-22fd-4f3a-a34c-1882c60a7fda',
-                '9d9e7f0b-385c-495d-825e-3fec2ce9762d',
-                '55b36bef-a2e8-47cb-bd96-8631f95b11be',
-                '136b5b03-c3a3-40a1-bc51-009a71c9fc44'
-            ]);
+            expect(settings1['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.hidden']).toBe(true);
+            expect(settings1['session.23033d60-7078-4836-99ce-990668e4429d.hidden']).toBe(true);
+            expect(settings1['session.5a5aad86-8173-4bbe-8184-54656370cd4b.hidden']).toBe(true);
+            expect(settings1['session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.hidden']).toBe(true);
+            expect(settings1['session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.hidden']).toBe(true);
+            expect(settings1['session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.hidden']).toBe(true);
+            expect(settings1['session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.hidden']).toBe(true);
+            expect(settings1['session.55b36bef-a2e8-47cb-bd96-8631f95b11be.hidden']).toBe(true);
+            expect(settings1['session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.hidden']).toBe(true);
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -262,18 +251,18 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateHidden(false);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['parameters.parametersHidden']).toStrictEqual([
-                '23033d60-7078-4836-99ce-990668e4429d',
-                '5a5aad86-8173-4bbe-8184-54656370cd4b',
-                '30c907b3-dbcf-4266-9f8f-835bb2353cb6',
-                'd0ecb53a-90f1-44d6-a6a5-fa47d4a38771',
-                '1d1af051-22fd-4f3a-a34c-1882c60a7fda',
-                '9d9e7f0b-385c-495d-825e-3fec2ce9762d',
-                '55b36bef-a2e8-47cb-bd96-8631f95b11be',
-                '136b5b03-c3a3-40a1-bc51-009a71c9fc44'
-            ]);
+
+            expect(settings2['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.hidden']).toBe(false);
+            expect(settings2['session.23033d60-7078-4836-99ce-990668e4429d.hidden']).toBe(true);
+            expect(settings2['session.5a5aad86-8173-4bbe-8184-54656370cd4b.hidden']).toBe(true);
+            expect(settings2['session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.hidden']).toBe(true);
+            expect(settings2['session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.hidden']).toBe(true);
+            expect(settings2['session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.hidden']).toBe(true);
+            expect(settings2['session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.hidden']).toBe(true);
+            expect(settings2['session.55b36bef-a2e8-47cb-bd96-8631f95b11be.hidden']).toBe(true);
+            expect(settings2['session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.hidden']).toBe(true);
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
@@ -281,19 +270,17 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.getSession('mySession')!;
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateHidden(true);
                 await session.saveSettings();
-                cb((<any>window).settingsEngine.deconstruct());
+                cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['parameters.parametersHidden']).toStrictEqual([
-                '7ad4db6d-dc94-48b1-8e89-486b75b29df9',
-                '23033d60-7078-4836-99ce-990668e4429d',
-                '5a5aad86-8173-4bbe-8184-54656370cd4b',
-                '30c907b3-dbcf-4266-9f8f-835bb2353cb6',
-                'd0ecb53a-90f1-44d6-a6a5-fa47d4a38771',
-                '1d1af051-22fd-4f3a-a34c-1882c60a7fda',
-                '9d9e7f0b-385c-495d-825e-3fec2ce9762d',
-                '55b36bef-a2e8-47cb-bd96-8631f95b11be',
-                '136b5b03-c3a3-40a1-bc51-009a71c9fc44'
-            ]);
+            expect(settings3['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.hidden']).toBe(true);
+            expect(settings3['session.23033d60-7078-4836-99ce-990668e4429d.hidden']).toBe(true);
+            expect(settings3['session.5a5aad86-8173-4bbe-8184-54656370cd4b.hidden']).toBe(true);
+            expect(settings3['session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.hidden']).toBe(true);
+            expect(settings3['session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.hidden']).toBe(true);
+            expect(settings3['session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.hidden']).toBe(true);
+            expect(settings3['session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.hidden']).toBe(true);
+            expect(settings3['session.55b36bef-a2e8-47cb-bd96-8631f95b11be.hidden']).toBe(true);
+            expect(settings3['session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.hidden']).toBe(true);
 
         });
     });

@@ -10,155 +10,7 @@ import { vec3 } from "gl-matrix";
 import { SettingsEngine } from "../../../rendering-engine/camera-engine/node_modules/@shapediver/viewer.shared.services/dist";
 import { build_data } from "../../../shared/build-data/src/build_data";
 
-const originalSettings = {
-    // build_date: '', // this will be different every time
-    // build_version: '', // this will be different every time
-    'parameters.controlNames': { 'dd319731-fb8a-4aa2-9aef-ac85e96a3060': 'COLOR' },
-    'parameters.controlOrder': [
-        '7ad4db6d-dc94-48b1-8e89-486b75b29df9',
-        '23033d60-7078-4836-99ce-990668e4429d',
-        '5a5aad86-8173-4bbe-8184-54656370cd4b',
-        '30c907b3-dbcf-4266-9f8f-835bb2353cb6',
-        'd0ecb53a-90f1-44d6-a6a5-fa47d4a38771',
-        '1d1af051-22fd-4f3a-a34c-1882c60a7fda',
-        'de76cade-0cea-47b1-879e-1a0b717910e1',
-        'dd319731-fb8a-4aa2-9aef-ac85e96a3060',
-        '9d9e7f0b-385c-495d-825e-3fec2ce9762d',
-        '55b36bef-a2e8-47cb-bd96-8631f95b11be',
-        '136b5b03-c3a3-40a1-bc51-009a71c9fc44'
-    ],
-    'parameters.parametersHidden': [
-        '7ad4db6d-dc94-48b1-8e89-486b75b29df9',
-        '23033d60-7078-4836-99ce-990668e4429d',
-        '5a5aad86-8173-4bbe-8184-54656370cd4b',
-        '30c907b3-dbcf-4266-9f8f-835bb2353cb6',
-        'd0ecb53a-90f1-44d6-a6a5-fa47d4a38771',
-        '1d1af051-22fd-4f3a-a34c-1882c60a7fda',
-        '9d9e7f0b-385c-495d-825e-3fec2ce9762d',
-        '55b36bef-a2e8-47cb-bd96-8631f95b11be',
-        '136b5b03-c3a3-40a1-bc51-009a71c9fc44'
-    ],
-    settings_version: '2.0',
-    'viewer.blurSceneWhenBusy': true,
-    'viewer.commitParameters': false,
-    'viewer.commitSettings': false,
-    'viewer.scene.camera.autoAdjust': false,
-    'viewer.scene.camera.cameraMovementDuration': 800,
-    'viewer.scene.camera.cameraTypes.active': 0,
-    'viewer.scene.camera.cameraTypes.orthographic.default': { position: { x: 0, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
-    'viewer.scene.camera.cameraTypes.perspective.default': { position: { x: 58.03696060180664, y: -290.11590576171875, z: 87.67756652832031 }, target: { x: 0, y: 7, z: -3.25 } },
-    'viewer.scene.camera.cameraTypes.perspective.fov': 45,
-    'viewer.scene.camera.controls.orbit.autoRotationSpeed': 0,
-    'viewer.scene.camera.controls.orbit.damping': 0.1,
-    'viewer.scene.camera.controls.orbit.enableAutoRotation': false,
-    'viewer.scene.camera.controls.orbit.enableKeyPan': false,
-    'viewer.scene.camera.controls.orbit.enablePan': true,
-    'viewer.scene.camera.controls.orbit.enableRotation': true,
-    'viewer.scene.camera.controls.orbit.enableZoom': true,
-    'viewer.scene.camera.controls.orbit.input': {
-        keys: { down: 40, left: 37, right: 39, up: 38 },
-        mouse: { pan: 2, rotate: 0, zoom: 1 },
-        touch: { pan: 3, rotate: 1, zoom: 2 }
-    },
-    'viewer.scene.camera.controls.orbit.keyPanSpeed': 0.5,
-    'viewer.scene.camera.controls.orbit.movementSmoothness': 0.5,
-    'viewer.scene.camera.controls.orbit.panSpeed': 0.5,
-    'viewer.scene.camera.controls.orbit.restrictions.position.cube': { max: { x: null, y: null, z: null }, min: { x: null, y: null, z: null } },
-    'viewer.scene.camera.controls.orbit.restrictions.position.sphere': { center: { x: 0, y: 0, z: 0 }, radius: null },
-    'viewer.scene.camera.controls.orbit.restrictions.rotation': {
-        maxAzimuthAngle: null,
-        maxPolarAngle: 180,
-        minAzimuthAngle: null,
-        minPolarAngle: 0
-    },
-    'viewer.scene.camera.controls.orbit.restrictions.target.cube': { max: { x: null, y: null, z: null }, min: { x: null, y: null, z: null } },
-    'viewer.scene.camera.controls.orbit.restrictions.target.sphere': { center: { x: 0, y: 0, z: 0 }, radius: null },
-    'viewer.scene.camera.controls.orbit.restrictions.zoom': { maxDistance: null, minDistance: 0 },
-    'viewer.scene.camera.controls.orbit.rotationSpeed': 0.5,
-    'viewer.scene.camera.controls.orbit.zoomSpeed': 0.5,
-    'viewer.scene.camera.controls.orthographic.damping': 0.1,
-    'viewer.scene.camera.controls.orthographic.enableKeyPan': false,
-    'viewer.scene.camera.controls.orthographic.enablePan': true,
-    'viewer.scene.camera.controls.orthographic.enableZoom': true,
-    'viewer.scene.camera.controls.orthographic.input': {
-        keys: { down: 40, left: 37, right: 39, up: 38 },
-        mouse: { pan: 2, rotate: 0, zoom: 1 },
-        touch: { pan: 3, rotate: 1, zoom: 2 }
-    },
-    'viewer.scene.camera.controls.orthographic.keyPanSpeed': 0.5,
-    'viewer.scene.camera.controls.orthographic.movementSmoothness': 0.5,
-    'viewer.scene.camera.controls.orthographic.panSpeed': 0.5,
-    'viewer.scene.camera.controls.orthographic.zoomSpeed': 0.5,
-    'viewer.scene.camera.enableCameraControls': true,
-    'viewer.scene.camera.revertAtMouseUp': false,
-    'viewer.scene.camera.revertAtMouseUpDuration': 800,
-    'viewer.scene.camera.zoomExtentsFactor': 1,
-    'viewer.scene.gridVisibility': true,
-    'viewer.scene.groundPlaneVisibility': true,
-    'viewer.scene.lights.lightScene': 'default',
-    'viewer.scene.lights.lightScenes': {
-        "a2a392df-c842-4562-acd4-91df7ed68822": {
-            "id": "a2a392df-c842-4562-acd4-91df7ed68822",
-            "lights": {
-                "6e219562-c916-4492-b9b9-1dfbac80d51f": {
-                    "id": "6e219562-c916-4492-b9b9-1dfbac80d51f",
-                    "name": "directional1","properties": {
-                        "castShadow": false,
-                        "color": "#ffffff",
-                        "direction": {
-                            "x": 0.25,
-                            "y": -1,
-                            "z": 1,
-                        },
-                        "intensity": 0.35,
-                        "shadowMapBias": -0.00175,
-                        "shadowMapResolution": 1024,
-                    },
-                    "type": "directional",
-                },
-                "70bc760c-45dc-46b0-9cd2-8990ac77124f": {
-                    "id": "70bc760c-45dc-46b0-9cd2-8990ac77124f",
-                    "name": "directional0",
-                    "properties": {
-                        "castShadow": true,
-                        "color": "#ffffff",
-                        "direction": {
-                            "x": 0.5774000287055969,
-                            "y": -0.5774000287055969,
-                            "z": 0.5774000287055969,
-                        },
-                        "intensity": 0.75,
-                        "shadowMapBias": -0.00175,
-                        "shadowMapResolution": 1024,
-                    },
-                    "type": "directional",
-                },
-                "748019ac-ce54-4de7-94d2-737dae6579dd": {
-                    "id": "748019ac-ce54-4de7-94d2-737dae6579dd",
-                    "name": "ambient0",
-                    "properties": {
-                        "color": "#ffffff",
-                        "intensity": 0.5,
-                    },
-                    "type": "ambient",
-                },
-            },
-            "name": "default",
-        },
-    },
-    'viewer.scene.material.environmentMap': 'none',
-    'viewer.scene.material.environmentMapAsBackground': false,
-    'viewer.scene.material.environmentMapResolution': '1024',
-    'viewer.scene.render.ambientOcclusion': true,
-    'viewer.scene.render.beautyRenderBlendingDuration': 1500,
-    'viewer.scene.render.beautyRenderDelay': 50,
-    'viewer.scene.render.clearAlpha': 1,
-    'viewer.scene.render.clearColor': '#ffffff',
-    'viewer.scene.render.pointSize': 1,
-    'viewer.scene.render.shadows': true,
-    'viewer.showMessages': true
-};
-
+const originalSettings = { "settings_version": "3.0", "camera.cameraId": "cameraId", "camera.cameras.cameraId.autoAdjust": false, "camera.cameras.cameraId.cameraMovementDuration": 800, "camera.cameras.cameraId.controls.autoRotationSpeed": 0, "camera.cameras.cameraId.controls.damping": 0.1, "camera.cameras.cameraId.controls.enableAutoRotation": false, "camera.cameras.cameraId.controls.enableKeyPan": false, "camera.cameras.cameraId.controls.enablePan": true, "camera.cameras.cameraId.controls.enableRotation": true, "camera.cameras.cameraId.controls.enableZoom": true, "camera.cameras.cameraId.controls.input.keys.down": 40, "camera.cameras.cameraId.controls.input.keys.left": 37, "camera.cameras.cameraId.controls.input.keys.right": 39, "camera.cameras.cameraId.controls.input.keys.up": 38, "camera.cameras.cameraId.controls.input.mouse.pan": 2, "camera.cameras.cameraId.controls.input.mouse.rotate": 0, "camera.cameras.cameraId.controls.input.mouse.zoom": 1, "camera.cameras.cameraId.controls.input.touch.pan": 3, "camera.cameras.cameraId.controls.input.touch.rotate": 1, "camera.cameras.cameraId.controls.input.touch.zoom": 2, "camera.cameras.cameraId.controls.keyPanSpeed": 0.5, "camera.cameras.cameraId.controls.movementSmoothness": 0.5, "camera.cameras.cameraId.controls.panSpeed": 0.5, "camera.cameras.cameraId.controls.restrictions.position.cube.max.x": null, "camera.cameras.cameraId.controls.restrictions.position.cube.max.y": null, "camera.cameras.cameraId.controls.restrictions.position.cube.max.z": null, "camera.cameras.cameraId.controls.restrictions.position.cube.min.x": null, "camera.cameras.cameraId.controls.restrictions.position.cube.min.y": null, "camera.cameras.cameraId.controls.restrictions.position.cube.min.z": null, "camera.cameras.cameraId.controls.restrictions.position.sphere.center.x": 0, "camera.cameras.cameraId.controls.restrictions.position.sphere.center.y": 0, "camera.cameras.cameraId.controls.restrictions.position.sphere.center.z": 0, "camera.cameras.cameraId.controls.restrictions.position.sphere.radius": null, "camera.cameras.cameraId.controls.restrictions.rotation.maxAzimuthAngle": null, "camera.cameras.cameraId.controls.restrictions.rotation.maxPolarAngle": 180, "camera.cameras.cameraId.controls.restrictions.rotation.minAzimuthAngle": null, "camera.cameras.cameraId.controls.restrictions.rotation.minPolarAngle": 0, "camera.cameras.cameraId.controls.restrictions.target.cube.max.x": null, "camera.cameras.cameraId.controls.restrictions.target.cube.max.y": null, "camera.cameras.cameraId.controls.restrictions.target.cube.max.z": null, "camera.cameras.cameraId.controls.restrictions.target.cube.min.x": null, "camera.cameras.cameraId.controls.restrictions.target.cube.min.y": null, "camera.cameras.cameraId.controls.restrictions.target.cube.min.z": null, "camera.cameras.cameraId.controls.restrictions.target.sphere.center.x": 0, "camera.cameras.cameraId.controls.restrictions.target.sphere.center.y": 0, "camera.cameras.cameraId.controls.restrictions.target.sphere.center.z": 0, "camera.cameras.cameraId.controls.restrictions.target.sphere.radius": null, "camera.cameras.cameraId.controls.restrictions.zoom.maxDistance": null, "camera.cameras.cameraId.controls.restrictions.zoom.minDistance": 0, "camera.cameras.cameraId.controls.rotationSpeed": 0.5, "camera.cameras.cameraId.controls.zoomSpeed": 0.5, "camera.cameras.cameraId.enableCameraControls": true, "camera.cameras.cameraId.fov": 45, "camera.cameras.cameraId.position.x": 58.03696060180664, "camera.cameras.cameraId.position.y": -290.11590576171875, "camera.cameras.cameraId.position.z": 87.67756652832031, "camera.cameras.cameraId.revertAtMouseUp": false, "camera.cameras.cameraId.revertAtMouseUpDuration": 800, "camera.cameras.cameraId.target.x": 0, "camera.cameras.cameraId.target.y": 7, "camera.cameras.cameraId.target.z": -3.25, "camera.cameras.cameraId.type": "perspective", "camera.cameras.cameraId.zoomExtentsFactor": 1, "environment.clearAlpha": 1, "environment.clearColor": "#ffffff", "environment.map": "none", "environment.mapAsBackground": false, "environment.mapResolution": "1024", "environmentGeometry.gridVisibility": true, "environmentGeometry.groundPlaneVisibility": true, "general.blurWhenBusy": true, "general.commitParameters": false, "general.commitSettings": false, "general.pointSize": 1, "general.showMessages": true, "general.transformation.rotation.x": 0, "general.transformation.rotation.y": 0, "general.transformation.rotation.z": 0, "general.transformation.scale.x": 1, "general.transformation.scale.y": 1, "general.transformation.scale.z": 1, "general.transformation.translation.x": 0, "general.transformation.translation.y": 0, "general.transformation.translation.z": 0, "light.lightSceneId": "default", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.name": "directional1", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.properties.castShadow": false, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.properties.color": "#ffffff", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.properties.direction.x": 0.25, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.properties.direction.y": -1, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.properties.direction.z": 1, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.properties.intensity": 0.35, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.properties.shadowMapBias": -0.00175, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.properties.shadowMapResolution": 1024, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.6e219562-c916-4492-b9b9-1dfbac80d51f.type": "directional", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.name": "directional0", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.properties.castShadow": true, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.properties.color": "#ffffff", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.properties.direction.x": 0.5774000287055969, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.properties.direction.y": -0.5774000287055969, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.properties.direction.z": 0.5774000287055969, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.properties.intensity": 0.75, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.properties.shadowMapBias": -0.00175, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.properties.shadowMapResolution": 1024, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.70bc760c-45dc-46b0-9cd2-8990ac77124f.type": "directional", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.748019ac-ce54-4de7-94d2-737dae6579dd.name": "ambient0", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.748019ac-ce54-4de7-94d2-737dae6579dd.properties.color": "#ffffff", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.748019ac-ce54-4de7-94d2-737dae6579dd.properties.intensity": 0.5, "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.lights.748019ac-ce54-4de7-94d2-737dae6579dd.type": "ambient", "light.lightScenes.a2a392df-c842-4562-acd4-91df7ed68822.name": "default", "rendering.ambientOcclusion": true, "rendering.beautyRenderBlendingDuration": 1500, "rendering.beautyRenderDelay": 50, "rendering.shadows": true, "session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.displayName": "", "session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.hidden": true, "session.1d1af051-22fd-4f3a-a34c-1882c60a7fda.order": 5, "session.5a5aad86-8173-4bbe-8184-54656370cd4b.displayName": "", "session.5a5aad86-8173-4bbe-8184-54656370cd4b.hidden": true, "session.5a5aad86-8173-4bbe-8184-54656370cd4b.order": 2, "session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.displayName": "", "session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.hidden": true, "session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.order": 0, "session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.displayName": "", "session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.hidden": true, "session.9d9e7f0b-385c-495d-825e-3fec2ce9762d.order": 8, "session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.displayName": "", "session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.hidden": true, "session.30c907b3-dbcf-4266-9f8f-835bb2353cb6.order": 3, "session.55b36bef-a2e8-47cb-bd96-8631f95b11be.displayName": "", "session.55b36bef-a2e8-47cb-bd96-8631f95b11be.hidden": true, "session.55b36bef-a2e8-47cb-bd96-8631f95b11be.order": 9, "session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.displayName": "", "session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.hidden": true, "session.136b5b03-c3a3-40a1-bc51-009a71c9fc44.order": 10, "session.23033d60-7078-4836-99ce-990668e4429d.displayName": "", "session.23033d60-7078-4836-99ce-990668e4429d.hidden": true, "session.23033d60-7078-4836-99ce-990668e4429d.order": 1, "session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.displayName": "", "session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.hidden": true, "session.d0ecb53a-90f1-44d6-a6a5-fa47d4a38771.order": 4, "session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayName": "COLOR", "session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.hidden": false, "session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.order": 7, "session.de76cade-0cea-47b1-879e-1a0b717910e1.displayName": "", "session.de76cade-0cea-47b1-879e-1a0b717910e1.hidden": false, "session.de76cade-0cea-47b1-879e-1a0b717910e1.order": 6 };
 
 for (let c = 0; c < allCapabilities.length; c++) {
     let name = 'settings_tests';
@@ -281,11 +133,20 @@ for (let c = 0; c < allCapabilities.length; c++) {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
-                cb(settingsEngine.deconstruct());
+                cb(settingsEngine.flatten());
             });
 
             delete settings.build_date;
             delete settings.build_version;
+            for(let k in settings) {
+                if(k.includes(settings["camera.cameraId"])) {
+                    const value = settings[k];
+                    delete settings[k];
+                    k = k.replace(settings["camera.cameraId"], 'cameraId');
+                    settings[k] = value;
+                }
+            }
+            settings["camera.cameraId"] = 'cameraId';
             expect(settings).toStrictEqual(originalSettings)
         });
 
@@ -299,11 +160,20 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 })
                 await session.saveSettings();
                 const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
-                cb(settingsEngine.deconstruct());
+                cb(settingsEngine.flatten());
             });
 
             delete settings.build_date;
             delete settings.build_version;
+            for(let k in settings) {
+                if(k.includes(settings["camera.cameraId"])) {
+                    const value = settings[k];
+                    delete settings[k];
+                    k = k.replace(settings["camera.cameraId"], 'cameraId');
+                    settings[k] = value;
+                }
+            }
+            settings["camera.cameraId"] = 'cameraId';
             expect(settings).toStrictEqual(originalSettings)
         });
 
@@ -317,11 +187,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 })
                 await session.saveSettings();
                 const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
-                cb(settingsEngine.deconstruct());
+                cb(settingsEngine.flatten());
             });
             expect(settings.build_date).toBe(build_data.build_date);
             expect(settings.build_version).toBe(build_data.build_version);
-            expect(settings.settings_version).toBe('2.0');
+            expect(settings.settings_version).toBe('3.0');
         });
 
     });

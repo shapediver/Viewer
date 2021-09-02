@@ -1,7 +1,6 @@
 import { EventEngine } from './event-engine/EventEngine'
 import { EVENTTYPE, MAINEVENTTYPE } from './event-engine/EventTypes'
-import { SettingsEngine } from './settings-engine/implementation/SettingsEngine'
-import { ISettingsUser } from './settings-engine/interfaces/ISettingsUser'
+import { SettingsEngine } from './settings-engine/SettingsEngine'
 import { StateEngine } from './state-engine/StateEngine'
 import { SystemInfo } from './system-info/SystemInfo'
 import { DomEventEngine } from './dom-event-engine/DomEventEngine'
@@ -13,7 +12,7 @@ export {
 }
 
 export {
-    SettingsEngine, ISettingsUser
+    SettingsEngine
 }
 
 export {

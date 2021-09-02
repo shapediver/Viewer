@@ -8,6 +8,7 @@ import { CAMERATYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCamera } from './AbstractCamera'
 import { OrthographicCameraControls } from '../controls/OrthographicCameraControls'
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera'
+import { IOrthographicCameraSettingsV3 } from '@shapediver/viewer.settings'
 
 export class OrthographicCamera extends AbstractCamera {
    // #region Properties (5)
@@ -157,20 +158,23 @@ export class OrthographicCamera extends AbstractCamera {
    // #region Public Methods (3)
 
    public applySettings() {
-      this.autoAdjust = this._settingsEngine.camera.autoAdjust.value;
-      this.cameraMovementDuration = this._settingsEngine.camera.cameraMovementDuration.value;
-      this.enableCameraControls = this._settingsEngine.camera.enableCameraControls.value;
-      this.revertAtMouseUp = this._settingsEngine.camera.revertAtMouseUp.value;
-      this.revertAtMouseUpDuration = this._settingsEngine.camera.revertAtMouseUpDuration.value;
-      this.zoomExtentsFactor = this._settingsEngine.camera.zoomExtentsFactor.value;
-
-      let position = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.position);
-      let target = this._converter.toVec3(this._settingsEngine.camera.cameraTypes.orthographic.default.value.target);
-      this.defaultPosition = vec3.clone(position);
-      this.defaultTarget = vec3.clone(target);
-
-      this.position = position;
-      this.target = target;
+      const cameraSetting = <IOrthographicCameraSettingsV3>this._settingsEngine.camera.cameras[this.id];
+      if(cameraSetting) {
+         this.autoAdjust = cameraSetting.autoAdjust;
+         this.cameraMovementDuration = cameraSetting.cameraMovementDuration;
+         this.enableCameraControls = cameraSetting.enableCameraControls;
+         this.revertAtMouseUp = cameraSetting.revertAtMouseUp;
+         this.revertAtMouseUpDuration = cameraSetting.revertAtMouseUpDuration;
+         this.zoomExtentsFactor = cameraSetting.zoomExtentsFactor;
+   
+         let position = this._converter.toVec3(cameraSetting.position);
+         let target = this._converter.toVec3(cameraSetting.target);
+         this.defaultPosition = vec3.clone(position);
+         this.defaultTarget = vec3.clone(target);
+   
+         this.position = position;
+         this.target = target;
+      }
 
       if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
          this._stateEngine.boundingBoxCreated.then(async () => {
