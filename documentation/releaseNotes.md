@@ -1,6 +1,39 @@
 # Release Notes
-## Version 0.3.0
-- refactored API for DTO-heavy implementation SS-3062
-- simplified exports and outputs SS-3062
-- added migration guide and release notes
-- implemented orthographic camera as valid starting camera option SS-2948
+## Version 1.1.0
+- bugfix: zoomTo (SS-3450)
+- implementation of settings 3.0
+- parameter history feature (SS-2506)
+- sentry logging refinements
+- glTFv1 transformations (SS-2734)
+- math geometry implementations (SS-2960)
+- improved performance of BB computation (SS-3177)
+- API adaptions, camera options now optional
+- simplified camera API
+- simplified light API
+- capturing of three.js errors (SS-285)
+- added new tests
+- added color conversion functionality to color parameters (SS-2885)
+- adapted API doc (SS-2861)
+## Version 1.0.5
+- bugfix: GLTFConverter, added mimeType
+- bugfix: endless loop when session was closed
+- added AR implementation via API
+- adapted glTF loading
+- added new tests
+- glTF loading and versioning is now combined
+## Version 1.0.4 -> deployment error, superseded by 1.0.5
+## Version 1.0.3
+- bugfix: default camera position
+- bugfix: anchors were not removed on scene update
+- AR api implementation
+- changed default logging level
+- changed examples
+## Version 1.0.2
+- bugfix: hidden parameters
+## Version 1.0.1
+- bugfix: preset material transparency
+- bugfix: multiple sessions at once
+## Version 1.0.0
+- updated browserstack tests
+- implemented new sd-dtos
+## Before Version 1.0.0 -> private development

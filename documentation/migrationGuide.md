@@ -1,26 +1,12 @@
 # Migration Guide
-## Version 0.2.58 -> 0.3.0
-- Removed optional `returnDTOs` property in `Session`.
-- Separate Parameter implementations are merged into `Parameter`, only exception `FileParameter`.
-- Getters and Setters in ALL parts of the API are replaced with readonly properties for getters, and update-functions for setters. 
-Example: 
-
-    Before: 
-    ```
-    public get example(): string;
-    public set example(value: string);
-    ```
-    After: 
-    ```
-    readonly example: string;
-    public updateExample(value: string);
-    ```
-- Removed `getViewers` and `getSessions` from `api`. Accessible via properties `viewers` and `sessions`.
-- Removed `getParameters`, `getExports` and `getOutputs` from `Session`. Accessible via properties `parameters`, `exports` and `outputs`.
-- Removed `updateParameter` from `Session`. Accessible via `updateValue` on each parameter object.
-- Removed `updateParameterDisplayName` from `Session`. Accessible via `updateDisplayName` on each parameter object.
-- Removed `updateParameterOrder` from `Session`. Accessible via `updateOrder` on each parameter object.
-- Removed `updateParameterHidden` from `Session`. Accessible via `updateHidden` on each parameter object.
-- Removed `updateExportDisplayName` from `Session`. Accessible via `updateDisplayName` on each export object.
-- Removed `updateExportOrder` from `Session`. Accessible via `updateOrder` on each export object.
-- Removed `updateExportHidden` from `Session`. Accessible via `updateHidden` on each export object.
+## Version 1.0.5 -> 1.1.0
+- `viewer.getCamera()` was removed, `viewer.camera` is accessible now
+- `viewer.getCameras()` was removed, `viewer.cameras` is accessible now
+- `viewer.hasCamera()` was removed, check for existence of `viewer.camera` instead
+- `viewer.lightScene` was renamed to `viewer.lightSceneId`
+- `viewer.getLightScene()` was removed, `viewer.lightScene` is accessible now
+- `viewer.getLightScenes()` was removed, `viewer.lightScenes` is accessible now
+- `viewer.getLight()` was removed, `viewer.lightScene.lights` is accessible now
+- `viewer.getLights()` was removed, `viewer.lightScene.lights` is accessible now
+- `api.getViewer()` was removed, `api.viewers` is accessible now
+- `api.getSession()` was removed, `api.sessions` is accessible now
