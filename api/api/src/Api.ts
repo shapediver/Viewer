@@ -395,40 +395,6 @@ export class Api {
   }
 
   /**
-   * Return the session with the specified id.
-   * 
-   * @param id the id of the session
-   * @returns 
-   */
-  public getSession(id: string): Session | null {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.getSession: Getting session with id ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.getSession', id, 'string');
-      return this.sessions[id];
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Api.getSession: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Return the viewer with the specified id.
-   * 
-   * @param id the id of the viewer
-   * @returns 
-   */
-  public getViewer(id: string): Viewer | null {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.getViewer: Getting viewer with id ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.getViewer', id, 'string');
-      return this.viewers[id];
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.getViewer: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
    * Removes an event listener.
    * 
    * @param id the id of the listener
