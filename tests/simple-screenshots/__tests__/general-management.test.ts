@@ -52,8 +52,8 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                await api.getViewer('myViewer')!.init();
-                await api.getSession('mySession')!.init();
+                await api.viewers['myViewer']!.init();
+                await api.sessions['mySession']!.init();
                 cb();
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/1_2');
@@ -84,8 +84,8 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                await api.getViewer('myViewer')!.init();
-                await api.getSession('mySession')!.init();
+                await api.viewers['myViewer']!.init();
+                await api.sessions['mySession']!.init();
                 cb();
             });
             await screenshotCompare(await driver.takeScreenshot(), name + '/1_2');

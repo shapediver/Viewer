@@ -55,7 +55,7 @@ let currentNode: TreeNode;
 
 
 (<any>window).addGLTF = async (uri: string) => {
-    let viewer = api.getViewer('myViewer')!;
+    let viewer = api.viewers['myViewer'];
 
     const node = await dataEngine.loadContent({
         format: (<any>window).gltfVersion === '1.0' ? 'glb': 'gltf',

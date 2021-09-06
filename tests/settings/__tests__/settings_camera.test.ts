@@ -45,8 +45,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer')!;
-                let session = api.getSession('mySession')!;
+                let viewer = api.viewers['myViewer']!;
+                let session = api.sessions['mySession']!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateDisplayName('COLOR');
 
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateOrder(0);
@@ -133,8 +133,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.getViewer('myViewer')!;
-                let session = api.getSession('mySession')!;
+                let viewer = api.viewers['myViewer']!;
+                let session = api.sessions['mySession']!;
 
                 const camera = viewer.createOrthographicCamera('myNewCamera');
                 (<any>camera).updateDirection('front')
@@ -153,8 +153,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let session = api.getSession('mySession')!;
-                let viewer = api.getViewer('myViewer')!;
+                let session = api.sessions['mySession']!;
+                let viewer = api.viewers['myViewer']!;
                 const camera = viewer.createPerspectiveCamera();
                 viewer.assignCamera(camera.id);
                 camera!.updateAutoAdjust(false);

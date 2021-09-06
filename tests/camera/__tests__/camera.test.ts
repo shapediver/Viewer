@@ -92,7 +92,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -138,7 +138,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -158,7 +158,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.reset({});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -204,7 +204,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -224,7 +224,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.zoomTo();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -305,7 +305,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -360,7 +360,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -380,7 +380,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.reset({});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -435,7 +435,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -455,7 +455,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
-                let viewer = api.getViewer('myViewer')!;
+                let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.zoomTo();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
