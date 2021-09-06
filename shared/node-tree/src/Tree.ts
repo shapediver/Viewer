@@ -7,7 +7,7 @@ import { TreeNode } from './TreeNode'
 export class Tree {
   // #region Properties (1)
 
-  private readonly _root = new TreeNode('root');
+  readonly #root = new TreeNode('root');
 
   // #endregion Properties (1)
 
@@ -28,7 +28,7 @@ export class Tree {
    * @return {TreeNode}
    */
   public get root(): TreeNode {
-    return this._root;
+    return this.#root;
   }
 
   // #endregion Public Accessors (1)
@@ -42,7 +42,7 @@ export class Tree {
    * @param parent the targeted parent node
    * @param root optional root at which the process begins, root node will be used per default
    */
-  public addNode(node: TreeNode, parent: TreeNode = this._root, root: TreeNode = this._root): boolean {
+  public addNode(node: TreeNode, parent: TreeNode = this.#root, root: TreeNode = this.#root): boolean {
     if (root === parent) {
       root.addChild(node);
       return true;
@@ -64,7 +64,7 @@ export class Tree {
    * @param path the path at which the node should be added
    * @param root optional root at which the process begins, root node will be used per default
    */
-  public addNodeAtPath(node: TreeNode, path: string = this.root.getPath(), root: TreeNode = this._root): boolean {
+  public addNodeAtPath(node: TreeNode, path: string = this.root.getPath(), root: TreeNode = this.#root): boolean {
     if (root.id === path) {
       root.addChild(node);
       return true;
@@ -90,7 +90,7 @@ export class Tree {
    * @param node the node to remove 
    * @param root optional root at which the process begins, root node will be used per default
    */
-  public removeNode(node: TreeNode, root: TreeNode = this._root): boolean {
+  public removeNode(node: TreeNode, root: TreeNode = this.#root): boolean {
     if (root.hasChild(node)) {
       root.removeChild(node);
       return true;
@@ -112,7 +112,7 @@ export class Tree {
    * @param path the path of the node to be removed
    * @param root optional root at which the process begins, root node will be used per default
    */
-  public removeNodeAtPath(path: string, root: TreeNode = this._root): boolean {
+  public removeNodeAtPath(path: string, root: TreeNode = this.#root): boolean {
     if (root.id === path) {
       root.parent?.removeChild(root);
       return true;

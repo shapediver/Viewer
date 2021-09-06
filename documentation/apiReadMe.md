@@ -1,14 +1,32 @@
+<script defer src="https://viewer.shapediver.com/v3/1.0.5/bundle.js"></script>
+<style>
+details[open] {
+  margin-left: 10px;
+  border-left: 5px solid #a0a0a0;
+  padding-left: 10px;
+}
+</style>
 
-<script defer src="https://viewer.shapediver.com/v3/0.1.0/bundle.js"></script>
-
-![logo](https://shapediver.com/imgs/logo-black.png "ShapeDiver")
-# Viewer API
+![logo](https://sduse1-assets.shapediver.com/production/assets/img/navbar_logo.png "ShapeDiver")
+# ShapeDiver-Viewer
 
 To be up-to-date with all current changes, visit our [Release Notes](./releaseNotes.html).
 
 If you want to update from an older version, please use our [Migration Guide](./migrationGuide.html).
 
+_Note: In this document, the npm-module that is provided is always referenced as `ShapeDiver-Viewer`, which should not be confused with the [Viewer](./classes/api_api_src.viewer.html)s that can be created by it._
+<br>
+
 ## Installation
+
+You can install the ShapeDiver-Viewer with [npm](https://www.npmjs.com/). To install the module, open a terminal window in you project and run:
+```bash
+npm install --save @shapediver/viewer
+```
+The package will be downloaded and installed for you. In most cases, you'll need a bundling tool like [webpack](https://webpack.js.org/) to combine all the packages.
+
+
+If you are having issues with the setup or ar just not that familiar with setting up projects, you can find a detailed example on how to setup a project from the start here: 
 <details>
 
 ### NPM installations
@@ -28,7 +46,7 @@ The next three are all dependencies for webpack, we get to that later on.
 npm install --save-dev typescript webpack webpack-cli ts-loader
 ```
 
-Then, we install the actual viewer dependency.
+Then, we install the actual ShapeDiver-Viewer dependency.
 ```bash
 npm install --save @shapediver/viewer
 ```
@@ -72,22 +90,34 @@ module.exports = {
   },
 };
 ```
+### Build
 
-### The First Example
+To build the project, in our `package.json` we just need to add a small script for that. Currently there is only a `test` script in there, we now add a `build` script to make it look like this:
+```json
+"scripts": {
+  "build": "webpack",
+  "test": "echo \"Error: no test specified\" && exit 1"
+}
+```
+
+In the next chapter we will see a small example that we then can just call with the command  `npm run build` and see that a `dist` folder was created automatically.
+
+To try this out, just create a simple [http-server](https://www.npmjs.com/package/http-server) in this folder and load the `index.html`.
+
+</details>
+
+<br>
+
+## Simple Example
 Let's now create our first example. For that we first need an HTML-Page on which we want to load our example. Therefore, we create an `index.html` file in the root of our project:
 ```html
 <!DOCTYPE html>
-<html style="height: 100%">
-
-<head>
-    <title>ShapeDiver</title>
-</head>
-
-<body style="margin: 0px; overflow-y: hidden; height: 100%">
+<html>
+<body>
     <div style="width: 100%; height: 100%;">
-        <canvas id="canvas" style="display: block"></canvas>
+        <canvas id="canvas"></canvas>
     </div>
-    <script type="module" src="./dist/bundle.js"></script>
+    <script type="module" src="./bundle.js"></script>
 </body>
 
 </html>
@@ -99,108 +129,199 @@ Now we create a `scr`-folder and add an `index.ts` file in it with the following
 import "reflect-metadata"
 import { api } from "@shapediver/viewer"
 
-const modelViewUrl = ''; // PLEASE ADD YOUR MODEL VIEW URL HERE
-const ticket = ''; // PLEASE ADD YOUR TICKET HERE
+const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
 
 (async () => {
-    await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-    await api.createAndInitializeSession({ ticket, modelViewUrl });
+  // create a viewer
+  const viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+  // create a session
+  const session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
 })();
 ```
-This is already everything we need. We import `reflect-metadata` as this is need for some functionalities that we use. It should always be on top of the imports. Then we import the api from the viewer.
+This is already everything we need. We import `reflect-metadata` as this is needed for some functionalities that we use. It should always be on top of the imports. Then we import the [api](./classes/api_api_src.api.html) from the ShapeDiver-Viewer.
 
-Next we load a viewer by providing a canvas (we created one in the `index.html`) and then we load a session. Please note that you have to provide the necessary properties yourself here. See the comments in the example.
+Next we load a [Viewer](./classes/api_api_src.viewer.html) by providing a canvas (we created one in the `index.html`) and then we load a [Session](./classes/api_api_src.session.html). With the specified `ticket` and `modelViewUrl` you get the result as in the ShapeDiver-Viewer below. Please try it with your own `ticket` and `modelViewUrl` and don't forget to add the domain you are using to your allowed domains.
 
-### Build
+<div style="width: 100%; height: 500px;">
+  <canvas id="canvas1"></canvas>
+</div>
+<script type='module'>
+  const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+  const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
+  (async () => {      
+    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas1'), id: 'myViewer1' });
+    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession1', excludeViewers: ['myViewer2', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
+  })();
+</script>
+<br>
 
-Now that we finished our example, we only need to build it to try it out. In our `package.json` we just need to add a small script for that. Currently there is only a `test` script in there, we now add a `build` script to make it look like this:
-```json
-"scripts": {
-  "build": "webpack",
-  "test": "echo \"Error: no test specified\" && exit 1"
-}
-```
+## Sessions
 
-With this we now call the build command `npm run build` and see that a `dist` folder was created automatically.
+In our simple example we already created a [Session](./classes/api_api_src.session.html) and a [Viewer](./classes/api_api_src.viewer.html). There can be many [Sessions](./classes/api_api_src.session.html) at once, but in most cases, there will only be one. With a [Session](./classes/api_api_src.session.html) you can do many things, you can change [Parameters](./classes/api_api_src.parameter.html), request [Exports](./classes/api_api_src.export.html) and customize your session with all the possibilities that you have set in Grasshopper.
 
-We are now done!
+A [Session](./classes/api_api_src.session.html) can exist completely without a [Viewer](./classes/api_api_src.viewer.html), as a [Viewer](./classes/api_api_src.viewer.html) can exist without a [Session](./classes/api_api_src.session.html). For more functions and properties, please see our Documentation on [Session](./classes/api_api_src.session.html), [Parameter](./classes/api_api_src.parameter.html), [Export](./classes/api_api_src.export.html) and [Output](./classes/api_api_src.output.html).
+### Parameters
 
-To try this out, just create a simple [http-server](https://www.npmjs.com/package/http-server) in this folder and load the `index.html`.
+Let's continue with the simple example of our last section and add something to it. The [Session](./classes/api_api_src.session.html) that we use as an example can change the length of the provided shelf from values `2` to `10`. In our first case we just want to change it to `6`. 
 
-</details>
-
-## Simple Examples
-<details>
-
-### The first Session and Viewer
-Let's look at an easy example to set up a session with a viewer.
-This, and accessing the scene tree is the purpose of the main {@link Api}.
+After creating the [Viewer](./classes/api_api_src.viewer.html) and the [Session](./classes/api_api_src.session.html), we just call 
 
 ```typescript
-import "reflect-metadata"
-import { api, RENDERERTYPE } from "@shapediver/viewer"
-
-// From the api let's create a session with a ticket and a modelview url
-const session = await api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession'});
-
-// From the api let's also create a viewer on our canvas
-const viewer = await api.createAndInitializeViewer({ canvas: CANVAS, id: 'myViewer' });
+// read out the parameter with the specific name
+const lengthParameter = session.getParameterByName('Length')[0];
+// update the value
+lengthParameter.updateValue(6);
+// and customize the scene
+await session.customize();
 ```
 
-That's it, with that we have loaded a session and created a viewer on a canvas.
+<div style="width: 100%; height: 500px;">
+  <canvas id="canvas2"></canvas>
+</div>
+<script type='module'>
+  const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+  const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
+  (async () => {      
+    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas2'), id: 'myViewer2' });
+    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
+    const lengthParameter = session.getParameterByName('Length')[0];
+    lengthParameter.updateValue(6);
+    await session.customize();
+  })();
+</script>
 
-### Adjusting Parameters and requesting Exports
+You can also update multiple [Parameters](./classes/api_api_src.parameter.html) together and then customize the [Session](./classes/api_api_src.session.html) in the end. We will not update the length to `8` and update the color to `#00ff00` (green). Notice that the customization call is only called once. Therefore, only one request is sent to our servers.
 
-Adjusting parameters and requesting exports is basically just as easy. The {@link Session} part of our API is responsible for that. Let's assume we did the setup exactly as above and continue from there.
 ```typescript
-// Get a parameter with a specific ID
-// Note: It is also easily possible to get the parameter by name, type or any other desired criteria.
-const parameter = session.getParameterById('SOME_ID');
-
-// To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.updateValue('newValue')
-
-// Get an export with a specific ID
-// Note: It is also easily possible to get the export by name, type or any other desired criteria.
-const export = session.getExport('SOME_ID');
-
-// Get the export
-await export.request();
+// read out the parameter with the specific name
+const lengthParameter = session.getParameterByName('Length')[0];
+// update the value
+lengthParameter.updateValue(8);
+// read out the parameter with the specific name
+const colorParameter = session.getParameterByName('Material Color')[0];
+// update the value
+colorParameter.updateValue('#00ff00');
+// and customize the scene
+await session.customize();
 ```
 
-### Adjusting the Scene
+<div style="width: 100%; height: 500px;">
+  <canvas id="canvas3"></canvas>
+</div>
+<script type='module'>
+  const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+  const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
+  (async () => {      
+    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas3'), id: 'myViewer3' });
+    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession3', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer4', 'myViewer5', 'myViewer6']});
+    const lengthParameter = session.getParameterByName('Length')[0];
+    lengthParameter.updateValue(8);
+    const colorParameter = session.getParameterByName('Material Color')[0];
+    colorParameter.updateValue('#00ff00');
+    await session.customize();
+  })();
+</script>
 
-As in the above example we assume the simple initial setup was done already.
-Now, let's change the camera via the {@link Viewer} API part.
+### Exports
+
+[Exports](./classes/api_api_src.export.html) can be requested easily as well. In our example, there is no [Export](./classes/api_api_src.export.html) available, but it is straight-forward.
+
 ```typescript
-// Create a new camera
-const camera = viewer.createPerspectiveCamera('myNewCamera')
-
-// Change a value in the camera
-camera.fov = 30;
-
-// Assign the camera as the main camera
-viewer.assignCamera(camera);
+// read out the export with the specific name
+const export = session.getExportByName('the name of the export')[0];
+// request the export
+const exportResult = await export.request();
 ```
-Also, let's add a light.
+
+## Viewers
+
+A [Viewer](./classes/api_api_src.viewer.html) can exist completely without a [Session](./classes/api_api_src.session.html), as a [Session](./classes/api_api_src.session.html) can exist without a [Viewer](./classes/api_api_src.viewer.html). The [Viewer](./classes/api_api_src.viewer.html) is responsible for rendering and rendering related settings. For example, camera and light management happens here. Additionally, a [Viewer](./classes/api_api_src.viewer.html) has many options, as rendering options can be enabled or disable (shadows, ambient occlusion, etc.) and scene properties can be adjusted (groundplane, grid, etc.).
+
+By reusing the simple example from the first section, we will now disable the groundplane. The logic presented can be used for many of the standard properties.
+
 ```typescript
-// Create a new light
-const ambientLight = viewer.addAmbientLight({ color: [1,1,1],  intensity: 0.5 });
-
-// Change a value of the light
-ambientLight.intensity = 0.1;
+// just call the update function for the groundplane value
+viewer.updateGroundPlaneVisibility(false);
+// get the value for the groundplane visibility (read-only)
+const groundPlaneVisibility = viewer.groundPlaneVisibility;
 ```
-That's it. Easy as that.
+<div style="width: 100%; height: 500px;">
+  <canvas id="canvas4"></canvas>
+</div>
+<script type='module'>
+  const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+  const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
+  (async () => {      
+    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas4'), id: 'myViewer4' });
+    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession4', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer5', 'myViewer6']});
+    viewer.updateGroundPlaneVisibility(false);
+  })();
+</script>
 
-</details>
+### Cameras
 
+One of the standard adaptions is to change some [Camera](./classes/api_api_src.camera.html) properties. We distinguish here between a [Perspective Camera](./classes/api_api_src.perspectivecamera.html) and an [Orthographic Camera](./classes/api_api_src.orthographiccamera.html).
+
+In our next example we create an [Orthographic Camera](./classes/api_api_src.orthographiccamera.html), which will be assigned as the default camera automatically. 
+```typescript
+// create an orthographic camera, it will be assigned automatically
+const camera = viewer.createOrthographicCamera();
+// we now update the direction of the orthographic camera
+camera.updateDirection(ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT);
+```
+<div style="width: 100%; height: 500px;">
+  <canvas id="canvas5"></canvas>
+</div>
+<script type='module'>
+  const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+  const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
+  (async () => {      
+    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas5'), id: 'myViewer5' });
+    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession5', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer6']});
+    const camera = viewer.createOrthographicCamera();
+    camera.updateDirection(ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT);
+  })();
+</script>
+
+### Lights
+
+For lights, we always handle a bunch of them at once, that's why we introduce [Light Scenes](). A [Light Scene]() is a grouping of lights. The lights in a [Light Scene]() can be freely manipulated.
+
+Therefore, we now create a new [Light Scene]() and add a few lights to it.
+
+```typescript
+// create a light scene, it will be assigned automatically
+const lightScene = viewer.createLightScene();
+// add a new ambient light, it will be added to the current light scene
+const ambientLight = viewer.addAmbientLight();
+// add a new directional light, it will be added to the current light scene
+const directionalLight = viewer.addDirectionalLight();
+// change the color of the directional light
+directionalLight.updateColor('#0000ff');
+```
+<div style="width: 100%; height: 500px;">
+  <canvas id="canvas6"></canvas>
+</div>
+<script type='module'>
+  const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+  const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
+  (async () => {      
+    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas6'), id: 'myViewer6' });
+    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession6', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer5']});
+    const lightScene = viewer.createLightScene();
+    const ambientLight = viewer.addAmbientLight();
+    const directionalLight = viewer.addDirectionalLight();
+    directionalLight.updateColor('#0000ff');
+  })();
+</script>
 
 ## The Scene tree
 
-<details>
-We now have our own scene tree in which sessions store their computed outputs, but you can also create, adjust and remove parts of the scene tree yourself.
+This application has it's own scene tree in which sessions store their computed outputs, but you can also create, adjust and remove parts of the scene tree yourself.
 
 The scene tree is a tree structure with a single root node. Every node can have any number of children and data items. The data items contain the actual information, whereas the nodes are only used to maintain and manage the hierarchy.
+
 Data items can simply be changed and adjusted. Only the version of the data item has to be updated to notify the renderer that a change has happened.
 
 ### Basic Setup
@@ -209,60 +330,12 @@ Before we do anything, the scene tree has already been created. There is nothing
 
 ![Example](./images/sceneGraph_1.png)
 
-So let's just look at how the scene tree looks after we create a single session.
-
-```typescript
-// From the api let's create a session with a ticket and a modelview url
-const session = await api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession'})
-```
-With this call, our scene tree now change as a node was added automatically. Let's assume, the session has two outputs with one content each. Then the scene tree will look like this:
+So let's just look at how the scene tree looks after we create a single session. Our scene tree now change as a node was added automatically. Let's assume, the session has two outputs with one content each. Then the scene tree will look like this:
 
 ![Example](./images/sceneGraph_2.png)
 
-### Updating a Session
-
-If we follow our example above and update our session by changing a parameter, outputs that are connected to that parameter are changed. 
-So the following code 
-
-```typescript
-// Get a parameter with a specific ID
-const parameter = session.getParameterById('SOME_ID');
-
-// To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.updateValue('newValue')
-```
-![Example](./images/1.png)
-
-Results in these updated nodes in the scene tree.
-
-![Example](./images/sceneGraph_3.png)
-
-### Manipulating the Scene tree
-
-Let's now continue with the example and first of all change all colors of all material data to red.
-```typescript
-// We first need the scene tree
-const sceneTree = api.sceneTree;
-
-// Let's create a little helper function to make things easier
-const changeColor = (node: TreeNode) => {
-  // We go through all SceneTreeData elements of the current node and change the color if it is a SceneTreeMaterialData
-  for(let i = 0; i < node.data.length; i++)
-    if(node.data[i] instanceof TreeNodeData && node.data[i].color)
-      node.data[i].color = 'red';
-
-  // Recursively we do the same for all children of the node
-  for(let i = 0; i < node.children.length; i++)
-    changeColor(node.children[i])
-}
-
-// Now we just have to call the function with the scene tree root
-changeColor(sceneTree.root)
-```
-![Example](./images/2.png)
-
 ### Copying Nodes
-Now this results in all geometry being red. If we would customize the scene again, every output that is loaded again would be overwritten.
+If we would customize the scene again, every output that is loaded again would be overwritten.
 Therefore, we now save our session node by copying it.
 
 ```typescript
@@ -271,7 +344,7 @@ Therefore, we now save our session node by copying it.
 const sceneTree = api.sceneTree;
 
 // Then we just get to the right node and copy it
-const clonedNode = sceneTree.children[0].clone()
+const clonedNode = sceneTree.root.children[0].clone()
 ```
 
 ### Adjusting the Scene tree
@@ -287,90 +360,14 @@ parameter.updateValue('newValue')
 // Customize the session
 await session.customize();
 
-// Translate the cloned node
-clonedNode.transformations.push(TRANSLATION_MATRIX);
-
 // Add the node to the scene
 sceneTree.addChild(clonedNode);
 ```
 
-![Example](./images/3.png)
-
-The result is now that we have the geometry two times, once in the old configuration with all material being red, and once in the new configuration.
+The result is now that we have the geometry two times, once in the old configuration and once in the new configuration.
 
 ![Example](./images/sceneGraph_4.png)
-### Adding Custom Data
-It is now also very easy to add any data to the scene tree that you want.
-Let's just add a complete three.js object to it via the corresponding data item.
 
-```typescript
-// Create some three.js geometry
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshStandardMaterial());
-
-// Create an Object3D for the data item
-const obj3D =  new THREE.Object3D();
-obj3D.add(sphere);
-
-// Create a new node
-const node = new TreeNode();
-
-// Create a new data item
-const data = new TreeNodeThreejsData(obj3D);
-node.data.push(data);
-
-// Add the node to the scene tree
-sceneTree.addChild(node);
-```
-
-This adds a node in the root right next to the session nodes. Therefore, session updates don't concern this node.
-(It is also possible to add this node at any level of the session nodes.)
-
-</details>
-
-## Advanced sessions
-
-<details>
-
-The management of sessions is now much easier then before. Not only can multiple different sessions be created, also the same session can be created multiple times.
-
-### Creating multiple sessions
-Let's create three different sessions.
-
-```typescript
-// From the api let's create the first session
-const session1 = api.createAndInitializeSession({ ticket: 'MY_TICKET1', modelViewUrl: 'MY_MODELVIEW_URL1', id: 'mySession1'})
-
-// Also the second
-const session2 = api.createAndInitializeSession({ ticket: 'MY_TICKET2', modelViewUrl: 'MY_MODELVIEW_URL2', id: 'mySession2'})
-
-// And the third
-const session3 = api.createAndInitializeSession({ ticket: 'MY_TICKET3', modelViewUrl: 'MY_MODELVIEW_URL3', id: 'mySession3'})
-
-// Now just wait for all of them to load 
-await Promise.all([ session1, session2, session3 ]);
-```
-
-Yes, it is really as easy as that. 
-Our scene tree now looks like this
-
-![Example](./images/sceneGraph_5.png)
-
-### Creating a duplicate session
-It is also possible to create the same session multiple times.
-
-```typescript
-// From the api let's create the first session
-const session = api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession1'})
-
-// Also the second
-const sameSession = api.createAndInitializeSession({ ticket: 'MY_TICKET', modelViewUrl: 'MY_MODELVIEW_URL', id: 'mySession2'})
-
-// Now just wait for all of them to load 
-await Promise.all([ session, sameSession ]);
-```
-
-This just works as it would be two independent sessions.
-</details>
 
 <!--- VERSION_START -->
 ## Version

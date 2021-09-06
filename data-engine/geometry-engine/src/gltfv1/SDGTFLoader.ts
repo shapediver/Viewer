@@ -145,7 +145,6 @@ export class SDGTFLoader {
 
             singleArcNode.transformations.push({
                 id: 'arc_' + i + '_translation',
-                name: 'arc_' + i + '_translation',
                 matrix: mat4.translate(mat4.create(), mat4.create(), vec3.fromValues(arcCenter[0], arcCenter[1], arcCenter[2]))
             });
 
@@ -157,7 +156,6 @@ export class SDGTFLoader {
             ));
             singleArcNode.transformations.push({
                 id: 'arc_' + i + '_rotation',
-                name: 'arc_' + i + '_rotation',
                 matrix: arcRotationMatrix
             });
 
@@ -328,7 +326,6 @@ export class SDGTFLoader {
 
             singleCircleNode.transformations.push({
                 id: 'circle_' + i + '_translation',
-                name: 'circle_' + i + '_translation',
                 matrix: mat4.translate(mat4.create(), mat4.create(), vec3.fromValues(circleCenter[0], circleCenter[1], circleCenter[2]))
             });
 
@@ -340,7 +337,6 @@ export class SDGTFLoader {
             ));
             singleCircleNode.transformations.push({
                 id: 'circle_' + i + '_rotation',
-                name: 'circle_' + i + '_rotation',
                 matrix: circleRotationMatrix
             });
 
@@ -462,7 +458,6 @@ export class SDGTFLoader {
 
             singleCylinderNode.transformations.push({
                 id: 'cylinder_' + i + '_translation',
-                name: 'cylinder_' + i + '_translation',
                 matrix: mat4.translate(mat4.create(), mat4.create(), cylinderBottom)
             });
 
@@ -474,19 +469,16 @@ export class SDGTFLoader {
             ));
             singleCylinderNode.transformations.push({
                 id: 'cylinder_' + i + '_rotation',
-                name: 'cylinder_' + i + '_rotation',
                 matrix: cylinderRotationMatrix
             });
 
 
             singleCylinderNode.transformations.push({
                 id: 'cylinder_' + i + '_rotation2',
-                name: 'cylinder_' + i + '_rotation2',
                 matrix: mat4.rotateX(mat4.create(), mat4.create(), 0.5 * Math.PI)
             });
             singleCylinderNode.transformations.push({
                 id: 'cylinder_' + i + '_translation2',
-                name: 'cylinder_' + i + '_translation2',
                 matrix: mat4.translate(mat4.create(), mat4.create(), vec3.fromValues(0, 0, 0.5 * vec3.distance(cylinderTop, cylinderBottom)))
             });
             cylinderNode.addChild(singleCylinderNode);
@@ -584,7 +576,6 @@ export class SDGTFLoader {
 
             singleSphereNode.transformations.push({
                 id: 'sphere_' + i + '_translation',
-                name: 'sphere_' + i + '_translation',
                 matrix: mat4.translate(mat4.create(), mat4.create(), sphereTranslation)
             });
             sphereNode.addChild(singleSphereNode);
