@@ -91,8 +91,7 @@ export class GLTFConverter {
         if (node.children.length > 0) sceneDef.nodes = [];
         for (let i = 0; i < node.children.length; i++) {
             node.children[i].transformations.push({
-                id: '',
-                name: '',
+                id: 'globlaTransformationInverse',
                 matrix: this._globalTransformationInverse,
             })
             sceneDef.nodes?.push(this.convertNode(node.children[i]));

@@ -86,7 +86,6 @@ submit.onclick = async () => {
     api.sessions['mySession'].node.transformations = [];
     api.sessions['mySession'].node.transformations.push({
         id: 'scale',
-        name: 'scale',
         matrix: mat4.fromValues(scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1)
     })   
     api.sessions['mySession'].node.updateVersion(); 

@@ -434,7 +434,6 @@ export class GLTFLoader {
         if (node.matrix) {
             nodeDef.transformations.push({
                 id: this._uuidGenerator.create(),
-                name: 'glTFNode_' + nodeId,
                 matrix: mat4.fromValues(node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
                     node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
                     node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
@@ -447,7 +446,6 @@ export class GLTFLoader {
             const matrix = mat4.mul(mat4.create(), mat4.mul(mat4.create(), matT, matS), matR);
             nodeDef.transformations.push({
                 id: this._uuidGenerator.create(),
-                name: 'glTFNode_' + nodeId,
                 matrix: matrix
             });
         }
@@ -538,7 +536,6 @@ export class GLTFLoader {
         const sceneDef = new TreeNode('scene_' + scene.name || sceneID + '');
         sceneDef.transformations.push({
             id: this._uuidGenerator.create(),
-            name: 'glTF_global_transformation',
             matrix: this._globalTransformation
         })
         if (scene.nodes)

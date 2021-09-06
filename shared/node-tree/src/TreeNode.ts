@@ -10,7 +10,6 @@ export interface ITransformation {
 
   id: string,
   matrix: mat4
-  name: string,
 
   // #endregion Properties (3)
 }
@@ -245,7 +244,6 @@ export class TreeNode {
     for (let transform of this.#transformations)
       clone.transformations.push({
         id: transform.id,
-        name: transform.name,
         matrix: mat4.clone(transform.matrix)
       });
 
@@ -264,7 +262,6 @@ export class TreeNode {
     for (let transform of this.#transformations)
       clone.transformations.push({
         id: transform.id,
-        name: transform.name,
         matrix: mat4.clone(transform.matrix)
       });
 
