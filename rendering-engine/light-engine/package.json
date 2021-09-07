@@ -36,7 +36,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.settings": "^0.1.5",
+    "@shapediver/viewer.settings": "^0.1.7",
     "@shapediver/viewer.shared.node-tree": "^1.1.0",
     "@shapediver/viewer.shared.services": "^1.1.0",
     "@shapediver/viewer.shared.types": "^1.1.0",
