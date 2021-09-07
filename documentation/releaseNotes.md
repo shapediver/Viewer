@@ -1,4 +1,6 @@
 # Release Notes
+## Version 1.1.1
+- method to add settings, or sections of the settings (SS-3460)
 ## Version 1.1.0
 - bugfix: zoomTo (SS-3450)
 - implementation of settings 3.0
