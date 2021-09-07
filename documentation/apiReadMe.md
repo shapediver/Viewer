@@ -371,8 +371,8 @@ The result is now that we have the geometry two times, once in the old configura
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.1.0
-* __Build date:__ 2021-09-06T16:07:05.002Z
+* __Version:__ 1.1.1
+* __Build date:__ 2021-09-07T15:34:46.889Z
 * __Branch:__ development
-* __Commit:__ 4cb957f97a3a263a23be3ee15c62261b680a5cba
+* __Commit:__ a4698cfe30024caf844714dda4e5a921af1aec29
 <!--- VERSION_END -->
