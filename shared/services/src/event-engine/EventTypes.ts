@@ -30,6 +30,7 @@ export enum SESSION {
 }
 export enum SETTINGS {
     SETTINGS_REGISTERED = "settings.registered",
+    SETTINGS_REGISTERED_EXTERNAL = "settings.registered.external",
     SETTINGS_UPDATE = "settings.update",
 }
 

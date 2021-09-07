@@ -192,6 +192,11 @@ export class RenderingEngine implements IRenderingEngine {
                 this.applySettings()
             });
         }       
+        
+        this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, (e) => { 
+            if(this._closed) return;
+            this.applySettings();
+        })
     }
 
     // #endregion Constructors (1)

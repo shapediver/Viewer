@@ -8,6 +8,8 @@ import { build_data } from '@shapediver/viewer.shared.build-data'
 
 import { Session } from './session/Session'
 import { Viewer } from './viewer/Viewer'
+import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
+import { convert, ISettingsV3, validate } from '@shapediver/viewer.settings'
 
 @singleton()
 export class Api {
@@ -455,6 +457,125 @@ export class Api {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.updateShowMessages: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Update all or some settings of the primary session and the viewers via a ShapeDiverResponseBase of another model.
+   * 
+   * @param response 
+   * @param sections 
+   */
+  public async applySettings( 
+    response: ShapeDiverResponseBase, 
+    sections: { 
+      session: { 
+        parameter: { displayName: boolean, order: boolean, hidden: boolean },
+        export: { displayName: boolean, order: boolean, hidden: boolean }
+      },
+      viewer: { scene: boolean, camera: boolean, light: boolean, environment: boolean }
+    } = 
+    {
+      session: {
+        parameter: { displayName: true, order: true, hidden: true },
+        export: { displayName: true, order: true, hidden: true }
+      },
+      viewer: { scene: true, camera: true, light: true, environment: true }
+    }
+  ): Promise<void> {
+    try {
+      if(!response.config) throw new SDError('Api.applySettings: No config object available.')
+      try {
+        validate(response.config)
+      } catch(e) {
+        throw new SDError('Api.applySettings: Was not able to validate config object.')
+      }
+
+      const settings = <ISettingsV3>convert(response.config, '3.0');
+
+      const exportMappingUid: { [key: string]: string | undefined } = {};
+      if(sections.session.export.displayName || sections.session.export.order || sections.session.export.hidden)
+        if (response.exports) 
+          for (let exportId in response.exports) 
+            if(response.exports[exportId].uid !== undefined)
+              exportMappingUid[response.exports[exportId].uid!] = exportId;
+
+      const session = Object.values(this.sessions).filter((s: Session) => { return s.primarySession; })[0];
+      if(!session) throw new SDError('Api.applySettings: No primary session defined.');
+    
+      const currentSettings = this.#settingsEngine.settings;
+
+      // apply parameter settings
+      if (sections.session.parameter.displayName || sections.session.parameter.order || sections.session.parameter.hidden) {
+        for (let p in session.parameters) {
+          if (settings.session[p]) {
+            if (sections.session.parameter.displayName) session.parameters[p].updateDisplayName(settings.session[p].displayName);
+            if (sections.session.parameter.order) session.parameters[p].updateOrder(settings.session[p].order);
+            if (sections.session.parameter.hidden) session.parameters[p].updateHidden(settings.session[p].hidden);
+          }
+        }
+      }
+
+      // apply export settings
+      if (sections.session.export.displayName || sections.session.export.order || sections.session.export.hidden) {
+        for (let p in session.exports) {
+          let idForSettings = '';
+          if(settings.session[p]) {
+            idForSettings = p;
+          } else {
+            const uid = session.exports[p].uid;
+            if (!uid) continue;
+            if (!exportMappingUid[uid]) continue;
+            idForSettings = exportMappingUid[uid]!;
+          }
+          if (settings.session[idForSettings]) {
+            if (sections.session.parameter.displayName) session.exports[p].updateDisplayName(settings.session[idForSettings].displayName);
+            if (sections.session.parameter.order) session.exports[p].updateOrder(settings.session[idForSettings].order);
+            if (sections.session.parameter.hidden) session.exports[p].updateHidden(settings.session[idForSettings].hidden);
+          }
+        }
+      }
+
+      // apply camera settings
+      if(sections.viewer.camera)
+        currentSettings.camera = settings.camera;
+
+      // apply light settings
+      if(sections.viewer.light)
+        currentSettings.light = settings.light;
+        
+      // apply scene settings
+      if(sections.viewer.scene) {
+        currentSettings.rendering.shadows = settings.rendering.shadows;
+        currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
+        currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
+        currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
+        currentSettings.general.commitParameters = settings.general.commitParameters;
+        currentSettings.general.pointSize = settings.general.pointSize;
+      }
+
+      // apply environment settings
+      if(sections.viewer.environment) {
+        currentSettings.environment.clearAlpha = settings.environment.clearAlpha;
+        currentSettings.environment.clearColor = settings.environment.clearColor;
+        currentSettings.environment.map = settings.environment.map;
+        currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
+      }
+
+      const promises: Promise<void>[] = [];
+      for(let v in this.viewers) {
+        this.#stateEngine.getCustomState(v + '_settings_loaded').reset();
+        promises.push(new Promise<void>(resolve => {
+          this.#stateEngine.getCustomState(v + '_settings_loaded').then(() => {
+            resolve();
+          })
+        }));
+      }
+      this.#eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, { sessionId: '' });
+      return new Promise(resolve => Promise.all(promises).then(() => resolve()));
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.applySettings: Something unexpected happened.`, true)
     }
   }
 
