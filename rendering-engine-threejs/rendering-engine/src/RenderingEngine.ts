@@ -109,7 +109,6 @@ export class RenderingEngine implements IRenderingEngine {
     // viewer global vars
     private _closed: boolean = false;
     private _logoDivElement: HTMLDivElement;
-    private _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (51)
 
@@ -217,7 +216,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set ambientOcclusion(value: boolean) {
         this._ambientOcclusion = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -234,7 +232,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set automaticResizing(value: boolean) {
         this._automaticResizing = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -251,7 +248,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set beautyRenderBlendingDuration(value: number) {
         this._beautyRenderBlendingDuration = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -268,7 +264,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set beautyRenderDelay(value: number) {
         this._beautyRenderDelay = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -293,7 +288,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set blur(value: boolean) {
         this._blur = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -310,7 +304,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set blurSceneWhenBusy(value: boolean) {
         this._blurSceneWhenBusy = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -375,7 +368,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set clearAlpha(value: number) {
         this._clearAlpha = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -392,7 +384,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set clearColor(value: string) {
         this._clearColor = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -426,7 +417,6 @@ export class RenderingEngine implements IRenderingEngine {
     public set environmentMap(value: string | string[]) {
         this._environmentMap = value;
         this._environmentMapLoader.load(this.environmentMap);
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -443,7 +433,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set environmentMapAsBackground(value: boolean) {
         this._environmentMapAsBackground = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -469,7 +458,6 @@ export class RenderingEngine implements IRenderingEngine {
     public set environmentMapResolution(value: string) {
         this._environmentMapResolution = value;
         this._environmentMapLoader.load(this.environmentMap);
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -503,7 +491,6 @@ export class RenderingEngine implements IRenderingEngine {
     public set gridVisibility(value: boolean) {
         if (this._environmentGeometryManager.grid) this._environmentGeometryManager.grid.visible = value;
         this._gridVisibility = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -521,7 +508,6 @@ export class RenderingEngine implements IRenderingEngine {
     public set groundPlaneVisibility(value: boolean) {
         if (this._environmentGeometryManager.groundPlane) this._environmentGeometryManager.groundPlane.visible = value;
         this._groundPlaneVisibility = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -570,7 +556,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set lightScene(value: string) {
         this._lightScene = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -612,7 +597,6 @@ export class RenderingEngine implements IRenderingEngine {
     public set pointSize(value: number) {
         this._pointSize = value;
         this.materialLoader.assignPointSize(value)
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -668,7 +652,6 @@ export class RenderingEngine implements IRenderingEngine {
         }
         if(value.textureEncoding !== undefined)
             this._materialLoader.assignTextureEncoding(value.textureEncoding);
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -717,7 +700,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set shadows(value: boolean) {
         this._shadows = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -734,7 +716,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set show(value: boolean) {
         this._show = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -751,7 +732,6 @@ export class RenderingEngine implements IRenderingEngine {
      */
     public set showStatistics(value: boolean) {
         this._showStatistics = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -773,12 +753,6 @@ export class RenderingEngine implements IRenderingEngine {
     // #endregion Public Accessors (61)
 
     // #region Public Methods (10)
-
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value);
-        this.cameraEngine.addUpdateCB(value);
-        this.lightEngine.addUpdateCB(value);
-    }
 
     public async close(): Promise<boolean> {
         this._closed = true;
@@ -860,14 +834,12 @@ export class RenderingEngine implements IRenderingEngine {
             (<LightEngine>this.lightEngine).applySettings();
             (<CameraEngine>this.cameraEngine).applySettings();
             this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
-            this._updateCBs.forEach(v => v());
             this.update();
         })
 
         // set it like this to not trigger the loading
         this._environmentMapResolution = this._settingsEngine.environment.mapResolution;
         this.environmentMap = this._settingsEngine.environment.map;
-        this._updateCBs.forEach(v => v());
     }
 
     // #endregion Private Methods (2)

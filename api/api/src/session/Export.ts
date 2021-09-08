@@ -11,22 +11,22 @@ import { Logger, LOGGINGTOPIC, SDError, InputValidator } from '@shapediver/viewe
 import { container } from 'tsyringe'
 
 export class Export implements ShapeDiverResponseExportDefinition {
-  // #region Properties (17)
+  // #region Properties (11)
 
+  readonly #dependency!: string[];
+  readonly #id: string;
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #name: string;
   readonly #sessionEngine: Session;
+  readonly #type: ShapeDiverResponseExportDefinitionType;
+  readonly #uid?: string;
 
-  readonly dependency!: string[];
-  readonly displayName?: string;
-  readonly hidden: boolean = false;
-  readonly id: string;
-  readonly name: string;
-  readonly order?: number;
-  readonly type: ShapeDiverResponseExportDefinitionType;
-  readonly uid?: string;
+  #displayName?: string;
+  #hidden: boolean = false;
+  #order?: number;
 
-  // #endregion Properties (17)
+  // #endregion Properties (11)
 
   // #region Constructors (1)
 
@@ -34,18 +34,18 @@ export class Export implements ShapeDiverResponseExportDefinition {
     try {
       this.#sessionEngine = sessionEngine;
 
-      if (exportDef.dependency) this.dependency = exportDef.dependency;
-      this.id = exportDef.id;
-      this.name = exportDef.name;
-      this.type = exportDef.type;
+      if (exportDef.dependency) this.#dependency = exportDef.dependency;
+      this.#id = exportDef.id;
+      this.#name = exportDef.name;
+      this.#type = exportDef.type;
 
-      if (exportDef.uid !== undefined) this.uid = exportDef.uid;
+      if (exportDef.uid !== undefined) this.#uid = exportDef.uid;
 
-      if (exportDef.displayname !== undefined) this.displayName = exportDef.displayname;
-      if (exportDef.order !== undefined) this.order = exportDef.order;
-      if (exportDef.hidden !== undefined) this.hidden = exportDef.hidden;
+      if (exportDef.displayname !== undefined) this.#displayName = exportDef.displayname;
+      if (exportDef.order !== undefined) this.#order = exportDef.order;
+      if (exportDef.hidden !== undefined) this.#hidden = exportDef.hidden;
 
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${exportDef.id}).constructor: Something unexpected happened.`, true)
@@ -54,7 +54,112 @@ export class Export implements ShapeDiverResponseExportDefinition {
 
   // #endregion Constructors (1)
 
-  // #region Public Methods (5)
+  // #region Public Accessors (11)
+
+  /**
+   * Getter dependency
+   */
+  public get dependency(): string[] {
+    return this.#dependency;
+  }
+
+  /**
+   * Getter displayName
+   */
+  public get displayName(): string | undefined {
+    return this.#displayName;
+  }
+
+  /**
+   * Setter displayName
+   */
+  public set displayName(value: string | undefined) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayName: Updating DisplayName to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayName`, value, 'string', false);
+      this.#displayName = value;
+      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayName: DisplayName was updated to ${this.displayName}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).displayName: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter hidden
+   */
+  public get hidden(): boolean {
+    return this.#hidden;
+  }
+
+  /**
+   * Setter hidden
+   */
+  public set hidden(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Updating Hidden to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden`, value, 'boolean');
+      this.#hidden = value;
+      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).hidden: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter id
+   */
+  public get id(): string {
+    return this.#id;
+  }
+
+  /**
+   * Getter name
+   */
+  public get name(): string {
+    return this.#name;
+  }
+
+  /**
+   * Getter order
+   */
+  public get order(): number | undefined {
+    return this.#order;
+  }
+
+  /**
+   * Setter order
+   */
+  public set order(value: number | undefined) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Updating Order to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order`, value, 'number', false);
+      this.#order = value;
+      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Order was updated to ${this.order}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).order: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter type
+   */
+  public get type(): ShapeDiverResponseExportDefinitionType {
+    return this.#type;
+  }
+
+  /**
+   * Getter uid
+   */
+  public get uid(): string | undefined {
+    return this.#uid;
+  }
+
+  // #endregion Public Accessors (11)
+
+  // #region Public Methods (1)
 
   /**
    * Request the export with an optional additional parameter set.
@@ -64,18 +169,18 @@ export class Export implements ShapeDiverResponseExportDefinition {
    */
   public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Sending export request.`);
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Sending export request.`);
       const currentParameters = this.#sessionEngine.parameterValues;
       const exportParameters: { [key: string]: string } = {}
 
       for (let parameter in currentParameters)
         exportParameters[parameter] = parameters[parameter] || parameters[parameter] === '' ? parameters[parameter] : currentParameters[parameter];
 
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
+      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
       try {
-        let exportReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.id }, parameters: exportParameters }, 'application/json')).data;
-        this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).request: Received export reply ${JSON.stringify(exportReply)}.`);
-        let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.id];
+        let exportReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.#id }, parameters: exportParameters }, 'application/json')).data;
+        this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Received export reply ${JSON.stringify(exportReply)}.`);
+        let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.#id];
         this.#sessionEngine.mergeResponses(this.#sessionEngine.sessionResponse, { version: this.#sessionEngine.sessionResponse.version, actions: exportReply.actions });
         if ('delay' in exportResult) {
           await new Promise(resolve => setTimeout(resolve, exportResult.delay!));
@@ -84,56 +189,20 @@ export class Export implements ShapeDiverResponseExportDefinition {
         return exportResult;
       } catch (e) {
         if (e.response && e.response.status) {
-          throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).request: Request failed.`, e.response.status, true);
+          throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).request: Request failed.`, e.response.status, true);
         } else {
-          throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).request: Request failed.`, true);
+          throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).request: Request failed.`, true);
         }
       }
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).request: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).request: Something unexpected happened.`, true)
     }
   }
 
-  public updateDisplayName(value: string | undefined) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateDisplayName: Updating DisplayName to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateDisplayName`, value, 'string', false);
-      (<any>this.displayName) = value;
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateDisplayName: DisplayName was updated to ${this.displayName}.`);
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).updateDisplayName: Something unexpected happened.`, true)
-    }
-  }
+  // #endregion Public Methods (1)
 
-  public updateHidden(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateHidden: Updating Hidden to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateHidden`, value, 'boolean');
-      (<any>this.hidden) = value;
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateHidden: Hidden was updated to ${this.hidden}.`);
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).updateHidden: Something unexpected happened.`, true)
-    }
-  }
-
-  public updateOrder(value: number | undefined) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateOrder: Updating Order to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateOrder`, value, 'number', false);
-      (<any>this.order) = value;
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.id}).updateOrder: Order was updated to ${this.order}.`);
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).updateOrder: Something unexpected happened.`, true)
-    }
-  }
-
-  // #endregion Public Methods (5)
-
-  // #region Private Methods (2)
+  // #region Private Methods (1)
 
   /**
    * Internal cache request for the export request.
@@ -143,11 +212,11 @@ export class Export implements ShapeDiverResponseExportDefinition {
    */
   private async cacheRequest(version: string): Promise<ShapeDiverResponseExport> {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).cacheRequest: Sending cache request.`);
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).cacheRequest: Sending cache request.`);
       try {
-        let exportCacheReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].method!.toLowerCase()!, { [this.id]: version }, 'application/json')).data;
-        this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.id}).cacheRequest: Received export cache reply ${JSON.stringify(exportCacheReply)}.`);
-        let exportCacheResult = <ShapeDiverResponseExport>exportCacheReply.exports![this.id];
+        let exportCacheReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].method!.toLowerCase()!, { [this.#id]: version }, 'application/json')).data;
+        this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).cacheRequest: Received export cache reply ${JSON.stringify(exportCacheReply)}.`);
+        let exportCacheResult = <ShapeDiverResponseExport>exportCacheReply.exports![this.#id];
         if ('delay' in exportCacheResult) {
           await new Promise(resolve => setTimeout(resolve, exportCacheResult.delay!));
           exportCacheResult = (await this.cacheRequest(version))!;
@@ -155,16 +224,16 @@ export class Export implements ShapeDiverResponseExportDefinition {
         return exportCacheResult;
       } catch (e) {
         if (e.response && e.response.status) {
-          throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).cacheRequest: Cache request failed.`, e.response.status, true);
+          throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).cacheRequest: Cache request failed.`, e.response.status, true);
         } else {
-          throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).cacheRequest: Cache request failed.`, true);
+          throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).cacheRequest: Cache request failed.`, true);
         }
       }
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.id}).cacheRequest: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).cacheRequest: Something unexpected happened.`, true)
     }
   }
 
-  // #endregion Private Methods (2)
+  // #endregion Private Methods (1)
 }

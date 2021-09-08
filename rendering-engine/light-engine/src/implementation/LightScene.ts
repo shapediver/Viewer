@@ -1,19 +1,25 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { vec3 } from 'gl-matrix';
 
 import { ILight } from '../interface/ILight'
 import { ILightScene } from '../interface/ILightScene'
 import { AbstractLight } from './AbstractLight'
+import { AmbientLight } from './types/AmbientLight';
+import { DirectionalLight } from './types/DirectionalLight';
+import { HemisphereLight } from './types/HemisphereLight';
+import { PointLight } from './types/PointLight';
+import { SpotLight } from './types/SpotLight';
 
 export class LightScene implements ILightScene {
-    // #region Properties (2)
+    // #region Properties (5)
 
+    private readonly _id: string;
     private readonly _lights: { [key: string]: ILight; } = {};
     private readonly _node: TreeNode;
-    private readonly _id: string;
-    private _name: string | undefined;
-    protected _updateCBs: (() => void)[] = [];
 
-    // #endregion Properties (2)
+    private _name: string | undefined;
+
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
@@ -25,17 +31,7 @@ export class LightScene implements ILightScene {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (3)
-
-    
-    public get name(): string | undefined {
-        return this._name;
-    }
-
-    public set name(value: string | undefined) {
-        this._name = value;
-        this._updateCBs.forEach(v => v());
-    }
+    // #region Public Accessors (5)
 
     public get id(): string {
         return this._id;
@@ -45,13 +41,39 @@ export class LightScene implements ILightScene {
         return <{ [key: string]: AbstractLight; }>this._lights
     }
 
+    public get name(): string | undefined {
+        return this._name;
+    }
+
+    public set name(value: string | undefined) {
+        this._name = value;
+    }
+
     public get node(): TreeNode {
         return this._node;
     }
 
-    // #endregion Public Accessors (3)
+    // #endregion Public Accessors (5)
 
-    // #region Public Methods (3)
+    // #region Public Methods (8)
+
+    public addAmbientLight(properties: {color?: string, intensity?: number, name?: string}): AmbientLight {
+        const light = new AmbientLight(properties);
+        this.addLight(light);
+        return light;
+    }
+
+    public addDirectionalLight(properties: {color?: string, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, name?: string}): DirectionalLight {
+        const light = new DirectionalLight(properties);
+        this.addLight(light);
+        return light;
+    }
+
+    public addHemisphereLight(properties: {color?: string, intensity?: number, groundColor?: string, name?: string}): HemisphereLight {
+        const light = new HemisphereLight(properties);
+        this.addLight(light);
+        return light;
+    }
 
     public addLight(light: AbstractLight): void {
         const node = new TreeNode(light.id);
@@ -60,7 +82,18 @@ export class LightScene implements ILightScene {
         this._lights[light.id] = light;
         
         this._node.updateVersion();
-        this._updateCBs.forEach(v => v());
+    }
+
+    public addPointLight(properties: {color?: string, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string}): PointLight {
+        const light = new PointLight(properties);
+        this.addLight(light);
+        return light;
+    }
+
+    public addSpotLight(properties: {color?: string, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string}): SpotLight {
+        const light = new SpotLight(properties);
+        this.addLight(light);
+        return light;
     }
 
     public removeLight(id: string): boolean {
@@ -76,13 +109,8 @@ export class LightScene implements ILightScene {
 
         delete this._lights[id];
         this._node.updateVersion();
-        this._updateCBs.forEach(v => v());
         return true;
     }
-    
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value)
-    }
 
-    // #endregion Public Methods (3)
+    // #endregion Public Methods (8)
 }

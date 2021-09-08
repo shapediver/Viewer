@@ -7,30 +7,15 @@ import { container } from 'tsyringe'
 import { Viewer } from '../Viewer'
 
 export abstract class Light implements ILight {
-    // #region Properties (10)
+    // #region Properties (5)
 
     readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #light: ILight;
-    readonly #viewer: Viewer;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #updateCB = () => {
-        (<any>this.color) = this.#light.color;
-        (<any>this.id) = this.#light.id;
-        (<any>this.intensity) = this.#light.intensity;
-        (<any>this.name) = this.#light.name;
-        (<any>this.order) = this.#light.order;
-        (<any>this.type) = this.#light.type;
-    }
+    readonly #viewer: Viewer;
 
-    readonly color!: string | number | vec3;
-    readonly id!: string;
-    readonly intensity!: number;
-    readonly name!: string | undefined;
-    readonly order!: number | undefined;
-    readonly type!: LIGHTTYPE;
-
-    // #endregion Properties (10)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
@@ -41,78 +26,118 @@ export abstract class Light implements ILight {
     constructor(light: ILight, viewer: Viewer) {
         this.#light = light;
         this.#viewer = viewer;
-        (<AbstractLight>this.#light).addUpdateCB(this.#updateCB);
-        this.#updateCB();
         this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).constructor: Light api created.`);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (3)
+    // #region Public Accessors (10)
 
     /**
-     * The color of the light
+     * Getter color
      */
-    public updateColor(value: string | number | vec3) {
+    public get color(): string | number | vec3 {
+        return this.#light.color;
+    }
+
+    /**
+     * Setter color
+     */
+    public set color(value: string | number | vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateColor: Updating Color to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateColor`, value, 'color');
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: Updating Color to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color`, value, 'color');
             this.#light.color = this.#converter.toColor(value);
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateColor: color was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: color was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateColor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).color: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * The intensity of the light
+     * Getter id
      */
-    public updateIntensity(value: number) {
+    public get id(): string {
+        return this.#light.id;
+    }
+
+    /**
+     * Getter intensity
+     */
+    public get intensity(): number {
+        return this.#light.intensity;
+    }
+
+    /**
+     * Setter intensity
+     */
+    public set intensity(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateIntensity: Updating Intensity to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateIntensity`, value, 'positive');
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: Updating Intensity to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity`, value, 'positive');
             this.#light.intensity = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateIntensity: intensity was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: intensity was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateIntensity: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).intensity: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * The name of the light
+     * Getter name
      */
-    public updateName(value: string | undefined) {
+    public get name(): string | undefined {
+        return this.#light.name;
+    }
+
+    /**
+     * Setter name
+     */
+    public set name(value: string | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateName: Updating Name to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateName`, value, 'string', false);
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: Updating Name to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name`, value, 'string', false);
             this.#light.name = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateName: name was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: name was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateName: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).name: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * The order of the light
+     * Getter order
      */
-    public updateOrder(value: number | undefined) {
+    public get order(): number | undefined {
+        return this.#light.order;
+    }
+
+    /**
+     * Setter order
+     */
+    public set order(value: number | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateOrder: Updating Order to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateOrder`, value, 'number', false);
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: Updating Order to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order`, value, 'number', false);
             this.#light.order = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateOrder: order was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: order was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateOrder: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).order: Something unexpected happened.`, true)
         }
     }
 
-    // #endregion Public Methods (3)
+    /**
+     * Getter type
+     */
+    public get type(): LIGHTTYPE {
+        return this.#light.type;
+    }
+
+    // #endregion Public Accessors (10)
 }

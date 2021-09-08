@@ -32,7 +32,6 @@ export abstract class AbstractCamera implements ICamera {
     protected _controls!: AbstractCameraControls;
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
-    protected _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (17)
 
@@ -80,7 +79,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set autoAdjust(value: boolean) {
         this._autoAdjust = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -89,7 +87,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set boundingBox(value: Box) {
         this._boundingBox = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -106,7 +103,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set cameraMovementDuration(value: number) {
         this._cameraMovementDuration = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -131,7 +127,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set defaultPosition(value: vec3) {
         this._defaultPosition = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -148,7 +143,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set defaultTarget(value: vec3) {
         this._defaultTarget = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -165,7 +159,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set enableCameraControls(value: boolean) {
         this._enableCameraControls = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -182,7 +175,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set far(value: number) {
         this._far = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -207,7 +199,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set near(value: number) {
         this._near = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -224,7 +215,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set order(value: number | undefined) {
         this._order = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -242,7 +232,6 @@ export abstract class AbstractCamera implements ICamera {
     public set position(value: vec3) {
         this._position = value;
         this._controls.position = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -259,7 +248,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set revertAtMouseUp(value: boolean) {
         this._revertAtMouseUp = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -276,7 +264,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set revertAtMouseUpDuration(value: number) {
         this._revertAtMouseUpDuration = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -294,7 +281,6 @@ export abstract class AbstractCamera implements ICamera {
     public set target(value: vec3) {
         this._target = value;
         this._controls.target = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -319,7 +305,6 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set zoomExtentsFactor(value: number) {
         this._zoomExtentsFactor = value;
-        this._updateCBs.forEach(v => v());
     }
 
     // #endregion Public Accessors (27)
@@ -390,11 +375,6 @@ export abstract class AbstractCamera implements ICamera {
     abstract getZoomPositionAndTarget(zoomTarget?: string[] | Box): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
     abstract applySettings(): void;
-
-
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value)
-    }
 
     // #endregion Public Abstract Methods (2)
 }

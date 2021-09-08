@@ -31,7 +31,6 @@ export class CameraEngine implements ICameraEngine {
 
     private _camera: Camera | null = null;
     private _settingsApplied: boolean = false;
-    private _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (3)
 
@@ -47,10 +46,6 @@ export class CameraEngine implements ICameraEngine {
                     this._cameras[c].boundingBox = this._boundingBox.clone();
             }
         });
-    }
-
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value);
     }
 
     public get camera(): Camera | null {
@@ -91,7 +86,6 @@ export class CameraEngine implements ICameraEngine {
         const camera = this._cameras[id];
         if (!camera) return;
         this._camera = camera;
-        this._updateCBs.forEach(v => v());
     }
 
     public createCamera(type: CAMERATYPE, id?: string): Camera {
@@ -112,7 +106,6 @@ export class CameraEngine implements ICameraEngine {
             } else {
                 camera.zoomTo([], { duration: 0 });
             }
-            this._updateCBs.forEach(v => v());
             return camera;
         } else {
             const camera = new PerspectiveCamera(this._viewerId, cameraId, this._canvas.canvasElement);
@@ -124,7 +117,6 @@ export class CameraEngine implements ICameraEngine {
             } else {
                 camera.zoomTo([], { duration: 0 });
             }
-            this._updateCBs.forEach(v => v());
             return camera;
         }
     }
@@ -137,7 +129,6 @@ export class CameraEngine implements ICameraEngine {
             this._camera = null;
         delete this._cameras[id];
         delete this._camerasDomEventListenerToken[id];
-        this._updateCBs.forEach(v => v());
         return true;
     }
 

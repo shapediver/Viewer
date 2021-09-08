@@ -1,4 +1,4 @@
-<script defer src="https://viewer.shapediver.com/v3/1.0.5/bundle.js"></script>
+<script defer src="https://viewer.shapediver.com/v3/1.2.0/bundle.js"></script>
 <style>
 details[open] {
   margin-left: 10px;
@@ -134,9 +134,9 @@ const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c6
 
 (async () => {
   // create a viewer
-  const viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+  const viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
   // create a session
-  const session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
+  const session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
 })();
 ```
 This is already everything we need. We import `reflect-metadata` as this is needed for some functionalities that we use. It should always be on top of the imports. Then we import the [api](./classes/api_api_src.api.html) from the ShapeDiver-Viewer.
@@ -150,8 +150,8 @@ Next we load a [Viewer](./classes/api_api_src.viewer.html) by providing a canvas
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas1'), id: 'myViewer1' });
-    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession1', excludeViewers: ['myViewer2', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
+    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas1'), id: 'myViewer1' });
+    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession1', excludeViewers: ['myViewer2', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
   })();
 </script>
 <br>
@@ -171,7 +171,7 @@ After creating the [Viewer](./classes/api_api_src.viewer.html) and the [Session]
 // read out the parameter with the specific name
 const lengthParameter = session.getParameterByName('Length')[0];
 // update the value
-lengthParameter.updateValue(6);
+lengthParameter.value = 6;
 // and customize the scene
 await session.customize();
 ```
@@ -183,10 +183,10 @@ await session.customize();
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas2'), id: 'myViewer2' });
-    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
+    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas2'), id: 'myViewer2' });
+    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
     const lengthParameter = session.getParameterByName('Length')[0];
-    lengthParameter.updateValue(6);
+    lengthParameter.value = 6;
     await session.customize();
   })();
 </script>
@@ -197,11 +197,11 @@ You can also update multiple [Parameters](./classes/api_api_src.parameter.html) 
 // read out the parameter with the specific name
 const lengthParameter = session.getParameterByName('Length')[0];
 // update the value
-lengthParameter.updateValue(8);
+lengthParameter.value = 8;
 // read out the parameter with the specific name
 const colorParameter = session.getParameterByName('Material Color')[0];
 // update the value
-colorParameter.updateValue('#00ff00');
+colorParameter.value = '#00ff00';
 // and customize the scene
 await session.customize();
 ```
@@ -213,12 +213,12 @@ await session.customize();
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas3'), id: 'myViewer3' });
-    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession3', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer4', 'myViewer5', 'myViewer6']});
+    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas3'), id: 'myViewer3' });
+    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession3', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer4', 'myViewer5', 'myViewer6']});
     const lengthParameter = session.getParameterByName('Length')[0];
-    lengthParameter.updateValue(8);
+    lengthParameter.value = 8;
     const colorParameter = session.getParameterByName('Material Color')[0];
-    colorParameter.updateValue('#00ff00');
+    colorParameter.value = '#00ff00';
     await session.customize();
   })();
 </script>
@@ -242,9 +242,7 @@ By reusing the simple example from the first section, we will now disable the gr
 
 ```typescript
 // just call the update function for the groundplane value
-viewer.updateGroundPlaneVisibility(false);
-// get the value for the groundplane visibility (read-only)
-const groundPlaneVisibility = viewer.groundPlaneVisibility;
+viewer.groundPlaneVisibility = false;
 ```
 <div style="width: 100%; height: 500px;">
   <canvas id="canvas4"></canvas>
@@ -253,9 +251,9 @@ const groundPlaneVisibility = viewer.groundPlaneVisibility;
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas4'), id: 'myViewer4' });
-    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession4', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer5', 'myViewer6']});
-    viewer.updateGroundPlaneVisibility(false);
+    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas4'), id: 'myViewer4' });
+    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession4', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer5', 'myViewer6']});
+    viewer.groundPlaneVisibility = false;
   })();
 </script>
 
@@ -268,7 +266,7 @@ In our next example we create an [Orthographic Camera](./classes/api_api_src.ort
 // create an orthographic camera, it will be assigned automatically
 const camera = viewer.createOrthographicCamera();
 // we now update the direction of the orthographic camera
-camera.updateDirection(ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT);
+camera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
 ```
 <div style="width: 100%; height: 500px;">
   <canvas id="canvas5"></canvas>
@@ -277,10 +275,10 @@ camera.updateDirection(ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT);
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas5'), id: 'myViewer5' });
-    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession5', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer6']});
+    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas5'), id: 'myViewer5' });
+    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession5', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer6']});
     const camera = viewer.createOrthographicCamera();
-    camera.updateDirection(ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT);
+    camera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
   })();
 </script>
 
@@ -294,11 +292,11 @@ Therefore, we now create a new [Light Scene]() and add a few lights to it.
 // create a light scene, it will be assigned automatically
 const lightScene = viewer.createLightScene();
 // add a new ambient light, it will be added to the current light scene
-const ambientLight = viewer.addAmbientLight();
+const ambientLight = lightScene.addAmbientLight();
 // add a new directional light, it will be added to the current light scene
-const directionalLight = viewer.addDirectionalLight();
+const directionalLight = lightScene.addDirectionalLight();
 // change the color of the directional light
-directionalLight.updateColor('#0000ff');
+directionalLight.color = '#0000ff';
 ```
 <div style="width: 100%; height: 500px;">
   <canvas id="canvas6"></canvas>
@@ -307,12 +305,12 @@ directionalLight.updateColor('#0000ff');
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas6'), id: 'myViewer6' });
-    const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession6', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer5']});
+    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas6'), id: 'myViewer6' });
+    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession6', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer5']});
     const lightScene = viewer.createLightScene();
-    const ambientLight = viewer.addAmbientLight();
-    const directionalLight = viewer.addDirectionalLight();
-    directionalLight.updateColor('#0000ff');
+    const ambientLight = lightScene.addAmbientLight();
+    const directionalLight = lightScene.addDirectionalLight();
+    directionalLight.color = '#0000ff';
   })();
 </script>
 
@@ -355,7 +353,7 @@ Let's now customize the scene again and then add our copied node with some trans
 const parameter = session.getParameterById('SOME_ID');
 
 // To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.updateValue('newValue')
+parameter.value = 'newValue';
 
 // Customize the session
 await session.customize();

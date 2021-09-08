@@ -22,7 +22,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     private _movementSmoothness: number = 0.5;
     private _panSpeed: number = 0.5;
     private _zoomSpeed: number = 0.5;
-    private _updateCBs: (() => void)[] = [];
 
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -70,7 +69,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set damping(value: number) {
         this._damping = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -87,7 +85,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set enableKeyPan(value: boolean) {
         this._enableKeyPan = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -104,7 +101,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set enablePan(value: boolean) {
         this._enablePan = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -121,7 +117,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set enableZoom(value: boolean) {
         this._enableZoom = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -138,7 +133,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
         this._input = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -155,7 +149,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set keyPanSpeed(value: number) {
         this._keyPanSpeed = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -172,7 +165,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set movementSmoothness(value: number) {
         this._movementSmoothness = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -189,7 +181,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set panSpeed(value: number) {
         this._panSpeed = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -206,11 +197,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
      */
     public set zoomSpeed(value: number) {
         this._zoomSpeed = value;
-        this._updateCBs.forEach(v => v());
-    }
-
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value)
     }
 
     // #endregion Public Accessors (18)

@@ -49,9 +49,9 @@ submit.onclick = async () => {
 
 
     const ticketInput = ticket.value;
-    let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     part1.style.visibility = 'visible'
-    let session = await api.createAndInitializeSession({ ticket: ticketInput, modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com', id: 'mySession'});
+    let session = await api.createSession({ ticket: ticketInput, modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com', id: 'mySession'});
 
     slider.onchange = () => {
         value.value = slider.value;
@@ -94,7 +94,7 @@ submit.onclick = async () => {
 }
 
 (<any>window).loadAR = async () => {
-    api.viewers['myViewer'].updateBlur(true);
+    api.viewers['myViewer'].blur = true;
     await api.viewInAR();
-    api.viewers['myViewer'].updateBlur(false);
+    api.viewers['myViewer'].blur = false;
 }

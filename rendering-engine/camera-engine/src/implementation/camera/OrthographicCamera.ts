@@ -84,7 +84,6 @@ export class OrthographicCamera extends AbstractCamera {
          default:
             this.up = vec3.fromValues(0,-1,0);
       }
-      this._updateCBs.forEach(v => v());
    }
 
    /**
@@ -149,7 +148,6 @@ export class OrthographicCamera extends AbstractCamera {
     */
    public set up(value: vec3) {
       this._up = value;
-      this._updateCBs.forEach(v => v());
    }
 
    // #endregion Public Accessors (8)

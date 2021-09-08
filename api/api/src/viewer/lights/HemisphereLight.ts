@@ -7,20 +7,15 @@ import { Light } from './Light'
 import { Viewer } from '../Viewer'
 
 export class HemisphereLight extends Light {
-    // #region Properties (1)
+    // #region Properties (6)
 
-    readonly #light: HemisphereLightLogic;
-    readonly #viewer: Viewer;
     readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #light: HemisphereLightLogic;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #updateCB = () => {
-        (<any>this.groundColor) = this.#light.groundColor;
-    }
+    readonly #viewer: Viewer;
 
-    readonly groundColor!: string | number | vec3;
-
-    // #endregion Properties (1)
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
@@ -32,8 +27,6 @@ export class HemisphereLight extends Light {
         super(light, viewer);
         this.#light = light;
         this.#viewer = viewer;
-        (<HemisphereLightLogic>this.#light).addUpdateCB(this.#updateCB);
-        this.#updateCB();
     }
 
     // #endregion Constructors (1)
@@ -41,19 +34,25 @@ export class HemisphereLight extends Light {
     // #region Public Accessors (2)
 
     /**
-     * The ground color of the light
-     * @param {string | number | vec3} value
+     * Getter groundColor
      */
-    public updateGroundColor(value: string | number | vec3) {
+    public get groundColor(): string | number | vec3 {
+        return this.#light.groundColor;
+    }
+
+    /**
+     * Setter groundColor
+     */
+    public set groundColor(value: string | number | vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor: Updating GroundColor to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor`, value, 'color');
+            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor: Updating GroundColor to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor`, value, 'color');
             this.#light.groundColor = this.#converter.toColor(value);
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).updateGroundColor: groundColor was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor: groundColor was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).updateGroundColor: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).groundColor: Something unexpected happened.`, true)
         }
     }
 

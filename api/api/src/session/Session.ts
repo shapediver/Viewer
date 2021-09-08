@@ -15,13 +15,19 @@ import { FileParameter } from './FileParameter'
 
 @injectable()
 export class Session {
-    // #region Properties (32)
+    // #region Properties (28)
 
     readonly #api: Api = <Api>container.resolve(Api);
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    readonly #exports: { [key: string]: Export; } = {};
+    readonly #id: string;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #modelViewUrl: string;
+    readonly #outputs: { [key: string]: Output; } = {};
+    readonly #parameters: { [key: string]: Parameter<any> } = {};
     readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+    readonly #primarySessionRequest: boolean = false;
     readonly #saveSessionSettings = () => {
         const parameters = this.parameters;
         const exports = this.exports;
@@ -60,38 +66,22 @@ export class Session {
         for (let i = 0; i < controlOrderOutputs.length; i++) {
             if (this.outputs[controlOrderOutputs[i]])
                 if (this.outputs[controlOrderOutputs[i]]!.order !== i)
-                    this.outputs[controlOrderOutputs[i]]!.updateOrder(i);
+                    this.outputs[controlOrderOutputs[i]]!.order = i;
         }
     }
 
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    readonly #updateCB = () => {
-        (<any>this.authorTicket) = this.#sessionEngine.authorTicket;
-        (<any>this.bearerToken) = this.#sessionEngine.bearerToken;
-        (<any>this.initialized) = this.#sessionEngine.initialized;
-    }
-
+    readonly #ticket: string;
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    readonly authorTicket: boolean | undefined;
-    readonly bearerToken: string | undefined;
-    readonly canUploadGLTF: boolean = false;
-    readonly commitParameters: boolean = false;
-    readonly commitSettings: boolean = false;
-    readonly exports: { [key: string]: Export; } = {};
-    readonly id: string;
-    readonly initialized: boolean = false;
-    readonly modelViewUrl: string;
-    readonly node: TreeNode;
-    readonly outputs: { [key: string]: Output; } = {};
-    readonly parameters: { [key: string]: Parameter<any> } = {};
-    readonly primarySession: boolean = false;
-    readonly primarySessionRequest: boolean = false;
-    readonly ticket: string;
 
+    #canUploadGLTF: boolean = false;
+    #commitParameters: boolean = false;
+    #commitSettings: boolean = false;
     #customizationProcess!: string;
     #excludeViewers: string[] = [];
+    #node: TreeNode;
     #parameterHistory: {
         [key: string]: {
             value: any,
@@ -105,9 +95,10 @@ export class Session {
             valueString: string
         }
     }[] = [];
+    #primarySession: boolean = false;
     #useSessionSettings: boolean = true;
 
-    // #endregion Properties (32)
+    // #endregion Properties (28)
 
     // #region Constructors (1)
 
@@ -116,38 +107,38 @@ export class Session {
      */
     constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, excludeViewers?: string[] }, callbacks: any) {
         try {
-            this.node = new TreeNode(properties.id);
+            this.#node = new TreeNode(properties.id);
             this.#sessionEngine = new SessionEngine(Object.assign({ buildDate: build_data.build_date, buildVersion: build_data.build_version }, properties));
-            this.id = this.#sessionEngine.id;
-            this.ticket = this.#sessionEngine.ticket;
-            this.modelViewUrl = this.#sessionEngine.modelViewUrl;
+            this.#id = this.#sessionEngine.id;
+            this.#ticket = this.#sessionEngine.ticket;
+            this.#modelViewUrl = this.#sessionEngine.modelViewUrl;
             this.#stateEngine.createCustomState(this.id + '_settings_registered');
             this.#excludeViewers = properties.excludeViewers || [];
 
-            this.primarySessionRequest = properties.primarySession !== false;
+            this.#primarySessionRequest = properties.primarySession !== false;
             if (this.primarySessionRequest === true) {
                 if (this.#stateEngine.primarySessionLoaded.resolved === false) {
-                    this.primarySession = true;
+                    this.#primarySession = true;
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
                 }
 
                 this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
-                    (<any>this.commitParameters) = this.#settingsEngine.general.commitParameters;
-                    (<any>this.commitSettings) = this.#settingsEngine.general.commitSettings;
+                    this.#commitParameters = this.#settingsEngine.general.commitParameters;
+                    this.#commitSettings = this.#settingsEngine.general.commitSettings;
 
                     // only update the displayNames, order and hidden properties if the parameters / exports / outputs don't have these properties defined
                     if (this.#useSessionSettings === true) {
                         for (let s in this.#settingsEngine.session) {
                             const temp = this.#settingsEngine.session[s];
                             if (this.parameters[s]) {
-                                if(temp.displayName !== undefined) this.parameters[s]!.updateDisplayName(temp.displayName);
-                                if(temp.order !== undefined) this.parameters[s]!.updateOrder(temp.order);
-                                if(temp.hidden !== undefined) this.parameters[s]!.updateHidden(temp.hidden);
+                                if(temp.displayName !== undefined) this.parameters[s]!.displayName = temp.displayName;
+                                if(temp.order !== undefined) this.parameters[s]!.order = temp.order;
+                                if(temp.hidden !== undefined) this.parameters[s]!.hidden = temp.hidden;
                             }
                             if (this.exports[s]) {
-                                if(temp.displayName !== undefined) this.exports[s]!.updateDisplayName(temp.displayName);
-                                if(temp.order !== undefined) this.exports[s]!.updateOrder(temp.order);
-                                if(temp.hidden !== undefined) this.exports[s]!.updateHidden(temp.hidden);
+                                if(temp.displayName !== undefined) this.exports[s]!.displayName = temp.displayName;
+                                if(temp.order !== undefined) this.exports[s]!.order = temp.order;
+                                if(temp.hidden !== undefined) this.exports[s]!.hidden = temp.hidden;
                             }
                         }
                     }
@@ -156,7 +147,7 @@ export class Session {
 
             callbacks.setAsPrimary = async () => {
                 try {
-                    (<any>this.primarySession) = true;
+                    this.#primarySession = true;
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
                     this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
                     await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
@@ -187,8 +178,6 @@ export class Session {
                 }
             }
 
-            this.#sessionEngine.addUpdateCB(this.#updateCB);
-            this.#updateCB();
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).constructor: Session api created.`);
         } catch (e) {
             if (e instanceof SDError) throw e;
@@ -198,7 +187,202 @@ export class Session {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (23)
+    // #region Public Accessors (21)
+
+    /**
+     * Getter authorTicket
+     */
+    public get authorTicket(): boolean | undefined {
+        return this.#sessionEngine.authorTicket;
+    }
+
+    /**
+     * If the session has an author ticket.
+     */
+    public set authorTicket(value: boolean | undefined) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).authorTicket: Updating AuthorTicket to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).authorTicket`, value, 'string', false);
+            this.#sessionEngine.authorTicket = value;
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).authorTicket: authorTicket was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).authorTicket: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * Getter bearerToken
+     */
+    public get bearerToken(): string | undefined {
+        return this.#sessionEngine.bearerToken;
+    }
+
+    /**
+     * The bearerToken of the session.
+     */
+    public set bearerToken(value: string | undefined) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken: Updating BearerToken to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken`, value, 'string', false);
+            this.#sessionEngine.bearerToken = value;
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken: bearerToken was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).bearerToken: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * Getter canUploadGLTF
+     */
+    public get canUploadGLTF(): boolean {
+        return this.#canUploadGLTF;
+    }
+
+    /**
+     * Getter commitParameters
+     */
+    public get commitParameters(): boolean {
+        return this.#commitParameters;
+    }
+
+    /**
+     * The commitParameters setting of the session.
+     * @param {boolean} value
+     */
+    public set commitParameters(value: boolean) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: Updating CommitParameters to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters`, value, 'boolean');
+            this.#commitParameters = value;
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: commitParameters was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).commitParameters: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * Getter commitSettings
+     */
+    public get commitSettings(): boolean {
+        return this.#commitSettings;
+    }
+
+    /**
+     * The commitSettings setting of the session.
+     * @param {boolean} value
+     */
+    public set commitSettings(value: boolean) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: Updating CommitSettings to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings`, value, 'boolean');
+            this.#commitSettings = value;
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: commitSettings was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).commitSettings: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * Getter exports
+     */
+    public get exports(): { [key: string]: Export; } {
+        return this.#exports;
+    }
+
+    /**
+     * Getter id
+     */
+    public get id(): string {
+        return this.#id;
+    }
+
+    /**
+     * Getter initialized
+     */
+    public get initialized(): boolean {
+        return this.#sessionEngine.initialized;
+    }
+
+    /**
+     * Getter modelViewUrl
+     */
+    public get modelViewUrl(): string {
+        return this.#modelViewUrl;
+    }
+
+    /**
+     * Getter node
+     */
+    public get node(): TreeNode {
+        return this.#node;
+    }
+
+    /**
+     * Getter outputs
+     */
+    public get outputs(): { [key: string]: Output; } {
+        return this.#outputs;
+    }
+
+    /**
+     * Getter parameters
+     */
+    public get parameters(): { [key: string]: Parameter<any>; } {
+        return this.#parameters;
+    }
+
+    /**
+     * Getter primarySession
+     */
+    public get primarySession(): boolean {
+        return this.#primarySession;
+    }
+
+    /**
+     * Getter primarySessionRequest
+     */
+    public get primarySessionRequest(): boolean {
+        return this.#primarySessionRequest;
+    }
+
+    /**
+     * Getter refreshBearerToken
+     */
+    public get refreshBearerToken(): () => string {
+        return this.#sessionEngine.refreshBearerToken;
+    }
+
+    /**
+     * The callback to refresh the bearer token.
+     * This callback will be executed, 
+     * once a session request fails due to an invalid bearer token.
+     */
+    public set refreshBearerToken(value: () => string) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken: Updating RefreshBearerToken to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken`, value, 'function');
+            this.#sessionEngine.refreshBearerToken = value;
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken: refreshBearerToken was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).refreshBearerToken: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * Getter ticket
+     */
+    public get ticket(): string {
+        return this.#ticket;
+    }
+
+    // #endregion Public Accessors (21)
+
+    // #region Public Methods (18)
 
     /**
      * If the session history allows to go back to the last customization call.
@@ -272,7 +456,7 @@ export class Session {
 
             // assign the uploaded parameters
             for (const parameterId in fileParameterIds)
-                this.parameters[parameterId].updateValue(fileParameterIds[parameterId]);
+                this.parameters[parameterId].value = fileParameterIds[parameterId];
 
             const parameterSet: {
                 [key: string]: {
@@ -316,7 +500,7 @@ export class Session {
 
             this.#performanceEvaluator.startSection('finish');
             (<Tree>container.resolve(Tree)).removeNode(this.node);
-            (<any>this.node) = node;
+            this.#node = node;
             (<Tree>container.resolve(Tree)).addNode(this.node);
 
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
@@ -451,7 +635,7 @@ export class Session {
      */
     public getParameterById(id: string): Parameter<any> | null {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Session(${this.id}).getParameterById: Getting paramter with id ${id}.`);
+            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Session(${this.id}).getParameterById: Getting parameter with id ${id}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Session(${this.id}).getParameterById`, id, 'string');
             return this.parameters[id];
         } catch (e) {
@@ -521,7 +705,7 @@ export class Session {
             // adjust the parameters according to the last parameter set
             const lastParameterSet = this.#parameterHistory[this.#parameterHistory.length - 1];
             for (const parameterId in lastParameterSet)
-                this.parameters[parameterId].updateValue(lastParameterSet[parameterId].value);
+                this.parameters[parameterId].value = lastParameterSet[parameterId].value;
         
             // call the customization function with the parameterHistoryCall value set to true
             this.#parameterHistoryCall = true;
@@ -551,7 +735,7 @@ export class Session {
             // get the last undone parameter set and apply the values to the parameters
             const lastParameterSet = this.#parameterHistoryForward.pop()!;
             for (const parameterId in lastParameterSet)
-                this.parameters[parameterId].updateValue(lastParameterSet[parameterId].value);
+                this.parameters[parameterId].value = lastParameterSet[parameterId].value;
 
             // call the customization function with the parameterHistoryCall value set to true
             this.#parameterHistoryCall = true;
@@ -583,7 +767,7 @@ export class Session {
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('customize');
 
-            (<any>this.node) = await this.#sessionEngine.init();
+            this.#node = await this.#sessionEngine.init();
 
             this.#performanceEvaluator.endSection('customize');
             this.#performanceEvaluator.startSection('finish');
@@ -638,7 +822,7 @@ export class Session {
                 this.outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
             }
 
-            (<any>this.canUploadGLTF) = this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload').length !== 0;
+            this.#canUploadGLTF = this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload').length !== 0;
 
             (<Tree>container.resolve(Tree)).addNode(this.node);
             this.node.excludeViewers = this.#excludeViewers;
@@ -647,8 +831,7 @@ export class Session {
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
             for (let i = 0; i < viewerIds.length; i++)
-                if (this.#api.viewers[viewerIds[i]].initialized)
-                    viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.getCustomState(this.#api.viewers[viewerIds[i]].id + '_settings_loaded'); state.resolved === true ? resolve() : state.then(() => resolve()) }));
+                viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.getCustomState(this.#api.viewers[viewerIds[i]].id + '_settings_loaded'); state.resolved === true ? resolve() : state.then(() => resolve()) }));
 
             this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
             await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
@@ -802,85 +985,6 @@ export class Session {
     }
 
     /**
-     * If the session has an author ticket.
-     */
-    public updateAuthorTicket(value: boolean | undefined) {
-        try {
-            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateAuthorTicket: Updating AuthorTicket to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateAuthorTicket`, value, 'string', false);
-            this.#sessionEngine.authorTicket = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateAuthorTicket: authorTicket was set to: ${value}`);
-        } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateAuthorTicket: Something unexpected happened.`, true)
-        }
-    }
-
-    /**
-     * The bearerToken of the session.
-     */
-    public updateBearerToken(value: string | undefined) {
-        try {
-            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateBearerToken: Updating BearerToken to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateBearerToken`, value, 'string', false);
-            this.#sessionEngine.bearerToken = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateBearerToken: bearerToken was set to: ${value}`);
-        } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateBearerToken: Something unexpected happened.`, true)
-        }
-    }
-
-    /**
-     * The commitParameters setting of the session.
-     * @param {boolean} value
-     */
-    public updateCommitParameters(value: boolean) {
-        try {
-            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateCommitParameters: Updating CommitParameters to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateCommitParameters`, value, 'boolean');
-            (<any>this.commitParameters) = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateCommitParameters: commitParameters was set to: ${value}`);
-        } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateCommitParameters: Something unexpected happened.`, true)
-        }
-    }
-
-    /**
-     * The commitSettings setting of the session.
-     * @param {boolean} value
-     */
-    public updateCommitSettings(value: boolean) {
-        try {
-            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateCommitSettings: Updating CommitSettings to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateCommitSettings`, value, 'boolean');
-            (<any>this.commitSettings) = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateCommitSettings: commitSettings was set to: ${value}`);
-        } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateCommitSettings: Something unexpected happened.`, true)
-        }
-    }
-
-    /**
-     * The callback to refresh the bearer token.
-     * This callback will be executed, 
-     * once a session request fails due to an invalid bearer token.
-     */
-    public updateRefreshBearerToken(value: () => string) {
-        try {
-            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateRefreshBearerToken: Updating RefreshBearerToken to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateRefreshBearerToken`, value, 'function');
-            this.#sessionEngine.refreshBearerToken = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateRefreshBearerToken: refreshBearerToken was set to: ${value}`);
-        } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).updateRefreshBearerToken: Something unexpected happened.`, true)
-        }
-    }
-
-    /**
      * Creates a gltf from the current scene and uploads it to the server.
      * Returns the href to the gltf.
      * 
@@ -905,5 +1009,5 @@ export class Session {
         }
     }
 
-    // #endregion Public Methods (23)
+    // #endregion Public Methods (18)
 }
