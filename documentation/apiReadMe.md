@@ -114,12 +114,11 @@ Let's now create our first example. For that we first need an HTML-Page on which
 <!DOCTYPE html>
 <html>
 <body>
-    <div style="width: 100%; height: 100%;">
+    <div style="width: 800px; height: 600px;">
         <canvas id="canvas"></canvas>
     </div>
-    <script type="module" src="./bundle.js"></script>
+    <script type="module" src="./dist/bundle.js"></script>
 </body>
-
 </html>
 ```
 This HTML-File only has a canvas in it and a script tag that will load our script once it is built.

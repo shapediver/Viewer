@@ -1,4 +1,8 @@
 # Release Notes
+## Version 1.2.0
+- adding and removing of lights was moved from `Viewer` to `LightScene`
+- setter and getters reconstruction compared to update/read-only approach
+- merged creation and initialization of `Session` and `Viewer`
 ## Version 1.1.1
 - method to add settings, or sections of the settings (SS-3460)
 ## Version 1.1.0
