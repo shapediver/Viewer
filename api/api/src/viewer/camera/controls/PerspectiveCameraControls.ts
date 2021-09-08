@@ -1,6 +1,6 @@
 import {
-  IPerspectiveCameraControls,
-  PerspectiveCameraControls as PerspectiveCameraControlsLogic,
+    IPerspectiveCameraControls,
+    PerspectiveCameraControls as PerspectiveCameraControlsLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { Logger, LOGGINGTOPIC, SDError, InputValidator } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
@@ -9,56 +9,14 @@ import { container } from 'tsyringe'
 import { Viewer } from '../../Viewer'
 
 export class PerspectiveCameraControls implements IPerspectiveCameraControls {
-    // #region Properties (23)
+    // #region Properties (4)
 
     readonly #controls: PerspectiveCameraControlsLogic;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #viewer: Viewer;
 
-    readonly autoRotationSpeed!: number
-    readonly cubePositionRestriction!: { min: vec3, max: vec3 };
-    readonly cubeTargetRestriction!: { min: vec3, max: vec3 };
-    readonly damping!: number
-    readonly enableAutoRotation!: boolean
-    readonly enableKeyPan!: boolean;
-    readonly enablePan!: boolean;
-    readonly enableRotation!: boolean;
-    readonly enableZoom!: boolean;
-    readonly enabled!: boolean;
-    readonly input!: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } };
-    readonly keyPanSpeed!: number;
-    readonly movementSmoothness!: number;
-    readonly panSpeed!: number;
-    readonly rotationRestriction!: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number };
-    readonly rotationSpeed!: number;
-    readonly spherePositionRestriction!: { center: vec3, radius: number };
-    readonly sphereTargetRestriction!: { center: vec3, radius: number };
-    readonly zoomRestriction!: { minDistance: number, maxDistance: number };
-    readonly zoomSpeed!: number;
-    readonly #updateCB = () => {
-        (<any>this.autoRotationSpeed) = this.#controls.autoRotationSpeed;
-        (<any>this.cubePositionRestriction) = this.#controls.cubePositionRestriction;
-        (<any>this.cubeTargetRestriction) = this.#controls.cubeTargetRestriction;
-        (<any>this.damping) = this.#controls.damping;
-        (<any>this.enableAutoRotation) = this.#controls.enableAutoRotation;
-        (<any>this.enableKeyPan) = this.#controls.enableKeyPan;
-        (<any>this.enablePan) = this.#controls.enablePan;
-        (<any>this.enableRotation) = this.#controls.enableRotation;
-        (<any>this.enableZoom) = this.#controls.enableZoom;
-        (<any>this.enabled) = this.#controls.enabled;
-        (<any>this.input) = this.#controls.input;
-        (<any>this.keyPanSpeed) = this.#controls.keyPanSpeed;
-        (<any>this.movementSmoothness) = this.#controls.movementSmoothness;
-        (<any>this.panSpeed) = this.#controls.panSpeed;
-        (<any>this.rotationRestriction) = this.#controls.rotationRestriction;
-        (<any>this.rotationSpeed) = this.#controls.rotationSpeed;
-        (<any>this.spherePositionRestriction) = this.#controls.spherePositionRestriction;
-        (<any>this.sphereTargetRestriction) = this.#controls.sphereTargetRestriction;
-        (<any>this.zoomRestriction) = this.#controls.zoomRestriction;
-        (<any>this.zoomSpeed) = this.#controls.zoomSpeed;
-    }
-    // #endregion Properties (23)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -70,8 +28,6 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         try {
             this.#controls = controls;
             this.#viewer = viewer;
-            (<PerspectiveCameraControlsLogic>this.#controls).addUpdateCB(this.#updateCB);
-            this.#updateCB();
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).constructor: PerspectiveCameraControlsLogic api created.`);
         } catch (e) {
             if (e instanceof SDError) throw e;
@@ -81,364 +37,484 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (20)
+    // #region Public Accessors (40)
 
     /**
-     * Speed of autorotation, can be negative, also refer to enableAutoRotation
-     * @param {number} value
+     * Getter autoRotationSpeed
      */
-    public updateAutoRotationSpeed(value: number) {
+    public get autoRotationSpeed(): number {
+        return this.#controls.autoRotationSpeed;
+    }
+
+    /**
+     * Setter autoRotationSpeed
+     */
+    public set autoRotationSpeed(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed: Updating AutoRotationSpeed to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed`, value, 'number');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).autoRotationSpeed: Updating AutoRotationSpeed to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).autoRotationSpeed`, value, 'number');
             this.#controls.autoRotationSpeed = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed: autoRotationSpeed was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).autoRotationSpeed: autoRotationSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateAutoRotationSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).autoRotationSpeed: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Restriction of the camera position inside a cube, minimum and maximum corner of the cube
-     * @param {{ min: vec3, max: vec3 }} value
+     * Getter cubePositionRestriction
      */
-    public updateCubePositionRestriction(value: { min: vec3, max: vec3 }) {
+    public get cubePositionRestriction(): { min: vec3, max: vec3 } {
+        return this.#controls.cubePositionRestriction;
+    }
+
+    /**
+     * Setter cubePositionRestriction
+     */
+    public set cubePositionRestriction(value: { min: vec3, max: vec3 }) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubePositionRestriction: Updating CubePositionRestriction to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubePositionRestriction`, value.min, 'vec3');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubePositionRestriction`, value.max, 'vec3');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubePositionRestriction: Updating CubePositionRestriction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubePositionRestriction`, value.min, 'vec3');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubePositionRestriction`, value.max, 'vec3');
             this.#controls.cubePositionRestriction = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubePositionRestriction: cubePositionRestriction was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubePositionRestriction: cubePositionRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateCubePositionRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).cubePositionRestriction: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Restriction of the camera target inside a cube, minimum and maximum corner of the cube
-     * @param {{ min: vec3, max: vec3 }} value
+     * Getter cubeTargetRestriction
      */
-    public updateCubeTargetRestriction(value: { min: vec3, max: vec3 }) {
+    public get cubeTargetRestriction(): { min: vec3, max: vec3 } {
+        return this.#controls.cubeTargetRestriction;
+    }
+
+    /**
+     * Setter cubeTargetRestriction
+     */
+    public set cubeTargetRestriction(value: { min: vec3, max: vec3 }) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction: Updating CubeTargetRestriction to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction`, value.min, 'vec3');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction`, value.max, 'vec3');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubeTargetRestriction: Updating CubeTargetRestriction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubeTargetRestriction`, value.min, 'vec3');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubeTargetRestriction`, value.max, 'vec3');
             this.#controls.cubeTargetRestriction = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction: cubeTargetRestriction was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubeTargetRestriction: cubeTargetRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateCubeTargetRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).cubeTargetRestriction: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * The damping of the camera movement
-     * @param {number} value
+     * Getter damping
      */
-    public updateDamping(value: number) {
+    public get damping(): number {
+        return this.#controls.damping;
+    }
+
+    /**
+     * Setter damping
+     */
+    public set damping(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateDamping: Updating Damping to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateDamping`, value, 'positive');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).damping: Updating Damping to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).damping`, value, 'positive');
             this.#controls.damping = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateDamping: damping was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).damping: damping was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateDamping: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).damping: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Enable / Disable automatic rotation of the camera, also refer to autoRotationSpeed
-     * @param {boolean} value
+     * Getter enableAutoRotation
      */
-    public updateEnableAutoRotation(value: boolean) {
+    public get enableAutoRotation(): boolean {
+        return this.#controls.enableAutoRotation;
+    }
+
+    /**
+     * Setter enableAutoRotation
+     */
+    public set enableAutoRotation(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableAutoRotation: Updating EnableAutoRotation to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableAutoRotation`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableAutoRotation: Updating EnableAutoRotation to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableAutoRotation`, value, 'boolean');
             this.#controls.enableAutoRotation = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableAutoRotation: enableAutoRotation was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableAutoRotation: enableAutoRotation was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableAutoRotation: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enableAutoRotation: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Enable / Disable panning using the keyboard, also refer to enablePan
-     * @param {boolean} value
+     * Getter enableKeyPan
      */
-    public updateEnableKeyPan(value: boolean) {
+    public get enableKeyPan(): boolean {
+        return this.#controls.enableKeyPan;
+    }
+
+    /**
+     * Setter enableKeyPan
+     */
+    public set enableKeyPan(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableKeyPan: Updating EnableKeyPan to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableKeyPan`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: Updating EnableKeyPan to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan`, value, 'boolean');
             this.#controls.enableKeyPan = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableKeyPan: enableKeyPan was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: enableKeyPan was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableKeyPan: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enableKeyPan: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Enable / Disable panning in general, also refer to enableKeyPan
-     * @param {boolean} value
+     * Getter enablePan
      */
-    public updateEnablePan(value: boolean) {
+    public get enablePan(): boolean {
+        return this.#controls.enablePan;
+    }
+
+    /**
+     * Setter enablePan
+     */
+    public set enablePan(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnablePan: Updating EnablePan to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnablePan`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan: Updating EnablePan to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan`, value, 'boolean');
             this.#controls.enablePan = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnablePan: enablePan was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan: enablePan was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnablePan: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enablePan: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Enable / Disable camera rotation
-     * @param {boolean} value
+     * Getter enableRotation
      */
-    public updateEnableRotation(value: boolean) {
+    public get enableRotation(): boolean {
+        return this.#controls.enableRotation;
+    }
+
+    /**
+     * Setter enableRotation
+     */
+    public set enableRotation(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableRotation: Updating EnableRotation to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableRotation`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableRotation: Updating EnableRotation to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableRotation`, value, 'boolean');
             this.#controls.enableRotation = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableRotation: enableRotation was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableRotation: enableRotation was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableRotation: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enableRotation: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Enable / Disable zooming
-     * @param {boolean} value
+     * Getter enableZoom
      */
-    public updateEnableZoom(value: boolean) {
+    public get enableZoom(): boolean {
+        return this.#controls.enableZoom;
+    }
+
+    /**
+     * Setter enableZoom
+     */
+    public set enableZoom(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableZoom: Updating EnableZoom to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableZoom`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom: Updating EnableZoom to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom`, value, 'boolean');
             this.#controls.enableZoom = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnableZoom: enableZoom was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom: enableZoom was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnableZoom: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enableZoom: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Enable / Disable the Camera Controls
-     * @param {boolean} value
+     * Getter enabled
      */
-    public updateEnabled(value: boolean) {
+    public get enabled(): boolean {
+        return this.#controls.enabled;
+    }
+
+    /**
+     * Setter enabled
+     */
+    public set enabled(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnabled: Updating Enabled to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnabled`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled: Updating Enabled to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled`, value, 'boolean');
             this.#controls.enabled = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateEnabled: enabled was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled: enabled was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateEnabled: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enabled: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * The input definition
-     * @param {{ keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }} value
+     * Getter input
      */
-    public updateInput(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
+    public get input(): { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } {
+        return this.#controls.input;
+    }
+
+    /**
+     * Setter input
+     */
+    public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput: Updating Input to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.keys.down, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.keys.left, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.keys.right, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.keys.up, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.mouse.pan, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.mouse.rotate, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.mouse.zoom, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.touch.pan, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.touch.rotate, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput`, value.touch.zoom, 'number');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input: Updating Input to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.down, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.left, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.right, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.up, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.pan, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.rotate, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.zoom, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.pan, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.rotate, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.zoom, 'number');
             this.#controls.input = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateInput: input was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input: input was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateInput: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).input: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Speed of panning when using the keyboard
-     * @param {number} value
+     * Getter keyPanSpeed
      */
-    public updateKeyPanSpeed(value: number) {
+    public get keyPanSpeed(): number {
+        return this.#controls.keyPanSpeed;
+    }
+
+    /**
+     * Setter keyPanSpeed
+     */
+    public set keyPanSpeed(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: Updating KeyPanSpeed to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: Updating KeyPanSpeed to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed`, value, 'factor');
             this.#controls.keyPanSpeed = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: keyPanSpeed was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: keyPanSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateKeyPanSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).keyPanSpeed: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * The effect the previous movement has on the next one
-     * @param {number} value
+     * Getter movementSmoothness
      */
-    public updateMovementSmoothness(value: number) {
+    public get movementSmoothness(): number {
+        return this.#controls.movementSmoothness;
+    }
+
+    /**
+     * Setter movementSmoothness
+     */
+    public set movementSmoothness(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateMovementSmoothness: Updating MovementSmoothness to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateMovementSmoothness`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: Updating MovementSmoothness to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness`, value, 'factor');
             this.#controls.movementSmoothness = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateMovementSmoothness: movementSmoothness was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: movementSmoothness was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateMovementSmoothness: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).movementSmoothness: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Speed of panning
-     * @param {number} value
+     * Getter panSpeed
      */
-    public updatePanSpeed(value: number) {
+    public get panSpeed(): number {
+        return this.#controls.panSpeed;
+    }
+
+    /**
+     * Setter panSpeed
+     */
+    public set panSpeed(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updatePanSpeed: Updating PanSpeed to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updatePanSpeed`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed: Updating PanSpeed to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed`, value, 'factor');
             this.#controls.panSpeed = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updatePanSpeed: panSpeed was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed: panSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updatePanSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).panSpeed: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Minimum and maximum polar and azimuth angle of the camera position with respect to the camera target, unit degree
-     * @param {{ minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }} value
+     * Getter rotationRestriction
      */
-    public updateRotationRestriction(value: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }) {
+    public get rotationRestriction(): { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number } {
+        return this.#controls.rotationRestriction;
+    }
+
+    /**
+     * Setter rotationRestriction
+     */
+    public set rotationRestriction(value: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationRestriction: Updating RotationRestriction to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationRestriction`, value.minPolarAngle, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationRestriction`, value.maxPolarAngle, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationRestriction`, value.minAzimuthAngle, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationRestriction`, value.maxAzimuthAngle, 'number');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationRestriction: Updating RotationRestriction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationRestriction`, value.minPolarAngle, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationRestriction`, value.maxPolarAngle, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationRestriction`, value.minAzimuthAngle, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationRestriction`, value.maxAzimuthAngle, 'number');
             this.#controls.rotationRestriction = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationRestriction: rotationRestriction was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationRestriction: rotationRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateRotationRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).rotationRestriction: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Speed of camera rotation
-     * @param {number} value
+     * Getter rotationSpeed
      */
-    public updateRotationSpeed(value: number) {
+    public get rotationSpeed(): number {
+        return this.#controls.rotationSpeed;
+    }
+
+    /**
+     * Setter rotationSpeed
+     */
+    public set rotationSpeed(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationSpeed: Updating RotationSpeed to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationSpeed`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationSpeed: Updating RotationSpeed to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationSpeed`, value, 'factor');
             this.#controls.rotationSpeed = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateRotationSpeed: rotationSpeed was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationSpeed: rotationSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateRotationSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).rotationSpeed: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Restriction of the camera position inside a sphere, center and radius of the sphere
-     * @param {{ center: vec3, radius: number }} value
+     * Getter spherePositionRestriction
      */
-    public updateSpherePositionRestriction(value: { center: vec3, radius: number }) {
+    public get spherePositionRestriction(): { center: vec3, radius: number } {
+        return this.#controls.spherePositionRestriction;
+    }
+
+    /**
+     * Setter spherePositionRestriction
+     */
+    public set spherePositionRestriction(value: { center: vec3, radius: number }) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction: Updating SpherePositionRestriction to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction`, value.center, 'vec3');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction`, value.radius, 'positive');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).spherePositionRestriction: Updating SpherePositionRestriction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).spherePositionRestriction`, value.center, 'vec3');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).spherePositionRestriction`, value.radius, 'positive');
             this.#controls.spherePositionRestriction = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction: spherePositionRestriction was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).spherePositionRestriction: spherePositionRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateSpherePositionRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).spherePositionRestriction: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Restriction of the camera target inside a sphere, center and radius of the sphere
-     * @param {{ center: vec3, radius: number }} value
+     * Getter sphereTargetRestriction
      */
-    public updateSphereTargetRestriction(value: { center: vec3, radius: number }) {
+    public get sphereTargetRestriction(): { center: vec3, radius: number } {
+        return this.#controls.sphereTargetRestriction;
+    }
+
+    /**
+     * Setter sphereTargetRestriction
+     */
+    public set sphereTargetRestriction(value: { center: vec3, radius: number }) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction: Updating SphereTargetRestriction to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction`, value.center, 'vec3');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction`, value.radius, 'positive');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).sphereTargetRestriction: Updating SphereTargetRestriction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).sphereTargetRestriction`, value.center, 'vec3');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).sphereTargetRestriction`, value.radius, 'positive');
             this.#controls.sphereTargetRestriction = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction: sphereTargetRestriction was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).sphereTargetRestriction: sphereTargetRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateSphereTargetRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).sphereTargetRestriction: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Minimum and maximum distance between camera position and target
-     * @param {{ minDistance: number, maxDistance: number }} value
+     * Getter zoomRestriction
      */
-    public updateZoomRestriction(value: { minDistance: number, maxDistance: number }) {
+    public get zoomRestriction(): { minDistance: number, maxDistance: number } {
+        return this.#controls.zoomRestriction;
+    }
+
+    /**
+     * Setter zoomRestriction
+     */
+    public set zoomRestriction(value: { minDistance: number, maxDistance: number }) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomRestriction: Updating ZoomRestriction to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomRestriction`, value.minDistance, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomRestriction`, value.maxDistance, 'number');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomRestriction: Updating ZoomRestriction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomRestriction`, value.minDistance, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomRestriction`, value.maxDistance, 'number');
             this.#controls.zoomRestriction = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomRestriction: zoomRestriction was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomRestriction: zoomRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateZoomRestriction: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).zoomRestriction: Something unexpected happened.`, true)
         }
     }
 
     /**
-     * Speed of zooming
-     * @param {number} value
+     * Getter zoomSpeed
      */
-    public updateZoomSpeed(value: number) {
+    public get zoomSpeed(): number {
+        return this.#controls.zoomSpeed;
+    }
+
+    /**
+     * Setter zoomSpeed
+     */
+    public set zoomSpeed(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomSpeed: Updating ZoomSpeed to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomSpeed`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: Updating ZoomSpeed to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed`, value, 'factor');
             this.#controls.zoomSpeed = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateZoomSpeed: zoomSpeed was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: zoomSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).updateZoomSpeed: Something unexpected happened.`, true)
+            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).zoomSpeed: Something unexpected happened.`, true)
         }
     }
 
-    // #endregion Public Accessors (20)
+    // #endregion Public Accessors (40)
 }

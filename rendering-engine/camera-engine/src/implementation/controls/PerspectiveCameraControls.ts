@@ -33,7 +33,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
     private _sphereTargetRestriction: { center: vec3, radius: number } = { center: vec3.create(), radius: Infinity };
     private _zoomRestriction: { minDistance: number, maxDistance: number } = { minDistance: 0, maxDistance: Infinity };
     private _zoomSpeed: number = 0.5;
-    private _updateCBs: (() => void)[] = [];
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -104,7 +103,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set autoRotationSpeed(value: number) {
         this._autoRotationSpeed = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -121,7 +119,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set cubePositionRestriction(value: { min: vec3, max: vec3 }) {
         this._cubePositionRestriction = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -138,7 +135,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set cubeTargetRestriction(value: { min: vec3, max: vec3 }) {
         this._cubeTargetRestriction = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -155,7 +151,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set damping(value: number) {
         this._damping = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -172,7 +167,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set enableAutoRotation(value: boolean) {
         this._enableAutoRotation = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -189,7 +183,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set enableKeyPan(value: boolean) {
         this._enableKeyPan = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -206,7 +199,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set enablePan(value: boolean) {
         this._enablePan = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -223,7 +215,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set enableRotation(value: boolean) {
         this._enableRotation = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -240,7 +231,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set enableZoom(value: boolean) {
         this._enableZoom = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -257,7 +247,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
         this._input = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -274,7 +263,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set keyPanSpeed(value: number) {
         this._keyPanSpeed = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -291,7 +279,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set movementSmoothness(value: number) {
         this._movementSmoothness = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -308,7 +295,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set panSpeed(value: number) {
         this._panSpeed = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -325,7 +311,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set rotationRestriction(value: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }) {
         this._rotationRestriction = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -342,7 +327,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set rotationSpeed(value: number) {
         this._rotationSpeed = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -359,7 +343,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set spherePositionRestriction(value: { center: vec3, radius: number }) {
         this._spherePositionRestriction = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -376,7 +359,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set sphereTargetRestriction(value: { center: vec3, radius: number }) {
         this._sphereTargetRestriction = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -393,7 +375,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set zoomRestriction(value: { minDistance: number, maxDistance: number }) {
         this._zoomRestriction = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -410,11 +391,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
      */
     public set zoomSpeed(value: number) {
         this._zoomSpeed = value;
-        this._updateCBs.forEach(v => v());
-    }
-
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value)
     }
 
     // #endregion Public Accessors (38)

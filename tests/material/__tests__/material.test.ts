@@ -49,7 +49,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 let session = await api.createAndInitializeSession({ ticket: '3017a44322f7cd5dc4e1bfbe4d3e8bfdd9a265fd00c6bf2415f345c28ec76cda9a60a41f41c16af7ddc429ab1d19967469c8a5c3fb73ac8c45288a2a0387a4566ae3d45d2ff44e21493b36be5138e6b7ca92b250b4c7b6f01f7efe120d1e990df4b0237478023040c1965ad40f85043e1c4b1553bb2bc8b45777d9b5fde21f-3655c2562cc577697d3bff8bf250a6fb', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
                 const camera = api.viewers["myViewer"].camera!;
-                (<PerspectiveCamera>camera).controls.updateEnableAutoRotation(false);
+                (<PerspectiveCamera>camera).controls.enableAutoRotation = false;
 
                 camera.reset({});
                 await new Promise<void>((resolve) => {
@@ -69,7 +69,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 let viewer = await api.createAndInitializeViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createAndInitializeSession({ ticket: 'b9deea346b988b90b45ef359be0e57d3325fb8e089c33008a5c7e41b5a3020b1ba16b5f4926c9d487037cf128455653573096649deee8415afa220b4ec27565e28178f2193c9f66366361de05e866e9c91e0c44f278261692f7c778dbf3ee3c53a139526fded5aea8aa8a52f19a9fc20aed1eab5f6da22eac8e0eff4b8ca4ddd-df2cbd31660c1cd9d38673d8362b9466', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 const camera = viewer.camera!;
-                (<PerspectiveCamera>camera).controls.updateEnableAutoRotation(false)
+                (<PerspectiveCamera>camera).controls.enableAutoRotation = false;
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })

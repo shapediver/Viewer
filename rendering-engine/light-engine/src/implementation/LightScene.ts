@@ -19,8 +19,6 @@ export class LightScene implements ILightScene {
 
     private _name: string | undefined;
 
-    protected _updateCBs: (() => void)[] = [];
-
     // #endregion Properties (5)
 
     // #region Constructors (1)
@@ -49,7 +47,6 @@ export class LightScene implements ILightScene {
 
     public set name(value: string | undefined) {
         this._name = value;
-        this._updateCBs.forEach(v => v());
     }
 
     public get node(): TreeNode {
@@ -63,21 +60,18 @@ export class LightScene implements ILightScene {
     public addAmbientLight(properties: {color?: string, intensity?: number, name?: string}): AmbientLight {
         const light = new AmbientLight(properties);
         this.addLight(light);
-        this._updateCBs.forEach(v => v());
         return light;
     }
 
     public addDirectionalLight(properties: {color?: string, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, name?: string}): DirectionalLight {
         const light = new DirectionalLight(properties);
         this.addLight(light);
-        this._updateCBs.forEach(v => v());
         return light;
     }
 
     public addHemisphereLight(properties: {color?: string, intensity?: number, groundColor?: string, name?: string}): HemisphereLight {
         const light = new HemisphereLight(properties);
         this.addLight(light);
-        this._updateCBs.forEach(v => v());
         return light;
     }
 
@@ -88,25 +82,18 @@ export class LightScene implements ILightScene {
         this._lights[light.id] = light;
         
         this._node.updateVersion();
-        this._updateCBs.forEach(v => v());
     }
 
     public addPointLight(properties: {color?: string, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string}): PointLight {
         const light = new PointLight(properties);
         this.addLight(light);
-        this._updateCBs.forEach(v => v());
         return light;
     }
 
     public addSpotLight(properties: {color?: string, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string}): SpotLight {
         const light = new SpotLight(properties);
         this.addLight(light);
-        this._updateCBs.forEach(v => v());
         return light;
-    }
-
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value)
     }
 
     public removeLight(id: string): boolean {
@@ -122,7 +109,6 @@ export class LightScene implements ILightScene {
 
         delete this._lights[id];
         this._node.updateVersion();
-        this._updateCBs.forEach(v => v());
         return true;
     }
 

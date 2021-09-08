@@ -480,7 +480,6 @@ export class Session {
 
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('customize');
-            console.log(parameterSet)
             const node = await this.#sessionEngine.customize(() => this.#customizationProcess !== customizationID);
             this.#performanceEvaluator.endSection('customize');
 

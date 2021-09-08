@@ -45,7 +45,6 @@ export class Session implements ISession {
     private _refreshBearerToken!: () => string;
     private _sessionResponse!: ShapeDiverResponseBase;
     private _settingsConfig: any = {};
-    private _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (19)
 
@@ -83,7 +82,6 @@ export class Session implements ISession {
      */
     public set authorTicket(value: boolean | undefined) {
         this._authorTicket = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -100,7 +98,6 @@ export class Session implements ISession {
      */
     public set bearerToken(value: string | undefined) {
         this._bearerToken = value;
-        this._updateCBs.forEach(v => v());
     }
 
     public get exports(): { [key: string]: ShapeDiverResponseExport; } {
@@ -149,7 +146,6 @@ export class Session implements ISession {
      */
     public set refreshBearerToken(value: () => string) {
         this._refreshBearerToken = value;
-        this._updateCBs.forEach(v => v());
     }
 
     /**
@@ -241,7 +237,6 @@ export class Session implements ISession {
             this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
 
             this._initialized = true;
-            this._updateCBs.forEach(v => v());
             return this.loadOutputs(this._parameterValues);
         } catch (e) {
             this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.init: Something went wrong at session init.');
@@ -515,7 +510,6 @@ export class Session implements ISession {
                     if (e.response && e.response.status && e.response.status === 410 && !this._closed) {
                         this._logger.info(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Session customization failed. Session expired. Re-initializing session.');
                         this._initialized = false;
-                        this._updateCBs.forEach(v => v());
                         await this.init();
                         if(cancelRequest()) return new SessionTreeNode();
                         return this.customizeSession(parameters, cancelRequest);
@@ -576,10 +570,6 @@ export class Session implements ISession {
      */
     private async timeout(ms: number): Promise<any> {
         return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value)
     }
 
     // #endregion Private Methods (3)

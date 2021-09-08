@@ -57,7 +57,6 @@ export class PointLight extends AbstractLight {
   public set decay(value: number) {
     this._decay = value;
     this.updateVersion();
-    this._updateCBs.forEach(v => v());
   }
 
   /**
@@ -75,7 +74,6 @@ export class PointLight extends AbstractLight {
   public set distance(value: number) {
     this._distance = value;
     this.updateVersion();
-    this._updateCBs.forEach(v => v());
   }
 
   /**
@@ -93,7 +91,6 @@ export class PointLight extends AbstractLight {
   public set position(value: vec3) {
     this._position = value;
     this.updateVersion();
-    this._updateCBs.forEach(v => v());
   }
 
   // #endregion Public Accessors (6)

@@ -1,4 +1,4 @@
-<script defer src="https://viewer.shapediver.com/v3/1.0.5/bundle.js"></script>
+<script defer src="https://viewer.shapediver.com/v3/1.2.0/bundle.js"></script>
 <style>
 details[open] {
   margin-left: 10px;
@@ -242,9 +242,7 @@ By reusing the simple example from the first section, we will now disable the gr
 
 ```typescript
 // just call the update function for the groundplane value
-viewer.updateGroundPlaneVisibility(false);
-// get the value for the groundplane visibility (read-only)
-const groundPlaneVisibility = viewer.groundPlaneVisibility;
+viewer.groundPlaneVisibility = false;
 ```
 <div style="width: 100%; height: 500px;">
   <canvas id="canvas4"></canvas>
@@ -255,7 +253,7 @@ const groundPlaneVisibility = viewer.groundPlaneVisibility;
   (async () => {      
     const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas4'), id: 'myViewer4' });
     const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession4', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer5', 'myViewer6']});
-    viewer.updateGroundPlaneVisibility(false);
+    viewer.groundPlaneVisibility = false;
   })();
 </script>
 
@@ -268,7 +266,7 @@ In our next example we create an [Orthographic Camera](./classes/api_api_src.ort
 // create an orthographic camera, it will be assigned automatically
 const camera = viewer.createOrthographicCamera();
 // we now update the direction of the orthographic camera
-camera.updateDirection(ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT);
+camera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
 ```
 <div style="width: 100%; height: 500px;">
   <canvas id="canvas5"></canvas>
@@ -280,7 +278,7 @@ camera.updateDirection(ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT);
     const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas5'), id: 'myViewer5' });
     const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession5', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer6']});
     const camera = viewer.createOrthographicCamera();
-    camera.updateDirection(ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT);
+    camera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
   })();
 </script>
 
@@ -298,7 +296,7 @@ const ambientLight = lightScene.addAmbientLight();
 // add a new directional light, it will be added to the current light scene
 const directionalLight = lightScene.addDirectionalLight();
 // change the color of the directional light
-directionalLight.updateColor('#0000ff');
+directionalLight.color = '#0000ff';
 ```
 <div style="width: 100%; height: 500px;">
   <canvas id="canvas6"></canvas>
@@ -312,7 +310,7 @@ directionalLight.updateColor('#0000ff');
     const lightScene = viewer.createLightScene();
     const ambientLight = lightScene.addAmbientLight();
     const directionalLight = lightScene.addDirectionalLight();
-    directionalLight.updateColor('#0000ff');
+    directionalLight.color = '#0000ff';
   })();
 </script>
 

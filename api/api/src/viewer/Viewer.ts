@@ -5,16 +5,7 @@ import {
   OrthographicCamera as OrthographicCameraLogic,
   PerspectiveCamera as PerspectiveCameraLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import {
-  AbstractLight,
-  AmbientLight as AmbientLightLogic,
-  DirectionalLight as DirectionalLightLogic,
-  HemisphereLight as HemisphereLightLogic,
-  ILightEngine,
-  LIGHTTYPE,
-  PointLight as PointLightLogic,
-  SpotLight as SpotLightLogic,
-} from '@shapediver/viewer.rendering-engine.light-engine'
+import { ILightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { Logger, LOGGINGTOPIC, PerformanceEvaluator, EventEngine, EVENTTYPE, StateEngine, IViewerEvent, IEvent, Converter, InputValidator, UuidGenerator, SDError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
@@ -23,118 +14,27 @@ import { container, injectable } from 'tsyringe'
 import { Camera } from './camera/Camera'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
-import { AmbientLight } from './lights/AmbientLight'
-import { DirectionalLight } from './lights/DirectionalLight'
-import { HemisphereLight } from './lights/HemisphereLight'
 import { LightScene } from './lights/LightScene'
-import { PointLight } from './lights/PointLight'
-import { SpotLight } from './lights/SpotLight'
 
 @injectable()
 export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
-  // #region Properties (35)
+  // #region Properties (12)
 
+  readonly #cameras: { [key: string]: Camera } = {};
   readonly #converter: Converter = <Converter>container.resolve(Converter);
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+  readonly #lightScenes: { [key: string]: LightScene } = {};
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-  readonly #updateCB = () => {
-    if (!this.#renderingEngine) return;
-
-    // add new cameras
-    for(let c in this.#renderingEngine.cameraEngine.cameras) {
-      if(!this.cameras[c]) 
-        this.cameras[c] = this.#renderingEngine.cameraEngine.cameras[c].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this) : new PerspectiveCamera(<PerspectiveCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this);
-    }
-
-    // delete cameras that don't exist
-    for(let c in this.cameras) {
-      if(!this.#renderingEngine.cameraEngine.cameras) 
-        delete this.cameras[c];
-    }
-
-    if(this.#renderingEngine.cameraEngine.camera)
-      (<any>this.camera) = this.cameras[this.#renderingEngine.cameraEngine.camera.id];
-
-    // add new lightScenes
-    for(let l in this.#renderingEngine.lightEngine.lightScenes) {
-      if(!this.lightScenes[l]) 
-        this.lightScenes[l] = new LightScene(this.#renderingEngine.lightEngine.lightScenes[l], this);
-    }
-
-    // delete lightScenes that don't exist
-    for(let l in this.lightScenes) {
-      if(!this.#renderingEngine.lightEngine.lightScenes[l]) 
-        delete this.lightScenes[l];
-    }
-
-    if(this.#renderingEngine.lightEngine.lightScene) {
-      (<any>this.lightScene) = this.lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
-      (<any>this.lightSceneId) = this.#renderingEngine.lightEngine.lightScene.id;
-    }
-
-    (<any>this.ambientOcclusion) = this.#renderingEngine.ambientOcclusion;
-    (<any>this.automaticResizing) = this.#renderingEngine.automaticResizing;
-    (<any>this.beautyRenderBlendingDuration) = this.#renderingEngine.beautyRenderBlendingDuration;
-    (<any>this.beautyRenderDelay) = this.#renderingEngine.beautyRenderDelay;
-    (<any>this.blur) = this.#renderingEngine.blur;
-    (<any>this.blurSceneWhenBusy) = this.#renderingEngine.blurSceneWhenBusy;
-    (<any>this.clearAlpha) = this.#renderingEngine.clearAlpha;
-    (<any>this.clearColor) = this.#renderingEngine.clearColor;
-    (<any>this.environmentMap) = this.#renderingEngine.environmentMap;
-    (<any>this.environmentMapAsBackground) = this.#renderingEngine.environmentMapAsBackground;
-    (<any>this.environmentMapResolution) = this.#renderingEngine.environmentMapResolution;
-    (<any>this.gridVisibility) = this.#renderingEngine.gridVisibility;
-    (<any>this.groundPlaneVisibility) = this.#renderingEngine.groundPlaneVisibility;
-    (<any>this.id) = this.#renderingEngine.id;
-    (<any>this.pointSize) = this.#renderingEngine.pointSize;
-    (<any>this.renderingSettings) = this.#renderingEngine.renderingSettings;
-    (<any>this.shadows) = this.#renderingEngine.shadows;
-    (<any>this.show) = this.#renderingEngine.show;
-    (<any>this.showStatistics) = this.#renderingEngine.showStatistics;
-  }
-
-  readonly ambientOcclusion!: boolean;
-  readonly automaticResizing!: boolean;
-  readonly beautyRenderBlendingDuration!: number
-  readonly beautyRenderDelay!: number;
-  readonly blur!: boolean;
-  readonly blurSceneWhenBusy!: boolean;
-  readonly camera: Camera | null = null;
-  readonly cameras: {
-    [key: string]: Camera
-  } = {};
-  readonly clearAlpha!: number;
-  readonly clearColor!: string | number | vec3;
-  readonly environmentMap!: string | string[];
-  readonly environmentMapAsBackground!: boolean;
-  readonly environmentMapResolution!: string;
-  readonly gridVisibility!: boolean;
-  readonly groundPlaneVisibility!: boolean;
-  readonly id!: string;
-  readonly initialized: boolean = false;
-  readonly lightScene: LightScene | null = null;
-  readonly lightSceneId!: string;
-  readonly lightScenes: {
-    [key: string]: LightScene
-  } = {};
-  readonly pointSize!: number;
-  readonly renderingSettings!: {
-    physicallyCorrectLights: boolean,
-    textureEncoding: number,
-    outputEncoding: number
-  };
-  readonly shadows!: boolean;
-  readonly show!: boolean;
-  readonly showStatistics!: boolean;
 
   #busyModeIDs: string[] = [];
+  #initialized = false;
   #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE, logo: string };
   #renderingEngine!: RenderingEngineThreejs;
 
-  // #endregion Properties (35)
+  // #endregion Properties (12)
 
   // #region Constructors (1)
 
@@ -149,21 +49,593 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.#properties = properties;
       callbacks.close = async (): Promise<boolean> => {
         const closeResult = await this.#renderingEngine.close();
-        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, { viewerId: this.id });
+        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, { viewerId: properties.id });
 
-        if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}): Was not able to close viewer completely, please disregard this viewer.`);
+        if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}): Was not able to close viewer completely, please disregard this viewer.`);
         return closeResult;
       }
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).constructor: Viewer api created.`);
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer api created.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).constructor: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${properties.id}).constructor: Something unexpected happened.`, true)
     }
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Methods (35)
+  // #region Public Accessors (44)
+
+  /**
+   * Getter ambientOcclusion
+   */
+  public get ambientOcclusion(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.ambientOcclusion;
+  }
+
+  /**
+   * Setter ambientOcclusion
+   */
+  public set ambientOcclusion(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: Updating AmbientOcclusion to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion`, value, 'boolean');
+      this.#renderingEngine.ambientOcclusion = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: ambientOcclusion was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).ambientOcclusion: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter automaticResizing
+   */
+  public get automaticResizing(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.automaticResizing;
+  }
+
+  /**
+   * Setter automaticResizing
+   */
+  public set automaticResizing(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: Updating AutomaticResizing to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing`, value, 'boolean');
+      this.#renderingEngine.automaticResizing = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: automaticResizing was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).automaticResizing: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter beautyRenderBlendingDuration
+   */
+  public get beautyRenderBlendingDuration(): number {
+    this.isInitialized();
+    return this.#renderingEngine.beautyRenderBlendingDuration;
+  }
+
+  /**
+   * Setter beautyRenderBlendingDuration
+   */
+  public set beautyRenderBlendingDuration(value: number) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: Updating RenderBlendingDuration to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration`, value, 'positive');
+      this.#renderingEngine.beautyRenderBlendingDuration = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).beautyRenderBlendingDuration: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter beautyRenderDelay
+   */
+  public get beautyRenderDelay(): number {
+    this.isInitialized();
+    return this.#renderingEngine.beautyRenderDelay;
+  }
+
+  /**
+   * Setter beautyRenderDelay
+   */
+  public set beautyRenderDelay(value: number) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: Updating BeautyRenderDelay to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay`, value, 'positive');
+      this.#renderingEngine.beautyRenderDelay = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: beautyRenderDelay was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).beautyRenderDelay: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter blur
+   */
+  public get blur(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.blur;
+  }
+
+  /**
+   * Setter blur
+   */
+  public set blur(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: Updating Blur to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur`, value, 'boolean');
+      this.#renderingEngine.blur = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: blur was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).blur: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter blurSceneWhenBusy
+   */
+  public get blurSceneWhenBusy(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.blurSceneWhenBusy;
+  }
+
+  /**
+   * Setter blurSceneWhenBusy
+   */
+  public set blurSceneWhenBusy(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, value, 'boolean');
+      this.#renderingEngine.blurSceneWhenBusy = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).blurSceneWhenBusy: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter camera
+   */
+  public get camera(): Camera | null {
+    this.isInitialized();
+    if (this.#renderingEngine.cameraEngine.camera)
+      return this.cameras[this.#renderingEngine.cameraEngine.camera.id];
+    return null;
+  }
+
+  /**
+   * Getter cameras
+   */
+  public get cameras(): { [key: string]: Camera } {
+    this.isInitialized();
+    // add new cameras
+    for (let c in this.#renderingEngine.cameraEngine.cameras) {
+      if (!this.#cameras[c])
+        this.#cameras[c] = this.#renderingEngine.cameraEngine.cameras[c].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this) : new PerspectiveCamera(<PerspectiveCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this);
+    }
+
+    // delete cameras that don't exist
+    for (let c in this.#cameras) {
+      if (!this.#renderingEngine.cameraEngine.cameras)
+        delete this.#cameras[c];
+    }
+    return this.#cameras;
+  }
+
+  /**
+   * Getter clearAlpha
+   */
+  public get clearAlpha(): number {
+    this.isInitialized();
+    return this.#renderingEngine.clearAlpha;
+  }
+
+  /**
+   * Setter clearAlpha
+   */
+  public set clearAlpha(value: number) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: Updating ClearAlpha to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha`, value, 'factor');
+      this.#renderingEngine.clearAlpha = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: clearAlpha was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).clearAlpha: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter clearColor
+   */
+  public get clearColor(): string | number | vec3 {
+    this.isInitialized();
+    return this.#renderingEngine.clearColor;
+  }
+
+  /**
+   * Setter clearColor
+   */
+  public set clearColor(value: string | number | vec3) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor: Updating ClearColor to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor`, value, 'color');
+      this.#renderingEngine.clearColor = this.#converter.toColor(value);
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor: clearColor was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).clearColor: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter environmentMap
+   */
+  public get environmentMap(): string | string[] {
+    this.isInitialized();
+    return this.#renderingEngine.environmentMap;
+  }
+
+  /**
+   * Setter environmentMap
+   */
+  public set environmentMap(value: string | string[]) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: Updating EnvironmentMap to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, value, 'cubeMap');
+      this.#renderingEngine.environmentMap = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).environmentMap: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter environmentMapAsBackground
+   */
+  public get environmentMapAsBackground(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.environmentMapAsBackground;
+  }
+
+  /**
+   * Setter environmentMapAsBackground
+   */
+  public set environmentMapAsBackground(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground: Updating EnvironmentMapAsBackground to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground`, value, 'boolean');
+      this.#renderingEngine.environmentMapAsBackground = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground: environmentMapAsBackground was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).environmentMapAsBackground: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter environmentMapResolution
+   */
+  public get environmentMapResolution(): string {
+    this.isInitialized();
+    return this.#renderingEngine.environmentMapResolution;
+  }
+
+  /**
+   * Setter environmentMapResolution
+   */
+  public set environmentMapResolution(value: string) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: Updating EnvironmentMapResolution to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution`, value, 'string');
+      this.#renderingEngine.environmentMapResolution = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: environmentMapResolution was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).environmentMapResolution: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter gridVisibility
+   */
+  public get gridVisibility(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.gridVisibility;
+  }
+
+  /**
+   * Setter gridVisibility
+   */
+  public set gridVisibility(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: Updating GridVisibility to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility`, value, 'boolean');
+      this.#renderingEngine.gridVisibility = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: gridVisibility was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).gridVisibility: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter groundPlaneVisibility
+   */
+  public get groundPlaneVisibility(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.groundPlaneVisibility;
+  }
+
+  /**
+   * Setter groundPlaneVisibility
+   */
+  public set groundPlaneVisibility(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: Updating GroundPlaneVisibility to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility`, value, 'boolean');
+      this.#renderingEngine.groundPlaneVisibility = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).groundPlaneVisibility: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter id
+   */
+  public get id(): string {
+    if(!this.#renderingEngine) return '';
+    return this.#renderingEngine.id;
+  }
+
+  /**
+   * Getter initialized
+   */
+  public get initialized(): boolean {
+    return this.#initialized;
+  }
+
+  /**
+   * Getter lightScene
+   */
+  public get lightScene(): LightScene | null {
+    this.isInitialized();
+    if (this.#renderingEngine.lightEngine.lightScene)
+      return this.lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
+    return null;
+  }
+
+  /**
+   * Getter lightSceneId
+   */
+  public get lightSceneId(): string {
+    this.isInitialized();
+    if (this.#renderingEngine.lightEngine.lightScene)
+      return this.#renderingEngine.lightEngine.lightScene.id;
+    return '';
+  }
+
+  /**
+   * Setter lightSceneId
+   */
+  public set lightSceneId(value: string) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene: Updating LightScene to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene`, value, 'string');
+      if (this.assignLightScene(value)) {
+        this.#renderingEngine.lightScene = value;
+        this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene: lightScene was set to: ${value}`);
+      }
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).lightScene: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter lightScenes
+   */
+  public get lightScenes(): { [key: string]: LightScene } {
+    this.isInitialized();
+    // add new lightScenes
+    for (let l in this.#renderingEngine.lightEngine.lightScenes) {
+      if (!this.#lightScenes[l])
+        this.#lightScenes[l] = new LightScene(this.#renderingEngine.lightEngine.lightScenes[l], this);
+    }
+
+    // delete lightScenes that don't exist
+    for (let l in this.#lightScenes) {
+      if (!this.#renderingEngine.lightEngine.lightScenes[l])
+        delete this.#lightScenes[l];
+    }
+    return this.#lightScenes;
+  }
+
+  /**
+   * Getter pointSize
+   */
+  public get pointSize(): number {
+    this.isInitialized();
+    return this.#renderingEngine.pointSize;
+  }
+
+  /**
+   * Setter pointSize
+   */
+  public set pointSize(value: number) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: Updating PointSize to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize`, value, 'positive');
+      this.#renderingEngine.pointSize = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: pointSize was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).pointSize: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter renderingSettings
+   */
+  public get renderingSettings(): {
+    physicallyCorrectLights: boolean,
+    envMapIntensity: number,
+    envMapIntensityGroundPlane: number,
+    groundPlaneColor: string,
+    toneMapping: 0 | 1 | 2 | 3 | 4,
+    toneMappingExposure: number,
+    textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
+    outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
+  } {
+    this.isInitialized();
+    return this.#renderingEngine.renderingSettings;
+  }
+
+  /**
+   * Setter renderingSettings
+   */
+  public set renderingSettings(value: {
+    physicallyCorrectLights: boolean,
+    envMapIntensity: number,
+    envMapIntensityGroundPlane: number,
+    groundPlaneColor: string,
+    toneMapping: 0 | 1 | 2 | 3 | 4,
+    toneMappingExposure: number,
+    textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
+    outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
+  }) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings: Rendering settings were set to ${JSON.stringify(value)}.`);
+      this.isInitialized();
+      this.#renderingEngine.renderingSettings = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings: rendering settings were set to: ${JSON.stringify(value)}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).renderingSettings: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter shadows
+   */
+  public get shadows(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.shadows;
+  }
+
+  /**
+   * Setter shadows
+   */
+  public set shadows(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows: Updating Shadows to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows`, value, 'boolean');
+      this.#renderingEngine.shadows = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows: shadows was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).shadows: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter show
+   */
+  public get show(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.show;
+  }
+
+  /**
+   * Setter show
+   */
+  public set show(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show: Updating Show to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show`, value, 'boolean');
+      this.#renderingEngine.show = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show: show was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).show: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter showStatistics
+   */
+  public get showStatistics(): boolean {
+    this.isInitialized();
+    return this.#renderingEngine.showStatistics;
+  }
+
+  /**
+   * Setter 
+   */
+  public set showStatistics(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics: Updating ShowStatistics to ${value}.`);
+      this.isInitialized();
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics`, value, 'boolean');
+      this.#renderingEngine.showStatistics = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics: showStatistics was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).showStatistics: Something unexpected happened.`, true)
+    }
+  }
+
+  // #endregion Public Accessors (44)
+
+  // #region Public Methods (16)
 
   /**
    * Assign the camera with the specified id to the viewer.
@@ -307,10 +779,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, value, 'string');
 
-      if(!this.#busyModeIDs.includes(value)) return false;
+      if (!this.#busyModeIDs.includes(value)) return false;
       this.#busyModeIDs.splice(this.#busyModeIDs.indexOf(value), 1);
 
-      if(this.#busyModeIDs.length === 0)
+      if (this.#busyModeIDs.length === 0)
         this.#renderingEngine.busy = false;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Busy mode was deregistered for id: ${value}`);
       this.update();
@@ -355,26 +827,24 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   public async init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<void> {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Initializing Viewer with properties ${JSON.stringify(properties)}.`);
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer.init: Initializing Viewer with properties ${JSON.stringify(properties)}.`);
       // input validation
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, properties, 'object', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, properties, 'object', false);
       const props = Object.assign({}, properties);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.type, 'enum', false, Object.values(RENDERERTYPE));
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.canvas, 'HTMLCanvasElement', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.id, 'string', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init`, props.logo, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.type, 'enum', false, Object.values(RENDERERTYPE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.canvas, 'HTMLCanvasElement', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.id, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.logo, 'string', false);
 
       const viewerId = (props && props.id) ? props.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
       props.visibility = props.visibility || VISIBILITYMODE.SESSION;
       if (props) this.#properties = { id: viewerId || this.#properties.id, canvas: props.canvas || this.#properties.canvas, visibility: props.visibility || this.#properties.visibility, type: props.type || RENDERERTYPE.STANDARD, logo: props.logo || this.#properties.logo };
 
       this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
-      this.#renderingEngine.addUpdateCB(this.#updateCB);
-      this.#updateCB();
       container.registerInstance('renderingEngine', this.#renderingEngine);
 
-      if(!this.camera)
+      if (!this.camera)
         this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
 
       if (props.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
@@ -384,7 +854,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       }
 
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId: this.id });
-      (<any>this.initialized) = true;
+      this.#initialized = true;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Viewer initialized.`);
       this.update();
       return Promise.resolve();
@@ -396,7 +866,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
 
   public isInitialized() {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).isInitialized: Checking if Viewer was initialized.`);
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer.isInitialized: Checking if Viewer was initialized.`);
       if (!this.#renderingEngine) {
         const error = new SDError(`Viewer has not been initialized. Please initialize it first.`);
         this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
@@ -404,7 +874,7 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       }
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).isInitialized: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer.isInitialized: Something unexpected happened.`, true)
     }
   }
 
@@ -414,10 +884,10 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
       this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, value, 'string');
 
-      if(this.#busyModeIDs.includes(value)) return false;
+      if (this.#busyModeIDs.includes(value)) return false;
       this.#busyModeIDs.push(value);
 
-      if(this.blurSceneWhenBusy === true)
+      if (this.blurSceneWhenBusy === true)
         this.#renderingEngine.busy = true;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Busy mode was registered for id: ${value}`);
       this.update();
@@ -515,366 +985,5 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     }
   }
 
-  /**
-   * Enable / Disable the ambient occlusion
-   * @param {boolean} value
-   */
-  public updateAmbientOcclusion(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion: Updating AmbientOcclusion to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion`, value, 'boolean');
-      this.#renderingEngine.ambientOcclusion = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAmbientOcclusion: ambientOcclusion was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateAmbientOcclusion: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * If the canvas should be automatically resized
-   * @param {boolean} value
-   */
-  public updateAutomaticResizing(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing: Updating AutomaticResizing to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing`, value, 'boolean');
-      this.#renderingEngine.automaticResizing = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateAutomaticResizing: automaticResizing was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateAutomaticResizing: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Time to blend the beauty rendering
-   * @param {number} value
-   */
-  public updateBeautyRenderBlendingDuration(value: number) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: Updating RenderBlendingDuration to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration`, value, 'positive');
-      this.#renderingEngine.beautyRenderBlendingDuration = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateBeautyRenderBlendingDuration: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Time to delay the beauty rendering
-   * @param {number} value
-   */
-  public updateBeautyRenderDelay(value: number) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: Updating BeautyRenderDelay to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyRenderDelay`, value, 'positive');
-      this.#renderingEngine.beautyRenderDelay = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: beautyRenderDelay was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateBeautyBeautyRenderDelay: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Activate or de-active the blur.
-   * @param {boolean} value
-   */
-  public updateBlur(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur: Updating Blur to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur`, value, 'boolean');
-      this.#renderingEngine.blur = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlur: blur was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateBlur: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Blur or don't blur the scene while a session is busy
-   * @param {boolean} value
-   */
-  public updateBlurSceneWhenBusy(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy`, value, 'boolean');
-      this.#renderingEngine.blurSceneWhenBusy = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateBlurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateBlurSceneWhenBusy: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Background alpha value
-   * @param {number} value
-   */
-  public updateClearAlpha(value: number) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha: Updating ClearAlpha to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha`, value, 'factor');
-      this.#renderingEngine.clearAlpha = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearAlpha: clearAlpha was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateClearAlpha: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Background color value
-   * @param {string | number | vec3} value
-   */
-  public updateClearColor(value: string | number | vec3) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor: Updating ClearColor to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor`, value, 'color');
-      this.#renderingEngine.clearColor = this.#converter.toColor(value);
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateClearColor: clearColor was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateClearColor: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Name of the environment map to use, or an array of 6 image URLs making up the cube mapped environment map (px, nx, pz, nz, py, ny)
-   * @param {string | string[]} value
-   */
-  public async updateEnvironmentMap(value: string | string[]) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: Updating EnvironmentMap to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap`, value, 'cubeMap');
-
-      await new Promise<void>(resolve => {
-        const token = this.#eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: IEvent) => {
-          if((<IViewerEvent>e).viewerId === this.id) {
-            this.#eventEngine.removeListener(token);
-            resolve();
-          }
-        });
-        this.#renderingEngine.environmentMap = value;
-      })
-      
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMap: environmentMap was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateEnvironmentMap: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Show / Hide the environment map in the background
-   * @param {boolean} value
-   */
-  public updateEnvironmentMapAsBackground(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground: Updating EnvironmentMapAsBackground to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground`, value, 'boolean');
-      this.#renderingEngine.environmentMapAsBackground = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapAsBackground: environmentMapAsBackground was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateEnvironmentMapAsBackground: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Image resolution to be used for the named environment maps (available resolutions: 256, 512, 1024)
-   * @param {string} value
-   */
-  public updateEnvironmentMapResolution(value: string) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution: Updating EnvironmentMapResolution to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution`, value, 'string');
-      this.#renderingEngine.environmentMapResolution = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateEnvironmentMapResolution: environmentMapResolution was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateEnvironmentMapResolution: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Show / Hide the grid
-   * @param {boolean} value
-   */
-  public updateGridVisibility(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility: Updating GridVisibility to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility`, value, 'boolean');
-      this.#renderingEngine.gridVisibility = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGridVisibility: gridVisibility was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateGridVisibility: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Show / Hide the ground plane
-   * @param {boolean} value
-   */
-  public updateGroundPlaneVisibility(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility: Updating GroundPlaneVisibility to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility`, value, 'boolean');
-      this.#renderingEngine.groundPlaneVisibility = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateGroundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateGroundPlaneVisibility: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Setter lightScene
-   * @param {string} value
-   */
-  public updateLightScene(value: string) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene: Updating LightScene to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene`, value, 'string');
-      if (this.assignLightScene(value)) {
-        this.#renderingEngine.lightScene = value;
-        this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).updateLightScene: lightScene was set to: ${value}`);
-      }
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).updateLightScene: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Size of points
-   * @param {number} value
-   */
-  public updatePointSize(value: number) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize: Updating PointSize to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize`, value, 'positive');
-      this.#renderingEngine.pointSize = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updatePointSize: pointSize was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updatePointSize: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Rendering Settings
-   * @param {any} value
-   */
-  public updateRenderingSettings(value: {
-    physicallyCorrectLights: boolean,
-    envMapIntensity: number,
-    envMapIntensityGroundPlane: number,
-    groundPlaneColor: string,
-    toneMapping: 0 | 1 | 2 | 3 | 4,
-    toneMappingExposure: number,
-    textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
-    outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
-  }) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateRenderingSettings: Rendering settings were set to ${JSON.stringify(value)}.`);
-      this.isInitialized();
-      this.#renderingEngine.renderingSettings = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateRenderingSettings: rendering settings were set to: ${JSON.stringify(value)}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateRenderingSettings: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Enable / Disable shadows
-   * @param {boolean} value
-   */
-  public updateShadows(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows: Updating Shadows to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows`, value, 'boolean');
-      this.#renderingEngine.shadows = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShadows: shadows was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateShadows: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Show / Hide the scene
-   * @param {boolean} value
-   */
-  public updateShow(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow: Updating Show to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow`, value, 'boolean');
-      this.#renderingEngine.show = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShow: show was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateShow: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Show / Hide the statistics
-   * @param {boolean} value
-   */
-  public updateShowStatistics(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics: Updating ShowStatistics to ${value}.`);
-      this.isInitialized();
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics`, value, 'boolean');
-      this.#renderingEngine.showStatistics = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateShowStatistics: showStatistics was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateShowStatistics: Something unexpected happened.`, true)
-    }
-  }
-
-  // #endregion Public Methods (35)
+  // #endregion Public Methods (16)
 }

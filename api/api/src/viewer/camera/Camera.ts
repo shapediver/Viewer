@@ -5,44 +5,14 @@ import { InputValidator, Logger, LOGGINGTOPIC, SDError } from "@shapediver/viewe
 import { Box } from "@shapediver/viewer.shared.math";
 import { Viewer } from "../Viewer";
 export abstract class Camera implements ICamera {
-    // #region Properties (15)
+    // #region Properties (4)
 
     readonly #camera: ICamera;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #viewer: Viewer;
 
-    readonly autoAdjust!: boolean;
-    readonly cameraMovementDuration!: number;
-    readonly defaultPosition!: vec3;
-    readonly defaultTarget!: vec3;
-    readonly enableCameraControls!: boolean;
-    readonly id!: string;
-    readonly order!: number;
-    readonly position!: vec3;
-    readonly revertAtMouseUp!: boolean;
-    readonly revertAtMouseUpDuration!: number;
-    readonly target!: vec3;
-    readonly type!: CAMERATYPE;
-    readonly zoomExtentsFactor!: number;
-
-    readonly #updateCB = () => {
-        (<any>this.autoAdjust) = this.#camera.autoAdjust;
-        (<any>this.cameraMovementDuration) = this.#camera.cameraMovementDuration;
-        (<any>this.defaultPosition) = this.#camera.defaultPosition;
-        (<any>this.defaultTarget) = this.#camera.defaultTarget;
-        (<any>this.enableCameraControls) = this.#camera.enableCameraControls;
-        (<any>this.id) = this.#camera.id;
-        (<any>this.order) = this.#camera.order;
-        (<any>this.position) = this.#camera.position;
-        (<any>this.revertAtMouseUp) = this.#camera.revertAtMouseUp;
-        (<any>this.revertAtMouseUpDuration) = this.#camera.revertAtMouseUpDuration;
-        (<any>this.target) = this.#camera.target;
-        (<any>this.type) = this.#camera.type;
-        (<any>this.zoomExtentsFactor) = this.#camera.zoomExtentsFactor;
-    }
-
-    // #endregion Properties (15)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -54,8 +24,6 @@ export abstract class Camera implements ICamera {
         try {
             this.#camera = camera;
             this.#viewer = viewer;
-            (<AbstractCamera>this.#camera).addUpdateCB(this.#updateCB);
-            this.#updateCB();
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor: Camera api created.`);
         } catch (e) {
             if (e instanceof SDError) throw e;
@@ -65,13 +33,42 @@ export abstract class Camera implements ICamera {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (9)
+    // #region Public Accessors (24)
 
     /**
-     * Default duration of camera movements
-     * @param {number} value
+     * Setter autoAdjust
      */
-    public updateCameraMovementDuration(value: number) {
+    public set autoAdjust(value: boolean) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust: Updating AutoAdjust to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust`, value, 'boolean');
+            this.#camera.autoAdjust = value;
+            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust: autoAdjust was set to: ${value}`);
+            this.#viewer.update();
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).autoAdjust: Something unexpected happened.`, true)
+        }
+    }
+
+    /**
+     * Getter autoAdjust
+     */
+    public get autoAdjust(): boolean {
+        return this.#camera.autoAdjust;
+    }
+
+    /**
+     * Getter cameraMovementDuration
+     */
+    public get cameraMovementDuration(): number {
+        return this.#camera.cameraMovementDuration;
+    }
+
+    /**
+     * Setter cameraMovementDuration
+     */
+    public set cameraMovementDuration(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration: Updating CameraMovementDuration to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration`, value, 'positive');
@@ -85,10 +82,16 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * The defaultPosition of the camera
-     * @param {vec3} value
+     * Getter defaultPosition
      */
-    public updateDefaultPosition(value: vec3) {
+    public get defaultPosition(): vec3 {
+        return this.#camera.defaultPosition;
+    }
+
+    /**
+     * Setter defaultPosition
+     */
+    public set defaultPosition(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition: Updating DefaultPosition to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition`, value, 'vec3');
@@ -102,10 +105,16 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * The defaultTarget of the camera
-     * @param {vec3} value
+     * Getter defaultTarget
      */
-    public updateDefaultTarget(value: vec3) {
+    public get defaultTarget(): vec3 {
+        return this.#camera.defaultTarget;
+    }
+
+    /**
+     * Setter defaultTarget
+     */
+    public set defaultTarget(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget: Updating DefaultTarget to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget`, value, 'vec3');
@@ -119,10 +128,16 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Enable / Disable the camera controls
-     * @param {boolean} value
+     * Getter enableCameraControls
      */
-    public updateEnableCameraControls(value: boolean) {
+    public get enableCameraControls(): boolean {
+        return this.#camera.enableCameraControls;
+    }
+
+    /**
+     * Setter enableCameraControls
+     */
+    public set enableCameraControls(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls: Updating EnableCameraControls to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls`, value, 'boolean');
@@ -136,9 +151,23 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * The order of the camera
+     * Getter id
      */
-    public updateOrder(value: number | undefined) {
+    public get id(): string {
+        return this.#camera.id;
+    }
+
+    /**
+     * Getter order
+     */
+    public get order(): number | undefined {
+        return this.#camera.order;
+    }
+
+    /**
+     * Setter order
+     */
+    public set order(value: number | undefined) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateOrder: Updating Order to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateOrder`, value, 'number', false);
@@ -152,10 +181,16 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * The position of the camera
-     * @param {vec3} value
+     * Getter position
      */
-    public updatePosition(value: vec3) {
+    public get position(): vec3 {
+        return this.#camera.position;
+    }
+
+    /**
+     * Setter position
+     */
+    public set position(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition: Updating Position to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition`, value, 'vec3');
@@ -169,10 +204,16 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Enable / Disable if the mouse should reset on mouse up
-     * @param {boolean} value
+     * Getter revertAtMouseUp
      */
-    public updateRevertAtMouseUp(value: boolean) {
+    public get revertAtMouseUp(): boolean {
+        return this.#camera.revertAtMouseUp;
+    }
+
+    /**
+     * Setter revertAtMouseUp
+     */
+    public set revertAtMouseUp(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp: Updating RevertAtMouseUp to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp`, value, 'boolean');
@@ -186,10 +227,16 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * The duration of the transition of the revertAtMouseUp
-     * @param {number} value
+     * Getter revertAtMouseUpDuration
      */
-    public updateRevertAtMouseUpDuration(value: number) {
+    public get revertAtMouseUpDuration(): number {
+        return this.#camera.revertAtMouseUpDuration;
+    }
+
+    /**
+     * Setter revertAtMouseUpDuration
+     */
+    public set revertAtMouseUpDuration(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration: Updating RevertAtMouseUpDuration to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration`, value, 'positive');
@@ -203,10 +250,16 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * The target of the camera
-     * @param {vec3} value
+     * Getter target
      */
-    public updateTarget(value: vec3) {
+    public get target(): vec3 {
+        return this.#camera.target;
+    }
+
+    /**
+     * Setter target
+     */
+    public set target(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget: Updating Target to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget`, value, 'vec3');
@@ -220,10 +273,23 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Factor to apply to the bounding box before zooming to extents
-     * @param {number} value
+     * Getter type
      */
-    public updateZoomExtentsFactor(value: number) {
+    public get type(): CAMERATYPE {
+        return this.#camera.type;
+    }
+
+    /**
+     * Getter zoomExtentsFactor
+     */
+    public get zoomExtentsFactor(): number {
+        return this.#camera.zoomExtentsFactor;
+    }
+
+    /**
+     * Setter zoomExtentsFactor
+     */
+    public set zoomExtentsFactor(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor: Updating ZoomExtentsFactor to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor`, value, 'positive');
@@ -236,9 +302,9 @@ export abstract class Camera implements ICamera {
         }
     }
 
-    // #endregion Public Accessors (9)
+    // #endregion Public Accessors (24)
 
-    // #region Public Methods (5)
+    // #region Public Methods (4)
 
     /**
      * Let the camera follow a path from different position and target pairs to another.
@@ -318,23 +384,6 @@ export abstract class Camera implements ICamera {
     }
 
     /**
-     * Enable / Disable that the camera adjusts to geometry updates
-     * @param {boolean} value
-     */
-    public updateAutoAdjust(value: boolean) {
-        try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust: Updating AutoAdjust to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust`, value, 'boolean');
-            this.#camera.autoAdjust = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateAutoAdjust: autoAdjust was set to: ${value}`);
-            this.#viewer.update();
-        } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).updateAutoAdjust: Something unexpected happened.`, true)
-        }
-    }
-
-    /**
      * Zoom in on a specific part of the scene, or the whole scene (default).
      * 
      * @param zoomTarget the target to zoom to
@@ -364,5 +413,5 @@ export abstract class Camera implements ICamera {
         }
     }
 
-    // #endregion Public Methods (5)
+    // #endregion Public Methods (4)
 }

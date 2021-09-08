@@ -548,7 +548,7 @@ export class Api {
       this.viewers[viewerId] = viewer;
       this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewerId}) created.`);
       return this.viewers[viewerId];
     } catch (e) {
       if (e instanceof SDError) throw e;

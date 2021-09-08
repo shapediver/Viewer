@@ -46,11 +46,11 @@ let currentNode: TreeNode;
 
 (async () => {
     let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png' });
-    viewer.updateAmbientOcclusion(false);
-    viewer.updateGroundPlaneVisibility(false);
-    viewer.updateEnvironmentMap(ENVIRONMENTMAP.CANNON_EXTERIOR);
-    viewer.updateGridVisibility(false);
-    viewer.updateClearColor('rgb(3, 5, 49)')
+    viewer.ambientOcclusion = false;
+    viewer.groundPlaneVisibility = false;
+    viewer.environmentMap = ENVIRONMENTMAP.CANNON_EXTERIOR;
+    viewer.gridVisibility = false;
+    viewer.clearColor = 'rgb(3, 5, 49)'
 })();
 
 
@@ -66,7 +66,7 @@ let currentNode: TreeNode;
     api.sceneTree.addNode(currentNode);
     api.update()
     await viewer.camera!.zoomTo([], { duration: 0 });
-    viewer.updateShow(true);
+    viewer.show = true;
 }
 document.addEventListener("dragover", (event) => {
     event.preventDefault();

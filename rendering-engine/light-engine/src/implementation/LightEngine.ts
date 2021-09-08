@@ -23,7 +23,6 @@ export class LightEngine implements ILightEngine {
 
     private _lightScene!: LightScene;
     private _lightScenes: { [key: string]: LightScene; } = {};
-    private _updateCBs: (() => void)[] = [];
 
     // #endregion Properties (6)
 
@@ -48,10 +47,6 @@ export class LightEngine implements ILightEngine {
     // #endregion Public Accessors (2)
 
     // #region Public Methods (6)
-
-    public addUpdateCB(value: () => void) {
-        this._updateCBs.push(value);
-    }
 
     public applySettings(): void {
         this._lightScenes = {};
@@ -156,7 +151,6 @@ export class LightEngine implements ILightEngine {
             const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
             this._lightScenes[ls.id] = ls;
         }
-        this._updateCBs.forEach(v => v());
     }
 
     public assignLightScene(id: string): boolean {
@@ -166,7 +160,6 @@ export class LightEngine implements ILightEngine {
                 const lightSceneName = lightScene.name || lightSceneId;
                 if(lightSceneName === id) {
                     const res = this.assignLightScene(lightSceneId);
-                    this._updateCBs.forEach(v => v());
                     return res;
                 }
             }
@@ -174,7 +167,6 @@ export class LightEngine implements ILightEngine {
         }
         this._lightScene = this._lightScenes[id];
         
-        this._updateCBs.forEach(v => v());
         return true;
     }
 
@@ -186,7 +178,6 @@ export class LightEngine implements ILightEngine {
         this._lightScenes[lightSceneId] = lightScene;
         this._lightScene = lightScene;
         
-        this._updateCBs.forEach(v => v());
         return lightScene;
     }
 
@@ -197,7 +188,6 @@ export class LightEngine implements ILightEngine {
                 const lightSceneName = lightScene.name || lightSceneId;
                 if(lightSceneName === id) {
                     const res = this.removeLightScene(lightSceneId);
-                    this._updateCBs.forEach(v => v());
                     return res;
                 }
             }
@@ -207,7 +197,6 @@ export class LightEngine implements ILightEngine {
         if(this._lightScene.id === id)
             (<any>this._lightScene) = undefined;
         
-        this._updateCBs.forEach(v => v());
         return true;
     }
 

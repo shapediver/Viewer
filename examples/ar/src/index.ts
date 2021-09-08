@@ -94,7 +94,7 @@ submit.onclick = async () => {
 }
 
 (<any>window).loadAR = async () => {
-    api.viewers['myViewer'].updateBlur(true);
+    api.viewers['myViewer'].blur = true;
     await api.viewInAR();
-    api.viewers['myViewer'].updateBlur(false);
+    api.viewers['myViewer'].blur = false;
 }

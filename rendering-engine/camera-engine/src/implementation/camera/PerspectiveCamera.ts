@@ -60,7 +60,6 @@ export class PerspectiveCamera extends AbstractCamera {
    */
   public set fov(value: number) {
     this._fov = value;
-    this._updateCBs.forEach(v => v());
   }
 
   // #endregion Public Accessors (4)

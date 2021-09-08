@@ -74,45 +74,42 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.hidden = (false);
 
 
-                viewer.updateBlurSceneWhenBusy(true);
+                viewer.blurSceneWhenBusy = true;
                 const camera = viewer.createPerspectiveCamera();
                 viewer.assignCamera(camera.id);
-                camera!.updateAutoAdjust(false);
-                camera!.updateCameraMovementDuration(800);
-                camera!.updateDefaultPosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
-                camera!.updateDefaultTarget([0, 7, -3.25]);
-                camera!.updatePosition([58.03696060180664, -290.11590576171875, 87.67756652832031]);
-                camera!.updateTarget([0, 7, -3.25]);
-                (<any>camera!).updateFov(45);
-                (<any>camera!).controls.updateAutoRotationSpeed(0);
-                (<any>camera!).controls.updateDamping(0.1);
-                viewer.updateEnvironmentMap('none');
-                viewer.updateEnvironmentMapAsBackground(false);
-                viewer.updateGridVisibility(true);
-                viewer.updateClearAlpha(1);
-                viewer.updateClearColor('#ffffff');
-
-                viewer.updateGroundPlaneVisibility(true);
-                viewer.updateEnvironmentMap('none');
+                camera!.autoAdjust = (false);
+                camera!.cameraMovementDuration = (800);
+                camera!.defaultPosition = ([58.03696060180664, -290.11590576171875, 87.67756652832031]);
+                camera!.defaultTarget = ([0, 7, -3.25]);
+                camera!.position = ([58.03696060180664, -290.11590576171875, 87.67756652832031]);
+                camera!.target = ([0, 7, -3.25]);
+                (<any>camera!).fov = (45);
+                (<any>camera!).controls.autoRotationSpeed = (0);
+                (<any>camera!).controls.damping = (0.1);
+                viewer.environmentMap = ('none');
+                viewer.environmentMapAsBackground = (false);
+                viewer.gridVisibility = (true);
+                viewer.groundPlaneVisibility = (true);
+                viewer.environmentMap = ('none');
 
                 const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
                     if(l !== '6e219562-c916-4492-b9b9-1dfbac80d51f' && l !== '70bc760c-45dc-46b0-9cd2-8990ac77124f' && l !== '748019ac-ce54-4de7-94d2-737dae6579dd')
                         viewer.lightScene!.removeLight(l)
                 }
-                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateName('ambient0')
-                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateIntensity(0.5)
-                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateColor('#ffffff')
+                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].name = ('ambient0')
+                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].intensity = (0.5)
+                viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].color = ('#ffffff')
 
-                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].updateName('directional0')
-                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].updateIntensity(0.75)
-                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].updateColor('#ffffff');
-                (<DirectionalLight>viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"]).updateDirection([0.5774000287055969, -0.5774000287055969, 0.5774000287055969])
+                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].name = ('directional0')
+                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].intensity = (0.75)
+                viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"].color = ('#ffffff');
+                (<DirectionalLight>viewer.lightScene!.lights["70bc760c-45dc-46b0-9cd2-8990ac77124f"]).direction = ([0.5774000287055969, -0.5774000287055969, 0.5774000287055969])
 
-                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].updateName('directional1')
-                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].updateIntensity(0.35)
-                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].updateColor('#ffffff')<
-                (<DirectionalLight>viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"]).updateDirection([0.25, -1, 1])
+                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].name = ('directional1')
+                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].intensity = (0.35)
+                viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"].color = ('#ffffff');
+                (<DirectionalLight>viewer.lightScene!.lights["6e219562-c916-4492-b9b9-1dfbac80d51f"]).direction = ([0.25, -1, 1])
                 viewer.update();
                 await session.saveSettings();
                 cb();
@@ -154,7 +151,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateGridVisibility(false);
+                viewer.gridVisibility = (false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -170,7 +167,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateGridVisibility(true);
+                viewer.gridVisibility = (true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -203,7 +200,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateGroundPlaneVisibility(false);
+                viewer.groundPlaneVisibility = (false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -219,7 +216,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateGroundPlaneVisibility(true);
+                viewer.groundPlaneVisibility = (true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -253,7 +250,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateEnvironmentMap('georgentor');
+                viewer.environmentMap = ('georgentor');
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -270,7 +267,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateEnvironmentMap('none');
+                viewer.environmentMap = ('none');
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -304,8 +301,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateEnvironmentMap('georgentor');
-                viewer.updateEnvironmentMapAsBackground(true);
+                viewer.environmentMap = ('georgentor');
+                viewer.environmentMapAsBackground = (true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -322,8 +319,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateEnvironmentMap('none');
-                viewer.updateEnvironmentMapAsBackground(false);
+                viewer.environmentMap = ('none');
+                viewer.environmentMapAsBackground = (false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -356,7 +353,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateEnvironmentMapResolution('512');
+                viewer.environmentMapResolution = ('512');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -367,7 +364,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateEnvironmentMapResolution('1024');
+                viewer.environmentMapResolution = ('1024');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -394,7 +391,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateAmbientOcclusion(false);
+                viewer.ambientOcclusion = (false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -410,7 +407,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateAmbientOcclusion(true);
+                viewer.ambientOcclusion = (true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -442,7 +439,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateBeautyRenderBlendingDuration(500);
+                viewer.beautyRenderBlendingDuration = (500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -453,7 +450,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateBeautyRenderBlendingDuration(1500);
+                viewer.beautyRenderBlendingDuration = (1500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -479,7 +476,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateBeautyRenderDelay(500);
+                viewer.beautyRenderDelay = (500);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -490,7 +487,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateBeautyRenderDelay(50);
+                viewer.beautyRenderDelay = (50);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -518,7 +515,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateClearAlpha(0);
+                viewer.clearAlpha = (0);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -534,7 +531,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateClearAlpha(1);
+                viewer.clearAlpha = (1);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -566,7 +563,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateClearColor('#ff0000');
+                viewer.clearColor = ('#ff0000');
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -582,7 +579,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateClearColor('#ffffff');
+                viewer.clearColor = ('#ffffff');
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -620,7 +617,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateShadows(false);
+                viewer.shadows = (false);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -636,7 +633,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                viewer.updateShadows(true);
+                viewer.shadows = (true);
                 viewer.update();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
