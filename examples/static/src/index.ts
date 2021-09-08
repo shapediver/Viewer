@@ -5,7 +5,7 @@ import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, Export, EXPORTTYPE, LIGHTTY
 let viewer: Viewer, session: Session;
 
 (async () => {
-    viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
+    viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
 })();
 
 (<any>window).RENDERERTYPE = RENDERERTYPE;
@@ -31,7 +31,7 @@ let viewer: Viewer, session: Session;
     returnDTOs?: boolean, 
     id?: string 
 }): Promise<void> => {
-    session = await api.createAndInitializeSession(properties);
+    session = await api.createSession(properties);
     api.update()
 }
 

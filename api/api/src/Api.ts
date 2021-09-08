@@ -1,7 +1,7 @@
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
-import { EventEngine, EVENTTYPE, IEvent, ISessionEvent, MAINEVENTTYPE, SettingsEngine, StateEngine, InputValidator, UuidGenerator, Logger, LOGGINGLEVEL, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, IEvent, ISessionEvent, MAINEVENTTYPE, SettingsEngine, StateEngine, InputValidator, UuidGenerator, Logger, LOGGINGLEVEL, LOGGINGTOPIC, SDError, IViewerEvent } from '@shapediver/viewer.shared.services'
 import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
@@ -370,108 +370,9 @@ export class Api {
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  public async createAndInitializeSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Promise<Session> {
+  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Promise<Session> {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
-      // input validation
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties, 'object');
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.ticket, 'string');
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.modelViewUrl, 'string');
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.bearerToken, 'string', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.primarySession, 'boolean', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.excludeViewers, 'stringArray', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession`, properties.id, 'string', false);
-
-      // check if the given id is valid
-      const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-      if (this.sessions[sessionId]) {
-        const error = new SDError(`Api.createAndInitializeSession: Session with this id (${sessionId}) already exists.`);
-        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
-        throw error;
-      }
-
-      const session = this.createSession(properties);
-      await session.init();
-      this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createAndInitializeSession: Session(${session.id}) created and initialized.`);
-      return session;
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Api.createAndInitializeSession: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Create and initialize a viewer with the provided type and canvas.
-   * An id can be provided. This id can be used to retrieve this object later on.
-   * In the case no id has been provided, a unique one will be generated.
-   * 
-   * The viewer will automatically load what is currently in the scene tree.
-   * 
-   * @param properties.type the type of the viewer
-   * @param properties.visibility the visibility of the viewer
-   * @param properties.canvas the canvas that the viewer should use
-   * @param properties.id the unique id the session should have 
-   * @param properties.logo an optional logo while the viewer is hidden
-   * @returns 
-   */
-  public async createAndInitializeViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<Viewer> {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createAndInitializeViewer', properties, 'object', false);
-      const prop = Object.assign({}, properties);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.canvas, 'HTMLCanvasElement', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.id, 'string', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer`, prop.logo, 'string', false);
-
-      // check if the given id is valid
-      const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
-      if (this.viewers[viewerId]) {
-        const error = new SDError(`Api.createAndInitializeViewer: Viewer with this id (${viewerId}) already exists.`);
-        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
-        throw error;
-      }
-
-      // create the actual viewer
-      let viewerCallbacks = {};
-      const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
-
-      // save the viewer
-      this.viewers[viewerId] = viewer;
-      this.#viewerCallbacks[viewerId] = viewerCallbacks;
-
-      // init and update the viewer with the current scene tree
-      await viewer.init(prop);
-      viewer.update();
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId });
-
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createAndInitializeViewer: Viewer(${viewer.id}) created and initialized.`);
-      return this.viewers[viewerId];
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.createAndInitializeViewer: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Create a session with the provided ticket and modelViewUrl.
-   * An id can be provided. This id can be used to retrieve this object later on.
-   * In the case no id has been provided, a unique one will be generated.
-   * 
-   * A bearerToken can be provided (JWT).
-   * 
-   * @param properties.ticket the ticket of a session
-   * @param properties.modelViewUrl the modelViewUrl of the session
-   * @param properties.bearerToken the bearerToken of the session
-   * @param properties.primarySession the bearerToken of the session
-   * @param properties.id the unique id the session should have
-   * @returns 
-   */
-  public createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Session {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating session with properties ${JSON.stringify(properties)}.`);
+      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
       // input validation
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties, 'object');
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.ticket, 'string');
@@ -498,6 +399,7 @@ export class Api {
       this.sessions[sessionId] = session;
       this.#sessionCallbacks[sessionId] = sessionCallbacks;
 
+      await session.init();
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
     } catch (e) {
@@ -507,7 +409,7 @@ export class Api {
   }
 
   /**
-   * Create a viewer with the provided type and canvas.
+   * Create and initialize a viewer with the provided type and canvas.
    * An id can be provided. This id can be used to retrieve this object later on.
    * In the case no id has been provided, a unique one will be generated.
    * 
@@ -520,9 +422,9 @@ export class Api {
    * @param properties.logo an optional logo while the viewer is hidden
    * @returns 
    */
-  public createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Viewer {
+  public async createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<Viewer> {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating viewer with properties ${JSON.stringify(properties)}.`);
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
       const prop = Object.assign({}, properties);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));
@@ -544,11 +446,20 @@ export class Api {
       const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
 
+      if (prop.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
+        await new Promise<void>(resolve => {
+          this.#stateEngine.getCustomState(viewerId + '_settings_loaded').then(() => resolve())
+        })
+      }
+
       // save the viewer
       this.viewers[viewerId] = viewer;
       this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewerId}) created.`);
+      viewer.update();
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId });
+
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
       return this.viewers[viewerId];
     } catch (e) {
       if (e instanceof SDError) throw e;

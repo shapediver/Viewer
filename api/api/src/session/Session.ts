@@ -831,8 +831,7 @@ export class Session {
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
             for (let i = 0; i < viewerIds.length; i++)
-                if (this.#api.viewers[viewerIds[i]].initialized)
-                    viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.getCustomState(this.#api.viewers[viewerIds[i]].id + '_settings_loaded'); state.resolved === true ? resolve() : state.then(() => resolve()) }));
+                viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.getCustomState(this.#api.viewers[viewerIds[i]].id + '_settings_loaded'); state.resolved === true ? resolve() : state.then(() => resolve()) }));
 
             this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
             await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));

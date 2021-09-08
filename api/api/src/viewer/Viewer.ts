@@ -30,8 +30,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
   #busyModeIDs: string[] = [];
-  #initialized = false;
-  #properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE, logo: string };
   #renderingEngine!: RenderingEngineThreejs;
 
   // #endregion Properties (12)
@@ -46,7 +44,14 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    */
   constructor(properties: { id: string, canvas?: HTMLCanvasElement, type: RENDERERTYPE, visibility: VISIBILITYMODE, logo: string }, callbacks: any) {
     try {
-      this.#properties = properties;
+      this.#renderingEngine = new RenderingEngineThreejs(properties);
+      container.registerInstance('renderingEngine', this.#renderingEngine);
+
+      if (!this.camera)
+        this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
+
+      this.update();
+
       callbacks.close = async (): Promise<boolean> => {
         const closeResult = await this.#renderingEngine.close();
         this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, { viewerId: properties.id });
@@ -54,7 +59,8 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
         if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}): Was not able to close viewer completely, please disregard this viewer.`);
         return closeResult;
       }
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer api created.`);
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId: properties.id });
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer created.`);
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${properties.id}).constructor: Something unexpected happened.`, true)
@@ -69,7 +75,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter ambientOcclusion
    */
   public get ambientOcclusion(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.ambientOcclusion;
   }
 
@@ -79,7 +84,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set ambientOcclusion(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: Updating AmbientOcclusion to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion`, value, 'boolean');
       this.#renderingEngine.ambientOcclusion = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: ambientOcclusion was set to: ${value}`);
@@ -94,7 +98,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter automaticResizing
    */
   public get automaticResizing(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.automaticResizing;
   }
 
@@ -104,7 +107,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set automaticResizing(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: Updating AutomaticResizing to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing`, value, 'boolean');
       this.#renderingEngine.automaticResizing = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: automaticResizing was set to: ${value}`);
@@ -119,7 +121,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter beautyRenderBlendingDuration
    */
   public get beautyRenderBlendingDuration(): number {
-    this.isInitialized();
     return this.#renderingEngine.beautyRenderBlendingDuration;
   }
 
@@ -129,7 +130,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set beautyRenderBlendingDuration(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: Updating RenderBlendingDuration to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration`, value, 'positive');
       this.#renderingEngine.beautyRenderBlendingDuration = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
@@ -144,7 +144,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter beautyRenderDelay
    */
   public get beautyRenderDelay(): number {
-    this.isInitialized();
     return this.#renderingEngine.beautyRenderDelay;
   }
 
@@ -154,7 +153,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set beautyRenderDelay(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: Updating BeautyRenderDelay to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay`, value, 'positive');
       this.#renderingEngine.beautyRenderDelay = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: beautyRenderDelay was set to: ${value}`);
@@ -169,7 +167,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter blur
    */
   public get blur(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.blur;
   }
 
@@ -179,7 +176,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set blur(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: Updating Blur to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur`, value, 'boolean');
       this.#renderingEngine.blur = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: blur was set to: ${value}`);
@@ -194,7 +190,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter blurSceneWhenBusy
    */
   public get blurSceneWhenBusy(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.blurSceneWhenBusy;
   }
 
@@ -204,7 +199,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set blurSceneWhenBusy(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, value, 'boolean');
       this.#renderingEngine.blurSceneWhenBusy = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
@@ -219,7 +213,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter camera
    */
   public get camera(): Camera | null {
-    this.isInitialized();
     if (this.#renderingEngine.cameraEngine.camera)
       return this.cameras[this.#renderingEngine.cameraEngine.camera.id];
     return null;
@@ -229,7 +222,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter cameras
    */
   public get cameras(): { [key: string]: Camera } {
-    this.isInitialized();
     // add new cameras
     for (let c in this.#renderingEngine.cameraEngine.cameras) {
       if (!this.#cameras[c])
@@ -248,7 +240,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter clearAlpha
    */
   public get clearAlpha(): number {
-    this.isInitialized();
     return this.#renderingEngine.clearAlpha;
   }
 
@@ -258,7 +249,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set clearAlpha(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: Updating ClearAlpha to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha`, value, 'factor');
       this.#renderingEngine.clearAlpha = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: clearAlpha was set to: ${value}`);
@@ -273,7 +263,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter clearColor
    */
   public get clearColor(): string | number | vec3 {
-    this.isInitialized();
     return this.#renderingEngine.clearColor;
   }
 
@@ -283,7 +272,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set clearColor(value: string | number | vec3) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor: Updating ClearColor to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor`, value, 'color');
       this.#renderingEngine.clearColor = this.#converter.toColor(value);
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor: clearColor was set to: ${value}`);
@@ -298,7 +286,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter environmentMap
    */
   public get environmentMap(): string | string[] {
-    this.isInitialized();
     return this.#renderingEngine.environmentMap;
   }
 
@@ -308,7 +295,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set environmentMap(value: string | string[]) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: Updating EnvironmentMap to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, value, 'cubeMap');
       this.#renderingEngine.environmentMap = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
@@ -323,7 +309,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter environmentMapAsBackground
    */
   public get environmentMapAsBackground(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.environmentMapAsBackground;
   }
 
@@ -347,7 +332,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter environmentMapResolution
    */
   public get environmentMapResolution(): string {
-    this.isInitialized();
     return this.#renderingEngine.environmentMapResolution;
   }
 
@@ -357,7 +341,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set environmentMapResolution(value: string) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: Updating EnvironmentMapResolution to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution`, value, 'string');
       this.#renderingEngine.environmentMapResolution = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: environmentMapResolution was set to: ${value}`);
@@ -372,7 +355,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter gridVisibility
    */
   public get gridVisibility(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.gridVisibility;
   }
 
@@ -382,7 +364,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set gridVisibility(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: Updating GridVisibility to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility`, value, 'boolean');
       this.#renderingEngine.gridVisibility = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: gridVisibility was set to: ${value}`);
@@ -397,7 +378,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter groundPlaneVisibility
    */
   public get groundPlaneVisibility(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.groundPlaneVisibility;
   }
 
@@ -407,7 +387,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set groundPlaneVisibility(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: Updating GroundPlaneVisibility to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility`, value, 'boolean');
       this.#renderingEngine.groundPlaneVisibility = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
@@ -427,17 +406,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }
 
   /**
-   * Getter initialized
-   */
-  public get initialized(): boolean {
-    return this.#initialized;
-  }
-
-  /**
    * Getter lightScene
    */
   public get lightScene(): LightScene | null {
-    this.isInitialized();
     if (this.#renderingEngine.lightEngine.lightScene)
       return this.lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
     return null;
@@ -447,7 +418,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter lightSceneId
    */
   public get lightSceneId(): string {
-    this.isInitialized();
     if (this.#renderingEngine.lightEngine.lightScene)
       return this.#renderingEngine.lightEngine.lightScene.id;
     return '';
@@ -459,7 +429,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set lightSceneId(value: string) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene: Updating LightScene to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene`, value, 'string');
       if (this.assignLightScene(value)) {
         this.#renderingEngine.lightScene = value;
@@ -476,7 +445,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter lightScenes
    */
   public get lightScenes(): { [key: string]: LightScene } {
-    this.isInitialized();
     // add new lightScenes
     for (let l in this.#renderingEngine.lightEngine.lightScenes) {
       if (!this.#lightScenes[l])
@@ -495,7 +463,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter pointSize
    */
   public get pointSize(): number {
-    this.isInitialized();
     return this.#renderingEngine.pointSize;
   }
 
@@ -505,7 +472,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set pointSize(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: Updating PointSize to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize`, value, 'positive');
       this.#renderingEngine.pointSize = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: pointSize was set to: ${value}`);
@@ -529,7 +495,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
     outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
   } {
-    this.isInitialized();
     return this.#renderingEngine.renderingSettings;
   }
 
@@ -548,7 +513,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   }) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings: Rendering settings were set to ${JSON.stringify(value)}.`);
-      this.isInitialized();
       this.#renderingEngine.renderingSettings = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings: rendering settings were set to: ${JSON.stringify(value)}`);
       this.update();
@@ -562,7 +526,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter shadows
    */
   public get shadows(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.shadows;
   }
 
@@ -572,7 +535,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set shadows(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows: Updating Shadows to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows`, value, 'boolean');
       this.#renderingEngine.shadows = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows: shadows was set to: ${value}`);
@@ -587,7 +549,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter show
    */
   public get show(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.show;
   }
 
@@ -597,7 +558,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set show(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show: Updating Show to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show`, value, 'boolean');
       this.#renderingEngine.show = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show: show was set to: ${value}`);
@@ -612,7 +572,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
    * Getter showStatistics
    */
   public get showStatistics(): boolean {
-    this.isInitialized();
     return this.#renderingEngine.showStatistics;
   }
 
@@ -622,7 +581,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public set showStatistics(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics: Updating ShowStatistics to ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics`, value, 'boolean');
       this.#renderingEngine.showStatistics = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics: showStatistics was set to: ${value}`);
@@ -645,7 +603,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public assignCamera(id: string): void {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Assigning Camera with id ${id}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera`, id, 'string');
       this.#renderingEngine.cameraEngine.assignCamera(id);
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Camera with id ${id} assigned.`);
@@ -665,7 +622,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public assignLightScene(id: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigning LightScene with id ${id}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene`, id, 'string');
       if (this.lightScene && this.lightScene.id === id) {
         this.#logger.warn(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: The light scene with id ${id} was already assigned.`);
@@ -694,7 +650,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public createCamera(type: CAMERATYPE, id?: string): Camera {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: Creating Camera with id ${id} and type ${type}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, type, 'enum', true, Object.values(CAMERATYPE));
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, id, 'string', false);
       const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
@@ -719,7 +674,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public createLightScene(properties?: { name?: string, standard?: boolean }): LightScene {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: Creating LightScene with properties ${properties}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, properties, 'object', false);
       const props = Object.assign({}, properties);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.name, 'string', false);
@@ -776,7 +730,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public deregisterBusyMode(value: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Deregistering busy mode for id ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, value, 'string');
 
       if (!this.#busyModeIDs.includes(value)) return false;
@@ -803,7 +756,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public getScreenshot(type?: string, quality?: number): string {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: Getting getScreenshot with type ${type} and quality ${quality}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, type, 'string', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, quality, 'factor', false);
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: screenshot was requested`);
@@ -814,74 +766,9 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
     }
   }
 
-  /**
-   * Initialize the viewer.
-   * Normally, there is no need to call this function.
-   * The initialization is done on creation via the api.
-   * 
-   * @param properties.type the type of the viewer
-   * @param properties.visibility the visibility of the viewer
-   * @param properties.canvas the canvas that the viewer should use
-   * @param properties.id the unique id the session should have 
-   * @param properties.logo an optional logo while the viewer is hidden
-   */
-  public async init(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<void> {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer.init: Initializing Viewer with properties ${JSON.stringify(properties)}.`);
-      // input validation
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, properties, 'object', false);
-      const props = Object.assign({}, properties);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.type, 'enum', false, Object.values(RENDERERTYPE));
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.visibility, 'enum', false, Object.values(VISIBILITYMODE));
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.canvas, 'HTMLCanvasElement', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.id, 'string', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.init`, props.logo, 'string', false);
-
-      const viewerId = (props && props.id) ? props.id : (<UuidGenerator>container.resolve(UuidGenerator)).create();
-      props.visibility = props.visibility || VISIBILITYMODE.SESSION;
-      if (props) this.#properties = { id: viewerId || this.#properties.id, canvas: props.canvas || this.#properties.canvas, visibility: props.visibility || this.#properties.visibility, type: props.type || RENDERERTYPE.STANDARD, logo: props.logo || this.#properties.logo };
-
-      this.#renderingEngine = new RenderingEngineThreejs(this.#properties);
-      container.registerInstance('renderingEngine', this.#renderingEngine);
-
-      if (!this.camera)
-        this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
-
-      if (props.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
-        await new Promise<void>(resolve => {
-          this.#stateEngine.getCustomState(this.id + '_settings_loaded').then(() => resolve())
-        })
-      }
-
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId: this.id });
-      this.#initialized = true;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).init: Viewer initialized.`);
-      this.update();
-      return Promise.resolve();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).init: Something unexpected happened.`, true)
-    }
-  }
-
-  public isInitialized() {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer.isInitialized: Checking if Viewer was initialized.`);
-      if (!this.#renderingEngine) {
-        const error = new SDError(`Viewer has not been initialized. Please initialize it first.`);
-        this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
-        throw error;
-      }
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer.isInitialized: Something unexpected happened.`, true)
-    }
-  }
-
   public registerBusyMode(value: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Registering busy mode for id ${value}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, value, 'string');
 
       if (this.#busyModeIDs.includes(value)) return false;
@@ -907,7 +794,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public removeCamera(id: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Removing Camera with id ${id}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera`, id, 'string');
       const r = this.#renderingEngine.cameraEngine.removeCamera(id);
       if (r) this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Camera with id ${id} removed.`);
@@ -929,7 +815,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public removeLightScene(id: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Removing LightScene with id ${id}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene`, id, 'string');
       const r = this.#renderingEngine.lightEngine.removeLightScene(id);
       if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Light scene with id ${id} removed.`);
@@ -945,7 +830,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public reset(): void {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).reset: Resetting Viewer.`);
-      this.isInitialized();
       this.#renderingEngine.reset();
       this.update();
     } catch (e) {
@@ -957,7 +841,6 @@ export class Viewer implements ILightEngine, ICameraEngine, IRenderingEngine {
   public resize(width: number, height: number): void {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resizing Viewer to ${width} / ${height}.`);
-      this.isInitialized();
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, width, 'number');
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, height, 'number');
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resized Viewer to ${width} / ${height}.`);

@@ -25,8 +25,8 @@ submitButton.onclick = async () => {
     const modelViewUrl = (<HTMLInputElement>document.getElementById('modelViewUrl')).value;
 
     let performance_v3 = performance.now();
-    let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession'});
-    let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
+    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     await new Promise<void>((resolve) => {
         api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
     })

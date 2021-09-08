@@ -200,8 +200,8 @@ const createChart = (canvasId: string) => {
 
 (async () => {
     const { ticket, modelViewUrl } = models['Shelf'];
-    let session = await api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession' });
-    let viewer = await api.createAndInitializeViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession' });
+    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
 
     api.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e) => {
         createChart('canvas2');
