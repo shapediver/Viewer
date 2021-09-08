@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 
-import { LightEngine } from '../src/index'
+import { LightEngine, LightScene } from '../src/index'
 
 describe('light-engine', () => {
     let lightEngine: LightEngine;
@@ -10,38 +10,38 @@ describe('light-engine', () => {
     });
 
     it('addAmbientLight', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addAmbientLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addAmbientLight({});
         expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.id.length).toBe(36)
     });
 
     it('addAmbientLight properties', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addAmbientLight({ color: '#000000', intensity: 0.2, name: 'test'});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addAmbientLight({ color: '#000000', intensity: 0.2, name: 'test'});
         expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.name).toBe('test')
     });
 
     it('addAmbientLight light scene', async () => {
-        lightEngine.createLightScene({});
+        const ls = <LightScene>lightEngine.createLightScene({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(0)
-        lightEngine.addAmbientLight({});
+        ls.addAmbientLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(1)
     });
     
     it('addAmbientLight light scene id', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addAmbientLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addAmbientLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).includes(l.id)).toBe(true)
     });
 
     
     it('addDirectionalLight', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addDirectionalLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addDirectionalLight({});
         expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.direction[0]).toBe(-1)
@@ -54,8 +54,8 @@ describe('light-engine', () => {
     });
 
     it('addDirectionalLight properties', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addDirectionalLight({ color: '#000000', intensity: 0.2, name: 'test', direction: [1, 0, 0], castShadow: true, shadowMapBias: 0.1, shadowMapResolution: 16});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addDirectionalLight({ color: '#000000', intensity: 0.2, name: 'test', direction: [1, 0, 0], castShadow: true, shadowMapBias: 0.1, shadowMapResolution: 16});
         expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.direction[0]).toBe(1)
@@ -68,23 +68,23 @@ describe('light-engine', () => {
     });
 
     it('addDirectionalLight light scene', async () => {
-        lightEngine.createLightScene({});
+        const ls = <LightScene>lightEngine.createLightScene({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(0)
-        lightEngine.addDirectionalLight({});
+        ls.addDirectionalLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(1)
     });
     
     it('addDirectionalLight light scene id', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addDirectionalLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addDirectionalLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).includes(l.id)).toBe(true)
     });
 
     
     
     it('addHemisphereLight', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addHemisphereLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addHemisphereLight({});
         expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.groundColor).toBe('#ffffff')
@@ -92,8 +92,8 @@ describe('light-engine', () => {
     });
 
     it('addHemisphereLight properties', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addHemisphereLight({ color: '#000000', intensity: 0.2, name: 'test', groundColor: '#000000'});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addHemisphereLight({ color: '#000000', intensity: 0.2, name: 'test', groundColor: '#000000'});
         expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.groundColor).toBe('#000000')
@@ -101,22 +101,22 @@ describe('light-engine', () => {
     });
 
     it('addHemisphereLight light scene', async () => {
-        lightEngine.createLightScene({});
+        const ls = <LightScene>lightEngine.createLightScene({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(0)
-        lightEngine.addHemisphereLight({});
+        ls.addHemisphereLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(1)
     });
     
     it('addHemisphereLight light scene id', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addHemisphereLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addHemisphereLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).includes(l.id)).toBe(true)
     });
 
         
     it('addPointLight', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addPointLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addPointLight({});
         expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.position[0]).toBe(0)
@@ -128,8 +128,8 @@ describe('light-engine', () => {
     });
 
     it('addPointLight properties', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addPointLight({ color: '#000000', intensity: 0.2, name: 'test', position: [1,1,1], distance: 2, decay: 5});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addPointLight({ color: '#000000', intensity: 0.2, name: 'test', position: [1,1,1], distance: 2, decay: 5});
         expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.position[0]).toBe(1)
@@ -141,22 +141,22 @@ describe('light-engine', () => {
     });
 
     it('addPointLight light scene', async () => {
-        lightEngine.createLightScene({});
+        const ls = <LightScene>lightEngine.createLightScene({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(0)
-        lightEngine.addPointLight({});
+        ls.addPointLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(1)
     });
     
     it('addPointLight light scene id', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addPointLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addPointLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).includes(l.id)).toBe(true)
     });
 
             
     it('addSpotLight', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addSpotLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addSpotLight({});
         expect(l.color).toBe('#ffffff')
         expect(l.intensity).toBe(0.5)
         expect(l.position[0]).toBe(-1)
@@ -173,8 +173,8 @@ describe('light-engine', () => {
     });
 
     it('addSpotLight properties', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addSpotLight({ color: '#000000', intensity: 0.2, name: 'test', position: [1,1,1], target: [2,2,2], distance: 2, decay: 5, angle: 3, penumbra: 4});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addSpotLight({ color: '#000000', intensity: 0.2, name: 'test', position: [1,1,1], target: [2,2,2], distance: 2, decay: 5, angle: 3, penumbra: 4});
         expect(l.color).toBe('#000000')
         expect(l.intensity).toBe(0.2)
         expect(l.position[0]).toBe(1)
@@ -191,15 +191,15 @@ describe('light-engine', () => {
     });
 
     it('addSpotLight light scene', async () => {
-        lightEngine.createLightScene({});
+        const ls = <LightScene>lightEngine.createLightScene({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(0)
-        lightEngine.addSpotLight({});
+        ls.addSpotLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(1)
     });
     
     it('addSpotLight light scene id', async () => {
-        lightEngine.createLightScene({});
-        const l = lightEngine.addSpotLight({});
+        const ls = <LightScene>lightEngine.createLightScene({});
+        const l = ls.addSpotLight({});
         expect(Object.keys(lightEngine.lightScene!.lights).includes(l.id)).toBe(true)
     });
     
@@ -212,13 +212,13 @@ describe('light-engine', () => {
     });
 
     it('assignLightScene correct', async () => {
-        const lightScene = lightEngine.createLightScene({name: 'something'});
+        const lightScene = <LightScene>lightEngine.createLightScene({name: 'something'});
         expect(lightEngine.assignLightScene(lightScene.id)).toBe(true)
         expect(lightEngine.lightScene!.name).toBe('something')
     });
 
     it('createLightScene with id', async () => {
-        const lightScene = lightEngine.createLightScene({name: 'something'});
+        const lightScene = <LightScene>lightEngine.createLightScene({name: 'something'});
         expect(lightScene.name).toBe('something')
         lightEngine.assignLightScene(lightScene.id)
         expect(lightEngine.lightScene!.name).toBe('something')
@@ -226,7 +226,7 @@ describe('light-engine', () => {
     });
 
     it('createLightScene with id standard', async () => {
-        const lightScene = lightEngine.createLightScene({name: 'something', standard: true});
+        const lightScene = <LightScene>lightEngine.createLightScene({name: 'something', standard: true});
         expect(lightScene.name).toBe('something')
         lightEngine.assignLightScene(lightScene.id)
         expect(lightEngine.lightScene!.name).toBe('something')
@@ -235,17 +235,18 @@ describe('light-engine', () => {
 
 
     it('lightScene', async () => {
-        lightEngine.createLightScene({});
+        <LightScene>lightEngine.createLightScene({});
         expect(typeof lightEngine.lightScene!.id).toBe('string')
     });
 
     it('lightScene name', async () => {
-        lightEngine.createLightScene({name: 'something'});
+        <LightScene>lightEngine.createLightScene({name: 'something'});
         expect(lightEngine.lightScene!.name).toBe('something')
     });
     
     it('removeLight empty', async () => {
-        expect(lightEngine.removeLight('')).toBe(false)
+        const ls = <LightScene>lightEngine.createLightScene({});
+        expect(ls.removeLight('')).toBe(false)
     });
     
     it('removeLightScene 1', async () => {
@@ -253,7 +254,7 @@ describe('light-engine', () => {
     });
 
     it('removeLightScene 2', async () => {
-        const lightScene = lightEngine.createLightScene({name: 'something'});
+        const lightScene = <LightScene>lightEngine.createLightScene({name: 'something'});
         expect(lightEngine.removeLightScene(lightScene.id)).toBe(true)
         expect(lightEngine.lightScene!).toBeUndefined()
     });

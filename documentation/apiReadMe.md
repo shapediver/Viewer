@@ -294,9 +294,9 @@ Therefore, we now create a new [Light Scene]() and add a few lights to it.
 // create a light scene, it will be assigned automatically
 const lightScene = viewer.createLightScene();
 // add a new ambient light, it will be added to the current light scene
-const ambientLight = viewer.addAmbientLight();
+const ambientLight = lightScene.addAmbientLight();
 // add a new directional light, it will be added to the current light scene
-const directionalLight = viewer.addDirectionalLight();
+const directionalLight = lightScene.addDirectionalLight();
 // change the color of the directional light
 directionalLight.updateColor('#0000ff');
 ```
@@ -310,8 +310,8 @@ directionalLight.updateColor('#0000ff');
     const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas6'), id: 'myViewer6' });
     const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession6', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer5']});
     const lightScene = viewer.createLightScene();
-    const ambientLight = viewer.addAmbientLight();
-    const directionalLight = viewer.addDirectionalLight();
+    const ambientLight = lightScene.addAmbientLight();
+    const directionalLight = lightScene.addDirectionalLight();
     directionalLight.updateColor('#0000ff');
   })();
 </script>

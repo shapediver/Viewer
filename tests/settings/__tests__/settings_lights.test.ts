@@ -95,7 +95,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
                     if (l !== '6e219562-c916-4492-b9b9-1dfbac80d51f' && l !== '70bc760c-45dc-46b0-9cd2-8990ac77124f' && l !== '748019ac-ce54-4de7-94d2-737dae6579dd')
-                        viewer.removeLight(l)
+                        viewer.lightScene.removeLight(l)
                 }
                 viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateName('ambient0')
                 viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateIntensity(0.5)
@@ -247,12 +247,12 @@ for (let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
-                viewer.createLightScene({ name: 'testLightScene' });
-                viewer.addAmbientLight({ color: '#ff0000', intensity: 0.4, name: 'ambient' })
-                viewer.addDirectionalLight({ color: '#00ff00', intensity: 0.5, direction: [1, -1, 0], castShadow: true, shadowMapBias: 0.0001, shadowMapResolution: 512, name: 'directional' })
-                viewer.addHemisphereLight({ color: '#ff000f', groundColor: '#0f0f0f', intensity: 0.6, name: 'hemisphere' })
-                viewer.addPointLight({ color: '#000f0f', intensity: 0.7, position: [50, 0, 0], name: 'point' })
-                viewer.addSpotLight({ color: '#000fff', intensity: 0.8, position: [50, 0, 0], target: [0, 0, 0], name: 'spot' })
+                const ls = viewer.createLightScene({ name: 'testLightScene' });
+                ls.addAmbientLight({ color: '#ff0000', intensity: 0.4, name: 'ambient' })
+                ls.addDirectionalLight({ color: '#00ff00', intensity: 0.5, direction: [1, -1, 0], castShadow: true, shadowMapBias: 0.0001, shadowMapResolution: 512, name: 'directional' })
+                ls.addHemisphereLight({ color: '#ff000f', groundColor: '#0f0f0f', intensity: 0.6, name: 'hemisphere' })
+                ls.addPointLight({ color: '#000f0f', intensity: 0.7, position: [50, 0, 0], name: 'point' })
+                ls.addSpotLight({ color: '#000fff', intensity: 0.8, position: [50, 0, 0], target: [0, 0, 0], name: 'spot' })
 
                 let session = api.sessions['mySession']!;
                 viewer.update();
