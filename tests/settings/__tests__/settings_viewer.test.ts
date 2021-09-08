@@ -668,7 +668,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                api.updateShowMessages(false);
+                api.showMessages = false;
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -679,7 +679,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                api.updateShowMessages(true);
+                api.showMessages = true;
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });

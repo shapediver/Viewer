@@ -13,7 +13,7 @@ import { convert, ISettingsV3, validate } from '@shapediver/viewer.settings'
 
 @singleton()
 export class Api {
-  // #region Properties (15)
+  // #region Properties (12)
 
   readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
@@ -23,19 +23,13 @@ export class Api {
   readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
   readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-  readonly #updateCB = () => {
-    (<any>this.loggingLevel) = this.#logger.loggingLevel;
-    (<any>this.showMessages) = this.#logger.showMessages;
-  }
-
   readonly #viewerCallbacks: { [key: string]: { [key: string]: () => any } } = {};
-  readonly loggingLevel!: LOGGINGLEVEL;
+  
   readonly sceneTree: Tree = <Tree>container.resolve(Tree);
   readonly sessions: { [key: string]: Session } = {};
-  readonly showMessages!: boolean;
   readonly viewers: { [key: string]: Viewer } = {};
 
-  // #endregion Properties (15)
+  // #endregion Properties (12)
 
   // #region Constructors (1)
 
@@ -45,11 +39,9 @@ export class Api {
   constructor() {
     try {
       this.#stateEngine.primarySettingsRegistered.then(() => {
-        this.#logger.showMessages = this.#settingsEngine.general.showMessages;
+        this.showMessages = this.#settingsEngine.general.showMessages;
       })
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Viewer version: ${build_data.build_version}`);
-      this.#logger.addUpdateCB(this.#updateCB);
-      this.#updateCB();
 
       this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
         const sessionEvent: ISessionEvent = <ISessionEvent>e;
@@ -74,7 +66,56 @@ export class Api {
 
   // #endregion Constructors (1)
 
-  // #region Public Methods (15)
+  // #region Public Accessors (4)
+
+  /**
+   * Getter loggingLevel
+   */
+  public get loggingLevel(): LOGGINGLEVEL {
+    return this.#logger.loggingLevel;
+  }
+
+  /**
+   * Setter loggingLevel
+   */
+  public set loggingLevel(value: LOGGINGLEVEL) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.loggingLevel: Updating LoggingLevel to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.loggingLevel', value, 'enum', true, Object.values(LOGGINGLEVEL));
+      this.#logger.loggingLevel = value;
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.loggingLevel: LoggingLevel was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.loggingLevel: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter showMessages
+   */
+  public get showMessages(): boolean {
+    return this.#logger.showMessages;
+  }
+
+  /**
+   * Setter showMessages
+   */
+  public set showMessages(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.showMessages: Updating ShowMessages to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.showMessages', value, 'boolean');
+      this.#logger.showMessages = value;
+      this.#settingsEngine.general.showMessages = this.#logger.showMessages;
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.showMessages: ShowMessages was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.showMessages: Something unexpected happened.`, true)
+    }
+  }
+
+  // #endregion Public Accessors (4)
+
+  // #region Public Methods (12)
 
   /**
    * Adds an event listener.
@@ -91,6 +132,125 @@ export class Api {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.addListener: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Update all or some settings of the primary session and the viewers via a ShapeDiverResponseBase of another model.
+   * 
+   * @param response 
+   * @param sections 
+   */
+  public async applySettings( 
+    response: ShapeDiverResponseBase, 
+    sections: { 
+      session: { 
+        parameter: { displayName: boolean, order: boolean, hidden: boolean },
+        export: { displayName: boolean, order: boolean, hidden: boolean }
+      },
+      viewer: { scene: boolean, camera: boolean, light: boolean, environment: boolean }
+    } = 
+    {
+      session: {
+        parameter: { displayName: true, order: true, hidden: true },
+        export: { displayName: true, order: true, hidden: true }
+      },
+      viewer: { scene: true, camera: true, light: true, environment: true }
+    }
+  ): Promise<void> {
+    try {
+      if(!response.config) throw new SDError('Api.applySettings: No config object available.')
+      try {
+        validate(response.config)
+      } catch(e) {
+        throw new SDError('Api.applySettings: Was not able to validate config object.')
+      }
+
+      const settings = <ISettingsV3>convert(response.config, '3.0');
+
+      const exportMappingUid: { [key: string]: string | undefined } = {};
+      if(sections.session.export.displayName || sections.session.export.order || sections.session.export.hidden)
+        if (response.exports) 
+          for (let exportId in response.exports) 
+            if(response.exports[exportId].uid !== undefined)
+              exportMappingUid[response.exports[exportId].uid!] = exportId;
+
+      const session = Object.values(this.sessions).filter((s: Session) => { return s.primarySession; })[0];
+      if(!session) throw new SDError('Api.applySettings: No primary session defined.');
+    
+      const currentSettings = this.#settingsEngine.settings;
+
+      // apply parameter settings
+      if (sections.session.parameter.displayName || sections.session.parameter.order || sections.session.parameter.hidden) {
+        for (let p in session.parameters) {
+          if (settings.session[p]) {
+            if (sections.session.parameter.displayName) session.parameters[p].updateDisplayName(settings.session[p].displayName);
+            if (sections.session.parameter.order) session.parameters[p].updateOrder(settings.session[p].order);
+            if (sections.session.parameter.hidden) session.parameters[p].updateHidden(settings.session[p].hidden);
+          }
+        }
+      }
+
+      // apply export settings
+      if (sections.session.export.displayName || sections.session.export.order || sections.session.export.hidden) {
+        for (let p in session.exports) {
+          let idForSettings = '';
+          if(settings.session[p]) {
+            idForSettings = p;
+          } else {
+            const uid = session.exports[p].uid;
+            if (!uid) continue;
+            if (!exportMappingUid[uid]) continue;
+            idForSettings = exportMappingUid[uid]!;
+          }
+          if (settings.session[idForSettings]) {
+            if (sections.session.parameter.displayName) session.exports[p].updateDisplayName(settings.session[idForSettings].displayName);
+            if (sections.session.parameter.order) session.exports[p].updateOrder(settings.session[idForSettings].order);
+            if (sections.session.parameter.hidden) session.exports[p].updateHidden(settings.session[idForSettings].hidden);
+          }
+        }
+      }
+
+      // apply camera settings
+      if(sections.viewer.camera)
+        currentSettings.camera = settings.camera;
+
+      // apply light settings
+      if(sections.viewer.light)
+        currentSettings.light = settings.light;
+        
+      // apply scene settings
+      if(sections.viewer.scene) {
+        currentSettings.rendering.shadows = settings.rendering.shadows;
+        currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
+        currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
+        currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
+        currentSettings.general.commitParameters = settings.general.commitParameters;
+        currentSettings.general.pointSize = settings.general.pointSize;
+      }
+
+      // apply environment settings
+      if(sections.viewer.environment) {
+        currentSettings.environment.clearAlpha = settings.environment.clearAlpha;
+        currentSettings.environment.clearColor = settings.environment.clearColor;
+        currentSettings.environment.map = settings.environment.map;
+        currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
+      }
+
+      const promises: Promise<void>[] = [];
+      for(let v in this.viewers) {
+        this.#stateEngine.getCustomState(v + '_settings_loaded').reset();
+        promises.push(new Promise<void>(resolve => {
+          this.#stateEngine.getCustomState(v + '_settings_loaded').then(() => {
+            resolve();
+          })
+        }));
+      }
+      this.#eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, { sessionId: '' });
+      return new Promise(resolve => Promise.all(promises).then(() => resolve()));
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.applySettings: Something unexpected happened.`, true)
     }
   }
 
@@ -427,158 +587,6 @@ export class Api {
     }
   }
 
-  /**
-   * The loggingLevel setting.
-   * @param {LOGGINGLEVEL} value
-   */
-  public updateLoggingLevel(value: LOGGINGLEVEL) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.updateLoggingLevel: Updating LoggingLevel to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.updateLoggingLevel', value, 'enum', true, Object.values(LOGGINGLEVEL));
-      this.#logger.loggingLevel = value;
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateLoggingLevel: LoggingLevel was set to: ${value}`);
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.updateLoggingLevel: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * The showMessages setting.
-   * @param {boolean} value
-   */
-  public updateShowMessages(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: Updating ShowMessages to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.updateShowMessages', value, 'boolean');
-      this.#logger.showMessages = value;
-      this.#settingsEngine.general.showMessages = this.#logger.showMessages;
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.updateShowMessages: ShowMessages was set to: ${value}`);
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.updateShowMessages: Something unexpected happened.`, true)
-    }
-  }
-
-  /**
-   * Update all or some settings of the primary session and the viewers via a ShapeDiverResponseBase of another model.
-   * 
-   * @param response 
-   * @param sections 
-   */
-  public async applySettings( 
-    response: ShapeDiverResponseBase, 
-    sections: { 
-      session: { 
-        parameter: { displayName: boolean, order: boolean, hidden: boolean },
-        export: { displayName: boolean, order: boolean, hidden: boolean }
-      },
-      viewer: { scene: boolean, camera: boolean, light: boolean, environment: boolean }
-    } = 
-    {
-      session: {
-        parameter: { displayName: true, order: true, hidden: true },
-        export: { displayName: true, order: true, hidden: true }
-      },
-      viewer: { scene: true, camera: true, light: true, environment: true }
-    }
-  ): Promise<void> {
-    try {
-      if(!response.config) throw new SDError('Api.applySettings: No config object available.')
-      try {
-        validate(response.config)
-      } catch(e) {
-        throw new SDError('Api.applySettings: Was not able to validate config object.')
-      }
-
-      const settings = <ISettingsV3>convert(response.config, '3.0');
-
-      const exportMappingUid: { [key: string]: string | undefined } = {};
-      if(sections.session.export.displayName || sections.session.export.order || sections.session.export.hidden)
-        if (response.exports) 
-          for (let exportId in response.exports) 
-            if(response.exports[exportId].uid !== undefined)
-              exportMappingUid[response.exports[exportId].uid!] = exportId;
-
-      const session = Object.values(this.sessions).filter((s: Session) => { return s.primarySession; })[0];
-      if(!session) throw new SDError('Api.applySettings: No primary session defined.');
-    
-      const currentSettings = this.#settingsEngine.settings;
-
-      // apply parameter settings
-      if (sections.session.parameter.displayName || sections.session.parameter.order || sections.session.parameter.hidden) {
-        for (let p in session.parameters) {
-          if (settings.session[p]) {
-            if (sections.session.parameter.displayName) session.parameters[p].updateDisplayName(settings.session[p].displayName);
-            if (sections.session.parameter.order) session.parameters[p].updateOrder(settings.session[p].order);
-            if (sections.session.parameter.hidden) session.parameters[p].updateHidden(settings.session[p].hidden);
-          }
-        }
-      }
-
-      // apply export settings
-      if (sections.session.export.displayName || sections.session.export.order || sections.session.export.hidden) {
-        for (let p in session.exports) {
-          let idForSettings = '';
-          if(settings.session[p]) {
-            idForSettings = p;
-          } else {
-            const uid = session.exports[p].uid;
-            if (!uid) continue;
-            if (!exportMappingUid[uid]) continue;
-            idForSettings = exportMappingUid[uid]!;
-          }
-          if (settings.session[idForSettings]) {
-            if (sections.session.parameter.displayName) session.exports[p].updateDisplayName(settings.session[idForSettings].displayName);
-            if (sections.session.parameter.order) session.exports[p].updateOrder(settings.session[idForSettings].order);
-            if (sections.session.parameter.hidden) session.exports[p].updateHidden(settings.session[idForSettings].hidden);
-          }
-        }
-      }
-
-      // apply camera settings
-      if(sections.viewer.camera)
-        currentSettings.camera = settings.camera;
-
-      // apply light settings
-      if(sections.viewer.light)
-        currentSettings.light = settings.light;
-        
-      // apply scene settings
-      if(sections.viewer.scene) {
-        currentSettings.rendering.shadows = settings.rendering.shadows;
-        currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
-        currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
-        currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
-        currentSettings.general.commitParameters = settings.general.commitParameters;
-        currentSettings.general.pointSize = settings.general.pointSize;
-      }
-
-      // apply environment settings
-      if(sections.viewer.environment) {
-        currentSettings.environment.clearAlpha = settings.environment.clearAlpha;
-        currentSettings.environment.clearColor = settings.environment.clearColor;
-        currentSettings.environment.map = settings.environment.map;
-        currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
-      }
-
-      const promises: Promise<void>[] = [];
-      for(let v in this.viewers) {
-        this.#stateEngine.getCustomState(v + '_settings_loaded').reset();
-        promises.push(new Promise<void>(resolve => {
-          this.#stateEngine.getCustomState(v + '_settings_loaded').then(() => {
-            resolve();
-          })
-        }));
-      }
-      this.#eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, { sessionId: '' });
-      return new Promise(resolve => Promise.all(promises).then(() => resolve()));
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.applySettings: Something unexpected happened.`, true)
-    }
-  }
-
   public async viewInAR(title: string = '', mode: '3d_preferred' | '3d_only' | 'ar_preferred' | 'ar_only' = 'ar_only', resizable = false, browser_fallback_url = 'https://shapediver.com/'): Promise<void> {
     try {
       let arSession;
@@ -602,5 +610,5 @@ export class Api {
     }
   }
 
-  // #endregion Public Methods (15)
+  // #endregion Public Methods (12)
 }
