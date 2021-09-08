@@ -94,7 +94,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
                     if(l !== '6e219562-c916-4492-b9b9-1dfbac80d51f' && l !== '70bc760c-45dc-46b0-9cd2-8990ac77124f' && l !== '748019ac-ce54-4de7-94d2-737dae6579dd')
-                        viewer.lightScene.removeLight(l)
+                        viewer.lightScene!.removeLight(l)
                 }
                 viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateName('ambient0')
                 viewer.lightScene!.lights["748019ac-ce54-4de7-94d2-737dae6579dd"].updateIntensity(0.5)
