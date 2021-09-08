@@ -213,7 +213,7 @@ const createChart = (canvasId: string) => {
     }, 1000); });
     await new Promise<void>((resolve) => {
         const token = api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async (e) => {
-            api.sessions["mySession"].parameters["de76cade-0cea-47b1-879e-1a0b717910e1"].updateValue(10)
+            api.sessions["mySession"].parameters["de76cade-0cea-47b1-879e-1a0b717910e1"].value = 10
             await api.sessions["mySession"].customize();
             api.removeListener(token);
             resolve();

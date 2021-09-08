@@ -171,7 +171,7 @@ After creating the [Viewer](./classes/api_api_src.viewer.html) and the [Session]
 // read out the parameter with the specific name
 const lengthParameter = session.getParameterByName('Length')[0];
 // update the value
-lengthParameter.updateValue(6);
+lengthParameter.value = 6;
 // and customize the scene
 await session.customize();
 ```
@@ -186,7 +186,7 @@ await session.customize();
     const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas2'), id: 'myViewer2' });
     const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
     const lengthParameter = session.getParameterByName('Length')[0];
-    lengthParameter.updateValue(6);
+    lengthParameter.value = 6;
     await session.customize();
   })();
 </script>
@@ -197,11 +197,11 @@ You can also update multiple [Parameters](./classes/api_api_src.parameter.html) 
 // read out the parameter with the specific name
 const lengthParameter = session.getParameterByName('Length')[0];
 // update the value
-lengthParameter.updateValue(8);
+lengthParameter.value = 8;
 // read out the parameter with the specific name
 const colorParameter = session.getParameterByName('Material Color')[0];
 // update the value
-colorParameter.updateValue('#00ff00');
+colorParameter.value = '#00ff00';
 // and customize the scene
 await session.customize();
 ```
@@ -216,9 +216,9 @@ await session.customize();
     const viewer = await window.api.createAndInitializeViewer({ canvas: document.getElementById('canvas3'), id: 'myViewer3' });
     const session = await window.api.createAndInitializeSession({ ticket, modelViewUrl, id: 'mySession3', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer4', 'myViewer5', 'myViewer6']});
     const lengthParameter = session.getParameterByName('Length')[0];
-    lengthParameter.updateValue(8);
+    lengthParameter.value = 8;
     const colorParameter = session.getParameterByName('Material Color')[0];
-    colorParameter.updateValue('#00ff00');
+    colorParameter.value = '#00ff00';
     await session.customize();
   })();
 </script>
@@ -355,7 +355,7 @@ Let's now customize the scene again and then add our copied node with some trans
 const parameter = session.getParameterById('SOME_ID');
 
 // To change the value of this parameter we can simply just change it (setter method takes care of checking if the value is approved)
-parameter.updateValue('newValue')
+parameter.value = 'newValue';
 
 // Customize the session
 await session.customize();

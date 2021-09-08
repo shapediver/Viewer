@@ -40,13 +40,13 @@ let viewer: Viewer, session: Session;
 }
 
 (<any>window).changeParameter = async (id: string, value: any): Promise<void> => {
-    session.getParameterById(id)!.updateValue(value);
+    session.getParameterById(id)!.value = value;
     await session.customize();
 }
 
 (<any>window).changeParameters = async ( parameterDictionary: { [key: string]: any } ): Promise<void> => {
     for(let param in parameterDictionary)
-        session.getParameterById(param)!.updateValue(parameterDictionary[param]);
+        session.getParameterById(param)!.value = parameterDictionary[param];
     await session.customize();
 }
 

@@ -184,9 +184,9 @@ export class Api {
       if (sections.session.parameter.displayName || sections.session.parameter.order || sections.session.parameter.hidden) {
         for (let p in session.parameters) {
           if (settings.session[p]) {
-            if (sections.session.parameter.displayName) session.parameters[p].updateDisplayName(settings.session[p].displayName);
-            if (sections.session.parameter.order) session.parameters[p].updateOrder(settings.session[p].order);
-            if (sections.session.parameter.hidden) session.parameters[p].updateHidden(settings.session[p].hidden);
+            if (sections.session.parameter.displayName) session.parameters[p].displayName = settings.session[p].displayName;
+            if (sections.session.parameter.order) session.parameters[p].order = settings.session[p].order;
+            if (sections.session.parameter.hidden) session.parameters[p].hidden = settings.session[p].hidden;
           }
         }
       }
@@ -204,9 +204,9 @@ export class Api {
             idForSettings = exportMappingUid[uid]!;
           }
           if (settings.session[idForSettings]) {
-            if (sections.session.parameter.displayName) session.exports[p].updateDisplayName(settings.session[idForSettings].displayName);
-            if (sections.session.parameter.order) session.exports[p].updateOrder(settings.session[idForSettings].order);
-            if (sections.session.parameter.hidden) session.exports[p].updateHidden(settings.session[idForSettings].hidden);
+            if (sections.session.parameter.displayName) session.exports[p].displayName = settings.session[idForSettings].displayName;
+            if (sections.session.parameter.order) session.exports[p].order = settings.session[idForSettings].order;
+            if (sections.session.parameter.hidden) session.exports[p].hidden = settings.session[idForSettings].hidden;
           }
         }
       }

@@ -144,7 +144,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             for(let i = 0; i < 9; i++) {
                 await driver.executeAsyncScript(async (i: number, cb: any) => {
                     const api: typeof API = (<any>window).api; 
-                    api.sessions["mySession"].parameters["d5fa299b-d1f8-481e-b095-77ebd4c19e1e"].updateValue(i+'')
+                    api.sessions["mySession"].parameters["d5fa299b-d1f8-481e-b095-77ebd4c19e1e"].value = i+'';
                     await api.sessions["mySession"].customize();
                     await new Promise<void>((resolve) => {
                         api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())

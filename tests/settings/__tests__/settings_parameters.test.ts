@@ -46,31 +46,31 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateDisplayName('COLOR');
+                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayName = ('COLOR');
 
-                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateOrder(0);
-                session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.updateOrder(1);
-                session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.updateOrder(2);
-                session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.updateOrder(3);
-                session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.updateOrder(4);
-                session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.updateOrder(5);
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateOrder(6);
-                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateOrder(7);
-                session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.updateOrder(8);
-                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateOrder(9);
-                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateOrder(10);
+                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.order = (0);
+                session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.order = (1);
+                session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.order = (2);
+                session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.order = (3);
+                session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.order = (4);
+                session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.order = (5);
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.order = (6);
+                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.order = (7);
+                session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.order = (8);
+                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = (9);
+                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = (10);
             
-                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateHidden(true);
-                session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.updateHidden(true);
-                session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.updateHidden(true);
-                session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.updateHidden(true);
-                session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.updateHidden(true);
-                session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.updateHidden(true);
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateHidden(false);
-                session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.updateHidden(true);
-                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateHidden(true);
-                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateHidden(true);
-                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.updateHidden(false);
+                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = (true);
+                session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.hidden = (true);
+                session.getParameterById('5a5aad86-8173-4bbe-8184-54656370cd4b')!.hidden = (true);
+                session.getParameterById('30c907b3-dbcf-4266-9f8f-835bb2353cb6')!.hidden = (true);
+                session.getParameterById('d0ecb53a-90f1-44d6-a6a5-fa47d4a38771')!.hidden = (true);
+                session.getParameterById('1d1af051-22fd-4f3a-a34c-1882c60a7fda')!.hidden = (true);
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.hidden = (false);
+                session.getParameterById('9d9e7f0b-385c-495d-825e-3fec2ce9762d')!.hidden = (true);
+                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.hidden = (true);
+                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.hidden = (true);
+                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.hidden = (false);
 
 
                 viewer.updateBlurSceneWhenBusy(true);
@@ -134,7 +134,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateDisplayName('THE LENGTH');
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayName = ('THE LENGTH');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -145,7 +145,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateDisplayName(undefined);
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayName = (undefined);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -183,8 +183,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateOrder(9);
-                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateOrder(10);
+                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = (9);
+                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = (10);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -204,8 +204,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.updateOrder(10);
-                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.updateOrder(9);
+                session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = (10);
+                session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = (9);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -249,7 +249,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateHidden(false);
+                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = (false);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
@@ -268,7 +268,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.updateHidden(true);
+                session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = (true);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });

@@ -56,7 +56,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 await driver.executeAsyncScript(async (i: number, cb: any) => {
                     const api: typeof API = (<any>window).api; 
                     const session = api.sessions['mySession']!;
-                    session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateValue(i)
+                    session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = i;
                     await session.customize();
                     await new Promise<void>((resolve) => {
                         api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -84,7 +84,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 const session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateValue(2)
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (2)
                 await session.customize();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -97,7 +97,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 const session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateValue(3)
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (3)
                 await session.customize();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -110,7 +110,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 const session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateValue(4)
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (4)
                 await session.customize();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -123,7 +123,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 const session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateValue(5)
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (5)
                 await session.customize();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -172,7 +172,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api; 
                 const session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.updateValue(2)
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (2)
                 await session.customize();
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
