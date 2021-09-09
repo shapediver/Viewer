@@ -1,10 +1,15 @@
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import webdriver, { WebDriver } from "selenium-webdriver";
-require('chromedriver');
-import { api as API, DirectionalLight } from "@shapediver/viewer"
-import { screenshotCompare } from "../../general/src/setup";
-import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
+import webdriver, { WebDriver } from 'selenium-webdriver'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { api as API, DirectionalLight } from '@shapediver/viewer'
 
+import { screenshotCompare } from '../../general/src/setup'
+import {
+  capabilities as allCapabilities,
+  DesktopCapabilities,
+  MobileCapabilities,
+} from '../../general/src/capabilities'
+
+require('chromedriver');
 for (let c = 0; c < allCapabilities.length; c++) {
     let name = 'settings_viewer';
     const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
@@ -47,7 +52,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayName = ('COLOR');
+                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayname = ('COLOR');
 
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.order = (0);
                 session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.order = (1);

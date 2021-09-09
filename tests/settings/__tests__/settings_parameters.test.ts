@@ -1,9 +1,14 @@
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import webdriver, { WebDriver } from "selenium-webdriver";
-require('chromedriver');
-import { api as API, DirectionalLight } from "@shapediver/viewer"
-import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
+import webdriver, { WebDriver } from 'selenium-webdriver'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { api as API, DirectionalLight } from '@shapediver/viewer'
 
+import {
+  capabilities as allCapabilities,
+  DesktopCapabilities,
+  MobileCapabilities,
+} from '../../general/src/capabilities'
+
+require('chromedriver');
 for (let c = 0; c < allCapabilities.length; c++) {
     let name = 'settings_parameters';
     const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
@@ -46,7 +51,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 const api: typeof API = (<any>window).api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayName = ('COLOR');
+                session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayname = ('COLOR');
 
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.order = (0);
                 session.getParameterById('23033d60-7078-4836-99ce-990668e4429d')!.order = (1);
@@ -127,30 +132,30 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings1['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayName']).toBe('COLOR');
-            expect(settings1['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayName']).toBe('');
+            expect(settings1['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayname']).toBe('COLOR');
+            expect(settings1['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayname']).toBe('');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayName = ('THE LENGTH');
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayname = ('THE LENGTH');
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings2['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayName']).toBe('COLOR');
-            expect(settings2['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayName']).toBe('THE LENGTH');
+            expect(settings2['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayname']).toBe('COLOR');
+            expect(settings2['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayname']).toBe('THE LENGTH');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
                 let session = api.sessions['mySession']!;
-                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayName = (undefined);
+                session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayname = (undefined);
                 await session.saveSettings();
                 cb((<any>window).settingsEngine.flatten());
             });
-            expect(settings3['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayName']).toBe('COLOR');
-            expect(settings3['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayName']).toBe('');
+            expect(settings3['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayname']).toBe('COLOR');
+            expect(settings3['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayname']).toBe('');
 
 
         });
