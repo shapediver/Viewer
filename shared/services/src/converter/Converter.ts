@@ -93,18 +93,18 @@ export class Converter {
             for (let i = 0; i < imageDataMain.data.length; i += 4) {
                 // R
                 if (!redChannel) {
-                    imageDataMain.data[i + 0] = 0;
+                    imageDataMain.data[i + 0] = 255;
                     imageDataMain.data[i + 2] = imageDataSecond.data[i + 2];
                 }
                 // G
                 if (!greenChannel) {
-                    imageDataMain.data[i + 1] = 0;
+                    imageDataMain.data[i + 1] = 255;
                     imageDataMain.data[i + 2] = imageDataSecond.data[i + 2];
                 }
                 // B
                 if (!blueChannel) {
                     imageDataMain.data[i + 1] = imageDataSecond.data[i + 2];
-                    imageDataMain.data[i + 2] = 0;
+                    imageDataMain.data[i + 2] = 255;
                 }
             }
             // put the altered data back on the canvas  
@@ -127,18 +127,18 @@ export class Converter {
             for (let i = 0; i < imageData.data.length; i += 4) {
                 // R
                 if (redChannel) {
-                    imageData.data[i + 1] = 0;
-                    imageData.data[i + 2] = 0;
+                    imageData.data[i + 1] = 255;
+                    imageData.data[i + 2] = 255;
                 }
                 // G
                 if (greenChannel) {
-                    imageData.data[i + 0] = 0;
-                    imageData.data[i + 2] = 0;
+                    imageData.data[i + 0] = 255;
+                    imageData.data[i + 2] = 255;
                 }
                 // B
                 if (blueChannel) {
-                    imageData.data[i + 0] = 0;
-                    imageData.data[i + 1] = 0;
+                    imageData.data[i + 0] = 255;
+                    imageData.data[i + 1] = 255;
                 }
             }
             // put the altered data back on the canvas  
