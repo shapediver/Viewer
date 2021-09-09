@@ -3,6 +3,63 @@
 
 <head>
     <title>ShapeDiver</title>
+    <style>
+        /* The slider */
+        #slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          -webkit-transition: .4s;
+          transition: .4s;
+        }
+        
+        #slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          -webkit-transition: .4s;
+          transition: .4s;
+        }
+
+        /* The switch - the box around the slider */
+        .switch {
+            position: relative;
+            display: block;
+            width: 60px;
+            height: 34px;
+            float: left;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        }
+
+        input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+        border-radius: 34px;
+        }
+
+        .slider.round:before {
+        border-radius: 50%;
+        }
+    </style>
 </head>
 
 <body>
@@ -14,8 +71,17 @@
             src="https://developers.google.com/ar/develop/java/images/ic_view_in_ar_new_googblue_48dp.png"
             onclick="window.loadAR()" />
         <div
-            style=" position: absolute; right: 25px; top: 25px; border-radius: 25px; background: #4285f4; padding: 20px; color: #ffffff; font-family: Arial, Helvetica, sans-serif;">
+            style="position: absolute; right: 25px; top: 25px; border-radius: 25px; background: #4285f4; padding: 20px; color: #ffffff; font-family: Arial, Helvetica, sans-serif;">
             <p style="font-size: xx-large;margin:0px; text-align: center;" id="bb"></p>
+            <div style="text-align: center; margin-top: 15px;">
+
+            <label class="switch">
+                <input type="checkbox" id="autoScaling" checked>
+                <span id="slider"class="slider round"></span>
+            </label>
+            <label style="font-size: x-large; font-family: Arial, Helvetica, sans-serif; width: 100px;">Auto-Scaling</label>
+            </div>
+            <div id='scalingGroup'>
             <input style="width: 100%; height:50px;" type="range" min="0.01" max="10" value="1" class="slider"
                 id="scale">
             <div style="text-align: center;">
@@ -41,6 +107,7 @@
                     type="text" value="value">
             </div>
         </div>
+        </div>
     </div>
     <div id='part2'
         style=" position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%);">
@@ -56,7 +123,7 @@
                     id='submit'>Submit</button>
                 </br>
                 </br>
-                <p style="margin:0px; text-align: center; font-size: large;">This feature is currently only available on
+                <p style="margin:0px; text-align: center; font-size: large;" id="info">This feature is currently only available on
                     sddev2.eu-central-1.shapediver.com, so please prove a ticket from that system.</p>
             </div>
         </div>

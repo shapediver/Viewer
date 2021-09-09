@@ -19,6 +19,7 @@ export enum LOGGINGLEVEL {
 }
 
 export enum LOGGINGTOPIC {
+    AR = 'ar',
     GENERAL = 'general',
     EXPORT = 'export',
     PARAMETER = 'parameter',

@@ -990,7 +990,7 @@ export class Session {
      * 
      * @returns 
      */
-    public async uploadGLTF() {
+    public async uploadGLTF(responseType: 'gltf' | 'usdz' = 'gltf') {
         try {
             if(this.canUploadGLTF === false) {
                 const error = new SDError(`Session(${this.id}).uploadGLTF: GLTF upload not available in this session.`);
@@ -1000,7 +1000,8 @@ export class Session {
 
             const blob = await this.#api.convertSceneToGLTF();
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploading GLTF.`);
-            const uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].method!.toLowerCase()!, blob, 'model/gltf-binary')).data;
+            const conversion = responseType === 'usdz' ? '?conversion=usdz' : '';
+            const uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].href! + conversion, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].method!.toLowerCase()!, blob, 'model/gltf-binary')).data;
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploaded GLTF.`);
             return uploadReply.gltf.href;
         } catch (e) {

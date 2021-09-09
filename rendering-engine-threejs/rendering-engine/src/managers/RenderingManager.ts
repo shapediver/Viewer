@@ -405,7 +405,7 @@ export class RenderingManager implements IManager {
         // If we should render in beauty mode
         let beautyRendering = false;
         if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
-            ((this._renderingEngine.shadows && this._systemInfo.isMobileDevice) || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOSDevice)) &&
+            ((this._renderingEngine.shadows && this._systemInfo.isMobile) || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOS)) &&
             this._renderingEngine.usingSwiftShader === false)
             beautyRendering = true;
 

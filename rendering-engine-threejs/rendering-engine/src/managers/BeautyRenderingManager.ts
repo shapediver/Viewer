@@ -93,7 +93,7 @@ export class BeautyRenderingManager implements IManager {
     // #region Public Methods (7)
 
     public activateBeautyRenderShaders() {
-        if(this._systemInfo.isMobileDevice) {
+        if(this._systemInfo.isMobile) {
             this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
             this._renderingEngine.renderer.shadowMap.needsUpdate = true;
             this._renderingEngine.materialLoader.updateMaterials();
@@ -114,7 +114,7 @@ export class BeautyRenderingManager implements IManager {
         this._beautyRenderingTimeout = null;
         this._beautyRenderingActive = false;
         this._beautyRenderingDurationActive = 0;
-        if(this._systemInfo.isMobileDevice) {
+        if(this._systemInfo.isMobile) {
             this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             this._renderingEngine.renderer.shadowMap.needsUpdate = true;
             this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
@@ -178,7 +178,7 @@ export class BeautyRenderingManager implements IManager {
     public render(time: number, camera: THREE.Camera, width: number, height: number) {
         const percentage = this.setShaderProperties();
 
-        if((this._renderingEngine.ambientOcclusion && !(this._systemInfo.isIOSDevice || this._systemInfo.isMobileDevice || this._systemInfo.runningInSafari))) {
+        if((this._renderingEngine.ambientOcclusion && !(this._systemInfo.isIOS || this._systemInfo.isMobile || this._systemInfo.isSafari))) {
             this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
             this._ssaaPass.clearAlpha = this._renderingEngine.renderer.getClearAlpha();
     
@@ -220,7 +220,7 @@ export class BeautyRenderingManager implements IManager {
         const deltaTime = Math.min(this._beautyRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration)
         const percentage = deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
 
-        if(this._systemInfo.isMobileDevice) {
+        if(this._systemInfo.isMobile) {
             if (percentage < 0.25) {
                 const percentageMapped = percentage / 0.25;
                 this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);

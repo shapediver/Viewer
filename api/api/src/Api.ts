@@ -1,7 +1,7 @@
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
-import { EventEngine, EVENTTYPE, IEvent, ISessionEvent, MAINEVENTTYPE, SettingsEngine, StateEngine, InputValidator, UuidGenerator, Logger, LOGGINGLEVEL, LOGGINGTOPIC, SDError, IViewerEvent } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, IEvent, ISessionEvent, MAINEVENTTYPE, SettingsEngine, StateEngine, InputValidator, UuidGenerator, Logger, LOGGINGLEVEL, LOGGINGTOPIC, SDError, IViewerEvent, SystemInfo } from '@shapediver/viewer.shared.services'
 import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
@@ -10,10 +10,11 @@ import { Session } from './session/Session'
 import { Viewer } from './viewer/Viewer'
 import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { convert, ISettingsV3, validate } from '@shapediver/viewer.settings'
+import { mat4, vec3 } from 'gl-matrix'
 
 @singleton()
 export class Api {
-  // #region Properties (12)
+  // #region Properties (13)
 
   readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
@@ -23,13 +24,14 @@ export class Api {
   readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
   readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+  readonly #systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
+  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
   readonly #viewerCallbacks: { [key: string]: { [key: string]: () => any } } = {};
-  
   readonly sceneTree: Tree = <Tree>container.resolve(Tree);
   readonly sessions: { [key: string]: Session } = {};
   readonly viewers: { [key: string]: Viewer } = {};
 
-  // #endregion Properties (12)
+  // #endregion Properties (13)
 
   // #region Constructors (1)
 
@@ -66,7 +68,129 @@ export class Api {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (4)
+  // #region Public Accessors (14)
+
+  /**
+   * Getter autoScaling
+   */
+  public get autoScaling(): boolean {
+    return this.#settingsEngine.ar.autoScaling;
+  }
+
+  /**
+   * Setter autoScaling
+   */
+  public set autoScaling(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.autoScaling: Updating autoScaling to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', value, 'boolean');
+      this.#settingsEngine.ar.autoScaling = value;
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.autoScaling: autoScaling was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.autoScaling: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter enableAR
+   */
+  public get enableAR(): boolean {
+    return this.#settingsEngine.ar.enable;
+  }
+
+  /**
+   * Setter enableAR
+   */
+  public set enableAR(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.enableAR: Updating enableAR to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.enableAR', value, 'boolean');
+      this.#settingsEngine.ar.enable = value;
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.enableAR: enableAR was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.enableAR: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter globalRotation
+   */
+  public get globalRotation(): vec3 {
+    return vec3.fromValues(
+      this.#settingsEngine.general.transformation.rotation.x,
+      this.#settingsEngine.general.transformation.rotation.y,
+      this.#settingsEngine.general.transformation.rotation.z
+    )
+  }
+
+  /**
+   * Setter globalRotation
+   */
+  public set globalRotation(value: vec3) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalRotation: Updating globalRotation to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.globalRotation', value, 'vec3');
+      this.#settingsEngine.general.transformation.rotation = { x: value[0], y: value[1], z: value[2] };
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalRotation: globalRotation was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.globalRotation: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter globalScale
+   */
+  public get globalScale(): vec3 {
+    return vec3.fromValues(
+      this.#settingsEngine.general.transformation.scale.x,
+      this.#settingsEngine.general.transformation.scale.y,
+      this.#settingsEngine.general.transformation.scale.z
+    )
+  }
+
+  /**
+   * Setter globalScale
+   */
+  public set globalScale(value: vec3) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalScale: Updating globalScale to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.globalScale', value, 'vec3');
+      this.#settingsEngine.general.transformation.scale = { x: value[0], y: value[1], z: value[2] };
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalScale: globalScale was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.globalScale: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * Getter globalTranslation
+   */
+  public get globalTranslation(): vec3 {
+    return vec3.fromValues(
+      this.#settingsEngine.general.transformation.translation.x,
+      this.#settingsEngine.general.transformation.translation.y,
+      this.#settingsEngine.general.transformation.translation.z
+    )
+  }
+
+  /**
+   * Setter globalTranslation
+   */
+  public set globalTranslation(value: vec3) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalTranslation: Updating globalTranslation to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.globalTranslation', value, 'vec3');
+      this.#settingsEngine.general.transformation.translation = { x: value[0], y: value[1], z: value[2] };
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalTranslation: globalTranslation was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.globalTranslation: Something unexpected happened.`, true)
+    }
+  }
 
   /**
    * Getter loggingLevel
@@ -113,9 +237,9 @@ export class Api {
     }
   }
 
-  // #endregion Public Accessors (4)
+  // #endregion Public Accessors (14)
 
-  // #region Public Methods (12)
+  // #region Public Methods (10)
 
   /**
    * Adds an event listener.
@@ -345,7 +469,29 @@ export class Api {
    */
   public async convertSceneToGLTF(): Promise<Blob> {
     try {
+      let scalingMatrix: mat4;
+      if (this.autoScaling) {
+        const min = vec3.clone(this.sceneTree.root.boundingBox.min);
+        const max = vec3.clone(this.sceneTree.root.boundingBox.max);
+        const size = vec3.fromValues(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
+        const maxDimension = Math.max(size[0], Math.max(size[1], size[2]));
+        scalingMatrix = mat4.fromScaling(mat4.create(), vec3.fromValues(1.0 / maxDimension, 1.0 / maxDimension, 1.0 / maxDimension));
+      } else {
+        scalingMatrix = mat4.fromScaling(mat4.create(), this.globalScale);
+      }
+
+      // add scaling matrix to scene tree node
+      const scalingMatrixID = this.#uuidGenerator.create();
+      this.sceneTree.root.transformations.push({ id: scalingMatrixID, matrix: scalingMatrix })
+
+      // create the gltf
       const result = await this.#geometryEngine.convertSceneToGLTF(this.sceneTree.root);
+
+      // remove the matrix
+      for(let i = 0; i < this.sceneTree.root.transformations.length; i++)
+        if(this.sceneTree.root.transformations[i].id === scalingMatrixID)
+          this.sceneTree.root.transformations.splice(i, 1);
+
       return new Blob([result], { type: 'application/octet-stream' });
     } catch (e) {
       if (e instanceof SDError) throw e;
@@ -498,28 +644,111 @@ export class Api {
     }
   }
 
-  public async viewInAR(title: string = '', mode: '3d_preferred' | '3d_only' | 'ar_preferred' | 'ar_only' = 'ar_only', resizable = false, browser_fallback_url = 'https://shapediver.com/'): Promise<void> {
+  /**
+   * Determines if the current devices supports the viewing in AR.
+   * 
+   * An error will be thrown with debugging information if it is not possible.
+   */
+  public viewableInAR(): boolean {
     try {
+      const isIOSSafari = this.#systemInfo.isIOS && this.#systemInfo.isSafari;
+      const isAndroidChrome = this.#systemInfo.isAndroid && this.#systemInfo.isChrome;
+
+      // if this is a supported device, return true
+      if(isIOSSafari || isAndroidChrome)
+        return true;
+
+      if(this.#systemInfo.isIOS)
+        throw new SDError(`Api.viewableInAR: The AR feature on iOS is only supported in Safari. Please open this page again in Safari.`);
+        
+      if(this.#systemInfo.isSafari)
+        throw new SDError(`Api.viewableInAR: The AR feature in Safari is only supported on iOS devices. Please open this page again on an iOS device.`);
+        
+      if(this.#systemInfo.isAndroid)
+        throw new SDError(`Api.viewableInAR: The AR feature on Android is only supported in Chrome. Please open this page again in Chrome.`);
+      
+      if(this.#systemInfo.isChrome)
+        throw new SDError(`Api.viewableInAR: The AR feature in Chrome is only supported on Android devices. Please open this page again on an Android device.`);
+
+      throw new SDError(`Api.viewableInAR: The AR feature is only available on Android with Chrome, or on iOS with Safari.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.viewableInAR: Something unexpected happened.`, true)
+    }
+  }
+
+  /**
+   * View the current scene in AR.
+   * 
+   * Please check first if the device supports the viewing of models in AR, see {@link viewableInAR}.
+   * 
+   * As some models might have a different scale then the AR apps (meters), the scaling can be chosen freely.
+   * By default the {@link autoScaling} option is enabled to scale the model so that the largest bounding boy side is 1 meter.
+   * If you disable that option, you can chose your own scaling factor via {@link globalScale}.
+   * 
+   * @param androidOptions 
+   */
+  public async viewInAR(androidOptions: { title?: string, resizable?: boolean, fallback_url?: string } = { title: '', resizable: true, fallback_url: 'https://shapediver.com/' }): Promise<void> {
+    try {
+      const isIOSSafari = this.#systemInfo.isIOS && this.#systemInfo.isSafari;
+      const isAndroidChrome = this.#systemInfo.isAndroid && this.#systemInfo.isChrome;
+
+      // if this is not a supported device, throw an error
+      if(!isIOSSafari && !isAndroidChrome)
+        throw new SDError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
+      
+      // try to find a session that is "AR-ready"
+      // as a backend might be used that does not support uploading the gltf (and conversion)
+      // we have to do this check and abort if none is found
       let arSession;
       for(let s in this.sessions)
         if(this.sessions[s].canUploadGLTF)
           arSession = this.sessions[s];
       if(!arSession) {
         const error = new SDError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
-        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
+        this.#logger.warn(LOGGINGTOPIC.AR, error.message);
         throw error;
       }
+      
+      // register the busy mode to blur the scene and create a visual feedback
+      const busyModeID = this.#uuidGenerator.create();
+      for(let v in this.viewers)
+        this.viewers[v].registerBusyMode(busyModeID)
 
-      const file = await arSession.uploadGLTF();
-      const a = document.createElement('a');
-      a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${resizable}&title=${title}&file=${file}&mode=${mode}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${browser_fallback_url};end;`
-      document.body.appendChild(a)
-      a.click()
+      // convert and upload (and maybe convert to usdz) the file
+      const file = await arSession.uploadGLTF(isIOSSafari ? 'usdz' : 'gltf');
+
+      // separation between Android-Chrome and iOS-Safari
+      if(isAndroidChrome) {
+        // check the incoming properties
+        this.#logger.debugLow(LOGGINGTOPIC.AR, `Api.viewInAR: Viewing in AR with properties ${JSON.stringify(androidOptions)}.`);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.AR, 'Api.viewInAR', androidOptions, 'object', false);
+        const prop = Object.assign({}, androidOptions);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.AR, `Api.viewInAR`, prop.title, 'string', false);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.AR, `Api.viewInAR`, prop.resizable, 'boolean', false);
+        this.#inputValidator.validateAndError(LOGGINGTOPIC.AR, `Api.viewInAR`, prop.fallback_url, 'string', false);
+
+        // create the link and click it
+        const a = document.createElement('a');
+        a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${androidOptions.resizable}&title=${androidOptions.title}&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${androidOptions.fallback_url};end;`
+        document.body.appendChild(a);
+        a.click();
+      } else {
+        // create the link and click it
+        const a = document.createElement('a');
+        a.href = file;
+        document.body.appendChild(a);
+        a.click();
+      }
+
+      // deregister the busy mod
+      for(let v in this.viewers)
+        this.viewers[v].deregisterBusyMode(busyModeID)
     } catch (e) {
       if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.viewInAR: Something unexpected happened.`, true)
+      throw this.#logger.error(LOGGINGTOPIC.AR, e, `Api.viewInAR: Something unexpected happened.`, true)
     }
   }
 
-  // #endregion Public Methods (12)
+  // #endregion Public Methods (10)
 }

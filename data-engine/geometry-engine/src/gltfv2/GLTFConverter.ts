@@ -84,18 +84,25 @@ export class GLTFConverter {
     // #region Public Methods (1)
 
     public async convert(node: TreeNode): Promise<IGLTF_v2 | string | ArrayBuffer | null> {
+        const sceneNode = new TreeNode('ShapeDiverRootNode');
+        sceneNode.addChild(node);
+
         const sceneDef: IGLTF_v2_Scene = {
-            name: node.name,
+            name: sceneNode.name,
+            nodes: []
         };
 
-        if (node.children.length > 0) sceneDef.nodes = [];
-        for (let i = 0; i < node.children.length; i++) {
-            node.children[i].transformations.push({
-                id: 'globlaTransformationInverse',
-                matrix: this._globalTransformationInverse,
-            })
-            sceneDef.nodes?.push(this.convertNode(node.children[i]));
-        }
+        const globalTransformationInverseID = this._uuidGenerator.create();
+        node.transformations.push({
+            id: globalTransformationInverseID,
+            matrix: this._globalTransformationInverse,
+        })
+        sceneDef.nodes?.push(this.convertNode(node));
+
+        for (let i = 0; i < node.transformations.length; i++)
+            if (node.transformations[i].id === globalTransformationInverseID)
+                node.transformations.splice(i, 1);
+
         this._content.scenes = [];
         this._content.scenes.push(sceneDef);
 
@@ -109,7 +116,7 @@ export class GLTFConverter {
         // Merge buffers.
         const blob = new Blob(this._buffers, { type: 'application/octet-stream' });
 
-        // Update bytelength of the single buffer.
+        // Update byte length of the single buffer.
         if (this._content.buffers && this._content.buffers.length > 0) this._content.buffers[0].byteLength = blob.size;
 
         return new Promise<IGLTF_v2 | string | ArrayBuffer | null>(resolve => {
@@ -293,25 +300,25 @@ export class GLTFConverter {
         }
 
         let mimeType = 'image/png';
-        if(data.image.src.endsWith('.jpg') || data.image.src.includes('image/jpeg'))
+        if (data.image.src.endsWith('.jpg') || data.image.src.includes('image/jpeg'))
             mimeType = 'image/jpeg';
 
         imageDef.mimeType = mimeType;
 
         const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
-        if(DATA_URI_REGEX.test(data.image.src)) {
+        if (DATA_URI_REGEX.test(data.image.src)) {
             const byteString = atob(data.image.src.split(',')[1]);
             const mimeType = data.image.src.split(',')[0].split(':')[1].split(';')[0]
             const ab = new ArrayBuffer(byteString.length);
             const ia = new Uint8Array(ab);
             for (let i = 0; i < byteString.length; i++)
                 ia[i] = byteString.charCodeAt(i);
-            const blob = new Blob([ab], {type: mimeType});
+            const blob = new Blob([ab], { type: mimeType });
             this._promises.push(new Promise<void>(async (resolve) => {
                 const bufferViewIndex = await this.convertBufferViewImage(blob!);
                 imageDef.bufferView = bufferViewIndex;
                 resolve();
-            }));      
+            }));
         } else {
             ctx.drawImage(data.image, 0, 0, canvas.width, canvas.height);
             this._promises.push(new Promise<void>((resolve) => {

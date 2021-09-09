@@ -39,11 +39,13 @@
     "@ctrl/tinycolor": "^3.4.0",
     "@sentry/browser": "^6.7.2",
     "@sentry/tracing": "^6.7.2",
-    "@shapediver/viewer.settings": "^0.1.7",
+    "@shapediver/viewer.settings": "^0.1.8",
     "@shapediver/viewer.shared.build-data": "^1.2.0",
+    "@types/ua-parser-js": "^0.7.36",
     "@types/uuid": "^8.3.0",
     "axios": "^0.21.1",
     "gl-matrix": "^3.3.0",
+    "ua-parser-js": "^0.7.28",
     "tsyringe": "^4.5.0",
     "uuid": "^8.3.2"
   }

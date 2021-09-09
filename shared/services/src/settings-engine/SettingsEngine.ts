@@ -5,6 +5,7 @@ import { EventEngine } from '../event-engine/EventEngine'
 import { EVENTTYPE } from '../event-engine/EventTypes'
 import { StateEngine } from '../state-engine/StateEngine'
 
+type IARSettings = ISettingsV3["ar"];
 type ICameraSettings = ISettingsV3["camera"];
 type IEnvironmentSettings = ISettingsV3["environment"];
 type IEnvironmentGeometrySettings = ISettingsV3["environmentGeometry"];
@@ -30,6 +31,10 @@ export class SettingsEngine {
 
     public get settings(): ISettingsV3 {
         return this._settings;
+    }
+
+    public get ar(): IARSettings {
+        return this._settings.ar;
     }
 
     public get camera(): ICameraSettings {
