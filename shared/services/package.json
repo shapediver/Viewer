@@ -48,5 +48,6 @@
     "tsyringe": "^4.5.0",
     "ua-parser-js": "^0.7.28",
     "uuid": "^8.3.2"
-  }
+  },
+  "gitHead": "25b1bd5dade0720d4e40aa8f4db33c58ffcc8aae"
 }

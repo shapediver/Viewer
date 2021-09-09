@@ -34,5 +34,6 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
-  }
+  },
+  "gitHead": "25b1bd5dade0720d4e40aa8f4db33c58ffcc8aae"
 }
