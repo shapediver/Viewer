@@ -8,5 +8,5 @@ export interface IExport extends ShapeDiverResponseExportDefinition {
      * @param parameters 
      * @returns 
      */
-    request(parameters: { [key: string]: string }): Promise<ShapeDiverResponseExport>;
+    request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport>;
 }

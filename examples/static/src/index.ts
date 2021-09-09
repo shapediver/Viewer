@@ -1,8 +1,29 @@
 import 'reflect-metadata'
 
-import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, Export, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, Session, Viewer, VISIBILITYMODE } from '@shapediver/viewer'
+import {
+  api,
+  CAMERATYPE,
+  ENVIRONMENTMAP,
+  EVENTTYPE,
+  Export,
+  EXPORTTYPE,
+  IExport,
+  IParameter,
+  ISession,
+  IViewer,
+  LIGHTTYPE,
+  LOGGINGLEVEL,
+  ORTHOGRAPHIC_CAMERA_DIRECTION,
+  Parameter,
+  PARAMETERTYPE,
+  PARAMETERVISUALIZATION,
+  RENDERERTYPE,
+  Session,
+  Viewer,
+  VISIBILITYMODE,
+} from '@shapediver/viewer'
 
-let viewer: Viewer, session: Session;
+let viewer: IViewer, session: ISession;
 
 (async () => {
     viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
@@ -35,7 +56,7 @@ let viewer: Viewer, session: Session;
     api.update()
 }
 
-(<any>window).getParameters = (): { [key: string]: Parameter<any> } => {
+(<any>window).getParameters = (): { [key: string]: IParameter<any> } => {
     return session.parameters;
 }
 
@@ -50,7 +71,7 @@ let viewer: Viewer, session: Session;
     await session.customize();
 }
 
-(<any>window).getExports = (): { [key: string]: Export } => {
+(<any>window).getExports = (): { [key: string]: IExport } => {
     return session.exports;
 }
 
