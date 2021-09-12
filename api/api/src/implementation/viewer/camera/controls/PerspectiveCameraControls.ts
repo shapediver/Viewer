@@ -39,16 +39,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
 
     // #region Public Accessors (40)
 
-    /**
-     * Getter autoRotationSpeed
-     */
     public get autoRotationSpeed(): number {
         return this.#controls.autoRotationSpeed;
     }
 
-    /**
-     * Setter autoRotationSpeed
-     */
     public set autoRotationSpeed(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).autoRotationSpeed: Updating AutoRotationSpeed to ${value}.`);
@@ -62,16 +56,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter cubePositionRestriction
-     */
     public get cubePositionRestriction(): { min: vec3, max: vec3 } {
         return this.#controls.cubePositionRestriction;
     }
 
-    /**
-     * Setter cubePositionRestriction
-     */
     public set cubePositionRestriction(value: { min: vec3, max: vec3 }) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubePositionRestriction: Updating CubePositionRestriction to ${value}.`);
@@ -86,16 +74,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter cubeTargetRestriction
-     */
     public get cubeTargetRestriction(): { min: vec3, max: vec3 } {
         return this.#controls.cubeTargetRestriction;
     }
 
-    /**
-     * Setter cubeTargetRestriction
-     */
     public set cubeTargetRestriction(value: { min: vec3, max: vec3 }) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubeTargetRestriction: Updating CubeTargetRestriction to ${value}.`);
@@ -110,16 +92,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter damping
-     */
     public get damping(): number {
         return this.#controls.damping;
     }
 
-    /**
-     * Setter damping
-     */
     public set damping(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).damping: Updating Damping to ${value}.`);
@@ -133,16 +109,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter enableAutoRotation
-     */
     public get enableAutoRotation(): boolean {
         return this.#controls.enableAutoRotation;
     }
 
-    /**
-     * Setter enableAutoRotation
-     */
     public set enableAutoRotation(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableAutoRotation: Updating EnableAutoRotation to ${value}.`);
@@ -156,16 +126,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter enableKeyPan
-     */
     public get enableKeyPan(): boolean {
         return this.#controls.enableKeyPan;
     }
 
-    /**
-     * Setter enableKeyPan
-     */
     public set enableKeyPan(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: Updating EnableKeyPan to ${value}.`);
@@ -179,16 +143,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter enablePan
-     */
     public get enablePan(): boolean {
         return this.#controls.enablePan;
     }
 
-    /**
-     * Setter enablePan
-     */
     public set enablePan(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan: Updating EnablePan to ${value}.`);
@@ -202,16 +160,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter enableRotation
-     */
     public get enableRotation(): boolean {
         return this.#controls.enableRotation;
     }
 
-    /**
-     * Setter enableRotation
-     */
     public set enableRotation(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableRotation: Updating EnableRotation to ${value}.`);
@@ -225,16 +177,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter enableZoom
-     */
     public get enableZoom(): boolean {
         return this.#controls.enableZoom;
     }
 
-    /**
-     * Setter enableZoom
-     */
     public set enableZoom(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom: Updating EnableZoom to ${value}.`);
@@ -248,16 +194,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter enabled
-     */
     public get enabled(): boolean {
         return this.#controls.enabled;
     }
 
-    /**
-     * Setter enabled
-     */
     public set enabled(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled: Updating Enabled to ${value}.`);
@@ -271,16 +211,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter input
-     */
     public get input(): { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } {
         return this.#controls.input;
     }
 
-    /**
-     * Setter input
-     */
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input: Updating Input to ${value}.`);
@@ -303,16 +237,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter keyPanSpeed
-     */
     public get keyPanSpeed(): number {
         return this.#controls.keyPanSpeed;
     }
 
-    /**
-     * Setter keyPanSpeed
-     */
     public set keyPanSpeed(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: Updating KeyPanSpeed to ${value}.`);
@@ -326,16 +254,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter movementSmoothness
-     */
     public get movementSmoothness(): number {
         return this.#controls.movementSmoothness;
     }
 
-    /**
-     * Setter movementSmoothness
-     */
     public set movementSmoothness(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: Updating MovementSmoothness to ${value}.`);
@@ -349,16 +271,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter panSpeed
-     */
     public get panSpeed(): number {
         return this.#controls.panSpeed;
     }
 
-    /**
-     * Setter panSpeed
-     */
     public set panSpeed(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed: Updating PanSpeed to ${value}.`);
@@ -372,16 +288,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter rotationRestriction
-     */
     public get rotationRestriction(): { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number } {
         return this.#controls.rotationRestriction;
     }
 
-    /**
-     * Setter rotationRestriction
-     */
     public set rotationRestriction(value: { minPolarAngle: number, maxPolarAngle: number, minAzimuthAngle: number, maxAzimuthAngle: number }) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationRestriction: Updating RotationRestriction to ${value}.`);
@@ -398,16 +308,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter rotationSpeed
-     */
     public get rotationSpeed(): number {
         return this.#controls.rotationSpeed;
     }
 
-    /**
-     * Setter rotationSpeed
-     */
     public set rotationSpeed(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationSpeed: Updating RotationSpeed to ${value}.`);
@@ -421,16 +325,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter spherePositionRestriction
-     */
     public get spherePositionRestriction(): { center: vec3, radius: number } {
         return this.#controls.spherePositionRestriction;
     }
 
-    /**
-     * Setter spherePositionRestriction
-     */
     public set spherePositionRestriction(value: { center: vec3, radius: number }) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).spherePositionRestriction: Updating SpherePositionRestriction to ${value}.`);
@@ -445,16 +343,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter sphereTargetRestriction
-     */
     public get sphereTargetRestriction(): { center: vec3, radius: number } {
         return this.#controls.sphereTargetRestriction;
     }
 
-    /**
-     * Setter sphereTargetRestriction
-     */
     public set sphereTargetRestriction(value: { center: vec3, radius: number }) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).sphereTargetRestriction: Updating SphereTargetRestriction to ${value}.`);
@@ -469,16 +361,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter zoomRestriction
-     */
     public get zoomRestriction(): { minDistance: number, maxDistance: number } {
         return this.#controls.zoomRestriction;
     }
 
-    /**
-     * Setter zoomRestriction
-     */
     public set zoomRestriction(value: { minDistance: number, maxDistance: number }) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomRestriction: Updating ZoomRestriction to ${value}.`);
@@ -493,16 +379,10 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
         }
     }
 
-    /**
-     * Getter zoomSpeed
-     */
     public get zoomSpeed(): number {
         return this.#controls.zoomSpeed;
     }
 
-    /**
-     * Setter zoomSpeed
-     */
     public set zoomSpeed(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: Updating ZoomSpeed to ${value}.`);

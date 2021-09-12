@@ -202,431 +202,219 @@ export class RenderingEngine implements IRenderingEngine {
 
     // #region Public Accessors (61)
 
-    /**
-     * Getter ambientOcclusion
-     * @return {boolean}
-     */
     public get ambientOcclusion(): boolean {
         return this._ambientOcclusion;
     }
 
-    /**
-     * Setter ambientOcclusion
-     * @param {boolean} value
-     */
     public set ambientOcclusion(value: boolean) {
         this._ambientOcclusion = value;
     }
 
-    /**
-     * Getter automaticResizing
-     * @return {boolean}
-     */
     public get automaticResizing(): boolean {
         return this._automaticResizing;
     }
 
-    /**
-     * Setter automaticResizing
-     * @param {boolean} value
-     */
     public set automaticResizing(value: boolean) {
         this._automaticResizing = value;
     }
 
-    /**
-     * Getter beautyRenderBlendingDuration
-     * @return {number}
-     */
     public get beautyRenderBlendingDuration(): number {
         return this._beautyRenderBlendingDuration;
     }
 
-    /**
-     * Setter beautyRenderBlendingDuration
-     * @param {number} value
-     */
     public set beautyRenderBlendingDuration(value: number) {
         this._beautyRenderBlendingDuration = value;
     }
 
-    /**
-     * Getter beautyRenderDelay
-     * @return {number}
-     */
     public get beautyRenderDelay(): number {
         return this._beautyRenderDelay;
     }
 
-    /**
-     * Setter beautyRenderDelay
-     * @param {number} value
-     */
     public set beautyRenderDelay(value: number) {
         this._beautyRenderDelay = value;
     }
 
-    /**
-     * Getter beautyRenderingManager
-     * @return {BeautyRenderingManager}
-     */
     public get beautyRenderingManager(): BeautyRenderingManager {
         return this._beautyRenderingManager;
     }
 
-    /**
-     * Getter blur
-     * @return {boolean}
-     */
     public get blur(): boolean {
         return this._blur;
     }
 
-    /**
-     * Setter blur
-     * @param {boolean} value
-     */
     public set blur(value: boolean) {
         this._blur = value;
     }
 
-    /**
-     * Getter blurSceneWhenBusy
-     * @return {boolean}
-     */
     public get blurSceneWhenBusy(): boolean {
         return this._blurSceneWhenBusy;
     }
 
-    /**
-     * Setter blurSceneWhenBusy
-     * @param {boolean} value
-     */
     public set blurSceneWhenBusy(value: boolean) {
         this._blurSceneWhenBusy = value;
     }
 
-    /**
-     * Getter busy
-     * @return {boolean}
-     */
     public get busy(): boolean {
         return this._busy;
     }
 
-    /**
-     * Setter busy
-     * @param {boolean} value
-     */
     public set busy(value: boolean) {
         this._busy = value;
     }
 
-    /**
-     * Getter cameraEngine
-     * @return {CameraEngine}
-     */
     public get cameraEngine(): CameraEngine {
         return this._cameraEngine;
     }
 
-    /**
-     * Getter cameraManager
-     * @return {CameraManager}
-     */
     public get cameraManager(): CameraManager {
         return this._cameraManager;
     }
 
-    /**
-     * Getter canvas
-     * @return {ICanvas}
-     */
     public get canvas(): ICanvas {
         return this._canvas;
     }
 
-    /**
-     * Getter canvasEngine
-     * @return {CanvasEngine}
-     */
     public get canvasEngine(): CanvasEngine {
         return this._canvasEngine;
     }
 
-    /**
-     * Getter clearAlpha
-     * @return {number}
-     */
     public get clearAlpha(): number {
         return this._clearAlpha;
     }
 
-    /**
-     * Setter clearAlpha
-     * @param {number} value
-     */
     public set clearAlpha(value: number) {
         this._clearAlpha = value;
     }
 
-    /**
-     * Getter clearColor
-     * @return {string}
-     */
     public get clearColor(): string {
         return this._clearColor;
     }
 
-    /**
-     * Setter clearColor
-     * @param {string} value
-     */
     public set clearColor(value: string) {
         this._clearColor = value;
     }
 
-    /**
-     * Getter closed
-     * @return {boolean}
-     */
     public get closed(): boolean {
         return this._closed;
     }
 
-    /**
-     * Getter domEventEngine
-     * @return {DomEventEngine}
-     */
     public get domEventEngine(): DomEventEngine {
         return this._domEventEngine;
     }
 
-    /**
-     * Getter environmentMap
-     * @return {string | string[]}
-     */
     public get environmentMap(): string | string[] {
         return this._environmentMap;
     }
 
-    /**
-     * Setter environmentMap
-     * @param {string | string[]} value
-     */
     public set environmentMap(value: string | string[]) {
         this._environmentMap = value;
         this._environmentMapLoader.load(this.environmentMap);
     }
 
-    /**
-     * Getter environmentMapAsBackground
-     * @return {boolean}
-     */
     public get environmentMapAsBackground(): boolean {
         return this._environmentMapAsBackground;
     }
 
-    /**
-     * Setter environmentMapAsBackground
-     * @param {boolean} value
-     */
     public set environmentMapAsBackground(value: boolean) {
         this._environmentMapAsBackground = value;
     }
 
-    /**
-     * Getter environmentMapLoader
-     * @return {EnvironmentMapLoader}
-     */
     public get environmentMapLoader(): EnvironmentMapLoader {
         return this._environmentMapLoader;
     }
 
-    /**
-     * Getter environmentMapResolution
-     * @return {string}
-     */
     public get environmentMapResolution(): string {
         return this._environmentMapResolution;
     }
 
-    /**
-     * Setter environmentMapResolution
-     * @param {string} value
-     */
     public set environmentMapResolution(value: string) {
         this._environmentMapResolution = value;
         this._environmentMapLoader.load(this.environmentMap);
     }
 
-    /**
-     * Getter eventEngine
-     * @return {EventEngine}
-     */
     public get eventEngine(): EventEngine {
         return this._eventEngine;
     }
 
-    /**
-     * Getter geometryLoader
-     * @return {GeometryLoader}
-     */
     public get geometryLoader(): GeometryLoader {
         return this._geometryLoader;
     }
 
-    /**
-     * Getter gridVisibility
-     * @return {boolean}
-     */
     public get gridVisibility(): boolean {
         return this._gridVisibility;
     }
 
-    /**
-     * Setter gridVisibility
-     * @param {boolean} value
-     */
     public set gridVisibility(value: boolean) {
         if (this._environmentGeometryManager.grid) this._environmentGeometryManager.grid.visible = value;
         this._gridVisibility = value;
     }
 
-    /**
-     * Getter groundPlaneVisibility
-     * @return {boolean}
-     */
     public get groundPlaneVisibility(): boolean {
         return this._groundPlaneVisibility;
     }
 
-    /**
-     * Setter groundPlaneVisibility
-     * @param {boolean} value
-     */
     public set groundPlaneVisibility(value: boolean) {
         if (this._environmentGeometryManager.groundPlane) this._environmentGeometryManager.groundPlane.visible = value;
         this._groundPlaneVisibility = value;
     }
 
-    /**
-     * Getter htmlElementAnchorLoader
-     * @return {HTMLElementAnchorLoader}
-     */
     public get htmlElementAnchorLoader(): HTMLElementAnchorLoader {
         return this._htmlElementAnchorLoader;
     }
 
-    /**
-     * Getter id
-     * @return {string}
-     */
     public get id(): string {
         return this._id;
     }
 
-    /**
-     * Getter lightEngine
-     * @return {LightEngine}
-     */
     public get lightEngine(): LightEngine {
         return this._lightEngine;
     }
 
-    /**
-     * Getter lightLoader
-     * @return {LightLoader}
-     */
     public get lightLoader(): LightLoader {
         return this._lightLoader;
     }
 
-    /**
-     * Getter lightScene
-     * @return {string}
-     */
     public get lightScene(): string {
         return this._lightScene;
     }
 
-    /**
-     * Setter lightScene
-     * @param {string} value
-     */
     public set lightScene(value: string) {
         this._lightScene = value;
     }
 
-    /**
-     * Getter logoDivElement
-     * @return {HTMLDivElement}
-     */
     public get logoDivElement(): HTMLDivElement {
         return this._logoDivElement;
     }
 
-    /**
-     * Getter materialLoader
-     * @return {MaterialLoader}
-     */
     public get materialLoader(): MaterialLoader {
         return this._materialLoader;
     }
 
-    /**
-     * Getter minimalRendering
-     * @return {boolean}
-     */
     public get minimalRendering(): boolean {
         return this.renderingManager.minimalRendering;
     }
 
-    /**
-     * Getter pointSize
-     * @return {number}
-     */
     public get pointSize(): number {
         return this._pointSize;
     }
 
-    /**
-     * Setter pointSize
-     * @param {number} value
-     */
     public set pointSize(value: number) {
         this._pointSize = value;
         this.materialLoader.assignPointSize(value)
     }
 
-    /**
-     * Getter renderer
-     * @return {THREE.WebGLRenderer}
-     */
     public get renderer(): THREE.WebGLRenderer {
         return this._renderer;
     }
 
-    /**
-     * Getter renderingManager
-     * @return {RenderingManager}
-     */
     public get renderingManager(): RenderingManager {
         return this._renderingManager;
     }
 
-    /**
-     * Getter renderingSettings
-     * @return {any}
-     */
     public get renderingSettings(): any {
         return this._renderingSettings;
     }
 
-    /**
-     * Setter renderingSettings
-     * @param {any} value
-     */
     public set renderingSettings(value: any) {
         this._renderingSettings = value;
         if(value.envMapIntensity !== undefined)
@@ -654,98 +442,50 @@ export class RenderingEngine implements IRenderingEngine {
             this._materialLoader.assignTextureEncoding(value.textureEncoding);
     }
 
-    /**
-     * Getter scene
-     * @return {THREE.Scene}
-     */
     public get scene(): THREE.Scene {
         return this._sceneTreeManager.scene;
     }
 
-    /**
-     * Getter sceneTracingManager
-     * @return {SceneTracingManager}
-     */
     public get sceneTracingManager(): SceneTracingManager {
         return this._sceneTracingManager;
     }
 
-    /**
-     * Getter sceneTreeManager
-     * @return {SceneTreeManager}
-     */
     public get sceneTreeManager(): SceneTreeManager {
         return this._sceneTreeManager;
     }
 
-    /**
-     * Getter settingsEngine
-     * @return {SettingsEngine}
-     */
     public get settingsEngine(): SettingsEngine {
         return this._settingsEngine;
     }
 
-    /**
-     * Getter shadows
-     * @return {boolean}
-     */
     public get shadows(): boolean {
         return this._shadows;
     }
 
-    /**
-     * Setter shadows
-     * @param {boolean} value
-     */
     public set shadows(value: boolean) {
         this._shadows = value;
     }
 
-    /**
-     * Getter show
-     * @return {boolean}
-     */
     public get show(): boolean {
         return this._show;
     }
 
-    /**
-     * Setter show
-     * @param {boolean} value
-     */
     public set show(value: boolean) {
         this._show = value;
     }
 
-    /**
-     * Getter showStatistics
-     * @return {boolean}
-     */
     public get showStatistics(): boolean {
         return this._showStatistics;
     }
 
-    /**
-     * Setter showStatistics
-     * @param {boolean} value
-     */
     public set showStatistics(value: boolean) {
         this._showStatistics = value;
     }
 
-    /**
-     * Getter stateEngine
-     * @return {StateEngine}
-     */
     public get stateEngine(): StateEngine {
         return this._stateEngine;
     }
 
-    /**
-     * Getter usingSwiftShader
-     * @return {boolean}
-     */
     public get usingSwiftShader(): boolean {
         return this.renderingManager.usingSwiftShader;
     }

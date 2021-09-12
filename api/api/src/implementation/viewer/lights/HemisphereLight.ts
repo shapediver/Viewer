@@ -34,16 +34,10 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
 
     // #region Public Accessors (2)
 
-    /**
-     * Getter groundColor
-     */
     public get groundColor(): string | number | vec3 {
         return this.#light.groundColor;
     }
 
-    /**
-     * Setter groundColor
-     */
     public set groundColor(value: string | number | vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor: Updating GroundColor to ${value}.`);

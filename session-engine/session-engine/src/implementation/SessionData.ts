@@ -15,18 +15,10 @@ export class SessionData extends AbstractTreeNodeData {
 
     // #region Public Accessors (2)
 
-    /**
-     * Getter session
-     * @return {ISession}
-     */
     public get session(): ShapeDiverResponse {
 		return this._session;
 	}
 
-    /**
-     * Setter session
-     * @param {ISession} value
-     */
     public set session(value: ShapeDiverResponse) {
 		this._session = value;
 	}

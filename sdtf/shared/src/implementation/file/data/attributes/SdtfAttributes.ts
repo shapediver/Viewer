@@ -11,18 +11,10 @@ export class SdtfAttributes {
 
   // #region Public Accessors (1)
 
-  /**
-   * Getter attributes
-   * @return {{ [key: string]: AbstractSdtfData<any> }}
-   */
   public get attributes(): { [key: string]: AbstractSdtfData<any> } {
     return this._attributes;
   }
 
-  /**
-   * Setter attributes
-   * @param {{ [key: string]: AbstractSdtfData<any> }} value
-   */
   public set attributes(value: { [key: string]: AbstractSdtfData<any> }) {
     this._attributes = value;
   }

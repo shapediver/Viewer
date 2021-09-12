@@ -65,244 +65,124 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Public Accessors (27)
 
-    /**
-     * Getter autoAdjust
-     * @return {boolean}
-     */
     public get autoAdjust(): boolean {
         return this._autoAdjust;
     }
 
-    /**
-     * Setter autoAdjust
-     * @param {boolean} value
-     */
     public set autoAdjust(value: boolean) {
         this._autoAdjust = value;
     }
 
-    /**
-     * Setter boundingBox
-     * @param {Box} value
-     */
     public set boundingBox(value: Box) {
         this._boundingBox = value;
     }
 
-    /**
-     * Getter cameraMovementDuration
-     * @return {number}
-     */
     public get cameraMovementDuration(): number {
         return this._cameraMovementDuration;
     }
 
-    /**
-     * Setter cameraMovementDuration
-     * @param {number} value
-     */
     public set cameraMovementDuration(value: number) {
         this._cameraMovementDuration = value;
     }
 
-    /**
-     * Getter controls
-     * @return {ICameraControls}
-     */
     public get controls(): ICameraControls {
         return this._controls;
     }
 
-    /**
-     * Getter defaultPosition
-     * @return {vec3}
-     */
     public get defaultPosition(): vec3 {
         return this._defaultPosition;
     }
 
-    /**
-     * Setter defaultPosition
-     * @param {vec3} value
-     */
     public set defaultPosition(value: vec3) {
         this._defaultPosition = value;
     }
 
-    /**
-     * Getter defaultTarget
-     * @return {vec3}
-     */
     public get defaultTarget(): vec3 {
         return this._defaultTarget;
     }
 
-    /**
-     * Setter defaultTarget
-     * @param {vec3} value
-     */
     public set defaultTarget(value: vec3) {
         this._defaultTarget = value;
     }
 
-    /**
-     * Getter enableCameraControls
-     * @return {boolean}
-     */
     public get enableCameraControls(): boolean {
         return this._enableCameraControls;
     }
 
-    /**
-     * Setter enableCameraControls
-     * @param {boolean} value
-     */
     public set enableCameraControls(value: boolean) {
         this._enableCameraControls = value;
     }
 
-    /**
-     * Getter far
-     * @return {number }
-     */
     public get far(): number {
         return this._far;
     }
 
-    /**
-     * Setter far
-     * @param {number } value
-     */
     public set far(value: number) {
         this._far = value;
     }
 
-    /**
-       * Getter id
-       * @return {string}
-       */
     public get id(): string {
         return this._id;
     }
 
-    /**
-     * Getter near
-     * @return {number }
-     */
     public get near(): number {
         return this._near;
     }
 
-    /**
-     * Setter near
-     * @param {number } value
-     */
     public set near(value: number) {
         this._near = value;
     }
 
-    /**
-     * Getter order
-     * @return {number | undefined}
-     */
     public get order(): number | undefined {
         return this._order;
     }
 
-    /**
-     * Setter order
-     * @param {number | undefined} value
-     */
     public set order(value: number | undefined) {
         this._order = value;
     }
 
-    /**
-     * Getter position
-     * @return {vec3}
-     */
     public get position(): vec3 {
         return this._position;
     }
 
-    /**
-     * Setter position
-     * @param {vec3} value
-     */
     public set position(value: vec3) {
         this._position = value;
         this._controls.position = value;
     }
 
-    /**
-     * Getter revertAtMouseUp
-     * @return {boolean}
-     */
     public get revertAtMouseUp(): boolean {
         return this._revertAtMouseUp;
     }
 
-    /**
-     * Setter revertAtMouseUp
-     * @param {boolean} value
-     */
     public set revertAtMouseUp(value: boolean) {
         this._revertAtMouseUp = value;
     }
 
-    /**
-     * Getter revertAtMouseUpDuration
-     * @return {number}
-     */
     public get revertAtMouseUpDuration(): number {
         return this._revertAtMouseUpDuration;
     }
 
-    /**
-     * Setter revertAtMouseUpDuration
-     * @param {number} value
-     */
     public set revertAtMouseUpDuration(value: number) {
         this._revertAtMouseUpDuration = value;
     }
 
-    /**
-     * Getter target
-     * @return {vec3}
-     */
     public get target(): vec3 {
         return this._target;
     }
 
-    /**
-     * Setter target
-     * @param {vec3} value
-     */
     public set target(value: vec3) {
         this._target = value;
         this._controls.target = value;
     }
 
-    /**
-     * Getter type
-     * @return {CAMERATYPE}
-     */
     public get type(): CAMERATYPE {
         return this._type;
     }
 
-    /**
-     * Getter zoomExtentsFactor
-     * @return {number}
-     */
     public get zoomExtentsFactor(): number {
         return this._zoomExtentsFactor;
     }
 
-    /**
-     * Setter zoomExtentsFactor
-     * @param {number} value
-     */
     public set zoomExtentsFactor(value: number) {
         this._zoomExtentsFactor = value;
     }

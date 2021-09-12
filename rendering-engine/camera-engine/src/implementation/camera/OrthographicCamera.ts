@@ -34,34 +34,18 @@ export class OrthographicCamera extends AbstractCamera {
 
    // #region Public Accessors (8)
 
-   /**
-      * Getter bottom
-      * @return {number }
-      */
    public get bottom(): number {
       return this._bottom;
    }
 
-   /**
-      * Setter bottom
-      * @param {number } value
-      */
    public set bottom(value: number) {
       this._bottom = value;
    }
 
-   /**
-    * Getter direction
-    * @return {ORTHOGRAPHIC_CAMERA_DIRECTION}
-    */
    public get direction(): ORTHOGRAPHIC_CAMERA_DIRECTION {
       return this._direction;
    }
 
-   /**
-    * Setter direction
-    * @param {ORTHOGRAPHIC_CAMERA_DIRECTION} value
-    */
    public set direction(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
       this._direction = value;
       switch (this._direction) {
@@ -86,66 +70,34 @@ export class OrthographicCamera extends AbstractCamera {
       }
    }
 
-   /**
-      * Getter left
-      * @return {number }
-      */
    public get left(): number {
       return this._left;
    }
 
-   /**
-      * Setter left
-      * @param {number } value
-      */
    public set left(value: number) {
       this._left = value;
    }
 
-   /**
-      * Getter right
-      * @return {number }
-      */
    public get right(): number {
       return this._right;
    }
 
-   /**
-      * Setter right
-      * @param {number } value
-      */
    public set right(value: number) {
       this._right = value;
    }
 
-   /**
-      * Getter top
-      * @return {number }
-      */
    public get top(): number {
       return this._top;
    }
 
-   /**
-      * Setter top
-      * @param {number } value
-      */
    public set top(value: number) {
       this._top = value;
    }
 
-   /**
-    * Getter up
-    * @return {vec3}
-    */
    public get up(): vec3 {
       return this._up;
    }
 
-   /**
-    * Setter up
-    * @param {vec3} value
-    */
    public set up(value: vec3) {
       this._up = value;
    }

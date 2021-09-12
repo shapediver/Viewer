@@ -38,9 +38,6 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Public Accessors (24)
 
-    /**
-     * Setter autoAdjust
-     */
     public set autoAdjust(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust: Updating AutoAdjust to ${value}.`);
@@ -54,23 +51,14 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter autoAdjust
-     */
     public get autoAdjust(): boolean {
         return this.#camera.autoAdjust;
     }
 
-    /**
-     * Getter cameraMovementDuration
-     */
     public get cameraMovementDuration(): number {
         return this.#camera.cameraMovementDuration;
     }
 
-    /**
-     * Setter cameraMovementDuration
-     */
     public set cameraMovementDuration(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateCameraMovementDuration: Updating CameraMovementDuration to ${value}.`);
@@ -84,16 +72,10 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter defaultPosition
-     */
     public get defaultPosition(): vec3 {
         return this.#camera.defaultPosition;
     }
 
-    /**
-     * Setter defaultPosition
-     */
     public set defaultPosition(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultPosition: Updating DefaultPosition to ${value}.`);
@@ -107,16 +89,10 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter defaultTarget
-     */
     public get defaultTarget(): vec3 {
         return this.#camera.defaultTarget;
     }
 
-    /**
-     * Setter defaultTarget
-     */
     public set defaultTarget(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateDefaultTarget: Updating DefaultTarget to ${value}.`);
@@ -130,16 +106,10 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter enableCameraControls
-     */
     public get enableCameraControls(): boolean {
         return this.#camera.enableCameraControls;
     }
 
-    /**
-     * Setter enableCameraControls
-     */
     public set enableCameraControls(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateEnableCameraControls: Updating EnableCameraControls to ${value}.`);
@@ -153,23 +123,14 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter id
-     */
     public get id(): string {
         return this.#camera.id;
     }
 
-    /**
-     * Getter order
-     */
     public get order(): number | undefined {
         return this.#camera.order;
     }
 
-    /**
-     * Setter order
-     */
     public set order(value: number | undefined) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateOrder: Updating Order to ${value}.`);
@@ -183,16 +144,10 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter position
-     */
     public get position(): vec3 {
         return this.#camera.position;
     }
 
-    /**
-     * Setter position
-     */
     public set position(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updatePosition: Updating Position to ${value}.`);
@@ -206,16 +161,10 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter revertAtMouseUp
-     */
     public get revertAtMouseUp(): boolean {
         return this.#camera.revertAtMouseUp;
     }
 
-    /**
-     * Setter revertAtMouseUp
-     */
     public set revertAtMouseUp(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUp: Updating RevertAtMouseUp to ${value}.`);
@@ -229,16 +178,10 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter revertAtMouseUpDuration
-     */
     public get revertAtMouseUpDuration(): number {
         return this.#camera.revertAtMouseUpDuration;
     }
 
-    /**
-     * Setter revertAtMouseUpDuration
-     */
     public set revertAtMouseUpDuration(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateRevertAtMouseUpDuration: Updating RevertAtMouseUpDuration to ${value}.`);
@@ -252,16 +195,10 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter target
-     */
     public get target(): vec3 {
         return this.#camera.target;
     }
 
-    /**
-     * Setter target
-     */
     public set target(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateTarget: Updating Target to ${value}.`);
@@ -275,23 +212,14 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    /**
-     * Getter type
-     */
     public get type(): CAMERATYPE {
         return this.#camera.type;
     }
 
-    /**
-     * Getter zoomExtentsFactor
-     */
     public get zoomExtentsFactor(): number {
         return this.#camera.zoomExtentsFactor;
     }
 
-    /**
-     * Setter zoomExtentsFactor
-     */
     public set zoomExtentsFactor(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).updateZoomExtentsFactor: Updating ZoomExtentsFactor to ${value}.`);

@@ -57,16 +57,10 @@ export class LightScene implements ILightScene {
 
     // #region Public Accessors (5)
 
-    /**
-     * Getter id
-     */
     public get id(): string {
         return this.#lightSceneLogic.id;
     }
 
-    /**
-     * Getter node
-     */
     public get lights(): { [key: string]: ILight; } {
         const lightLogics = this.#lightSceneLogic.lights;
         for (let l in lightLogics) {
@@ -97,16 +91,10 @@ export class LightScene implements ILightScene {
         return this.#lights;
     }
 
-    /**
-     * Getter name
-     */
     public get name(): string | undefined {
         return this.#lightSceneLogic.name;
     }
 
-    /**
-     * Setter name
-     */
     public set name(value: string | undefined) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name: Updating Name to ${value}.`);
@@ -120,9 +108,6 @@ export class LightScene implements ILightScene {
         }
     }
 
-    /**
-     * Getter node
-     */
     public get node(): TreeNode {
         return this.#lightSceneLogic.node;
     }

@@ -25,18 +25,10 @@ export class SdtfBuffer {
 
   // #region Public Accessors (2)
 
-  /**
-   * Getter byteLength
-   * @return {number}
-   */
   public get byteLength(): number {
     return this._byteLength;
   }
 
-  /**
-   * Getter uri
-   * @return {string | undefined}
-   */
   public get uri(): string | undefined {
     return this._uri;
   }

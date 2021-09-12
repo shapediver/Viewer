@@ -42,52 +42,28 @@ export class PointLight extends AbstractLight {
 
   // #region Public Accessors (6)
 
-  /**
-   * Getter decay
-   * @return {number}
-   */
   public get decay(): number {
     return this._decay;
   }
 
-  /**
-   * Setter decay
-   * @param {number} value
-   */
   public set decay(value: number) {
     this._decay = value;
     this.updateVersion();
   }
 
-  /**
-   * Getter distance
-   * @return {number}
-   */
   public get distance(): number {
     return this._distance;
   }
 
-  /**
-   * Setter distance
-   * @param {number} value
-   */
   public set distance(value: number) {
     this._distance = value;
     this.updateVersion();
   }
 
-  /**
-   * Getter position
-   * @return {vec3}
-   */
   public get position(): vec3 {
     return this._position;
   }
 
-  /**
-   * Setter position
-   * @param {vec3} value
-   */
   public set position(value: vec3) {
     this._position = value;
     this.updateVersion();

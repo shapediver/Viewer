@@ -49,106 +49,54 @@ export class AttributeData {
 
   // #region Public Accessors (6)
 
-  /**
-   * Getter array
-   * @return {Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array}
-   */
   public get array(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array {
     return this._array;
   }
   
-  /**
-   * Getter sparseIndices
-   * @return {Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined}
-   */
    public get sparseIndices(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined {
     return this._sparseIndices;
   }
   
-  /**
-   * Getter sparseValues
-   * @return {Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined}
-   */
    public get sparseValues(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined {
     return this._sparseValues;
   }
 
-  /**
-   * Getter elementBytes
-   * @return {boolean}
-   */
   public get elementBytes(): number {
     return this._elementBytes;
   }
 
-  /**
-   * Getter count
-   * @return {number}
-   */
   public get count(): number {
     return this._count;
   }
 
-  /**
-   * Getter itemSize
-   * @return {number}
-   */
   public get itemSize(): number {
     return this._itemSize;
   }
 
-  /**
-   * Getter itemBytes
-   * @return {number}
-   */
   public get itemBytes(): number {
     return this._itemBytes;
   }
 
-  /**
-   * Getter sparse
-   * @return {boolean | undefined}
-   */
   public get sparse(): boolean | undefined {
     return this._sparse;
   }
 
-  /**
-   * Getter min
-   * @return {number[]}
-   */
   public get min(): number[] {
     return this._min;
   }
 
-  /**
-   * Getter max
-   * @return {number[]}
-   */
   public get max(): number[] {
     return this._max;
   }
 
-  /**
-   * Getter normalized
-   * @return {boolean}
-   */
   public get normalized(): boolean {
     return this._normalized;
   }
 
-  /**
-   * Getter byteOffset
-   * @return {number}
-   */
   public get byteOffset(): number {
     return this._byteOffset;
   }
 
-  /**
-   * Getter byteStride
-   * @return {number | undefined}
-   */
   public get byteStride(): number | undefined {
     return this._byteStride;
   }
@@ -219,60 +167,32 @@ export class PrimitiveData {
 
   // #region Public Accessors (7)
 
-  /**
-   * Getter attributes
-   * @return {{ [key: string]: AttributeData }}
-   */
   public get attributes(): {
     [key: string]: AttributeData
   } {
     return this._attributes;
   }
 
-  /**
-   * Getter boundingBox
-   * @param {Box} value
-   */
   public get boundingBox(): Box {
     return this._boundingBox;
   }
 
-  /**
-   * Getter indices
-   * @return {AttributeData | null}
-   */
   public get indices(): AttributeData | null {
     return this._indices;
   }
 
-  /**
-   * Setter indices
-   * @param {AttributeData | null} value
-   */
   public set indices(value: AttributeData | null) {
     this._indices = value
   }
 
-  /**
-   * Getter material
-   * @return {MaterialData | null}
-   */
   public get material(): MaterialData | null {
     return this._material;
   }
 
-  /**
-   * Setter material
-   * @param {MaterialData | null} value
-   */
   public set material(value: MaterialData | null) {
     this._material = value;
   }
 
-  /**
-   * Getter mode
-   * @return {PRIMITIVE_MODE}
-   */
   public get mode(): PRIMITIVE_MODE {
     return this._mode;
   }
@@ -325,26 +245,14 @@ export class GeometryData extends AbstractTreeNodeData {
 
   // #region Public Accessors (5)
 
-  /**
-   * Getter boundingBox
-   * @param {Box} value
-   */
   public get boundingBox(): Box {
     return this._boundingBox;
   }
 
-  /**
-   * Getter matrix
-   * @return {mat4}
-   */
   public get matrix(): mat4 {
     return this._matrix;
   }
 
-  /**
-   * Getter primitive
-   * @return {PrimitiveData}
-   */
   public get primitive(): PrimitiveData {
     return this._primitive;
   }

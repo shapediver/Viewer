@@ -28,50 +28,26 @@ export class SdtfBufferView {
 
   // #region Public Accessors (6)
 
-  /**
-   * Getter buffer
-   * @return {SdtfBuffer}
-   */
   public get buffer(): SdtfBuffer {
     return this._buffer;
   }
 
-  /**
-   * Getter byteLength
-   * @return {number}
-   */
   public get byteLength(): number {
     return this._byteLength;
   }
 
-  /**
-   * Getter byteOffset
-   * @return {number}
-   */
   public get byteOffset(): number {
     return this._byteOffset;
   }
 
-  /**
-   * Getter contentEncoding
-   * @return {CONTENT_ENCODING | undefined}
-   */
   public get contentEncoding(): CONTENT_ENCODING | undefined {
     return this._contentEncoding;
   }
 
-  /**
-   * Getter contentType
-   * @return {CONTENTTYPE}
-   */
   public get contentType(): CONTENTTYPE {
     return this._contentType;
   }
 
-  /**
-   * Getter name
-   * @return {string | undefined}
-   */
   public get name(): string | undefined {
     return this._name;
   }

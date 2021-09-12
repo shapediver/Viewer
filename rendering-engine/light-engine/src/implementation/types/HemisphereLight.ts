@@ -37,18 +37,10 @@ export class HemisphereLight extends AbstractLight {
 
     // #region Public Accessors (2)
 
-    /**
-     * Getter groundColor
-     * @return {string}
-     */
     public get groundColor(): string {
         return this._groundColor;
     }
 
-    /**
-     * Setter groundColor
-     * @param {string} value
-     */
     public set groundColor(value: string) {
         this._groundColor = value;
         this.updateVersion();

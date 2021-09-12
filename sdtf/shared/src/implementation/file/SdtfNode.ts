@@ -17,50 +17,26 @@ export class SdtfNode {
 
   // #region Public Accessors (6)
 
-  /**
-   * Getter attributes
-   * @return {SdtfAttributes | undefined}
-   */
   public get attributes(): SdtfAttributes | undefined {
     return this._attributes;
   }
 
-  /**
-   * Getter items
-   * @return {AbstractSdtfData<any>[]}
-   */
   public get items(): AbstractSdtfData<any>[] {
     return this._items;
   }
 
-  /**
-   * Getter name
-   * @return {string | undefined}
-   */
   public get name(): string | undefined {
     return this._name;
   }
 
-  /**
-   * Getter nodes
-   * @return {SdtfNode[] }
-   */
   public get nodes(): SdtfNode[] {
     return this._nodes;
   }
 
-  /**
-   * Setter nodes
-   * @param nodes
-   */
   public set nodes(nodes: SdtfNode[]) {
     this._nodes = nodes;
   }
 
-  /**
-   * Getter typeHint
-   * @return {SdtfTypeHint | undefined}
-   */
   public get typeHint(): SdtfTypeHint | undefined {
     return this._typeHint;
   }

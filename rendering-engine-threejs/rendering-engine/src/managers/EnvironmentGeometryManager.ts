@@ -48,18 +48,10 @@ export class EnvironmentGeometryManager implements IManager {
 
     // #region Public Accessors (2)
 
-    /**
-     * Getter grid
-     * @return {THREE.GridHelper}
-     */
     public get grid(): THREE.GridHelper {
         return this._grid;
     }
 
-    /**
-     * Getter groundPlane
-     * @return {THREE.Mesh}
-     */
     public get groundPlane(): THREE.Mesh {
         return this._groundPlane;
     }

@@ -62,83 +62,42 @@ export class TreeNode {
 
   // #region Public Accessors (14)
 
-  /**
-   * Getter boundingBox
-   * @return {Box}
-   */
   public get boundingBox(): Box {
     return this.#boundingBox;
   }
 
-  /**
-   * Setter boundingBox
-   * @param {Box} value
-   */
   public set boundingBox(value: Box) {
     this.#boundingBox = value;
   }
 
-  /**
-   * Getter children
-   * Use the methods @see addChild and @see removeChild for adding and removing from this array.
-   * 
-   * @return {TreeNode[]}
-   */
   public get children(): TreeNode[] {
     return this.#children;
   }
 
-  /**
-   * Getter data
-   * @return {ITreeNodeData[]}
-   */
   public get data(): ITreeNodeData[] {
     return this.#data;
   }
   
-  /**
-   * Getter excludeViewers
-   * @return {string[]}
-   */
-   public get excludeViewers(): string[] {
+  public get excludeViewers(): string[] {
     return this.#excludeViewers;
   }
 
-  /**
-   * Setter excludeViewers
-   * @param {string[]} value
-   */
   public set excludeViewers(value: string[]) {
     this.#excludeViewers = value;
   }
 
-  /**
-   * Getter id
-   * @return {string}
-   */
   public get id(): string {
     return this.#id;
   }
 
-  /**
-   * Setter id
-   */
   public set id(value: string) {
     this.#id = value;
   }
 
-  /**
-   * Getter name
-   * @return {string }
-   */
   public get name(): string {
     return this.#name;
   }
 
-  /**
-   * Getter node matrix
-   * @return {mat4}
-   */
   public get nodeMatrix(): mat4 {
     const matrix: mat4 = mat4.create();
     for (let transform of this.#transformations)
@@ -146,18 +105,10 @@ export class TreeNode {
     return matrix;
   }
 
-  /**
-   * Getter parent
-   * @return {TreeNode | null}
-   */
   public get parent(): TreeNode | null {
     return this.#parent;
   }
 
-  /**
-   * Setter parent
-   * @param {TreeNode | null} value
-   */
   public set parent(value: TreeNode | null) {
     // check if it was removed from previous parent
     if (value === null && this.#parent !== null)
@@ -170,34 +121,18 @@ export class TreeNode {
     this.#parent = value;
   }
 
-  /**
-   * Getter transformation
-   * @return {ITransformation[]}
-   */
   public get transformations(): ITransformation[] {
     return this.#transformations;
   }
 
-  /**
-   * Setter transformation
-   * @param {ITransformation[]} value
-   */
   public set transformations(value: ITransformation[]) {
     this.#transformations = value;
   }
 
-  /**
-   * Getter version
-   * @return {string}
-   */
   public get version(): string {
     return this.#version;
   }
 
-  /**
-   * Getter world matrix
-   * @return {mat4}
-   */
   public get worldMatrix(): mat4 {
     const matrix: mat4 = mat4.create();
 
@@ -269,7 +204,7 @@ export class TreeNode {
   }
 
   /**
-   * Getter child
+   * Returns the child with the specified id
    * @return {TreeNode}
    */
   public getChild(id: string): TreeNode | null {

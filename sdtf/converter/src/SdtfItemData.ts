@@ -16,34 +16,18 @@ export class SdtfItemData<T> extends AbstractTreeNodeData {
       this._attributes = new SdtfAttributeData(this._item.attributes);
   }
 
-  /**
-   * Getter data
-   * @return {SdtfAttributeData | undefined}
-   */
   public get attributes(): SdtfAttributeData | undefined {
     return this._attributes;
   }
 
-  /**
-   * Setter data
-   * @param {SdtfAttributeData | undefined} value
-   */
   public set attributes(value: SdtfAttributeData | undefined) {
     this._attributes = value;
   }
 
-  /**
-   * Getter data
-   * @return {Promise<T>}
-   */
   public get data(): Promise<T> {
     return this._item.data;
   }
 
-  /**
-   * Setter data
-   * @param {Promise<T>} value
-   */
   public set data(value: Promise<T>) {
     this._item.data = value;
   }

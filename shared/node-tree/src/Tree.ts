@@ -23,10 +23,6 @@ export class Tree {
 
   // #region Public Accessors (1)
 
-  /**
-   * Getter root
-   * @return {TreeNode}
-   */
   public get root(): TreeNode {
     return this.#root;
   }

@@ -15,18 +15,10 @@ export class ThreejsData extends AbstractTreeNodeData {
 
     // #region Public Accessors (2)
 
-    /**
-     * Getter obj
-     * @return {THREE.Object3D}
-     */
     public get obj(): THREE.Object3D {
 		return this._obj;
 	}
 
-    /**
-     * Setter obj
-     * @param {THREE.Object3D} value
-     */
     public set obj(value: THREE.Object3D) {
 		this._obj = value;
 	}

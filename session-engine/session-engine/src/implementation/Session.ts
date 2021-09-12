@@ -68,34 +68,18 @@ export class Session implements ISession {
 
     // #region Public Accessors (12)
 
-    /**
-     * Getter authorTicket
-     * @return {boolean | undefined}
-     */
     public get authorTicket(): boolean | undefined {
         return this._authorTicket;
     }
 
-    /**
-     * Setter authorTicket
-     * @param {boolean | undefined} value
-     */
     public set authorTicket(value: boolean | undefined) {
         this._authorTicket = value;
     }
 
-    /**
-     * Getter bearerToken
-     * @return {string | undefined}
-     */
     public get bearerToken(): string | undefined {
         return this._bearerToken;
     }
 
-    /**
-     * Setter bearerToken
-     * @param {string | undefined} value
-     */
     public set bearerToken(value: string | undefined) {
         this._bearerToken = value;
     }
@@ -104,26 +88,14 @@ export class Session implements ISession {
         return this._exports;
     }
 
-    /**
-     * Getter id
-     * @return {string}
-     */
     public get id(): string {
         return this._id;
     }
 
-    /**
-     * Getter initialized
-     * @return {boolean}
-     */
     public get initialized(): boolean {
         return this._initialized;
     }
 
-    /**
-     * Getter modelViewUrl
-     * @return {string}
-     */
     public get modelViewUrl(): string {
         return this._modelViewUrl;
     }
@@ -140,34 +112,18 @@ export class Session implements ISession {
         return this._parameterValues;
     }
 
-    /**
-     * Setter refreshBearerToken
-     * @param {() => string} value
-     */
     public set refreshBearerToken(value: () => string) {
         this._refreshBearerToken = value;
     }
 
-    /**
-     * Getter sessionResponse
-     * @return {ShapeDiverResponse}
-     */
     public get sessionResponse(): ShapeDiverResponseBase {
         return this._sessionResponse;
     }
 
-    /**
-     * Getter settingsConfig
-     * @return {any}
-     */
     public get settingsConfig(): any {
         return this._settingsConfig;
     }
 
-    /**
-     * Getter ticket
-     * @return {string}
-     */
     public get ticket(): string {
         return this._ticket;
     }

@@ -40,50 +40,26 @@ export class BeautyRenderingManager implements IManager {
 
     // #region Public Accessors (6)
 
-    /**
-     * Getter beautyRenderingActive
-     * @return {boolean }
-     */
     public get beautyRenderingActive(): boolean {
         return this._beautyRenderingActive;
     }
 
-    /**
-     * Setter beautyRenderingActive
-     * @param {boolean } value
-     */
     public set beautyRenderingActive(value: boolean) {
         this._beautyRenderingActive = value;
     }
 
-    /**
-     * Getter beautyRenderingDurationActive
-     * @return {number }
-     */
     public get beautyRenderingDurationActive(): number {
         return this._beautyRenderingDurationActive;
     }
 
-    /**
-     * Setter beautyRenderingDurationActive
-     * @param {number } value
-     */
     public set beautyRenderingDurationActive(value: number) {
         this._beautyRenderingDurationActive = value;
     }
 
-    /**
-     * Getter beautyRenderingTimeout
-     * @return {NodeJS.Timeout | null}
-     */
     public get beautyRenderingTimeout(): NodeJS.Timeout | null {
         return this._beautyRenderingTimeout;
     }
 
-    /**
-     * Setter beautyRenderingTimeout
-     * @param {NodeJS.Timeout | null} value
-     */
     public set beautyRenderingTimeout(value: NodeJS.Timeout | null) {
         this._beautyRenderingTimeout = value;
     }

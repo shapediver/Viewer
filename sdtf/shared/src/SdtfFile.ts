@@ -17,18 +17,10 @@ export class SdtfFile {
 
   // #region Public Accessors (3)
 
-  /**
-   * Getter chunks
-   * @return {SdtfChunk[]}
-   */
   public get chunks(): SdtfChunk[] {
     return this._chunks;
   }
 
-  /**
-   * Getter typeHints
-   * @return {SdtfTypeHint[]}
-   */
   public get typeHints(): SdtfTypeHint[] {
     return this._typeHints;
   }

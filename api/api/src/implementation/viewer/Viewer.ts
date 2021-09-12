@@ -83,16 +83,10 @@ export class Viewer implements IViewer {
 
   // #region Public Accessors (44)
 
-  /**
-   * Getter ambientOcclusion
-   */
   public get ambientOcclusion(): boolean {
     return this.#renderingEngine.ambientOcclusion;
   }
 
-  /**
-   * Setter ambientOcclusion
-   */
   public set ambientOcclusion(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: Updating AmbientOcclusion to ${value}.`);
@@ -106,16 +100,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter automaticResizing
-   */
   public get automaticResizing(): boolean {
     return this.#renderingEngine.automaticResizing;
   }
 
-  /**
-   * Setter automaticResizing
-   */
   public set automaticResizing(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: Updating AutomaticResizing to ${value}.`);
@@ -129,16 +117,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter beautyRenderBlendingDuration
-   */
   public get beautyRenderBlendingDuration(): number {
     return this.#renderingEngine.beautyRenderBlendingDuration;
   }
 
-  /**
-   * Setter beautyRenderBlendingDuration
-   */
   public set beautyRenderBlendingDuration(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: Updating RenderBlendingDuration to ${value}.`);
@@ -152,16 +134,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter beautyRenderDelay
-   */
   public get beautyRenderDelay(): number {
     return this.#renderingEngine.beautyRenderDelay;
   }
 
-  /**
-   * Setter beautyRenderDelay
-   */
   public set beautyRenderDelay(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: Updating BeautyRenderDelay to ${value}.`);
@@ -175,16 +151,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter blur
-   */
   public get blur(): boolean {
     return this.#renderingEngine.blur;
   }
 
-  /**
-   * Setter blur
-   */
   public set blur(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: Updating Blur to ${value}.`);
@@ -198,16 +168,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter blurSceneWhenBusy
-   */
   public get blurSceneWhenBusy(): boolean {
     return this.#renderingEngine.blurSceneWhenBusy;
   }
 
-  /**
-   * Setter blurSceneWhenBusy
-   */
   public set blurSceneWhenBusy(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
@@ -221,18 +185,12 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter camera
-   */
   public get camera(): ICamera | null {
     if (this.#renderingEngine.cameraEngine.camera)
       return this.cameras[this.#renderingEngine.cameraEngine.camera.id];
     return null;
   }
 
-  /**
-   * Getter cameras
-   */
   public get cameras(): { [key: string]: ICamera } {
     // add new cameras
     for (let c in this.#renderingEngine.cameraEngine.cameras) {
@@ -248,16 +206,10 @@ export class Viewer implements IViewer {
     return this.#cameras;
   }
 
-  /**
-   * Getter clearAlpha
-   */
   public get clearAlpha(): number {
     return this.#renderingEngine.clearAlpha;
   }
 
-  /**
-   * Setter clearAlpha
-   */
   public set clearAlpha(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: Updating ClearAlpha to ${value}.`);
@@ -271,16 +223,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter clearColor
-   */
   public get clearColor(): string | number | vec3 {
     return this.#renderingEngine.clearColor;
   }
 
-  /**
-   * Setter clearColor
-   */
   public set clearColor(value: string | number | vec3) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor: Updating ClearColor to ${value}.`);
@@ -294,16 +240,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter environmentMap
-   */
   public get environmentMap(): string | string[] {
     return this.#renderingEngine.environmentMap;
   }
 
-  /**
-   * Setter environmentMap
-   */
   public set environmentMap(value: string | string[]) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: Updating EnvironmentMap to ${value}.`);
@@ -317,16 +257,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter environmentMapAsBackground
-   */
   public get environmentMapAsBackground(): boolean {
     return this.#renderingEngine.environmentMapAsBackground;
   }
 
-  /**
-   * Setter environmentMapAsBackground
-   */
   public set environmentMapAsBackground(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground: Updating EnvironmentMapAsBackground to ${value}.`);
@@ -340,16 +274,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter environmentMapResolution
-   */
   public get environmentMapResolution(): string {
     return this.#renderingEngine.environmentMapResolution;
   }
 
-  /**
-   * Setter environmentMapResolution
-   */
   public set environmentMapResolution(value: string) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: Updating EnvironmentMapResolution to ${value}.`);
@@ -363,16 +291,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter gridVisibility
-   */
   public get gridVisibility(): boolean {
     return this.#renderingEngine.gridVisibility;
   }
 
-  /**
-   * Setter gridVisibility
-   */
   public set gridVisibility(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: Updating GridVisibility to ${value}.`);
@@ -386,16 +308,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter groundPlaneVisibility
-   */
   public get groundPlaneVisibility(): boolean {
     return this.#renderingEngine.groundPlaneVisibility;
   }
 
-  /**
-   * Setter groundPlaneVisibility
-   */
   public set groundPlaneVisibility(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: Updating GroundPlaneVisibility to ${value}.`);
@@ -409,35 +325,23 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter id
-   */
   public get id(): string {
     if(!this.#renderingEngine) return '';
     return this.#renderingEngine.id;
   }
 
-  /**
-   * Getter lightScene
-   */
   public get lightScene(): ILightScene | null {
     if (this.#renderingEngine.lightEngine.lightScene)
       return this.lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
     return null;
   }
 
-  /**
-   * Getter lightSceneId
-   */
   public get lightSceneId(): string {
     if (this.#renderingEngine.lightEngine.lightScene)
       return this.#renderingEngine.lightEngine.lightScene.id;
     return '';
   }
 
-  /**
-   * Setter lightSceneId
-   */
   public set lightSceneId(value: string) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene: Updating LightScene to ${value}.`);
@@ -453,9 +357,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter lightScenes
-   */
   public get lightScenes(): { [key: string]: ILightScene } {
     // add new lightScenes
     for (let l in this.#renderingEngine.lightEngine.lightScenes) {
@@ -471,16 +372,10 @@ export class Viewer implements IViewer {
     return this.#lightScenes;
   }
 
-  /**
-   * Getter pointSize
-   */
   public get pointSize(): number {
     return this.#renderingEngine.pointSize;
   }
 
-  /**
-   * Setter pointSize
-   */
   public set pointSize(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: Updating PointSize to ${value}.`);
@@ -494,9 +389,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter renderingSettings
-   */
   public get renderingSettings(): {
     physicallyCorrectLights: boolean,
     envMapIntensity: number,
@@ -510,9 +402,6 @@ export class Viewer implements IViewer {
     return this.#renderingEngine.renderingSettings;
   }
 
-  /**
-   * Setter renderingSettings
-   */
   public set renderingSettings(value: {
     physicallyCorrectLights: boolean,
     envMapIntensity: number,
@@ -534,16 +423,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter shadows
-   */
   public get shadows(): boolean {
     return this.#renderingEngine.shadows;
   }
 
-  /**
-   * Setter shadows
-   */
   public set shadows(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows: Updating Shadows to ${value}.`);
@@ -557,16 +440,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter show
-   */
   public get show(): boolean {
     return this.#renderingEngine.show;
   }
 
-  /**
-   * Setter show
-   */
   public set show(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show: Updating Show to ${value}.`);
@@ -580,16 +457,10 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Getter showStatistics
-   */
   public get showStatistics(): boolean {
     return this.#renderingEngine.showStatistics;
   }
 
-  /**
-   * Setter 
-   */
   public set showStatistics(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics: Updating ShowStatistics to ${value}.`);
@@ -607,11 +478,6 @@ export class Viewer implements IViewer {
 
   // #region Public Methods (16)
 
-  /**
-   * Assign the camera with the specified id to the viewer.
-   * 
-   * @param id the id of the camera
-   */
   public assignCamera(id: string): void {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Assigning Camera with id ${id}.`);
@@ -625,12 +491,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Assign the light scene with the current id to the viewer.
-   * 
-   * @param id the id of the light scene 
-   * @returns 
-   */
   public assignLightScene(id: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigning LightScene with id ${id}.`);
@@ -651,14 +511,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Create a camera with the specified type.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param type the type of the camera
-   * @param id the id of the camera
-   * @returns 
-   */
   public createCamera(type: CAMERATYPE, id?: string): ICamera {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: Creating Camera with id ${id} and type ${type}.`);
@@ -674,15 +526,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Create a new light scene.
-   * An id can be provided. If not, a unique id will be created.
-   * If the standard option is chosen, the default lights will be added from the start.
-   * 
-   * @param properties.id the id of the light scene
-   * @param properties.standard the option to add the standard lights
-   * @returns 
-   */
   public createLightScene(properties?: { name?: string, standard?: boolean }): ILightScene {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: Creating LightScene with properties ${properties}.`);
@@ -701,13 +544,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Create an orthographic camera.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
   public createOrthographicCamera(id?: string): IOrthographicCamera {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Creating OrthographicCamera with id ${id}.`);
@@ -720,13 +556,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Create a perspective camera.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
   public createPerspectiveCamera(id?: string): IPerspectiveCamera {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Creating PerspectiveCamera with id ${id}.`);
@@ -758,13 +587,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Create a screenshot for the requested type and options.
-   * 
-   * @param type the type as string, default is 'image/png'
-   * @param quality the quality of the screenshot, default is 1
-   * @returns 
-   */
   public getScreenshot(type?: string, quality?: number): string {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: Getting getScreenshot with type ${type} and quality ${quality}.`);
@@ -797,12 +619,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Remove the camera with the specified id.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
   public removeCamera(id: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Removing Camera with id ${id}.`);
@@ -818,12 +634,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Remove the light scene with the specified id.
-   * 
-   * @param id the id of the light scene
-   * @returns 
-   */
   public removeLightScene(id: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Removing LightScene with id ${id}.`);
@@ -864,9 +674,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  /**
-   * Update the viewer with the current changes of the scene tree.
-   */
   public update(): void {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updating Viewer.`);

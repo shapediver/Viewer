@@ -19,18 +19,10 @@ export class Canvas implements ICanvas {
 
     // #region Public Accessors (2)
 
-    /**
-     * Getter canvasElement
-     * @return {HTMLCanvasElement}
-     */
     public get canvasElement(): HTMLCanvasElement {
         return <HTMLCanvasElement>this._canvasElement;
     }
 
-    /**
-     * Getter id
-     * @return {string}
-     */
     public get id(): string {
         return this._id;
     }

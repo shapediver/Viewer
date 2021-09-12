@@ -33,16 +33,10 @@ export abstract class AbstractLight implements ILight {
 
     // #region Public Accessors (10)
 
-    /**
-     * Getter color
-     */
     public get color(): string | number | vec3 {
         return this.#light.color;
     }
 
-    /**
-     * Setter color
-     */
     public set color(value: string | number | vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: Updating Color to ${value}.`);
@@ -56,23 +50,14 @@ export abstract class AbstractLight implements ILight {
         }
     }
 
-    /**
-     * Getter id
-     */
     public get id(): string {
         return this.#light.id;
     }
 
-    /**
-     * Getter intensity
-     */
     public get intensity(): number {
         return this.#light.intensity;
     }
 
-    /**
-     * Setter intensity
-     */
     public set intensity(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: Updating Intensity to ${value}.`);
@@ -86,16 +71,10 @@ export abstract class AbstractLight implements ILight {
         }
     }
 
-    /**
-     * Getter name
-     */
     public get name(): string | undefined {
         return this.#light.name;
     }
 
-    /**
-     * Setter name
-     */
     public set name(value: string | undefined) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: Updating Name to ${value}.`);
@@ -109,16 +88,10 @@ export abstract class AbstractLight implements ILight {
         }
     }
 
-    /**
-     * Getter order
-     */
     public get order(): number | undefined {
         return this.#light.order;
     }
 
-    /**
-     * Setter order
-     */
     public set order(value: number | undefined) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: Updating Order to ${value}.`);
@@ -132,9 +105,6 @@ export abstract class AbstractLight implements ILight {
         }
     }
 
-    /**
-     * Getter type
-     */
     public get type(): LIGHTTYPE {
         return this.#light.type;
     }

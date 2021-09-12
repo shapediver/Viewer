@@ -34,10 +34,6 @@ export class SessionTreeNode extends TreeNode {
 
   // #region Public Accessors (1)
 
-  /**
-   * Getter sessionNode
-   * @return {boolean }
-   */
   public get sessionNode(): boolean {
     return this.#sessionNode;
   }

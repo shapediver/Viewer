@@ -89,16 +89,10 @@ export class Api implements IApi {
 
   // #region Public Accessors (14)
 
-  /**
-   * Getter autoScaling
-   */
   public get autoScaling(): boolean {
     return this.#settingsEngine.ar.autoScaling;
   }
 
-  /**
-   * Setter autoScaling
-   */
   public set autoScaling(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.autoScaling: Updating autoScaling to ${value}.`);
@@ -111,16 +105,10 @@ export class Api implements IApi {
     }
   }
 
-  /**
-   * Getter enableAR
-   */
   public get enableAR(): boolean {
     return this.#settingsEngine.ar.enable;
   }
 
-  /**
-   * Setter enableAR
-   */
   public set enableAR(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.enableAR: Updating enableAR to ${value}.`);
@@ -133,9 +121,6 @@ export class Api implements IApi {
     }
   }
 
-  /**
-   * Getter globalRotation
-   */
   public get globalRotation(): vec3 {
     return vec3.fromValues(
       this.#settingsEngine.general.transformation.rotation.x,
@@ -144,9 +129,6 @@ export class Api implements IApi {
     )
   }
 
-  /**
-   * Setter globalRotation
-   */
   public set globalRotation(value: vec3) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalRotation: Updating globalRotation to ${value}.`);
@@ -159,9 +141,6 @@ export class Api implements IApi {
     }
   }
 
-  /**
-   * Getter globalScale
-   */
   public get globalScale(): vec3 {
     return vec3.fromValues(
       this.#settingsEngine.general.transformation.scale.x,
@@ -170,9 +149,6 @@ export class Api implements IApi {
     )
   }
 
-  /**
-   * Setter globalScale
-   */
   public set globalScale(value: vec3) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalScale: Updating globalScale to ${value}.`);
@@ -185,9 +161,6 @@ export class Api implements IApi {
     }
   }
 
-  /**
-   * Getter globalTranslation
-   */
   public get globalTranslation(): vec3 {
     return vec3.fromValues(
       this.#settingsEngine.general.transformation.translation.x,
@@ -196,9 +169,6 @@ export class Api implements IApi {
     )
   }
 
-  /**
-   * Setter globalTranslation
-   */
   public set globalTranslation(value: vec3) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalTranslation: Updating globalTranslation to ${value}.`);
@@ -211,16 +181,10 @@ export class Api implements IApi {
     }
   }
 
-  /**
-   * Getter loggingLevel
-   */
   public get loggingLevel(): LOGGINGLEVEL {
     return this.#logger.loggingLevel;
   }
 
-  /**
-   * Setter loggingLevel
-   */
   public set loggingLevel(value: LOGGINGLEVEL) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.loggingLevel: Updating LoggingLevel to ${value}.`);
@@ -233,16 +197,10 @@ export class Api implements IApi {
     }
   }
 
-  /**
-   * Getter showMessages
-   */
   public get showMessages(): boolean {
     return this.#logger.showMessages;
   }
 
-  /**
-   * Setter showMessages
-   */
   public set showMessages(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.showMessages: Updating ShowMessages to ${value}.`);

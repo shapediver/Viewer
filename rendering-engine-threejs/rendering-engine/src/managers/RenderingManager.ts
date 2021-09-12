@@ -52,18 +52,10 @@ export class RenderingManager implements IManager {
 
     // #region Public Accessors (2)
 
-    /**
-           * Getter minimalRendering
-           * @return {boolean}
-           */
     public get minimalRendering(): boolean {
         return this._minimalRendering;
     }
 
-    /**
-           * Getter usingSwiftShader
-           * @return {boolean}
-           */
     public get usingSwiftShader(): boolean {
         return this._usingSwiftShader;
     }

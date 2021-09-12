@@ -55,30 +55,18 @@ export class Output implements IOutput {
 
   // #region Public Accessors (12)
 
-  /**
-   * Getter chunks
-   */
   public get chunks(): OutputChunk[] | undefined {
     return this.#chunks;
   }
 
-  /**
-   * Getter dependency
-   */
   public get dependency(): string[] {
     return this.#dependency;
   }
 
-  /**
-   * Getter displayname
-   */
   public get displayname(): string | undefined {
     return this.#displayname;
   }
 
-  /**
-   * Setter displayname
-   */
   public set displayname(value: string | undefined) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname: Updating DisplayName to ${value}.`);
@@ -91,16 +79,10 @@ export class Output implements IOutput {
     }
   }
 
-  /**
-   * Getter hidden
-   */
   public get hidden(): boolean {
     return this.#hidden;
   }
 
-  /**
-   * Setter hidden
-   */
   public set hidden(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden: Updating Hidden to ${value}.`);
@@ -113,37 +95,22 @@ export class Output implements IOutput {
     }
   }
 
-  /**
-   * Getter id
-   */
   public get id(): string {
     return this.#id;
   }
 
-  /**
-   * Getter material
-   */
   public get material(): string | undefined {
     return this.#material;
   }
 
-  /**
-   * Getter name
-   */
   public get name(): string {
     return this.#name;
   }
 
-  /**
-   * Getter order
-   */
   public get order(): number | undefined {
     return this.#order;
   }
 
-  /**
-   * Setter order
-   */
   public set order(value: number | undefined) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order: Updating Order to ${value}.`);
@@ -156,9 +123,6 @@ export class Output implements IOutput {
     }
   }
 
-  /**
-   * Getter uid
-   */
   public get uid(): string | undefined {
     return this.#uid;
   }

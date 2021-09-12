@@ -33,16 +33,10 @@ export class PointLight extends AbstractLight implements IPointLight {
 
     // #region Public Accessors (6)
 
-    /**
-     * Getter decay
-     */
     public get decay(): number {
         return this.#light.decay;
     }
 
-    /**
-     * Setter decay
-     */
     public set decay(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: Updating Decay to ${value}.`);
@@ -56,16 +50,10 @@ export class PointLight extends AbstractLight implements IPointLight {
         }
     }
 
-    /**
-     * Getter distance
-     */
     public get distance(): number {
         return this.#light.distance;
     }
 
-    /**
-     * Setter distance
-     */
     public set distance(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: Updating Distance to ${value}.`);
@@ -79,16 +67,10 @@ export class PointLight extends AbstractLight implements IPointLight {
         }
     }
 
-    /**
-     * Getter position
-     */
     public get position(): vec3 {
         return this.#light.position;
     }
 
-    /**
-     * Setter position
-     */
     public set position(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: Updating Position to ${value}.`);

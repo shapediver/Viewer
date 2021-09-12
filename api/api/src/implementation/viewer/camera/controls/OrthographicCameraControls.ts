@@ -38,16 +38,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     // #region Public Accessors (20)
 
-    /**
-     * Getter damping
-     */
     public get damping(): number {
         return this.#controls.damping;
     }
 
-    /**
-     * Setter damping
-     */
     public set damping(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).damping: Updating Damping to ${value}.`);
@@ -61,16 +55,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter enableKeyPan
-     */
     public get enableKeyPan(): boolean {
         return this.#controls.enableKeyPan;
     }
 
-    /**
-     * Setter enableKeyPan
-     */
     public set enableKeyPan(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: Updating EnableKeyPan to ${value}.`);
@@ -84,16 +72,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter enablePan
-     */
     public get enablePan(): boolean {
         return this.#controls.enablePan;
     }
 
-    /**
-     * Setter enablePan
-     */
     public set enablePan(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan: Updating EnablePan to ${value}.`);
@@ -107,16 +89,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter enableZoom
-     */
     public get enableZoom(): boolean {
         return this.#controls.enableZoom;
     }
 
-    /**
-     * Setter enableZoom
-     */
     public set enableZoom(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom: Updating EnableZoom to ${value}.`);
@@ -130,16 +106,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter enabled
-     */
     public get enabled(): boolean {
         return this.#controls.enabled;
     }
 
-    /**
-     * Setter enabled
-     */
     public set enabled(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled: Updating Enabled to ${value}.`);
@@ -153,16 +123,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter input
-     */
     public get input(): { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } } {
         return this.#controls.input;
     }
 
-    /**
-     * Setter input
-     */
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input: Updating Input to ${value}.`);
@@ -185,16 +149,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter keyPanSpeed
-     */
     public get keyPanSpeed(): number {
         return this.#controls.keyPanSpeed;
     }
 
-    /**
-     * Setter keyPanSpeed
-     */
     public set keyPanSpeed(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: Updating KeyPanSpeed to ${value}.`);
@@ -208,16 +166,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter movementSmoothness
-     */
     public get movementSmoothness(): number {
         return this.#controls.movementSmoothness;
     }
 
-    /**
-     * Setter movementSmoothness
-     */
     public set movementSmoothness(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: Updating MovementSmoothness to ${value}.`);
@@ -231,16 +183,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter panSpeed
-     */
     public get panSpeed(): number {
         return this.#controls.panSpeed;
     }
 
-    /**
-     * Setter panSpeed
-     */
     public set panSpeed(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed: Updating PanSpeed to ${value}.`);
@@ -254,16 +200,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         }
     }
 
-    /**
-     * Getter zoomSpeed
-     */
     public get zoomSpeed(): number {
         return this.#controls.zoomSpeed;
     }
 
-    /**
-     * Setter zoomSpeed
-     */
     public set zoomSpeed(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: ZoomSpeed to ${value}.`);

@@ -30,34 +30,18 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #region Public Accessors (4)
 
-  /**
-   * Getter aspect
-   * @return {number| undefined}
-   */
   public get aspect(): number| undefined {
     return this._aspect;
   }
 
-  /**
-   * Setter aspect
-   * @param {number| undefined} value
-   */
   public set aspect(value: number | undefined) {
     this._aspect = value;
   }
 
-  /**
-   * Getter fov
-   * @return {number}
-   */
   public get fov(): number {
     return this._fov;
   }
 
-  /**
-   * Setter fov
-   * @param {number} value
-   */
   public set fov(value: number) {
     this._fov = value;
   }

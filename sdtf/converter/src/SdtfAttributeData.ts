@@ -9,18 +9,10 @@ export class SdtfAttributeData extends AbstractTreeNodeData {
         super(id);
     }
 
-    /**
-     * Getter data
-     * @return {{[key: string]: SdtfFileData<any>}}
-     */
     public get data(): { [key: string]: SdtfFileData<any> } {
         return this._attributes.attributes;
     }
 
-    /**
-     * Setter data
-     * @param {{[key: string]: SdtfFileData<any>}} value
-     */
     public set data(value: { [key: string]: SdtfFileData<any> }) {
         this._attributes.attributes = value;
     }

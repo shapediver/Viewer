@@ -46,69 +46,37 @@ export class DirectionalLight extends AbstractLight {
 
     // #region Public Accessors (8)
 
-    /**
-     * Getter castShadow
-     * @return {boolean}
-     */
     public get castShadow(): boolean {
         return this._castShadow;
     }
 
-    /**
-     * Setter castShadow
-     * @param {boolean} value
-     */
     public set castShadow(value: boolean) {
         this._castShadow = value;
         this.updateVersion();
     }
 
-    /**
-     * Getter direction
-     * @return {vec3}
-     */
     public get direction(): vec3 {
         return this._direction;
     }
 
-    /**
-     * Setter direction
-     * @param {vec3} value
-     */
     public set direction(value: vec3) {
         this._direction = value;
         this.updateVersion();
     }
 
-    /**
-     * Getter shadowMapBias
-     * @return {number}
-     */
     public get shadowMapBias(): number {
         return this._shadowMapBias;
     }
 
-    /**
-     * Setter shadowMapBias
-     * @param {number} value
-     */
     public set shadowMapBias(value: number) {
         this._shadowMapBias = value;
         this.updateVersion();
     }
 
-    /**
-     * Getter shadowMapResolution
-     * @return {number}
-     */
     public get shadowMapResolution(): number {
         return this._shadowMapResolution;
     }
 
-    /**
-     * Setter shadowMapResolution
-     * @param {number} value
-     */
     public set shadowMapResolution(value: number) {
         this._shadowMapResolution = value;
         this.updateVersion();

@@ -107,34 +107,18 @@ export class HTMLElementAnchorData extends AbstractTreeNodeData {
 
     // #region Public Accessors (14)
 
-    /**
-     * Getter data
-     * @return {AnchorDataImage | AnchorDataText}
-     */
     public get data(): AnchorDataImage | AnchorDataText {
 		return this._data;
 	}
 
-    /**
-     * Setter data
-     * @param {AnchorDataImage | AnchorDataText} value
-     */
     public set data(value: AnchorDataImage | AnchorDataText) {
 		this._data = value;
 	}
 
-    /**
-     * Getter format
-     * @return {'text' | 'image'}
-     */
     public get format(): 'text' | 'image' {
 		return this._format;
 	}
 
-    /**
-     * Setter format
-     * @param {'text' | 'image'} value
-     */
     public set format(value: 'text' | 'image') {
 		this._format = value;
 	}
@@ -153,66 +137,34 @@ export class HTMLElementAnchorData extends AbstractTreeNodeData {
         return null;
 	}
 
-    /**
-     * Getter hideable
-     * @return {boolean}
-     */
     public get hideable(): boolean {
 		return this._hideable;
 	}
 
-    /**
-     * Setter hideable
-     * @param {boolean} value
-     */
     public set hideable(value: boolean) {
 		this._hideable = value;
 	}
 
-    /**
-     * Getter intersectionTarget
-     * @return {Box | string | string[] | undefined}
-     */
     public get intersectionTarget(): Box | string | string[] | undefined {
 		return this._intersectionTarget;
 	}
 
-    /**
-     * Setter intersectionTarget
-     * @param {Box | string | string[] | undefined} value
-     */
     public set intersectionTarget(value: Box | string | string[] | undefined) {
 		this._intersectionTarget = value;
 	}
 
-    /**
-     * Getter location
-     * @return {vec3}
-     */
     public get location(): vec3 {
 		return this._location;
 	}
 
-    /**
-     * Setter location
-     * @param {vec3} value
-     */
     public set location(value: vec3) {
 		this._location = value;
 	}
 
-    /**
-     * Getter viewers
-     * @return {string[]}
-     */
     public get viewers(): string[] {
 		return this._viewers;
 	}
 
-    /**
-     * Setter viewers
-     * @param {string[]} value
-     */
     public set viewers(value: string[]) {
 		this._viewers = value;
 	}

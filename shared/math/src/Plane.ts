@@ -12,34 +12,18 @@ export class Plane implements IGeometry {
 
     // #region Public Accessors (4)
 
-    /**
-     * Getter constant
-     * @return {number}
-     */
     public get constant(): number {
 		return this._constant;
 	}
 
-    /**
-     * Setter constant
-     * @param {number} value
-     */
     public set constant(value: number) {
 		this._constant = value;
 	}
 
-    /**
-     * Getter normal
-     * @return {vec3}
-     */
     public get normal(): vec3 {
 		return this._normal;
 	}
 
-    /**
-     * Setter normal
-     * @param {vec3} value
-     */
     public set normal(value: vec3) {
 		this._normal = value;
 	}

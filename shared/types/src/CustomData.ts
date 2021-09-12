@@ -20,18 +20,10 @@ export class CustomData extends AbstractTreeNodeData {
 
     // #region Public Accessors (2)
 
-    /**
-     * Getter data
-     * @return {{ [key: string]: any }}
-     */
     public get data(): { [key: string]: any } {
 		return this._data;
 	}
 
-    /**
-     * Setter data
-     * @param {{ [key: string]: any }} value
-     */
     public set data(value: { [key: string]: any }) {
 		this._data = value;
 	}

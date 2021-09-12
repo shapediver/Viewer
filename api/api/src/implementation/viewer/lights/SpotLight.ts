@@ -33,16 +33,10 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
     // #region Public Accessors (12)
 
-    /**
-     * Getter angle
-     */
     public get angle(): number {
         return this.#light.angle;
     }
 
-    /**
-     * Setter angle
-     */
     public set angle(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle: Updating Angle to ${value}.`);
@@ -55,16 +49,10 @@ export class SpotLight extends AbstractLight implements ISpotLight {
         }
     }
 
-    /**
-     * Getter decay
-     */
     public get decay(): number {
         return this.#light.decay;
     }
 
-    /**
-     * Setter decay
-     */
     public set decay(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: Updating Decay to ${value}.`);
@@ -78,16 +66,10 @@ export class SpotLight extends AbstractLight implements ISpotLight {
         }
     }
 
-    /**
-     * Getter distance
-     */
     public get distance(): number {
         return this.#light.distance;
     }
 
-    /**
-     * Setter distance
-     */
     public set distance(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: Updating Distance to ${value}.`);
@@ -101,16 +83,10 @@ export class SpotLight extends AbstractLight implements ISpotLight {
         }
     }
 
-    /**
-     * Getter penumbra
-     */
     public get penumbra(): number {
         return this.#light.penumbra;
     }
 
-    /**
-     * Setter penumbra
-     */
     public set penumbra(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra: Updating Penumbra to ${value}.`);
@@ -124,16 +100,10 @@ export class SpotLight extends AbstractLight implements ISpotLight {
         }
     }
 
-    /**
-     * Getter position
-     */
     public get position(): vec3 {
         return this.#light.position;
     }
 
-    /**
-     * Setter position
-     */
     public set position(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: Updating Position to ${value}.`);
@@ -147,16 +117,10 @@ export class SpotLight extends AbstractLight implements ISpotLight {
         }
     }
 
-    /**
-     * Getter target
-     */
     public get target(): vec3 {
         return this.#light.target;
     }
 
-    /**
-     * Setter target
-     */
     public set target(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target: Updating Target to ${value}.`);

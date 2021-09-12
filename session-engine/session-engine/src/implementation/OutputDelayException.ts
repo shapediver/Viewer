@@ -14,10 +14,6 @@ export class OutputDelayException extends Error {
 
     // #region Public Accessors (1)
 
-    /**
-     * Getter delay
-     * @return {number}
-     */
     public get delay(): number {
 		  return this._delay;
     }

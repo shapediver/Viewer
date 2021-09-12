@@ -18,18 +18,10 @@ export class SdtfAccessor {
 
   // #region Public Accessors (2)
 
-  /**
-   * Getter bufferView
-   * @return {SdtfBufferView}
-   */
   public get bufferView(): SdtfBufferView {
     return this._bufferView;
   }
 
-  /**
-   * Getter id
-   * @return {string}
-   */
   public get id(): string {
     return this._id;
   }

@@ -55,23 +55,14 @@ export class Export implements IExport {
 
   // #region Public Accessors (11)
 
-  /**
-   * Getter dependency
-   */
   public get dependency(): string[] {
     return this.#dependency;
   }
 
-  /**
-   * Getter displayname
-   */
   public get displayname(): string | undefined {
     return this.#displayname;
   }
 
-  /**
-   * Setter displayname
-   */
   public set displayname(value: string | undefined) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname: Updating DisplayName to ${value}.`);
@@ -84,16 +75,10 @@ export class Export implements IExport {
     }
   }
 
-  /**
-   * Getter hidden
-   */
   public get hidden(): boolean {
     return this.#hidden;
   }
 
-  /**
-   * Setter hidden
-   */
   public set hidden(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Updating Hidden to ${value}.`);
@@ -106,30 +91,18 @@ export class Export implements IExport {
     }
   }
 
-  /**
-   * Getter id
-   */
   public get id(): string {
     return this.#id;
   }
 
-  /**
-   * Getter name
-   */
   public get name(): string {
     return this.#name;
   }
 
-  /**
-   * Getter order
-   */
   public get order(): number | undefined {
     return this.#order;
   }
 
-  /**
-   * Setter order
-   */
   public set order(value: number | undefined) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Updating Order to ${value}.`);
@@ -142,16 +115,10 @@ export class Export implements IExport {
     }
   }
 
-  /**
-   * Getter type
-   */
   public get type(): ShapeDiverResponseExportDefinitionType {
     return this.#type;
   }
 
-  /**
-   * Getter uid
-   */
   public get uid(): string | undefined {
     return this.#uid;
   }

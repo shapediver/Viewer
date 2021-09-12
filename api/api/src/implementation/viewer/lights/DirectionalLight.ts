@@ -33,16 +33,10 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
 
     // #region Public Accessors (8)
 
-    /**
-     * Getter castShadow
-     */
     public get castShadow(): boolean {
         return this.#light.castShadow;
     }
 
-    /**
-     * Setter castShadow
-     */
     public set castShadow(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).castShadow: Updating CastShadow to ${value}.`);
@@ -56,16 +50,10 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
         }
     }
 
-    /**
-     * Getter direction
-     */
     public get direction(): vec3 {
         return this.#light.direction;
     }
 
-    /**
-     * Setter direction
-     */
     public set direction(value: vec3) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).direction: Updating Direction to ${value}.`);
@@ -79,16 +67,10 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
         }
     }
 
-    /**
-     * Getter shadowMapBias
-     */
     public get shadowMapBias(): number {
         return this.#light.shadowMapBias;
     }
 
-    /**
-     * Setter shadowMapBias
-     */
     public set shadowMapBias(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapBias: Updating ShadowMapBias to ${value}.`);
@@ -102,16 +84,10 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
         }
     }
 
-    /**
-     * Getter shadowMapResolution
-     */
     public get shadowMapResolution(): number {
         return this.#light.shadowMapResolution;
     }
 
-    /**
-     * Setter shadowMapResolution
-     */
     public set shadowMapResolution(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapResolution: Updating ShadowMapResolution to ${value}.`);

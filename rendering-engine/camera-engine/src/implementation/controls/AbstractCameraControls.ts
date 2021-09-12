@@ -69,34 +69,18 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         return this._cameraControlsEventDistribution;
     }
 
-    /**
-     * Getter canvas
-     * @return {HTMLCanvasElement}
-     */
     public get canvas(): HTMLCanvasElement {
         return this._canvas;
     }
 
-    /**
-     * Setter canvas
-     * @param {HTMLCanvasElement} value
-     */
     public set canvas(value: HTMLCanvasElement) {
         this._canvas = value;
     }
 
-    /**
-     * Getter enabled
-     * @return {boolean}
-     */
     public get enabled(): boolean {
         return this._enabled;
     }
 
-    /**
-     * Setter enabled
-     * @param {boolean} value
-     */
     public set enabled(value: boolean) {
         if (!value) {
             this._manualInteraction = false;
@@ -110,50 +94,26 @@ export class AbstractCameraControls implements ICameraControlsUsage {
         this._enabled = value;
     }
 
-    /**
-     * Getter camera
-     * @return {ICamera}
-     */
     public get camera(): ICamera {
         return this._camera;
     }
 
-    /**
-     * Setter camera
-     * @param {ICamera} value
-     */
     public set camera(value: ICamera) {
         this._camera = value;
     }
 
-    /**
-     * Getter position
-     * @return {vec3}
-     */
     public get position(): vec3 {
         return this._position;
     }
 
-    /**
-     * Setter position
-     * @param {vec3} value
-     */
     public set position(value: vec3) {
         this._position = value;
     }
 
-    /**
-     * Getter target
-     * @return {vec3}
-     */
     public get target(): vec3 {
         return this._target;
     }
 
-    /**
-     * Setter target
-     * @param {vec3} value
-     */
     public set target(value: vec3) {
         this._target = value;
     }

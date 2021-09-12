@@ -15,18 +15,10 @@ export class SessionOutputData extends AbstractTreeNodeData {
 
     // #region Public Accessors (2)
 
-    /**
-     * Getter sessionOutput
-     * @return {ShapeDiverResponseOutput}
-     */
     public get sessionOutput(): ShapeDiverResponseOutput {
 		return this._sessionOutput;
 	}
 
-    /**
-     * Setter sessionOutput
-     * @param {ShapeDiverResponseOutput} value
-     */
     public set sessionOutput(value: ShapeDiverResponseOutput) {
 		this._sessionOutput = value;
 	}

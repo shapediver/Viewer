@@ -204,23 +204,14 @@ export class Session implements ISession {
 
     // #region Public Accessors (21)
 
-    /**
-     * Getter authorTicket
-     */
     public get authorTicket(): boolean | undefined {
         return this.#sessionEngine.authorTicket;
     }
 
-    /**
-     * Getter bearerToken
-     */
     public get bearerToken(): string | undefined {
         return this.#sessionEngine.bearerToken;
     }
 
-    /**
-     * The bearerToken of the session.
-     */
     public set bearerToken(value: string | undefined) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken: Updating BearerToken to ${value}.`);
@@ -233,24 +224,14 @@ export class Session implements ISession {
         }
     }
 
-    /**
-     * Getter canUploadGLTF
-     */
     public get canUploadGLTF(): boolean {
         return this.#canUploadGLTF;
     }
 
-    /**
-     * Getter commitParameters
-     */
     public get commitParameters(): boolean {
         return this.#commitParameters;
     }
 
-    /**
-     * The commitParameters setting of the session.
-     * @param {boolean} value
-     */
     public set commitParameters(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: Updating CommitParameters to ${value}.`);
@@ -263,17 +244,10 @@ export class Session implements ISession {
         }
     }
 
-    /**
-     * Getter commitSettings
-     */
     public get commitSettings(): boolean {
         return this.#commitSettings;
     }
 
-    /**
-     * The commitSettings setting of the session.
-     * @param {boolean} value
-     */
     public set commitSettings(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: Updating CommitSettings to ${value}.`);
@@ -286,81 +260,46 @@ export class Session implements ISession {
         }
     }
 
-    /**
-     * Getter exports
-     */
     public get exports(): { [key: string]: IExport; } {
         return this.#exports;
     }
 
-    /**
-     * Getter id
-     */
     public get id(): string {
         return this.#id;
     }
 
-    /**
-     * Getter initialized
-     */
     public get initialized(): boolean {
         return this.#sessionEngine.initialized;
     }
 
-    /**
-     * Getter modelViewUrl
-     */
     public get modelViewUrl(): string {
         return this.#modelViewUrl;
     }
 
-    /**
-     * Getter node
-     */
     public get node(): TreeNode {
         return this.#node;
     }
 
-    /**
-     * Getter outputs
-     */
     public get outputs(): { [key: string]: IOutput; } {
         return this.#outputs;
     }
 
-    /**
-     * Getter parameters
-     */
     public get parameters(): { [key: string]: IParameter<any>; } {
         return this.#parameters;
     }
 
-    /**
-     * Getter primarySession
-     */
     public get primarySession(): boolean {
         return this.#primarySession;
     }
 
-    /**
-     * Getter primarySessionRequest
-     */
     public get primarySessionRequest(): boolean {
         return this.#primarySessionRequest;
     }
 
-    /**
-     * Getter refreshBearerToken
-     */
     public get refreshBearerToken(): () => string {
         return this.#sessionEngine.refreshBearerToken;
     }
 
-    /**
-     * The callback to refresh the bearer token.
-     * This callback will be executed, 
-     * once a session request fails due to an invalid bearer token.
-     */
     public set refreshBearerToken(value: () => string) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken: Updating RefreshBearerToken to ${value}.`);
@@ -373,9 +312,6 @@ export class Session implements ISession {
         }
     }
 
-    /**
-     * Getter ticket
-     */
     public get ticket(): string {
         return this.#ticket;
     }

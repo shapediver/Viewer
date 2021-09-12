@@ -28,42 +28,22 @@ export class SDObject extends THREE.Object3D implements ISDObject {
 
     // #region Public Accessors (4)
 
-    /**
-     * Getter SDid
-     * @return {string }
-     */
     public get SDid(): string {
         return this._SDid;
     }
 
-    /**
-     * Setter SDid
-     * @param {string } value
-     */
     public set SDid(value: string) {
         this._SDid = value;
     }
 
-    /**
-     * Getter SDversion
-     * @return {string }
-     */
     public get SDversion(): string {
         return this._SDversion;
     }
 
-    /**
-     * Setter SDversion
-     * @param {string } value
-     */
     public set SDversion(value: string) {
         this._SDversion = value;
     }
 
-    /**
-     * Getter SDtype
-     * @return {SD_RENDERINGTYPE}
-     */
     public get SDtype(): SD_RENDERINGTYPE {
         return this._SDtype;
     }

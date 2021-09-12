@@ -120,34 +120,18 @@ export class Logger {
 
     // #region Public Accessors (4)
 
-    /**
-     * Getter loggingLevel
-     * @return {LOGGINGLEVEL}
-     */
     public get loggingLevel(): LOGGINGLEVEL {
         return this._loggingLevel;
     }
 
-    /**
-     * Setter loggingLevel
-     * @param {LOGGINGLEVEL} value
-     */
     public set loggingLevel(value: LOGGINGLEVEL) {
         this._loggingLevel = value;
     }
 
-    /**
-     * Getter showMessages
-     * @return {boolean}
-     */
     public get showMessages(): boolean {
         return this._showMessages;
     }
 
-    /**
-     * Setter showMessages
-     * @param {boolean} value
-     */
     public set showMessages(value: boolean) {
         this._showMessages = value;
     }

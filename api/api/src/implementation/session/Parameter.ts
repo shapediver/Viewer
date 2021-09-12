@@ -143,37 +143,22 @@ export class Parameter<T> implements IParameter<T> {
 
     // #region Public Accessors (23)
 
-    /**
-     * Getter choices
-     */
     public get choices(): string[] | undefined {
         return this.#choices;
     }
 
-    /**
-     * Getter decimalplaces
-     */
     public get decimalplaces(): number | undefined {
         return this.#decimalplaces;
     }
 
-    /**
-     * Getter defval
-     */
     public get defval(): string {
         return this.#defval;
     }
 
-    /**
-     * Getter displayname
-     */
     public get displayname(): string | undefined {
         return this.#displayname;
     }
 
-    /**
-     * Setter displayname
-     */
     public set displayname(value: string | undefined) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).displayname: Updating DisplayName to ${value}.`);
@@ -186,37 +171,22 @@ export class Parameter<T> implements IParameter<T> {
         }
     }
 
-    /**
-     * Getter expression
-     */
     public get expression(): string | undefined {
         return this.#expression;
     }
 
-    /**
-     * Getter format
-     */
     public get format(): string[] | undefined {
         return this.#format;
     }
 
-    /**
-     * Getter group
-     */
     public get group(): ShapeDiverResponseParameterGroup | undefined {
         return this.#group;
     }
 
-    /**
-     * Getter hidden
-     */
     public get hidden(): boolean {
         return this.#hidden;
     }
 
-    /**
-     * Setter hidden
-     */
     public set hidden(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).hidden: Updating Hidden to ${value}.`);
@@ -229,51 +199,30 @@ export class Parameter<T> implements IParameter<T> {
         }
     }
 
-    /**
-     * Getter id
-     */
     public get id(): string {
         return this.#id;
     }
 
-    /**
-     * Getter lastValidatedValue
-     */
     public get lastValidatedValue(): T | string {
         return this.#lastValidatedValue;
     }
 
-    /**
-     * Getter max
-     */
     public get max(): number | undefined {
         return this.#max;
     }
 
-    /**
-     * Getter min
-     */
     public get min(): number | undefined {
         return this.#min;
     }
 
-    /**
-     * Getter name
-     */
     public get name(): string {
         return this.#name;
     }
 
-    /**
-     * Getter order
-     */
     public get order(): number | undefined {
         return this.#order;
     }
 
-    /**
-     * Setter order
-     */
     public set order(value: number | undefined) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).order: Updating Order to ${value}.`);
@@ -286,16 +235,10 @@ export class Parameter<T> implements IParameter<T> {
         }
     }
 
-    /**
-     * Getter sessionValue
-     */
     public get sessionValue(): T | string {
         return this.#sessionValue;
     }
 
-    /**
-     * Setter sessionValue
-     */ 
     public set sessionValue(value: T | string) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).sessionValue: Updating SessionValue to ${value}.`);
@@ -313,37 +256,22 @@ export class Parameter<T> implements IParameter<T> {
         }
     }
 
-    /**
-     * Getter structure
-     */
     public get structure(): ShapeDiverResponseParameterStructure | undefined {
         return this.#structure;
     }
 
-    /**
-     * Getter tooltip
-     */
     public get tooltip(): string | undefined {
         return this.#tooltip;
     }
 
-    /**
-     * Getter type
-     */
     public get type(): PARAMETERTYPE {
         return this.#type;
     }
 
-    /**
-     * Getter value
-     */
     public get value(): T | string {
         return this.#value;
     }
 
-    /**
-     * Setter value
-     */
     public set value(value: T | string) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).value: Updating Value to ${value}.`);
@@ -362,9 +290,6 @@ export class Parameter<T> implements IParameter<T> {
         }
     }
 
-    /**
-     * Getter visualization
-     */
     public get visualization(): PARAMETERVISUALIZATION | undefined {
         return this.#visualization;
     }

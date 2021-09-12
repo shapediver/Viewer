@@ -46,23 +46,14 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
     // #region Public Accessors (3)
 
-    /**
-     * Getter controls
-     */
     public get controls(): IOrthographicCameraControls {
         return this.#controls;
     }
 
-    /**
-     * Getter direction
-     */
     public get direction(): ORTHOGRAPHIC_CAMERA_DIRECTION {
         return this.#camera.direction;
     }
 
-    /**
-     * Setter direction
-     */
     public set direction(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction: Updating Direction to ${value}.`);

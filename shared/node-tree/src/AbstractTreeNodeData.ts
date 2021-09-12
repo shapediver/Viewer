@@ -30,18 +30,10 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 
   // #region Public Accessors (2)
 
-  /**
-   * Getter id
-   * @return {string}
-   */
   public get id(): string {
     return this._id;
   }
 
-  /**
-   * Getter version
-   * @return {string}
-   */
   public get version(): string {
     return this._version;
   }

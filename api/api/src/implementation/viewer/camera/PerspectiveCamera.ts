@@ -44,23 +44,14 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
     // #region Public Accessors (3)
 
-    /**
-     * Getter controls
-     */
     public get controls(): IPerspectiveCameraControls {
         return this.#controls;
     }
 
-    /**
-     * Getter fov
-     */
     public get fov(): number {
         return this.#camera.fov;
     }
 
-    /**
-     * Setter fov
-     */
     public set fov(value: number) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov: Updating Fov to ${value}.`);
