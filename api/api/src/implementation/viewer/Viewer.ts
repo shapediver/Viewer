@@ -242,7 +242,7 @@ export class Viewer implements IViewer {
 
     // delete cameras that don't exist
     for (let c in this.#cameras) {
-      if (!this.#renderingEngine.cameraEngine.cameras)
+      if (!this.#renderingEngine.cameraEngine.cameras[c])
         delete this.#cameras[c];
     }
     return this.#cameras;
