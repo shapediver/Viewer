@@ -38,6 +38,7 @@ value.value = slider.value;
 
 const submit = <HTMLButtonElement>document.getElementById('submit');
 const ticket = <HTMLInputElement>document.getElementById('ticket');
+const s = <HTMLInputElement>document.getElementById('s');
 
 infoText.textContent += '\n2021-09-09T10:08:22.322Z';// + new Date().toISOString();
 
@@ -89,6 +90,7 @@ submit.onclick = async () => {
     part1.style.visibility = 'visible'
     let session = await api.createSession({ ticket: ticketInput, modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com', id: 'mySession'});
 
+
     api.enableAR = true;
     api.autoScaling = false;
 
@@ -118,6 +120,11 @@ submit.onclick = async () => {
         }
         slider.min = min.value;
         slider.step = min.value;
+    }
+
+    s.onchange = () => {
+        session.parameters['d5fa299b-d1f8-481e-b095-77ebd4c19e1e'].value = s.value;
+        session.customize()
     }
 }
 
