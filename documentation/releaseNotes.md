@@ -1,4 +1,6 @@
 # Release Notes
+## Version 1.2.3 - `Con Air`
+- bugfix: camera assignment 
 ## Version 1.2.2 - `Casino`
 - implemented and exported all interfaces for the api
 - AR api completion (SS-3461, SS-3462)
