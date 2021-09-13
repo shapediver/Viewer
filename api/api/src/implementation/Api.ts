@@ -666,8 +666,12 @@ export class Api implements IApi {
       } else {
         // create the link and click it
         const a = document.createElement('a');
-        a.href = file;
         document.body.appendChild(a);
+        a.href = file;
+        a.rel = 'ar';
+        const img = document.createElement('img');
+        img.src = this.#defaultLogo;
+        a.appendChild(img);
         a.click();
       }
 
