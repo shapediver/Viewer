@@ -1,5 +1,9 @@
 # Release Notes
 
+## Version 1.2.4 - `City Of God`
+- bugfix: rendering on resizing
+- bugfix: storing of new session properties on new backend
+
 ## Version 1.2.3 - `Con Air`
 - bugfix: camera assignment 
 
