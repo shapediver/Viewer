@@ -322,7 +322,7 @@ export class Session implements ISession {
         }
     }): Promise<boolean> {
         if (!this._sessionResponse.actions?.filter(v => v.name === 'parameter-definition')[0]) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.saveParameterProperties: Session has to be in edit mode to be able to save parameter properties.'));
+            this._logger.warn(LOGGINGTOPIC.SESSION, 'Session.saveParameterProperties: Session does not have the required action.');
             return false;
         }
         try {
@@ -352,7 +352,7 @@ export class Session implements ISession {
         }
     }): Promise<boolean> {
         if (!this._sessionResponse.actions?.filter(v => v.name === 'export-definition')[0]) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.saveExportProperties: Session has to be in edit mode to be able to save export properties.'));
+            this._logger.warn(LOGGINGTOPIC.SESSION, 'Session.saveExportProperties: Session does not have the required action.');
             return false;
         }
         try {
@@ -382,7 +382,7 @@ export class Session implements ISession {
         }
     }): Promise<boolean> {
         if (!this._sessionResponse.actions?.filter(v => v.name === 'output-definition')[0]) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.saveOutputProperties: Session has to be in edit mode to be able to save output properties.'));
+            this._logger.warn(LOGGINGTOPIC.SESSION, 'Session.saveOutputProperties: Session does not have the required action.');
             return false;
         }
         try {

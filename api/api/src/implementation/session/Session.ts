@@ -720,7 +720,7 @@ export class Session implements ISession {
         }
     }
 
-    public async saveSessionProperties(): Promise<boolean> {
+    public async saveSessionProperties(saveInSettings: boolean = true): Promise<boolean> {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saving session properties.`);
 
@@ -764,12 +764,12 @@ export class Session implements ISession {
             const responseO = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveOutputProperties(properties) : true;
 
             // save partial settings
-            const response = await this.#sessionEngine.saveSettings(this.#settingsEngine.convertToTargetVersion());
+            const response = saveInSettings ? await this.#sessionEngine.saveSettings(this.#settingsEngine.convertToTargetVersion()) : true;
 
             if (response && responseP && responseO && responseE) {
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saved session properties.`);
             } else {
-                this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Session(${this.id}).saveSessionProperties: Could not save session properties.`));
+                this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Could not save session properties.`);
             }
             return response && responseP && responseO && responseE;
         } catch (e) {
@@ -781,10 +781,12 @@ export class Session implements ISession {
     public async saveSettings(viewerId?: string): Promise<boolean> {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Saving settings.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings`, viewerId, 'boolean', false);
             this.#settingsEngine.general.commitParameters = this.commitParameters;
             this.#settingsEngine.general.commitSettings = this.commitSettings;
 
-            this.#saveSessionSettings();
+            await this.saveSessionProperties(false);
+            
             this.#settingsEngine.settings.build_version = build_data.build_version;
             this.#settingsEngine.settings.build_date = build_data.build_date;
             this.#settingsEngine.settings.settings_version = '3.0';
