@@ -557,7 +557,7 @@ export class RenderingEngine implements IRenderingEngine {
 
             this._eventEngine.removeListener(token);
             // return if a different env map was loaded
-            if (!viewerEvent.environmentMapId || (viewerEvent.environmentMapId && viewerEvent.environmentMapId !== this._settingsEngine.environment.map)) return;
+            if (!viewerEvent.environmentMapId || (viewerEvent.environmentMapId && !Array.isArray(this._settingsEngine.environment.map) && viewerEvent.environmentMapId !== this._settingsEngine.environment.map.toLowerCase())) return;
 
             this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
             this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
