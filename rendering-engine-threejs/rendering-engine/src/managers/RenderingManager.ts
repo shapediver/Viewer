@@ -2,11 +2,11 @@ import * as TWEEN from '@tweenjs/tween.js'
 import * as Stats from 'stats.js'
 import * as THREE from 'three'
 import {
-  AbstractCamera,
-  CAMERATYPE,
-  OrthographicCamera,
-  PerspectiveCamera,
-  PerspectiveCameraControls
+    AbstractCamera,
+    CAMERATYPE,
+    OrthographicCamera,
+    PerspectiveCamera,
+    PerspectiveCameraControls
 } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { EventEngine, EVENTTYPE, IViewerEvent, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
@@ -18,7 +18,7 @@ import { BeautyRenderingManager } from './BeautyRenderingManager'
 import { IManager } from '../interfaces/IManager'
 
 export class RenderingManager implements IManager {
-    // #region Properties (13)
+    // #region Properties (16)
 
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
@@ -32,17 +32,29 @@ export class RenderingManager implements IManager {
         position: vec3,
         target: vec3
     } = {
-        position: vec3.create(),
-        target: vec3.create()
-    };
+            position: vec3.create(),
+            target: vec3.create()
+        };
+    private _lastSize: {
+        adjustedWidth: number,
+        adjustedHeight: number,
+        width: number,
+        height: number
+    } = {
+            adjustedWidth: 0,
+            adjustedHeight: 0,
+            width: 0,
+            height: 0
+        };
     private _lastTime: number = 0;
     private _minimalRendering: boolean = false;
     private _noWebGL: boolean = false;
+    private _sizeChanged: boolean = false;
     private _stats: any;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
 
-    // #endregion Properties (13)
+    // #endregion Properties (16)
 
     // #region Constructors (1)
 
@@ -116,12 +128,12 @@ export class RenderingManager implements IManager {
         try {
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
                 const viewerEvent = <IViewerEvent>e;
-                if(viewerEvent.viewerId === this._renderingEngine.id) 
+                if (viewerEvent.viewerId === this._renderingEngine.id)
                     this.startRendering();
             })
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
                 const viewerEvent = <IViewerEvent>e;
-                if(viewerEvent.viewerId === this._renderingEngine.id) 
+                if (viewerEvent.viewerId === this._renderingEngine.id)
                     this.stopRendering();
             })
 
@@ -197,13 +209,15 @@ export class RenderingManager implements IManager {
         // get the current size
         const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
         const aspect = width / height;
+        this._sizeChanged = this._lastSize.adjustedHeight !== adjustedHeight || this._lastSize.adjustedWidth !== adjustedWidth || this._lastSize.height !== width || this._lastSize.height !== width;
+        this._lastSize = { width, height, adjustedWidth, adjustedHeight };
 
         // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
         const { position, target } = this._renderingEngine.cameraEngine.camera ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : { position: vec3.create(), target: vec3.create() };
 
         // evaluate if the camera changed
         this._cameraChanged = true;
-        if(position[0] === this._lastCamera.position[0] && position[1] === this._lastCamera.position[1] && position[2] === this._lastCamera.position[2] && 
+        if (position[0] === this._lastCamera.position[0] && position[1] === this._lastCamera.position[1] && position[2] === this._lastCamera.position[2] &&
             target[0] === this._lastCamera.target[0] && target[1] === this._lastCamera.target[1] && target[2] === this._lastCamera.target[2])
             this._cameraChanged = false;
         this._lastCamera = { position, target };
@@ -247,7 +261,7 @@ export class RenderingManager implements IManager {
         // enable / disable the shadow map
         const enabled = this._renderingEngine.renderer.shadowMap.enabled;
         this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader ? false : this._renderingEngine.shadows;
-        if(enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials()
+        if (enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials()
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         // set the background color / alpha
@@ -375,19 +389,18 @@ export class RenderingManager implements IManager {
 
         // If we should render at all
         let rendering = false;
-        if (this._activeRendering === true || this._cameraChanged === true)
+        if (this._activeRendering === true || this._cameraChanged === true || this._sizeChanged === true)
             rendering = true;
 
         // special case, autorotation
-        if(this._renderingEngine.cameraEngine.camera) {
+        if (this._renderingEngine.cameraEngine.camera) {
             const camera = this._renderingEngine.cameraEngine.camera!;
-            if(camera.type === CAMERATYPE.PERSPECTIVE) {
+            if (camera.type === CAMERATYPE.PERSPECTIVE) {
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
-                if(controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
+                if (controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
                     return { showScene, rendering: true, blurScene: false, beautyRendering: false };
             }
         }
-
 
         // If the scene should be blurred
         let blurScene = false;
