@@ -9,7 +9,7 @@ export class DirectionalLight extends AbstractLight {
 
     private _castShadow: boolean = false;
     private _direction: vec3 = vec3.fromValues(-1, 0, 1);
-    private _shadowMapBias: number = -0.00175;
+    private _shadowMapBias: number = -0.003;
     private _shadowMapResolution: number = 1024;
 
     // #endregion Properties (4)

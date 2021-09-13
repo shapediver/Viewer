@@ -49,7 +49,7 @@ describe('light-engine', () => {
         expect(l.direction[2]).toBe(1)
         expect(l.castShadow).toBe(false)
         expect(l.shadowMapResolution).toBe(1024)
-        expect(l.shadowMapBias).toBe(-0.00175)
+        expect(l.shadowMapBias).toBe(-0.003)
         expect(l.id.length).toBe(36)
     });
 
