@@ -100,6 +100,23 @@ export class Viewer implements IViewer {
     }
   }
 
+  public get ambientOcclusionIntensity(): number {
+    return this.#renderingEngine.ambientOcclusionIntensity;
+  }
+
+  public set ambientOcclusionIntensity(value: number) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity: Updating ambientOcclusionIntensity to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity`, value, 'factor');
+      this.#renderingEngine.ambientOcclusionIntensity = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity: ambientOcclusionIntensity was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).ambientOcclusionIntensity: Something unexpected happened.`, true)
+    }
+  }
+
   public get automaticResizing(): boolean {
     return this.#renderingEngine.automaticResizing;
   }

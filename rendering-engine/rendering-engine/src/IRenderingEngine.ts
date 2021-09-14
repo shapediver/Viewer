@@ -23,6 +23,7 @@ export interface IRenderingEngine {
     // #region Properties (2)
 
     ambientOcclusion: boolean;
+    ambientOcclusionIntensity: number;
     automaticResizing: boolean;
     beautyRenderDelay: number;
     blurSceneWhenBusy: boolean;

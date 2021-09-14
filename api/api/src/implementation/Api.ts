@@ -311,6 +311,7 @@ export class Api implements IApi {
       if(sections.viewer.scene) {
         currentSettings.rendering.shadows = settings.rendering.shadows;
         currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
+        currentSettings.rendering.ambientOcclusionIntensity = settings.rendering.ambientOcclusionIntensity;
         currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
         currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
         currentSettings.general.commitParameters = settings.general.commitParameters;

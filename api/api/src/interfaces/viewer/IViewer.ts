@@ -16,6 +16,7 @@ export interface IViewer {
     readonly lightScenes: { [key: string]: ILightScene };
 
     ambientOcclusion: boolean;
+    ambientOcclusionIntensity: number;
     automaticResizing: boolean;
     beautyRenderBlendingDuration: number;
     beautyRenderDelay: number;

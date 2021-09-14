@@ -132,7 +132,7 @@ export class BeautyRenderingManager implements IManager {
 
         this._effectComposer.addPass(this._saoPass);
         this._saoPass.params.output = 0;
-        this._saoPass.params.saoIntensity = .1;
+        this._saoPass.params.saoIntensity = this._renderingEngine.ambientOcclusionIntensity;
         this._saoPass.params.saoScale = .1;
         this._saoPass.params.saoKernelRadius = 8;
 
@@ -154,10 +154,11 @@ export class BeautyRenderingManager implements IManager {
     public render(time: number, camera: THREE.Camera, width: number, height: number) {
         const percentage = this.setShaderProperties();
 
-        if((this._renderingEngine.ambientOcclusion && !(this._systemInfo.isIOS || this._systemInfo.isMobile || this._systemInfo.isSafari))) {
+        if(((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !(this._systemInfo.isIOS || this._systemInfo.isMobile || this._systemInfo.isSafari))) {
             this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
             this._ssaaPass.clearAlpha = this._renderingEngine.renderer.getClearAlpha();
     
+            this._saoPass.params.saoIntensity = this._renderingEngine.ambientOcclusionIntensity;
             const saoIntensity = this._saoPass.params.saoIntensity;
             this._saoPass.params.saoIntensity = percentage * saoIntensity;
             // if passes changed, adapt https://shapediver.atlassian.net/browse/SS-2954

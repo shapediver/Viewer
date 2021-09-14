@@ -78,6 +78,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     // settings
     private _ambientOcclusion: boolean = true;
+    private _ambientOcclusionIntensity: number = 0.1;
     private _automaticResizing: boolean = true;
     private _beautyRenderBlendingDuration: number = 1500;
     private _beautyRenderDelay: number = 50;
@@ -208,6 +209,14 @@ export class RenderingEngine implements IRenderingEngine {
 
     public set ambientOcclusion(value: boolean) {
         this._ambientOcclusion = value;
+    }
+
+    public get ambientOcclusionIntensity(): number {
+        return this._ambientOcclusionIntensity;
+    }
+
+    public set ambientOcclusionIntensity(value: number) {
+        this._ambientOcclusionIntensity = value;
     }
 
     public get automaticResizing(): boolean {
@@ -531,6 +540,7 @@ export class RenderingEngine implements IRenderingEngine {
         this._settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
         this._settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
         this._settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
+        this._settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
         this._settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
         this._settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
         this._settingsEngine.environment.clearAlpha = this.clearAlpha;
@@ -561,6 +571,7 @@ export class RenderingEngine implements IRenderingEngine {
 
             this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
             this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
+            this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
             this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
             this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
             this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;

@@ -209,7 +209,7 @@ export class RenderingManager implements IManager {
         // get the current size
         const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
         const aspect = width / height;
-        this._sizeChanged = this._lastSize.adjustedHeight !== adjustedHeight || this._lastSize.adjustedWidth !== adjustedWidth || this._lastSize.height !== width || this._lastSize.height !== width;
+        this._sizeChanged = this._lastSize.adjustedHeight !== adjustedHeight || this._lastSize.adjustedWidth !== adjustedWidth || this._lastSize.height !== height || this._lastSize.width !== width;
         this._lastSize = { width, height, adjustedWidth, adjustedHeight };
 
         // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
@@ -410,7 +410,7 @@ export class RenderingManager implements IManager {
         // If we should render in beauty mode
         let beautyRendering = false;
         if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
-            ((this._renderingEngine.shadows && this._systemInfo.isMobile) || (this._renderingEngine.ambientOcclusion && !this._systemInfo.isIOS)) &&
+            ((this._renderingEngine.shadows && this._systemInfo.isMobile) || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
             this._renderingEngine.usingSwiftShader === false)
             beautyRendering = true;
 
