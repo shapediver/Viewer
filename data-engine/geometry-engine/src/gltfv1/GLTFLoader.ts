@@ -159,8 +159,11 @@ export class GLTFLoader {
         const byteStride = accessor.byteStride;
         const normalized = false;
 
+        const min = this._content.asset && this._content.asset?.generator === "ShapeDiverGltfV1Writer" ? accessor.min || [] : [];
+        const max = this._content.asset && this._content.asset?.generator === "ShapeDiverGltfV1Writer" ? accessor.max || [] : [];
+
         // The buffer is not interleaved if the stride is the item size in bytes.
-        return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, [], [], byteStride);
+        return new AttributeData(new ArrayType(bufferView), itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, min, max, byteStride);
     }
 
     private async loadBuffer(bufferName: string): Promise<ArrayBuffer> {
