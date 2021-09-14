@@ -8,6 +8,7 @@ import { InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewe
 import { container } from 'tsyringe'
 
 import { IExport } from '../../interfaces/session/IExport'
+import { ISession } from '../../interfaces/session/ISession'
 
 export class Export implements IExport {
   // #region Properties (11)
@@ -17,6 +18,7 @@ export class Export implements IExport {
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #name: string;
+  readonly #session: ISession;
   readonly #sessionEngine: Session;
   readonly #type: ShapeDiverResponseExportDefinitionType;
   readonly #uid?: string;
@@ -29,8 +31,9 @@ export class Export implements IExport {
 
   // #region Constructors (1)
 
-  constructor(sessionEngine: Session, exportDef: ShapeDiverResponseExport) {
+  constructor(session: ISession, sessionEngine: Session, exportDef: ShapeDiverResponseExport) {
     try {
+      this.#session = session;
       this.#sessionEngine = sessionEngine;
 
       if (exportDef.dependency) this.#dependency = exportDef.dependency;

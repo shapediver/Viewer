@@ -50,6 +50,8 @@ export class Api implements IApi {
   readonly sessions: { [key: string]: ISession } = {};
   readonly viewers: { [key: string]: IViewer } = {};
 
+  #automaticUpdate: boolean = true;
+
   // #endregion Properties (13)
 
   // #region Constructors (1)
@@ -88,6 +90,25 @@ export class Api implements IApi {
   // #endregion Constructors (1)
 
   // #region Public Accessors (14)
+  public get automaticUpdate(): boolean {
+    return this.#automaticUpdate;
+  }  
+  
+  public set automaticUpdate(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.automaticUpdate: Updating automaticUpdate to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.automaticUpdate', value, 'boolean');
+      this.#automaticUpdate = value;
+
+      for(let s in this.sessions)
+        this.#automaticUpdate ? this.sceneTree.addNode(this.sessions[s].node) : this.sceneTree.removeNode(this.sessions[s].node)
+
+      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.automaticUpdate: automaticUpdate was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.automaticUpdate: Something unexpected happened.`, true)
+    }
+  }
 
   public get autoScaling(): boolean {
     return this.#settingsEngine.ar.autoScaling;

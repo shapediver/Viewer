@@ -7,6 +7,7 @@ import {
 } from '@shapediver/api.geometry-api-dto-v1'
 
 import { IOutput } from '../../interfaces/session/IOutput'
+import { ISession } from '../../interfaces/session/ISession'
 
 export class Output implements IOutput {
   // #region Properties (12)
@@ -18,6 +19,7 @@ export class Output implements IOutput {
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #material?: string;
   readonly #name: string;
+  readonly #session: ISession;
   readonly #sessionEngine: Session;
   readonly #uid?: string;
 
@@ -29,8 +31,9 @@ export class Output implements IOutput {
 
   // #region Constructors (1)
 
-  constructor(sessionEngine: Session, outputDef: ShapeDiverResponseOutput) {
+  constructor(session: ISession, sessionEngine: Session, outputDef: ShapeDiverResponseOutput) {
     try {
+      this.#session = session;
       this.#sessionEngine = sessionEngine;
 
       if (outputDef.dependency !== undefined) this.#dependency = outputDef.dependency;

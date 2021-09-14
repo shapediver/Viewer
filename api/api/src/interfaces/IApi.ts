@@ -14,6 +14,7 @@ export interface IApi {
   readonly sessions: { [key: string]: ISession };
   readonly viewers: { [key: string]: IViewer };
 
+  automaticUpdate: boolean;
   autoScaling: boolean;
   enableAR: boolean;
   globalRotation: vec3;

@@ -20,6 +20,7 @@ export interface ISession {
     readonly primarySessionRequest: boolean;
     readonly ticket: string;
 
+    automaticUpdate: boolean;
     bearerToken: string | undefined;
     commitParameters: boolean;
     commitSettings: boolean;

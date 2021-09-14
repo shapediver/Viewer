@@ -4,6 +4,7 @@ import { HttpClient, Logger, LOGGINGTOPIC, SDError, UuidGenerator } from '@shape
 import { container } from 'tsyringe'
 
 import { IFileParameter } from '../../interfaces/session/IFileParameter'
+import { ISession } from '../../interfaces/session/ISession'
 import { Parameter } from './Parameter'
 
 export class FileParameter extends Parameter<File | Blob | string> implements IFileParameter {
@@ -11,6 +12,7 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
     readonly #httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #session: ISession;
     readonly #sessionEngine: Session;
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
@@ -18,9 +20,10 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
     // #region Constructors (1)
 
-    constructor(sessionEngine: Session, paramDef: ShapeDiverResponseParameter) {
-        super(sessionEngine, paramDef);
+    constructor(session: ISession, sessionEngine: Session, paramDef: ShapeDiverResponseParameter) {
+        super(session, sessionEngine, paramDef);
         try {
+            this.#session = session;
             this.#sessionEngine = sessionEngine;
         } catch (e) {
             if (e instanceof SDError) throw e;

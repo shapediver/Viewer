@@ -8,6 +8,7 @@ import { Converter, InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shape
 import { container } from 'tsyringe'
 
 import { IParameter } from '../../interfaces/session/IParameter'
+import { ISession } from '../../interfaces/session/ISession'
 
 export enum PARAMETERTYPE {
     FLOAT = 'Float',
@@ -75,6 +76,7 @@ export class Parameter<T> implements IParameter<T> {
     readonly #max?: number;
     readonly #min?: number;
     readonly #name: string;
+    readonly #session: ISession;
     readonly #sessionEngine: Session;
     readonly #structure?: ShapeDiverResponseParameterStructure;
     readonly #tooltip?: string;
@@ -92,8 +94,9 @@ export class Parameter<T> implements IParameter<T> {
 
     // #region Constructors (1)
 
-    constructor(sessionEngine: Session, paramDef: ShapeDiverResponseParameter) {
+    constructor(session: ISession, sessionEngine: Session, paramDef: ShapeDiverResponseParameter) {
         try {
+            this.#session = session;
             this.#sessionEngine = sessionEngine;
 
             this.#id = paramDef.id;
@@ -279,6 +282,7 @@ export class Parameter<T> implements IParameter<T> {
                 this.#value = value;
                 this.#lastValidatedValue = this.value;
                 this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).value: Value was updated to ${this.value}.`);
+                if(this.#session.automaticUpdate) this.#session.customize();
             } else {
                 const error = new SDError(`Parameter(${this.#id}).value: Could not validate value.`);
                 this.#logger.warn(LOGGINGTOPIC.PARAMETER, error.message);

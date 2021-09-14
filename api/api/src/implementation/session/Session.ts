@@ -85,12 +85,14 @@ export class Session implements ISession {
         }
     }
 
+    readonly #sceneTree: Tree = <Tree>container.resolve(Tree);
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     readonly #ticket: string;
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
+    #automaticUpdate: boolean = false;
     #canUploadGLTF: boolean = false;
     #commitParameters: boolean = false;
     #commitSettings: boolean = false;
@@ -178,7 +180,7 @@ export class Session implements ISession {
             callbacks.close = async (): Promise<boolean> => {
                 try {
                     const closeResult = await this.#sessionEngine.close();
-                    (<Tree>container.resolve(Tree)).removeNode(this.node);
+                    if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
                     this.#api.update();
 
                     this.#settingsEngine.reset();
@@ -203,6 +205,22 @@ export class Session implements ISession {
     // #endregion Constructors (1)
 
     // #region Public Accessors (21)
+
+    public get automaticUpdate(): boolean {
+        return this.#automaticUpdate;
+    }
+
+    public set automaticUpdate(value: boolean) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate: Updating automaticUpdate to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate`, value, 'boolean');
+            this.#automaticUpdate = value;
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate: automaticUpdate was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).automaticUpdate: Something unexpected happened.`, true)
+        }
+    }
 
     public get authorTicket(): boolean | undefined {
         return this.#sessionEngine.authorTicket;
@@ -417,9 +435,9 @@ export class Session implements ISession {
             }
 
             this.#performanceEvaluator.startSection('finish');
-            (<Tree>container.resolve(Tree)).removeNode(this.node);
+            if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
             this.#node = node;
-            (<Tree>container.resolve(Tree)).addNode(this.node);
+            if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
 
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
@@ -638,19 +656,19 @@ export class Session implements ISession {
                     this.#useSessionSettings = false;
                 switch (true) {
                     case param.type === PARAMETERTYPE.BOOL || param.type === PARAMETERTYPE.SBOOL:
-                        this.parameters[p] = new Parameter<boolean>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                        this.parameters[p] = new Parameter<boolean>(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                     case param.type === PARAMETERTYPE.COLOR || param.type === PARAMETERTYPE.SCOLOR:
-                        this.parameters[p] = new Parameter<number | vec3>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                        this.parameters[p] = new Parameter<number | vec3>(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                     case param.type === PARAMETERTYPE.FILE:
-                        this.parameters[p] = new FileParameter(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                        this.parameters[p] = new FileParameter(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                     case param.type === PARAMETERTYPE.EVEN || param.type === PARAMETERTYPE.FLOAT || param.type === PARAMETERTYPE.INT || param.type === PARAMETERTYPE.ODD || param.type === PARAMETERTYPE.SINTEGER || param.type === PARAMETERTYPE.SNUMBER:
-                        this.parameters[p] = new Parameter<number>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                        this.parameters[p] = new Parameter<number>(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                     default:
-                        this.parameters[p] = new Parameter<string>(this.#sessionEngine, this.#sessionEngine.parameters[p]);
+                        this.parameters[p] = new Parameter<string>(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                 }
                 
@@ -666,18 +684,18 @@ export class Session implements ISession {
             for (let e in this.#sessionEngine.exports) {
                 if (this.#sessionEngine.exports[e].displayname !== undefined || this.#sessionEngine.exports[e].order !== undefined)
                     this.#useSessionSettings = false;
-                this.exports[e] = new Export(this.#sessionEngine, this.#sessionEngine.exports[e]);
+                this.exports[e] = new Export(this, this.#sessionEngine, this.#sessionEngine.exports[e]);
             }
 
             for (let o in this.#sessionEngine.outputs) {
                 if (this.#sessionEngine.outputs[o].displayname !== undefined || this.#sessionEngine.outputs[o].order !== undefined)
                     this.#useSessionSettings = false;
-                this.outputs[o] = new Output(this.#sessionEngine, this.#sessionEngine.outputs[o]);
+                this.outputs[o] = new Output(this, this.#sessionEngine, this.#sessionEngine.outputs[o]);
             }
 
             this.#canUploadGLTF = this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload').length !== 0;
 
-            (<Tree>container.resolve(Tree)).addNode(this.node);
+            if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
             this.node.excludeViewers = this.#excludeViewers;
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
 
