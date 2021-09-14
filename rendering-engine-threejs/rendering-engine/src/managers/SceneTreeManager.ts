@@ -52,7 +52,7 @@ export class SceneTreeManager implements IManager {
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public convertData(data: ITreeNodeData, obj: SDObject, realObject: TreeNode): Box {
+    public convertData(data: ITreeNodeData, obj: SDObject): Box {
         let dataChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
 
         if (!dataChild)
@@ -62,7 +62,7 @@ export class SceneTreeManager implements IManager {
 
         switch (true) {
             case data instanceof GeometryData:
-                return this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, realObject);
+                return this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild);
             case data instanceof ThreejsData:
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);
                 break;
@@ -145,7 +145,7 @@ export class SceneTreeManager implements IManager {
         node.boundingBox = new Box();
 
         for (let i = 0, len = node.data.length; i < len; i++) {
-            const bb = this.convertData(node.data[i], obj, node);
+            const bb = this.convertData(node.data[i], obj);
             node.boundingBox.union(bb)
         }
 

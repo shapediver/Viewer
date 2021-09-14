@@ -4,6 +4,7 @@ import {
   MATERIAL_ALPHA,
   PRIMITIVE_MODE,
   PrimitiveData,
+  MATERIAL_SIDE,
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -21,6 +22,7 @@ export class GeometryLoader implements ILoader {
         [key: string]: SDObject
     } = {};
     private _logger: Logger = <Logger>container.resolve(Logger);
+    private _counter: number = 0;
 
     // #endregion Properties (2)
 
@@ -49,7 +51,7 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDObject, realObject: TreeNode): Box {            
+    public load(geometry: GeometryData, parent: SDObject): Box {            
         const threeGeometry = this.loadGeometry(geometry.primitive);
         const materialSettings = {
             mode: geometry.primitive.mode,
@@ -61,39 +63,56 @@ export class GeometryLoader implements ILoader {
         }
 
         const obj = new SDObject(geometry.id, geometry.version);
-        let mesh;
+        let meshes = [];
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
-            mesh = new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            meshes.push(new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {
-            mesh = new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            meshes.push(new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_LOOP) {
-            mesh = new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            meshes.push(new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
-            mesh = new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            meshes.push(new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLES || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
-            mesh = new THREE.Mesh(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings));
+            let bufferGeometry = this.loadGeometry(geometry.primitive);
             if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
-                mesh.geometry = this.convertToTriangleMode(mesh.geometry, geometry.primitive.mode);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
+                bufferGeometry = this.convertToTriangleMode(bufferGeometry, geometry.primitive.mode);
+
+            if(geometry.primitive.material && (geometry.primitive.material.opacity < 1 || geometry.primitive.material.alphaMap)) {
+                const side = geometry.primitive.material.side;
+                if(side === MATERIAL_SIDE.DOUBLE) {
+                    geometry.primitive.material.side = MATERIAL_SIDE.BACK;
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+                    geometry.primitive.material.side = MATERIAL_SIDE.FRONT;
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+                    geometry.primitive.material.side = side;
+                } else {
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+                }
+                meshes.forEach(m => m.material.depthWrite = false);
+            } else {
+                meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+            }
+            meshes.forEach(m => m.castShadow = true);
+            meshes.forEach(m => m.receiveShadow = true);
         } else {
             throw new SDError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
         }
 
-        if (geometry.primitive.material?.alphaMode === MATERIAL_ALPHA.BLEND) {
-            mesh.material.transparent = true;
-            mesh.material.depthWrite = false;
-        }
+        if (geometry.primitive.material?.alphaMode === MATERIAL_ALPHA.BLEND)
+            meshes.forEach(m => { m.material.transparent = true; m.material.depthWrite = false; });
 
-        mesh.geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0],  geometry.boundingBox.min[1],  geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0],  geometry.boundingBox.max[1],  geometry.boundingBox.max[2]));
-        mesh.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius)
-        obj.add(mesh);
-        mesh.geometry.userData = {
-            SDid: geometry.id,
-            SDversion: geometry.version
-        }
+        meshes.forEach(m => {
+            m.geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0],  geometry.boundingBox.min[1],  geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0],  geometry.boundingBox.max[1],  geometry.boundingBox.max[2]));
+            m.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
+            m.geometry.userData = {
+                SDid: geometry.id,
+                SDversion: geometry.version
+            };
+            m.renderOrder = geometry.renderOrder;
+            obj.add(m)
+        });
+
         this._geometryCache[geometry.id + '_' + geometry.version] = obj;
-
         parent.add(obj);
         return geometry.boundingBox.clone().applyMatrix(geometry.matrix);
     }

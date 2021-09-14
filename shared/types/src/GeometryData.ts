@@ -220,6 +220,7 @@ export class GeometryData extends AbstractTreeNodeData {
   // #region Properties (1)
 
   private _boundingBox: Box = new Box();
+  private _renderOrder: number = 0;
 
   // #endregion Properties (1)
 
@@ -255,6 +256,14 @@ export class GeometryData extends AbstractTreeNodeData {
 
   public get primitive(): PrimitiveData {
     return this._primitive;
+  }
+
+  public get renderOrder(): number {
+    return this._renderOrder;
+  }
+
+  public set renderOrder(value: number) {
+    this._renderOrder = value;
   }
 
   // #endregion Public Accessors (5)
