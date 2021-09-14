@@ -98,7 +98,7 @@ export class RenderingManager implements IManager {
     public createRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
         const renderingProperties = {
             alpha: true,
-            depth: false,
+            depth: true,
             antialias: true,
             preserveDrawingBuffer: true,
             canvas
