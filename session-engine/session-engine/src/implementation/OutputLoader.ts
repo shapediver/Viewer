@@ -18,7 +18,7 @@ export class OutputLoader {
 
     private readonly _dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
     private readonly _performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    private readonly _outputNodes: { 
+    private readonly _lastOutputNodes: { 
         [key: string]: {
             [key: string]: SessionTreeNode
         }; 
@@ -60,12 +60,12 @@ export class OutputLoader {
 
         for (let outputID in outputs) {
             currentNodes[outputID] = {};
-            if(!this._outputNodes[outputID]) 
-                this._outputNodes[outputID] = {};
+            if(!this._lastOutputNodes[outputID]) 
+                this._lastOutputNodes[outputID] = {};
                 
             if(outputs[outputID].delay) {
                 maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
-            } else {
+            } else if(!this._lastOutputNodes[outputID][outputs[outputID].version]) {
                 currentNodes[outputID][outputs[outputID].version] = new SessionTreeNode(outputID);
                 currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
@@ -76,6 +76,8 @@ export class OutputLoader {
                         promisesNodes.push(contentNode)
                     }
                 }
+            } else {
+                currentNodes[outputID][outputs[outputID].version] = this._lastOutputNodes[outputID][outputs[outputID].version];
             }
         }
 
@@ -91,6 +93,12 @@ export class OutputLoader {
         // here we assign all outputs just to the node and return it
         for (let outputID in outputs) {
             node.addChild(currentNodes[outputID][outputs[outputID].version]);
+        }
+
+        // save the nodes as the last available version
+        for (let outputID in outputs) {
+            this._lastOutputNodes[outputID] = {};
+            this._lastOutputNodes[outputID][outputs[outputID].version] = currentNodes[outputID][outputs[outputID].version];
         }
 
         this.assignMaterials(node);
