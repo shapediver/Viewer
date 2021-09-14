@@ -37,18 +37,24 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter with value ${this.value}.`);
             if (!this.value) return this.defval;
             if (typeof this.value === 'string' && this.value.length === 36 && this.#uuidGenerator.validate(this.value)) return this.value;
-            const data = new File([typeof this.value === 'string' ? new Blob([this.value], { type: 'text/plain' }) : this.value], 'upload');
+            const data = new File([typeof this.value === 'string' ? new Blob([this.value], { type: 'text/plain' }) : this.value], 'upload', { type: (<Blob|File>this.value).type });
             if (data.size === 0) {
                 const error = new SDError(`Parameter(${this.id}).upload: Error uploading FileParameter, file size was 0.`);
                 this.#logger.warn(LOGGINGTOPIC.PARAMETER, error.message);
                 throw error;
             }
 
+            if(!this.format?.includes(data.type)) {
+                const error = new SDError(`Parameter(${this.id}).upload: Error uploading FileParameter, type of data (${data.type}) is not a valid type. Has to be ${this.format}.`);
+                this.#logger.warn(LOGGINGTOPIC.PARAMETER, error.message);
+                throw error;
+            }
+
             this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
             try {
-                let uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].method!.toLowerCase()!, { [this.id]: { size: data.size, format: this.format![0] } }, 'application/json')).data;
+                let uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].method!.toLowerCase()!, { [this.id]: { size: data.size, format: data.type } }, 'application/json')).data;
                 this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Received reply ${JSON.stringify(uploadReply)}.`);
-                await this.#httpClient.put(uploadReply[this.id].href, { data, headers: { 'Content-Type': this.format![0] }, });
+                await this.#httpClient.put(uploadReply[this.id].href, { data, headers: { 'Content-Type': data.type }, });
                 return uploadReply[this.id].id;
             } catch (e) {
                 if (e.response && e.response.status) {
