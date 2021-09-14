@@ -27,6 +27,7 @@ export class MaterialLoader implements ILoader {
     private _lightSizeUV: number = 0.025;
     private _pointSize: number = 1.0;
     private _textureEncoding: THREE.TextureEncoding = THREE.LinearEncoding;
+    private _maxMapCount: number = 0;
 
     // #endregion Properties (8)
 
@@ -154,6 +155,8 @@ export class MaterialLoader implements ILoader {
             useMorphNormals?: boolean
         }
     ): THREE.Material {
+        let mapCount = 0;
+
         const properties: any = {};
         if (materialProperties) {
             properties.alphaTest = materialProperties.alphaCutoff;
@@ -227,18 +230,22 @@ export class MaterialLoader implements ILoader {
             if (materialProperties.alphaMap !== undefined) {
                 properties.alphaMap = this.createTexture(materialProperties.alphaMap);
                 properties.transparent = true;
+                mapCount++;
             }
 
             if (materialProperties.aoMap !== undefined) {
                 properties.aoMap = this.createTexture(materialProperties.aoMap);
+                mapCount++;
             }
 
             if (materialProperties.aoMapIntensity !== undefined) {
                 properties.aoMapIntensity = materialProperties.aoMapIntensity;
             }
 
-            if (materialProperties.bumpMap !== undefined)
-            properties.bumpMap = this.createTexture(materialProperties.bumpMap);
+            if (materialProperties.bumpMap !== undefined) {
+                properties.bumpMap = this.createTexture(materialProperties.bumpMap);
+                mapCount++;
+            }
 
             properties.bumpScale = materialProperties.bumpScale;
 
@@ -265,6 +272,7 @@ export class MaterialLoader implements ILoader {
             if (materialProperties.emissiveMap !== undefined) {
                 properties.emissiveMap = this.createTexture(materialProperties.emissiveMap);
                 properties.emissiveMap.encoding = this._textureEncoding;
+                mapCount++;
             }
 
             // emissiveIntensity
@@ -279,6 +287,7 @@ export class MaterialLoader implements ILoader {
             if (materialProperties.map !== undefined) {
                 properties.map = this.createTexture(materialProperties.map);
                 properties.map.encoding = this._textureEncoding;
+                mapCount++;
             }
 
             properties.metalness = materialProperties.metalness;
@@ -288,19 +297,26 @@ export class MaterialLoader implements ILoader {
             if (materialProperties.metalnessRoughnessMap !== undefined) {
                 properties.metalnessMap = this.createTexture(materialProperties.metalnessRoughnessMap);
                 properties.roughnessMap = properties.metalnessMap;
+                mapCount++;
             } else {
-                if (materialProperties.metalnessMap !== undefined)
+                if (materialProperties.metalnessMap !== undefined) {
                     properties.metalnessMap = this.createTexture(materialProperties.metalnessMap);
-                if (materialProperties.roughnessMap !== undefined)
+                    mapCount++;
+                }
+                if (materialProperties.roughnessMap !== undefined) {
                     properties.roughnessMap = this.createTexture(materialProperties.roughnessMap);
+                    mapCount++;
+                }
             }
 
             // morphNormals
 
             // morphTargets
 
-            if (materialProperties.normalMap !== undefined)
+            if (materialProperties.normalMap !== undefined) {
                 properties.normalMap = this.createTexture(materialProperties.normalMap);
+                mapCount++;
+            }
 
             // normalMapType
 
@@ -332,11 +348,16 @@ export class MaterialLoader implements ILoader {
                 if (materialProperties.specularGlossinessMap !== undefined) {
                     properties.specularMap = this.createTexture(materialProperties.specularGlossinessMap);
                     properties.glossinessMap = properties.specularMap;
+                    mapCount++;
                 } else {
-                    if (materialProperties.specularMap !== undefined)
+                    if (materialProperties.specularMap !== undefined) {
                         properties.specularMap = this.createTexture(materialProperties.specularMap);
-                    if (materialProperties.glossinessMap !== undefined)
+                        mapCount++;
+                    }
+                    if (materialProperties.glossinessMap !== undefined) {
                         properties.glossinessMap = this.createTexture(materialProperties.glossinessMap);
+                        mapCount++;
+                    }
                 }
             }
 
@@ -397,6 +418,8 @@ export class MaterialLoader implements ILoader {
             }
             this._materialCache[materialProperties.id + '_' + materialProperties.version] = material;
         }
+
+        this.maxMapCount = Math.max(this.maxMapCount, mapCount);
         return material;
     }
 
@@ -480,6 +503,14 @@ export class MaterialLoader implements ILoader {
         texture.flipY = map.flipY;
         texture.needsUpdate = true;
         return texture;
+    }
+
+    public get maxMapCount(): number {
+        return this._maxMapCount;
+    }
+    
+    public set maxMapCount(value: number) {
+        this._maxMapCount = value;
     }
 
     // #endregion Private Methods (1)

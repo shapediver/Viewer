@@ -15,6 +15,11 @@ import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 
 export class LightLoader implements ILoader {
+
+
+    private _shadowMapCount = 0;
+    private _forceDisabledShadows: boolean = false;
+
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {}
@@ -48,7 +53,7 @@ export class LightLoader implements ILoader {
             threeLight.position.set(bs.center[0] + light.direction[0] * bs.radius * 2.35, bs.center[1] + light.direction[1] * bs.radius * 2.35, bs.center[2] + light.direction[2] * bs.radius * 2.35);
             threeLight.target.position.set(bs.center[0], bs.center[1], bs.center[2]);
 
-            if (light.castShadow === true) {
+            if (light.castShadow === true && this.forceDisabledShadows === false) {
                 threeLight.castShadow = true;
                 threeLight.shadow.camera.up.set(0, 0, 1);
                 threeLight.shadow.camera.far = 8 * bs.radius;
@@ -60,6 +65,7 @@ export class LightLoader implements ILoader {
                 threeLight.shadow.mapSize.height = light.shadowMapResolution;
                 threeLight.shadow.bias = light.shadowMapBias;
                 threeLight.shadow.camera.updateProjectionMatrix();
+                this._shadowMapCount++;
               } else {
                 threeLight.castShadow = false;
               }
@@ -93,6 +99,22 @@ export class LightLoader implements ILoader {
         }
 
         parent.add(converted);
+    }
+
+    public get shadowMapCount(): number {
+        return this._shadowMapCount;
+    }
+
+    public set shadowMapCount(value: number) {
+        this._shadowMapCount = value;
+    }
+
+    public get forceDisabledShadows(): boolean {
+        return this._forceDisabledShadows;
+    }
+
+    public set forceDisabledShadows(value: boolean) {
+        this._forceDisabledShadows = value;
     }
 
     // #endregion Public Methods (2)

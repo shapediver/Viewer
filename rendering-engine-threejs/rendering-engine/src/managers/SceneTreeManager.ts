@@ -91,6 +91,7 @@ export class SceneTreeManager implements IManager {
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
+        this._renderingEngine.lightLoader.shadowMapCount = 0;
 
         if (!this._mainNode) {
             this._mainNode = new SDObject(root.id, root.version);
@@ -125,6 +126,8 @@ export class SceneTreeManager implements IManager {
                 max: vec3.clone(this._boundingBox.max),
             }});
         }
+
+        this._renderingEngine.renderingManager.evaluateTextureUnitCount(this._renderingEngine.lightLoader.shadowMapCount + this._renderingEngine.materialLoader.maxMapCount);
     }
 
     // #endregion Public Methods (4)

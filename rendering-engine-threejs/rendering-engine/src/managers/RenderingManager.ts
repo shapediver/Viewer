@@ -53,6 +53,7 @@ export class RenderingManager implements IManager {
     private _stats: any;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
+    private _maxTextureUnits: number = 0;
 
     // #endregion Properties (16)
 
@@ -117,7 +118,18 @@ export class RenderingManager implements IManager {
         renderer.shadowMap.autoUpdate = false;
         renderer.setSize(canvas.width, canvas.height);
         renderer.setClearColor(new THREE.Color('#ffffff'), 1);
+        this._maxTextureUnits = renderer.context.getParameter(renderer.context.MAX_TEXTURE_IMAGE_UNITS);
         return renderer
+    }
+
+    public evaluateTextureUnitCount(value: number) {
+        if(value > this._maxTextureUnits) {
+            this._logger.warn(LOGGINGTOPIC.VIEWER, `RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
+            this._renderingEngine.lightLoader.forceDisabledShadows = true;
+            this._renderingEngine.update();
+        } else {
+            this._renderingEngine.lightLoader.forceDisabledShadows = false;
+        }
     }
 
     public getScreenshot(type: string = 'image/png', encoderOptions: number = 1): string {
