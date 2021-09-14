@@ -105,6 +105,8 @@ export class BeautyRenderingManager implements IManager {
         //this._effectComposer.addPass(this._renderPass);
 
         this._ssaaPass = new SSAARenderPass(this._renderingEngine.scene, tempCamera, this._renderingEngine.renderer.getClearColor(new THREE.Color()), this._renderingEngine.renderer.getClearAlpha());
+        this._ssaaPass.sampleLevel = 2;
+        
         this._effectComposer.addPass(this._ssaaPass);
 
         this._saoPass = new SAOPass(this._renderingEngine.scene, tempCamera, false, true);
@@ -119,6 +121,10 @@ export class BeautyRenderingManager implements IManager {
                         materialsNotRenderer.push(object);
                         object.visible = false;
                     }
+                }
+                if(object instanceof THREE.Line || object instanceof THREE.LineLoop || object instanceof THREE.LineSegments) {
+                    materialsNotRenderer.push(object);
+                    object.visible = false;
                 }
                 if(object.userData.ambientOcclusion === false) {
                     materialsNotRenderer.push(object);
@@ -161,12 +167,15 @@ export class BeautyRenderingManager implements IManager {
             this._saoPass.params.saoIntensity = this._renderingEngine.ambientOcclusionIntensity;
             const saoIntensity = this._saoPass.params.saoIntensity;
             this._saoPass.params.saoIntensity = percentage * saoIntensity;
+
             // if passes changed, adapt https://shapediver.atlassian.net/browse/SS-2954
             this._renderPass.camera = camera;
             this._saoPass.camera = camera;
             this._ssaaPass.camera = camera;
+
             this._gammaCorrectionPass.setSize(width, height);
             this._saoPass.setSize(width, height)
+            this._ssaaPass.setSize(width, height)
             this._effectComposer.setSize(width, height);
             this._effectComposer.render(time);
             this._saoPass.params.saoIntensity = saoIntensity;
