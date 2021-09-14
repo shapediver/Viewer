@@ -1,5 +1,18 @@
 # Release Notes
 
+## Version 1.3.0 - `Dirty Dancing`
+- bugfix: setting to depth to true, for firefox
+- bugfix: transparency, implementation of manual renderOrder (SS-2360)
+- bugfix: environment map started with upper case (SS-3501)
+- bugfix: wrong content-type for file upload (SS-3504)
+- bugfix: storing of output if version stays the same (SS-1423)
+- improved anti-aliasing on lines (SS-805)
+- adjusted light bias (SS-938)
+- implemented ambient occlusion intensity setting (SS-564)
+- adapted logic for BB computation for gltfV1 (SS-3451)
+- logic for automatic node assignment and parameter update (SS-931)
+- evaluation of texture unit count (SS-1127)
+
 ## Version 1.2.4 - `City Of God`
 - bugfix: rendering on resizing
 - bugfix: storing of new session properties on new backend
