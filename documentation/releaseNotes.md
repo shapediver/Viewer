@@ -1,5 +1,8 @@
 # Release Notes
 
+## Version 1.3.1 - `Die Hard`
+- patching of tooltip SS-3438
+
 ## Version 1.3.0 - `Dirty Dancing`
 - bugfix: setting to depth to true, for firefox
 - bugfix: transparency, implementation of manual renderOrder (SS-2360)
