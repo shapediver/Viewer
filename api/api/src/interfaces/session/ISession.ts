@@ -135,7 +135,7 @@ export interface ISession {
      */
     saveDefaultParameters(): Promise<boolean>;
     /**
-     * Save the session properties (displayname, order and hidden properties for parameters, exports and outputs).
+     * Save the session properties (displayname, order, hidden and tooltip properties for parameters, exports and outputs).
      * This only works when this session was created with an author ticket.
      * 
      * @returns 

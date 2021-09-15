@@ -26,6 +26,7 @@ export class Output implements IOutput {
   #displayname?: string;
   #hidden: boolean = false;
   #order?: number;
+  #tooltip?: string;
 
   // #endregion Properties (12)
 
@@ -123,6 +124,22 @@ export class Output implements IOutput {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.#id}).order: Something unexpected happened.`, true)
+    }
+  }
+
+  public get tooltip(): string | undefined {
+    return this.#tooltip;
+  }
+
+  public set tooltip(value: string | undefined) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip: Updating tooltip to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip`, value, 'string', false);
+      this.#tooltip = value;
+      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.#id}).tooltip: Something unexpected happened.`, true)
     }
   }
 

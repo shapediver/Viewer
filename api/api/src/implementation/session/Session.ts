@@ -749,7 +749,8 @@ export class Session implements ISession {
                 [key: string]: {
                     displayname: string,
                     hidden: boolean,
-                    order: number
+                    order: number,
+                    tooltip: string
                 }
             } = {};
             for (let p in this.parameters) {
@@ -757,6 +758,7 @@ export class Session implements ISession {
                     displayname: this.parameters[p].displayname !== undefined ? this.parameters[p].displayname! : '',
                     hidden: this.parameters[p].hidden !== undefined ? this.parameters[p].hidden : false,
                     order: this.parameters[p].order !== undefined ? this.parameters[p].order! : 0,
+                    tooltip: this.parameters[p].tooltip !== undefined ? this.parameters[p].tooltip! : '',
                 };
             }
             const responseP = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveParameterProperties(properties) : true;
@@ -767,6 +769,7 @@ export class Session implements ISession {
                     displayname: this.exports[e].displayname !== undefined ? this.exports[e].displayname! : '',
                     hidden: this.exports[e].hidden !== undefined ? this.exports[e].hidden : false,
                     order: this.exports[e].order !== undefined ? this.exports[e].order! : 0,
+                    tooltip: this.exports[e].tooltip !== undefined ? this.exports[e].tooltip! : '',
                 };
             }
             const responseE = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveExportProperties(properties) : true;
@@ -777,6 +780,7 @@ export class Session implements ISession {
                     displayname: this.outputs[o].displayname !== undefined ? this.outputs[o].displayname! : '',
                     hidden: this.outputs[o].hidden !== undefined ? this.outputs[o].hidden : false,
                     order: this.outputs[o].order !== undefined ? this.outputs[o].order! : 0,
+                    tooltip: this.outputs[o].tooltip !== undefined ? this.outputs[o].tooltip! : '',
                 };
             }
             const responseO = Object.values(properties).length !== 0 ? await this.#sessionEngine.saveOutputProperties(properties) : true;

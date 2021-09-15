@@ -309,7 +309,7 @@ export class Session implements ISession {
     }
 
     /**
-     * Save the parameter properties for displayname, order and hidden
+     * Save the parameter properties for displayname, order, tooltip and hidden
      * 
      * @param parameters 
      * @returns 
@@ -318,7 +318,8 @@ export class Session implements ISession {
         [key: string]: {
             displayname: string,
             hidden: boolean,
-            order: number
+            order: number,
+            tooltip: string
         }
     }): Promise<boolean> {
         if (!this._sessionResponse.actions?.filter(v => v.name === 'parameter-definition')[0]) {
@@ -339,7 +340,7 @@ export class Session implements ISession {
     }
 
     /**
-     * Save the export properties for displayname, order and hidden
+     * Save the export properties for displayname, order, tooltip and hidden
      * 
      * @param exports 
      * @returns 
@@ -348,7 +349,8 @@ export class Session implements ISession {
         [key: string]: {
             displayname: string,
             hidden: boolean,
-            order: number
+            order: number,
+            tooltip: string
         }
     }): Promise<boolean> {
         if (!this._sessionResponse.actions?.filter(v => v.name === 'export-definition')[0]) {
@@ -369,7 +371,7 @@ export class Session implements ISession {
     }
 
     /**
-     * Save the output properties for displayname, order and hidden
+     * Save the output properties for displayname, order, tooltip and hidden
      * 
      * @param outputs 
      * @returns 
@@ -378,7 +380,8 @@ export class Session implements ISession {
         [key: string]: {
             displayname: string,
             hidden: boolean,
-            order: number
+            order: number,
+            tooltip: string
         }
     }): Promise<boolean> {
         if (!this._sessionResponse.actions?.filter(v => v.name === 'output-definition')[0]) {

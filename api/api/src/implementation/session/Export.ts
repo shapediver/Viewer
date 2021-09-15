@@ -26,6 +26,7 @@ export class Export implements IExport {
   #displayname?: string;
   #hidden: boolean = false;
   #order?: number;
+  #tooltip?: string;
 
   // #endregion Properties (11)
 
@@ -115,6 +116,22 @@ export class Export implements IExport {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).order: Something unexpected happened.`, true)
+    }
+  }
+
+  public get tooltip(): string | undefined {
+    return this.#tooltip;
+  }
+
+  public set tooltip(value: string | undefined) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip: Updating tooltip to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip`, value, 'string', false);
+      this.#tooltip = value;
+      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).tooltip: Something unexpected happened.`, true)
     }
   }
 

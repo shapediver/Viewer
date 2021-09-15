@@ -79,7 +79,6 @@ export class Parameter<T> implements IParameter<T> {
     readonly #session: ISession;
     readonly #sessionEngine: Session;
     readonly #structure?: ShapeDiverResponseParameterStructure;
-    readonly #tooltip?: string;
     readonly #type: PARAMETERTYPE;
     readonly #visualization?: PARAMETERVISUALIZATION;
 
@@ -87,6 +86,7 @@ export class Parameter<T> implements IParameter<T> {
     #hidden: boolean = false;
     #lastValidatedValue: T | string;
     #order?: number;
+    #tooltip?: string;
     #sessionValue: T | string;
     #value: T | string;
 
@@ -265,6 +265,18 @@ export class Parameter<T> implements IParameter<T> {
 
     public get tooltip(): string | undefined {
         return this.#tooltip;
+    }
+
+    public set tooltip(value: string | undefined) {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: Updating tooltip to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip`, value, 'string', false);
+            this.#tooltip = value;
+            this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Parameter(${this.#id}).tooltip: Something unexpected happened.`, true)
+        }
     }
 
     public get type(): PARAMETERTYPE {
