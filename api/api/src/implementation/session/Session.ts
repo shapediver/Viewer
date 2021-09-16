@@ -15,7 +15,7 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { vec3 } from 'gl-matrix'
-import { RenderingEngine } from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
+import { RenderingEngine } from '@shapediver/viewer.rendering-engine-threejs.standard'
 
 import { Parameter, PARAMETERTYPE } from './Parameter'
 import { ISession } from '../../interfaces/session/ISession'

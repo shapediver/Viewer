@@ -13,7 +13,7 @@ import {
   ENVIRONMENTMAP,
   ENVIRONMENTMAP_CUBE,
   ThreejsData,
-} from '@shapediver/viewer.rendering-engine-threejs.rendering-engine'
+} from '@shapediver/viewer.rendering-engine-threejs.standard'
 import { CustomData, GeometryData, MaterialData } from '@shapediver/viewer.shared.types'
 import { EVENTTYPE, LOGGINGLEVEL } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'

@@ -34,8 +34,9 @@ import { BeautyRenderingManager } from './managers/BeautyRenderingManager'
 import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManager'
 import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
+import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 
-export class RenderingEngine implements IRenderingEngine {
+export class RenderingEngine implements IRenderingEngineThreeJS {
     // #region Properties (51)
 
     // utils
@@ -377,6 +378,10 @@ export class RenderingEngine implements IRenderingEngine {
 
     public get lightEngine(): LightEngine {
         return this._lightEngine;
+    }
+
+    public get lightSceneId(): string {
+        return this._lightEngine.lightScene!.id;
     }
 
     public get lightLoader(): LightLoader {

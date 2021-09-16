@@ -1,1 +1,0 @@
-# `@shapediver/viewer.rendering-engine-threejs.rendering-engine`

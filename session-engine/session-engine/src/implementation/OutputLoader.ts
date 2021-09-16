@@ -70,10 +70,8 @@ export class OutputLoader {
                 currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                        const {contentNode, content} = this.loadContent('content_' + i, outputs[outputID].content![i])
-                        currentNodes[outputID][outputs[outputID].version].addChild(contentNode);
-                        promises.push(content)
-                        promisesNodes.push(contentNode)
+                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i]))
+                        promisesNodes.push(currentNodes[outputID][outputs[outputID].version])
                     }
                 }
             } else {
@@ -101,6 +99,12 @@ export class OutputLoader {
             this._lastOutputNodes[outputID][outputs[outputID].version] = currentNodes[outputID][outputs[outputID].version];
         }
 
+        for (let outputID in outputs) {
+            if(currentNodes[outputID][outputs[outputID].version].children.length > 1) {
+                this.mergeContentNodes(currentNodes[outputID][outputs[outputID].version])
+            }
+        }
+
         this.assignMaterials(node);
         this._performanceEvaluator.endSection('outputLoading');
         return node;
@@ -109,6 +113,43 @@ export class OutputLoader {
     // #endregion Public Methods (1)
 
     // #region Private Methods (1)
+
+    private mergeContentNodes(node: SessionTreeNode) {
+        if(!(node.children.length > 1)) return;
+
+        const children = [];
+        while(node.children.length > 0) {
+            children.push(node.children[0]);
+            node.removeChild(node.children[0]);
+        }
+
+        const mergeNodes = (node1: TreeNode, node2: TreeNode) => {
+            for(let i = 0; i < node1.data.length; i++)
+                node2.data.push(node1.data[i]);
+
+            for(let i = 0; i < node1.children.length; i++) {
+                let childNode;
+                for(let j = 0; j < node2.children.length; j++) {
+                    if(node1.children[i].name === node2.children[j].name) {
+                        childNode = node2.children[j];
+                        break;
+                    }
+                }
+                if(!childNode) {
+                    childNode = new TreeNode(node1.children[i].name);
+                    node2.addChild(childNode);
+                }
+
+                mergeNodes(node1.children[i], childNode);
+            }
+        }
+
+        const newChild = new TreeNode('content_array');
+        node.addChild(newChild);
+        for(let i = 0; i < children.length; i++) 
+            mergeNodes(children[i], newChild)
+
+    }
 
     private assignMaterials(node: TreeNode) {
         const addMaterialToGeometry = (node: TreeNode, material: MaterialData) => {
@@ -202,18 +243,6 @@ export class OutputLoader {
             }
 
         }
-    }
-    
-    /**
-     * Loads a single content of the content array
-     * 
-     * @param name the name of the content item
-     * @param content the content definition
-     * @returns promise with a scene graph node
-     */
-    public loadContent(name: string, content: ShapeDiverResponseOutputPart): { contentNode: SessionTreeNode, content: Promise<TreeNode> } {
-        const contentNode = new SessionTreeNode(name);
-        return { contentNode, content: this._dataEngine.loadContent(content) };
     }
 
     // #endregion Private Methods (1)

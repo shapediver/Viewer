@@ -30,6 +30,7 @@ import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
 import { Viewer } from './viewer/Viewer'
 import { Session } from './session/Session'
+import { ViewerAttributes } from './viewer/ViewerAttributes'
 
 @singleton()
 export class Api implements IApi {
@@ -525,7 +526,15 @@ export class Api implements IApi {
 
       // create the actual viewer
       let viewerCallbacks = {};
-      const viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, type: prop.type || RENDERERTYPE.STANDARD, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
+      const type = prop.type || RENDERERTYPE.STANDARD;
+      let viewer: IViewer;
+      switch(type) {
+        case RENDERERTYPE.ATTRIBUTES:
+          viewer = new ViewerAttributes({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
+          break;
+        default:
+          viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
+      }
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
 
       if (prop.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {

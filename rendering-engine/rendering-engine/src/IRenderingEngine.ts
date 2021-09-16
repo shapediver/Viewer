@@ -1,13 +1,8 @@
-import { ICameraEngine } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { ILightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
-import { vec3 } from 'gl-matrix'
-
 export enum RENDERERTYPE {
     /** The standard rendering engine */
     STANDARD = 'standard',
     /** A basic version of the rendering engine */
-    BASIC = 'basic'
+    ATTRIBUTES = 'attributes'
   }
 
   export enum VISIBILITYMODE {
@@ -20,39 +15,33 @@ export enum RENDERERTYPE {
   }
   
 export interface IRenderingEngine {
-    // #region Properties (2)
+  // #region Properties (2)
 
-    ambientOcclusion: boolean;
-    ambientOcclusionIntensity: number;
-    automaticResizing: boolean;
-    beautyRenderDelay: number;
-    blurSceneWhenBusy: boolean;
-    clearAlpha: number;
-    clearColor: string | number | vec3;
-    environmentMap: string | string[];
-    environmentMapAsBackground: boolean;
-    environmentMapResolution: string;
-    gridVisibility: boolean;
-    groundPlaneVisibility: boolean;
-    id: string;
-    // lightScene: string;
-    pointSize: number;
-    shadows: boolean;
-    show: boolean;
+  automaticResizing: boolean;
+  blur: boolean;
+  blurSceneWhenBusy: boolean;
+  id: string;
+  pointSize: number;
+  show: boolean;
+  showStatistics: boolean;
 
-    // #endregion Properties (2)
+  // #endregion Properties (2)
 
-    // #region Public Methods (1)
+  // #region Public Methods (1)
 
-    /**
-     * Update the current tree with the provided node.
-     * 
+  /**
+   * Update the current tree with the provided node.
+   * 
+   * @param root the root node 
      * @param root the root node 
-     */
-    update(): void;
-    reset(): void;
-    resize(width: number, height: number): void;
-    getScreenshot(type?: string, encoderOptions?: number): string;
+   * @param root the root node 
+     * @param root the root node 
+   * @param root the root node 
+   */
+  update(): void;
+  reset(): void;
+  resize(width: number, height: number): void;
+  getScreenshot(type?: string, encoderOptions?: number): string;
 
-    // #endregion Public Methods (1)
+  // #endregion Public Methods (1)
 }

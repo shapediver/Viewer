@@ -5,8 +5,9 @@ import { ICamera } from './camera/ICamera'
 import { ILightScene } from './lights/ILightScene'
 import { IOrthographicCamera } from './camera/IOrthographicCamera'
 import { IPerspectiveCamera } from './camera/IPerspectiveCamera'
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
-export interface IViewer {
+export interface IViewer extends IRenderingEngine {
     // #region Properties (24)
 
     readonly camera: ICamera | null;
@@ -14,27 +15,6 @@ export interface IViewer {
     readonly id: string;
     readonly lightScene: ILightScene | null;
     readonly lightScenes: { [key: string]: ILightScene };
-
-    ambientOcclusion: boolean;
-    ambientOcclusionIntensity: number;
-    automaticResizing: boolean;
-    beautyRenderBlendingDuration: number;
-    beautyRenderDelay: number;
-    blur: boolean;
-    blurSceneWhenBusy: boolean;
-    clearAlpha: number;
-    clearColor: string | number | vec3;
-    environmentMap: string | string[];
-    environmentMapAsBackground: boolean;
-    environmentMapResolution: string;
-    gridVisibility: boolean;
-    groundPlaneVisibility: boolean;
-    lightSceneId: string;
-    pointSize: number;
-    renderingSettings: { physicallyCorrectLights: boolean, envMapIntensity: number, envMapIntensityGroundPlane: number, groundPlaneColor: string, toneMapping: 0 | 1 | 2 | 3 | 4, toneMappingExposure: number, textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007, outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007, };
-    shadows: boolean;
-    show: boolean;
-    showStatistics: boolean;
 
     // #endregion Properties (24)
 

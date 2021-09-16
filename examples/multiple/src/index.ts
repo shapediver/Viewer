@@ -22,14 +22,8 @@ const ticket = '75f6f416a8200ed5d64f9c15f39320df0c9a630878d235332451657e1a1524fa
 
 (async () => {
     let viewer1 = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas1'), id: 'myViewer1' })
-    let viewer2 = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas2'), id: 'myViewer2' })
-    let session1 = await api.createSession({ ticket, modelViewUrl, id: 'mySession1', excludeViewers: ['myViewer2', 'myViewer3', 'myViewer4'] });
-    let session2 = await api.createSession({ ticket, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4']});
-
-    (<any>viewer1.camera!).controls.updateEnableAutoRotation(true);
-    (<any>viewer1.camera!).controls.updateAutoRotationSpeed(1);
-    (<any>viewer2.camera!).controls.updateEnableAutoRotation(true);
-    (<any>viewer2.camera!).controls.updateAutoRotationSpeed(1);
+    let viewer2 = await api.createViewer({ type: RENDERERTYPE.ATTRIBUTES, canvas: <HTMLCanvasElement>document.getElementById('canvas2'), id: 'myViewer2' })
+    let session1 = await api.createSession({ ticket: '9e089d7f38a4c0c036f3e34fd7e39894d80f99fd98e9420c90fb7c1c5341cdd731b55213c906e1909fb1df62d7655433ee9021e58408485f233b1f1ae7f47efefc6076e86787d70446f06c9a4da6e2d8fdb417f76996dc9d851befbe97fd8b3360b68c24643362-5731cf7661d86680cba2fa23b4bdc7ec', modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com', id: 'mySession1' });
 
     await new Promise<void>((resolve) => {
         api.addListener(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
