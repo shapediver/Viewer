@@ -2,13 +2,20 @@ import * as THREE from 'three'
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
 export class ThreejsData extends AbstractTreeNodeData {
+    // #region Properties (1)
+
+    #obj: THREE.Object3D;
+
+    // #endregion Properties (1)
+
     // #region Constructors (1)
 
     constructor(
-        private _obj: THREE.Object3D,
+        obj: THREE.Object3D,
         id?: string
     ) {
         super(id);
+        this.#obj = obj;
     }
 
     // #endregion Constructors (1)
@@ -16,11 +23,11 @@ export class ThreejsData extends AbstractTreeNodeData {
     // #region Public Accessors (2)
 
     public get obj(): THREE.Object3D {
-		return this._obj;
+		return this.#obj;
 	}
 
     public set obj(value: THREE.Object3D) {
-		this._obj = value;
+		this.#obj = value;
 	}
 
     // #endregion Public Accessors (2)
@@ -28,7 +35,7 @@ export class ThreejsData extends AbstractTreeNodeData {
     // #region Public Methods (1)
 
     public clone(): ITreeNodeData {
-        return new ThreejsData(this.obj.clone(), this._id);
+        return new ThreejsData(this.obj.clone(), this.id);
     }
 
     // #endregion Public Methods (1)

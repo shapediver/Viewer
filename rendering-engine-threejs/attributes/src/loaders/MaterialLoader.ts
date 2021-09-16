@@ -5,6 +5,7 @@ import {
   MaterialData,
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING,
+  SDTFItemData,
 } from '@shapediver/viewer.shared.types'
 import { vec4 } from 'gl-matrix'
 
@@ -13,11 +14,15 @@ import { entry, main } from '../shaders/PCSS'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
 import { RenderingManager } from '../managers/RenderingManager'
 import { ILoader } from '../interfaces/ILoader'
+import { Converter } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
+import { SDTFAttributeVisualizationData } from '../managers/SceneTreeManager'
 
 export class MaterialLoader implements ILoader {
     // #region Properties (8)
 
     private readonly _defaultColor: string = '#00fff7';
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private _materialCache: { [key:string]: (THREE.Material | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial)} = {};
 
     private _blending: number = 0.0;
@@ -145,6 +150,7 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
+        visualizationData: SDTFAttributeVisualizationData,
         materialProperties?: MaterialData, 
         materialSettings?: {
             mode?: number,
@@ -153,14 +159,18 @@ export class MaterialLoader implements ILoader {
             useFlatShading?: boolean,
             useMorphTargets?: boolean,
             useMorphNormals?: boolean
-        }
+        },
     ): THREE.Material {
         let mapCount = 0;
-
         const properties: any = {};
-        properties.color = new THREE.Color(this._defaultColor);
+
+        properties.color = new THREE.Color(visualizationData.color);
         properties.side = THREE.DoubleSide;
 
+        if(visualizationData.opacity < 1) {
+            properties.opacity = visualizationData.opacity;
+            properties.transparent = true;
+        }
 
         let material: THREE.Material;
         if(materialSettings && materialSettings.mode === 0) {
@@ -169,8 +179,7 @@ export class MaterialLoader implements ILoader {
         } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
             material = new THREE.LineBasicMaterial(properties);
         } else {
-                material = new THREE.MeshStandardMaterial(properties);
-
+            material = new THREE.MeshStandardMaterial(properties);
         }
 
         if (materialSettings && materialSettings.useVertexTangents) {

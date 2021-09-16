@@ -14,6 +14,7 @@ import { container } from 'tsyringe'
 import { SDObject } from '../types/SDObject'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
+import { SDTFAttributeVisualizationData } from '../managers/SceneTreeManager'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (2)
@@ -51,7 +52,7 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDObject): Box {            
+    public load(geometry: GeometryData, parent: SDObject, visualizationData: SDTFAttributeVisualizationData): Box {            
         const threeGeometry = this.loadGeometry(geometry.primitive);
         const materialSettings = {
             mode: geometry.primitive.mode,
@@ -65,13 +66,13 @@ export class GeometryLoader implements ILoader {
         const obj = new SDObject(geometry.id, geometry.version);
         let meshes = [];
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
-            meshes.push(new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+            meshes.push(new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {
-            meshes.push(new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+            meshes.push(new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_LOOP) {
-            meshes.push(new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+            meshes.push(new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
-            meshes.push(new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+            meshes.push(new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLES || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
             let bufferGeometry = this.loadGeometry(geometry.primitive);
             if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
@@ -81,16 +82,16 @@ export class GeometryLoader implements ILoader {
                 const side = geometry.primitive.material.side;
                 if(side === MATERIAL_SIDE.DOUBLE) {
                     geometry.primitive.material.side = MATERIAL_SIDE.BACK;
-                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
                     geometry.primitive.material.side = MATERIAL_SIDE.FRONT;
-                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
                     geometry.primitive.material.side = side;
                 } else {
-                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
                 }
                 meshes.forEach(m => m.material.depthWrite = false);
             } else {
-                meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings)));
+                meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
             }
             meshes.forEach(m => m.castShadow = true);
             meshes.forEach(m => m.receiveShadow = true);

@@ -6,16 +6,34 @@ import { MaterialData } from './MaterialData'
 import { ISDObject } from '.'
 
 export enum PRIMITIVE_MODE {
-	POINTS = 0,
-	LINES = 1,
-	LINE_LOOP = 2,
-	LINE_STRIP = 3,
-	TRIANGLES = 4,
-	TRIANGLE_STRIP = 5,
-	TRIANGLE_FAN = 6
+  POINTS = 0,
+  LINES = 1,
+  LINE_LOOP = 2,
+  LINE_STRIP = 3,
+  TRIANGLES = 4,
+  TRIANGLE_STRIP = 5,
+  TRIANGLE_FAN = 6
 }
 
 export class AttributeData {
+  // #region Properties (13)
+
+  readonly #array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
+  readonly #byteOffset: number;
+  readonly #byteStride?: number;
+  readonly #count: number;
+  readonly #elementBytes: number;
+  readonly #itemBytes: number;
+  readonly #itemSize: number;
+  readonly #max: number[] = [];
+  readonly #min: number[] = [];
+  readonly #normalized: boolean;
+  readonly #sparse?: boolean;
+  readonly #sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
+  readonly #sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
+
+  // #endregion Properties (13)
+
   // #region Constructors (1)
 
   /**
@@ -29,79 +47,93 @@ export class AttributeData {
    * @param _normalized boolean if the data is normalized
    */
   constructor(
-    private readonly _array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
-    private readonly _itemSize: number,
-    private readonly _itemBytes: number,
-    private readonly _byteOffset: number,
-    private readonly _elementBytes: number,
-    private readonly _normalized: boolean,
-    private readonly _count: number,
-    private readonly _min: number[] = [],
-    private readonly _max: number[] = [],
-    private readonly _byteStride?: number,
-    private readonly _sparse?: boolean,
-    private readonly _sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
-    private readonly _sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
+    array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
+    itemSize: number,
+    itemBytes: number,
+    byteOffset: number,
+    elementBytes: number,
+    normalized: boolean,
+    count: number,
+    min: number[] = [],
+    max: number[] = [],
+    byteStride?: number,
+    sparse?: boolean,
+    sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
+    sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
 
-  ) { }
+  ) {
+    this.#array = array;
+    this.#itemSize = itemSize;
+    this.#itemBytes = itemBytes;
+    this.#byteOffset = byteOffset;
+    this.#elementBytes = elementBytes;
+    this.#normalized = normalized;
+    this.#count = count;
+    this.#min = min;
+    this.#max = max;
+    this.#byteStride = byteStride;
+    this.#sparse = sparse;
+    this.#sparseIndices = sparseIndices;
+    this.#sparseValues = sparseValues;
+  }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (6)
+  // #region Public Accessors (13)
 
   public get array(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array {
-    return this._array;
-  }
-  
-   public get sparseIndices(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined {
-    return this._sparseIndices;
-  }
-  
-   public get sparseValues(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined {
-    return this._sparseValues;
-  }
-
-  public get elementBytes(): number {
-    return this._elementBytes;
-  }
-
-  public get count(): number {
-    return this._count;
-  }
-
-  public get itemSize(): number {
-    return this._itemSize;
-  }
-
-  public get itemBytes(): number {
-    return this._itemBytes;
-  }
-
-  public get sparse(): boolean | undefined {
-    return this._sparse;
-  }
-
-  public get min(): number[] {
-    return this._min;
-  }
-
-  public get max(): number[] {
-    return this._max;
-  }
-
-  public get normalized(): boolean {
-    return this._normalized;
+    return this.#array;
   }
 
   public get byteOffset(): number {
-    return this._byteOffset;
+    return this.#byteOffset;
   }
 
   public get byteStride(): number | undefined {
-    return this._byteStride;
+    return this.#byteStride;
   }
 
-  // #endregion Public Accessors (6)
+  public get count(): number {
+    return this.#count;
+  }
+
+  public get elementBytes(): number {
+    return this.#elementBytes;
+  }
+
+  public get itemBytes(): number {
+    return this.#itemBytes;
+  }
+
+  public get itemSize(): number {
+    return this.#itemSize;
+  }
+
+  public get max(): number[] {
+    return this.#max;
+  }
+
+  public get min(): number[] {
+    return this.#min;
+  }
+
+  public get normalized(): boolean {
+    return this.#normalized;
+  }
+
+  public get sparse(): boolean | undefined {
+    return this.#sparse;
+  }
+
+  public get sparseIndices(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined {
+    return this.#sparseIndices;
+  }
+
+  public get sparseValues(): Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array | undefined {
+    return this.#sparseValues;
+  }
+
+  // #endregion Public Accessors (13)
 
   // #region Public Methods (1)
 
@@ -109,22 +141,22 @@ export class AttributeData {
    * Clones the attribute data.
    */
   public clone(): AttributeData {
-    let array = this._array.slice(0, this._array.length);
-    array.set(this._array);
+    let array = this.#array.slice(0, this.#array.length);
+    array.set(this.#array);
     return new AttributeData(
       array,
-      this._itemSize,
-      this._itemBytes,
-      this._byteOffset,
-      this._elementBytes,
-      this._normalized,
-      this._count,
-      this._min,
-      this._max,
-      this._byteStride,
-      this._sparse,
-      this._sparseIndices,
-      this._sparseValues
+      this.#itemSize,
+      this.#itemBytes,
+      this.#byteOffset,
+      this.#elementBytes,
+      this.#normalized,
+      this.#count,
+      this.#min,
+      this.#max,
+      this.#byteStride,
+      this.#sparse,
+      this.#sparseIndices,
+      this.#sparseValues
     );
   }
 
@@ -132,11 +164,18 @@ export class AttributeData {
 }
 
 export class PrimitiveData {
-  // #region Properties (1)
+  // #region Properties (5)
 
-  private _boundingBox: Box = new Box();
+  readonly #attributes: {
+    [key: string]: AttributeData
+  } = {};
+  readonly #mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES;
 
-  // #endregion Properties (1)
+  #boundingBox: Box = new Box();
+  #indices: AttributeData | null = null;
+  #material: MaterialData | null = null;
+
+  // #endregion Properties (5)
 
   // #region Constructors (1)
 
@@ -147,18 +186,24 @@ export class PrimitiveData {
    * @param _indices the indices
    */
   constructor(
-    private readonly _attributes: {
+    attributes: {
       [key: string]: AttributeData
     } = {},
-    private readonly _mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
-    private _indices: AttributeData | null = null,
-    private _material: MaterialData | null = null,
-  ) { 
-    if(this._attributes['POSITION']) {
-      if(this._attributes['POSITION'].min.length === 3 && this._attributes['POSITION'].max.length === 3) {
-        this._boundingBox = new Box(vec3.fromValues(this._attributes['POSITION'].min[0], this._attributes['POSITION'].min[1], this._attributes['POSITION'].min[2]), vec3.fromValues(this._attributes['POSITION'].max[0], this._attributes['POSITION'].max[1], this._attributes['POSITION'].max[2]));
+    mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
+    indices: AttributeData | null = null,
+    material: MaterialData | null = null,
+  ) {
+    this.#attributes = attributes;
+    this.#mode = mode;
+
+    this.#indices = indices;
+    this.#material = material;
+
+    if (this.#attributes['POSITION']) {
+      if (this.#attributes['POSITION'].min.length === 3 && this.#attributes['POSITION'].max.length === 3) {
+        this.#boundingBox = new Box(vec3.fromValues(this.#attributes['POSITION'].min[0], this.#attributes['POSITION'].min[1], this.#attributes['POSITION'].min[2]), vec3.fromValues(this.#attributes['POSITION'].max[0], this.#attributes['POSITION'].max[1], this.#attributes['POSITION'].max[2]));
       } else {
-        this._boundingBox.setFromAttributeArray(this._attributes['POSITION'].array);
+        this.#boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array);
       }
     }
   }
@@ -170,31 +215,31 @@ export class PrimitiveData {
   public get attributes(): {
     [key: string]: AttributeData
   } {
-    return this._attributes;
+    return this.#attributes;
   }
 
   public get boundingBox(): Box {
-    return this._boundingBox;
+    return this.#boundingBox;
   }
 
   public get indices(): AttributeData | null {
-    return this._indices;
+    return this.#indices;
   }
 
   public set indices(value: AttributeData | null) {
-    this._indices = value
+    this.#indices = value
   }
 
   public get material(): MaterialData | null {
-    return this._material;
+    return this.#material;
   }
 
   public set material(value: MaterialData | null) {
-    this._material = value;
+    this.#material = value;
   }
 
   public get mode(): PRIMITIVE_MODE {
-    return this._mode;
+    return this.#mode;
   }
 
   // #endregion Public Accessors (7)
@@ -208,21 +253,24 @@ export class PrimitiveData {
     let attributes: {
       [key: string]: AttributeData
     } = {};
-    for(let attribute in this._attributes)
-      attributes[attribute] = this._attributes[attribute].clone();
-    return new PrimitiveData(attributes, this._mode, <AttributeData>this._indices?.clone(), <MaterialData>this._material?.clone());
+    for (let attribute in this.#attributes)
+      attributes[attribute] = this.#attributes[attribute].clone();
+    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <MaterialData>this.#material?.clone());
   }
 
   // #endregion Public Methods (1)
 }
 
 export class GeometryData extends AbstractTreeNodeData {
-  // #region Properties (1)
+  // #region Properties (4)
 
-  private _boundingBox: Box = new Box();
-  private _renderOrder: number = 0;
+  readonly #matrix: mat4;
+  readonly #primitive: PrimitiveData;
 
-  // #endregion Properties (1)
+  #boundingBox: Box = new Box();
+  #renderOrder: number = 0;
+
+  // #endregion Properties (4)
 
   // #region Constructors (1)
 
@@ -234,12 +282,14 @@ export class GeometryData extends AbstractTreeNodeData {
    * @param id the id
    */
   constructor(
-    private readonly _primitive: PrimitiveData,
-    private readonly _matrix: mat4 = mat4.create(),
+    primitive: PrimitiveData,
+    matrix: mat4 = mat4.create(),
     id?: string
   ) {
     super(id);
-    this._boundingBox = this.primitive.boundingBox.clone();
+    this.#primitive = primitive;
+    this.#matrix = matrix;
+    this.#boundingBox = this.primitive.boundingBox.clone();
   }
 
   // #endregion Constructors (1)
@@ -247,40 +297,40 @@ export class GeometryData extends AbstractTreeNodeData {
   // #region Public Accessors (5)
 
   public get boundingBox(): Box {
-    return this._boundingBox;
+    return this.#boundingBox;
   }
 
   public get matrix(): mat4 {
-    return this._matrix;
+    return this.#matrix;
   }
 
   public get primitive(): PrimitiveData {
-    return this._primitive;
+    return this.#primitive;
   }
 
   public get renderOrder(): number {
-    return this._renderOrder;
+    return this.#renderOrder;
   }
 
   public set renderOrder(value: number) {
-    this._renderOrder = value;
+    this.#renderOrder = value;
   }
 
   // #endregion Public Accessors (5)
 
-  // #region Public Methods (1)
-
-  public intersect(origin: vec3, direction: vec3): number | null {
-    if(this.primitive.mode !== PRIMITIVE_MODE.TRIANGLES) return null;
-    return this.boundingBox.intersect(origin, direction);
-  }
+  // #region Public Methods (2)
 
   /**
    * Clones the scene graph data.
    */
   public clone(): ITreeNodeData {
-    return new GeometryData(this._primitive.clone(), mat4.clone(this.matrix), this._id);
+    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id);
   }
 
-  // #endregion Public Methods (1)
+  public intersect(origin: vec3, direction: vec3): number | null {
+    if (this.primitive.mode !== PRIMITIVE_MODE.TRIANGLES) return null;
+    return this.boundingBox.intersect(origin, direction);
+  }
+
+  // #endregion Public Methods (2)
 }

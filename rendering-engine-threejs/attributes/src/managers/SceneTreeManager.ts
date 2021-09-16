@@ -1,10 +1,10 @@
 import * as THREE from 'three'
-import { GeometryData, HTMLElementAnchorData, MaterialData } from '@shapediver/viewer.shared.types'
-import { ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { GeometryData, HTMLElementAnchorData, MaterialData, SDTFAttributeOverview, SDTFItemData } from '@shapediver/viewer.shared.types'
+import { ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
-import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter, EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
 import { SDObject } from '../types/SDObject'
@@ -12,15 +12,23 @@ import { ThreejsData } from '../types/ThreejsData'
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager'
 
+export type SDTFAttributeVisualizationData = {
+    color: string,
+    opacity: number,
+    matrix: mat4
+}
+
 export class SceneTreeManager implements IManager {
     // #region Properties (5)
 
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _scene: THREE.Scene = new THREE.Scene();
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
     private _boundingBox: Box = new Box();
     private _mainNode!: SDObject;
+    private _currentSDTFAttributeOverview!: SDTFAttributeOverview;
 
     // #endregion Properties (5)
 
@@ -46,13 +54,43 @@ export class SceneTreeManager implements IManager {
 
     // #region Public Methods (4)
 
+    private collectSDTFItemData(node: TreeNode): SDTFItemData | undefined {
+        for (let i = 0, len = node.data.length; i < len; i++)
+            if(node.data[i] instanceof SDTFItemData)
+                return <SDTFItemData>node.data[i];
+
+        if(!node.parent) return;
+        return this.collectSDTFItemData(node.parent);
+    }
+
+    private convertSDTFItemToVisualizationData(itemData: SDTFItemData, overview: SDTFAttributeOverview): SDTFAttributeVisualizationData {
+        let color = '#00fff7';
+        let opacity = 1;
+        let matrix = mat4.create();
+
+        if(this._renderingEngine.visualizationAttributes['color_color']) 
+            if(itemData.attributes['color'] && itemData.attributes['color'].typeHint === 'color')
+                color = this._converter.toColor('rgb(' + itemData.attributes['color'].value + ')');
+    
+        if(this._renderingEngine.visualizationAttributes['plotcolor_color'])
+            if(itemData.attributes['plotcolor'] && itemData.attributes['plotcolor'].typeHint === 'color')
+                color = this._converter.toColor('rgb(' + itemData.attributes['plotcolor'].value + ')');
+
+        if(this._renderingEngine.visualizationAttributes['layer_string'])
+            if(itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === 'string') {
+                const fraction = 1.0 / (overview.overview['layer_string'].values?.length!+1);
+                opacity = fraction * (overview.overview['layer_string'].values?.indexOf(itemData.attributes['layer'].value)! + 1);
+            }
+        return { color, opacity, matrix };
+    }
+
     /**
      * Convert the data of the scene graph node into the format of the implementation.
      * 
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public convertData(data: ITreeNodeData, obj: SDObject): Box {
+    public convertData(data: ITreeNodeData, obj: SDObject, node: TreeNode): Box {
         let dataChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
 
         if (!dataChild)
@@ -60,9 +98,29 @@ export class SceneTreeManager implements IManager {
 
         obj.add(dataChild);
 
+        const itemData = this.collectSDTFItemData(node);       
+        let visData = {
+            color: '#00fff7',
+            opacity: 1,
+            matrix: mat4.create()
+        };
+
+        if(itemData) {
+            if(this._renderingEngine.convertSDTFItemToVisualizationData) {
+                visData = this._renderingEngine.convertSDTFItemToVisualizationData(itemData, this._currentSDTFAttributeOverview);
+                // TODO sanitize
+            } else {
+                visData = this.convertSDTFItemToVisualizationData(itemData, this._currentSDTFAttributeOverview);
+            }
+        }
+
+        node.transformations.push({
+            id: 'sdtf',
+            matrix: visData.matrix
+        })
         switch (true) {
             case data instanceof GeometryData:
-                return this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild);
+                return this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, visData);
             case data instanceof ThreejsData:
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);
                 break;
@@ -97,6 +155,18 @@ export class SceneTreeManager implements IManager {
             this._scene.add(this._mainNode);
         }
 
+        this._currentSDTFAttributeOverview = this._renderingEngine.createSDTFAttributeOverview();
+        for(let key in this._currentSDTFAttributeOverview.overview) {
+            if(!this._renderingEngine.visualizationAttributes[key])
+                this._renderingEngine.visualizationAttributes[key] = false;
+        }
+
+        for(let key in this._renderingEngine.visualizationAttributes) {
+            if(!this._currentSDTFAttributeOverview.overview[key])
+                delete this._renderingEngine.visualizationAttributes[key];
+        }
+
+        // get all overviews
         this.updateNode(root, this._mainNode);
         this._boundingBox = root.boundingBox.clone();
 
@@ -113,7 +183,7 @@ export class SceneTreeManager implements IManager {
         }
 
         if(!this._boundingBox.isEmpty())
-            this._boundingBox.applyMatrix(root.nodeMatrix);
+            this._boundingBox.applyMatrix(root.nodeMatrixSDTF);
 
         if (!(this._boundingBox.min[0] === oldBB.min[0] && this._boundingBox.min[1] === oldBB.min[1] && this._boundingBox.min[2] === oldBB.min[2] && 
             this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2]) && !this._boundingBox.isEmpty()) {
@@ -142,14 +212,13 @@ export class SceneTreeManager implements IManager {
      */
     private updateNode(node: TreeNode, obj: SDObject) {
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-
-        obj.applyTransformation(node.nodeMatrix);
         node.boundingBox = new Box();
 
         for (let i = 0, len = node.data.length; i < len; i++) {
-            const bb = this.convertData(node.data[i], obj);
+            const bb = this.convertData(node.data[i], obj, node);
             node.boundingBox.union(bb)
         }
+        obj.applyTransformation(node.nodeMatrixSDTF);
 
         const nodeIds: string[] = []
         for (let i = 0; i < node.children.length; i++) {
@@ -204,7 +273,7 @@ export class SceneTreeManager implements IManager {
                 node.boundingBox.union(nodeChild.boundingBox);
         }
         if(!node.boundingBox.isEmpty())
-            node.boundingBox.applyMatrix(node.nodeMatrix);
+            node.boundingBox.applyMatrix(node.nodeMatrixSDTF);
     }
 
     // #endregion Private Methods (1)

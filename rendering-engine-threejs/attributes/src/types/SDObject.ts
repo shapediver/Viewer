@@ -5,14 +5,18 @@ import { mat4 } from 'gl-matrix'
 export class SDObject extends THREE.Object3D implements ISDObject {
     // #region Constructors (1)
 
-    private _SDtype: SD_RENDERINGTYPE;
+    #SDtype: SD_RENDERINGTYPE;
+    #SDid: string;
+    #SDversion: string;
 
     constructor(
-        private _SDid: string,
-        private _SDversion: string
+        SDid: string,
+        SDversion: string
     ) {
         super();
-        this._SDtype = SD_RENDERINGTYPE.THREEJS;
+        this.#SDid = SDid;
+        this.#SDversion = SDversion;
+        this.#SDtype = SD_RENDERINGTYPE.THREEJS;
     }
     
     public applyTransformation(transformation: mat4): void {
@@ -29,23 +33,23 @@ export class SDObject extends THREE.Object3D implements ISDObject {
     // #region Public Accessors (4)
 
     public get SDid(): string {
-        return this._SDid;
+        return this.#SDid;
     }
 
     public set SDid(value: string) {
-        this._SDid = value;
+        this.#SDid = value;
     }
 
     public get SDversion(): string {
-        return this._SDversion;
+        return this.#SDversion;
     }
 
     public set SDversion(value: string) {
-        this._SDversion = value;
+        this.#SDversion = value;
     }
 
     public get SDtype(): SD_RENDERINGTYPE {
-        return this._SDtype;
+        return this.#SDtype;
     }
 
     // #endregion Public Accessors (4)

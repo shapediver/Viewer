@@ -6,11 +6,11 @@ import { ITreeNodeData } from './interfaces/ITreeNodeData'
 export abstract class AbstractTreeNodeData implements ITreeNodeData {
   // #region Properties (3)
 
-  private _version: string;
+  #version: string;
 
-  protected readonly _id: string;
-  protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-  protected readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+  readonly #id: string;
+  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
   // #endregion Properties (3)
 
@@ -22,8 +22,8 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
    * @param id Id of this data object
    */
   constructor(id?: string) {
-    this._id = id || this._uuidGenerator.create();
-    this._version = this._uuidGenerator.create();
+    this.#id = id || this.#uuidGenerator.create();
+    this.#version = this.#uuidGenerator.create();
   }
 
   // #endregion Constructors (1)
@@ -31,11 +31,11 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
   // #region Public Accessors (2)
 
   public get id(): string {
-    return this._id;
+    return this.#id;
   }
 
   public get version(): string {
-    return this._version;
+    return this.#version;
   }
 
   // #endregion Public Accessors (2)
@@ -46,7 +46,7 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
    * Update the version
    */
   public updateVersion(): void {
-    this._version = this._uuidGenerator.create();
+    this.#version = this.#uuidGenerator.create();
   }
 
   // #endregion Public Methods (1)

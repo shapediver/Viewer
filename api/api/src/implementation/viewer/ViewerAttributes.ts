@@ -1,4 +1,4 @@
-import { RenderingEngine as RenderingEngineAttributes } from '@shapediver/viewer.rendering-engine-threejs.attributes'
+import { RenderingEngine as RenderingEngineAttributes, SDTFAttributeVisualizationData } from '@shapediver/viewer.rendering-engine-threejs.attributes'
 import {
   CAMERATYPE,
   OrthographicCamera as OrthographicCameraLogic,
@@ -18,6 +18,7 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
+import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ICamera } from '../../interfaces/viewer/camera/ICamera'
 import { IOrthographicCamera } from '../../interfaces/viewer/camera/IOrthographicCamera'
@@ -27,10 +28,11 @@ import { ILightScene } from '../../interfaces/viewer/lights/ILightScene'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { LightScene } from './lights/LightScene'
+import { SDTFAttributeOverview, SDTFItemData } from '@shapediver/viewer.shared.types'
 
 @injectable()
 export class ViewerAttributes implements IViewer {
-  // #region Properties (12)
+  // #region Properties (11)
 
   readonly #cameras: { [key: string]: ICamera } = {};
   readonly #converter: Converter = <Converter>container.resolve(Converter);
@@ -39,12 +41,13 @@ export class ViewerAttributes implements IViewer {
   readonly #lightScenes: { [key: string]: ILightScene } = {};
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+  readonly #sceneTree: Tree = <Tree>container.resolve(Tree);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
   #busyModeIDs: string[] = [];
   #renderingEngine!: RenderingEngineAttributes;
 
-  // #endregion Properties (12)
+  // #endregion Properties (11)
 
   // #region Constructors (1)
 
@@ -81,7 +84,8 @@ export class ViewerAttributes implements IViewer {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (44)
+  // #region Public Accessors (19)
+
   public get automaticResizing(): boolean {
     return this.#renderingEngine.automaticResizing;
   }
@@ -98,6 +102,7 @@ export class ViewerAttributes implements IViewer {
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).automaticResizing: Something unexpected happened.`, true)
     }
   }
+
   public get blur(): boolean {
     return this.#renderingEngine.blur;
   }
@@ -153,8 +158,16 @@ export class ViewerAttributes implements IViewer {
     return this.#cameras;
   }
 
+  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFAttributeOverview) => SDTFAttributeVisualizationData) | undefined {
+    return this.#renderingEngine.convertSDTFItemToVisualizationData;
+  }
+
+  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFAttributeOverview) => SDTFAttributeVisualizationData) | undefined) {
+    this.#renderingEngine.convertSDTFItemToVisualizationData = value;
+  }
+
   public get id(): string {
-    if(!this.#renderingEngine) return '';
+    if (!this.#renderingEngine) return '';
     return this.#renderingEngine.id;
   }
 
@@ -251,9 +264,32 @@ export class ViewerAttributes implements IViewer {
     }
   }
 
-  // #endregion Public Accessors (44)
+  
+  public get visualizationAttributes(): {
+    [key: string]: boolean
+  } {
+    return this.#renderingEngine.visualizationAttributes;
+  }
 
-  // #region Public Methods (16)
+  public set visualizationAttributes(value: {
+    [key: string]: boolean
+  }) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes: Updating visualizationAttributes to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes`, value, 'object');
+      this.#renderingEngine.visualizationAttributes = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes: visualizationAttributes was set to: ${value}`);
+      this.#sceneTree.root.updateVersion();
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).visualizationAttributes: Something unexpected happened.`, true)
+    }
+  }
+
+  // #endregion Public Accessors (19)
+
+  // #region Public Methods (15)
 
   public assignCamera(id: string): void {
     try {
@@ -343,6 +379,10 @@ export class ViewerAttributes implements IViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
     }
+  }
+
+  public createSDTFAttributeOverview(node: TreeNode = this.#sceneTree.root): SDTFAttributeOverview {
+    return this.#renderingEngine.createSDTFAttributeOverview(node);
   }
 
   public deregisterBusyMode(value: string): boolean {
@@ -464,5 +504,5 @@ export class ViewerAttributes implements IViewer {
     }
   }
 
-  // #endregion Public Methods (16)
+  // #endregion Public Methods (15)
 }

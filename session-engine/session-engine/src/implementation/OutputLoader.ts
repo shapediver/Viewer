@@ -101,7 +101,12 @@ export class OutputLoader {
 
         for (let outputID in outputs) {
             if(currentNodes[outputID][outputs[outputID].version].children.length > 1) {
-                this.mergeContentNodes(currentNodes[outputID][outputs[outputID].version])
+                for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
+                    if(outputs[outputID].content![i].format === 'sdtf') {
+                        this.mergeContentNodes(currentNodes[outputID][outputs[outputID].version])
+                        break;
+                    }
+                }
             }
         }
 
