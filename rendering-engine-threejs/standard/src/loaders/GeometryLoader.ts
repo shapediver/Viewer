@@ -128,7 +128,7 @@ export class GeometryLoader implements ILoader {
                 const ib = new THREE.InterleavedBuffer(bufferAttribute.array, bufferAttribute.byteStride / bufferAttribute.elementBytes);
                 buffer = new THREE.InterleavedBufferAttribute(ib, bufferAttribute.itemSize, (bufferAttribute.byteOffset % bufferAttribute.byteStride) / bufferAttribute.elementBytes, bufferAttribute.normalized);
             } else {
-                buffer = new THREE.BufferAttribute(bufferAttribute.array, bufferAttribute.itemSize, bufferAttribute.normalized);
+                buffer = new THREE.BufferAttribute(bufferAttribute.array, bufferAttribute.itemSize, (attributeId === 'COLOR_0' || attributeId === 'COLOR0' || attributeId === 'COLOR') ? true : bufferAttribute.normalized);
             }
 
             if (bufferAttribute.sparse) {

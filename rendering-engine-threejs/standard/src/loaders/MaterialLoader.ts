@@ -156,7 +156,6 @@ export class MaterialLoader implements ILoader {
         }
     ): THREE.Material {
         let mapCount = 0;
-
         const properties: any = {};
         if (materialProperties) {
             properties.alphaTest = materialProperties.alphaCutoff;
@@ -366,6 +365,8 @@ export class MaterialLoader implements ILoader {
                 
         } else {
             properties.color = new THREE.Color(this._defaultColor);
+            if(materialSettings !== undefined && materialSettings.useVertexColors)
+                properties.color = new THREE.Color('#d3d3d3');
             properties.side = THREE.DoubleSide;
         }
 
