@@ -14,7 +14,7 @@ import {
   ENVIRONMENTMAP_CUBE,
   ThreejsData,
 } from '@shapediver/viewer.rendering-engine-threejs.standard'
-import { CustomData, GeometryData, MaterialData } from '@shapediver/viewer.shared.types'
+import { CustomData, GeometryData, MaterialData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT } from '@shapediver/viewer.shared.types'
 import { EVENTTYPE, LOGGINGLEVEL } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/api.geometry-api-dto-v1'
@@ -57,6 +57,7 @@ import { IPerspectiveCamera } from './interfaces/viewer/camera/IPerspectiveCamer
 import { ICamera } from './interfaces/viewer/camera/ICamera'
 import { ILightScene } from './interfaces/viewer/lights/ILightScene'
 import { ILight } from './interfaces/viewer/lights/ILight'
+import { ViewerAttributes } from './implementation/viewer/ViewerAttributes'
 
 export const api: Api = <Api>container.resolve(Api);
 
@@ -65,7 +66,7 @@ export {
 }
 
 export {
-    Api, Session, Viewer, Parameter, Export, Output, FileParameter
+    Api, Session, Viewer, ViewerAttributes, Parameter, Export, Output, FileParameter
 }
 export {
     IApi, ISession, IViewer, IParameter, IExport, IOutput, IFileParameter
@@ -89,4 +90,8 @@ export {
 
 export {
     IAmbientLight, IDirectionalLight, IHemisphereLight, IPointLight, ISpotLight, ILightScene, ILight
+}
+
+export {
+    SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT
 }

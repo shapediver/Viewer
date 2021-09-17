@@ -158,11 +158,11 @@ export class ViewerAttributes implements IViewer {
     return this.#cameras;
   }
 
-  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFAttributeOverview) => SDTFAttributeVisualizationData) | undefined {
+  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
     return this.#renderingEngine.convertSDTFItemToVisualizationData;
   }
 
-  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFAttributeOverview) => SDTFAttributeVisualizationData) | undefined) {
+  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
     this.#renderingEngine.convertSDTFItemToVisualizationData = value;
   }
 

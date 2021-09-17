@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { GeometryData, HTMLElementAnchorData, MaterialData, SDTFAttributeOverview, SDTFItemData } from '@shapediver/viewer.shared.types'
+import { GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeOverview, SDTFItemData } from '@shapediver/viewer.shared.types'
 import { ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
@@ -63,24 +63,37 @@ export class SceneTreeManager implements IManager {
         return this.collectSDTFItemData(node.parent);
     }
 
-    private convertSDTFItemToVisualizationData(itemData: SDTFItemData, overview: SDTFAttributeOverview): SDTFAttributeVisualizationData {
+    private convertSDTFItemToVisualizationData(itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }): SDTFAttributeVisualizationData {
         let color = '#00fff7';
         let opacity = 1;
         let matrix = mat4.create();
 
-        if(this._renderingEngine.visualizationAttributes['color_color']) 
-            if(itemData.attributes['color'] && itemData.attributes['color'].typeHint === 'color')
-                color = this._converter.toColor('rgb(' + itemData.attributes['color'].value + ')');
-    
-        if(this._renderingEngine.visualizationAttributes['plotcolor_color'])
-            if(itemData.attributes['plotcolor'] && itemData.attributes['plotcolor'].typeHint === 'color')
-                color = this._converter.toColor('rgb(' + itemData.attributes['plotcolor'].value + ')');
+        if(visualizationAttributes['color']) {
+            if(itemData.attributes['color'] && itemData.attributes['color'].typeHint === PRIMITIVETYPEHINT.COLOR){
+                const colorAttribute = itemData.attributes['color'];
+                const colorColorOverview = attributes.overview['color'].filter(o => o.typeHint === PRIMITIVETYPEHINT.COLOR)[0];
 
-        if(this._renderingEngine.visualizationAttributes['layer_string'])
-            if(itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === 'string') {
-                const fraction = 1.0 / (overview.overview['layer_string'].values?.length!+1);
-                opacity = fraction * (overview.overview['layer_string'].values?.indexOf(itemData.attributes['layer'].value)! + 1);
+                color = this._converter.toColor('rgb(' + colorAttribute.value + ')');
             }
+        }
+        if(visualizationAttributes['plotcolor']){
+            if(itemData.attributes['plotcolor'] && itemData.attributes['plotcolor'].typeHint === PRIMITIVETYPEHINT.COLOR){
+                const plotcolorAttribute = itemData.attributes['plotcolor'];
+                const plotcolorColorOverview = attributes.overview['plotcolor'].filter(o => o.typeHint === PRIMITIVETYPEHINT.COLOR)[0];
+
+                color = this._converter.toColor('rgb(' + plotcolorAttribute.value + ')');
+            }
+        }
+
+        if(visualizationAttributes['layer']){
+            if(itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === PRIMITIVETYPEHINT.STRING) {
+                const layerAttribute = itemData.attributes['layer'];
+                const layerStringOverview = attributes.overview['layer'].filter(o => o.typeHint === PRIMITIVETYPEHINT.STRING)[0];
+
+                const fraction = 1.0 / (layerStringOverview.values?.length!+1);
+                opacity = fraction * (layerStringOverview.values?.indexOf(layerAttribute.value)! + 1);
+            }
+        }
         return { color, opacity, matrix };
     }
 
@@ -107,10 +120,10 @@ export class SceneTreeManager implements IManager {
 
         if(itemData) {
             if(this._renderingEngine.convertSDTFItemToVisualizationData) {
-                visData = this._renderingEngine.convertSDTFItemToVisualizationData(itemData, this._currentSDTFAttributeOverview);
+                visData = this._renderingEngine.convertSDTFItemToVisualizationData(itemData, this._currentSDTFAttributeOverview, this._renderingEngine.visualizationAttributes);
                 // TODO sanitize
             } else {
-                visData = this.convertSDTFItemToVisualizationData(itemData, this._currentSDTFAttributeOverview);
+                visData = this.convertSDTFItemToVisualizationData(itemData, this._currentSDTFAttributeOverview, this._renderingEngine.visualizationAttributes);
             }
         }
 

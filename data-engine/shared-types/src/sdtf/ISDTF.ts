@@ -1,3 +1,4 @@
+import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT } from "@shapediver/viewer.shared.types";
 
 export interface ISDTF_Accessor {
     // #region Properties (2)
@@ -69,7 +70,7 @@ export interface ISDTF_Node {
 export interface ISDTF_TypeHint {
     // #region Properties (1)
 
-    name: string;
+    name: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
 
     // #endregion Properties (1)
 }

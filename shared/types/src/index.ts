@@ -11,7 +11,7 @@ import {
   TEXTURE_WRAPPING,
 } from './MaterialData'
 import { HTMLElementAnchorData } from './HTMLElementAnchorData'
-import { SDTFAttributeData, SDTFAttributesData } from './SDTFAttributesData'
+import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributesData } from './SDTFAttributesData'
 import { SDTFItemData } from './SDTFItemData'
 import { SDTFAttributeOverview } from './SDTFAttributeOverview'
 
@@ -36,5 +36,5 @@ export {
 }
 
 export {
-  SDTFAttributeOverview, SDTFAttributesData, SDTFAttributeData, SDTFItemData
+  SDTFAttributeOverview, SDTFAttributesData, SDTFAttributeData, SDTFItemData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT
 }

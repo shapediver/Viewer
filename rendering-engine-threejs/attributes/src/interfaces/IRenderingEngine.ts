@@ -5,6 +5,6 @@ import { SDTFAttributeVisualizationData } from "../managers/SceneTreeManager";
 
 export interface IRenderingEngineAttributes extends IRenderingEngine {
     visualizationAttributes: { [key: string]: boolean };
-    convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFAttributeOverview) => SDTFAttributeVisualizationData) | undefined;
+    convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined;
     createSDTFAttributeOverview(node: TreeNode): SDTFAttributeOverview;
 }

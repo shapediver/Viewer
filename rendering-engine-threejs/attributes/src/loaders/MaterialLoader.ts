@@ -171,28 +171,8 @@ export class MaterialLoader implements ILoader {
             properties.opacity = visualizationData.opacity;
             properties.transparent = true;
         }
-
-        let material: THREE.Material;
-        if(materialSettings && materialSettings.mode === 0) {
-            properties.size = this._pointSize;
-            material = new THREE.PointsMaterial(properties);
-        } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
-            material = new THREE.LineBasicMaterial(properties);
-        } else {
-            material = new THREE.MeshStandardMaterial(properties);
-        }
-
-        if (materialSettings && materialSettings.useVertexTangents) {
-            (<any>material).vertexTangents = true;
-            if ( (<any>material).normalScale ) (<any>material).normalScale.y *= - 1;
-            if ( (<any>material).clearcoatNormalScale ) (<any>material).clearcoatNormalScale.y *= - 1;
-        }
-        if (materialSettings && materialSettings.useVertexColors) (<any>material).vertexColors = true;
-        if (materialSettings && materialSettings.useFlatShading) (<any>material).flatShading = true;
-        if (materialSettings && materialSettings.useMorphTargets) (<any>material).morphTargets = true;
-        if (materialSettings && materialSettings.useMorphNormals) (<any>material).morphNormals = true;
-
-        material.needsUpdate = true;
+        
+        let material = new THREE.MeshBasicMaterial(properties);
         if(materialProperties) {
             material.userData = {
                 SDid: materialProperties.id,

@@ -83,7 +83,7 @@ export class RenderingEngine implements IRenderingEngineAttributes {
     private _closed: boolean = false;
     private _logoDivElement: HTMLDivElement;
     private _visualizationAttributes: { [key: string]: boolean } = {};
-    private _convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFAttributeOverview) => SDTFAttributeVisualizationData) | undefined;
+    private _convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined;
 
     // #endregion Properties (51)
 
@@ -215,11 +215,11 @@ export class RenderingEngine implements IRenderingEngineAttributes {
         return this._canvasEngine;
     }
 
-    public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFAttributeOverview) => SDTFAttributeVisualizationData) | undefined {
+    public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
         return this._convertSDTFItemToVisualizationData;
     }
 
-    public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFAttributeOverview) => SDTFAttributeVisualizationData) | undefined) {
+    public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
         this._convertSDTFItemToVisualizationData = value;
     }
 

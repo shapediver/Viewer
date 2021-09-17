@@ -3,7 +3,7 @@ import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
 import { ISDTF } from '@shapediver/viewer.data-engine.shared-types'
-import { SDTFAttributeData, SDTFAttributeOverview, SDTFAttributesData, SDTFItemData } from '@shapediver/viewer.shared.types'
+import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributeOverview, SDTFAttributesData, SDTFItemData } from '@shapediver/viewer.shared.types'
 
 @singleton()
 export class SDTFEngine {
@@ -90,49 +90,60 @@ export class SDTFEngine {
         this._body = arrayBuffer.slice(this.BINARY_EXTENSION_HEADER_LENGTH + contentLength, totalLength);
 
         // look through attributes
-        
+
         try {
             const overview: {
                 [key: string]: {
-                    typeHint: string;
+                    typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
                     count: number;
                     values?: string[];
                     min?: number;
                     max?: number;
-                };
+                }[];
             } = {};
 
-            for(let i = 0; i < this._content.attributes.length; i++) {
-                const a = this._content.attributes[i];
-                for(let k in a) {
-                    const overviewKey = k + '_' + this._content.typeHints[a[k].typeHint].name;
-                    if (overview[overviewKey]) {
-                        overview[overviewKey].count++;
-                        if (this._content.typeHints[a[k].typeHint].name === 'string') {
-                            if (!overview[overviewKey].values?.includes(a[k].value))
-                                overview[overviewKey].values?.push(a[k].value)
+            for (let i = 0; i < this._content.attributes.length; i++) {
+                const attributes = this._content.attributes[i];
+                for (let key in attributes) {
+                    const dataToCopy = attributes[key];
+                    const dataTypehint = this._content.typeHints[dataToCopy.typeHint].name;
+
+                    const existingEntries = overview[key] ? overview[key].filter(o => o.typeHint === dataTypehint) : [];
+                    if (overview[key] && existingEntries.length > 0) {
+                        const entry = existingEntries[0];
+                        entry.count++;
+                        if (dataTypehint === PRIMITIVETYPEHINT.STRING) {
+                            if (!entry.values?.includes(dataToCopy.value))
+                                entry.values?.push(dataToCopy.value)
                         }
-                        if (this._content.typeHints[a[k].typeHint].name === 'double' ||
-                            this._content.typeHints[a[k].typeHint].name === 'float' ||
-                            this._content.typeHints[a[k].typeHint].name === 'decimal' ||
-                            this._content.typeHints[a[k].typeHint].name === 'int') {
-                            overview[overviewKey].min = Math.min(<number>a[k].value, overview[overviewKey].min!);
-                            overview[overviewKey].max = Math.max(<number>a[k].value, overview[overviewKey].max!);
+                        if (dataTypehint === PRIMITIVETYPEHINT.DOUBLE ||
+                            dataTypehint === PRIMITIVETYPEHINT.FLOAT ||
+                            dataTypehint === PRIMITIVETYPEHINT.DECIMAL ||
+                            dataTypehint === PRIMITIVETYPEHINT.INT) {
+                            entry.min = Math.min(<number>dataToCopy.value, entry.min!);
+                            entry.max = Math.max(<number>dataToCopy.value, entry.max!);
                         }
                     } else {
-                        overview[overviewKey] = {
-                            typeHint: this._content.typeHints[a[k].typeHint].name,
-                            count: 1
+                        if (overview[key]) {
+                            overview[key].push({
+                                typeHint: dataTypehint,
+                                count: 1,
+                            })
+                        } else {
+                            overview[key] = [{
+                                typeHint: dataTypehint,
+                                count: 1,
+                            }]
                         }
-                        if(this._content.typeHints[a[k].typeHint].name === 'string') {
-                            overview[overviewKey].values = [a[k].value];
+                        if (dataTypehint === PRIMITIVETYPEHINT.STRING) {
+                            overview[key][overview[key].length - 1].values = [dataToCopy.value];
                         }
-                        if (this._content.typeHints[a[k].typeHint].name === 'double' ||
-                            this._content.typeHints[a[k].typeHint].name === 'float' ||
-                            this._content.typeHints[a[k].typeHint].name === 'decimal' ||
-                            this._content.typeHints[a[k].typeHint].name === 'int') {
-                            overview[overviewKey].min = <number>a[k].value;
-                            overview[overviewKey].max = <number>a[k].value;
+                        if (dataTypehint === PRIMITIVETYPEHINT.DOUBLE ||
+                            dataTypehint === PRIMITIVETYPEHINT.FLOAT ||
+                            dataTypehint === PRIMITIVETYPEHINT.DECIMAL ||
+                            dataTypehint === PRIMITIVETYPEHINT.INT) {
+                            overview[key][overview[key].length - 1].min = <number>dataToCopy.value;
+                            overview[key][overview[key].length - 1].max = <number>dataToCopy.value;
                         }
                     }
                 }

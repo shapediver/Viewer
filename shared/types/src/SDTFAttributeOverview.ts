@@ -1,16 +1,17 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT } from './SDTFAttributesData';
 
 export class SDTFAttributeOverview extends AbstractTreeNodeData {
     // #region Properties (1)
 
     #overview: {
         [key: string]: {
-            typeHint: string;
+            typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
             count: number;
             values?: string[];
             min?: number;
             max?: number;
-        };
+        }[];
     } = {};
 
     // #endregion Properties (1)
@@ -20,12 +21,12 @@ export class SDTFAttributeOverview extends AbstractTreeNodeData {
     constructor(
         overview: {
             [key: string]: {
-                typeHint: string;
+                typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
                 count: number;
                 values?: string[];
                 min?: number;
                 max?: number;
-            };
+            }[];
         },
         id?: string
     ) {
@@ -39,12 +40,12 @@ export class SDTFAttributeOverview extends AbstractTreeNodeData {
 
     public get overview(): {
         [key: string]: {
-            typeHint: string;
+            typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
             count: number;
             values?: string[];
             min?: number;
             max?: number;
-        };
+        }[];
     } {
         return this.#overview;
     }
@@ -62,27 +63,41 @@ export class SDTFAttributeOverview extends AbstractTreeNodeData {
 
     public merge(data: SDTFAttributeOverview) {
         for (let overviewKey in data.overview) {
-          if (this.overview[overviewKey]) {
-            this.overview[overviewKey].count++;
-            if (data.overview[overviewKey].typeHint === 'string') {
-                this.overview[overviewKey].values = this.overview[overviewKey].values?.concat(data.overview[overviewKey].values!.filter((item) => this.overview[overviewKey].values!.indexOf(item) < 0))
+            for(let i = 0; i < data.overview[overviewKey].length; i++){
+                const dataToCopy = data.overview[overviewKey][i];
+                const existingEntries = this.overview[overviewKey] ? this.overview[overviewKey].filter(o => o.typeHint === dataToCopy.typeHint) : [];
+                if(this.overview[overviewKey] && existingEntries.length > 0) {
+                    const entry = existingEntries[0];
+                    entry.count++;
+                    if (dataToCopy.typeHint === PRIMITIVETYPEHINT.STRING) {
+                        entry.values = entry.values?.concat(dataToCopy.values!.filter((item) => entry.values!.indexOf(item) < 0))
+                    }
+                    if (dataToCopy.typeHint === PRIMITIVETYPEHINT.DOUBLE ||
+                    dataToCopy.typeHint === PRIMITIVETYPEHINT.FLOAT ||
+                    dataToCopy.typeHint === PRIMITIVETYPEHINT.DECIMAL ||
+                    dataToCopy.typeHint === PRIMITIVETYPEHINT.INT) {
+                    entry.min = Math.min(dataToCopy.min!, entry.min!);
+                    entry.max = Math.max(dataToCopy.max!, entry.max!);
+                    }
+
+                } else if(this.overview[overviewKey]) {
+                    this.overview[overviewKey].push({
+                        typeHint: dataToCopy.typeHint,
+                        count: dataToCopy.count,
+                        values: dataToCopy.values,
+                        min: dataToCopy.min,
+                        max: dataToCopy.max,
+                    })
+                } else {
+                    this.overview[overviewKey] = [{
+                        typeHint: dataToCopy.typeHint,
+                        count: dataToCopy.count,
+                        values: dataToCopy.values,
+                        min: dataToCopy.min,
+                        max: dataToCopy.max,
+                    }]
+                }
             }
-            if (data.overview[overviewKey].typeHint === 'double' ||
-              data.overview[overviewKey].typeHint === 'float' ||
-              data.overview[overviewKey].typeHint === 'decimal' ||
-              data.overview[overviewKey].typeHint === 'int') {
-              this.overview[overviewKey].min = Math.min(data.overview[overviewKey].min!, this.overview[overviewKey].min!);
-              this.overview[overviewKey].max = Math.max(data.overview[overviewKey].max!, this.overview[overviewKey].max!);
-            }
-          } else {
-            this.overview[overviewKey] = {
-                typeHint: data.overview[overviewKey].typeHint,
-                count: data.overview[overviewKey].count,
-                values: data.overview[overviewKey].values,
-                min: data.overview[overviewKey].min,
-                max: data.overview[overviewKey].max,
-            }
-          }
         }
     }
 

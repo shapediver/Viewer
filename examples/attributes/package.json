@@ -1,6 +1,7 @@
 {
-  "name": "@shapediver/viewer.data-engine.shared-types",
-  "version": "1.3.1",
+  "name": "@shapediver/viewer.examples.attributes",
+  "version": "0.0.0",
+  "private": true,
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -23,8 +24,9 @@
     "test": "bash ../../scripts/test.sh",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
-    "build-watch": "bash ../../scripts/build-watch.sh",
-    "build-dep": "bash ../../scripts/build-dep.sh"
+    "build-dep": "bash ../../scripts/build-dep.sh",
+    "build-dev": "bash ../../scripts/build-dev.sh",
+    "build-prod": "bash ../../scripts/build-prod.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
@@ -32,14 +34,15 @@
   "homepage": "https://github.com/shapediver/Viewer#readme",
   "typings": "dist/index.d.ts",
   "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
+    "preset": "jest-puppeteer",
+    "transform": {
+      "^.+\\.ts?$": "ts-jest"
+    }
   },
   "dependencies": {
-    "@shapediver/viewer.shared.services": "^1.3.1",
-    "@shapediver/viewer.shared.types": "^1.3.1",
+    "@shapediver/viewer": "*",
     "gl-matrix": "^3.3.0",
+    "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"
-  },
-  "gitHead": "25b1bd5dade0720d4e40aa8f4db33c58ffcc8aae"
+  }
 }
