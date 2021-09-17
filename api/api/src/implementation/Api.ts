@@ -28,9 +28,9 @@ import { mat4, vec3 } from 'gl-matrix'
 import { IApi } from '../interfaces/IApi'
 import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
-import { Viewer } from './viewer/Viewer'
+import { StandardViewer } from './viewer/StandardViewer'
 import { Session } from './session/Session'
-import { ViewerAttributes } from './viewer/ViewerAttributes'
+import { AttributeViewer } from './viewer/AttributeViewer'
 
 @singleton()
 export class Api implements IApi {
@@ -530,10 +530,10 @@ export class Api implements IApi {
       let viewer: IViewer;
       switch(type) {
         case RENDERERTYPE.ATTRIBUTES:
-          viewer = new ViewerAttributes({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
+          viewer = new AttributeViewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
           break;
         default:
-          viewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
+          viewer = new StandardViewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
       }
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
 
