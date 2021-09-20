@@ -34,11 +34,10 @@ export class GeometryEngine {
      * @returns the scene graph node 
      */
     public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
-        let node = new TreeNode('geometry');
 
         if (!content || (content && !content.href)) {
             this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GeometryEngine.loadContent: Invalid content was provided to geometry engine.'), '', false);
-            return node;
+            return new TreeNode();
         }
 
         const url = content.href;
@@ -127,6 +126,7 @@ export class GeometryEngine {
             }
         }
 
+        let node;
         if (version === '1.0') {
             node = await new GLTF_v1Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl);
         } else {

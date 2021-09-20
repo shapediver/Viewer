@@ -44,28 +44,28 @@ export class DataEngine {
 
             if (content.format === 'glb' || content.format === 'gltf') {
                 const node = await this._geometryEngine.loadContent(content);
-                node.transformations.push(...transformations);
+                node.transformations = transformations.concat(node.transformations);
                 return node;
             } else if (content.format === 'material') {
                 const node = await this._materialEngine.loadContent(content);
-                node.transformations.push(...transformations);
+                node.transformations = transformations.concat(node.transformations);
                 return node;
             } else if (content.format === 'tag2d' || content.format === 'anchor') {
                 const node = await this._htmlElementAnchorEngine.loadContent(content);
-                node.transformations.push(...transformations);
+                node.transformations = transformations.concat(node.transformations);
                 return node;
             } else if (content.format === 'tag3d') {
                 const node = await this._tag3dEngine.loadContent(content);
-                node.transformations.push(...transformations);
+                node.transformations = transformations.concat(node.transformations);
                 return node;
             } else if (content.format === 'sdtf') {
                 const node = await this._sdtfEngine.loadContent(content);
-                node.transformations.push(...transformations);
+                node.transformations = transformations.concat(node.transformations);
                 return node;
             } else {
                 const customNode = new TreeNode('custom');
                 customNode.data.push(new CustomData({ ...content }));
-                customNode.transformations.push(...transformations);
+                customNode.transformations = transformations.concat(customNode.transformations);
                 return customNode;
             }
         } catch (e) {
