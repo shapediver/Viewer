@@ -96,6 +96,8 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.gridVisibility = (true);
                 viewer.groundPlaneVisibility = (true);
                 viewer.environmentMap = ('none');
+                viewer.clearAlpha = 1;
+                viewer.clearColor = '#ffffff';
 
                 const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
