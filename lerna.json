@@ -3,7 +3,6 @@
     "utils/*",
     "node-tree/*",
     "shared/*",
-    "sdtf/*",
     "data-engine/*",
     "session-engine/*",
     "api/*",

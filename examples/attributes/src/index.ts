@@ -19,7 +19,8 @@ import { mat4 } from 'gl-matrix';
 
 
 (async () => {
-    let viewer = <AttributeViewer>await api.createViewer({ type: RENDERERTYPE.ATTRIBUTES, canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
+    await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas1'), id: 'myViewerStandard' })
+    let viewer = <AttributeViewer>await api.createViewer({ type: RENDERERTYPE.ATTRIBUTES, canvas: <HTMLCanvasElement>document.getElementById('canvas2'), id: 'myViewer' })
     let session = await api.createSession({ ticket: 'd31f1f4827fdd8f780405930c0b1f8e5b385adf40834a466dcb7a30e9a81fa7bc29ad62446cef5d120c698845f8a08745595842ff1f86ced0546e64d9fd5d3613b2a833b64213b0013075ed7fdcba42c973bac7e5c7e183c668c0745cfa5bb352c8229a17f9c8a-9cf44d46b6267a0a50d7a1bd191a4ae7', modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com', id: 'mySession' });
     
     viewer.convertSDTFItemToVisualizationData = (itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }): { color: string, opacity: number, matrix: mat4} => {
