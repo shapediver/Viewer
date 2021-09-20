@@ -43,8 +43,8 @@ export class CameraManager implements IManager {
             this._orthographicCameraThree.bottom = camera.bottom = -distance;
             this._orthographicCameraThree.right = camera.right = distance * aspect;
             this._orthographicCameraThree.top = camera.top = distance;
-            this._orthographicCameraThree.near = camera.near = 0.01 * distance;
-            this._orthographicCameraThree.far = camera.far = 10000 * distance;
+            this._orthographicCameraThree.near = camera.near = 0.01;
+            this._orthographicCameraThree.far = camera.far = 100 * distance;
             this._orthographicCameraThree.position.set(position[0], position[1], position[2]);
             this._orthographicCameraThree.lookAt(target[0], target[1], target[2]);
             this._orthographicCameraThree.updateProjectionMatrix();
