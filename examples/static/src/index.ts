@@ -19,7 +19,6 @@ import {
   PARAMETERVISUALIZATION,
   RENDERERTYPE,
   Session,
-  Viewer,
   VISIBILITYMODE,
 } from '@shapediver/viewer'
 

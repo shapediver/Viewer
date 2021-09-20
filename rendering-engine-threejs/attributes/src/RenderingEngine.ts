@@ -17,7 +17,7 @@ import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
-import { MATERIAL_SIDE, MaterialData, SDTFAttributeOverview, SDTFItemData } from '@shapediver/viewer.shared.types'
+import { MATERIAL_SIDE, MaterialData, SDTFAttributeOverview, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -83,7 +83,7 @@ export class RenderingEngine implements IRenderingEngineAttributes {
     private _closed: boolean = false;
     private _logoDivElement: HTMLDivElement;
     private _visualizationAttributes: { [key: string]: boolean } = {};
-    private _convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined;
+    private _convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined;
 
     // #endregion Properties (51)
 
@@ -215,11 +215,11 @@ export class RenderingEngine implements IRenderingEngineAttributes {
         return this._canvasEngine;
     }
 
-    public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
+    public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
         return this._convertSDTFItemToVisualizationData;
     }
 
-    public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
+    public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
         this._convertSDTFItemToVisualizationData = value;
     }
 
@@ -341,8 +341,8 @@ export class RenderingEngine implements IRenderingEngineAttributes {
     public set visualizationAttributes(value: {
         [key: string]: boolean
       }) {
-        const overview = this.createSDTFAttributeOverview();
-        for(let key in overview.overview) {
+        const overview = this.createSDTFOverview();
+        for(let key in overview) {
             if(value[key]) {
                 this._visualizationAttributes[key] = value[key];
             } else {
@@ -352,7 +352,7 @@ export class RenderingEngine implements IRenderingEngineAttributes {
         }
 
         for(let key in this._visualizationAttributes) {
-            if(!overview.overview[key])
+            if(!overview[key])
                 delete this._visualizationAttributes[key];
         }
     }
@@ -361,16 +361,16 @@ export class RenderingEngine implements IRenderingEngineAttributes {
 
     // #region Public Methods (10)
 
-    public createSDTFAttributeOverview(node: TreeNode = this._tree.root): SDTFAttributeOverview {
+    public createSDTFOverview(node: TreeNode = this._tree.root): SDTFOverview {
         const out: SDTFAttributeOverview = new SDTFAttributeOverview({});
         for (let i = 0, len = node.data.length; i < len; i++)
             if (node.data[i] instanceof SDTFAttributeOverview)
                 out.merge(<SDTFAttributeOverview>node.data[i])
 
         for (let i = 0, len = node.children.length; i < len; i++)
-            out.merge(this.createSDTFAttributeOverview(node.children[i]));
+            out.merge(new SDTFAttributeOverview(this.createSDTFOverview(node.children[i])));
 
-        return out;
+        return out.overview;
     }
 
     public async close(): Promise<boolean> {

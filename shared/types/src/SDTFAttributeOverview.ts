@@ -1,33 +1,27 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT } from './SDTFAttributesData';
 
+export type SDTFOverview = {
+    [key: string]: {
+        typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
+        count: number;
+        values?: string[];
+        min?: number;
+        max?: number;
+    }[];
+};
+
 export class SDTFAttributeOverview extends AbstractTreeNodeData {
     // #region Properties (1)
 
-    #overview: {
-        [key: string]: {
-            typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
-            count: number;
-            values?: string[];
-            min?: number;
-            max?: number;
-        }[];
-    } = {};
+    #overview: SDTFOverview = {};
 
     // #endregion Properties (1)
 
     // #region Constructors (1)
 
     constructor(
-        overview: {
-            [key: string]: {
-                typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
-                count: number;
-                values?: string[];
-                min?: number;
-                max?: number;
-            }[];
-        },
+        overview: SDTFOverview,
         id?: string
     ) {
         super(id);
@@ -38,15 +32,7 @@ export class SDTFAttributeOverview extends AbstractTreeNodeData {
 
     // #region Public Accessors (1)
 
-    public get overview(): {
-        [key: string]: {
-            typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
-            count: number;
-            values?: string[];
-            min?: number;
-            max?: number;
-        }[];
-    } {
+    public get overview(): SDTFOverview {
         return this.#overview;
     }
 

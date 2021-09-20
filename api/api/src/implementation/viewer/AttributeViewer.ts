@@ -28,7 +28,7 @@ import { ILightScene } from '../../interfaces/viewer/lights/ILightScene'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { LightScene } from './lights/LightScene'
-import { SDTFAttributeOverview, SDTFItemData } from '@shapediver/viewer.shared.types'
+import { SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { IAttributeViewer } from '../../interfaces/viewer/IAttributeViewer'
 
 @injectable()
@@ -159,11 +159,11 @@ export class AttributeViewer implements IAttributeViewer {
     return this.#cameras;
   }
 
-  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
+  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
     return this.#renderingEngine.convertSDTFItemToVisualizationData;
   }
 
-  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, attributes: SDTFAttributeOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
+  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
     this.#renderingEngine.convertSDTFItemToVisualizationData = value;
   }
 
@@ -382,8 +382,8 @@ export class AttributeViewer implements IAttributeViewer {
     }
   }
 
-  public createSDTFAttributeOverview(node: TreeNode = this.#sceneTree.root): SDTFAttributeOverview {
-    return this.#renderingEngine.createSDTFAttributeOverview(node);
+  public createSDTFOverview(node: TreeNode = this.#sceneTree.root): SDTFOverview {
+    return this.#renderingEngine.createSDTFOverview(node);
   }
 
   public deregisterBusyMode(value: string): boolean {
