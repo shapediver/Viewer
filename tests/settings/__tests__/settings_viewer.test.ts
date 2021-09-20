@@ -1,6 +1,6 @@
 import webdriver, { WebDriver } from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API, DirectionalLight } from '@shapediver/viewer'
+import { api as API, DirectionalLight, StandardViewer } from '@shapediver/viewer'
 
 import { screenshotCompare } from '../../general/src/setup'
 import {
@@ -50,7 +50,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayname = ('COLOR');
 
@@ -156,7 +156,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.gridVisibility = (false);
                 viewer.update();
@@ -172,7 +172,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.gridVisibility = (true);
                 viewer.update();
@@ -205,7 +205,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.groundPlaneVisibility = (false);
                 viewer.update();
@@ -221,7 +221,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.groundPlaneVisibility = (true);
                 viewer.update();
@@ -255,7 +255,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.environmentMap = ('georgentor');
                 viewer.update();
@@ -272,7 +272,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.environmentMap = ('none');
                 viewer.update();
@@ -306,7 +306,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.environmentMap = ('georgentor');
                 viewer.environmentMapAsBackground = (true);
@@ -324,7 +324,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.environmentMap = ('none');
                 viewer.environmentMapAsBackground = (false);
@@ -358,7 +358,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.environmentMapResolution = ('512');
                 await session.saveSettings();
@@ -369,7 +369,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.environmentMapResolution = ('1024');
                 await session.saveSettings();
@@ -396,7 +396,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.ambientOcclusion = (false);
                 viewer.update();
@@ -412,7 +412,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.ambientOcclusion = (true);
                 viewer.update();
@@ -444,7 +444,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.ambientOcclusionIntensity = 1.0;
                 viewer.update();
@@ -459,7 +459,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.ambientOcclusionIntensity = 0.1;
                 viewer.update();
@@ -490,7 +490,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.beautyRenderBlendingDuration = (500);
                 await session.saveSettings();
@@ -501,7 +501,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.beautyRenderBlendingDuration = (1500);
                 await session.saveSettings();
@@ -527,7 +527,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.beautyRenderDelay = (500);
                 await session.saveSettings();
@@ -538,7 +538,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.beautyRenderDelay = (50);
                 await session.saveSettings();
@@ -566,7 +566,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.clearAlpha = (0);
                 viewer.update();
@@ -582,7 +582,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.clearAlpha = (1);
                 viewer.update();
@@ -614,7 +614,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.clearColor = ('#ff0000');
                 viewer.update();
@@ -630,7 +630,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.clearColor = ('#ffffff');
                 viewer.update();
@@ -668,7 +668,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.shadows = (false);
                 viewer.update();
@@ -684,7 +684,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 viewer.shadows = (true);
                 viewer.update();
@@ -716,7 +716,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 api.showMessages = false;
                 await session.saveSettings();
@@ -727,7 +727,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).api;
-                let viewer = api.viewers['myViewer']!;
+                let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 api.showMessages = true;
                 await session.saveSettings();

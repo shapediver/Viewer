@@ -128,6 +128,6 @@ export class Tree {
     }
     return false;
   }
-
+  
   // #endregion Public Methods (4)
 }

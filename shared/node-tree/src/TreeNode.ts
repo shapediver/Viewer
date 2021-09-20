@@ -101,6 +101,13 @@ export class TreeNode {
   public get nodeMatrix(): mat4 {
     const matrix: mat4 = mat4.create();
     for (let transform of this.#transformations)
+      if(transform.id !== 'sdtf') mat4.multiply(matrix, matrix, transform.matrix);
+    return matrix;
+  }
+
+  public get nodeMatrixSDTF(): mat4 {
+    const matrix: mat4 = mat4.create();
+    for (let transform of this.#transformations)
       mat4.multiply(matrix, matrix, transform.matrix);
     return matrix;
   }

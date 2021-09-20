@@ -2,14 +2,13 @@ import { container, singleton } from 'tsyringe'
 import { CustomData } from '@shapediver/viewer.shared.types'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
+import { SDTFEngine } from '@shapediver/viewer.data-engine.sdtf-engine'
 import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine'
 import { ITransformation, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Reader } from '@shapediver/viewer.sdtf.converter'
 import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine'
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
 
-import { TreeNodeConverter } from './TreeNodeConverter'
 import { mat4 } from 'gl-matrix'
 
 @singleton()
@@ -17,6 +16,7 @@ export class DataEngine {
     private readonly _geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
     private readonly _htmlElementAnchorEngine: HTMLElementAnchorEngine = <HTMLElementAnchorEngine>container.resolve(HTMLElementAnchorEngine);
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
+    private readonly _sdtfEngine: SDTFEngine = <SDTFEngine>container.resolve(SDTFEngine);
     private readonly _tag3dEngine: Tag3dEngine = <Tag3dEngine>container.resolve(Tag3dEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
@@ -59,9 +59,7 @@ export class DataEngine {
                 node.transformations.push(...transformations);
                 return node;
             } else if (content.format === 'sdtf') {
-                const sdtfFile = await new Reader().readFromUri(content.href!);
-                if(!sdtfFile) return new TreeNode();
-                const node = new TreeNodeConverter().convertToTreeNode(sdtfFile);
+                const node = await this._sdtfEngine.loadContent(content);
                 node.transformations.push(...transformations);
                 return node;
             } else {

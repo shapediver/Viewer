@@ -5,8 +5,9 @@ import { ICamera } from './camera/ICamera'
 import { ILightScene } from './lights/ILightScene'
 import { IOrthographicCamera } from './camera/IOrthographicCamera'
 import { IPerspectiveCamera } from './camera/IPerspectiveCamera'
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
-export interface IViewer {
+export interface IViewer extends IRenderingEngine {
     // #region Properties (24)
 
     readonly camera: ICamera | null;
@@ -15,109 +16,119 @@ export interface IViewer {
     readonly lightScene: ILightScene | null;
     readonly lightScenes: { [key: string]: ILightScene };
 
-    ambientOcclusion: boolean;
-    ambientOcclusionIntensity: number;
-    automaticResizing: boolean;
-    beautyRenderBlendingDuration: number;
-    beautyRenderDelay: number;
-    blur: boolean;
-    blurSceneWhenBusy: boolean;
-    clearAlpha: number;
-    clearColor: string | number | vec3;
-    environmentMap: string | string[];
-    environmentMapAsBackground: boolean;
-    environmentMapResolution: string;
-    gridVisibility: boolean;
-    groundPlaneVisibility: boolean;
-    lightSceneId: string;
-    pointSize: number;
-    renderingSettings: { physicallyCorrectLights: boolean, envMapIntensity: number, envMapIntensityGroundPlane: number, groundPlaneColor: string, toneMapping: 0 | 1 | 2 | 3 | 4, toneMappingExposure: number, textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007, outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007, };
-    shadows: boolean;
-    show: boolean;
-    showStatistics: boolean;
-
     // #endregion Properties (24)
 
     // #region Public Methods (14)
 
     /**
-   * Assign the camera with the specified id to the viewer.
-   * 
-   * @param id the id of the camera
-   */
+     * Assign the camera with the specified id to the viewer.
+     * 
+     * @param id the id of the camera
+     */
     assignCamera(id: string): void;
+    
     /**
-   * Assign the light scene with the current id to the viewer.
-   * 
-   * @param id the id of the light scene 
-   * @returns 
-   */
+     * Assign the light scene with the current id to the viewer.
+     * 
+     * @param id the id of the light scene 
+     * @returns 
+     */
     assignLightScene(id: string): boolean;
+
     /**
-   * Create a camera with the specified type.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param type the type of the camera
-   * @param id the id of the camera
-   * @returns 
-   */
+     * Create a camera with the specified type.
+     * An id can be provided. If not, a unique id will be created.
+     * 
+     * @param type the type of the camera
+     * @param id the id of the camera
+     * @returns 
+     */
     createCamera(type: CAMERATYPE, id?: string): ICamera;
+
     /**
-   * Create a new light scene.
-   * An id can be provided. If not, a unique id will be created.
-   * If the standard option is chosen, the default lights will be added from the start.
-   * 
-   * @param properties.id the id of the light scene
-   * @param properties.standard the option to add the standard lights
-   * @returns 
-   */
+     * Create a new light scene.
+     * An id can be provided. If not, a unique id will be created.
+     * If the standard option is chosen, the default lights will be added from the start.
+     * 
+     * @param properties.id the id of the light scene
+     * @param properties.standard the option to add the standard lights
+     * @returns 
+     */
     createLightScene(properties?: { name?: string, standard?: boolean }): ILightScene;
+
     /**
-   * Create an orthographic camera.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
+     * Create an orthographic camera.
+     * An id can be provided. If not, a unique id will be created.
+     * 
+     * @param id the id of the camera
+     * @returns 
+     */
     createOrthographicCamera(id?: string): IOrthographicCamera;
+
     /**
-   * Create a perspective camera.
-   * An id can be provided. If not, a unique id will be created.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
+     * Create a perspective camera.
+     * An id can be provided. If not, a unique id will be created.
+     * 
+     * @param id the id of the camera
+     * @returns 
+     */
     createPerspectiveCamera(id?: string): IPerspectiveCamera;
+
+    /**
+     * Deregister the busy mode with the specified ID.
+     * 
+     * @param value 
+     */
     deregisterBusyMode(value: string): boolean;
+
     /**
-   * Create a screenshot for the requested type and options.
-   * 
-   * @param type the type as string, default is 'image/png'
-   * @param quality the quality of the screenshot, default is 1
-   * @returns 
-   */
+     * Create a screenshot for the requested type and options.
+     * 
+     * @param type the type as string, default is 'image/png'
+     * @param quality the quality of the screenshot, default is 1
+     * @returns 
+     */
     getScreenshot(type?: string, quality?: number): string;
+
+    /**
+     * Register the busy mode with the specified ID.
+     * @param value 
+     */
     registerBusyMode(value: string): boolean;
+
     /**
-   * Remove the camera with the specified id.
-   * 
-   * @param id the id of the camera
-   * @returns 
-   */
+     * Remove the camera with the specified id.
+     * 
+     * @param id the id of the camera
+     * @returns 
+     */
     removeCamera(id: string): boolean;
+
     /**
-   * Remove the light scene with the specified id.
-   * 
-   * @param id the id of the light scene
-   * @returns 
-   */
+     * Remove the light scene with the specified id.
+     * 
+     * @param id the id of the light scene
+     * @returns 
+     */
     removeLightScene(id: string): boolean;
-    reset(): void;
-    resize(width: number, height: number): void;
+
     /**
-   * Update the viewer with the current changes of the scene tree.
-   */
+     * Reset the viewer.
+     * Sets the {@link show}-value to false and waits for new settings to be registered.
+     */
+    reset(): void;
+
+    /**
+     * If the {@link automaticResizing} is option is set to `false`, this function resizes the Viewer.
+     * @param width 
+     * @param height 
+     */
+    resize(width: number, height: number): void;
+
+    /**
+     * Update the viewer with the current changes of the scene tree.
+     */
     update(): void;
 
     // #endregion Public Methods (14)
-} 
+}

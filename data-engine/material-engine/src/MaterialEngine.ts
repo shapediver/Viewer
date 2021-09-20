@@ -74,7 +74,7 @@ export class MaterialEngine {
      * @returns the scene graph node 
      */
     public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
-        const node = new TreeNode('material');
+        const node = new TreeNode(content.name || 'material');
     
         if(!content) {
             this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('MaterialEngine.loadContent: Invalid content was provided to material engine.'));

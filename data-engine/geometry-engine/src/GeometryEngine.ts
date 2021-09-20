@@ -34,7 +34,7 @@ export class GeometryEngine {
      * @returns the scene graph node 
      */
     public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
-        const node = new TreeNode('geometry');
+        let node = new TreeNode('geometry');
 
         if (!content || (content && !content.href)) {
             this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GeometryEngine.loadContent: Invalid content was provided to geometry engine.'), '', false);
@@ -128,9 +128,9 @@ export class GeometryEngine {
         }
 
         if (version === '1.0') {
-            node.addChild(await new GLTF_v1Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl));
+            node = await new GLTF_v1Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl);
         } else {
-            node.addChild(await new GLTF_v2Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl));
+            node = await new GLTF_v2Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl);
         }
         this._performanceEvaluator.endSection('gltfProcessing.' + url);
 
