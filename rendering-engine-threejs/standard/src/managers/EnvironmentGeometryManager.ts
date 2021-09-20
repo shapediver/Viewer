@@ -83,7 +83,7 @@ export class EnvironmentGeometryManager implements IManager {
          */
 
         let divisions = 0.1;
-        let gridExtents = sceneExtents;
+        let gridExtents = 1.0;
         if (sceneExtents > 1) {
             let tmp = Math.floor(sceneExtents).toString();
             let temp = Math.pow(10, tmp.length - 1);
@@ -91,7 +91,7 @@ export class EnvironmentGeometryManager implements IManager {
             temp = temp / 10;
             divisions = gridExtents / temp;
         }
-        else {
+        else if (sceneExtents !== 0) {
             let zeros = 1 - Math.floor(Math.log(sceneExtents) / Math.log(10)) - 2;
             let r = sceneExtents.toFixed(zeros + 1);
             let firstDigit = parseInt(r.substr(r.length - 1)) + 1;
