@@ -5,6 +5,7 @@ import {
   PRIMITIVE_MODE,
   PrimitiveData,
   MATERIAL_SIDE,
+  SDTFAttributeVisualizationData,
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -14,7 +15,6 @@ import { container } from 'tsyringe'
 import { SDObject } from '../types/SDObject'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
-import { SDTFAttributeVisualizationData } from '../managers/SceneTreeManager'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (2)

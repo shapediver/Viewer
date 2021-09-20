@@ -1,4 +1,4 @@
-import { RenderingEngine as RenderingEngineAttributes, SDTFAttributeVisualizationData } from '@shapediver/viewer.rendering-engine-threejs.attributes'
+import { RenderingEngine as RenderingEngineAttributes } from '@shapediver/viewer.rendering-engine-threejs.attributes'
 import {
   CAMERATYPE,
   OrthographicCamera as OrthographicCameraLogic,
@@ -28,7 +28,7 @@ import { ILightScene } from '../../interfaces/viewer/lights/ILightScene'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { LightScene } from './lights/LightScene'
-import { SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
+import { SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { IAttributeViewer } from '../../interfaces/viewer/IAttributeViewer'
 
 @injectable()

@@ -128,16 +128,6 @@ for (let c = 0; c < allCapabilities.length; c++) {
         //     // https://shapediver.atlassian.net/browse/SS-2994
         // });
 
-        // it(name + '_commitParameters', async () => {
-        //     // 'viewer.commitParameters': false,
-        //     // TODO
-        // });
-
-        // it(name + '_commitSettings', async () => {
-        //     // 'viewer.commitSettings': false,
-        //     // TODO
-        // });
-
         it(name + '_gridVisibility', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {

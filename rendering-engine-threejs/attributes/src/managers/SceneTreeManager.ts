@@ -1,8 +1,8 @@
 import * as THREE from 'three'
-import { GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeOverview, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
+import { ATTRIBUTEVISUALIZATION, GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeOverview, SDTFAttributeVisualization, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
-import { Converter, EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter, EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, SDError, StateEngine } from '@shapediver/viewer.shared.services'
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
@@ -12,12 +12,6 @@ import { ThreejsData } from '../types/ThreejsData'
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager'
 
-export type SDTFAttributeVisualizationData = {
-    color: string,
-    opacity: number,
-    matrix: mat4
-}
-
 export class SceneTreeManager implements IManager {
     // #region Properties (5)
 
@@ -25,6 +19,8 @@ export class SceneTreeManager implements IManager {
     private readonly _scene: THREE.Scene = new THREE.Scene();
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
     private _boundingBox: Box = new Box();
     private _mainNode!: SDObject;
@@ -90,8 +86,11 @@ export class SceneTreeManager implements IManager {
                 const layerAttribute = itemData.attributes['layer'];
                 const layerStringOverview = overview['layer'].filter(o => o.typeHint === PRIMITIVETYPEHINT.STRING)[0];
 
-                const fraction = 1.0 / (layerStringOverview.values?.length!+1);
-                opacity = fraction * (layerStringOverview.values?.indexOf(layerAttribute.value)! + 1);
+                return SDTFAttributeVisualization.stringVisualization(
+                    layerAttribute.value, 
+                    layerStringOverview.values!, 
+                    ATTRIBUTEVISUALIZATION.GRAYSCALE
+                );
             }
         }
         return { color, opacity, matrix };
@@ -120,8 +119,20 @@ export class SceneTreeManager implements IManager {
 
         if(itemData) {
             if(this._renderingEngine.convertSDTFItemToVisualizationData) {
-                visData = this._renderingEngine.convertSDTFItemToVisualizationData(itemData, this._currentSDTFOverview, this._renderingEngine.visualizationAttributes);
-                // TODO sanitize
+                const userVisData = this._renderingEngine.convertSDTFItemToVisualizationData(itemData, this._currentSDTFOverview, this._renderingEngine.visualizationAttributes);
+                try {
+                    this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData, 'object', true);
+                    this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData.opacity, 'factor', true)
+                    this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData.color, 'color', true)
+                    this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData.matrix, 'mat4', true)
+                    visData.opacity = userVisData.opacity;
+                    visData.color = this._converter.toColor(userVisData.color);
+                    visData.matrix = visData.matrix;
+                } catch(e) {
+                    if(e instanceof SDError)
+                        this._logger.warn(LOGGINGTOPIC.VIEWER, e.message);
+                    this._logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer.convertSDTFItemToVisualizationData: Encountered an error while parsing the visualization data.`, false); 
+                }
             } else {
                 visData = this.convertSDTFItemToVisualizationData(itemData, this._currentSDTFOverview, this._renderingEngine.visualizationAttributes);
             }

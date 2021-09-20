@@ -6,6 +6,7 @@ import {
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING,
   SDTFItemData,
+  SDTFAttributeVisualizationData,
 } from '@shapediver/viewer.shared.types'
 import { vec4 } from 'gl-matrix'
 
@@ -16,7 +17,6 @@ import { RenderingManager } from '../managers/RenderingManager'
 import { ILoader } from '../interfaces/ILoader'
 import { Converter } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { SDTFAttributeVisualizationData } from '../managers/SceneTreeManager'
 
 export class MaterialLoader implements ILoader {
     // #region Properties (8)

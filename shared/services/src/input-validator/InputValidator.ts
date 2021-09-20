@@ -7,7 +7,7 @@ import { TypeChecker } from '../type-check/TypeChecker'
 export type Types = 'string' | 'boolean' | 'function' |
                     'HTMLCanvasElement' | 'enum' | 
                     'number' | 'factor' | 'positive' |
-                    'vec3' | 'cubeMap' | 'stringArray' | 'object' | 'file' | 'color';
+                    'vec3' | 'mat4' | 'cubeMap' | 'stringArray' | 'object' | 'file' | 'color';
 
 @singleton()
 export class InputValidator {
@@ -76,6 +76,14 @@ export class InputValidator {
                 break;
             case 'color':
                 if(this._typeChecker.isTypeOf(value, 'string') || (Array.isArray(value) && this._typeChecker.isTypeOf(value[0], 'number') && this._typeChecker.isTypeOf(value[1], 'number') && this._typeChecker.isTypeOf(value[2], 'number')) || this._typeChecker.isTypeOf(value, 'number')) return true;
+                break;
+            case 'mat4':
+                if (value.constructor === Float32Array)
+                    value = Array.from(value);
+                if(Array.isArray(value) && this._typeChecker.isTypeOf(value[0], 'number') && this._typeChecker.isTypeOf(value[1], 'number') && this._typeChecker.isTypeOf(value[2], 'number') && this._typeChecker.isTypeOf(value[3], 'number')
+                    && this._typeChecker.isTypeOf(value[4], 'number') && this._typeChecker.isTypeOf(value[5], 'number') && this._typeChecker.isTypeOf(value[6], 'number') && this._typeChecker.isTypeOf(value[7], 'number')
+                    && this._typeChecker.isTypeOf(value[8], 'number') && this._typeChecker.isTypeOf(value[9], 'number') && this._typeChecker.isTypeOf(value[10], 'number') && this._typeChecker.isTypeOf(value[11], 'number')
+                    && this._typeChecker.isTypeOf(value[12], 'number') && this._typeChecker.isTypeOf(value[13], 'number') && this._typeChecker.isTypeOf(value[14], 'number') && this._typeChecker.isTypeOf(value[15], 'number')) return true;
                 break;
             default:
                 return false;

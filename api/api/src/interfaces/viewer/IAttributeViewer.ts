@@ -1,7 +1,6 @@
 import { vec3 } from "gl-matrix";
-import { SDTFItemData, SDTFOverview } from "@shapediver/viewer.shared.types";
+import { SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from "@shapediver/viewer.shared.types";
 import { IViewer } from "./IViewer";
-import { SDTFAttributeVisualizationData } from "@shapediver/viewer.rendering-engine-threejs.attributes";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IAttributeViewer extends IViewer {

@@ -14,6 +14,7 @@ import { HTMLElementAnchorData } from './HTMLElementAnchorData'
 import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributesData } from './SDTFAttributesData'
 import { SDTFItemData } from './SDTFItemData'
 import { SDTFAttributeOverview, SDTFOverview } from './SDTFAttributeOverview'
+import { ATTRIBUTEVISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisualizationData } from './SDTFAttributeVisualization'
 
 export {
   ISDObject, SD_RENDERINGTYPE
@@ -36,5 +37,5 @@ export {
 }
 
 export {
-  SDTFAttributeOverview, SDTFOverview, SDTFAttributesData, SDTFAttributeData, SDTFItemData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT
+  SDTFAttributeOverview, SDTFOverview, SDTFAttributesData, SDTFAttributeVisualizationData, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, SDTFAttributeData, SDTFItemData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT
 }

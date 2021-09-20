@@ -1,7 +1,6 @@
 import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { SDTFItemData, SDTFOverview } from "@shapediver/viewer.shared.types";
-import { SDTFAttributeVisualizationData } from "../managers/SceneTreeManager";
+import { SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from "@shapediver/viewer.shared.types";
 
 export interface IRenderingEngineAttributes extends IRenderingEngine {
     visualizationAttributes: { [key: string]: boolean };
