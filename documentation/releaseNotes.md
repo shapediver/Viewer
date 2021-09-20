@@ -1,5 +1,9 @@
 # Release Notes
 
+## Version 1.4.0 - `Eternal Sunshine of the Spotless Mind`
+- attribute visualization feature (SS-2519)
+- separation of StandardViewer and AttributeViewer
+
 ## Version 1.3.1 - `Die Hard`
 - patching of tooltip SS-3438
 
