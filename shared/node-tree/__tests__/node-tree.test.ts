@@ -340,8 +340,8 @@ describe('scene graph node - test', () => {
     const child3 = new TreeNode('child3');
     child2.addChild(child3);
 
-    expect(child1.getPath()).toBe(node.getPath() + '.' + child1.id);
-    expect(child2.getPath()).toBe(node.getPath() + '.' + child1.id + '.' + child2.id);
-    expect(child3.getPath()).toBe(node.getPath() + '.' + child1.id + '.' + child2.id + '.' + child3.id);
+    expect(child1.getPath()).toBe(node.getPath() + '.' + child1.name);
+    expect(child2.getPath()).toBe(node.getPath() + '.' + child1.name + '.' + child2.name);
+    expect(child3.getPath()).toBe(node.getPath() + '.' + child1.name + '.' + child2.name + '.' + child3.name);
   });
 })
