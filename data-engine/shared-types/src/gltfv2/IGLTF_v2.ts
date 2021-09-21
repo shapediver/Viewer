@@ -62,7 +62,7 @@ export interface IGLTF_v2_Accessor {
 
 export interface IGLTF_v2_Animation {
     channels: {
-        sampler: string,
+        sampler: number,
         target: {
             node: number,
             path: string,

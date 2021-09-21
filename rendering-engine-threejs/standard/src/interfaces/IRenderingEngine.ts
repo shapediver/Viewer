@@ -1,10 +1,12 @@
 import { IRenderingEngine } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
+import { AnimationData } from "@shapediver/viewer.shared.types";
 
 export interface IRenderingEngineThreeJS extends IRenderingEngine {
     
     ambientOcclusion: boolean;
     ambientOcclusionIntensity: number;
+    animations: AnimationData[];
     beautyRenderBlendingDuration: number;
     beautyRenderDelay: number;
     clearAlpha: number;

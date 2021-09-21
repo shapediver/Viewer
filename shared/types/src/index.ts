@@ -15,6 +15,7 @@ import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributesD
 import { SDTFItemData } from './SDTFItemData'
 import { SDTFAttributeOverview, SDTFOverview } from './SDTFAttributeOverview'
 import { ATTRIBUTEVISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisualizationData } from './SDTFAttributeVisualization'
+import { AnimationData, AnimationTrack } from './AnimationData'
 
 export {
   ISDObject, SD_RENDERINGTYPE
@@ -25,7 +26,7 @@ export {
 }
 
 export {
-  GeometryData, AttributeData, PrimitiveData, PRIMITIVE_MODE
+  AnimationData, AnimationTrack, GeometryData, AttributeData, PrimitiveData, PRIMITIVE_MODE
 }
 
 export {

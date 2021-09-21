@@ -17,7 +17,7 @@ import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
-import { MATERIAL_SIDE, MaterialData } from '@shapediver/viewer.shared.types'
+import { MATERIAL_SIDE, MaterialData, AnimationData } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -35,6 +35,7 @@ import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManage
 import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
 import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
+import { AnimationManager } from './managers/AnimationManager'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
     // #region Properties (51)
@@ -53,6 +54,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     // managers
+    private readonly _animationManager: AnimationManager;
     private readonly _beautyRenderingManager: BeautyRenderingManager;
     private readonly _cameraManager: CameraManager;
     private readonly _environmentGeometryManager: EnvironmentGeometryManager;
@@ -111,6 +113,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // viewer global vars
     private _closed: boolean = false;
     private _logoDivElement: HTMLDivElement;
+    #animations: AnimationData[] = [];
 
     // #endregion Properties (51)
 
@@ -134,6 +137,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this._lightEngine = new LightEngine(this._id);
 
         // creation of the managers (all singleton engines were created already)
+        this._animationManager = new AnimationManager(this);
         this._beautyRenderingManager = new BeautyRenderingManager(this);
         this._cameraManager = new CameraManager(this);
         this._environmentGeometryManager = new EnvironmentGeometryManager(this);
@@ -218,6 +222,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     public set ambientOcclusionIntensity(value: number) {
         this._ambientOcclusionIntensity = value;
+    }
+    
+    public get animationManager(): AnimationManager {
+        return this._animationManager;
+    }
+
+    public get animations(): AnimationData[] {
+        return this.#animations;
     }
 
     public get automaticResizing(): boolean {
@@ -508,6 +520,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // #region Public Methods (10)
 
+    public gatherAnimations(node: TreeNode = this._tree.root): AnimationData[] {
+        let out: AnimationData[] = [];
+        for (let i = 0, len = node.data.length; i < len; i++)
+            if (node.data[i] instanceof AnimationData)
+                out.push(<AnimationData>node.data[i])
+
+        for (let i = 0, len = node.children.length; i < len; i++)
+            out = out.concat(this.gatherAnimations(node.children[i]))
+
+        return out;
+    }
+
     public async close(): Promise<boolean> {
         this._closed = true;
         this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);
@@ -557,6 +581,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     public update(): void {
         this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
         this._renderingManager.updateShadowMap();
+        this.#animations = this.gatherAnimations();
         this._renderingManager.render();
     }
 

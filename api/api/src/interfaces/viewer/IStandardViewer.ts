@@ -1,9 +1,11 @@
 import { vec3 } from "gl-matrix";
+import { AnimationData } from "@shapediver/viewer.shared.types";
 import { IViewer } from "./IViewer";
 
 export interface IStandardViewer extends IViewer {
     ambientOcclusion: boolean;
     ambientOcclusionIntensity: number;
+    animations: AnimationData[];
     automaticResizing: boolean;
     beautyRenderBlendingDuration: number;
     beautyRenderDelay: number;

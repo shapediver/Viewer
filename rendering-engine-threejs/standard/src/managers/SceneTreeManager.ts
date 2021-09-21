@@ -1,10 +1,10 @@
 import * as THREE from 'three'
-import { GeometryData, HTMLElementAnchorData, MaterialData } from '@shapediver/viewer.shared.types'
-import { ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { AnimationData, GeometryData, HTMLElementAnchorData, MaterialData } from '@shapediver/viewer.shared.types'
+import { ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
 import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { vec3 } from 'gl-matrix'
+import { mat4, quat, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
 import { SDObject } from '../types/SDObject'
@@ -18,6 +18,7 @@ export class SceneTreeManager implements IManager {
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _scene: THREE.Scene = new THREE.Scene();
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _tree: Tree = <Tree>container.resolve(Tree);
 
     private _boundingBox: Box = new Box();
     private _mainNode!: SDObject;
@@ -73,6 +74,8 @@ export class SceneTreeManager implements IManager {
                 break;
             case data instanceof HTMLElementAnchorData:
                 this._renderingEngine.htmlElementAnchorLoader.load(<HTMLElementAnchorData>data);
+                break;
+            case data instanceof AnimationData:
                 break;
             default:
                 // if there is no valid conversion here, call the convertData of the implementation
@@ -133,6 +136,20 @@ export class SceneTreeManager implements IManager {
     // #endregion Public Methods (4)
 
     // #region Private Methods (1)
+
+    public updateNodeTransformations(node: TreeNode = this._tree.root, obj: SDObject = this._mainNode) {
+        if(!node || !obj) return;
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+        obj.applyTransformation(node.nodeMatrix);
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            if(!nodeChild) continue;
+            const objChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === nodeChild.id);
+            this.updateNodeTransformations(nodeChild, objChild);
+        }
+    }
 
     /**
      * Update the current node via the scene graph node.

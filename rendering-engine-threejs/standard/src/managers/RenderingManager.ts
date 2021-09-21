@@ -54,6 +54,7 @@ export class RenderingManager implements IManager {
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
     private _maxTextureUnits: number = 0;
+    private _runningAnimation: boolean = false;
 
     // #endregion Properties (16)
 
@@ -217,6 +218,8 @@ export class RenderingManager implements IManager {
         TWEEN.update(time);
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
+        this._runningAnimation = this._renderingEngine.animationManager.update(deltaTime);
+        this._renderingEngine.sceneTreeManager.updateNodeTransformations();
 
         // get the current size
         const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
@@ -274,6 +277,10 @@ export class RenderingManager implements IManager {
         const enabled = this._renderingEngine.renderer.shadowMap.enabled;
         this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader ? false : this._renderingEngine.shadows;
         if (enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials()
+        
+        // update shadowMap if need
+        if(states.updateShadowMap && enabled) this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         // set the background color / alpha
@@ -392,6 +399,7 @@ export class RenderingManager implements IManager {
         showScene: boolean,
         rendering: boolean,
         blurScene: boolean,
+        updateShadowMap: boolean,
         beautyRendering: boolean
     } {
         // If there is a camera to show the scene and the setting for it is set to true, we show the scene
@@ -401,8 +409,12 @@ export class RenderingManager implements IManager {
 
         // If we should render at all
         let rendering = false;
-        if (this._activeRendering === true || this._cameraChanged === true || this._sizeChanged === true)
+        if (this._activeRendering === true || this._cameraChanged === true || this._sizeChanged === true || this._runningAnimation === true)
             rendering = true;
+
+        let updateShadowMap = false;
+        if (this._runningAnimation === true)
+            updateShadowMap = true;
 
         // special case, autorotation
         if (this._renderingEngine.cameraEngine.camera) {
@@ -410,7 +422,7 @@ export class RenderingManager implements IManager {
             if (camera.type === CAMERATYPE.PERSPECTIVE) {
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
                 if (controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
-                    return { showScene, rendering: true, blurScene: false, beautyRendering: false };
+                    return { showScene, rendering: true, updateShadowMap, blurScene: false, beautyRendering: false };
             }
         }
 
@@ -423,10 +435,10 @@ export class RenderingManager implements IManager {
         let beautyRendering = false;
         if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
             ((this._renderingEngine.shadows && this._systemInfo.isMobile) || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
-            this._renderingEngine.usingSwiftShader === false)
+            this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false)
             beautyRendering = true;
 
-        return { showScene, rendering, blurScene, beautyRendering };
+        return { showScene, rendering, updateShadowMap, blurScene, beautyRendering };
     }
 
     private showStatistics() {

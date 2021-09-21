@@ -18,6 +18,7 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
+import { AnimationData } from '@shapediver/viewer.shared.types'
 
 import { ICamera } from '../../interfaces/viewer/camera/ICamera'
 import { IOrthographicCamera } from '../../interfaces/viewer/camera/IOrthographicCamera'
@@ -103,6 +104,10 @@ export class StandardViewer implements IStandardViewer {
 
   public get ambientOcclusionIntensity(): number {
     return this.#renderingEngine.ambientOcclusionIntensity;
+  }
+
+  public get animations(): AnimationData[] {
+    return this.#renderingEngine.animations;
   }
 
   public set ambientOcclusionIntensity(value: number) {

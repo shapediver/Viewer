@@ -99,7 +99,7 @@ export class GeometryLoader implements ILoader {
         }
 
         if (geometry.primitive.material?.alphaMode === MATERIAL_ALPHA.BLEND)
-            meshes.forEach(m => { m.material.transparent = true; m.material.depthWrite = false; });
+            meshes.forEach(m => { m.material.transparent = true; m.material.depthWrite = true; });
 
         meshes.forEach(m => {
             m.geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0],  geometry.boundingBox.min[1],  geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0],  geometry.boundingBox.max[1],  geometry.boundingBox.max[2]));
