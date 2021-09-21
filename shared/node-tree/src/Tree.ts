@@ -61,13 +61,13 @@ export class Tree {
    * @param root optional root at which the process begins, root node will be used per default
    */
   public addNodeAtPath(node: TreeNode, path: string = this.root.getPath(), root: TreeNode = this.#root): boolean {
-    if (root.id === path) {
+    if (root.name === path) {
       root.addChild(node);
       return true;
     }
 
     const pathStart = path.substr(0, path.indexOf('.'));
-    if (root.id === pathStart) {
+    if (root.name === pathStart) {
       const shortenedPath = path.substr(pathStart.length + 1, path.length);
 
       for (let i = 0; i < root.children.length; i++) {
@@ -109,13 +109,13 @@ export class Tree {
    * @param root optional root at which the process begins, root node will be used per default
    */
   public removeNodeAtPath(path: string, root: TreeNode = this.#root): boolean {
-    if (root.id === path) {
+    if (root.name === path) {
       root.parent?.removeChild(root);
       return true;
     }
 
     const pathStart = path.substr(0, path.indexOf('.'));
-    if (root.id === pathStart) {
+    if (root.name === pathStart) {
       const shortenedPath = path.substr(pathStart.length + 1, path.length);
 
 
@@ -127,6 +127,30 @@ export class Tree {
       }
     }
     return false;
+  }
+
+  /**
+   * Get the node at the provided path.
+   * 
+   * @param path 
+   * @param root 
+   * @returns 
+   */
+  public getNodeAtPath(path: string = this.root.getPath(), root: TreeNode = this.#root): TreeNode | null {
+    if (root.name === path) 
+      return root;
+
+    const pathStart = path.substr(0, path.indexOf('.'));
+    if (root.name === pathStart) {
+      const shortenedPath = path.substr(pathStart.length + 1, path.length);
+
+      for (let i = 0; i < root.children.length; i++) {
+        const child = root.children[i];
+        const res = this.getNodeAtPath(shortenedPath, child);
+        if(res) return res;
+      }
+    }
+    return null;
   }
   
   // #endregion Public Methods (4)

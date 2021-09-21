@@ -43,12 +43,12 @@ export class TreeNode {
    * @param transformations the array of transformations
    */
   constructor(
-    name: string = '',
+    name: string = 'node',
     parent: TreeNode | null = null,
     data: ITreeNodeData[] = [],
     transformations: ITransformation[] = []
   ) {
-    this.#name = name;
+    this.#name = name.replace(/\./g, "_");
     this.#parent = parent;
     this.#data = data;
     this.#transformations = transformations;
@@ -225,10 +225,10 @@ export class TreeNode {
    * Return the path to this node.
    */
   public getPath(): string {
-    let path = this.id;
+    let path = this.name;
     let node: TreeNode | null = this.parent;
     while (node) {
-      path = node.id + '.' + path;
+      path = node.name + '.' + path;
       node = node.parent;
     }
     return path;
