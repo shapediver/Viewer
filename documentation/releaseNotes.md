@@ -1,5 +1,10 @@
 # Release Notes
 
+## Version 1.4.1 - `E.T.`
+- bugfix: always display viewer versions
+- refactored node path naming
+- implemented animations (SS-2508)
+
 ## Version 1.4.0 - `Eternal Sunshine of the Spotless Mind`
 - attribute visualization feature (SS-2519)
 - separation of StandardViewer and AttributeViewer
