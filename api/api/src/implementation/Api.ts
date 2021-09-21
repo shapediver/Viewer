@@ -65,7 +65,7 @@ export class Api implements IApi {
       this.#stateEngine.primarySettingsRegistered.then(() => {
         this.showMessages = this.#settingsEngine.general.showMessages;
       })
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Viewer version: ${build_data.build_version}`);
+      console.log(`ShapeDiver-Viewer version: ${build_data.build_version}`);
 
       this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
         const sessionEvent: ISessionEvent = <ISessionEvent>e;
