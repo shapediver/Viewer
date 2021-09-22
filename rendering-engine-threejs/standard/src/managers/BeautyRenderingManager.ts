@@ -116,19 +116,21 @@ export class BeautyRenderingManager implements IManager {
         this._saoPass.render = (renderer: THREE.WebGLRenderer, writeBuffer: THREE.WebGLRenderTarget, readBuffer: THREE.WebGLRenderTarget, deltaTime: number, maskActive: boolean) => {
             const materialsNotRenderer: THREE.Object3D[] = [];
             this._renderingEngine.scene.traverse(function (object) {
-                if (object instanceof THREE.Mesh && object.material) {
-                    if (object.material instanceof THREE.MeshStandardMaterial && object.material.transparent && object.visible) {
+                if (object.visible === true) {
+                    if (object instanceof THREE.Mesh && object.material) {
+                        if (object.material instanceof THREE.MeshStandardMaterial && object.material.transparent) {
+                            materialsNotRenderer.push(object);
+                            object.visible = false;
+                        }
+                    }
+                    if(object instanceof THREE.Line || object instanceof THREE.LineLoop || object instanceof THREE.LineSegments) {
                         materialsNotRenderer.push(object);
                         object.visible = false;
                     }
-                }
-                if(object instanceof THREE.Line || object instanceof THREE.LineLoop || object instanceof THREE.LineSegments) {
-                    materialsNotRenderer.push(object);
-                    object.visible = false;
-                }
-                if(object.userData.ambientOcclusion === false) {
-                    materialsNotRenderer.push(object);
-                    object.visible = false;
+                    if(object.userData.ambientOcclusion === false) {
+                        materialsNotRenderer.push(object);
+                        object.visible = false;
+                    }
                 }
             });
             saoRenderFunction(renderer, writeBuffer, readBuffer, deltaTime, maskActive);
