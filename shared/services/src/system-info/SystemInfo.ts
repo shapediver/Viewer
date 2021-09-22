@@ -58,7 +58,7 @@ export class SystemInfo {
      */
     public get isIE(): boolean {
         const browserName = this._parser.getBrowser().name;
-        return browserName === 'IE';
+        return !!(browserName && browserName.includes('IE'));
     };
 
     /**
@@ -66,7 +66,7 @@ export class SystemInfo {
      */
     public get isChrome(): boolean {
         const browserName = this._parser.getBrowser().name;
-        return browserName === 'Chrome';
+        return !!(browserName && browserName.includes('Chrome'));
     };
 
     /**
@@ -74,7 +74,7 @@ export class SystemInfo {
      */
     public get isSafari(): boolean {
         const browserName = this._parser.getBrowser().name;
-        return browserName === 'Safari';
+        return !!(browserName && browserName.includes('Safari'));
     };
 
     /**
