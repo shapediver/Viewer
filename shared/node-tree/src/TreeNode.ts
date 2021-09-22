@@ -29,6 +29,7 @@ export class TreeNode {
   #transformations: ITransformation[] = [];
   #excludeViewers: string[] = [];
   #version: string;
+  #visible: boolean = true;
 
   // #endregion Properties (10)
 
@@ -140,6 +141,14 @@ export class TreeNode {
     return this.#version;
   }
 
+  public get visible(): boolean {
+    return this.#visible;
+  }
+  
+  public set visible(value: boolean) {
+    this.#visible = value;
+  }
+
   public get worldMatrix(): mat4 {
     const matrix: mat4 = mat4.create();
 
@@ -179,6 +188,7 @@ export class TreeNode {
    */
   public clone(): TreeNode {
     const clone = new TreeNode(this.name);
+    clone.visible = this.visible;
     for (let child of this.#children)
       clone.addChild(child.clone());
     for (let data of this.#data)
@@ -197,6 +207,7 @@ export class TreeNode {
    */
   public cloneInstance(): TreeNode {
     const clone = new TreeNode(this.name);
+    clone.visible = this.visible;
     for (let child of this.#children)
       clone.addChild(child.cloneInstance());
     for (let data of this.#data)

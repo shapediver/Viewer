@@ -140,6 +140,7 @@ export class SceneTreeManager implements IManager {
     public updateNodeTransformations(node: TreeNode = this._tree.root, obj: SDObject = this._mainNode) {
         if(!node || !obj) return;
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+        obj.visible = node.visible;
         obj.applyTransformation(node.nodeMatrix);
 
         // add new children and update the ones that have a different version
@@ -161,6 +162,7 @@ export class SceneTreeManager implements IManager {
     private updateNode(node: TreeNode, obj: SDObject) {
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
 
+        obj.visible = node.visible;
         obj.applyTransformation(node.nodeMatrix);
         node.boundingBox = new Box();
 
