@@ -5,6 +5,7 @@ import { build_data } from '@shapediver/viewer.shared.build-data'
 
 import { UuidGenerator } from '../uuid-generator/UuidGenerator'
 import { SDError } from './SDError'
+import { GlobalHandlers } from '@sentry/browser/dist/integrations'
 
 export enum LOGGINGLEVEL {
     NONE = 'none',
@@ -97,6 +98,7 @@ export class Logger {
                     xhr: false,
                 })
             ],
+            defaultIntegrations: false,
             environment: 'local',
             release: build_data.build_version,
             maxBreadcrumbs: 100,         
