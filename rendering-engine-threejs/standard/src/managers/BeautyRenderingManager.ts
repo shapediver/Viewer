@@ -150,6 +150,7 @@ export class BeautyRenderingManager implements IManager {
         this._saoPass.params.saoBlurDepthCutoff = 1;
 
         this._gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
+        
         //this._effectComposer.addPass(this._gammaCorrectionPass);
 
         this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVEnd, 1.0);
@@ -163,7 +164,11 @@ export class BeautyRenderingManager implements IManager {
         const percentage = this.setShaderProperties();
 
         if(((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !(this._systemInfo.isIOS || this._systemInfo.isMobile || this._systemInfo.isSafari))) {
-            this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
+            if(this._effectComposer.passes.includes(this._gammaCorrectionPass)) {
+                this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color()).convertGammaToLinear(2.2);
+            } else {
+                this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
+            }
             this._ssaaPass.clearAlpha = this._renderingEngine.renderer.getClearAlpha();
     
             this._saoPass.params.saoIntensity = this._renderingEngine.ambientOcclusionIntensity;
@@ -174,7 +179,7 @@ export class BeautyRenderingManager implements IManager {
             this._renderPass.camera = camera;
             this._saoPass.camera = camera;
             this._ssaaPass.camera = camera;
-
+        
             this._gammaCorrectionPass.setSize(width, height);
             this._saoPass.setSize(width, height)
             this._ssaaPass.setSize(width, height)
