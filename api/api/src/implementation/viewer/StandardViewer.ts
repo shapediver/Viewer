@@ -10,6 +10,7 @@ import {
   EventEngine,
   EVENTTYPE,
   InputValidator,
+  IViewerEvent,
   Logger,
   LOGGINGTOPIC,
   PerformanceEvaluator,
@@ -271,9 +272,20 @@ export class StandardViewer implements IStandardViewer {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: Updating EnvironmentMap to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, value, 'cubeMap');
-      this.#renderingEngine.environmentMap = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
-      this.update();
+
+      new Promise<void>(resolve => {
+        const token = this.#eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e) => {
+          const viewerEvent = <IViewerEvent>e;
+          if (viewerEvent.viewerId !== this.id) return;
+          if (viewerEvent.environmentMapId === value) {
+            this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
+            this.update();
+            this.#eventEngine.removeListener(token);
+            resolve();
+          }
+        })
+        this.#renderingEngine.environmentMap = value;
+      })
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).environmentMap: Something unexpected happened.`, true)
