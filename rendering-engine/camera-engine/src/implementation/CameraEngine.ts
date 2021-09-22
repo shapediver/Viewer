@@ -104,7 +104,7 @@ export class CameraEngine implements ICameraEngine {
             if(this._settingsApplied) {
                 camera.applySettings();
             } else {
-                camera.zoomTo([], { duration: 0 });
+                camera.zoomTo(undefined, { duration: 0 });
             }
             return camera;
         } else {
@@ -115,7 +115,7 @@ export class CameraEngine implements ICameraEngine {
             if(this._settingsApplied) {
                 camera.applySettings();
             } else {
-                camera.zoomTo([], { duration: 0 });
+                camera.zoomTo(undefined, { duration: 0 });
             }
             return camera;
         }

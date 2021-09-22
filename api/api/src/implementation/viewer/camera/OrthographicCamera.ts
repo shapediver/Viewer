@@ -59,7 +59,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction: Updating Direction to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction`, value, 'enum', true, Object.values(ORTHOGRAPHIC_CAMERA_DIRECTION));
             this.#camera.direction = value;
-            this.#camera.zoomTo([], { duration: 0 });
+            this.#camera.zoomTo(undefined, { duration: 0 });
             this.#viewer.update();
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction: direction was set to: ${value}`);
         } catch (e) {

@@ -6,6 +6,7 @@ import { Box } from '@shapediver/viewer.shared.math'
 
 import { ICamera } from '../../../interfaces/viewer/camera/ICamera'
 import { IViewer } from '../../../interfaces/viewer/IViewer'
+import { Tree } from '@shapediver/viewer.shared.node-tree'
 
 export abstract class AbstractCamera implements ICamera {
     // #region Properties (4)
@@ -13,6 +14,7 @@ export abstract class AbstractCamera implements ICamera {
     readonly #camera: ICamera;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #tree: Tree = <Tree>container.resolve(Tree);
     readonly #viewer: IViewer;
 
     // #endregion Properties (4)
@@ -324,11 +326,21 @@ export abstract class AbstractCamera implements ICamera {
     public zoomTo(zoomTarget?: string[] | Box, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming to ${zoomTarget} with options ${JSON.stringify(options)}.`);
+            let target: Box | undefined;
             if (zoomTarget) {
                 if (Array.isArray(zoomTarget)) {
                     this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, zoomTarget, 'stringArray');
-                } else if (!(zoomTarget instanceof Box))
+                    target = new Box();
+                    for(let i = 0; i < zoomTarget.length; i++) {
+                        const node = this.#tree.getNodeAtPath(zoomTarget[i]);
+                        if(node) target.union(node.boundingBox);
+                        console.log(target)
+                    }
+                } else if (zoomTarget instanceof Box) {
+                    target = zoomTarget.clone();
+                } else {
                     this.#logger.error(LOGGINGTOPIC.CAMERA, new SDError(`Camera(${this.id}).zoomTo: The specified zoom target does not have a valid type`));
+                }
             }
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, options, 'object', false);
             const o = Object.assign({}, options);
@@ -337,7 +349,7 @@ export abstract class AbstractCamera implements ICamera {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.coordinates, 'string', false);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.interpolation, 'string', false);
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming in.`);
-            return this.#camera.zoomTo(zoomTarget, o);
+            return this.#camera.zoomTo(target, o);
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).zoomTo: Something unexpected happened.`, true)

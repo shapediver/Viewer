@@ -127,7 +127,7 @@ export class OrthographicCamera extends AbstractCamera {
 
       if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
          this._stateEngine.boundingBoxCreated.then(async () => {
-            await this.zoomTo([], { duration: 0 });
+            await this.zoomTo(undefined, { duration: 0 });
             this.defaultPosition = vec3.clone(this._controls.position);
             this.defaultTarget = vec3.clone(this._controls.target);
          })
@@ -135,19 +135,16 @@ export class OrthographicCamera extends AbstractCamera {
       (<OrthographicCameraControls>this._controls).applySettings();
    }
 
-   public getZoomPositionAndTarget(zoomTarget?: Box | string[]): { position: vec3; target: vec3; } {
+   public getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; } {
       let box: Box;
 
       // Part 1 - calculate the bounding box that we should zoom to
       if (!zoomTarget) {
          // complete scene
          box = this._boundingBox.clone();
-      } else if (zoomTarget instanceof Box) {
-         // specified Box
-         box = zoomTarget;
       } else {
-         // scene paths https://shapediver.atlassian.net/browse/SS-2951
-         box = this._boundingBox.clone();
+         // specified Box
+         box = zoomTarget.clone();
       }
 
       const factor = 2 * box.boundingSphere.radius * this.zoomExtentsFactor;
