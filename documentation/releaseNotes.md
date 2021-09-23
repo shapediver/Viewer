@@ -2,6 +2,12 @@
 
 ## Version 1.4.1 - `E.T.`
 - bugfix: always display viewer versions
+- bugfix: AO makes grid re-appear
+- bugfix: environment change, scene update
+- bugfix: clear color, gamma correction
+- bugfix: sentry error catching
+- custom visibility for objects (SS-2513)
+- zoomTo with paths (SS-2951)
 - refactored node path naming
 - implemented animations (SS-2508)
 
