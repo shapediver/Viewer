@@ -206,6 +206,7 @@ export class MaterialLoader implements ILoader {
             if(materialProperties.opacity !== undefined){
                 properties.opacity = materialProperties.opacity;
                 properties.transparent = properties.opacity < 1;
+                properties.depthWrite = !(properties.opacity < 1);
             }
 
             // polygonOffset
@@ -229,6 +230,7 @@ export class MaterialLoader implements ILoader {
             if (materialProperties.alphaMap !== undefined) {
                 properties.alphaMap = this.createTexture(materialProperties.alphaMap);
                 properties.transparent = true;
+                properties.depthWrite = false;
                 mapCount++;
             }
 
