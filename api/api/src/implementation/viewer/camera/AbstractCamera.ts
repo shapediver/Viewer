@@ -334,7 +334,6 @@ export abstract class AbstractCamera implements ICamera {
                     for(let i = 0; i < zoomTarget.length; i++) {
                         const node = this.#tree.getNodeAtPath(zoomTarget[i]);
                         if(node) target.union(node.boundingBox);
-                        console.log(target)
                     }
                 } else if (zoomTarget instanceof Box) {
                     target = zoomTarget.clone();
