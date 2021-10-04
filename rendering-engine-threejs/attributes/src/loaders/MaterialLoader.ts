@@ -150,7 +150,6 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        visualizationData: SDTFAttributeVisualizationData,
         materialProperties?: MaterialData, 
         materialSettings?: {
             mode?: number,
@@ -164,11 +163,11 @@ export class MaterialLoader implements ILoader {
         let mapCount = 0;
         const properties: any = {};
 
-        properties.color = new THREE.Color(visualizationData.color);
+        properties.color = materialProperties ? new THREE.Color(materialProperties.color) : new THREE.Color(this._defaultColor);
         properties.side = THREE.DoubleSide;
 
-        if(visualizationData.opacity < 1) {
-            properties.opacity = visualizationData.opacity;
+        if(materialProperties && materialProperties.opacity < 1) {
+            properties.opacity = materialProperties.opacity;
             properties.transparent = true;
         }
         

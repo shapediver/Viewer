@@ -66,32 +66,32 @@ export class GeometryLoader implements ILoader {
         const obj = new SDObject(geometry.id, geometry.version);
         let meshes = [];
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
-            meshes.push(new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
+            meshes.push(new THREE.Points(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.attributeMaterial!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {
-            meshes.push(new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
+            meshes.push(new THREE.LineSegments(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.attributeMaterial!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_LOOP) {
-            meshes.push(new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
+            meshes.push(new THREE.LineLoop(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.attributeMaterial!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
-            meshes.push(new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
+            meshes.push(new THREE.Line(this.loadGeometry(geometry.primitive), this._renderingEngine.materialLoader.load(geometry.primitive.attributeMaterial!, materialSettings)));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLES || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
             let bufferGeometry = this.loadGeometry(geometry.primitive);
             if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
                 bufferGeometry = this.convertToTriangleMode(bufferGeometry, geometry.primitive.mode);
 
-            if(geometry.primitive.material && (geometry.primitive.material.opacity < 1 || geometry.primitive.material.alphaMap)) {
-                const side = geometry.primitive.material.side;
+            if(geometry.primitive.attributeMaterial && (geometry.primitive.attributeMaterial.opacity < 1 || geometry.primitive.attributeMaterial.alphaMap)) {
+                const side = geometry.primitive.attributeMaterial.side;
                 if(side === MATERIAL_SIDE.DOUBLE) {
-                    geometry.primitive.material.side = MATERIAL_SIDE.BACK;
-                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
-                    geometry.primitive.material.side = MATERIAL_SIDE.FRONT;
-                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
-                    geometry.primitive.material.side = side;
+                    geometry.primitive.attributeMaterial.side = MATERIAL_SIDE.BACK;
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.attributeMaterial!, materialSettings)));
+                    geometry.primitive.attributeMaterial.side = MATERIAL_SIDE.FRONT;
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.attributeMaterial!, materialSettings)));
+                    geometry.primitive.attributeMaterial.side = side;
                 } else {
-                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
+                    meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.attributeMaterial!, materialSettings)));
                 }
                 meshes.forEach(m => m.material.depthWrite = false);
             } else {
-                meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(visualizationData, geometry.primitive.material!, materialSettings)));
+                meshes.push(new THREE.Mesh(bufferGeometry, this._renderingEngine.materialLoader.load(geometry.primitive.attributeMaterial!, materialSettings)));
             }
             meshes.forEach(m => m.castShadow = true);
             meshes.forEach(m => m.receiveShadow = true);
@@ -99,7 +99,7 @@ export class GeometryLoader implements ILoader {
             throw new SDError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
         }
 
-        if (geometry.primitive.material?.alphaMode === MATERIAL_ALPHA.BLEND)
+        if (geometry.primitive.attributeMaterial?.alphaMode === MATERIAL_ALPHA.BLEND)
             meshes.forEach(m => { m.material.transparent = true; m.material.depthWrite = false; });
 
         meshes.forEach(m => {

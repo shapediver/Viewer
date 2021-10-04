@@ -144,6 +144,8 @@ export class SceneTreeManager implements IManager {
         })
         switch (true) {
             case data instanceof GeometryData:
+                (<GeometryData>data).primitive.attributeMaterial = new MaterialData({ color: visData.color, opacity: visData.opacity });
+                if(visData.opacity === 0) return new Box();
                 return this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, visData);
             case data instanceof ThreejsData:
                 dataChild.add(<SDObject>(<ThreejsData>data).obj);

@@ -174,6 +174,7 @@ export class PrimitiveData {
   #boundingBox: Box = new Box();
   #indices: AttributeData | null = null;
   #material: MaterialData | null = null;
+  #attributeMaterial: MaterialData | null = null;
 
   // #endregion Properties (5)
 
@@ -192,12 +193,14 @@ export class PrimitiveData {
     mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
     indices: AttributeData | null = null,
     material: MaterialData | null = null,
+    attributeMaterial: MaterialData | null = null,
   ) {
     this.#attributes = attributes;
     this.#mode = mode;
 
     this.#indices = indices;
     this.#material = material;
+    this.#attributeMaterial = attributeMaterial;
 
     if (this.#attributes['POSITION']) {
       if (this.#attributes['POSITION'].min.length === 3 && this.#attributes['POSITION'].max.length === 3) {
@@ -238,6 +241,14 @@ export class PrimitiveData {
     this.#material = value;
   }
 
+  public get attributeMaterial(): MaterialData | null {
+    return this.#attributeMaterial;
+  }
+
+  public set attributeMaterial(value: MaterialData | null) {
+    this.#attributeMaterial = value;
+  }
+
   public get mode(): PRIMITIVE_MODE {
     return this.#mode;
   }
@@ -255,7 +266,7 @@ export class PrimitiveData {
     } = {};
     for (let attribute in this.#attributes)
       attributes[attribute] = this.#attributes[attribute].clone();
-    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <MaterialData>this.#material?.clone());
+    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <MaterialData>this.#material?.clone(), <MaterialData>this.#attributeMaterial?.clone());
   }
 
   // #endregion Public Methods (1)
