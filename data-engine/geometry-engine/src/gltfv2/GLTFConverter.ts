@@ -18,6 +18,7 @@ import {
     IGLTF_v2_Buffer,
     IGLTF_v2_Texture,
     IGLTF_v2_Image,
+    IGLTF_v2_Animation,
 } from '@shapediver/viewer.data-engine.shared-types'
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import {
@@ -28,6 +29,7 @@ import {
     MATERIAL_SIDE,
     MaterialData,
     PrimitiveData,
+    AnimationData,
 } from '@shapediver/viewer.shared.types'
 
 export enum GLTF_EXTENSIONS {
@@ -61,7 +63,7 @@ export class GLTFConverter {
     private _byteOffset: number = 0;
     private _content: IGLTF_v2 = {
         asset: {
-            copyright: '2021 (c) ShapeDiver', // TODO
+            copyright: '2021 (c) ShapeDiver',
             generator: 'ShapeDiverViewer@' + build_data.build_version,
             version: '2.0',
             extensions: {}
@@ -78,6 +80,11 @@ export class GLTFConverter {
     } = {};
 
     private _promises: Promise<any>[] = [];
+    private _nodes: {
+        node: TreeNode,
+        id: number
+    }[] = [];
+    private _animations: AnimationData[] = [];
 
     // #endregion Properties (17)
 
@@ -105,6 +112,8 @@ export class GLTFConverter {
 
         this._content.scenes = [];
         this._content.scenes.push(sceneDef);
+
+        this.convertAnimations();
 
         // Declare extensions.
         const extensionsUsedList = Object.keys(this._extensionsUsed);
@@ -168,6 +177,95 @@ export class GLTFConverter {
     // #endregion Public Methods (1)
 
     // #region Private Methods (14)
+
+    private convertAnimations() {
+        if (!this._content.animations) this._content.animations = [];
+        for(let i = 0; i < this._animations.length; i++) {
+            const animation = this._animations[i];
+            const animationDef: IGLTF_v2_Animation = {
+                name: animation.name || 'animation_' + i,
+                channels: [],
+                samplers: []
+            }
+
+            for(let j = 0; j < animation.tracks.length; j++) {    
+                const track = animation.tracks[j];            
+                const value = this._nodes.find(a => a.node === track.node);
+                if(!value) continue;
+
+                const inputMin = Math.min(...track.times);
+                const inputMax = Math.max(...track.times);
+                const inputData = new AttributeData(
+                    new Float32Array(track.times), 
+                    1,
+                    4,
+                    0,
+                    4, 
+                    false,
+                    track.times.length,
+                    [inputMin],
+                    [inputMax]);
+                    
+                const outputMin = [];
+                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 0)));
+                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 1)));
+                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 2)));
+                    
+                if(track.path === 'rotation') {
+                    outputMin.push(Math.min(...track.values.filter((s, i) => i % 4 === 3)));
+                }
+                
+                const outputMax = [];
+                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 0)));
+                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 1)));
+                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 2)));
+                    
+                if(track.path === 'rotation') {
+                    outputMax.push( Math.max(...track.values.filter((s, i) => i % 4 === 3)));
+                }
+
+                const outputData = new AttributeData(
+                    new Float32Array(track.values),
+                    track.path === 'rotation' ? 4 : 3, //itemSize
+                    track.path === 'rotation' ? 16 : 12, //itemBytes
+                    0,
+                    4,
+                    false,
+                    track.times.length,
+                    outputMin,
+                    outputMax,
+                    track.path === 'rotation' ? 16 : 12)
+
+                const samplerDef: {
+                    input: number,
+                    interpolation?: string,
+                    output: number,
+                } = {
+                    input: this.convertAccessor(inputData),
+                    output: this.convertAccessor(outputData),
+                    interpolation: track.interpolation.toUpperCase()
+                }
+                animationDef.samplers.push(samplerDef);
+
+                const channelDef: {
+                    sampler: number,
+                    target: {
+                        node: number,
+                        path: string,
+                    }
+                } = {
+                    sampler: animationDef.samplers.length -1,
+                    target: {
+                        node: value.id,
+                        path: track.path
+                    }
+                }                
+                animationDef.channels.push(channelDef);
+
+            }
+            this._content.animations?.push(animationDef)
+        }
+    }
 
     private convertAccessor(data: AttributeData): number {
         if (!this._content.accessors) this._content.accessors = [];
@@ -425,15 +523,22 @@ export class GLTFConverter {
             node.nodeMatrix[8], node.nodeMatrix[9], node.nodeMatrix[10], node.nodeMatrix[11],
             node.nodeMatrix[12], node.nodeMatrix[13], node.nodeMatrix[14], node.nodeMatrix[15]];
 
-        for (let i = 0; i < node.data.length; i++)
+        for (let i = 0; i < node.data.length; i++) {
             if (node.data[i] instanceof GeometryData)
                 nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i])
+            if (node.data[i] instanceof AnimationData)
+                this._animations.push(<AnimationData>node.data[i])
+        }
 
         if (node.children.length > 0) nodeDef.children = [];
         for (let i = 0; i < node.children.length; i++)
             nodeDef.children?.push(this.convertNode(node.children[i]));
 
         this._content.nodes.push(nodeDef);
+        this._nodes.push({
+            node,
+            id: this._content.nodes.length - 1
+        });
         return this._content.nodes.length - 1;
     }
 

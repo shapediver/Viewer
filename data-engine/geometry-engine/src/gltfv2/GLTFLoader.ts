@@ -596,7 +596,7 @@ export class GLTFLoader {
                 times: input!.array,
                 values: output!.array,
                 path: <'scale' | 'translation' | 'rotation'>path,
-                interpolation: <'linear' | 'step'>interpolation
+                interpolation: <'linear' | 'step'>interpolation?.toLowerCase()
             });
         }
 
