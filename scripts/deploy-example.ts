@@ -44,7 +44,7 @@ const execPromise = (cmd: string) => {
 
         console.log(name, example)
 
-        // console.log(await execPromise('npm run build-current'));
+        console.log(await execPromise('npm run build-current'));
         console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
 
         const bucketName = 'shapediverviewer';

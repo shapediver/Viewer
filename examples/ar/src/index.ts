@@ -52,6 +52,7 @@ autoScalingSlider.style.background = '#2196F3';
 let autoScalingState = true;
 api.autoScaling = true;
 autoScaling.onchange = () => {
+    console.log(autoScaling)
     autoScalingState = !autoScalingState;
     api.autoScaling = autoScalingState;
     if(autoScalingState) {
@@ -92,7 +93,6 @@ submit.onclick = async () => {
 
 
     api.enableAR = true;
-    api.autoScaling = false;
 
     slider.onchange = () => {
         value.value = slider.value;
