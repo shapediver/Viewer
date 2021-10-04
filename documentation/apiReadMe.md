@@ -123,7 +123,7 @@ Let's now create our first example. For that we first need an HTML-Page on which
 ```
 This HTML-File only has a canvas in it and a script tag that will load our script once it is built.
 
-Now we create a `scr`-folder and add an `index.ts` file in it with the following contents:
+Now we create a `src`-folder and add an `index.ts` file in it with the following contents:
 ```typescript
 import "reflect-metadata"
 import { api, IStandardViewer } from "@shapediver/viewer"
