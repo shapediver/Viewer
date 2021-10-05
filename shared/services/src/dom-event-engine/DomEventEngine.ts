@@ -98,6 +98,7 @@ export class DomEventEngine {
     }
 
     private onMouseUp(event: MouseEvent): void {
+        event.preventDefault();
         Object.values(this._domEventListeners).forEach(e => e.onMouseUp(event));
     }
 
@@ -108,14 +109,17 @@ export class DomEventEngine {
     }
 
     private onTouchEnd(event: TouchEvent): void {
+        event.preventDefault();
         Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
     }
 
     private onTouchMove(event: TouchEvent): void {
+        event.preventDefault();
         Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event));
     }
 
     private onTouchStart(event: TouchEvent): void {
+        event.preventDefault();
         Object.values(this._domEventListeners).forEach(e => e.onTouchStart(event));
     }
 
