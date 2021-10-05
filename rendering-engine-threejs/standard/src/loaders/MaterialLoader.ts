@@ -74,14 +74,16 @@ export class MaterialLoader implements ILoader {
             `vec4 envMapColor = textureCubeUV( envMap, reflectVec.xzy, roughness );`
         )
 
-        var index = THREE.ShaderChunk.lights_fragment_maps.lastIndexOf('#endif');
-        THREE.ShaderChunk.lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.substring(0, index) +
-        `#else
-            vec3 reflectVec = reflect( -geometry.viewDir, geometry.normal );
-            reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
-            radiance += (vec3((reflectVec.z + 1.0) / 2.0) + 0.5) / 1.5;
-        #endif
-        ` + THREE.ShaderChunk.lights_fragment_maps.substring(index + '#endif'.length);
+        if(!THREE.ShaderChunk.lights_fragment_maps.includes('vec3 reflectVec')) {
+            var index = THREE.ShaderChunk.lights_fragment_maps.lastIndexOf('#endif');
+            THREE.ShaderChunk.lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.substring(0, index) +
+            `#else
+                vec3 reflectVec = reflect( -geometry.viewDir, geometry.normal );
+                reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
+                radiance += (vec3((reflectVec.z + 1.0) / 2.0) + 0.5) / 1.5;
+            #endif
+            ` + THREE.ShaderChunk.lights_fragment_maps.substring(index + '#endif'.length);
+        }
     }
 
     // #endregion Constructors (1)

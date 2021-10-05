@@ -283,8 +283,6 @@ export class Api implements IApi {
       if(sections.viewer === undefined) 
         sections.viewer = { scene: false, camera: false, light: false, environment: false };
 
-      console.log(sections)
-
       let config: object;
       if((<ShapeDiverResponseBase>response).config !== undefined) {
         config = (<ShapeDiverResponseBase>response).config!;
