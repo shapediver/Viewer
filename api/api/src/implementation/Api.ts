@@ -31,6 +31,7 @@ import { IViewer } from '../interfaces/viewer/IViewer'
 import { StandardViewer } from './viewer/StandardViewer'
 import { Session } from './session/Session'
 import { AttributeViewer } from './viewer/AttributeViewer'
+import { ShapeDiverResponseDto } from '@shapediver/api.geometry-api-dto-v2'
 
 @singleton()
 export class Api implements IApi {
@@ -252,31 +253,54 @@ export class Api implements IApi {
   }
 
   public async applySettings( 
-    response: ShapeDiverResponseBase, 
+    response: ShapeDiverResponseBase | ShapeDiverResponseDto, 
     sections: { 
-      session: { 
-        parameter: { displayname: boolean, order: boolean, hidden: boolean },
-        export: { displayname: boolean, order: boolean, hidden: boolean }
+      session?: { 
+        parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean },
+        export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
       },
-      viewer: { scene: boolean, camera: boolean, light: boolean, environment: boolean }
+      viewer?: { scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
     } = 
     {
       session: {
-        parameter: { displayname: true, order: true, hidden: true },
-        export: { displayname: true, order: true, hidden: true }
+        parameter: { displayname: false, order: false, hidden: false },
+        export: { displayname: false, order: false, hidden: false }
       },
-      viewer: { scene: true, camera: true, light: true, environment: true }
+      viewer: { scene: false, camera: false, light: false, environment: false }
     }
   ): Promise<void> {
     try {
-      if(!response.config) throw new SDError('Api.applySettings: No config object available.')
+      if(sections.session === undefined) {
+        sections.session = {
+          parameter: { displayname: false, order: false, hidden: false },
+          export: { displayname: false, order: false, hidden: false }
+        };
+      }
+      if(sections.session.parameter === undefined) 
+        sections.session.parameter = { displayname: false, order: false, hidden: false };
+      if(sections.session.export === undefined) 
+        sections.session.export = { displayname: false, order: false, hidden: false };
+      if(sections.viewer === undefined) 
+        sections.viewer = { scene: false, camera: false, light: false, environment: false };
+
+      console.log(sections)
+
+      let config: object;
+      if((<ShapeDiverResponseBase>response).config !== undefined) {
+        config = (<ShapeDiverResponseBase>response).config!;
+      } else if((<ShapeDiverResponseDto>response).viewer !== undefined) {
+        config = (<ShapeDiverResponseDto>response).viewer!.config;
+      } else {
+        throw new SDError('Api.applySettings: No config object available.')      
+      }
+
       try {
-        validate(response.config)
+        validate(config)
       } catch(e) {
         throw new SDError('Api.applySettings: Was not able to validate config object.')
       }
 
-      const settings = <ISettingsV3>convert(response.config, '3.0');
+      const settings = <ISettingsV3>convert(config, '3.0');
 
       const exportMappingUid: { [key: string]: string | undefined } = {};
       if(sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)

@@ -36,13 +36,13 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/api.geometry-api-dto-v1": "^1.0.9",
+    "@shapediver/api.geometry-api-dto-v1": "^1.0.11",
     "@shapediver/viewer.data-engine.data-engine": "^1.4.2",
     "@shapediver/viewer.shared.node-tree": "^1.4.2",
     "@shapediver/viewer.shared.services": "^1.4.2",
     "@shapediver/viewer.shared.types": "^1.4.2",
     "axios": "^0.21.1",
-    "gl-matrix": "^3.3.0",
+    "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
   },
   "gitHead": "25b1bd5dade0720d4e40aa8f4db33c58ffcc8aae"
