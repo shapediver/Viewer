@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { GeometryData, MaterialData } from '@shapediver/viewer.shared.types'
+import { AnimationData, AnimationTrack, GeometryData, MaterialData, SDTFItemData } from '@shapediver/viewer.shared.types'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
@@ -23,6 +23,20 @@ export class OutputLoader {
             [key: string]: SessionTreeNode
         }; 
     } = {};
+    private _animationTracks: {
+        node: TreeNode,
+        value: {
+            times: number[],
+            values: number[],
+            path: 'translation' | 'scale' | 'rotation'
+            interpolation: 'linear' | 'step',
+            animationName: string
+        }
+    }[] = [];
+    private _animations: {
+        name: string,
+        repeat: boolean
+    }[] = [];
 
     // #endregion Properties (2)
 
@@ -110,6 +124,9 @@ export class OutputLoader {
             }
         }
 
+        this._animationTracks = [];
+        this.gatherAnimationData(node);
+        this.processAnimationData(node);
         this.assignMaterials(node);
         this._performanceEvaluator.endSection('outputLoading');
         return node;
@@ -118,6 +135,67 @@ export class OutputLoader {
     // #endregion Public Methods (1)
 
     // #region Private Methods (1)
+
+    private processAnimationData(node: TreeNode) {
+        while(this._animationTracks.length > 1) {
+            const firstTrack = this._animationTracks[0];
+            const otherTracks = this._animationTracks.filter(a => a.value.animationName === firstTrack?.value.animationName);
+
+            let min = Infinity;
+            let max = -Infinity;
+            const animationTracks: AnimationTrack[] = [];
+            for(let i = 0; i < otherTracks.length; i++) {
+                min = Math.min(min, ...otherTracks[i].value.times);
+                max = Math.max(max, ...otherTracks[i].value.times);
+                animationTracks.push({
+                    node: otherTracks[i].node,
+                    times: otherTracks[i].value.times,
+                    values: otherTracks[i].value.values,
+                    path: otherTracks[i].value.path,
+                    interpolation: otherTracks[i].value.interpolation
+                });
+            }
+
+            const animationData = new AnimationData(firstTrack.value.animationName, animationTracks, min, max-min);
+            const anim = this._animations.find(a => a.name = firstTrack.value.animationName);
+            if(anim) 
+                animationData.repeat = anim.repeat;
+            node.data.push(animationData);
+            
+            this._animationTracks = this._animationTracks.filter(el => {
+                return !otherTracks.includes(el);
+            });
+        }
+    }
+
+    private gatherAnimationData(node: TreeNode) {
+        for(let i = 0; i < node.data.length; i++) {
+            if(node.data[i] instanceof SDTFItemData) {
+                const itemData: SDTFItemData = <SDTFItemData>node.data[i]; 
+                if(itemData.attributes['SD_AnimationTrack']) {
+                    console.log(itemData.attributes['SD_AnimationTrack'].value)
+                    try {
+                        this._animationTracks.push({
+                            node,
+                            value: JSON.parse(itemData.attributes['SD_AnimationTrack'].value)
+                        });
+                    } catch(e) {
+                        console.log(e)
+                    }
+                }
+                if(itemData.attributes['SD_Animation']) {
+                    try {
+                        this._animations.push(JSON.parse(itemData.attributes['SD_Animation'].value));
+                    } catch(e) {
+                        console.log(e)
+                    }
+                }
+            }
+        }
+
+        for(let i = 0; i < node.children.length; i++)
+            this.gatherAnimationData(node.children[i])
+    }
 
     private mergeContentNodes(node: SessionTreeNode) {
         if(!(node.children.length > 1)) return;
