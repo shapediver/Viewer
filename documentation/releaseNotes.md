@@ -1,5 +1,15 @@
 # Release Notes
 
+## Version 1.4.3 - `Elf`
+- bugfix: AR on some iOS devices
+- bugfix: applySettings
+- bugfix: stopped event propagation
+- attribute visualization in AR
+- AR animations
+- recreated 'none' environment (SS-3563)
+
+## Version 1.4.2 - `Edge of Tomorrow`
+- bugfix: doc
 ## Version 1.4.1 - `E.T.`
 - bugfix: always display viewer versions
 - bugfix: AO makes grid re-appear
