@@ -12,7 +12,14 @@ export interface IViewerEvent {
 export interface ISessionEvent {
     sessionId: string,
     exportId?: string,
-    parameterId?: string,   
+    parameterId?: string,
+    sections?: {
+        session: {
+            parameter: { displayname?: boolean, order?: boolean, hidden?: boolean },
+            export: { displayname?: boolean, order?: boolean, hidden?: boolean }
+        },
+        viewer: { scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
+    }
 }
 
 export type IEvent = IViewerEvent | ISessionEvent;

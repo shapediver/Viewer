@@ -16,7 +16,7 @@ import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engi
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC, ISessionEvent } from '@shapediver/viewer.shared.services'
 import { MATERIAL_SIDE, MaterialData, SDTFAttributeOverview, SDTFItemData, SDTFOverview, SDTFAttributeVisualizationData } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -160,7 +160,8 @@ export class RenderingEngine implements IRenderingEngineAttributes {
         
         this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, (e) => { 
             if(this._closed) return;
-            this.applySettings();
+            const sessionEvent = <ISessionEvent>e;
+            this.applySettings(sessionEvent.sections?.viewer!);
         })
     }
 
@@ -415,12 +416,12 @@ export class RenderingEngine implements IRenderingEngineAttributes {
 
     // #region Private Methods (2)
 
-    private applySettings() {
+    private applySettings(sections: { camera?: boolean, lights?: boolean, scene?: boolean, environment?: boolean } = { camera: true, lights: true, scene: true, environment: true }) {
         this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
-        this.lightScene = this._settingsEngine.light.lightSceneId;
-        this.pointSize = this._settingsEngine.general.pointSize;
-        (<LightEngine>this.lightEngine).applySettings();
-        (<CameraEngine>this.cameraEngine).applySettings();
+        if(sections.lights) this.lightScene = this._settingsEngine.light.lightSceneId;
+        if(sections.scene) this.pointSize = this._settingsEngine.general.pointSize;
+        if(sections.lights) (<LightEngine>this.lightEngine).applySettings();
+        if(sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
         this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
         this.update();
     }

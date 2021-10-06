@@ -16,7 +16,7 @@ import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engi
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC, ISessionEvent } from '@shapediver/viewer.shared.services'
 import { MATERIAL_SIDE, MaterialData, AnimationData } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -200,7 +200,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         
         this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, (e) => { 
             if(this._closed) return;
-            this.applySettings();
+            const sessionEvent = <ISessionEvent>e;
+            this.applySettings(sessionEvent.sections?.viewer!);
         })
     }
 
@@ -589,38 +590,68 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // #region Private Methods (2)
 
-    private applySettings() {
-        // as the environment map is the only thing that needs time to load, load it first
-        const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: IEvent) => {
-            const viewerEvent = <IViewerEvent>e;
-            if(viewerEvent.viewerId !== this.id) return;
+    private applySettings(sections: { camera?: boolean, lights?: boolean, scene?: boolean, environment?: boolean } = { camera: true, lights: true, scene: true, environment: true }) {
+        if(sections.environment) {
+            // as the environment map is the only thing that needs time to load, load it first
+            const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: IEvent) => {
+                const viewerEvent = <IViewerEvent>e;
+                if(viewerEvent.viewerId !== this.id) return;
 
-            this._eventEngine.removeListener(token);
-            // return if a different env map was loaded
-            if (!viewerEvent.environmentMapId || (viewerEvent.environmentMapId && !Array.isArray(this._settingsEngine.environment.map) && viewerEvent.environmentMapId !== this._settingsEngine.environment.map.toLowerCase())) return;
+                this._eventEngine.removeListener(token);
+                // return if a different env map was loaded
+                if (!viewerEvent.environmentMapId || (viewerEvent.environmentMapId && !Array.isArray(this._settingsEngine.environment.map) && viewerEvent.environmentMapId !== this._settingsEngine.environment.map.toLowerCase())) return;
 
-            this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
-            this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
-            this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
+                this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
+                this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
+                this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
+                this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
+                this.clearAlpha = this._settingsEngine.environment.clearAlpha;
+                this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
+
+                if(sections.scene) {
+                    this.shadows = this._settingsEngine.rendering.shadows;
+                    this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
+                    this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
+                    this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
+                    this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
+                    this.pointSize = this._settingsEngine.general.pointSize;
+                }
+
+                if(sections.lights) {
+                    this.lightScene = this._settingsEngine.light.lightSceneId;
+                    (<LightEngine>this.lightEngine).applySettings();
+                }
+                if(sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
+                this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
+                this.update();
+            })
+
+            // set it like this to not trigger the loading
+            this._environmentMapResolution = this._settingsEngine.environment.mapResolution;
+            this.environmentMap = this._settingsEngine.environment.map;
+        } else {
             this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
             this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
             this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
-            this.clearAlpha = this._settingsEngine.environment.clearAlpha;
-            this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
-            this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
-            this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
             this.lightScene = this._settingsEngine.light.lightSceneId;
-            this.pointSize = this._settingsEngine.general.pointSize;
-            this.shadows = this._settingsEngine.rendering.shadows;
-            (<LightEngine>this.lightEngine).applySettings();
-            (<CameraEngine>this.cameraEngine).applySettings();
+
+            if(sections.scene) {
+                this.shadows = this._settingsEngine.rendering.shadows;
+                this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
+                this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
+                this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
+                this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
+                this.pointSize = this._settingsEngine.general.pointSize;
+            }
+
+            if(sections.lights) {
+                this.lightScene = this._settingsEngine.light.lightSceneId;
+                (<LightEngine>this.lightEngine).applySettings();
+            }
+            if(sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
             this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
             this.update();
-        })
-
-        // set it like this to not trigger the loading
-        this._environmentMapResolution = this._settingsEngine.environment.mapResolution;
-        this.environmentMap = this._settingsEngine.environment.map;
+        }
     }
 
     // #endregion Private Methods (2)

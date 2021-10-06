@@ -379,7 +379,7 @@ export class Api implements IApi {
           })
         }));
       }
-      this.#eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, { sessionId: '' });
+      this.#eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, <ISessionEvent>{ sessionId: '', sections });
       return new Promise(resolve => Promise.all(promises).then(() => resolve()));
     } catch (e) {
       if (e instanceof SDError) throw e;
