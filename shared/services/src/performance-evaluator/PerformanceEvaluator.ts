@@ -23,7 +23,7 @@ export class PerformanceEvaluator {
      */
     public start(time?: number): void {
         this._eval = {
-            start: time || performance.now(),
+            start: time || Date.now(),
             section: {}
         }
     }
@@ -37,7 +37,7 @@ export class PerformanceEvaluator {
         if (!this._eval) return;
         if (this._eval.end) return;
         this._eval.section[sectionId] = {
-            start: time || performance.now(),
+            start: time || Date.now(),
         }
     }
 
@@ -52,7 +52,7 @@ export class PerformanceEvaluator {
         if (!this._eval.section[sectionId]) return;
         if (this._eval.section[sectionId].end) return;
 
-        this._eval.section[sectionId].end = performance.now();
+        this._eval.section[sectionId].end = Date.now();
 
         this._eval.section[sectionId].duration = this._eval.section[sectionId].end! - this._eval.section[sectionId].start;
     }
@@ -66,7 +66,7 @@ export class PerformanceEvaluator {
         if (!this._eval) return;
         if (this._eval.end) return;
 
-        this._eval.end = performance.now();
+        this._eval.end = Date.now();
         this._eval.duration = this._eval.end! - this._eval.start;
     }
 

@@ -5,6 +5,8 @@ dist-prod
 lerna-debug.log
 .npmrc
 docs
-api/api/package.json
+api/full/package.json
+api/headless/package.json
+api/hydra/package.json
 documentation/releaseNotes.html
 documentation/migrationGuide.html

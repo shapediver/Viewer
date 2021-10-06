@@ -7,7 +7,7 @@ import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilitie
 
 for(let c = 0; c < allCapabilities.length; c++) {
     let name = 'camera_tests';
-    const capabilities = Object.assign({ 'name': 'camera_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
+    const capabilities = Object.assign({ 'name': 'camera_tests', 'build': require('../../../api/full/package.json').version }, allCapabilities[c]);
 
     if(process.env.PORT !== 'browserstack') {
         name = 'camera_tests';

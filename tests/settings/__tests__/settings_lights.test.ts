@@ -14,7 +14,7 @@ const originalSettings = { "settings_version": "3.0", "ar.autoScaling": true, "a
 
 for (let c = 0; c < allCapabilities.length; c++) {
     let name = 'settings_lights';
-    const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
+    const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/full/package.json').version }, allCapabilities[c]);
 
     if (process.env.PORT !== 'browserstack') {
         name = 'settings_lights';

@@ -25,6 +25,6 @@
     ],
     "paths": {
         "@shapediver/viewer.shared.node-tree": "./shared/node-tree/src/index.ts",
-        "@shapediver/viewer": "./api/api/src/index.ts",
+        "@shapediver/viewer": "./api/full/src/index.ts",
     }
 }

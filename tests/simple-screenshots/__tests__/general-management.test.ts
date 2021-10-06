@@ -7,7 +7,7 @@ import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilitie
 
 for(let c = 0; c < allCapabilities.length; c++) {
     let name = 'general_closing';
-    const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
+    const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/full/package.json').version }, allCapabilities[c]);
 
     if(process.env.PORT !== 'browserstack') {
         name = 'general_closing';

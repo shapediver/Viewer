@@ -47,7 +47,7 @@ const execPromise = (cmd: string) => {
         /**
          * Increase the version
          */
-        const packageJson = require('../api/api/package.json');
+        const packageJson = require('../api/full/package.json');
         const versions: string[] = packageJson.version.split('.');
         const newVersion: string =  (+versions[0] + (version === 'major' ? 1 : 0)) + '.' + 
                             (version === 'major' ? 0 : (+versions[1] + (version === 'minor' ? 1 : 0))) + '.' + 

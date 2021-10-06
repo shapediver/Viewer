@@ -14,7 +14,7 @@ const response = { "version": "1.0", "actions": [ { "name": "default", "title": 
 
 for(let c = 0; c < allCapabilities.length; c++) {
     let name = 'api_functions';
-    const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
+    const capabilities = Object.assign({ 'name': name, 'build': require('../../../api/full/package.json').version }, allCapabilities[c]);
 
     if(process.env.PORT !== 'browserstack') {
         name = 'api_functions';

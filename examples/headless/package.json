@@ -1,0 +1,35 @@
+{
+  "name": "@shapediver/viewer.examples.headless",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [],
+  "private": true,
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "build": "ts-node src/index.ts"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "devDependencies": {
+    "@shapediver/viewer.headless": "*",
+    "@types/node": "^15.12.4",
+    "gl-matrix": "3.3.0",
+    "tsyringe": "^4.5.0",
+    "ts-node": "^10.0.0"
+  }
+}
