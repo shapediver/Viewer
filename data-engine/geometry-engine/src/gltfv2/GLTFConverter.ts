@@ -179,7 +179,7 @@ export class GLTFConverter {
     // #region Private Methods (14)
 
     private convertAnimations() {
-        if (!this._content.animations) this._content.animations = [];
+        if (!this._content.animations && this._animations.length > 0) this._content.animations = [];
         for(let i = 0; i < this._animations.length; i++) {
             const animation = this._animations[i];
             const animationDef: IGLTF_v2_Animation = {
