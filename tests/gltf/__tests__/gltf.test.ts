@@ -55,7 +55,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                     const api: typeof API = (<any>window).sdv.api;
 
                     await new Promise<void>((resolve) => {
-                        api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                        api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                     })
                     cb();
                 }, namesV2[i]);
