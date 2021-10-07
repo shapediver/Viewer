@@ -27,21 +27,9 @@ let viewer: IViewer, session: ISession;
 (async () => {
     viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' })
 })();
+import * as SDV from '@shapediver/viewer'
 
-(<any>window).RENDERERTYPE = RENDERERTYPE;
-(<any>window).CAMERATYPE = CAMERATYPE;
-(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION;
-(<any>window).LIGHTTYPE = LIGHTTYPE;
-(<any>window).VISIBILITYMODE = VISIBILITYMODE;
-(<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
-(<any>window).EVENTTYPE = EVENTTYPE;
-(<any>window).EXPORTTYPE = EXPORTTYPE;
-(<any>window).PARAMETERTYPE = PARAMETERTYPE;
-(<any>window).PARAMETERVISUALIZATION = PARAMETERVISUALIZATION;
-(<any>window).ENVIRONMENTMAP = ENVIRONMENTMAP;
-
-(<any>window).sceneTree = api.sceneTree;
-(<any>window).api = api;
+(<any>window).sdv = SDV;
 
 (<any>window).init = async (properties: { 
     ticket: string, 

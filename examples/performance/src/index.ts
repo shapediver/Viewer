@@ -4,21 +4,9 @@ import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGG
 import { Chart, ChartData, ChartTypeRegistry, LegendItem, registerables, TooltipItem } from 'chart.js';
 import { PerformanceEvaluator } from '@shapediver/viewer.shared.services';
 import { container } from 'tsyringe';
+import * as SDV from '@shapediver/viewer'
 
-(<any>window).RENDERERTYPE = RENDERERTYPE;
-(<any>window).CAMERATYPE = CAMERATYPE;
-(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION;
-(<any>window).LIGHTTYPE = LIGHTTYPE;
-(<any>window).VISIBILITYMODE = VISIBILITYMODE;
-(<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
-(<any>window).EVENTTYPE = EVENTTYPE;
-(<any>window).EXPORTTYPE = EXPORTTYPE;
-(<any>window).PARAMETERTYPE = PARAMETERTYPE;
-(<any>window).PARAMETERVISUALIZATION = PARAMETERVISUALIZATION;
-(<any>window).ENVIRONMENTMAP = ENVIRONMENTMAP;
-
-(<any>window).api = api;
-(<any>window).sceneTree = api.sceneTree;
+(<any>window).sdv = SDV;
 const performanceEvaluator = container.resolve(PerformanceEvaluator);
 const charts: {
     [key: string]: Chart

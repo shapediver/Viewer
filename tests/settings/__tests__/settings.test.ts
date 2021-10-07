@@ -60,7 +60,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).api;
+                const api: typeof API = (<any>window).sdv.api;
                 let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayname = ('COLOR');
@@ -136,13 +136,13 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
         it('settings', async () => {
             const settings: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).api;
+                const api: typeof API = (<any>window).sdv.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
-                const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
+                const settingsEngine: SettingsEngine = (<any>window).sdv.settingsEngine;
                 cb(settingsEngine.flatten());
             });
 
@@ -162,14 +162,14 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
         it('settings - save exactly the same', async () => {
             const settings: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).api;
+                const api: typeof API = (<any>window).sdv.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
+                const settingsEngine: SettingsEngine = (<any>window).sdv.settingsEngine;
                 cb(settingsEngine.flatten());
             });
 
@@ -189,14 +189,14 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
         it('settings - general', async () => {
             const settings: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).api;
+                const api: typeof API = (<any>window).sdv.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                const settingsEngine: SettingsEngine = (<any>window).settingsEngine;
+                const settingsEngine: SettingsEngine = (<any>window).sdv.settingsEngine;
                 cb(settingsEngine.flatten());
             });
             expect(settings.build_date).toBe(build_data.build_date);

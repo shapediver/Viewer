@@ -25,20 +25,9 @@ import {
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { vec3 } from 'gl-matrix'
 
-(<any>window).RENDERERTYPE = RENDERERTYPE;
-(<any>window).CAMERATYPE = CAMERATYPE;
-(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION;
-(<any>window).LIGHTTYPE = LIGHTTYPE;
-(<any>window).VISIBILITYMODE = VISIBILITYMODE;
-(<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
-(<any>window).EVENTTYPE = EVENTTYPE;
-(<any>window).EXPORTTYPE = EXPORTTYPE;
-(<any>window).PARAMETERTYPE = PARAMETERTYPE;
-(<any>window).PARAMETERVISUALIZATION = PARAMETERVISUALIZATION;
-(<any>window).ENVIRONMENTMAP = ENVIRONMENTMAP;
+import * as SDV from '@shapediver/viewer'
 
-(<any>window).api = api;
-(<any>window).sceneTree = api.sceneTree;
+(<any>window).sdv = SDV;
 (<any>window).gltfVersion = '2.0'
 
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);

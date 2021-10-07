@@ -2,20 +2,9 @@ import 'reflect-metadata'
 
 import { api, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE, AttributeViewer, SDTFOverview, SDTFItemData, PRIMITIVETYPEHINT } from '@shapediver/viewer'
 import { mat4 } from 'gl-matrix';
+import * as SDV from '@shapediver/viewer'
 
-(<any>window).api = api;
-(<any>window).sceneTree = api.sceneTree;
-(<any>window).RENDERERTYPE = RENDERERTYPE;
-(<any>window).CAMERATYPE = CAMERATYPE;
-(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION;
-(<any>window).LIGHTTYPE = LIGHTTYPE;
-(<any>window).VISIBILITYMODE = VISIBILITYMODE;
-(<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
-(<any>window).EVENTTYPE = EVENTTYPE;
-(<any>window).EXPORTTYPE = EXPORTTYPE;
-(<any>window).PARAMETERTYPE = PARAMETERTYPE;
-(<any>window).PARAMETERVISUALIZATION = PARAMETERVISUALIZATION;
-(<any>window).ENVIRONMENTMAP = ENVIRONMENTMAP;
+(<any>window).sdv = SDV;
 
 
 (async () => {

@@ -1,21 +1,9 @@
 import 'reflect-metadata'
 
 import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
+import * as SDV from '@shapediver/viewer'
 
-(<any>window).RENDERERTYPE = RENDERERTYPE;
-(<any>window).CAMERATYPE = CAMERATYPE;
-(<any>window).ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION;
-(<any>window).LIGHTTYPE = LIGHTTYPE;
-(<any>window).VISIBILITYMODE = VISIBILITYMODE;
-(<any>window).LOGGINGLEVEL = LOGGINGLEVEL;
-(<any>window).EVENTTYPE = EVENTTYPE;
-(<any>window).EXPORTTYPE = EXPORTTYPE;
-(<any>window).PARAMETERTYPE = PARAMETERTYPE;
-(<any>window).PARAMETERVISUALIZATION = PARAMETERVISUALIZATION;
-(<any>window).ENVIRONMENTMAP = ENVIRONMENTMAP;
-
-(<any>window).api_v3 = api;
-(<any>window).sceneTree = api.sceneTree;
+(<any>window).sdv = SDV;
 let delta_v2 = 0, delta_v3 = 0;
 
 const submitButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById('submitButton');

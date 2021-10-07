@@ -52,7 +52,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                     } else {
                         await ((<any>window).addGLTF('https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/' + gltfName + '/glTF-Binary/' + gltfName + '.glb'))
                     }
-                    const api: typeof API = (<any>window).api;
+                    const api: typeof API = (<any>window).sdv.api;
 
                     await new Promise<void>((resolve) => {
                         api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -74,7 +74,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
         //         await driver.executeAsyncScript(async (gltfName: string, cb: any) => {
         //             (<any>window).gltfVersion = '1.0';
         //             await ((<any>window).addGLTF('https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/1.0/' + gltfName + '/glTF-Binary/' + gltfName + '.glb'))
-        //             const api: typeof API = (<any>window).api;
+        //             const api: typeof API = (<any>window).sdv.api;
 
         //             await new Promise<void>((resolve) => {
         //                 api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
