@@ -679,6 +679,10 @@ export class Api implements IApi {
         const a = document.createElement('a');
         document.body.appendChild(a);
         a.href = file;
+        a.rel = 'ar';
+        const img = document.createElement('img');
+        img.src = this.#defaultLogo;
+        a.appendChild(img);
         a.click();
       }
 
