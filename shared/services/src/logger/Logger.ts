@@ -87,17 +87,11 @@ export class Logger {
 
         Sentry.init({
             dsn: "https://0510990697b04b9da3ad07868e94e378@o363881.ingest.sentry.io/5828729",
-            integrations: [
-                new Integrations.BrowserTracing(), 
-                new Sentry.Integrations.Breadcrumbs({
-                    console: false,
-                    dom: false,
-                    fetch: false,
-                    history: false,
-                    sentry: false,
-                    xhr: false,
+            integrations: (integrations) => {
+                return integrations.filter(i => {
+                    return i.name !== 'GlobalHandlers';
                 })
-            ],
+            },
             defaultIntegrations: false,
             environment: 'local',
             release: build_data.build_version,
