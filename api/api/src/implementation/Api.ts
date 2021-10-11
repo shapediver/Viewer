@@ -457,7 +457,7 @@ export class Api implements IApi {
     }
   }
 
-  public async convertSceneToGLTF(): Promise<Blob> {
+  public async convertSceneToGLTF(convertForAR = false): Promise<Blob> {
     try {
       let scalingMatrix: mat4;
       if (this.autoScaling) {
@@ -475,7 +475,7 @@ export class Api implements IApi {
       this.sceneTree.root.transformations.push({ id: scalingMatrixID, matrix: scalingMatrix })
 
       // create the gltf
-      const result = await this.#geometryEngine.convertSceneToGLTF(this.sceneTree.root);
+      const result = await this.#geometryEngine.convertSceneToGLTF(this.sceneTree.root, convertForAR);
 
       // remove the matrix
       for(let i = 0; i < this.sceneTree.root.transformations.length; i++)

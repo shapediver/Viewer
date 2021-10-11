@@ -850,7 +850,7 @@ export class Session implements ISession {
                 throw error;
             }
 
-            const blob = await this.#api.convertSceneToGLTF();
+            const blob = await this.#api.convertSceneToGLTF(true);
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploading GLTF.`);
             const conversion = responseType === 'usdz' ? '?conversion=usdz' : '';
             const uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].href! + conversion, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].method!.toLowerCase()!, blob, 'model/gltf-binary')).data;

@@ -137,8 +137,8 @@ export class GeometryEngine {
         return node;
     }
 
-    public async convertSceneToGLTF(node: TreeNode): Promise<any | string | ArrayBuffer | null> {
-        return new GLTFConverter().convert(node);
+    public async convertSceneToGLTF(node: TreeNode, convertForAR = false): Promise<any | string | ArrayBuffer | null> {
+        return new GLTFConverter().convert(node, convertForAR);
     }
 
     // #endregion Public Methods (1)

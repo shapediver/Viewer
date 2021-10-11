@@ -30,6 +30,7 @@ import {
     MaterialData,
     PrimitiveData,
     AnimationData,
+    PRIMITIVE_MODE,
 } from '@shapediver/viewer.shared.types'
 
 export enum GLTF_EXTENSIONS {
@@ -85,12 +86,14 @@ export class GLTFConverter {
         id: number
     }[] = [];
     private _animations: AnimationData[] = [];
+    private _convertForAR = false;
 
     // #endregion Properties (17)
 
     // #region Public Methods (1)
 
-    public async convert(node: TreeNode): Promise<IGLTF_v2 | string | ArrayBuffer | null> {
+    public async convert(node: TreeNode, convertForAR = false): Promise<IGLTF_v2 | string | ArrayBuffer | null> {
+        this._convertForAR = convertForAR;
         const sceneNode = new TreeNode('ShapeDiverRootNode');
         sceneNode.addChild(node);
 
@@ -524,8 +527,18 @@ export class GLTFConverter {
             node.nodeMatrix[12], node.nodeMatrix[13], node.nodeMatrix[14], node.nodeMatrix[15]];
 
         for (let i = 0; i < node.data.length; i++) {
-            if (node.data[i] instanceof GeometryData)
-                nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i])
+            if (node.data[i] instanceof GeometryData) {
+                if (this._convertForAR) {
+                    if( (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.POINTS &&
+                        (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINES &&
+                        (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINE_LOOP &&
+                        (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINE_STRIP)
+                        nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i])
+                } else {
+                    nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i])
+                }
+            }
+            
             if (node.data[i] instanceof AnimationData)
                 this._animations.push(<AnimationData>node.data[i])
         }
