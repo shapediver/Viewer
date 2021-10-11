@@ -1,5 +1,9 @@
 # Release Notes
 
+## Version 1.4.9 - `Eagle Eye`
+- bugfix: gltf conversion for AR
+- api doc
+
 ## Version 1.4.8 - `Eat Pray Love`
 - Sentry improvements
 
