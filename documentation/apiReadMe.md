@@ -1,4 +1,4 @@
-<script defer src="https://viewer.shapediver.com/v3/1.2.0/bundle.js"></script>
+<script defer src="https://viewer.shapediver.com/v3/1.4.8/bundle.js"></script>
 <style>
 details[open] {
   margin-left: 10px;
@@ -14,10 +14,24 @@ To be up-to-date with all current changes, visit our [Release Notes](./releaseNo
 
 If you want to update from an older version, please use our [Migration Guide](./migrationGuide.html).
 
-_Note: In this document, the npm-module that is provided is always referenced as `ShapeDiver-Viewer`, which should not be confused with the [Viewer](./classes/api_api_src.viewer.html)s that can be created by it._
+_Note: In this document, the npm-module that is provided is always referenced as `ShapeDiver-Viewer`, which should not be confused with the [Viewer](./classes/api_api_src.standardviewer.html)s that can be created by it._
 <br>
 
 ## Installation
+
+You can use the ShapeDiver-Viewer with our CDN or with our [npm](https://www.npmjs.com/) package. Both variants have their advantages, so it's on you to choose.
+
+### Installation with CDN
+
+In you html-head section, simply add our bundle.
+
+```
+<script src="https://viewer.shapediver.com/v3/latest/bundle.js"></script>
+```
+
+You can also have a look at this [CodePen](https://codepen.io/ShapeDiver/pen/PoKYjNm) for the complete setup.
+
+### Installation with NPM
 
 You can install the ShapeDiver-Viewer with [npm](https://www.npmjs.com/). To install the module, open a terminal window in you project and run:
 ```bash
@@ -26,10 +40,10 @@ npm install --save @shapediver/viewer
 The package will be downloaded and installed for you. In most cases, you'll need a bundling tool like [webpack](https://webpack.js.org/) to combine all the packages.
 
 
-If you are having issues with the setup or ar just not that familiar with setting up projects, you can find a detailed example on how to setup a project from the start here: 
+If you are having issues with the setup or ar just not that familiar with setting up projects, you can find a detailed guide on how to setup a project from the start here: 
 <details>
 
-### NPM installations
+#### Detailed Guide
 
 First of all, you need to have a version of `npm` installed. We currently use version `7.7.6`, but any newer version should be fine.
 
@@ -140,7 +154,7 @@ const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c6
 ```
 This is already everything we need. We import `reflect-metadata` as this is needed for some functionalities that we use. It should always be on top of the imports. Then we import the [api](./classes/api_api_src.api.html) from the ShapeDiver-Viewer.
 
-Next we load a [Viewer](./classes/api_api_src.viewer.html) by providing a canvas (we created one in the `index.html`) and then we load a [Session](./classes/api_api_src.session.html). With the specified `ticket` and `modelViewUrl` you get the result as in the ShapeDiver-Viewer below. Please try it with your own `ticket` and `modelViewUrl` and don't forget to add the domain you are using to your allowed domains.
+Next we load a [Viewer](./classes/api_api_src.standardviewer.html) by providing a canvas (we created one in the `index.html`) and then we load a [Session](./classes/api_api_src.session.html). With the specified `ticket` and `modelViewUrl` you get the result as in the ShapeDiver-Viewer below. Please try it with your own `ticket` and `modelViewUrl` and don't forget to add the domain you are using to your allowed domains.
 
 <div style="width: 100%; height: 500px;">
   <canvas id="canvas1"></canvas>
@@ -157,14 +171,14 @@ Next we load a [Viewer](./classes/api_api_src.viewer.html) by providing a canvas
 
 ## Sessions
 
-In our simple example we already created a [Session](./classes/api_api_src.session.html) and a [Viewer](./classes/api_api_src.viewer.html). There can be many [Sessions](./classes/api_api_src.session.html) at once, but in most cases, there will only be one. With a [Session](./classes/api_api_src.session.html) you can do many things, you can change [Parameters](./classes/api_api_src.parameter.html), request [Exports](./classes/api_api_src.export.html) and customize your session with all the possibilities that you have set in Grasshopper.
+In our simple example we already created a [Session](./classes/api_api_src.session.html) and a [Viewer](./classes/api_api_src.standardviewer.html). There can be many [Sessions](./classes/api_api_src.session.html) at once, but in most cases, there will only be one. With a [Session](./classes/api_api_src.session.html) you can do many things, you can change [Parameters](./classes/api_api_src.parameter.html), request [Exports](./classes/api_api_src.export.html) and customize your session with all the possibilities that you have set in Grasshopper.
 
-A [Session](./classes/api_api_src.session.html) can exist completely without a [Viewer](./classes/api_api_src.viewer.html), as a [Viewer](./classes/api_api_src.viewer.html) can exist without a [Session](./classes/api_api_src.session.html). For more functions and properties, please see our Documentation on [Session](./classes/api_api_src.session.html), [Parameter](./classes/api_api_src.parameter.html), [Export](./classes/api_api_src.export.html) and [Output](./classes/api_api_src.output.html).
+A [Session](./classes/api_api_src.session.html) can exist completely without a [Viewer](./classes/api_api_src.standardviewer.html), as a [Viewer](./classes/api_api_src.standardviewer.html) can exist without a [Session](./classes/api_api_src.session.html). For more functions and properties, please see our Documentation on [Session](./classes/api_api_src.session.html), [Parameter](./classes/api_api_src.parameter.html), [Export](./classes/api_api_src.export.html) and [Output](./classes/api_api_src.output.html).
 ### Parameters
 
 Let's continue with the simple example of our last section and add something to it. The [Session](./classes/api_api_src.session.html) that we use as an example can change the length of the provided shelf from values `2` to `10`. In our first case we just want to change it to `6`. 
 
-After creating the [Viewer](./classes/api_api_src.viewer.html) and the [Session](./classes/api_api_src.session.html), we just call 
+After creating the [Viewer](./classes/api_api_src.standardviewer.html) and the [Session](./classes/api_api_src.session.html), we just call 
 
 ```typescript
 // read out the parameter with the specific name
@@ -235,7 +249,7 @@ const exportResult = await export.request();
 
 ## Viewers
 
-A [Viewer](./classes/api_api_src.viewer.html) can exist completely without a [Session](./classes/api_api_src.session.html), as a [Session](./classes/api_api_src.session.html) can exist without a [Viewer](./classes/api_api_src.viewer.html). The [Viewer](./classes/api_api_src.viewer.html) is responsible for rendering and rendering related settings. For example, camera and light management happens here. Additionally, a [Viewer](./classes/api_api_src.viewer.html) has many options, as rendering options can be enabled or disable (shadows, ambient occlusion, etc.) and scene properties can be adjusted (groundplane, grid, etc.).
+A [Viewer](./classes/api_api_src.standardviewer.html) can exist completely without a [Session](./classes/api_api_src.session.html), as a [Session](./classes/api_api_src.session.html) can exist without a [Viewer](./classes/api_api_src.standardviewer.html). The [Viewer](./classes/api_api_src.standardviewer.html) is responsible for rendering and rendering related settings. For example, camera and light management happens here. Additionally, a [Viewer](./classes/api_api_src.standardviewer.html) has many options, as rendering options can be enabled or disable (shadows, ambient occlusion, etc.) and scene properties can be adjusted (groundplane, grid, etc.).
 
 By reusing the simple example from the first section, we will now disable the groundplane. The logic presented can be used for many of the standard properties.
 
@@ -364,6 +378,9 @@ sceneTree.addChild(clonedNode);
 The result is now that we have the geometry two times, once in the old configuration and once in the new configuration.
 
 ![Example](./images/sceneGraph_4.png)
+
+## Features
+- [AR](./ar.html)
 
 
 <!--- VERSION_START -->
