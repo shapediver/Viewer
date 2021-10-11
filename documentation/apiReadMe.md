@@ -1,4 +1,4 @@
-<script defer src="https://viewer.shapediver.com/v3/1.4.8/bundle.js"></script>
+<script src="https://viewer.shapediver.com/v3/1.4.8/bundle.js"></script>
 <style>
 details[open] {
   margin-left: 10px;
@@ -163,8 +163,8 @@ Next we load a [Viewer](./classes/api_api_src.standardviewer.html) by providing 
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas1'), id: 'myViewer1' });
-    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession1', excludeViewers: ['myViewer2', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
+    const viewer = await window.sdv.api.createViewer({ canvas: document.getElementById('canvas1'), id: 'myViewer1' });
+    const session = await window.sdv.api.createSession({ ticket, modelViewUrl, id: 'mySession1', excludeViewers: ['myViewer2', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
   })();
 </script>
 <br>
@@ -196,8 +196,8 @@ await session.customize();
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas2'), id: 'myViewer2' });
-    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
+    const viewer = await window.sdv.api.createViewer({ canvas: document.getElementById('canvas2'), id: 'myViewer2' });
+    const session = await window.sdv.api.createSession({ ticket, modelViewUrl, id: 'mySession2', excludeViewers: ['myViewer1', 'myViewer3', 'myViewer4', 'myViewer5', 'myViewer6']});
     const lengthParameter = session.getParameterByName('Length')[0];
     lengthParameter.value = 6;
     await session.customize();
@@ -226,8 +226,8 @@ await session.customize();
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas3'), id: 'myViewer3' });
-    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession3', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer4', 'myViewer5', 'myViewer6']});
+    const viewer = await window.sdv.api.createViewer({ canvas: document.getElementById('canvas3'), id: 'myViewer3' });
+    const session = await window.sdv.api.createSession({ ticket, modelViewUrl, id: 'mySession3', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer4', 'myViewer5', 'myViewer6']});
     const lengthParameter = session.getParameterByName('Length')[0];
     lengthParameter.value = 8;
     const colorParameter = session.getParameterByName('Material Color')[0];
@@ -264,15 +264,15 @@ viewer.groundPlaneVisibility = false;
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas4'), id: 'myViewer4' });
-    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession4', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer5', 'myViewer6']});
+    const viewer = await window.sdv.api.createViewer({ canvas: document.getElementById('canvas4'), id: 'myViewer4' });
+    const session = await window.sdv.api.createSession({ ticket, modelViewUrl, id: 'mySession4', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer5', 'myViewer6']});
     viewer.groundPlaneVisibility = false;
   })();
 </script>
 
 ### Cameras
 
-One of the standard adaptions is to change some [Camera](./classes/api_api_src.camera.html) properties. We distinguish here between a [Perspective Camera](./classes/api_api_src.perspectivecamera.html) and an [Orthographic Camera](./classes/api_api_src.orthographiccamera.html).
+One of the standard adaptions is to change some [Camera](./classes/api_api_src.abstractcamera.html) properties. We distinguish here between a [Perspective Camera](./classes/api_api_src.perspectivecamera.html) and an [Orthographic Camera](./classes/api_api_src.orthographiccamera.html).
 
 In our next example we create an [Orthographic Camera](./classes/api_api_src.orthographiccamera.html), which will be assigned as the default camera automatically. 
 ```typescript
@@ -288,18 +288,18 @@ camera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas5'), id: 'myViewer5' });
-    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession5', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer6']});
+    const viewer = await window.sdv.api.createViewer({ canvas: document.getElementById('canvas5'), id: 'myViewer5' });
+    const session = await window.sdv.api.createSession({ ticket, modelViewUrl, id: 'mySession5', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer6']});
     const camera = viewer.createOrthographicCamera();
-    camera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
+    camera.direction = window.sdv.ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
   })();
 </script>
 
 ### Lights
 
-For lights, we always handle a bunch of them at once, that's why we introduce [Light Scenes](). A [Light Scene]() is a grouping of lights. The lights in a [Light Scene]() can be freely manipulated.
+For lights, we always handle a bunch of them at once, that's why we introduce [Light Scenes](./classes/api_api_src.lightscene.html). A [Light Scene](./classes/api_api_src.lightscene.html) is a grouping of lights. The lights in a [Light Scene](./classes/api_api_src.lightscene.html) can be freely manipulated.
 
-Therefore, we now create a new [Light Scene]() and add a few lights to it.
+Therefore, we now create a new [Light Scene](./classes/api_api_src.lightscene.html) and add a few lights to it.
 
 ```typescript
 // create a light scene, it will be assigned automatically
@@ -318,8 +318,8 @@ directionalLight.color = '#0000ff';
   const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
   const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
   (async () => {      
-    const viewer = await window.api.createViewer({ canvas: document.getElementById('canvas6'), id: 'myViewer6' });
-    const session = await window.api.createSession({ ticket, modelViewUrl, id: 'mySession6', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer5']});
+    const viewer = await window.sdv.api.createViewer({ canvas: document.getElementById('canvas6'), id: 'myViewer6' });
+    const session = await window.sdv.api.createSession({ ticket, modelViewUrl, id: 'mySession6', excludeViewers: ['myViewer1', 'myViewer2', 'myViewer3', 'myViewer4', 'myViewer5']});
     const lightScene = viewer.createLightScene();
     const ambientLight = lightScene.addAmbientLight();
     const directionalLight = lightScene.addDirectionalLight();
