@@ -6,6 +6,7 @@ import { build_data } from '@shapediver/viewer.shared.build-data'
 import { UuidGenerator } from '../uuid-generator/UuidGenerator'
 import { SDError } from './SDError'
 import { GlobalHandlers } from '@sentry/browser/dist/integrations'
+import { BrowserClient, Hub } from '@sentry/browser'
 
 export enum LOGGINGLEVEL {
     NONE = 'none',
@@ -43,6 +44,7 @@ export class Logger {
     private _showMessages: boolean = true;
     private _breadCrumbs: Sentry.Breadcrumb[] = [];
     private _breadCrumbCounter: number = 0;
+    private _sentryHub: Hub;
     private _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private _userId = this._uuidGenerator.create();
 
@@ -85,39 +87,17 @@ export class Logger {
             oldConsoleError(...data);
         };
 
-        Sentry.init({
+        const client = new BrowserClient({
             dsn: "https://0510990697b04b9da3ad07868e94e378@o363881.ingest.sentry.io/5828729",
-            integrations: [
-                new Sentry.Integrations.Breadcrumbs({
-                    console: false,
-                    dom: false,
-                    fetch: false,
-                    history: false,
-                    sentry: false,
-                    xhr: false,
-                }),
-                new Sentry.Integrations.TryCatch({
-                    setTimeout: false,
-                    setInterval: false,
-                    requestAnimationFrame: false,
-                    XMLHttpRequest: false,
-                    eventTarget: false,
-                }),
-                new Sentry.Integrations.GlobalHandlers({
-                    onerror: false,
-                    onunhandledrejection: false
-                }),
-            ],
-            defaultIntegrations: false,
             environment: 'local',
             release: build_data.build_version,
-            maxBreadcrumbs: 100,         
+            maxBreadcrumbs: 100,
             beforeBreadcrumb: (breadcrumb: Sentry.Breadcrumb, hint?: Sentry.BreadcrumbHint | undefined): Sentry.Breadcrumb | null => {
                 this._breadCrumbCounter++;
                 return breadcrumb;
             },
             beforeSend: (event: Sentry.Event, hint?: Sentry.EventHint | undefined): Sentry.Event | PromiseLike<Sentry.Event | null> | null => {
-                if(event.level === Sentry.Severity.Debug) event.fingerprint ? event.fingerprint.push(this._userId+'') : event.fingerprint = [this._userId+''];
+                if (event.level === Sentry.Severity.Debug) event.fingerprint ? event.fingerprint.push(this._userId + '') : event.fingerprint = [this._userId + ''];
                 return event;
             },
             // Set tracesSampleRate to 1.0 to capture 100%
@@ -125,7 +105,10 @@ export class Logger {
             // We recommend adjusting this value in production
             tracesSampleRate: 1.0
         });
-        Sentry.setUser({
+
+        this._sentryHub = new Hub(client);
+
+        this._sentryHub.setUser({
             id: this._userId
         })
     }
@@ -198,17 +181,17 @@ export class Logger {
         const breadcrumbCounter = this._breadCrumbCounter > 100 ? 100 : this._breadCrumbCounter;
         for(let i = breadcrumbCounter; i < this._breadCrumbs.length + breadcrumbCounter; i++) {
             if(i%100 === 0 && i !== 0) {
-                Sentry.setTag('topic', topic);
-                Sentry.setUser({ id: this._userId })
-                Sentry.captureMessage('Breadcrumb Issue ' + (i/100 - 1) + ' (' + this._userId + ')', Sentry.Severity.Debug);
-                Sentry.getCurrentHub().getScope()?.clear()
+                this._sentryHub.setTag('topic', topic);
+                this._sentryHub.setUser({ id: this._userId })
+                this._sentryHub.captureMessage('Breadcrumb Issue ' + (i/100 - 1) + ' (' + this._userId + ')', Sentry.Severity.Debug);
+                this._sentryHub.getScope()?.clear()
             }
-            Sentry.addBreadcrumb(this._breadCrumbs[i-breadcrumbCounter]);
+            this._sentryHub.addBreadcrumb(this._breadCrumbs[i-breadcrumbCounter]);
         }
 
-        Sentry.setTag('topic', topic);
-        Sentry.setUser({ id: this._userId })
-        Sentry.captureException(error);
+        this._sentryHub.setTag('topic', topic);
+        this._sentryHub.setUser({ id: this._userId })
+        this._sentryHub.captureException(error);
     }
 
     private sentryBreadcrumb(topic: LOGGINGTOPIC, msg: string, level: Sentry.Severity) {
