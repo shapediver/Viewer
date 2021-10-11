@@ -1,5 +1,22 @@
 # Release Notes
 
+## Version 1.4.8 - `Eat Pray Love`
+- Sentry improvements
+
+## Version 1.4.7 - `Easy A`
+- Sentry improvements
+
+## Version 1.4.6 - `Elephant`
+- AR improvements
+- Sentry improvements
+
+## Version 1.4.5 - `8 Mile`
+- bugfix: gltf conversion
+- CDN adaptions
+
+## Version 1.4.4 - `Edward Scissorhands`
+- bugfix: applySettings
+
 ## Version 1.4.3 - `Elf`
 - bugfix: AR on some iOS devices
 - bugfix: applySettings
@@ -10,6 +27,7 @@
 
 ## Version 1.4.2 - `Edge of Tomorrow`
 - bugfix: doc
+
 ## Version 1.4.1 - `E.T.`
 - bugfix: always display viewer versions
 - bugfix: AO makes grid re-appear
