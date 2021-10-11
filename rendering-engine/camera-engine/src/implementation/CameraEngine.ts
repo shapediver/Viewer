@@ -133,6 +133,8 @@ export class CameraEngine implements ICameraEngine {
     }
 
     public saveSettings() {
+        this._settingsEngine.settings.camera.cameraId = this._camera ? this._camera.id : 'standard';
+        
         for (let c in this._cameras) {
             const camera = this._cameras[c];
 
@@ -218,7 +220,7 @@ export class CameraEngine implements ICameraEngine {
                     zoomExtentsFactor: camera.zoomExtentsFactor,
                     position: { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] },
                     target: { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] },
-                    type: camera.type,
+                    type: (<OrthographicCamera>camera).direction,
                     controls: {
                         damping: controls.damping,
                         enableKeyPan: controls.enableKeyPan,

@@ -47,6 +47,8 @@ export class OrthographicCamera extends AbstractCamera {
    }
 
    public set direction(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
+      const changedDirection = this._direction !== value;
+
       this._direction = value;
       switch (this._direction) {
          case ORTHOGRAPHIC_CAMERA_DIRECTION.TOP:
@@ -67,6 +69,12 @@ export class OrthographicCamera extends AbstractCamera {
             break;
          default:
             this.up = vec3.fromValues(0,-1,0);
+      }
+      
+      if(changedDirection) {
+         const { position, target } = this.getZoomPositionAndTarget(undefined);
+         this.defaultPosition = vec3.clone(position);
+         this.defaultTarget = vec3.clone(target);
       }
    }
 
