@@ -2,7 +2,7 @@
   "name": "@shapediver/viewer",
   "version": "1.4.9",
   "description": "",
-  "keywords": [],
+  "keywords": ["webgl", "shapediver", "viewer", "augumented-reality", "webgl", "grasshopper", "typescript", "3d"],
   "author": "Michael Oppitz <michael@shapediver.com>",
   "license": "polyform-noncommercial-1.0.0",
   "main": "dist/index.js",

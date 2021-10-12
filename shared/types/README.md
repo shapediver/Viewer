@@ -1,12 +1,3 @@
-# `viewer.shared.types`
+# `@shapediver/viewer.shared.types`
 
-> This package manages shared types for the viewer.
-
-## Install
-```
-npm install @shapediver/viewer.shared.types
-```
-
-Please see the explanation in the [template repository](https://github.com/shapediver/ShapeDiverMonorepoTemplate) for permissions.
-
-## Usage
+This package is part of the [`@shapediver/viewer`](https://www.npmjs.com/package/@shapediver/viewer), you can find all information [here](https://viewer.shapediver.com/v3/latest/api/index.html).

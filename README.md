@@ -4,7 +4,7 @@
 This Repository is the main repository for the Shapediver Viewer.
 
 The end product is the package `@shapediver/viewer` which is the api.
-See the documentation on it [here](https://viewer.shapediver.com/v3/0.1.0/api/index.html).
+If you are not from the ShapeDiver organization and are part if the development, see the documentation on it [here](https://viewer.shapediver.com/v3/latest/api/index.html).
 
 The setup is built on `lerna` which is a package that is build for handling javascript monorepos. I extended some functionality and made created some further custom scripts for creating packages and building them. But trust me, there is no magic involved, mostly just creating a nice project setup.
 
