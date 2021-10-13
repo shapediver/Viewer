@@ -34,7 +34,8 @@ export class SystemInfo {
      */
     public get isIOS(): boolean {
         const osName = this._parser.getOS().name;
-        return osName === 'iOS';
+        return osName === 'iOS' || 
+        (window.navigator && window.navigator.maxTouchPoints === 5 && window.navigator.platform === 'MacIntel');
     };
 
     /**
