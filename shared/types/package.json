@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.types",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -36,9 +36,9 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.math": "^1.5.0",
-    "@shapediver/viewer.shared.node-tree": "^1.5.0",
-    "@shapediver/viewer.shared.services": "^1.5.0",
+    "@shapediver/viewer.shared.math": "^1.5.1",
+    "@shapediver/viewer.shared.node-tree": "^1.5.1",
+    "@shapediver/viewer.shared.services": "^1.5.1",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
   },
