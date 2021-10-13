@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.tag3d-engine",
-  "version": "1.4.9",
+  "version": "1.4.10",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -36,10 +36,10 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.data-engine.shared-types": "^1.4.9",
-    "@shapediver/viewer.shared.node-tree": "^1.4.9",
-    "@shapediver/viewer.shared.services": "^1.4.9",
-    "@shapediver/viewer.shared.types": "^1.4.9",
+    "@shapediver/viewer.data-engine.shared-types": "^1.4.10",
+    "@shapediver/viewer.shared.node-tree": "^1.4.10",
+    "@shapediver/viewer.shared.services": "^1.4.10",
+    "@shapediver/viewer.shared.types": "^1.4.10",
     "gl-matrix": "3.3.0",
     "three": "^0.129.0",
     "tsyringe": "^4.5.0"
