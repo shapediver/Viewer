@@ -18,7 +18,7 @@
     "jest-image-snapshot": "^4.5.0",
     "jest-puppeteer": "^5.0.4",
     "json": "^11.0.0",
-    "lerna": "^4.0.0",
+    "lerna": "3.22.1",
     "pako": "^2.0.3",
     "prompt": "^1.1.0",
     "puppeteer": "^9.0.0",
@@ -36,7 +36,7 @@
     "webpack-merge": "^5.8.0"
   },
   "scripts": {
-    "bootstrap": "npm run check-npm-version && lerna bootstrap --hoist",
+    "bootstrap": "npm run check-npm-version && lerna bootstrap --hoist --force-local",
     "clean": "lerna clean --yes && rm -rf node_modules",
     "check-npm-version": "bash ./scripts/check-npm-version.sh",
     "create-lib": "npm run check-npm-version && bash ./scripts/create-lib.sh",
