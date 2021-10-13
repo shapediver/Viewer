@@ -1,14 +1,15 @@
-import * as fs from 'fs'
-import AWS from 'aws-sdk'
-import pako from 'pako'
+import AWS from 'aws-sdk';
+import * as fs from 'fs';
+import pako from 'pako';
 
 const recursiveReadSync = require('recursive-readdir-sync');
 const { exec } = require("child_process");
- const readline = require('readline');
+const readline = require('readline');
 
 const execPromise = (cmd: string) => {
     return new Promise((resolve, reject) => {
         exec(cmd, (error: any, stdout: any) => {
+            console.log(error, stdout)
             if (error) throw new Error(error);
             if (!error && typeof stdout === 'string') resolve(stdout.replace('\n', ''));
         });
@@ -41,6 +42,8 @@ const execPromise = (cmd: string) => {
             console.log(changes);
         }
 
+        console.log('checking versioning...')
+
         /**
          * Increase the version
          */
@@ -67,21 +70,34 @@ const execPromise = (cmd: string) => {
         readme = readme.replace(readme.substring(readme.indexOf('<!--- VERSION_START -->') + '<!--- VERSION_START -->'.length, readme.indexOf('<!--- VERSION_END -->')), readmeVersion)
         fs.writeFileSync('./documentation/apiReadMe.md', readme, 'utf8');
         
+        console.log('re-building for deployment...')
         console.log(await execPromise('npm run build-current'));
+        console.log(await execPromise('npm run build-prod'));
+
+        console.log('creating doc...')
         console.log(await execPromise('npm run doc'));
 
+        console.log('creating automatic pre-publishing commit...')
         console.log(await execPromise('git add .'));
         console.log(await execPromise('git commit -m "automatic pre-publishing commit"'));
 
-        console.log(await execPromise(`lerna publish ${version} --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
+        console.log(await execPromise(`npm whoami`));
+        console.log('publishing to npm...')
+        console.log(await execPromise(`lerna publish ${version} --yes --no-private --force-publish --registry https://registry.npmjs.org/`));
+        console.log(await execPromise('git tag -l "@shapediver*" | xargs -n 1 git push --delete origin'));
+        console.log(await execPromise('git tag -l "@shapediver*" | xargs git tag -d'));
 
-        console.log(await execPromise('npm run build-prod'));
+        console.log('publishing to github...')
+        console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
+        console.log(await execPromise('git tag -l "@shapediver*" | xargs -n 1 git push --delete origin'));
+        console.log(await execPromise('git tag -l "@shapediver*" | xargs git tag -d'));
 
         const bucketName = 'shapediverviewer';
         const prefix = 'v3/' + newVersion + '/';
         const prefixLatest = 'v3/latest/';
         const s3 = new AWS.S3({ maxRetries: 5 });
 
+        console.log('deploying to s3...')
         const directoryPathStatic = 'examples/static/dist-prod/';
         const fileContentsStatic = <string[]>recursiveReadSync(directoryPathStatic);
         fileContentsStatic.map(function (f, cb) {
@@ -210,8 +226,8 @@ const execPromise = (cmd: string) => {
             }, (err) => { if (err) console.log(err) });
         });
 
-        await execPromise(`git tag -a v${'3.' + newVersion} -m "deployed viewer version ${'3.' + newVersion}"`);
-        await execPromise(`git push origin v${'3.' + newVersion}`);
+        await execPromise(`git tag -a viewer@${newVersion} -m "deployed viewer version ${newVersion}"`);
+        await execPromise(`git push origin viewer@${newVersion}`);
 
     } catch (e) {
         console.log(e)
