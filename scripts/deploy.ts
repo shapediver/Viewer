@@ -94,9 +94,7 @@ const execPromise = (cmd: string) => {
 
         console.log('publishing to github...')
         console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
-        console.log(await execPromise('git tag -l "@shapediver*" | xargs -n 1 git push --delete origin'));
-        console.log(await execPromise('git tag -l "@shapediver*" | xargs git tag -d'));
-
+        
         const bucketName = 'shapediverviewer';
         const prefix = 'v3/' + newVersion + '/';
         const prefixLatest = 'v3/latest/';
