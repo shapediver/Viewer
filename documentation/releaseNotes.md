@@ -1,5 +1,9 @@
 # Release Notes
 
+## Version 1.4.10 - `El Dorado`
+- bugfix: AR on iPad > 13.0
+- deployment process
+
 ## Version 1.4.9 - `Eagle Eye`
 - bugfix: gltf conversion for AR
 - api doc
