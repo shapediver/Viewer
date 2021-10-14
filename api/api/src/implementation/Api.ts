@@ -6,8 +6,6 @@ import {
   EVENTTYPE,
   IEvent,
   InputValidator,
-  ISessionEvent,
-  IViewerEvent,
   Logger,
   LOGGINGLEVEL,
   LOGGINGTOPIC,
@@ -32,6 +30,7 @@ import { StandardViewer } from './viewer/StandardViewer'
 import { Session } from './session/Session'
 import { AttributeViewer } from './viewer/AttributeViewer'
 import { ShapeDiverResponseDto } from '@shapediver/api.geometry-api-dto-v2'
+import { ISessionEvent, ISettingsEvent } from '@shapediver/viewer.shared.types'
 
 @singleton()
 export class Api implements IApi {
@@ -379,7 +378,7 @@ export class Api implements IApi {
           })
         }));
       }
-      this.#eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, <ISessionEvent>{ sessionId: '', sections });
+      this.#eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, <ISettingsEvent>{ sessionId: '', sections });
       return new Promise(resolve => Promise.all(promises).then(() => resolve()));
     } catch (e) {
       if (e instanceof SDError) throw e;

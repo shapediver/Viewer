@@ -1,5 +1,4 @@
 import { container, singleton } from 'tsyringe'
-import { ISessionEvent } from '../event-engine/interfaces/IEvent';
 
 import { EventEngine, EVENTTYPE } from '../index'
 import { StatePromise } from './StatePromise'
@@ -25,10 +24,6 @@ export class StateEngine {
         this._primarySessionLoaded = new StatePromise();
         this._firstViewerShown = new StatePromise();
         this._fontLoaded = new StatePromise();
-        this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
-            const sessionEvent = <ISessionEvent>e;
-            if(sessionEvent.sessionId) this.getCustomState(sessionEvent.sessionId + '_settings_registered').resolve(true);
-        })
     }
 
     public get primarySettingsRegistered(): StatePromise<boolean> {

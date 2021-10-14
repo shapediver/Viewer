@@ -10,7 +10,6 @@ import {
   EventEngine,
   EVENTTYPE,
   InputValidator,
-  IViewerEvent,
   Logger,
   LOGGINGTOPIC,
   PerformanceEvaluator,
@@ -19,13 +18,12 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
-import { AnimationData } from '@shapediver/viewer.shared.types'
+import { AnimationData, IEnvironmentEvent } from '@shapediver/viewer.shared.types'
 
 import { ICamera } from '../../interfaces/viewer/camera/ICamera'
 import { IOrthographicCamera } from '../../interfaces/viewer/camera/IOrthographicCamera'
 import { IPerspectiveCamera } from '../../interfaces/viewer/camera/IPerspectiveCamera'
 import { IStandardViewer } from '../../interfaces/viewer/IStandardViewer'
-import { IViewer } from '../../interfaces/viewer/IViewer'
 import { ILightScene } from '../../interfaces/viewer/lights/ILightScene'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
@@ -275,7 +273,7 @@ export class StandardViewer implements IStandardViewer {
 
       new Promise<void>(resolve => {
         const token = this.#eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e) => {
-          const viewerEvent = <IViewerEvent>e;
+          const viewerEvent = <IEnvironmentEvent>e;
           if (viewerEvent.viewerId !== this.id) return;
           if (viewerEvent.environmentMapId === value) {
             this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);

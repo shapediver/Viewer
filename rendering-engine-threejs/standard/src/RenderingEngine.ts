@@ -16,8 +16,8 @@ import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engi
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC, ISessionEvent } from '@shapediver/viewer.shared.services'
-import { MATERIAL_SIDE, MaterialData, AnimationData } from '@shapediver/viewer.shared.types'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { MATERIAL_SIDE, MaterialData, AnimationData, ISettingsEvent, IEnvironmentEvent } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -200,7 +200,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         
         this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, (e) => { 
             if(this._closed) return;
-            const sessionEvent = <ISessionEvent>e;
+            const sessionEvent = <ISettingsEvent>e;
             this.applySettings(sessionEvent.sections?.viewer!);
         })
     }
@@ -594,7 +594,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         if(sections.environment) {
             // as the environment map is the only thing that needs time to load, load it first
             const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: IEvent) => {
-                const viewerEvent = <IViewerEvent>e;
+                const viewerEvent = <IEnvironmentEvent>e;
                 if(viewerEvent.viewerId !== this.id) return;
 
                 this._eventEngine.removeListener(token);

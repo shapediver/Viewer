@@ -1,4 +1,4 @@
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, SDError, UuidGenerator, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, SDError, UuidGenerator, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import { container, singleton } from 'tsyringe'
 import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -12,6 +12,7 @@ import { PerspectiveCameraControls } from './controls/PerspectiveCameraControls'
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../interfaces/camera/IOrthographicCamera'
 import { vec3 } from 'gl-matrix'
 import { IOrthographicCameraSettingsV3, IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
+import { ISceneEvent } from '@shapediver/viewer.shared.types'
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (10)
@@ -39,7 +40,7 @@ export class CameraEngine implements ICameraEngine {
 
     constructor(private readonly _viewerId: string, private readonly _canvas: ICanvas, private readonly _domEventEngine: DomEventEngine) {        
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
-            const viewerEvent = <IViewerEvent>e;
+            const viewerEvent = <ISceneEvent>e;
             if(viewerEvent.viewerId === this._viewerId) {
                 this._boundingBox = new Box(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max);
                 

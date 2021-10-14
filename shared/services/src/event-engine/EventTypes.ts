@@ -19,8 +19,6 @@ export enum VIEWER {
     VIEWER_CLOSED = "viewer.closed"
 }
 
-
-
 export enum SESSION {
     SESSION_CREATED = "session.created",
     SESSION_INITIALIZED = "session.initialized",
@@ -34,7 +32,43 @@ export enum SETTINGS {
     SETTINGS_UPDATE = "settings.update",
 }
 
+// export 
+//     available
+//     registered
+//     registeredBatch
+//     update
+//     status
 
+// parameters 
+//     registered
+//     registeredBatch
+//     update
+//     value_update
+
+// state 
+//     BUSY
+//     IDLE
+//     MESSAGE
+//     FAILED
+
+// VIEWER
+//     FRAMERATE
+//     RENDER_INFO
+//     RENDER_BEAUTY_START
+//     RENDER_BEAUTY_CANCEL
+//     RENDER_BEAUTY_END
+//     VISIBILITY_ON
+//     VISIBILITY_OFF
+
+// INTERACTION
+//     DRAG_START
+//     DRAG_MOVE
+//     DRAG_END
+//     HOVER_ON
+//     HOVER_OVER
+//     HOVER_OFF	
+//     SELECT_ON
+//     SELECT_OFF
 
 export const EVENTTYPE = { 
     CAMERA, 
@@ -45,6 +79,5 @@ export const EVENTTYPE = {
     SETTINGS,
     VIEWER
 };
-export type EVENTTYPE = typeof EVENTTYPE;
 
 export type MAINEVENTTYPE = typeof CAMERA | typeof ENVIRONMENTMAP | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER;

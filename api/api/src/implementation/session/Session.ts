@@ -27,6 +27,7 @@ import { IFileParameter } from '../../interfaces/session/IFileParameter'
 import { FileParameter } from './FileParameter'
 import { Export } from './Export'
 import { Output } from './Output'
+import { ISettingsEvent } from '@shapediver/viewer.shared.types'
 
 @injectable()
 export class Session implements ISession {
@@ -194,6 +195,11 @@ export class Session implements ISession {
                     throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).close: Something unexpected happened.`, true)
                 }
             }
+
+            this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
+                const sessionEvent = <ISettingsEvent>e;
+                if(sessionEvent.sessionId) this.#stateEngine.getCustomState(sessionEvent.sessionId + '_settings_registered').resolve(true);
+            })
 
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).constructor: Session api created.`);
         } catch (e) {

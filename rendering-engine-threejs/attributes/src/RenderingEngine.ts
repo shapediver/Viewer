@@ -16,8 +16,8 @@ import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engi
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, IViewerEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC, ISessionEvent } from '@shapediver/viewer.shared.services'
-import { MATERIAL_SIDE, MaterialData, SDTFAttributeOverview, SDTFItemData, SDTFOverview, SDTFAttributeVisualizationData } from '@shapediver/viewer.shared.types'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { MATERIAL_SIDE, MaterialData, SDTFAttributeOverview, SDTFItemData, SDTFOverview, SDTFAttributeVisualizationData, ISettingsEvent } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -160,7 +160,7 @@ export class RenderingEngine implements IRenderingEngineAttributes {
         
         this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, (e) => { 
             if(this._closed) return;
-            const sessionEvent = <ISessionEvent>e;
+            const sessionEvent = <ISettingsEvent>e;
             this.applySettings(sessionEvent.sections?.viewer!);
         })
     }

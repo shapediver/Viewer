@@ -5,7 +5,7 @@ import { StateEngine } from './state-engine/StateEngine'
 import { SystemInfo } from './system-info/SystemInfo'
 import { DomEventEngine } from './dom-event-engine/DomEventEngine'
 import { IDomEventListener } from './dom-event-engine/IDomEventListener'
-import { IEvent, ISessionEvent, IViewerEvent } from './event-engine/interfaces/IEvent'
+import { IEvent } from './event-engine/interfaces/IEvent'
 import { Converter } from './converter/Converter'
 import { HttpClient } from './http-client/HttpClient'
 import { ImageLoader } from './image-loader/ImageLoader'
@@ -18,7 +18,7 @@ import { SDError } from './logger/SDError'
 import { MimeTypeUtils } from './mime-type-utils/MimeTypeUtils'
 
 export {
-  EventEngine, EVENTTYPE, MAINEVENTTYPE, IEvent, IViewerEvent, ISessionEvent
+  EventEngine, EVENTTYPE, MAINEVENTTYPE, IEvent
 }
 
 export {

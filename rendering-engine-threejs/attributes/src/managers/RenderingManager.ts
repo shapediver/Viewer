@@ -8,13 +8,14 @@ import {
     PerspectiveCamera,
     PerspectiveCameraControls
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { EventEngine, EVENTTYPE, IViewerEvent, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
 import { IManager } from '../interfaces/IManager'
+import { ICameraEvent } from '@shapediver/viewer.shared.types'
 
 export class RenderingManager implements IManager {
     // #region Properties (16)
@@ -138,12 +139,12 @@ export class RenderingManager implements IManager {
     public init(): void {
         try {
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
-                const viewerEvent = <IViewerEvent>e;
+                const viewerEvent = <ICameraEvent>e;
                 if (viewerEvent.viewerId === this._renderingEngine.id)
                     this.startRendering();
             })
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
-                const viewerEvent = <IViewerEvent>e;
+                const viewerEvent = <ICameraEvent>e;
                 if (viewerEvent.viewerId === this._renderingEngine.id)
                     this.stopRendering();
             })

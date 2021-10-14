@@ -24,7 +24,7 @@ export class EventEngine {
     constructor() {
         this._eventListeners = {};
         for (const type in EVENTTYPE) {
-            const subEventType = EVENTTYPE[type as keyof EVENTTYPE];
+            const subEventType = EVENTTYPE[type as keyof typeof EVENTTYPE];
             this._eventListeners[type.toLowerCase()] = [];
             for (const subtype in subEventType) {
                 this._eventListeners[subEventType[subtype as keyof typeof subEventType]] = [];
@@ -39,7 +39,7 @@ export class EventEngine {
         if(typeof type === 'string') typeString = type;
 
         for (const mainType in EVENTTYPE)
-            if(type === EVENTTYPE[mainType as keyof EVENTTYPE])
+            if(type === EVENTTYPE[mainType as keyof typeof EVENTTYPE])
                 typeString = mainType.toLowerCase();
         
         if(!typeString || !this._eventListeners[typeString]) {
@@ -92,7 +92,7 @@ export class EventEngine {
      */
     public removeListener(token: string): boolean {
         for (const type in EVENTTYPE) {
-            const subEventType = EVENTTYPE[type as keyof EVENTTYPE];
+            const subEventType = EVENTTYPE[type as keyof typeof EVENTTYPE];
             const typeLowerCase = type.toLowerCase();
             for (let i = 0; i < this._eventListeners[typeLowerCase]!.length; i++) {
                 if (this._eventListeners[typeLowerCase]![i].token === token) {

@@ -1,8 +1,8 @@
 import * as THREE from 'three'
-import { MATERIAL_SIDE, MaterialData } from '@shapediver/viewer.shared.types'
+import { MATERIAL_SIDE, MaterialData, ISceneEvent } from '@shapediver/viewer.shared.types'
 import { vec3 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
-import { EventEngine, EVENTTYPE, IViewerEvent } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 
 import { RenderingEngine } from '..'
 import { IManager } from '../interfaces/IManager'
@@ -28,7 +28,7 @@ export class EnvironmentGeometryManager implements IManager {
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
-            const viewerEvent = <IViewerEvent>e;
+            const viewerEvent = <ISceneEvent>e;
             if(viewerEvent.viewerId !== this._renderingEngine.id) return;
             const bb = new Box(viewerEvent.boundingBox?.min, viewerEvent.boundingBox?.max);
 
