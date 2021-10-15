@@ -21,6 +21,8 @@ _Note: In this document, the npm-module that is provided is always referenced as
 
 You can use the ShapeDiver-Viewer with our CDN or with our [npm](https://www.npmjs.com/) package. Both variants have their advantages, so it's on you to choose.
 
+If you don't know what is right for you, you'll probably be better off with the CDN. The npm version is for larger projects that might always use npm.
+
 ### Installation with CDN
 
 In you html-head section, simply add our bundle.
@@ -39,6 +41,7 @@ npm install --save @shapediver/viewer
 ```
 The package will be downloaded and installed for you. In most cases, you'll need a bundling tool like [webpack](https://webpack.js.org/) to combine all the packages.
 
+You can also have a look at this [CodeSandBox](https://codesandbox.io/s/viewer-3-setup-ob8vw) for an example setup.
 
 If you are having issues with the setup or ar just not that familiar with setting up projects, you can find a detailed guide on how to setup a project from the start here: 
 <details>
@@ -327,9 +330,9 @@ directionalLight.color = '#0000ff';
   })();
 </script>
 
-## The Scene tree
+## The Scene Tree
 
-This application has it's own scene tree in which sessions store their computed outputs, but you can also create, adjust and remove parts of the scene tree yourself.
+This application has it's own scene tree in which sessions store their computed outputs, but you can also create, adjust and remove parts of the scene tree yourself. (Example: In some cases you might want to adjust the geometry that you get back from our servers. You might want to hide some objects first, or simply don't want to display them at all. In most cases, there is no need to adjust the scene tree though.)
 
 The scene tree is a tree structure with a single root node. Every node can have any number of children and data items. The data items contain the actual information, whereas the nodes are only used to maintain and manage the hierarchy.
 
