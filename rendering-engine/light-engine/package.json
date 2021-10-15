@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.light-engine",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -37,9 +37,9 @@
   },
   "dependencies": {
     "@shapediver/viewer.settings": "^0.1.10",
-    "@shapediver/viewer.shared.node-tree": "^1.5.2",
-    "@shapediver/viewer.shared.services": "^1.5.2",
-    "@shapediver/viewer.shared.types": "^1.5.2",
+    "@shapediver/viewer.shared.node-tree": "^1.5.3",
+    "@shapediver/viewer.shared.services": "^1.5.3",
+    "@shapediver/viewer.shared.types": "^1.5.3",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
   },
