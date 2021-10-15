@@ -31,7 +31,7 @@ In you html-head section, simply add our bundle.
 <script src="https://viewer.shapediver.com/v3/latest/bundle.js"></script>
 ```
 
-You can also have a look at this [CodePen](https://codepen.io/ShapeDiver/pen/PoKYjNm) for the complete setup.
+You can also have a look at this [CodeSandBox](https://codesandbox.io/s/viewer-3-cdn-hcwv4) for the complete setup.
 
 ### Installation with NPM
 
@@ -41,7 +41,7 @@ npm install --save @shapediver/viewer
 ```
 The package will be downloaded and installed for you. In most cases, you'll need a bundling tool like [webpack](https://webpack.js.org/) to combine all the packages.
 
-You can also have a look at this [CodeSandBox](https://codesandbox.io/s/viewer-3-setup-ob8vw) for an example setup.
+You can also have a look at this [CodeSandBox](https://codesandbox.io/s/viewer-3-npm-ob8vw) for an example setup.
 
 If you are having issues with the setup or ar just not that familiar with setting up projects, you can find a detailed guide on how to setup a project from the start here: 
 <details>
