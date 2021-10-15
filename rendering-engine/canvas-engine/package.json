@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.canvas-engine",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -36,7 +36,7 @@
     "testEnvironment": "jsdom"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.services": "^1.5.3",
+    "@shapediver/viewer.shared.services": "^1.5.4",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
   },
