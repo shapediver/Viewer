@@ -41,7 +41,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.quit();
         })
 
-        const namesV2 = ['AntiqueCamera', 'Avocado', 'BarramundiFish', 'BoomBox', 'Corset', 'DamagedHelmet', 'FlightHelmet', 'Lantern', 'SciFiHelmet', 'Suzanne', 'WaterBottle'];
+        const namesV2 = ['AlphaBlendModeTest', 'AntiqueCamera', 'Avocado', 'BarramundiFish', 'BoomBox', 'Corset', 'DamagedHelmet', 'FlightHelmet', 'Lantern', 'SciFiHelmet', 'Suzanne', 'WaterBottle'];
 
         for (let i = 0; i < namesV2.length; i++) {
             test(name, async () => {

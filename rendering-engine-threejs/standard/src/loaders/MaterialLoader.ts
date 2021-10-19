@@ -5,6 +5,7 @@ import {
   MaterialData,
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING,
+  MATERIAL_ALPHA,
 } from '@shapediver/viewer.shared.types'
 import { vec4 } from 'gl-matrix'
 
@@ -243,6 +244,14 @@ export class MaterialLoader implements ILoader {
                 properties.transparent = true;
                 properties.depthWrite = false;
                 mapCount++;
+            }
+            
+            if(materialProperties.alphaMode === MATERIAL_ALPHA.BLEND) {
+                properties.format = THREE.RGBAFormat;
+                properties.transparent = true;
+            } else {
+                properties.format = THREE.RGBFormat;
+                properties.transparent = false;
             }
 
             if (materialProperties.aoMap !== undefined) {
