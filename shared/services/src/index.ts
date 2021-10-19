@@ -15,6 +15,7 @@ import { UuidGenerator } from './uuid-generator/UuidGenerator'
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator'
 import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from './logger/Logger'
 import { SDError } from './logger/SDError'
+import { MimeTypeUtils } from './mime-type-utils/MimeTypeUtils'
 
 export {
   EventEngine, EVENTTYPE, MAINEVENTTYPE, IEvent, IViewerEvent, ISessionEvent
@@ -66,4 +67,8 @@ export {
 
 export {
     PerformanceEvaluator
+}
+
+export {
+    MimeTypeUtils
 }
