@@ -14,88 +14,50 @@ const execPromise = (cmd: string) => {
     });
 }
 
+const s3 = new AWS.S3({ maxRetries: 5 });
+const bucketName = 'shapediverviewer';
+const prefixLatest = 'v3/latest';
+
+const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
+    const fileContents = <string[]>recursiveReadSync(directoryPath);
+    if(prefix) {
+        fileContents.map(function (f, cb) {
+            const key = (name ? prefix + '/' + name : prefix) + f.substring(directoryPath.length, f.length).replace(/\\/g, '/');
+            s3.putObject({
+                Bucket: bucketName,
+                Key: key,
+                Body: pako.gzip(fs.readFileSync(f)),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
+            }, (err) => { if (err) console.log(err) });
+        });
+    }
+    fileContents.map(function (f, cb) {
+        const key = (name ? prefixLatest + '/' + name : prefixLatest) + f.substring(directoryPath.length, f.length).replace(/\\/g, '/');
+        s3.putObject({
+            Bucket: bucketName,
+            Key: key,
+            Body: pako.gzip(fs.readFileSync(f)),
+            ACL: 'public-read',
+            ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
+            CacheControl: 'max-age=3600',
+            ContentEncoding: 'gzip'
+        }, (err) => { if (err) console.log(err) });
+    });
+}
+
 (async () => {
     try {
-        console.log(await execPromise('npm run build-current'));
-        console.log(await execPromise('cd examples/test && npm run build-prod && cd ../..'));
-        console.log(await execPromise('cd examples/gltf && npm run build-prod && cd ../..'));
-        console.log(await execPromise('cd examples/multiple && npm run build-prod && cd ../..'));
-        console.log(await execPromise('cd examples/performance && npm run build-prod && cd ../..'));
-        console.log(await execPromise('cd examples/ar && npm run build-prod && cd ../..'));
-
-        const bucketName = 'shapediverviewer';
-        const prefixLatest = 'v3/latest/';
-        const s3 = new AWS.S3({ maxRetries: 5 });
-
-        const directoryPathTest = 'examples/test/dist-prod/';
-        const fileContentsTest = <string[]>recursiveReadSync(directoryPathTest);
-        fileContentsTest.map(function (f, cb) {
-            s3.putObject({
-                Bucket: bucketName,
-                Key: prefixLatest + 'test/' + f.substring(directoryPathTest.length, f.length).replace(/\\/g, '/'),
-                Body: pako.gzip(fs.readFileSync(f)),
-                ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
-                CacheControl: 'max-age=3600',
-                ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err) });
-        });
-
-        const directoryPathGltf = 'examples/gltf/dist-prod/';
-        const fileContentsGltf = <string[]>recursiveReadSync(directoryPathGltf);
-        fileContentsGltf.map(function (f, cb) {
-            s3.putObject({
-                Bucket: bucketName,
-                Key: prefixLatest + 'gltf/' + f.substring(directoryPathGltf.length, f.length).replace(/\\/g, '/'),
-                Body: pako.gzip(fs.readFileSync(f)),
-                ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
-                CacheControl: 'max-age=3600',
-                ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err) });
-        });
-
-        const directoryPathMultiple = 'examples/multiple/dist-prod/';
-        const fileContentsMultiple = <string[]>recursiveReadSync(directoryPathMultiple);
-        fileContentsMultiple.map(function (f, cb) {
-            s3.putObject({
-                Bucket: bucketName,
-                Key: prefixLatest + 'multiple/' + f.substring(directoryPathMultiple.length, f.length).replace(/\\/g, '/'),
-                Body: pako.gzip(fs.readFileSync(f)),
-                ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
-                CacheControl: 'max-age=3600',
-                ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err) });
-        });
-
-        const directoryPathPerformance = 'examples/performance/dist-prod/';
-        const fileContentsPerformance = <string[]>recursiveReadSync(directoryPathPerformance);
-        fileContentsPerformance.map(function (f, cb) {
-            s3.putObject({
-                Bucket: bucketName,
-                Key: prefixLatest + 'performance/' + f.substring(directoryPathPerformance.length, f.length).replace(/\\/g, '/'),
-                Body: pako.gzip(fs.readFileSync(f)),
-                ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
-                CacheControl: 'max-age=3600',
-                ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err) });
-        });
-
-        const directoryPathAr = 'examples/ar/dist-prod/';
-        const fileContentsAr = <string[]>recursiveReadSync(directoryPathAr);
-        fileContentsAr.map(function (f, cb) {
-            s3.putObject({
-                Bucket: bucketName,
-                Key: prefixLatest + 'ar/' + f.substring(directoryPathAr.length, f.length).replace(/\\/g, '/'),
-                Body: pako.gzip(fs.readFileSync(f)),
-                ACL: 'public-read',
-                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
-                CacheControl: 'max-age=3600',
-                ContentEncoding: 'gzip'
-            }, (err) => { if (err) console.log(err) });
-        });
+        console.log('deploying to s3...')
+        const examples = ['ar', 'ar-query', 'attributes', 'cdn', 'compare', 'gltf', 'multiple', 'performance', 'query', 'simple', 'static', 'test'];
+        for(let i = 0; i < examples.length; i++) {
+            console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
+            const example = examples[i];
+            console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
+            deployToS3('examples/' + example + '/dist-prod', example)
+        }
     } catch (e) {
         console.log(e)
     }
