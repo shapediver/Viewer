@@ -45,18 +45,9 @@ const execPromise = (cmd: string) => {
         migrationGuide = migrationGuide.substr(0, indexMigrationGuideHeadEnd) + styleToHide + migrationGuide.substr(indexMigrationGuideHeadEnd);
         fs.writeFileSync('./documentation/migrationGuide.html', migrationGuide, 'utf8');
 
-        await execPromise(`npm run doc-ar`);
-        await execPromise(`cp -r docs/index.html documentation/ar.html`);
-        // load html and add style
-        let featuresAr = fs.readFileSync('./documentation/ar.html', 'utf8');
-        const indexFeaturesArHeadEnd = featuresAr.indexOf('</head>')
-        featuresAr = featuresAr.substr(0, indexFeaturesArHeadEnd) + styleToHide + featuresAr.substr(indexFeaturesArHeadEnd);
-        fs.writeFileSync('./documentation/ar.html', featuresAr, 'utf8');
-
         await execPromise(`npm run doc-main`);
         await execPromise(`cp -r documentation/releaseNotes.html docs/releaseNotes.html`);
         await execPromise(`cp -r documentation/migrationGuide.html docs/migrationGuide.html`);
-        await execPromise(`cp -r documentation/ar.html docs/ar.html`);
         await execPromise(`cp -r documentation/images docs/images`);
 
     } catch (e) {
