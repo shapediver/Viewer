@@ -1,4 +1,4 @@
-import { ISDObject, SD_RENDERINGTYPE } from './ISDObject'
+import { ISDObject } from './ISDObject'
 import { CustomData } from './CustomData'
 import { AttributeData, GeometryData, PRIMITIVE_MODE, PrimitiveData } from './GeometryData'
 import {
@@ -18,7 +18,7 @@ import { ATTRIBUTEVISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisual
 import { AnimationData, AnimationTrack } from './AnimationData'
 
 export {
-  ISDObject, SD_RENDERINGTYPE
+  ISDObject
 }
 
 export {

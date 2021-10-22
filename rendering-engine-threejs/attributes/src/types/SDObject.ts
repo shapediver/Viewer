@@ -1,11 +1,10 @@
 import * as THREE from 'three'
-import { ISDObject, SD_RENDERINGTYPE } from '@shapediver/viewer.shared.types'
+import { ISDObject } from '@shapediver/viewer.shared.types'
 import { mat4 } from 'gl-matrix'
 
 export class SDObject extends THREE.Object3D implements ISDObject {
     // #region Constructors (1)
 
-    #SDtype: SD_RENDERINGTYPE;
     #SDid: string;
     #SDversion: string;
 
@@ -16,7 +15,6 @@ export class SDObject extends THREE.Object3D implements ISDObject {
         super();
         this.#SDid = SDid;
         this.#SDversion = SDversion;
-        this.#SDtype = SD_RENDERINGTYPE.THREEJS;
     }
     
     public applyTransformation(transformation: mat4): void {
@@ -46,10 +44,6 @@ export class SDObject extends THREE.Object3D implements ISDObject {
 
     public set SDversion(value: string) {
         this.#SDversion = value;
-    }
-
-    public get SDtype(): SD_RENDERINGTYPE {
-        return this.#SDtype;
     }
 
     // #endregion Public Accessors (4)
