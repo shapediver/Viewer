@@ -5,7 +5,6 @@ module.exports = {
     name: 'Viewer',
     excludePrivate: true,
     hideGenerator: true,
-    readme: 'documentation/apiReadMe.md',
     disableSources: true,
     theme: 'minimal',
 }

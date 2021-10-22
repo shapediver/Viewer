@@ -8,6 +8,15 @@
 * __Commit:__ d1806bd691e3937a5f303430e2ee464d871aad0e
 <!--- VERSION_END -->
 
+## Version 1.6.1 - `Fahrenheit 9/11`
+- doc improvements
+
+## Version 1.6.0 - `The Fellowship of the Ring`
+- doc improvements
+- deployment scripts
+
+## Version 1.5.* was used for internal deployment changes
+
 ## Version 1.4.10 - `El Dorado`
 - bugfix: AR on iPad > 13.0
 - deployment process
