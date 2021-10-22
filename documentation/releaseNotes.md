@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.6.0
-* __Build date:__ 2021-10-15T13:43:32.413Z
+* __Version:__ 1.6.1
+* __Build date:__ 2021-10-22T14:41:36.812Z
 * __Branch:__ development
-* __Commit:__ d1806bd691e3937a5f303430e2ee464d871aad0e
+* __Commit:__ bb322bdbeaee22520b081a1b1b78733acddacf87
 <!--- VERSION_END -->
 
 ## Version 1.6.1 - `Fahrenheit 9/11`
