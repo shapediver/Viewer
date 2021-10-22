@@ -1,5 +1,13 @@
 # Release Notes
 
+<!--- VERSION_START -->
+## Version
+* __Version:__ 1.6.0
+* __Build date:__ 2021-10-15T13:43:32.413Z
+* __Branch:__ development
+* __Commit:__ d1806bd691e3937a5f303430e2ee464d871aad0e
+<!--- VERSION_END -->
+
 ## Version 1.4.10 - `El Dorado`
 - bugfix: AR on iPad > 13.0
 - deployment process
