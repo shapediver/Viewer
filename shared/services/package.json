@@ -39,7 +39,7 @@
     "@ctrl/tinycolor": "^3.4.0",
     "@sentry/browser": "^6.7.2",
     "@sentry/tracing": "^6.7.2",
-    "@shapediver/viewer.settings": "^0.1.10",
+    "@shapediver/viewer.settings": "^0.1.12",
     "@shapediver/viewer.shared.build-data": "^1.6.1",
     "@types/ua-parser-js": "^0.7.36",
     "@types/uuid": "^8.3.0",

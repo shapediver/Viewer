@@ -34,6 +34,7 @@ export enum LOGGINGTOPIC {
     DATAPROCESSING = 'dataprocessing',
     SDTF = 'sdtf',
     THREE = 'three',
+    SETTINGS = 'settings',
 }
 
 @singleton()

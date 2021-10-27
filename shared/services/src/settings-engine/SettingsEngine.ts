@@ -1,9 +1,10 @@
-import { ISettingsV3, DefaultsV3, ICameraSettingsV3, convert, validate } from '@shapediver/viewer.settings';
+import { ISettingsV3, DefaultsV3, convert, validate } from '@shapediver/viewer.settings';
 import { container, singleton } from 'tsyringe'
 
 import { EventEngine } from '../event-engine/EventEngine'
 import { EVENTTYPE } from '../event-engine/EventTypes'
-import { StateEngine } from '../state-engine/StateEngine'
+import { Logger, LOGGINGTOPIC } from '../logger/Logger';
+import { SDError } from '../logger/SDError';
 
 type IARSettings = ISettingsV3["ar"];
 type ICameraSettings = ISettingsV3["camera"];
@@ -16,22 +17,17 @@ type ISessionSettings = ISettingsV3["session"];
 
 @singleton()
 export class SettingsEngine {
-    // #region Properties (1)
+    // #region Properties (8)
 
-    private readonly _settings: ISettingsV3 = DefaultsV3();
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    private readonly _sessionSettings = ['commitParameters', 'commitSettings', 'controlNames', 'controlOrder', 'parametersHidden'];
-    private _version: '1.0' | '2.0' | '3.0' = '3.0';
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _settings: ISettingsV3 = DefaultsV3();
 
+    private _version?: '1.0' | '2.0' | '3.0';
 
-    // #endregion Properties (1)
+    // #endregion Properties (8)
 
-    // #region Public Accessors (8)
-
-    public get settings(): ISettingsV3 {
-        return this._settings;
-    }
+    // #region Public Accessors (10)
 
     public get ar(): IARSettings {
         return this._settings.ar;
@@ -69,16 +65,16 @@ export class SettingsEngine {
         this._settings.session = value;
     }
 
-    public convertToTargetVersion(): any {
-        return convert(this._settings, this._version);
+    public get settings(): ISettingsV3 {
+        return this._settings;
     }
 
-    public loadSettings(json: any, sessionId: string, loadAsPrimary: boolean = false) {
-        try { validate(json, '3.0'); this._version = '3.0'; } catch (e) { }
-        try { validate(json, '2.0'); this._version = '2.0'; } catch (e) { }
-        try { validate(json, '1.0'); this._version = '1.0'; } catch (e) { }
-        (<any>this._settings) = convert(json, '3.0');
-        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
+    // #endregion Public Accessors (10)
+
+    // #region Public Methods (4)
+
+    public convertToTargetVersion(): any {
+        return convert(this._settings, this._version || '3.0');
     }
 
     public flatten() {
@@ -101,10 +97,55 @@ export class SettingsEngine {
         return flattenObject(this.settings);
     }
 
+    public loadSettings(json: any, sessionId: string, loadAsPrimary: boolean = false) {
+        try { validate(json, '3.0'); this._version = '3.0'; } catch (e) { if(!(e.message && (<string>e.message).includes('The settings do have a different version than the target version.'))) this._logger.error(LOGGINGTOPIC.SETTINGS, new SDError(e.message, e), 'Settings could not be validated.', false, true); }
+        try { validate(json, '2.0'); this._version = '2.0'; } catch (e) {  }
+        try { validate(json, '1.0'); this._version = '1.0'; } catch (e) {  }
+
+        if(!this._version) {
+            this._version = '3.0';
+            this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
+        } else {
+            (<any>this._settings) = convert(json, '3.0');
+            this.cleanSettings(this._settings);
+            this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
+        }
+    }
+
     public reset() {
         (<any>this._settings) = DefaultsV3();
         this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId: '' });
     }
 
-    // #endregion Public Accessors (8)
+    // #endregion Public Methods (4)
+
+    // #region Private Methods (1)
+
+    private cleanSettings(json: ISettingsV3) {
+        for(let c in json.camera.cameras) {
+            const camera = json.camera.cameras[c];
+            if(camera.type === 'perspective') {
+                const restrictions = (<any>camera.controls).restrictions;
+                if(restrictions.position.cube.min.x === null) restrictions.position.cube.min.x = -Infinity;
+                if(restrictions.position.cube.min.y === null) restrictions.position.cube.min.y = -Infinity;
+                if(restrictions.position.cube.min.z === null) restrictions.position.cube.min.z = -Infinity;
+                if(restrictions.position.cube.max.x === null) restrictions.position.cube.max.x = Infinity;
+                if(restrictions.position.cube.max.y === null) restrictions.position.cube.max.y = Infinity;
+                if(restrictions.position.cube.max.z === null) restrictions.position.cube.max.z = Infinity;
+                if(restrictions.position.sphere.radius === null) restrictions.position.sphere.radius = Infinity;
+                if(restrictions.target.cube.min.x === null) restrictions.target.cube.min.x = -Infinity;
+                if(restrictions.target.cube.min.y === null) restrictions.target.cube.min.y = -Infinity;
+                if(restrictions.target.cube.min.z === null) restrictions.target.cube.min.z = -Infinity;
+                if(restrictions.target.cube.max.x === null) restrictions.target.cube.max.x = Infinity;
+                if(restrictions.target.cube.max.y === null) restrictions.target.cube.max.y = Infinity;
+                if(restrictions.target.cube.max.z === null) restrictions.target.cube.max.z = Infinity;
+                if(restrictions.target.sphere.radius === null) restrictions.target.sphere.radius = Infinity;
+                if(restrictions.rotation.minAzimuthAngle === null) restrictions.rotation.minAzimuthAngle = -Infinity;
+                if(restrictions.rotation.maxAzimuthAngle === null) restrictions.rotation.maxAzimuthAngle = Infinity;
+                if(restrictions.zoom.maxDistance === null) restrictions.zoom.maxDistance = Infinity;
+            }
+        }
+    }
+
+    // #endregion Private Methods (1)
 }
