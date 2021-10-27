@@ -8,6 +8,9 @@
 * __Commit:__ bb322bdbeaee22520b081a1b1b78733acddacf87
 <!--- VERSION_END -->
 
+## Version 1.6.2 - `Fargo`
+- bugfix: v3 settings conversion
+
 ## Version 1.6.1 - `Fahrenheit 9/11`
 - doc improvements
 
