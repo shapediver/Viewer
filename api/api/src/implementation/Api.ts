@@ -395,7 +395,10 @@ export class Api implements IApi {
         this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.closeSession: Session with id ${id} was not registered.`);
         return false;
       }
-
+      
+      if(this.#stateEngine.getCustomState(id + '_session_initialized').resolved === false)
+        await new Promise<void>(resolve => { this.#stateEngine.getCustomState(id + '_session_initialized').then(() => resolve()) })
+  
       const result = await this.#sessionCallbacks[id].close();
       if(this.#stateEngine.getCustomState(id + '_settings_registered'))
         this.#stateEngine.getCustomState(id + '_settings_registered').reset();
@@ -439,6 +442,9 @@ export class Api implements IApi {
         this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
         return false;
       }
+
+      if(this.#stateEngine.getCustomState(id + '_viewer_initialized').resolved === false)
+        await new Promise<void>(resolve => { this.#stateEngine.getCustomState(id + '_viewer_initialized').then(() => resolve()) })
 
       if(this.#stateEngine.getCustomState(id + '_settings_loaded'))
         this.#stateEngine.getCustomState(id + '_settings_loaded').reset();
@@ -509,6 +515,8 @@ export class Api implements IApi {
         throw error;
       }
 
+      this.#stateEngine.createCustomState(sessionId + '_session_initialized');
+
       // create the actual session 
       let sessionCallbacks = {};
       const session = new Session(Object.assign({}, properties, { id: sessionId }), sessionCallbacks);
@@ -519,6 +527,8 @@ export class Api implements IApi {
       this.#sessionCallbacks[sessionId] = sessionCallbacks;
 
       await session.init();
+      
+      this.#stateEngine.getCustomState(sessionId + '_session_initialized').resolve(true);
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
     } catch (e) {
@@ -546,6 +556,8 @@ export class Api implements IApi {
         throw error;
       }
 
+      this.#stateEngine.createCustomState(viewerId + '_viewer_initialized');
+
       // create the actual viewer
       let viewerCallbacks = {};
       const type = prop.type || RENDERERTYPE.STANDARD;
@@ -571,6 +583,8 @@ export class Api implements IApi {
 
       viewer.update();
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId });
+      
+      this.#stateEngine.getCustomState(viewerId + '_viewer_initialized').resolve(true);
 
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
       return this.viewers[viewerId];
