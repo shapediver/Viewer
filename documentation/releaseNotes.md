@@ -8,6 +8,9 @@
 * __Commit:__ 554998195f1715f84805b9aa90a027142d3ea769
 <!--- VERSION_END -->
 
+## Version 1.6.3 - `The Fifth Element`
+- bugfix: closing sessions/viewers before they are open
+
 ## Version 1.6.2 - `Fargo`
 - bugfix: v3 settings conversion
 
