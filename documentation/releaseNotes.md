@@ -8,6 +8,9 @@
 * __Commit:__ 4d1cbc6dd5fe407dcaa0e80d863576f628aeeda4
 <!--- VERSION_END -->
 
+## Version 1.6.4 - `Fight Club`
+- separation between session init and output loading
+
 ## Version 1.6.3 - `The Fifth Element`
 - bugfix: closing sessions/viewers before they are open
 
