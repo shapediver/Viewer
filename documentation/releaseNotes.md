@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.6.3
-* __Build date:__ 2021-10-28T08:00:22.200Z
+* __Version:__ 1.6.4
+* __Build date:__ 2021-10-29T10:06:36.252Z
 * __Branch:__ development
-* __Commit:__ 4d1cbc6dd5fe407dcaa0e80d863576f628aeeda4
+* __Commit:__ c09fecde5ce9de4bc863f32105d4707d450b3347
 <!--- VERSION_END -->
 
 ## Version 1.6.4 - `Fight Club`
