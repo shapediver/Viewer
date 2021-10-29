@@ -164,10 +164,10 @@ export class Session implements ISession {
      * 
      * @returns promise with a scene graph node
      */
-    public async init(): Promise<SessionTreeNode> {
+    public async init(): Promise<void> {
         if (this._initialized === true) {
             this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.init: Session already initialized.'));
-            return this.loadOutputs(this._parameterValues);
+            return;
         }
 
         try {
@@ -178,11 +178,10 @@ export class Session implements ISession {
                 this._performanceEvaluator.endSection('sessionResponse');
             } catch (e) {
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, e.response.status, false)
+                    throw this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, e.response.status, true)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, false)
+                    throw this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, true, false)
                 }
-                return new SessionTreeNode();
             }
 
             this._settingsConfig = sessionResponse.config;
@@ -193,10 +192,8 @@ export class Session implements ISession {
             this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
 
             this._initialized = true;
-            return this.loadOutputs(this._parameterValues);
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.init: Something went wrong at session init.');
-            return new SessionTreeNode();
+            throw this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.init: Something went wrong at session init.', true);
         }
     }
 
@@ -476,17 +473,15 @@ export class Session implements ISession {
                 }
 
                 if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, e.response.status, false)
+                    throw this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, e.response.status, true)
                 } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, false)
+                    throw this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, true, false)
                 }
-                return new SessionTreeNode();
             }
             this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);
             return this.loadOutputs(parameters, cancelRequest);
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.customizeSession: Something went wrong at session customization.');
-            return new SessionTreeNode();
+            throw this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.customizeSession: Something went wrong at session customization.', true);
         }
     }
 
@@ -498,7 +493,7 @@ export class Session implements ISession {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    private async loadOutputs(parameters: { [key: string]: string }, cancelRequest: () => boolean = () => false): Promise<SessionTreeNode> {
+    public async loadOutputs(parameters: { [key: string]: string }, cancelRequest: () => boolean = () => false): Promise<SessionTreeNode> {
         const o = Object.assign({}, this._outputs);
         try {
             const node = await this._outputLoader.loadOutputs(this._sessionResponse, o);

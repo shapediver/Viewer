@@ -629,7 +629,7 @@ export class Session implements ISession {
         }
     }
 
-    public async init(): Promise<TreeNode> {
+    public async init(waitForOutputs = true): Promise<void> {
         try {
             this.#performanceEvaluator.start();
             this.#performanceEvaluator.startSection('init');
@@ -638,7 +638,20 @@ export class Session implements ISession {
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('customize');
 
-            this.#node = await this.#sessionEngine.init();
+            await this.#sessionEngine.init();
+            if(waitForOutputs) {
+                this.#node = await this.#sessionEngine.loadOutputs(this.#sessionEngine.parameterValues);
+                if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
+                this.node.excludeViewers = this.#excludeViewers;
+                this.#api.update();
+            } else {
+                this.#sessionEngine.loadOutputs(this.#sessionEngine.parameterValues).then(async node => {
+                    this.#node = node;
+                    if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
+                    this.node.excludeViewers = this.#excludeViewers;
+                    this.#api.update();
+                })
+            }
 
             this.#performanceEvaluator.endSection('customize');
             this.#performanceEvaluator.startSection('finish');
@@ -695,8 +708,6 @@ export class Session implements ISession {
 
             this.#canUploadGLTF = this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload').length !== 0;
 
-            if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
-            this.node.excludeViewers = this.#excludeViewers;
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
 
             const viewerPromises = [];
@@ -715,7 +726,6 @@ export class Session implements ISession {
 
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
-            return this.node;
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).init: Something unexpected happened.`, true)

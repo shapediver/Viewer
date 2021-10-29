@@ -124,9 +124,9 @@ export interface ISession {
      * Normally, there is no need to call this function.
      * The initialization is done on creation via the api.
      * 
-     * @returns 
+     * @param waitForOutputs resolve the promise only when all outputs are loaded
      */
-    init(): Promise<TreeNode>;
+    init(waitForOutputs?: boolean): Promise<void>;
     /**
      * Save the parameters that are currently used for this session as default parameters.
      * This only works when this session was created with an author ticket.

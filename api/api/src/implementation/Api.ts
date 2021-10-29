@@ -495,7 +495,7 @@ export class Api implements IApi {
     }
   }
 
-  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Promise<ISession> {
+  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean }): Promise<ISession> {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
       // input validation
@@ -506,6 +506,7 @@ export class Api implements IApi {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.primarySession, 'boolean', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.excludeViewers, 'stringArray', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.id, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.waitForOutputs, 'boolean', false);
 
       // check if the given id is valid
       const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
@@ -526,7 +527,7 @@ export class Api implements IApi {
       this.sessions[sessionId] = session;
       this.#sessionCallbacks[sessionId] = sessionCallbacks;
 
-      await session.init();
+      await session.init(properties.waitForOutputs);
       
       this.#stateEngine.getCustomState(sessionId + '_session_initialized').resolve(true);
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
