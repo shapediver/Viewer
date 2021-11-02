@@ -164,7 +164,7 @@ export class MaterialLoader implements ILoader {
 
     
     public getMaterialProperties(
-        materialData?: MaterialData,
+        materialData: MaterialData | null,
         materialSettings?: {
             mode?: number,
             useVertexTangents?: boolean,
@@ -398,7 +398,7 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        materialData?: MaterialData, 
+        materialData: MaterialData | null, 
         materialSettings?: {
             mode?: number,
             useVertexTangents?: boolean,

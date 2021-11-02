@@ -63,7 +63,8 @@ export class GeometryLoader implements ILoader {
             useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
             useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
         }
-        const material = this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings);
+        const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1] : geometry.primitive.material;
+        const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
         const obj = new SDData(geometry.id, geometry.version);
 
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
@@ -100,7 +101,7 @@ export class GeometryLoader implements ILoader {
             throw new SDError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
         }
 
-        if (geometry.primitive.material?.alphaMode === MATERIAL_ALPHA.BLEND)
+        if (materialData?.alphaMode === MATERIAL_ALPHA.BLEND)
             obj.children.forEach(m => { (<THREE.Material>(<THREE.Mesh>m).material).transparent = true; (<THREE.Material>(<THREE.Mesh>m).material).depthWrite = false; });
 
         obj.children.forEach(m => {
