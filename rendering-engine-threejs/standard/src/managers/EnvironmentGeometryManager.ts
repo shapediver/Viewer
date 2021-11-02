@@ -6,18 +6,19 @@ import { EventEngine, EVENTTYPE, IViewerEvent } from '@shapediver/viewer.shared.
 
 import { RenderingEngine } from '..'
 import { IManager } from '../interfaces/IManager'
-import { SDObject } from '../types/SDObject'
+import { SDNode } from '../types/SDNode'
 import { container } from 'tsyringe'
+import { SDData } from '../types/SDData'
 
 export class EnvironmentGeometryManager implements IManager {
     // #region Properties (5)
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
-    private _environmentGeometryObject!: SDObject;
+    private _environmentGeometryObject!: SDNode;
     private _grid!: THREE.GridHelper;
-    private _gridObject!: SDObject;
+    private _gridObject!: SDData;
     private _groundPlane!: THREE.Mesh;
-    private _groundPlaneObject!: SDObject;
+    private _groundPlaneObject!: SDData;
 
     private _initialized: boolean = false;
 
@@ -123,10 +124,10 @@ export class EnvironmentGeometryManager implements IManager {
     }
 
     public init(): void {
-        this._environmentGeometryObject = new SDObject('environmentGeometry', '');
+        this._environmentGeometryObject = new SDNode('environmentGeometry', '');
         this._renderingEngine.sceneTreeManager.scene.add(this._environmentGeometryObject);
         
-        this._gridObject = new SDObject('grid', '');
+        this._gridObject = new SDData('grid', '');
         this._grid = new THREE.GridHelper();
         (<THREE.Material>this._grid.material).opacity = 0.15;
         (<THREE.Material>this._grid.material).transparent = true;
@@ -136,7 +137,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._gridObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._gridObject);
 
-        this._groundPlaneObject = new SDObject('grid', '');
+        this._groundPlaneObject = new SDData('grid', '');
         let mat = new MaterialData();
         mat.color = '#d3d3d3';
         mat.side = MATERIAL_SIDE.FRONT;

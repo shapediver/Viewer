@@ -11,16 +11,17 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
-import { SDObject } from '../types/SDObject'
+import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
+import { SDData } from '../types/SDData'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (2)
 
     private _geometryCache: {
-        [key: string]: SDObject
+        [key: string]: SDData
     } = {};
     private _logger: Logger = <Logger>container.resolve(Logger);
     private _counter: number = 0;
@@ -52,7 +53,7 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDObject): Box {            
+    public load(geometry: GeometryData, parent: SDNode): Box {            
         const threeGeometry = this.loadGeometry(geometry.primitive);
         const materialSettings = {
             mode: geometry.primitive.mode,
@@ -63,7 +64,7 @@ export class GeometryLoader implements ILoader {
             useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
         }
         const material = this._renderingEngine.materialLoader.load(geometry.primitive.material!, materialSettings);
-        const obj = new SDObject(geometry.id, geometry.version);
+        const obj = new SDData(geometry.id, geometry.version);
 
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
             obj.add(new THREE.Points(threeGeometry, material));

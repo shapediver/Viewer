@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { ISDObject } from '@shapediver/viewer.shared.types'
 import { mat4 } from 'gl-matrix'
 
-export class SDObject extends THREE.Object3D implements ISDObject {
+export class SDNode extends THREE.Object3D implements ISDObject {
     // #region Constructors (1)
 
     #SDid: string;

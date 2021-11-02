@@ -10,7 +10,7 @@ import {
 } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
 
-import { SDObject } from '../types/SDObject'
+import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 
@@ -30,8 +30,8 @@ export class LightLoader implements ILoader {
 
     public init(): void {}
 
-    public load(light: AbstractLight, parent: SDObject, scene: THREE.Scene, boundingBox: Box) {
-        let converted = new SDObject(light.id, light.version);
+    public load(light: AbstractLight, parent: SDNode, scene: THREE.Scene, boundingBox: Box) {
+        let converted = new SDNode(light.id, light.version);
 
         if (light instanceof AmbientLight) {
             const threeLight: THREE.AmbientLight = converted.children[0] instanceof THREE.AmbientLight ? (<THREE.AmbientLight>converted.children[0]) : new THREE.AmbientLight();

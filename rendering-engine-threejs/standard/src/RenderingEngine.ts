@@ -23,7 +23,7 @@ import { GeometryData } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
 
 import { SceneTreeManager } from './managers/SceneTreeManager'
-import { SDObject } from './types/SDObject'
+import { SDNode } from './types/SDNode'
 import { RenderingManager } from './managers/RenderingManager'
 import { MaterialLoader } from './loaders/MaterialLoader'
 import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader'

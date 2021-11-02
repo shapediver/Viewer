@@ -167,6 +167,9 @@ export class MaterialLoader implements ILoader {
             useMorphNormals?: boolean
         }
     ): THREE.Material {
+        if(materialProperties && this._materialCache[materialProperties.id + '_' + materialProperties.version]) 
+            return this._materialCache[materialProperties.id + '_' + materialProperties.version];
+
         let mapCount = 0;
         const properties: any = {};
         if (materialProperties) {
