@@ -114,7 +114,7 @@ export class GeometryLoader implements ILoader {
             obj.add(m)
         });
 
-        this._geometryCache[geometry.id + '_' + geometry.version] = obj;
+        this._geometryCache[geometry.id] = obj;
         parent.add(obj);
         return geometry.boundingBox.clone().applyMatrix(geometry.matrix);
     }
