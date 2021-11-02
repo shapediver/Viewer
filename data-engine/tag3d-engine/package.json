@@ -36,10 +36,10 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.data-engine.shared-types": "^1.6.5",
-    "@shapediver/viewer.shared.node-tree": "^1.6.5",
-    "@shapediver/viewer.shared.services": "^1.6.5",
-    "@shapediver/viewer.shared.types": "^1.6.5",
+    "@shapediver/viewer.data-engine.shared-types": "*",
+    "@shapediver/viewer.shared.node-tree": "*",
+    "@shapediver/viewer.shared.services": "*",
+    "@shapediver/viewer.shared.types": "*",
     "gl-matrix": "3.3.0",
     "three": "^0.132.2",
     "tsyringe": "^4.5.0"

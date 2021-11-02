@@ -36,8 +36,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.services": "^1.6.5",
-    "@shapediver/viewer.shared.types": "^1.6.5",
+    "@shapediver/viewer.shared.services": "*",
+    "@shapediver/viewer.shared.types": "*",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
   },
