@@ -6,19 +6,29 @@ import { ILightScene } from './lights/ILightScene'
 import { IOrthographicCamera } from './camera/IOrthographicCamera'
 import { IPerspectiveCamera } from './camera/IPerspectiveCamera'
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IDomEventListener } from '@shapediver/viewer.shared.services'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 export interface IViewer extends IRenderingEngine {
-    // #region Properties (24)
+    // #region Properties (6)
 
     readonly camera: ICamera | null;
     readonly cameras: { [key: string]: ICamera };
+    readonly canvas: HTMLCanvasElement;
     readonly id: string;
     readonly lightScene: ILightScene | null;
     readonly lightScenes: { [key: string]: ILightScene };
 
-    // #endregion Properties (24)
+    // #endregion Properties (6)
 
-    // #region Public Methods (14)
+    // #region Public Methods (16)
+
+    /**
+     * Add an event listener that receives all canvas events.
+     * 
+     * @param listener 
+     */
+    addCanvasEventListener(listener: IDomEventListener): string;
 
     /**
      * Assign the camera with the specified id to the viewer.
@@ -26,7 +36,7 @@ export interface IViewer extends IRenderingEngine {
      * @param id the id of the camera
      */
     assignCamera(id: string): void;
-    
+
     /**
      * Assign the light scene with the current id to the viewer.
      * 
@@ -105,12 +115,24 @@ export interface IViewer extends IRenderingEngine {
     removeCamera(id: string): boolean;
 
     /**
+     * Remove an event listener that received all canvas events.
+     * 
+     * @param token 
+     */
+    removeCanvasEventListener(token: string): boolean;
+
+    /**
      * Remove the light scene with the specified id.
      * 
      * @param id the id of the light scene
      * @returns 
      */
     removeLightScene(id: string): boolean;
+
+    /**
+     * Manual call to render the scene.
+     */
+    render(): void;
 
     /**
      * Reset the viewer.
@@ -124,11 +146,18 @@ export interface IViewer extends IRenderingEngine {
      * @param height 
      */
     resize(width: number, height: number): void;
-
+    
     /**
      * Update the viewer with the current changes of the scene tree.
      */
     update(): void;
 
-    // #endregion Public Methods (14)
+    
+    /**
+     * Update the current node and all descendants in the scene tree.
+     * @param node 
+     */
+     updateNode(node: TreeNode): void;
+
+    // #endregion Public Methods (16)
 }

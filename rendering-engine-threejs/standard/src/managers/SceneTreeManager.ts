@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { AnimationData, GeometryData, HTMLElementAnchorData, MaterialData } from '@shapediver/viewer.shared.types'
-import { ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ISDObject, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
 import { EventEngine, EVENTTYPE, StateEngine } from '@shapediver/viewer.shared.services'
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
@@ -14,7 +14,7 @@ import { IManager } from '../interfaces/IManager'
 import { SDData, SD_DATA_TYPE } from '../types/SDData'
 
 export class SceneTreeManager implements IManager {
-    // #region Properties (5)
+    // #region Properties (6)
 
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _scene: THREE.Scene = new THREE.Scene();
@@ -24,7 +24,7 @@ export class SceneTreeManager implements IManager {
     private _boundingBox: Box = new Box();
     private _mainNode!: SDNode;
 
-    // #endregion Properties (5)
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
@@ -46,7 +46,7 @@ export class SceneTreeManager implements IManager {
 
     // #endregion Public Accessors (2)
 
-    // #region Public Methods (4)
+    // #region Public Methods (6)
 
     public init(): void {}
 
@@ -215,7 +215,7 @@ export class SceneTreeManager implements IManager {
      * @param node the scene graph node
      * @param obj the current type object
      */
-     private updateNode(node: TreeNode, obj: SDNode) {
+     public updateNode(node: TreeNode, obj: ISDObject) {
         // if this node specifically excludes the current viewer, skip it and all descendants
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
 
@@ -250,7 +250,7 @@ export class SceneTreeManager implements IManager {
             if (!objChild) {
                 const newChild = new SDObject(nodeChild.id, nodeChild.version);
                 nodeChild.transformedNodes[this._renderingEngine.id] = newChild;
-                obj.add(newChild);
+                convertedObject.add(newChild);
                 this.updateNode(nodeChild, newChild);
             } else if (objChild.SDversion !== nodeChild.version) {
                 // if the version is different, update the child

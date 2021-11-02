@@ -9,6 +9,7 @@ import {
   Converter,
   EventEngine,
   EVENTTYPE,
+  IDomEventListener,
   InputValidator,
   Logger,
   LOGGINGTOPIC,
@@ -28,10 +29,11 @@ import { ILightScene } from '../../interfaces/viewer/lights/ILightScene'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { LightScene } from './lights/LightScene'
+import { ISDObject, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 @injectable()
 export class StandardViewer implements IStandardViewer {
-  // #region Properties (12)
+  // #region Properties (10)
 
   readonly #cameras: { [key: string]: ICamera } = {};
   readonly #converter: Converter = <Converter>container.resolve(Converter);
@@ -45,7 +47,7 @@ export class StandardViewer implements IStandardViewer {
   #busyModeIDs: string[] = [];
   #renderingEngine!: RenderingEngineThreejs;
 
-  // #endregion Properties (12)
+  // #endregion Properties (10)
 
   // #region Constructors (1)
 
@@ -82,7 +84,7 @@ export class StandardViewer implements IStandardViewer {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (44)
+  // #region Public Accessors (47)
 
   public get ambientOcclusion(): boolean {
     return this.#renderingEngine.ambientOcclusion;
@@ -105,10 +107,6 @@ export class StandardViewer implements IStandardViewer {
     return this.#renderingEngine.ambientOcclusionIntensity;
   }
 
-  public get animations(): AnimationData[] {
-    return this.#renderingEngine.animations;
-  }
-
   public set ambientOcclusionIntensity(value: number) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity: Updating ambientOcclusionIntensity to ${value}.`);
@@ -120,6 +118,10 @@ export class StandardViewer implements IStandardViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).ambientOcclusionIntensity: Something unexpected happened.`, true)
     }
+  }
+
+  public get animations(): AnimationData[] {
+    return this.#renderingEngine.animations;
   }
 
   public get automaticResizing(): boolean {
@@ -226,6 +228,10 @@ export class StandardViewer implements IStandardViewer {
         delete this.#cameras[c];
     }
     return this.#cameras;
+  }
+
+  public get canvas(): HTMLCanvasElement {
+    return this.#renderingEngine.canvas.canvasElement;
   }
 
   public get clearAlpha(): number {
@@ -507,9 +513,19 @@ export class StandardViewer implements IStandardViewer {
     }
   }
 
-  // #endregion Public Accessors (44)
+  // #endregion Public Accessors (47)
 
   // #region Public Methods (16)
+
+  public addCanvasEventListener(listener: IDomEventListener): string {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener: Adding new canvas event listener.`);
+      return this.#renderingEngine.domEventEngine.addDomEventListener(listener);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).addCanvasEventListener: Something unexpected happened.`, true)
+    }
+  }
 
   public assignCamera(id: string): void {
     try {
@@ -667,6 +683,16 @@ export class StandardViewer implements IStandardViewer {
     }
   }
 
+  public removeCanvasEventListener(token: string): boolean {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener: Removing canvas event listener.`);
+      return this.#renderingEngine.domEventEngine.removeDomEventListener(token);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).removeCanvasEventListener: Something unexpected happened.`, true)
+    }
+  }
+
   public removeLightScene(id: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Removing LightScene with id ${id}.`);
@@ -680,6 +706,17 @@ export class StandardViewer implements IStandardViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).removeLightScene: Something unexpected happened.`, true)
     }
+  }
+
+  public render(): void {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).render: Rendering Viewer.`);
+      this.#renderingEngine.renderingManager.render();
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).render: Something unexpected happened.`, true)
+    }  
   }
 
   public reset(): void {
@@ -717,6 +754,18 @@ export class StandardViewer implements IStandardViewer {
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).update: Something unexpected happened.`, true)
+    }
+  }
+
+  public updateNode(node: TreeNode): void {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updating Node.`);
+      if (!this.#renderingEngine) return;
+      this.#renderingEngine.sceneTreeManager.updateNode(node, node.transformedNodes[this.id]);
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updated Node.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateNode: Something unexpected happened.`, true)
     }
   }
 

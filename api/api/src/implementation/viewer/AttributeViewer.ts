@@ -9,6 +9,7 @@ import {
   Converter,
   EventEngine,
   EVENTTYPE,
+  IDomEventListener,
   InputValidator,
   Logger,
   LOGGINGTOPIC,
@@ -85,7 +86,7 @@ export class AttributeViewer implements IAttributeViewer {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (19)
+  // #region Public Accessors (24)
 
   public get automaticResizing(): boolean {
     return this.#renderingEngine.automaticResizing;
@@ -157,6 +158,10 @@ export class AttributeViewer implements IAttributeViewer {
         delete this.#cameras[c];
     }
     return this.#cameras;
+  }
+
+  public get canvas(): HTMLCanvasElement {
+    return this.#renderingEngine.canvas.canvasElement;
   }
 
   public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
@@ -265,7 +270,6 @@ export class AttributeViewer implements IAttributeViewer {
     }
   }
 
-  
   public get visualizationAttributes(): {
     [key: string]: boolean
   } {
@@ -288,9 +292,19 @@ export class AttributeViewer implements IAttributeViewer {
     }
   }
 
-  // #endregion Public Accessors (19)
+  // #endregion Public Accessors (24)
 
-  // #region Public Methods (15)
+  // #region Public Methods (17)
+
+  public addCanvasEventListener(listener: IDomEventListener): string {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener: Adding new canvas event listener.`);
+      return this.#renderingEngine.domEventEngine.addDomEventListener(listener);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).addCanvasEventListener: Something unexpected happened.`, true)
+    }
+  }
 
   public assignCamera(id: string): void {
     try {
@@ -452,6 +466,16 @@ export class AttributeViewer implements IAttributeViewer {
     }
   }
 
+  public removeCanvasEventListener(token: string): boolean {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener: Removing canvas event listener.`);
+      return this.#renderingEngine.domEventEngine.removeDomEventListener(token);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).removeCanvasEventListener: Something unexpected happened.`, true)
+    }
+  }
+
   public removeLightScene(id: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Removing LightScene with id ${id}.`);
@@ -465,6 +489,17 @@ export class AttributeViewer implements IAttributeViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).removeLightScene: Something unexpected happened.`, true)
     }
+  }
+
+  public render(): void {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).render: Rendering Viewer.`);
+      this.#renderingEngine.renderingManager.render();
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).render: Something unexpected happened.`, true)
+    }  
   }
 
   public reset(): void {
@@ -504,6 +539,18 @@ export class AttributeViewer implements IAttributeViewer {
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).update: Something unexpected happened.`, true)
     }
   }
+  
+  public updateNode(node: TreeNode): void {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updating Node.`);
+      if (!this.#renderingEngine) return;
+      this.#renderingEngine.sceneTreeManager.updateNode(node, node.transformedNodes[this.id]);
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updated Node.`);
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateNode: Something unexpected happened.`, true)
+    }
+  }
 
-  // #endregion Public Methods (15)
+  // #endregion Public Methods (17)
 }

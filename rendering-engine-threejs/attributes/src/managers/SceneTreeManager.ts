@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { ATTRIBUTEVISUALIZATION, GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeOverview, SDTFAttributeVisualization, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
-import { ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ISDObject, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, SDError, StateEngine } from '@shapediver/viewer.shared.services'
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
@@ -13,20 +13,20 @@ import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager'
 
 export class SceneTreeManager implements IManager {
-    // #region Properties (5)
+    // #region Properties (9)
 
-    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _scene: THREE.Scene = new THREE.Scene();
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _scene: THREE.Scene = new THREE.Scene();
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     private _boundingBox: Box = new Box();
-    private _mainNode!: SDObject;
     private _currentSDTFOverview!: SDTFOverview;
+    private _mainNode!: SDObject;
 
-    // #endregion Properties (5)
+    // #endregion Properties (9)
 
     // #region Constructors (1)
 
@@ -48,53 +48,7 @@ export class SceneTreeManager implements IManager {
 
     // #endregion Public Accessors (2)
 
-    // #region Public Methods (4)
-
-    private collectSDTFItemData(node: TreeNode): SDTFItemData | undefined {
-        for (let i = 0, len = node.data.length; i < len; i++)
-            if(node.data[i] instanceof SDTFItemData)
-                return <SDTFItemData>node.data[i];
-
-        if(!node.parent) return;
-        return this.collectSDTFItemData(node.parent);
-    }
-
-    private convertSDTFItemToVisualizationData(itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }): SDTFAttributeVisualizationData {
-        let color = '#00fff7';
-        let opacity = 1;
-        let matrix = mat4.create();
-
-        if(visualizationAttributes['color']) {
-            if(itemData.attributes['color'] && itemData.attributes['color'].typeHint === PRIMITIVETYPEHINT.COLOR){
-                const colorAttribute = itemData.attributes['color'];
-                const colorColorOverview = overview['color'].filter(o => o.typeHint === PRIMITIVETYPEHINT.COLOR)[0];
-
-                color = this._converter.toColor('rgb(' + colorAttribute.value + ')');
-            }
-        }
-        if(visualizationAttributes['plotcolor']){
-            if(itemData.attributes['plotcolor'] && itemData.attributes['plotcolor'].typeHint === PRIMITIVETYPEHINT.COLOR){
-                const plotcolorAttribute = itemData.attributes['plotcolor'];
-                const plotcolorColorOverview = overview['plotcolor'].filter(o => o.typeHint === PRIMITIVETYPEHINT.COLOR)[0];
-
-                color = this._converter.toColor('rgb(' + plotcolorAttribute.value + ')');
-            }
-        }
-
-        if(visualizationAttributes['layer']){
-            if(itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === PRIMITIVETYPEHINT.STRING) {
-                const layerAttribute = itemData.attributes['layer'];
-                const layerStringOverview = overview['layer'].filter(o => o.typeHint === PRIMITIVETYPEHINT.STRING)[0];
-
-                return SDTFAttributeVisualization.stringVisualization(
-                    layerAttribute.value, 
-                    layerStringOverview.values!, 
-                    ATTRIBUTEVISUALIZATION.GRAYSCALE
-                );
-            }
-        }
-        return { color, opacity, matrix };
-    }
+    // #region Public Methods (5)
 
     /**
      * Convert the data of the scene graph node into the format of the implementation.
@@ -102,13 +56,14 @@ export class SceneTreeManager implements IManager {
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public convertData(data: ITreeNodeData, obj: SDObject, node: TreeNode): Box {
-        let dataChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
+    public convertData(data: ITreeNodeData, obj: ISDObject, node: TreeNode): Box {
+        let convertedObject = <SDObject>obj;
+        let dataChild = <SDObject>convertedObject.children.find(oc => (<SDObject>oc).SDid === data.id && (<SDObject>oc).SDversion === data.version);
 
         if (!dataChild)
             dataChild = new SDObject(data.id, data.version);
 
-        obj.add(dataChild);
+        convertedObject.add(dataChild);
 
         const itemData = this.collectSDTFItemData(node);       
         let visData = {
@@ -171,6 +126,80 @@ export class SceneTreeManager implements IManager {
             this._boundingBox.max[0] === 0 && this._boundingBox.max[1] === 0 && this._boundingBox.max[2] === 0) || this._boundingBox.isEmpty());
     }
 
+    /**
+     * Update the current node via the scene graph node.
+     * Convert the data if needed.
+     * 
+     * @param node the scene graph node
+     * @param obj the current type object
+     */
+    public updateNode(node: TreeNode, obj: ISDObject) {
+        let convertedObject = <SDObject>obj;
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+        node.boundingBox = new Box();
+
+        for (let i = 0, len = node.data.length; i < len; i++) {
+            const bb = this.convertData(node.data[i], convertedObject, node);
+            node.boundingBox.union(bb)
+        }
+        convertedObject.applyTransformation(node.nodeMatrixSDTF);
+
+        const nodeIds: string[] = []
+        for (let i = 0; i < node.children.length; i++) {
+            const child = node.children[i];
+            if(child) nodeIds.push(child.id)
+        }
+        const dataIds = node.data.map(d => d.id);
+        const dataVersions = node.data.map(d => d.version);
+        const childrenToRemove = convertedObject.children.filter(oc => (!nodeIds.includes((<SDObject>oc).SDid)) && !(dataIds.includes((<SDObject>oc).SDid) && dataVersions.includes((<SDObject>oc).SDversion)));
+
+        // remove children that are not anymore in there
+        for (const objChild of childrenToRemove) {
+            convertedObject.remove(objChild);
+            objChild.traverse((o) => {
+                if (o instanceof THREE.Mesh) {
+                    this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
+                    this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
+                    for (const key in o.geometry.attributes) 
+                        o.geometry.deleteAttribute(key);
+                    o.geometry.setIndex(null);
+                    o.geometry.dispose();
+                    if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
+                    if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
+                    if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
+                    if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
+                    o.material.dispose();
+                }
+            })
+        }
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            if(!nodeChild) continue;
+            const objChild = <SDObject>convertedObject.children.find(oc => (<SDObject>oc).SDid === nodeChild.id);
+
+            if (!objChild) {
+                const newChild = new SDObject(nodeChild.id, nodeChild.version);
+                convertedObject.add(newChild);
+                this.updateNode(nodeChild, newChild);
+            } else if (objChild.SDversion !== nodeChild.version) {
+                this.updateNode(nodeChild, objChild);
+            }
+
+            if(!nodeChild.boundingBox.isEmpty())
+                node.boundingBox.union(nodeChild.boundingBox);
+        }
+        if(!node.boundingBox.isEmpty())
+            node.boundingBox.applyMatrix(node.nodeMatrixSDTF);
+    }
+
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
@@ -225,82 +254,55 @@ export class SceneTreeManager implements IManager {
         this._renderingEngine.renderingManager.evaluateTextureUnitCount(this._renderingEngine.lightLoader.shadowMapCount + this._renderingEngine.materialLoader.maxMapCount);
     }
 
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (5)
 
-    // #region Private Methods (1)
+    // #region Private Methods (2)
 
-    /**
-     * Update the current node via the scene graph node.
-     * Convert the data if needed.
-     * 
-     * @param node the scene graph node
-     * @param obj the current type object
-     */
-    private updateNode(node: TreeNode, obj: SDObject) {
-        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-        node.boundingBox = new Box();
+    private collectSDTFItemData(node: TreeNode): SDTFItemData | undefined {
+        for (let i = 0, len = node.data.length; i < len; i++)
+            if(node.data[i] instanceof SDTFItemData)
+                return <SDTFItemData>node.data[i];
 
-        for (let i = 0, len = node.data.length; i < len; i++) {
-            const bb = this.convertData(node.data[i], obj, node);
-            node.boundingBox.union(bb)
-        }
-        obj.applyTransformation(node.nodeMatrixSDTF);
-
-        const nodeIds: string[] = []
-        for (let i = 0; i < node.children.length; i++) {
-            const child = node.children[i];
-            if(child) nodeIds.push(child.id)
-        }
-        const dataIds = node.data.map(d => d.id);
-        const dataVersions = node.data.map(d => d.version);
-        const childrenToRemove = obj.children.filter(oc => (!nodeIds.includes((<SDObject>oc).SDid)) && !(dataIds.includes((<SDObject>oc).SDid) && dataVersions.includes((<SDObject>oc).SDversion)));
-
-        // remove children that are not anymore in there
-        for (const objChild of childrenToRemove) {
-            obj.remove(objChild);
-            objChild.traverse((o) => {
-                if (o instanceof THREE.Mesh) {
-                    this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
-                    this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
-                    for (const key in o.geometry.attributes) 
-                        o.geometry.deleteAttribute(key);
-                    o.geometry.setIndex(null);
-                    o.geometry.dispose();
-                    if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
-                    if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
-                    if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
-                    if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
-                    if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
-                    if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
-                    if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
-                    if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
-                    if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
-                    if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
-                    o.material.dispose();
-                }
-            })
-        }
-
-        // add new children and update the ones that have a different version
-        for (let i = 0, len = node.children.length; i < len; i++) {
-            const nodeChild = node.children[i];
-            if(!nodeChild) continue;
-            const objChild = <SDObject>obj.children.find(oc => (<SDObject>oc).SDid === nodeChild.id);
-
-            if (!objChild) {
-                const newChild = new SDObject(nodeChild.id, nodeChild.version);
-                obj.add(newChild);
-                this.updateNode(nodeChild, newChild);
-            } else if (objChild.SDversion !== nodeChild.version) {
-                this.updateNode(nodeChild, objChild);
-            }
-
-            if(!nodeChild.boundingBox.isEmpty())
-                node.boundingBox.union(nodeChild.boundingBox);
-        }
-        if(!node.boundingBox.isEmpty())
-            node.boundingBox.applyMatrix(node.nodeMatrixSDTF);
+        if(!node.parent) return;
+        return this.collectSDTFItemData(node.parent);
     }
 
-    // #endregion Private Methods (1)
+    private convertSDTFItemToVisualizationData(itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }): SDTFAttributeVisualizationData {
+        let color = '#00fff7';
+        let opacity = 1;
+        let matrix = mat4.create();
+
+        if(visualizationAttributes['color']) {
+            if(itemData.attributes['color'] && itemData.attributes['color'].typeHint === PRIMITIVETYPEHINT.COLOR){
+                const colorAttribute = itemData.attributes['color'];
+                const colorColorOverview = overview['color'].filter(o => o.typeHint === PRIMITIVETYPEHINT.COLOR)[0];
+
+                color = this._converter.toColor('rgb(' + colorAttribute.value + ')');
+            }
+        }
+        if(visualizationAttributes['plotcolor']){
+            if(itemData.attributes['plotcolor'] && itemData.attributes['plotcolor'].typeHint === PRIMITIVETYPEHINT.COLOR){
+                const plotcolorAttribute = itemData.attributes['plotcolor'];
+                const plotcolorColorOverview = overview['plotcolor'].filter(o => o.typeHint === PRIMITIVETYPEHINT.COLOR)[0];
+
+                color = this._converter.toColor('rgb(' + plotcolorAttribute.value + ')');
+            }
+        }
+
+        if(visualizationAttributes['layer']){
+            if(itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === PRIMITIVETYPEHINT.STRING) {
+                const layerAttribute = itemData.attributes['layer'];
+                const layerStringOverview = overview['layer'].filter(o => o.typeHint === PRIMITIVETYPEHINT.STRING)[0];
+
+                return SDTFAttributeVisualization.stringVisualization(
+                    layerAttribute.value, 
+                    layerStringOverview.values!, 
+                    ATTRIBUTEVISUALIZATION.GRAYSCALE
+                );
+            }
+        }
+        return { color, opacity, matrix };
+    }
+
+    // #endregion Private Methods (2)
 }

@@ -1,6 +1,6 @@
 import { CAMERATYPE } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { container } from 'tsyringe'
-import { vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 import { InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
 import { Box } from '@shapediver/viewer.shared.math'
 
@@ -9,7 +9,7 @@ import { IViewer } from '../../../interfaces/viewer/IViewer'
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 
 export abstract class AbstractCamera implements ICamera {
-    // #region Properties (4)
+    // #region Properties (5)
 
     readonly #camera: ICamera;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -17,7 +17,7 @@ export abstract class AbstractCamera implements ICamera {
     readonly #tree: Tree = <Tree>container.resolve(Tree);
     readonly #viewer: IViewer;
 
-    // #endregion Properties (4)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
@@ -40,6 +40,10 @@ export abstract class AbstractCamera implements ICamera {
 
     // #region Public Accessors (24)
 
+    public get autoAdjust(): boolean {
+        return this.#camera.autoAdjust;
+    }
+
     public set autoAdjust(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust: Updating AutoAdjust to ${value}.`);
@@ -51,10 +55,6 @@ export abstract class AbstractCamera implements ICamera {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).autoAdjust: Something unexpected happened.`, true)
         }
-    }
-
-    public get autoAdjust(): boolean {
-        return this.#camera.autoAdjust;
     }
 
     public get cameraMovementDuration(): number {
@@ -237,7 +237,7 @@ export abstract class AbstractCamera implements ICamera {
 
     // #endregion Public Accessors (24)
 
-    // #region Public Methods (4)
+    // #region Public Methods (6)
 
     /**
      * Let the camera follow a path from different position and target pairs to another.
@@ -265,6 +265,16 @@ export abstract class AbstractCamera implements ICamera {
         } catch (e) {
             if (e instanceof SDError) throw e;
             throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).animate: Something unexpected happened.`, true)
+        }
+    }
+
+    public project(p: vec3): vec2 {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).project: Projecting point ${p}.`);
+            return this.#camera.project(p);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).project: Something unexpected happened.`, true)
         }
     }
 
@@ -316,6 +326,16 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
+    public unproject(p: vec3): vec3 {
+        try {
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).unproject: Unprojecting point ${p}.`);
+            return this.#camera.unproject(p);
+        } catch (e) {
+            if (e instanceof SDError) throw e;
+            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).unproject: Something unexpected happened.`, true)
+        }
+    }
+
     /**
      * Zoom in on a specific part of the scene, or the whole scene (default).
      * 
@@ -355,5 +375,5 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
-    // #endregion Public Methods (4)
+    // #endregion Public Methods (6)
 }

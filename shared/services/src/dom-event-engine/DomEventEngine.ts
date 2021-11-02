@@ -32,9 +32,12 @@ export class DomEventEngine {
         return id;
     }
 
-    public removeDomEventListener(id: string): void {
-        if(this._domEventListeners[id])
+    public removeDomEventListener(id: string): boolean {
+        if(this._domEventListeners[id]) {
             delete this._domEventListeners[id];
+            return true;
+        }
+        return false;
     }
 
     public removeAllDomEventListener(): void {
