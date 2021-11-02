@@ -3,9 +3,9 @@ import { mat4 } from 'gl-matrix';
 export class InteractionData extends AbstractTreeNodeData {
     // #region Properties (8)
 
-    #drag: boolean = false;
-    #hover: boolean = false;
-    #select: boolean = false;
+    #interactionTypes: {
+        [key: string]: boolean
+    } = {};
 
     // #endregion Properties (8)
 
@@ -18,43 +18,25 @@ export class InteractionData extends AbstractTreeNodeData {
      * @param id the id
      */
     constructor(
-        drag: boolean,
-        hover: boolean,
-        select: boolean,
+        interactionTypes: {
+            [key: string]: boolean
+        },
         id?: string
     ) {
         super(id);
-        this.#hover = hover;
-        this.#drag = drag;
-        this.#select = select;
+        this.#interactionTypes = interactionTypes;
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (9)
 
-    public get drag(): boolean {
-        return this.#drag;
+    public get interactionTypes(): { [key: string]: boolean } {
+        return this.#interactionTypes;
     }
 
-    public set drag(value: boolean) {
-        this.#drag = value;
-    }
-
-    public get hover(): boolean {
-        return this.#hover;
-    }
-
-    public set hover(value: boolean) {
-        this.#hover = value;
-    }
-
-    public get select(): boolean {
-        return this.#select;
-    }
-
-    public set select(value: boolean) {
-        this.#select = value;
+    public set interactionTypes(value: { [key: string]: boolean }) {
+        this.#interactionTypes = value;
     }
 
     // #endregion Public Accessors (9)
@@ -65,7 +47,7 @@ export class InteractionData extends AbstractTreeNodeData {
      * Clones the scene graph data.
      */
     public clone(): ITreeNodeData {
-        return new InteractionData(this.#drag, this.#hover, this.#select, this.id);
+        return new InteractionData(this.#interactionTypes, this.id);
     }
 
     // #endregion Public Methods (5)
