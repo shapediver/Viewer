@@ -10,7 +10,8 @@
     "rendering-engine/*",
     "rendering-engine-threejs/*",
     "math/*",
-    "tests/*"
+    "tests/*",
+    "features/*"
   ],
   "version": "independent"
 }
