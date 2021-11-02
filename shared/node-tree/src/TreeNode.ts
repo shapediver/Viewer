@@ -4,6 +4,7 @@ import { UuidGenerator, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared
 import { Box } from '@shapediver/viewer.shared.math'
 
 import { ITreeNodeData } from './interfaces/ITreeNodeData'
+import { ISDObject } from './interfaces/ISDObject'
 
 export interface ITransformation {
   // #region Properties (3)
@@ -27,6 +28,9 @@ export class TreeNode {
   #id: string;
   #parent: TreeNode | null = null;
   #transformations: ITransformation[] = [];
+  #transformedNodes: {
+    [key: string]: ISDObject
+  } = {};
   #excludeViewers: string[] = [];
   #version: string;
   #visible: boolean = true;
@@ -135,6 +139,18 @@ export class TreeNode {
 
   public set transformations(value: ITransformation[]) {
     this.#transformations = value;
+  }
+
+  public get transformedNodes(): {
+    [key: string]: ISDObject
+  } {
+    return this.#transformedNodes;
+  }
+
+  public set transformedNodes(value: {
+    [key: string]: ISDObject
+  }) {
+    this.#transformedNodes = value;
   }
 
   public get version(): string {

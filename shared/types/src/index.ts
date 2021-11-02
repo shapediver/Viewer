@@ -1,4 +1,3 @@
-import { ISDObject } from './ISDObject'
 import { CustomData } from './CustomData'
 import { AttributeData, GeometryData, PRIMITIVE_MODE, PrimitiveData } from './GeometryData'
 import {
@@ -16,10 +15,7 @@ import { SDTFItemData } from './SDTFItemData'
 import { SDTFAttributeOverview, SDTFOverview } from './SDTFAttributeOverview'
 import { ATTRIBUTEVISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisualizationData } from './SDTFAttributeVisualization'
 import { AnimationData, AnimationTrack } from './AnimationData'
-
-export {
-  ISDObject
-}
+import { InteractionData } from './InteractionData'
 
 export {
   MaterialData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
@@ -27,6 +23,10 @@ export {
 
 export {
   AnimationData, AnimationTrack, GeometryData, AttributeData, PrimitiveData, PRIMITIVE_MODE
+}
+
+export {
+  InteractionData
 }
 
 export {

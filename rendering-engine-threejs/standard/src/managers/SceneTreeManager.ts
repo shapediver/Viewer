@@ -61,7 +61,8 @@ export class SceneTreeManager implements IManager {
         this._renderingEngine.lightLoader.shadowMapCount = 0;
 
         if (!this._mainNode) {
-            this._mainNode = new SDNode(root.id, root.version);
+            this._mainNode = new SDObject(root.id, root.version);
+            root.transformedNodes[this._renderingEngine.id] = this._mainNode;
             this._scene.add(this._mainNode);
         }
 
@@ -247,8 +248,8 @@ export class SceneTreeManager implements IManager {
             const objChild = <SDNode>obj.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
 
             if (!objChild) {
-                // if no child exists, create a new one
-                const newChild = new SDNode(nodeChild.id, nodeChild.version);
+                const newChild = new SDObject(nodeChild.id, nodeChild.version);
+                nodeChild.transformedNodes[this._renderingEngine.id] = newChild;
                 obj.add(newChild);
                 this.updateNode(nodeChild, newChild);
             } else if (objChild.SDversion !== nodeChild.version) {

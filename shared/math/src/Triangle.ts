@@ -21,7 +21,7 @@ export class Triangle implements IGeometry {
     }
 
     // Möller–Trumbore intersection algorithm
-    intersect(origin: vec3, direction: vec3): number | null {
+    intersect(origin: vec3, direction: vec3): vec3 | null {
         const EPSILON = 0.0000001;
         const edge1 = vec3.sub(vec3.create(), this._v1, this._v0);
         const edge2 = vec3.sub(vec3.create(), this._v2, this._v0);
@@ -40,6 +40,6 @@ export class Triangle implements IGeometry {
             return null;
         // At this stage we can compute t to find out where the intersection point is on the line.
         const t = f * vec3.dot(edge2, q);
-        return t > EPSILON ? t : null;
+        return t > EPSILON ? vec3.add(vec3.create(), vec3.multiply(vec3.create(), direction, vec3.fromValues(t, t, t)), origin):null;
     }
 }

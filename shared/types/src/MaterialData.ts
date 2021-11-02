@@ -1,8 +1,6 @@
 import { vec2, vec3, vec4 } from 'gl-matrix'
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
-import { ISDObject } from '.'
-
 // export interface LineMaterialDefinition {
 //   // #region Properties (5)
 

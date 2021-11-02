@@ -3,7 +3,6 @@ import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.n
 import { Box, Triangle } from '@shapediver/viewer.shared.math'
 
 import { MaterialData } from './MaterialData'
-import { ISDObject } from '.'
 
 export enum PRIMITIVE_MODE {
   POINTS = 0,
