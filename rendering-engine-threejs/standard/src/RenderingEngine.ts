@@ -320,6 +320,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     public get closed(): boolean {
         return this._closed;
     }
+    
+    public get continuousRendering(): boolean {
+        return this._renderingManager.continuousRendering;
+    }
+
+    public set continuousRendering(value: boolean) {
+        this._renderingManager.continuousRendering = value;
+    }
+    
+    public get continuousShadowMapUpdate(): boolean {
+        return this._renderingManager.continuousShadowMapUpdate;
+    }
+    
+    public set continuousShadowMapUpdate(value: boolean) {
+        this._renderingManager.continuousShadowMapUpdate = value;
+    }
 
     public get domEventEngine(): DomEventEngine {
         return this._domEventEngine;

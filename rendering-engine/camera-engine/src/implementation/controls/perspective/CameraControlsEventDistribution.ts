@@ -29,6 +29,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
   public deactivateCameraEvents(): void {
     this._activeEvents = false;
+    this.reset()
   }
 
   public onDown(event: MouseEvent|TouchEvent): void {

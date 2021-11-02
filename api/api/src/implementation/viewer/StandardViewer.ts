@@ -16,6 +16,7 @@ import {
   PerformanceEvaluator,
   SDError,
   StateEngine,
+  UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
@@ -33,7 +34,7 @@ import { ISDObject, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 @injectable()
 export class StandardViewer implements IStandardViewer {
-  // #region Properties (10)
+  // #region Properties (14)
 
   readonly #cameras: { [key: string]: ICamera } = {};
   readonly #converter: Converter = <Converter>container.resolve(Converter);
@@ -43,11 +44,15 @@ export class StandardViewer implements IStandardViewer {
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
   #busyModeIDs: string[] = [];
+  #flagsCameraFreeze: string[] = [];
+  #flagsContinuousRendering: string[] = [];
+  #flagsShadowMapUpdate: string[] = [];
   #renderingEngine!: RenderingEngineThreejs;
 
-  // #endregion Properties (10)
+  // #endregion Properties (14)
 
   // #region Constructors (1)
 
@@ -515,7 +520,14 @@ export class StandardViewer implements IStandardViewer {
 
   // #endregion Public Accessors (47)
 
-  // #region Public Methods (16)
+  // #region Public Methods (24)
+
+  public addCameraFreezeFlag(): string {
+    const token = this.#uuidGenerator.create();
+    this.#flagsCameraFreeze.push(token);
+    this.#renderingEngine.cameraEngine.deactivateCameraEvents();
+    return token;
+  }
 
   public addCanvasEventListener(listener: IDomEventListener): string {
     try {
@@ -525,6 +537,20 @@ export class StandardViewer implements IStandardViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).addCanvasEventListener: Something unexpected happened.`, true)
     }
+  }
+
+  public addContinuousRenderingFlag(): string {
+    const token = this.#uuidGenerator.create();
+    this.#flagsContinuousRendering.push(token);
+    this.#renderingEngine.continuousRendering = true;
+    return token;
+  }
+
+  public addShadowMapUpdateFlag(): string {
+    const token = this.#uuidGenerator.create();
+    this.#flagsShadowMapUpdate.push(token);
+    this.#renderingEngine.continuousShadowMapUpdate = true;
+    return token;
   }
 
   public assignCamera(id: string): void {
@@ -683,6 +709,14 @@ export class StandardViewer implements IStandardViewer {
     }
   }
 
+  public removeCameraFreezeFlag(token: string): boolean {
+    if (!this.#flagsCameraFreeze.includes(token)) return false;
+    this.#flagsCameraFreeze.splice(this.#flagsCameraFreeze.indexOf(token), 1);
+    if (this.#flagsCameraFreeze.length === 0)
+      this.#renderingEngine.cameraEngine.activateCameraEvents();
+    return true;
+  }
+
   public removeCanvasEventListener(token: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener: Removing canvas event listener.`);
@@ -691,6 +725,14 @@ export class StandardViewer implements IStandardViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).removeCanvasEventListener: Something unexpected happened.`, true)
     }
+  }
+
+  public removeContinuousRenderingFlag(token: string): boolean {
+    if (!this.#flagsContinuousRendering.includes(token)) return false;
+    this.#flagsContinuousRendering.splice(this.#flagsContinuousRendering.indexOf(token), 1);
+    if (this.#flagsContinuousRendering.length === 0)
+      this.#renderingEngine.continuousRendering = false;
+    return true;
   }
 
   public removeLightScene(id: string): boolean {
@@ -706,6 +748,14 @@ export class StandardViewer implements IStandardViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).removeLightScene: Something unexpected happened.`, true)
     }
+  }
+
+  public removeShadowMapUpdateFlag(token: string): boolean {
+    if (!this.#flagsShadowMapUpdate.includes(token)) return false;
+    this.#flagsShadowMapUpdate.splice(this.#flagsShadowMapUpdate.indexOf(token), 1);
+    if (this.#flagsShadowMapUpdate.length === 0)
+      this.#renderingEngine.continuousShadowMapUpdate = false;
+    return true;
   }
 
   public render(): void {
@@ -769,5 +819,5 @@ export class StandardViewer implements IStandardViewer {
     }
   }
 
-  // #endregion Public Methods (16)
+  // #endregion Public Methods (24)
 }

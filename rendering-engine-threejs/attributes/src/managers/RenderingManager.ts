@@ -27,6 +27,8 @@ export class RenderingManager implements IManager {
 
     private _activeRendering: boolean = true;
     private _cameraChanged: boolean = false;
+    private _continuousRendering: boolean = false;
+    private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
     private _lastCamera: {
         position: vec3,
@@ -64,6 +66,22 @@ export class RenderingManager implements IManager {
     // #endregion Constructors (1)
 
     // #region Public Accessors (2)
+
+    public get continuousRendering(): boolean {
+        return this._continuousRendering;
+    }
+
+    public set continuousRendering(value: boolean) {
+        this._continuousRendering = value;
+    }
+
+    public get continuousShadowMapUpdate(): boolean {
+        return this._continuousShadowMapUpdate;
+    }
+
+    public set continuousShadowMapUpdate(value: boolean) {
+        this._continuousShadowMapUpdate = value;
+    }
 
     public get minimalRendering(): boolean {
         return this._minimalRendering;

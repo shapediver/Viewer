@@ -19,7 +19,7 @@ import { IManager } from '../interfaces/IManager'
 import { ICameraEvent } from '@shapediver/viewer.shared.types'
 
 export class RenderingManager implements IManager {
-    // #region Properties (16)
+    // #region Properties (20)
 
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
@@ -28,6 +28,8 @@ export class RenderingManager implements IManager {
 
     private _activeRendering: boolean = true;
     private _cameraChanged: boolean = false;
+    private _continuousRendering: boolean = false;
+    private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
     private _lastCamera: {
         position: vec3,
@@ -48,16 +50,16 @@ export class RenderingManager implements IManager {
             height: 0
         };
     private _lastTime: number = 0;
+    private _maxTextureUnits: number = 0;
     private _minimalRendering: boolean = false;
     private _noWebGL: boolean = false;
+    private _runningAnimation: boolean = false;
     private _sizeChanged: boolean = false;
     private _stats: any;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
-    private _maxTextureUnits: number = 0;
-    private _runningAnimation: boolean = false;
 
-    // #endregion Properties (16)
+    // #endregion Properties (20)
 
     // #region Constructors (1)
 
@@ -65,7 +67,23 @@ export class RenderingManager implements IManager {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (2)
+    // #region Public Accessors (6)
+
+    public get continuousRendering(): boolean {
+        return this._continuousRendering;
+    }
+
+    public set continuousRendering(value: boolean) {
+        this._continuousRendering = value;
+    }
+
+    public get continuousShadowMapUpdate(): boolean {
+        return this._continuousShadowMapUpdate;
+    }
+
+    public set continuousShadowMapUpdate(value: boolean) {
+        this._continuousShadowMapUpdate = value;
+    }
 
     public get minimalRendering(): boolean {
         return this._minimalRendering;
@@ -75,9 +93,9 @@ export class RenderingManager implements IManager {
         return this._usingSwiftShader;
     }
 
-    // #endregion Public Accessors (2)
+    // #endregion Public Accessors (6)
 
-    // #region Public Methods (8)
+    // #region Public Methods (9)
 
     public addLogo(canvas: HTMLCanvasElement, logo: string): HTMLDivElement {
         const logoDivElement = document.createElement('div');
@@ -206,7 +224,7 @@ export class RenderingManager implements IManager {
         this._renderingEngine.renderer.shadowMap.needsUpdate = true;
     }
 
-    // #endregion Public Methods (8)
+    // #endregion Public Methods (9)
 
     // #region Private Methods (10)
 
@@ -410,11 +428,11 @@ export class RenderingManager implements IManager {
 
         // If we should render at all
         let rendering = false;
-        if (this._activeRendering === true || this._cameraChanged === true || this._sizeChanged === true || this._runningAnimation === true)
+        if (this._activeRendering === true || this._cameraChanged === true || this._sizeChanged === true || this._runningAnimation === true || this._continuousRendering === true)
             rendering = true;
 
         let updateShadowMap = false;
-        if (this._runningAnimation === true)
+        if (this._runningAnimation === true || this._continuousShadowMapUpdate === true)
             updateShadowMap = true;
 
         // special case, autorotation

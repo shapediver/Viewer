@@ -31,6 +31,24 @@ export interface IViewer extends IRenderingEngine {
     addCanvasEventListener(listener: IDomEventListener): string;
 
     /**
+     * Add a flag to freeze the camera.
+     * If you want to stop this again call {@link removeCameraFreezeFlag} with the returned token.
+     */
+    addCameraFreezeFlag(): string;
+
+    /**
+     * Add a flag to continuously render the scene.
+     * If you want to stop this again call {@link removeContinuousRenderingFlag} with the returned token.
+     */
+    addContinuousRenderingFlag(): string;
+
+    /**
+     * Add a flag to continuously update the shadow map.
+     * If you want to stop this again call {@link removeShadowMapUpdateFlag} with the returned token.
+     */
+    addShadowMapUpdateFlag(): string;
+
+    /**
      * Assign the camera with the specified id to the viewer.
      * 
      * @param id the id of the camera
@@ -122,6 +140,27 @@ export interface IViewer extends IRenderingEngine {
     removeCanvasEventListener(token: string): boolean;
 
     /**
+     * Removes the registered flag for freezing the camera.
+     * 
+     * @param token 
+     */
+    removeCameraFreezeFlag(token: string): boolean;
+
+    /**
+     * Removes the registered flag for continuous rendering.
+     * 
+     * @param token 
+     */
+    removeContinuousRenderingFlag(token: string): boolean;
+
+    /**
+     * Removes the registered flag for continuous shadow map updates.
+     * 
+     * @param token 
+     */
+    removeShadowMapUpdateFlag(token: string): boolean;
+
+    /**
      * Remove the light scene with the specified id.
      * 
      * @param id the id of the light scene
@@ -157,7 +196,7 @@ export interface IViewer extends IRenderingEngine {
      * Update the current node and all descendants in the scene tree.
      * @param node 
      */
-     updateNode(node: TreeNode): void;
+    updateNode(node: TreeNode): void;
 
     // #endregion Public Methods (16)
 }

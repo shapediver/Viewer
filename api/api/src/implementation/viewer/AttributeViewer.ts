@@ -16,6 +16,7 @@ import {
   PerformanceEvaluator,
   SDError,
   StateEngine,
+  UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
@@ -45,8 +46,12 @@ export class AttributeViewer implements IAttributeViewer {
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
   readonly #sceneTree: Tree = <Tree>container.resolve(Tree);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
   #busyModeIDs: string[] = [];
+  #flagsCameraFreeze: string[] = [];
+  #flagsContinuousRendering: string[] = [];
+  #flagsShadowMapUpdate: string[] = [];
   #renderingEngine!: RenderingEngineAttributes;
 
   // #endregion Properties (11)
@@ -296,6 +301,13 @@ export class AttributeViewer implements IAttributeViewer {
 
   // #region Public Methods (17)
 
+  public addCameraFreezeFlag(): string {
+    const token = this.#uuidGenerator.create();
+    this.#flagsCameraFreeze.push(token);
+    this.#renderingEngine.cameraEngine.deactivateCameraEvents();
+    return token;
+  }
+
   public addCanvasEventListener(listener: IDomEventListener): string {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener: Adding new canvas event listener.`);
@@ -304,6 +316,20 @@ export class AttributeViewer implements IAttributeViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).addCanvasEventListener: Something unexpected happened.`, true)
     }
+  }
+
+  public addContinuousRenderingFlag(): string {
+    const token = this.#uuidGenerator.create();
+    this.#flagsContinuousRendering.push(token);
+    this.#renderingEngine.continuousRendering = true;
+    return token;
+  }
+
+  public addShadowMapUpdateFlag(): string {
+    const token = this.#uuidGenerator.create();
+    this.#flagsShadowMapUpdate.push(token);
+    this.#renderingEngine.continuousShadowMapUpdate = true;
+    return token;
   }
 
   public assignCamera(id: string): void {
@@ -466,6 +492,14 @@ export class AttributeViewer implements IAttributeViewer {
     }
   }
 
+  public removeCameraFreezeFlag(token: string): boolean {
+    if (!this.#flagsCameraFreeze.includes(token)) return false;
+    this.#flagsCameraFreeze.splice(this.#flagsCameraFreeze.indexOf(token), 1);
+    if (this.#flagsCameraFreeze.length === 0)
+      this.#renderingEngine.cameraEngine.activateCameraEvents();
+    return true;
+  }
+
   public removeCanvasEventListener(token: string): boolean {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener: Removing canvas event listener.`);
@@ -474,6 +508,14 @@ export class AttributeViewer implements IAttributeViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).removeCanvasEventListener: Something unexpected happened.`, true)
     }
+  }
+
+  public removeContinuousRenderingFlag(token: string): boolean {
+    if (!this.#flagsContinuousRendering.includes(token)) return false;
+    this.#flagsContinuousRendering.splice(this.#flagsContinuousRendering.indexOf(token), 1);
+    if (this.#flagsContinuousRendering.length === 0)
+      this.#renderingEngine.continuousRendering = false;
+    return true;
   }
 
   public removeLightScene(id: string): boolean {
@@ -489,6 +531,14 @@ export class AttributeViewer implements IAttributeViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).removeLightScene: Something unexpected happened.`, true)
     }
+  }
+
+  public removeShadowMapUpdateFlag(token: string): boolean {
+    if (!this.#flagsShadowMapUpdate.includes(token)) return false;
+    this.#flagsShadowMapUpdate.splice(this.#flagsShadowMapUpdate.indexOf(token), 1);
+    if (this.#flagsShadowMapUpdate.length === 0)
+      this.#renderingEngine.continuousShadowMapUpdate = false;
+    return true;
   }
 
   public render(): void {
