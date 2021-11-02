@@ -180,5 +180,14 @@ export class PerspectiveCamera extends AbstractCamera {
     return vec2.fromValues(pos[0], pos[1])
   }
 
+  public unproject(pos: vec3, position = this.position, target = this.target): vec3 {
+    const m = mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
+    const aspect = this.aspect || 1.5;
+    const p = mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), aspect, this.near, this.far);
+    vec3.transformMat4(pos, pos, mat4.invert(p,p))
+    vec3.transformMat4(pos, pos, m)
+    return vec3.clone(pos);
+  }
+
   // #endregion Public Methods (3)
 }

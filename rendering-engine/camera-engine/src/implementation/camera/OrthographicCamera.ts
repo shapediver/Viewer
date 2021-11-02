@@ -205,5 +205,13 @@ export class OrthographicCamera extends AbstractCamera {
       return vec2.fromValues(pos[0], pos[1])
    }
 
+   public unproject(pos: vec3, position = this.position, target = this.target): vec3 {
+      const m = mat4.targetTo(mat4.create(), this.position, this.target, this.up);
+      const p = mat4.ortho(mat4.create(), this.left, this.right, this.bottom, this.top, this.near, this.far);
+      vec3.transformMat4(pos, pos, mat4.invert(p,p))
+      vec3.transformMat4(pos, pos, m)
+      return vec3.clone(pos);
+   }
+
    // #endregion Public Methods (3)
 }

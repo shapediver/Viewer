@@ -14,7 +14,7 @@ import { vec3 } from 'gl-matrix'
 import { IOrthographicCameraSettingsV3, IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
 
 export class CameraEngine implements ICameraEngine {
-    // #region Properties (3)
+    // #region Properties (10)
 
     private readonly _cameras: {
         [key: string]: Camera
@@ -22,17 +22,18 @@ export class CameraEngine implements ICameraEngine {
     private readonly _camerasDomEventListenerToken: {
         [key: string]: string
     } = {};
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    protected _boundingBox: Box = new Box();
+    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _camera: Camera | null = null;
     private _settingsApplied: boolean = false;
 
-    // #endregion Properties (3)
+    protected _boundingBox: Box = new Box();
+
+    // #endregion Properties (10)
 
     // #region Constructors (1)
 
@@ -48,6 +49,10 @@ export class CameraEngine implements ICameraEngine {
         });
     }
 
+    // #endregion Constructors (1)
+
+    // #region Public Accessors (2)
+
     public get camera(): Camera | null {
         return this._camera;
     }
@@ -56,6 +61,15 @@ export class CameraEngine implements ICameraEngine {
         [key: string]: Camera
     } {
         return this._cameras;
+    }
+
+    // #endregion Public Accessors (2)
+
+    // #region Public Methods (7)
+
+    public activateCameraEvents(): void {
+        for(let c in this.cameras)
+            (<PerspectiveCameraControls | OrthographicCameraControls>this.cameras[c].controls).cameraControlsEventDistribution.activateCameraEvents();
     }
 
     public applySettings() {
@@ -77,10 +91,6 @@ export class CameraEngine implements ICameraEngine {
             this._cameras[c].applySettings();
         this._settingsApplied = true;
     }
-
-    // #endregion Constructors (1)
-
-    // #region Public Methods (5)
 
     public assignCamera(id: string): void {
         const camera = this._cameras[id];
@@ -119,6 +129,11 @@ export class CameraEngine implements ICameraEngine {
             }
             return camera;
         }
+    }
+
+    public deactivateCameraEvents(): void {
+        for(let c in this.cameras)
+            (<PerspectiveCameraControls | OrthographicCameraControls>this.cameras[c].controls).cameraControlsEventDistribution.deactivateCameraEvents();
     }
 
     public removeCamera(id: string): boolean {
@@ -237,6 +252,5 @@ export class CameraEngine implements ICameraEngine {
         }
     }
 
-
-    // #endregion Public Methods (5)
+    // #endregion Public Methods (7)
 }

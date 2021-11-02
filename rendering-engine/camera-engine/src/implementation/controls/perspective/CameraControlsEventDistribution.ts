@@ -3,7 +3,7 @@ import { ICameraControlsEventDistribution } from '../../../interfaces/controls/I
 import { PerspectiveCameraControls } from '../PerspectiveCameraControls'
 
 export class CameraControlsEventDistribution implements ICameraControlsEventDistribution {
-  // #region Properties (2)
+  // #region Properties (1)
 
   private _active = {
     rotation: false,
@@ -11,7 +11,9 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     pan: false
   };
 
-  // #endregion Properties (2)
+  private _activeEvents = true;
+
+  // #endregion Properties (1)
 
   // #region Constructors (1)
 
@@ -19,7 +21,15 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 
   // #endregion Constructors (1)
 
-  // #region Public Methods (14)
+  // #region Public Methods (16)
+
+  public activateCameraEvents(): void {
+    this._activeEvents = true;
+  }
+
+  public deactivateCameraEvents(): void {
+    this._activeEvents = false;
+  }
 
   public onDown(event: MouseEvent|TouchEvent): void {
     let {x,y} = this.convertInput(event);
@@ -88,22 +98,27 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
   }
 
   public onKeyDown(event: KeyboardEvent): void {
+    if(!this._activeEvents) return;
     this.onKey(event)
   }
 
   public onMouseDown(event: MouseEvent): void {
+    if(!this._activeEvents) return;
     this.onDown(event);
   }
 
   public onMouseMove(event: MouseEvent): void {
+    if(!this._activeEvents) return;
     this.onMove(event);
   }
 
   public onMouseUp(event: MouseEvent): void {
+    if(!this._activeEvents) return;
     this.onUp(event);
   }
 
   public onMouseWheel(event: WheelEvent): void {
+    if(!this._activeEvents) return;
     this.onWheel(event);
   }
 
@@ -127,14 +142,17 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
   }
 
   public onTouchEnd(event: TouchEvent): void {
+    if(!this._activeEvents) return;
     this.onUp(event);
   }
 
   public onTouchMove(event: TouchEvent): void {
+    if(!this._activeEvents) return;
     this.onMove(event);
   }
 
   public onTouchStart(event: TouchEvent): void {
+    if(!this._activeEvents) return;
     this.onDown(event);
   }
 
@@ -145,6 +163,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
   }
 
   public onWheel(event: WheelEvent): void {
+    if(!this._activeEvents) return;
     if(!this._controls.enableZoom) return;
     let delta = 0;
     if (event.deltaY  !== undefined) {
@@ -172,7 +191,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     };
   }
 
-  // #endregion Public Methods (14)
+  // #endregion Public Methods (16)
 
   // #region Private Methods (1)
 

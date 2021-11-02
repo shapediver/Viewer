@@ -11,4 +11,7 @@ export interface ICameraEngine {
     assignCamera(id: string): void;
     createCamera(type: CAMERATYPE, id?: string): ICamera;
     removeCamera(id: string): boolean;
+
+    activateCameraEvents(): void;
+    deactivateCameraEvents(): void;
 }

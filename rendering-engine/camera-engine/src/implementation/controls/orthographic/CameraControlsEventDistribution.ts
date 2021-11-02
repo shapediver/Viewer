@@ -10,6 +10,8 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
         pan: false
     };
 
+    private _activeEvents = true;
+
     // #endregion Properties (2)
 
     // #region Constructors (1)
@@ -19,6 +21,14 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     // #endregion Constructors (1)
 
     // #region Public Methods (14)
+        
+    public activateCameraEvents(): void {
+        this._activeEvents = true;
+    }
+
+    public deactivateCameraEvents(): void {
+        this._activeEvents = false;
+    }
 
     public onDown(event: MouseEvent | TouchEvent): void {
         let { x, y } = this.convertInput(event);
@@ -79,22 +89,27 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     }
 
     public onKeyDown(event: KeyboardEvent): void {
+        if(!this._activeEvents) return;
         this.onKey(event)
     }
 
     public onMouseDown(event: MouseEvent): void {
+        if(!this._activeEvents) return;
         this.onDown(event);
     }
 
     public onMouseMove(event: MouseEvent): void {
+        if(!this._activeEvents) return;
         this.onMove(event);
     }
 
     public onMouseUp(event: MouseEvent): void {
+        if(!this._activeEvents) return;
         this.onUp(event);
     }
 
     public onMouseWheel(event: WheelEvent): void {
+        if(!this._activeEvents) return;
         this.onWheel(event);
     }
 
@@ -115,14 +130,17 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     }
 
     public onTouchEnd(event: TouchEvent): void {
+        if(!this._activeEvents) return;
         this.onUp(event);
     }
 
     public onTouchMove(event: TouchEvent): void {
+        if(!this._activeEvents) return;
         this.onMove(event);
     }
 
     public onTouchStart(event: TouchEvent): void {
+        if(!this._activeEvents) return;
         this.onDown(event);
     }
 

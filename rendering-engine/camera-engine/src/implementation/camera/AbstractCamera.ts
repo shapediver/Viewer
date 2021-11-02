@@ -254,6 +254,7 @@ export abstract class AbstractCamera implements ICamera {
 
     abstract getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
+    abstract unproject(p: vec3): vec3;
     abstract applySettings(): void;
 
     // #endregion Public Abstract Methods (2)
