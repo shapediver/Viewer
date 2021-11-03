@@ -168,23 +168,23 @@ export class SceneTreeManager implements IManager {
                     if (o instanceof SDData) {
 
                         if (o instanceof THREE.Mesh) {
-                            this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
-                            this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
-                            for (const key in o.geometry.attributes)
-                                o.geometry.deleteAttribute(key);
-                            o.geometry.setIndex(null);
-                            o.geometry.dispose();
-                            if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
-                            if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
-                            if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
-                            o.material.dispose();
+                            // this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
+                            // this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
+                            // for (const key in o.geometry.attributes)
+                            //     o.geometry.deleteAttribute(key);
+                            // o.geometry.setIndex(null);
+                            // o.geometry.dispose();
+                            // if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
+                            // if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
+                            // if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
+                            // if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
+                            // if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
+                            // if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
+                            // if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
+                            // if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
+                            // if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
+                            // if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
+                            // o.material.dispose();
                         }
                     }
 
@@ -227,8 +227,7 @@ export class SceneTreeManager implements IManager {
 
         // remove all data items that do not exist anymore
         const dataIds = node.data.map(d => d.id);
-        const dataVersions = node.data.map(d => d.version);
-        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid) && dataVersions.includes(oc.SDversion)) : false);
+        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
         dataToRemove.forEach(dTR => {
             this.removeData(<SDData>dTR)
             convertedObject.remove(dTR);

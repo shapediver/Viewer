@@ -6,6 +6,7 @@ import {
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING,
   MATERIAL_ALPHA,
+  PRIMITIVE_MODE,
 } from '@shapediver/viewer.shared.types'
 import { vec4 } from 'gl-matrix'
 
@@ -24,6 +25,15 @@ export enum MATERIAL_TYPE {
     UNLIT = 'unlit',
     SPECULAR_GLOSSINESS = 'specular_glossiness',
     METALNESS_ROUGHNESS = 'metalness_roughness'
+}
+
+export type MaterialSettings = {
+    mode: PRIMITIVE_MODE,
+    useVertexTangents: boolean,
+    useVertexColors: boolean,
+    useFlatShading: boolean,
+    useMorphTargets: boolean,
+    useMorphNormals: boolean
 }
 
 export class MaterialLoader implements ILoader {
@@ -162,17 +172,9 @@ export class MaterialLoader implements ILoader {
 
     public init(): void {}
 
-    
     public getMaterialProperties(
         materialData: MaterialData | null,
-        materialSettings?: {
-            mode?: number,
-            useVertexTangents?: boolean,
-            useVertexColors?: boolean,
-            useFlatShading?: boolean,
-            useMorphTargets?: boolean,
-            useMorphNormals?: boolean
-        }
+        materialSettings?: MaterialSettings
     ): {
         properties: THREE.PointsMaterialParameters | THREE.LineBasicMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshStandardMaterialParameters | SpecularGlossinessMaterialParameters,
         mapCount: number,
@@ -222,6 +224,7 @@ export class MaterialLoader implements ILoader {
         if(materialData.alphaMode === MATERIAL_ALPHA.BLEND) {
             generalProperties.format = THREE.RGBAFormat;
             generalProperties.transparent = true;
+            generalProperties.depthWrite = false;
         } else {
             generalProperties.format = THREE.RGBFormat;
             generalProperties.transparent = false;
@@ -399,14 +402,7 @@ export class MaterialLoader implements ILoader {
      */
     public load(
         materialData: MaterialData | null, 
-        materialSettings?: {
-            mode?: number,
-            useVertexTangents?: boolean,
-            useVertexColors?: boolean,
-            useFlatShading?: boolean,
-            useMorphTargets?: boolean,
-            useMorphNormals?: boolean
-        }
+        materialSettings?: MaterialSettings
     ): THREE.Material {
         if(materialData && this._materialCache[materialData.id + '_' + materialData.version]) 
             return this._materialCache[materialData.id + '_' + materialData.version];

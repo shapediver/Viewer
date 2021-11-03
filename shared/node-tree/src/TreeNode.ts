@@ -293,9 +293,6 @@ export class TreeNode {
       node.updateVersionAtomic();
     }
 
-    for (let i = 0; i < this.#data.length; i++)
-      this.#data[i].updateVersion();
-
     for (let i = 0; i < this.#children.length; i++)
       this.#children[i].updateVersion();
 

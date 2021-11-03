@@ -5,6 +5,7 @@ import {
   PRIMITIVE_MODE,
   PrimitiveData,
   MATERIAL_SIDE,
+  MaterialData,
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -16,12 +17,24 @@ import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
 import { SDData } from '../types/SDData'
+import { MaterialSettings } from './MaterialLoader'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (2)
 
     private _geometryCache: {
-        [key: string]: SDData
+        [key: string]: {
+            obj: SDData,
+            threeGeometry: THREE.BufferGeometry,
+            materialSettings: {
+                mode: PRIMITIVE_MODE,
+                useVertexTangents: boolean,
+                useVertexColors: boolean,
+                useFlatShading: boolean,
+                useMorphTargets: boolean,
+                useMorphNormals: boolean
+            }
+        }
     } = {};
     private _logger: Logger = <Logger>container.resolve(Logger);
     private _counter: number = 0;
@@ -47,26 +60,7 @@ export class GeometryLoader implements ILoader {
 
     public init(): void {}
 
-    /**
-     * Create a geometry object with the provided geometry data.
-     * 
-     * @param geometry the geometry data
-     * @returns the geometry object
-     */
-    public load(geometry: GeometryData, parent: SDNode): Box {            
-        const threeGeometry = this.loadGeometry(geometry.primitive);
-        const materialSettings = {
-            mode: geometry.primitive.mode,
-            useVertexTangents: threeGeometry.attributes.tangent !== undefined,
-            useVertexColors: threeGeometry.attributes.color !== undefined,
-            useFlatShading: threeGeometry.attributes.normal === undefined,
-            useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
-            useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
-        }
-        const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1] : geometry.primitive.material;
-        const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
-        const obj = new SDData(geometry.id, geometry.version);
-
+    private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings) {
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
             obj.add(new THREE.Points(threeGeometry, material));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {
@@ -101,9 +95,6 @@ export class GeometryLoader implements ILoader {
             throw new SDError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
         }
 
-        if (materialData?.alphaMode === MATERIAL_ALPHA.BLEND)
-            obj.children.forEach(m => { (<THREE.Material>(<THREE.Mesh>m).material).transparent = true; (<THREE.Material>(<THREE.Mesh>m).material).depthWrite = false; });
-
         obj.children.forEach(m => {
             (<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0],  geometry.boundingBox.min[1],  geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0],  geometry.boundingBox.max[1],  geometry.boundingBox.max[2]));
             (<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
@@ -115,8 +106,50 @@ export class GeometryLoader implements ILoader {
             obj.add(m)
         });
 
-        this._geometryCache[geometry.id] = obj;
-        parent.add(obj);
+        this._geometryCache[geometry.id + '_' + geometry.version] = {obj, threeGeometry, materialSettings};
+    }
+
+    /**
+     * Create a geometry object with the provided geometry data.
+     * 
+     * @param geometry the geometry data
+     * @returns the geometry object
+     */
+    public load(geometry: GeometryData, parent: SDNode): Box {    
+        if(this._geometryCache[geometry.id + '_' + geometry.version]) {
+            const materialSettings = this._geometryCache[geometry.id + '_' + geometry.version].materialSettings;
+            const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1] : geometry.primitive.material;
+            const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
+
+            const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj;
+            obj.traverse(o => {
+                if(
+                    o instanceof THREE.Points || 
+                    o instanceof THREE.LineSegments || 
+                    o instanceof THREE.LineLoop || 
+                    o instanceof THREE.Line || 
+                    o instanceof THREE.Mesh)
+                    o.material = material;
+            })
+            parent.add(obj);
+        } else {
+            const threeGeometry = this.loadGeometry(geometry.primitive);
+            const materialSettings = {
+                mode: geometry.primitive.mode,
+                useVertexTangents: threeGeometry.attributes.tangent !== undefined,
+                useVertexColors: threeGeometry.attributes.color !== undefined,
+                useFlatShading: threeGeometry.attributes.normal === undefined,
+                useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
+                useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
+            }
+            const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1] : geometry.primitive.material;
+            const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
+
+            const obj = new SDData(geometry.id, geometry.version);
+            this.createMesh(obj, geometry, threeGeometry, material, materialSettings);
+            parent.add(obj);
+        }
+
         return geometry.boundingBox.clone().applyMatrix(geometry.matrix);
     }
 
