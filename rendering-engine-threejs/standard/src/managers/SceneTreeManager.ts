@@ -117,11 +117,6 @@ export class SceneTreeManager implements IManager {
         }
     }
 
-
-
-
-
-
     /**
      * Convert the data of the scene graph node into the format of the implementation.
      * 
@@ -129,33 +124,36 @@ export class SceneTreeManager implements IManager {
      * @param obj the corresponding type node
      */
      public updateData(node: TreeNode, obj: SDNode, data: ITreeNodeData): void {
-        let dataChild = <SDData>obj.children.find(oc => (<SDNode>oc).SDid === data.id);
+        let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
 
-        // return if this data already exists and has the correct version
-        if(dataChild && data.version === dataChild.SDversion) return;
-
-        if (!dataChild) {
+        if (!dataChild)
             dataChild = new SDData(data.id, data.version);
-            obj.add(dataChild);
-        }
+
+        obj.add(dataChild);
 
         switch (true) {
             case data instanceof GeometryData:
+                dataChild.type = SD_DATA_TYPE.GEOMETRY;
                 const bb = this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild);
                 node.boundingBox.union(bb);
                 break;
             case data instanceof ThreejsData:
+                dataChild.type = SD_DATA_TYPE.THREEJS;
                 dataChild.add(<SDData>(<ThreejsData>data).obj);
                 break;
             case data instanceof MaterialData:
+                dataChild.type = SD_DATA_TYPE.MATERIAL;
                 break;
             case data instanceof AbstractLight:
+                dataChild.type = SD_DATA_TYPE.LIGHT;
                 this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild, this._scene, this._boundingBox);
                 break;
             case data instanceof HTMLElementAnchorData:
+                dataChild.type = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
                 this._renderingEngine.htmlElementAnchorLoader.load(<HTMLElementAnchorData>data);
                 break;
             case data instanceof AnimationData:
+                dataChild.type = SD_DATA_TYPE.ANIMATION;
                 break;
             default:
                 // if there is no valid conversion here, call the convertData of the implementation
@@ -164,47 +162,49 @@ export class SceneTreeManager implements IManager {
     }
 
     private removeData(dataObject: SDData) {
-        dataObject.traverse((o) => {
-            if(o instanceof SDData) {
-                switch (true) {
-                    case o.SDtype === SD_DATA_TYPE.GEOMETRY:
-                        // TODO
-                        // this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion);
-                        // for (const key in o.geometry.attributes) 
-                        //     o.geometry.deleteAttribute(key);
-                        // o.geometry.setIndex(null);
-                        // o.geometry.dispose();
-                        break;
-                    case o.SDtype === SD_DATA_TYPE.THREEJS:
-                        break;
-                    case o.SDtype === SD_DATA_TYPE.MATERIAL:
-                        // TODO
-                        // this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion);
-                        // if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
-                        // if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
-                        // if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
-                        // if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
-                        // if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
-                        // if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
-                        // if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
-                        // if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
-                        // if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
-                        // if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
-                        // o.material.dispose();
-                        break;
-                    case o.SDtype === SD_DATA_TYPE.LIGHT:
-                        break;
-                    case o.SDtype === SD_DATA_TYPE.HTML_ELEMENT_ANCHOR:
-                        this._renderingEngine.htmlElementAnchorLoader.removeData(o.SDid, o.SDversion);
-                        break;
-                    case o.SDtype === SD_DATA_TYPE.ANIMATION:
-                        break;
-                    default:
-                        // if there is no valid conversion here, call the convertData of the implementation
-                        break;
-                }
-            }
-        })
+        switch (true) {
+            case dataObject.SDtype === SD_DATA_TYPE.GEOMETRY:
+                dataObject.traverse((o) => {
+                    if (o instanceof SDData) {
+
+                        if (o instanceof THREE.Mesh) {
+                            this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
+                            this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
+                            for (const key in o.geometry.attributes)
+                                o.geometry.deleteAttribute(key);
+                            o.geometry.setIndex(null);
+                            o.geometry.dispose();
+                            if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
+                            if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
+                            if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
+                            o.material.dispose();
+                        }
+                    }
+
+                });
+                break;
+            case dataObject.SDtype === SD_DATA_TYPE.THREEJS:
+                break;
+            case dataObject.SDtype === SD_DATA_TYPE.MATERIAL:
+                break;
+            case dataObject.SDtype === SD_DATA_TYPE.LIGHT:
+                break;
+            case dataObject.SDtype === SD_DATA_TYPE.HTML_ELEMENT_ANCHOR:
+                this._renderingEngine.htmlElementAnchorLoader.removeData(dataObject.SDid, dataObject.SDversion);
+                break;
+            case dataObject.SDtype === SD_DATA_TYPE.ANIMATION:
+                break;
+            default:
+                // if there is no valid conversion here, call the convertData of the implementation
+                break;
+        }
     }
 
 
@@ -227,22 +227,29 @@ export class SceneTreeManager implements IManager {
 
         // remove all data items that do not exist anymore
         const dataIds = node.data.map(d => d.id);
-        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !dataIds.includes(oc.SDid) : false);
+        const dataVersions = node.data.map(d => d.version);
+        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid) && dataVersions.includes(oc.SDversion)) : false);
         dataToRemove.forEach(dTR => {
             this.removeData(<SDData>dTR)
             convertedObject.remove(dTR);
         })
 
+        // remove all child nodes in the transformed object that do not exist anymore
+        // the filter goes also through the data items as they were already added
+        const nodeIds = node.children.map(d => d.id);
+        const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDNode ? !nodeIds.includes(oc.SDid) : false);
+        childrenToRemove.forEach(cTR => {
+            cTR.traverse((o) => {
+                if (o instanceof SDData)
+                    this.removeData(o);
+            })
+            convertedObject.remove(cTR);
+        });
+
         // convert all data items of the current node
         // old versions will be replaced by new ones
         for (let i = 0, len = node.data.length; i < len; i++)
             this.updateData(node, convertedObject, node.data[i]);
-
-        // remove all child nodes in the transformed object that do not exist anymore
-        // the filter goes also through the data items as they were already added
-        const nodeIds = node.children.map(d => d.id);
-        const childrenToRemove = convertedObject.children.filter(oc => (oc instanceof SDNode && !(oc instanceof SDData)) ? !nodeIds.includes((<SDNode>oc).SDid) : false);
-        childrenToRemove.forEach(cTR => convertedObject.remove(cTR));
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.children.length; i < len; i++) {
@@ -257,12 +264,12 @@ export class SceneTreeManager implements IManager {
             } else if (objChild.SDversion !== nodeChild.version) {
                 // if the version is different, update the child
                 this.updateNode(nodeChild, objChild);
+                objChild.SDversion = nodeChild.version;
             }
 
             if(!nodeChild.boundingBox.isEmpty())
                 node.boundingBox.union(nodeChild.boundingBox);
         }
-
 
         convertedObject.visible = node.visible;
         convertedObject.applyTransformation(node.nodeMatrix);
