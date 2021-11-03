@@ -58,7 +58,7 @@ export class DragManager extends AbstractInteractionManager {
         if(intersections.length > 0) {
             this.dragNode(intersections[0]);
 
-            const transformationMatrix = this._dragConstraints.setup(this._viewer, ray, this.#intersection!);
+            const transformationMatrix = this._dragConstraints.setup(this._viewer, this.#node!, ray, this.#intersection!);
             this.#node!.transformations.push({ id: 'SD_drag_matrix', matrix: transformationMatrix })
             this.#tokenCameraFreeze = this._viewer.addCameraFreezeFlag();
             this.#tokenContinuousRendering = this._viewer.addContinuousRenderingFlag();
@@ -81,7 +81,7 @@ export class DragManager extends AbstractInteractionManager {
 
     public onMove(ray: IRay, intersection: IIntersection[]): void {        
         if(!this.#node) return;
-        const transformationMatrix = this._dragConstraints.intersect(ray);
+        const transformationMatrix = this._dragConstraints.intersect(this._viewer, this.#node!, ray);
         this.#node.transformations.find(t => t.id === 'SD_drag_matrix')!.matrix = transformationMatrix;
         this._viewer.updateNode(this.#node!);
     }
