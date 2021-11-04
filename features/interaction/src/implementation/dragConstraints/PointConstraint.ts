@@ -60,7 +60,7 @@ export class PointConstraint implements IDragConstraint {
     public setup(viewer: IViewer, node: TreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {       
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
         this._dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
-        return { distance: intersection.distance, transformation: mat4.create() };
+        return this.intersect(viewer, node, ray);
     }
 
     // #endregion Public Methods (2)

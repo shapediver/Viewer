@@ -38,7 +38,6 @@ export class PlaneConstraint implements IDragConstraint {
         } else {
             this._dragPlane = new Plane().setFromNormalAndCoplanarPoint(this._normal, intersection.point);
         }
-
         return this.intersect(viewer, node, ray);
     }
 

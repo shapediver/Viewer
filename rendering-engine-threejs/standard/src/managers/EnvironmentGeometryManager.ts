@@ -27,10 +27,8 @@ export class EnvironmentGeometryManager implements IManager {
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
-        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
-            const viewerEvent = <ISceneEvent>e;
-            if(viewerEvent.viewerId !== this._renderingEngine.id) return;
-            const bb = new Box(viewerEvent.boundingBox?.min, viewerEvent.boundingBox?.max);
+        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e) => {
+            const bb = new Box(this._renderingEngine.sceneTreeManager.boundingBox.min, this._renderingEngine.sceneTreeManager.boundingBox.max);
 
             if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
 

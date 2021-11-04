@@ -60,6 +60,9 @@ export class DragManager extends AbstractInteractionManager {
         if(intersections.length > 0) {
             this.activateNode(intersections[0]);
 
+            if(this.#node!.transformations.find(t => t.id === 'SD_drag_matrix'))
+                this.#node!.transformations.splice(this.#node!.transformations.indexOf(this.#node!.transformations.find(t => t.id === 'SD_drag_matrix')!), 1);
+
             const transformationMatrix = this.dragConstraints.setup(this.viewer, this.#node!, ray, this.#intersection!);
             this.#node!.transformations.push({ id: 'SD_drag_matrix', matrix: transformationMatrix })
             this.#tokenCameraFreeze = this.viewer.addCameraFreezeFlag();
@@ -70,7 +73,10 @@ export class DragManager extends AbstractInteractionManager {
 
     public onEnd(ray: IRay, intersection: IIntersection[]): void {
         if(!this.#node) return;
-        this.#node.transformations.splice(this.#node.transformations.indexOf(this.#node.transformations.find(t => t.id === 'SD_drag_matrix')!), 1);
+
+        // optional to reset
+        // this.#node.transformations.splice(this.#node.transformations.indexOf(this.#node.transformations.find(t => t.id === 'SD_drag_matrix')!), 1);
+        
         this.viewer.updateNode(this.#node!);
         this.deactivateNode();
         
@@ -94,6 +100,8 @@ export class DragManager extends AbstractInteractionManager {
         this.effects.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
         this.viewer.updateNode(this.#node!);
         this.viewer.render();
+        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        if(data) data.interactionStates['drag'] = false;
         this.#intersection = null;
         this.#node = null;
     }
@@ -101,6 +109,8 @@ export class DragManager extends AbstractInteractionManager {
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
+        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        if(data) data.interactionStates['drag'] = true;
         this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.#effectMaterial)
         this.viewer.updateNode(this.#node);
         this.viewer.render();

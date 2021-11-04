@@ -29,7 +29,7 @@ export class CameraPlaneConstraint implements IDragConstraint {
         const cameraDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), viewer.camera!.target, viewer.camera!.position));
         this._dragPlane = new Plane().setFromNormalAndCoplanarPoint(cameraDirection, intersection.point);
         this._dragOrigin = intersection.point;
-        return { distance: intersection.distance, transformation: mat4.create() };
+        return this.intersect(viewer, node, ray);
     }
 
     // #endregion Public Methods (2)

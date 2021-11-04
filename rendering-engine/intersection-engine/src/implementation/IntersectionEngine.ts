@@ -1,5 +1,5 @@
 import { GeometryData, MaterialData, MATERIAL_SIDE } from "@shapediver/viewer.shared.types";
-import { vec3 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import { Triangle } from "@shapediver/viewer.shared.math";
 import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { IIntersection } from "../interfaces/IIntersection";
@@ -58,9 +58,19 @@ export class IntersectionEngine implements IIntersectionEngine {
         };
     }
 
-    private intersectNode(node: TreeNode, ray: IRay): IIntersection[] | undefined {
+    private intersectNode(node: TreeNode, rayIn: IRay): IIntersection[] | undefined {
+        const inverseMatrix = mat4.invert(mat4.create(), node.nodeMatrix);
+        const ray = {
+            origin: vec3.transformMat4(vec3.create(), rayIn.origin, inverseMatrix),
+            direction: vec3.normalize(vec3.create(), vec3.fromValues(
+                inverseMatrix[0] * rayIn.direction[0] + inverseMatrix[4] * rayIn.direction[1] + inverseMatrix[8] * rayIn.direction[2],
+                inverseMatrix[1] * rayIn.direction[0] + inverseMatrix[5] * rayIn.direction[1] + inverseMatrix[9] * rayIn.direction[2],
+                inverseMatrix[2] * rayIn.direction[0] + inverseMatrix[6] * rayIn.direction[1] + inverseMatrix[10] * rayIn.direction[2]
+            ))
+        };
+
         // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
-        if (node.boundingBox.intersect(ray.origin, ray.direction) === null) return;
+        if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
 
         let geometryData: GeometryData | undefined;
         for (let i = 0; i < node.data.length; i++) {

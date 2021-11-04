@@ -4,13 +4,10 @@ import { vec3 } from 'gl-matrix';
 export class InteractionData extends AbstractTreeNodeData {
     // #region Properties (8)
 
-    #interactionTypes: {
-        [key: string]: boolean
-    } = {};
+    #interactionTypes: { [key: string]: boolean; } = {};
     #dragOrigin?: vec3;
-    #dragAnchors: {
-        position: vec3
-    }[] = [];
+    #dragAnchors: { position: vec3 }[] = [];
+    #interactionStates: { [key: string]: boolean; } = {};
 
     // #endregion Properties (8)
 
@@ -42,6 +39,14 @@ export class InteractionData extends AbstractTreeNodeData {
 
     public set interactionTypes(value: { [key: string]: boolean }) {
         this.#interactionTypes = value;
+    }
+
+    public get interactionStates(): { [key: string]: boolean } {
+        return this.#interactionStates;
+    }
+
+    public set interactionStates(value: { [key: string]: boolean }) {
+        this.#interactionStates = value;
     }
 
     public get dragOrigin(): vec3 | undefined {

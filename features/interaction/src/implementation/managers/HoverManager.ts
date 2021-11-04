@@ -47,18 +47,22 @@ export class HoverManager extends AbstractInteractionManager {
     public onEnd(ray: IRay, intersection: IIntersection[]): void {}
 
     public onMove(ray: IRay, intersection: IIntersection[]): void {        
-        const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.MOVE)(i.node))
+        let intersections = intersection.filter( i => this.filter(INTERACTION_STATE.MOVE)(i.node))
+        intersections = intersection.filter(i => {
+            const data = <InteractionData>i.node.data.find(d => d instanceof InteractionData);
+            return !(data && data.interactionStates['drag'] === true);
+        })
 
-        if(this.#node) {
-            if(intersections.length > 0 && intersection[0].node === this.#node) {
+        if (this.#node) {
+            if (intersections.length > 0 && intersection[0].node === this.#node) {
                 // do nothing
-            } else if(intersections.length > 0) {
+            } else if (intersections.length > 0) {
                 this.deactivateNode();
                 this.activateNode(intersections[0]);
             } else {
                 this.deactivateNode();
             }
-        } else if(intersections.length > 0) {
+        } else if (intersections.length > 0) {
             // easy case, no node hover, just hover this one
             this.activateNode(intersections[0]);
         }
@@ -72,6 +76,8 @@ export class HoverManager extends AbstractInteractionManager {
         this.effects.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
         this.viewer.updateNode(this.#node!);
         this.viewer.render();
+        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        if(data) data.interactionStates['hover'] = false;
         this.#intersection = null;
         this.#node = null;
     }
@@ -79,6 +85,8 @@ export class HoverManager extends AbstractInteractionManager {
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
+        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        if(data) data.interactionStates['hover'] = true;
         this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.#effectMaterial)
         this.viewer.updateNode(this.#node);
         this.viewer.render();
