@@ -8,21 +8,33 @@ import { InteractionEffects } from "./InteractionEffects";
 export abstract class AbstractInteractionManager implements IInteractionManager {
     // #region Properties (4)
 
-    protected readonly _dragConstraints: DragConstraints = <DragConstraints>container.resolve(DragConstraints);
-    protected readonly _effects: InteractionEffects = <InteractionEffects>container.resolve(InteractionEffects);
-    protected readonly _viewer: IViewer;
+    readonly #dragConstraints: DragConstraints = <DragConstraints>container.resolve(DragConstraints);
+    readonly #effects: InteractionEffects = <InteractionEffects>container.resolve(InteractionEffects);
 
+    #viewer!: IViewer;
     abstract filter: IInteractionFilterOptions;
 
     // #endregion Properties (4)
 
-    // #region Constructors (1)
+    // #region Public Accessors (4)
 
-    constructor(viewer: IViewer) {
-        this._viewer = viewer;
+    public get dragConstraints(): DragConstraints {
+        return this.#dragConstraints;
     }
 
-    // #endregion Constructors (1)
+    public get effects(): InteractionEffects {
+        return this.#effects;
+    }
+
+    public get viewer(): IViewer {
+        return this.#viewer;
+    }
+
+    public set viewer(value: IViewer) {
+        this.#viewer = value;
+    }
+
+    // #endregion Public Accessors (4)
 
     // #region Public Abstract Methods (3)
 

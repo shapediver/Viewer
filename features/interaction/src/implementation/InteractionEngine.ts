@@ -9,17 +9,19 @@ import { IInteractionManager } from "../interfaces/IInteractionManager";
 export class InteractionEngine implements IInteractionEngine {
     // #region Properties (4)
 
-    private readonly _intersectionEngine: IntersectionEngine = <IntersectionEngine>container.resolve(IntersectionEngine);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _managers: { [key: string]: IInteractionManager } = {};
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    readonly #intersectionEngine: IntersectionEngine = <IntersectionEngine>container.resolve(IntersectionEngine);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #managers: { [key: string]: IInteractionManager } = {};
+    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+    readonly #viewer: IViewer;
 
     // #endregion Properties (4)
 
     // #region Constructors (1)
 
-    constructor(private readonly _viewer: IViewer) {
-        this._viewer.addCanvasEventListener(this);
+    constructor(viewer: IViewer) {
+        this.#viewer = viewer;
+        this.#viewer.addCanvasEventListener(this);
     }
 
     // #endregion Constructors (1)
@@ -27,8 +29,9 @@ export class InteractionEngine implements IInteractionEngine {
     // #region Public Methods (11)
 
     public addInteractionManager(manager: IInteractionManager): string {
-        const token = this._uuidGenerator.create();
-        this._managers[token] = manager;
+        const token = this.#uuidGenerator.create();
+        this.#managers[token] = manager;
+        manager.viewer = this.#viewer;
         return token;
     }
 
@@ -36,11 +39,11 @@ export class InteractionEngine implements IInteractionEngine {
         origin: vec3,
         direction: vec3
     } {
-        const rect = this._viewer.canvas.getBoundingClientRect();
-        const camera = this._viewer.camera;
+        const rect = this.#viewer.canvas.getBoundingClientRect();
+        const camera = this.#viewer.camera;
         if (!camera) {
             const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
-            this._logger.warn(LOGGINGTOPIC.VIEWER, error.message);
+            this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
             throw error;
         }
 
@@ -89,8 +92,8 @@ export class InteractionEngine implements IInteractionEngine {
     }
 
     public removeInteractionManager(token: string): boolean {
-        if(!this._managers[token]) return false;
-        delete this._managers[token];
+        if(!this.#managers[token]) return false;
+        delete this.#managers[token];
         return true;
     }
 
@@ -100,35 +103,35 @@ export class InteractionEngine implements IInteractionEngine {
 
     private onDown(ray: IRay): void {
         const filters: IIntersectionFilter[] = [];
-        for(let m in this._managers)
-            filters.push(this._managers[m].filter(INTERACTION_STATE.DOWN));
+        for(let m in this.#managers)
+            filters.push(this.#managers[m].filter(INTERACTION_STATE.DOWN));
 
-        const intersection = this._intersectionEngine.intersect(ray, filters) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters) || [];
 
-        for(let m in this._managers)
-            this._managers[m].onDown(ray, intersection);
+        for(let m in this.#managers)
+            this.#managers[m].onDown(ray, intersection);
     }
 
     private onEnd(ray: IRay): void {
         const filters: IIntersectionFilter[] = [];
-        for(let m in this._managers)
-            filters.push(this._managers[m].filter(INTERACTION_STATE.END));
+        for(let m in this.#managers)
+            filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
 
-        const intersection = this._intersectionEngine.intersect(ray, filters) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters) || [];
 
-        for(let m in this._managers)
-            this._managers[m].onEnd(ray, intersection);
+        for(let m in this.#managers)
+            this.#managers[m].onEnd(ray, intersection);
     }
 
     private onMove(ray: IRay): void {
         const filters: IIntersectionFilter[] = [];
-        for(let m in this._managers)
-            filters.push(this._managers[m].filter(INTERACTION_STATE.MOVE));
+        for(let m in this.#managers)
+            filters.push(this.#managers[m].filter(INTERACTION_STATE.MOVE));
 
-        const intersection = this._intersectionEngine.intersect(ray, filters) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters) || [];
 
-        for(let m in this._managers)
-            this._managers[m].onMove(ray, intersection);
+        for(let m in this.#managers)
+            this.#managers[m].onMove(ray, intersection);
     }
 
     // #endregion Private Methods (3)

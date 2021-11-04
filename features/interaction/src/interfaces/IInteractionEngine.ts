@@ -8,6 +8,10 @@ export enum INTERACTION_STATE {
 }
 
 export interface IInteractionEngine extends IDomEventListener {
+    // #region Public Methods (2)
+
     addInteractionManager(manager: IInteractionManager): string;
     removeInteractionManager(token: string): boolean;
+
+    // #endregion Public Methods (2)
 }

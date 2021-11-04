@@ -15,7 +15,6 @@ import { SDTFItemData } from './data/sdtf/SDTFItemData'
 import { SDTFAttributeOverview, SDTFOverview } from './data/sdtf/SDTFAttributeOverview'
 import { ATTRIBUTEVISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisualizationData } from './data/sdtf/SDTFAttributeVisualization'
 import { AnimationData, AnimationTrack } from './data/AnimationData'
-import { InteractionData } from './data/InteractionData'
 import { IViewerEvent } from './events/IViewerEvent'
 import { ISessionEvent } from './events/ISessionEvent'
 import { ICameraEvent } from './events/ICameraEvent'
@@ -29,10 +28,6 @@ export {
 
 export {
   AnimationData, AnimationTrack, GeometryData, AttributeData, PrimitiveData, PRIMITIVE_MODE
-}
-
-export {
-  InteractionData
 }
 
 export {

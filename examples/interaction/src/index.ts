@@ -2,9 +2,9 @@ import 'reflect-metadata'
 
 import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
-import { SelectManager, HoverManager, DragManager } from '@shapediver/viewer.features.interaction'
+import { SelectManager, HoverManager, DragManager, CameraPlaneConstraint, PointConstraint, InteractionData, LineConstraint } from '@shapediver/viewer.features.interaction'
 import { createInteractionEngine } from '@shapediver/viewer.features.interaction';
-import { InteractionData } from '@shapediver/viewer.shared.types';
+import { vec3 } from 'gl-matrix';
 
 (<any>window).sdv = SDV;
 
@@ -65,15 +65,31 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 
 (async () => {
     const { ticket, modelViewUrl } = models['Shelf'];
-    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    let viewer = <SDV.IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
 
-    const data = new InteractionData({drag: true, hover: true, select: true});
-    for(let i = 0; i < SDV.api.sceneTree.root.children[0].children.length; i++)
+    for(let i = 0; i < SDV.api.sceneTree.root.children[0].children.length; i++) {
+        const child = SDV.api.sceneTree.root.children[0].children[i];
+        const data = new InteractionData({drag: true, hover: true});
+
+        if(!child.boundingBox.isEmpty()) {
+            data.dragOrigin = child.boundingBox.boundingSphere.center;
+            data.dragAnchors.push({ 
+                position: vec3.fromValues(child.boundingBox.min[0], child.boundingBox.min[1], child.boundingBox.min[2])
+            });
+            data.dragAnchors.push({ 
+                position: vec3.fromValues(child.boundingBox.max[0], child.boundingBox.max[1], child.boundingBox.max[2])
+            });
+        }
         SDV.api.sceneTree.root.children[0].children[i].data.push(data)
+    }
     
     const interactionEngine = createInteractionEngine(viewer);
-    interactionEngine.addInteractionManager(new SelectManager(viewer));
-    interactionEngine.addInteractionManager(new HoverManager(viewer));
-    interactionEngine.addInteractionManager(new DragManager(viewer));
+    interactionEngine.addInteractionManager(new SelectManager());
+    interactionEngine.addInteractionManager(new HoverManager());
+    const dragManager = new DragManager();
+    dragManager.addDragConstraint(new CameraPlaneConstraint())
+    dragManager.addDragConstraint(new PointConstraint(vec3.fromValues(100,0,0), 25))
+    dragManager.addDragConstraint(new LineConstraint(vec3.fromValues(-100,0,0), vec3.fromValues(-50,0,0), 25))
+    interactionEngine.addInteractionManager(dragManager);
 })();

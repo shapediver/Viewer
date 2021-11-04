@@ -1,11 +1,16 @@
-import { AbstractTreeNodeData, ITransformation, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { mat4 } from 'gl-matrix';
+import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { vec3 } from 'gl-matrix';
+
 export class InteractionData extends AbstractTreeNodeData {
     // #region Properties (8)
 
     #interactionTypes: {
         [key: string]: boolean
     } = {};
+    #dragOrigin?: vec3;
+    #dragAnchors: {
+        position: vec3
+    }[] = [];
 
     // #endregion Properties (8)
 
@@ -37,6 +42,26 @@ export class InteractionData extends AbstractTreeNodeData {
 
     public set interactionTypes(value: { [key: string]: boolean }) {
         this.#interactionTypes = value;
+    }
+
+    public get dragOrigin(): vec3 | undefined {
+        return this.#dragOrigin;
+    }
+
+    public set dragOrigin(value: vec3 | undefined) {
+        this.#dragOrigin = value;
+    }
+
+    public get dragAnchors(): {
+        position: vec3
+    }[] {
+        return this.#dragAnchors;
+    }
+
+    public set dragAnchors(value: {
+        position: vec3
+    }[]) {
+        this.#dragAnchors = value;
     }
 
     // #endregion Public Accessors (9)

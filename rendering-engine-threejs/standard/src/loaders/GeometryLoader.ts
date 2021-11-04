@@ -118,7 +118,7 @@ export class GeometryLoader implements ILoader {
     public load(geometry: GeometryData, parent: SDNode): Box {    
         if(this._geometryCache[geometry.id + '_' + geometry.version]) {
             const materialSettings = this._geometryCache[geometry.id + '_' + geometry.version].materialSettings;
-            const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1] : geometry.primitive.material;
+            const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material : geometry.primitive.material;
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
             const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj;
@@ -142,7 +142,7 @@ export class GeometryLoader implements ILoader {
                 useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
             }
-            const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1] : geometry.primitive.material;
+            const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material : geometry.primitive.material;
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
             const obj = new SDData(geometry.id, geometry.version);

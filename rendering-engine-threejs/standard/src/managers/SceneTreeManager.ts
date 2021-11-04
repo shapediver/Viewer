@@ -30,6 +30,25 @@ export class SceneTreeManager implements IManager {
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
         this._scene.background = new THREE.Color('#ffffff');
+
+    
+        const pointLight = new THREE.PointLight( 0xff0000, 1, 100 );
+        pointLight.position.set( 100,0,0 );
+        
+        const sphereSize = 1;
+        const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+        this._scene.add( pointLightHelper );
+
+
+
+        const dir = new THREE.Vector3( 1, 0, 0 );
+        const origin = new THREE.Vector3( -100, 0, 0 );
+        const length = 50;
+        const hex = 0xff0000;
+
+        const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, 0, 0 );
+        this._scene.add( arrowHelper );
+        
     }
 
     // #endregion Constructors (1)

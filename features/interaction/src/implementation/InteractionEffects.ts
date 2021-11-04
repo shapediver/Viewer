@@ -1,17 +1,21 @@
-import { singleton } from "tsyringe";
+import { container, singleton } from "tsyringe";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { GeometryData, MaterialData } from "@shapediver/viewer.shared.types";
+import { UuidGenerator } from "@shapediver/viewer.shared.services";
 
 @singleton()
 export class InteractionEffects {
     // #region Public Methods (2)
+    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
-    public applyEffect(node: TreeNode, material: MaterialData) {
+    public applyEffectMaterial(node: TreeNode, material: MaterialData): string {
+        const token = this.#uuidGenerator.create();
+
         const applyEffect = (node: TreeNode) => {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometryData = <GeometryData>node.data[i];
-                    geometryData.primitive.effectMaterials.push(material);
+                    geometryData.primitive.effectMaterials.push({material, token});
                 }
             }
 
@@ -21,14 +25,15 @@ export class InteractionEffects {
         }
         applyEffect(node);
         node.updateVersion();
+        return token;
     }
 
-    public removeEffect(node: TreeNode, material: MaterialData) {
+    public removeEffectMaterial(node: TreeNode, token: string) {
         const removeEffect = (node: TreeNode) => {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometryData = <GeometryData>node.data[i];
-                    const index = geometryData.primitive.effectMaterials.findIndex(e => e.id === material.id); 
+                    const index = geometryData.primitive.effectMaterials.findIndex(e => e.token === token); 
                     if(index !== -1) geometryData.primitive.effectMaterials.splice(index, 1);
                 }
             }

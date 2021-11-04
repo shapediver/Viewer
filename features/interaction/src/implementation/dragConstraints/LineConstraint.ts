@@ -3,6 +3,7 @@ import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.interse
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
 import { IViewer } from "@shapediver/viewer";
+import { InteractionData } from "../InteractionData";
 
 export class LineConstraint implements IDragConstraint {
     // #region Properties (3)
@@ -55,15 +56,34 @@ export class LineConstraint implements IDragConstraint {
 
         const distance = vec3.distance(pointA, pointB);
         if(distance < this._radius) {
-            const dragTranslation = vec3.sub(vec3.create(), pointB, this._dragOrigin!);
-            return { distance, transformation: mat4.fromTranslation(mat4.create(), dragTranslation) };
+            const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
+            if(data && data.dragAnchors.length > 0) {
+                const results: {
+                    matrix: mat4,
+                    transformedPoint: vec3
+                }[] = [];
+                for(let i = 0; i < data.dragAnchors.length; i++) {
+                    const dragTranslation = vec3.sub(vec3.create(), pointB, data.dragAnchors[i].position!);
+                    const matrix = mat4.fromTranslation(mat4.create(), dragTranslation)
+
+                    const transformedPoint = vec3.transformMat4(vec3.create(), this._dragOrigin!, matrix);
+                    results.push({matrix, transformedPoint})
+                }
+
+                results.sort((a, b) => vec3.distance(a.transformedPoint, pointA) - vec3.distance(b.transformedPoint, pointA));
+                return { distance, transformation: results[0].matrix };
+            } else {
+                const dragTranslation = vec3.sub(vec3.create(), pointB, this._dragOrigin!);
+                return { distance, transformation: mat4.fromTranslation(mat4.create(), dragTranslation) };
+            }
         }
 
         return;
     }
 
     public setup(viewer: IViewer, node: TreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {       
-        this._dragOrigin = intersection.point;
+        const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
+        this._dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
         return { distance: intersection.distance, transformation: mat4.create() };
     }
 

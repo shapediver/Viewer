@@ -1,10 +1,11 @@
 import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { InteractionData, MaterialData } from "@shapediver/viewer.shared.types";
-import { IViewer } from "../../../../api/api/dist";
-import { INTERACTION_STATE } from "../interfaces/IInteractionEngine";
-import { IInteractionFilterOptions } from "../interfaces/IInteractionManager";
-import { AbstractInteractionManager } from "./AbstractInteractionManager";
+import { MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE } from "@shapediver/viewer.shared.types";
+import { IDragConstraint } from "../../interfaces/IDragConstraint";
+import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
+import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
+import { AbstractInteractionManager } from "../AbstractInteractionManager";
+import { InteractionData } from "../InteractionData";
 
 export class DragManager extends AbstractInteractionManager {
     // #region Properties (5)
@@ -27,6 +28,7 @@ export class DragManager extends AbstractInteractionManager {
 
     #intersection: IIntersection | null = null;
     #node: TreeNode | null = null;
+    #effectMaterialToken!: string;
     #effectMaterial: MaterialData = new MaterialData({color: "#0000ff"});
 
     #tokenCameraFreeze!: string;
@@ -35,18 +37,18 @@ export class DragManager extends AbstractInteractionManager {
 
     // #endregion Properties (5)
 
-    // #region Constructors (1)
-
-    constructor(viewer: IViewer) {
-        super(viewer);
-    }
-
-    // #endregion Constructors (1)
-
     // #region Public Accessors (1)
 
     public get filter(): IInteractionFilterOptions {
         return this.#filter;
+    }
+    
+    public addDragConstraint(constraint: IDragConstraint): string {
+        return this.dragConstraints.addDragConstraint(constraint);
+    }
+
+    public removeDragConstraint(token: string): boolean {
+        return this.dragConstraints.removeDragConstraint(token);
     }
 
     // #endregion Public Accessors (1)
@@ -56,54 +58,52 @@ export class DragManager extends AbstractInteractionManager {
     public onDown(ray: IRay, intersection: IIntersection[]): void {
         const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.DOWN)(i.node))
         if(intersections.length > 0) {
-            this.dragNode(intersections[0]);
+            this.activateNode(intersections[0]);
 
-            const transformationMatrix = this._dragConstraints.setup(this._viewer, this.#node!, ray, this.#intersection!);
+            const transformationMatrix = this.dragConstraints.setup(this.viewer, this.#node!, ray, this.#intersection!);
             this.#node!.transformations.push({ id: 'SD_drag_matrix', matrix: transformationMatrix })
-            this.#tokenCameraFreeze = this._viewer.addCameraFreezeFlag();
-            this.#tokenContinuousRendering = this._viewer.addContinuousRenderingFlag();
-            this.#tokenContinuousShadowMapUpdate = this._viewer.addShadowMapUpdateFlag();
+            this.#tokenCameraFreeze = this.viewer.addCameraFreezeFlag();
+            this.#tokenContinuousRendering = this.viewer.addContinuousRenderingFlag();
+            this.#tokenContinuousShadowMapUpdate = this.viewer.addShadowMapUpdateFlag();
         }
     }
 
     public onEnd(ray: IRay, intersection: IIntersection[]): void {
         if(!this.#node) return;
         this.#node.transformations.splice(this.#node.transformations.indexOf(this.#node.transformations.find(t => t.id === 'SD_drag_matrix')!), 1);
-        this._viewer.updateNode(this.#node!);
-        this.undragNode();
+        this.viewer.updateNode(this.#node!);
+        this.deactivateNode();
         
-        setTimeout(() => {
-            this._viewer.removeCameraFreezeFlag(this.#tokenCameraFreeze);
-            this._viewer.removeContinuousRenderingFlag(this.#tokenContinuousRendering);
-            this._viewer.removeShadowMapUpdateFlag(this.#tokenContinuousShadowMapUpdate);
-        }, 0)
+        this.viewer.removeCameraFreezeFlag(this.#tokenCameraFreeze);
+        this.viewer.removeContinuousRenderingFlag(this.#tokenContinuousRendering);
+        this.viewer.removeShadowMapUpdateFlag(this.#tokenContinuousShadowMapUpdate);
     }
 
     public onMove(ray: IRay, intersection: IIntersection[]): void {        
         if(!this.#node) return;
-        const transformationMatrix = this._dragConstraints.intersect(this._viewer, this.#node!, ray);
+        const transformationMatrix = this.dragConstraints.intersect(this.viewer, this.#node!, ray);
         this.#node.transformations.find(t => t.id === 'SD_drag_matrix')!.matrix = transformationMatrix;
-        this._viewer.updateNode(this.#node!);
+        this.viewer.updateNode(this.#node!);
     }
 
     // #endregion Public Methods (3)
 
     // #region Private Methods (2)
 
-    private undragNode() {
-        this._effects.removeEffect(this.#node!, this.#effectMaterial)
-        this._viewer.updateNode(this.#node!);
-        this._viewer.render();
+    private deactivateNode() {
+        this.effects.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+        this.viewer.updateNode(this.#node!);
+        this.viewer.render();
         this.#intersection = null;
         this.#node = null;
     }
 
-    private dragNode(intersection: IIntersection) {
+    private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
-        this._effects.applyEffect(this.#node, this.#effectMaterial)
-        this._viewer.updateNode(this.#node);
-        this._viewer.render();
+        this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.#effectMaterial)
+        this.viewer.updateNode(this.#node);
+        this.viewer.render();
     }
 
     // #endregion Private Methods (2)

@@ -173,7 +173,7 @@ export class PrimitiveData {
   #boundingBox: Box = new Box();
   #indices: AttributeData | null = null;
   #material: MaterialData | null = null;
-  #effectMaterials: MaterialData[] = [];
+  #effectMaterials: { material: MaterialData, token: string }[] = [];
   #attributeMaterial: MaterialData | null = null;
 
   // #endregion Properties (5)
@@ -241,7 +241,7 @@ export class PrimitiveData {
     this.#material = value;
   }
 
-  public get effectMaterials(): MaterialData[] {
+  public get effectMaterials(): { material: MaterialData, token: string }[] {
     return this.#effectMaterials;
   }
 

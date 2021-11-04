@@ -1,14 +1,16 @@
 import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { InteractionData, MaterialData } from "@shapediver/viewer.shared.types";
-import { IViewer } from "../../../../api/api/dist";
-import { INTERACTION_STATE } from "../interfaces/IInteractionEngine";
-import { IInteractionFilterOptions } from "../interfaces/IInteractionManager";
-import { AbstractInteractionManager } from "./AbstractInteractionManager";
+import { MaterialData } from "@shapediver/viewer.shared.types";
+import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
+import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
+import { AbstractInteractionManager } from "../AbstractInteractionManager";
+import { InteractionData } from "../InteractionData";
 
 export class SelectManager extends AbstractInteractionManager {
-    // #region Properties (5)
+    // #region Properties (4)
 
+    #effectMaterialToken!: string;
+    #effectMaterial: MaterialData = new MaterialData({color: "#ff0000"});
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.DOWN) {
             return (node: TreeNode) => {
@@ -27,17 +29,8 @@ export class SelectManager extends AbstractInteractionManager {
 
     #intersection: IIntersection | null = null;
     #node: TreeNode | null = null;
-    #effectMaterial: MaterialData = new MaterialData({color: "#ff0000"});
 
-    // #endregion Properties (5)
-
-    // #region Constructors (1)
-
-    constructor(viewer: IViewer) {
-        super(viewer);
-    }
-
-    // #endregion Constructors (1)
+    // #endregion Properties (4)
 
     // #region Public Accessors (1)
 
@@ -55,15 +48,15 @@ export class SelectManager extends AbstractInteractionManager {
         if(this.#node) {
             if(intersections.length > 0 && intersection[0].node !== this.#node) {
                 // case other node was clicked, deselect then select
-                this.deselectNode();
-                this.selectNode(intersections[0]);
+                this.deactivateNode();
+                this.activateNode(intersections[0]);
             } else {
                 // case same node was clicked, only deselect
-                this.deselectNode();
+                this.deactivateNode();
             }
         } else if(intersections.length > 0) {
             // easy case, no node select, just select this one
-            this.selectNode(intersections[0]);
+            this.activateNode(intersections[0]);
         }
     }
 
@@ -75,20 +68,20 @@ export class SelectManager extends AbstractInteractionManager {
 
     // #region Private Methods (2)
 
-    private deselectNode() {
-        this._effects.removeEffect(this.#node!, this.#effectMaterial)
-        this._viewer.updateNode(this.#node!);
-        this._viewer.render();
+    private deactivateNode() {
+        this.effects.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+        this.viewer.updateNode(this.#node!);
+        this.viewer.render();
         this.#intersection = null;
         this.#node = null;
     }
 
-    private selectNode(intersection: IIntersection) {
+    private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
-        this._effects.applyEffect(this.#node, this.#effectMaterial)
-        this._viewer.updateNode(this.#node);
-        this._viewer.render();
+        this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.#effectMaterial)
+        this.viewer.updateNode(this.#node);
+        this.viewer.render();
     }
 
     // #endregion Private Methods (2)
