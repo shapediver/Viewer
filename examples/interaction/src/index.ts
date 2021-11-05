@@ -1,95 +1,267 @@
 import 'reflect-metadata'
 
-import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
+import { api } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
-import { SelectManager, HoverManager, DragManager, CameraPlaneConstraint, PointConstraint, InteractionData, LineConstraint } from '@shapediver/viewer.features.interaction'
+import {  HoverManager, DragManager, PointConstraint, InteractionData, LineConstraint, PlaneConstraint, IDragEvent } from '@shapediver/viewer.features.interaction'
 import { createInteractionEngine } from '@shapediver/viewer.features.interaction';
-import { vec3 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
+(<any>window).api = SDV.api;
 
-(<any>window).sdv = SDV;
-
-const modelViewUrls = {
-    'eu-central-1': 'https://sdeuc1.eu-central-1.shapediver.com',
-    'eu-central-2': 'https://sddev2.eu-central-1.shapediver.com',
-    'us-east-1': 'https://model-view.shapediver.com',
-}
-
-const models: { [key: string]: { ticket: string, modelViewUrl: string }} = 
-{
-    'Coral': { 
-        ticket: '3017a44322f7cd5dc4e1bfbe4d3e8bfdd9a265fd00c6bf2415f345c28ec76cda9a60a41f41c16af7ddc429ab1d19967469c8a5c3fb73ac8c45288a2a0387a4566ae3d45d2ff44e21493b36be5138e6b7ca92b250b4c7b6f01f7efe120d1e990df4b0237478023040c1965ad40f85043e1c4b1553bb2bc8b45777d9b5fde21f-3655c2562cc577697d3bff8bf250a6fb',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'CubeMizator': {
-        ticket: 'b9deea346b988b90b45ef359be0e57d3325fb8e089c33008a5c7e41b5a3020b1ba16b5f4926c9d487037cf128455653573096649deee8415afa220b4ec27565e28178f2193c9f66366361de05e866e9c91e0c44f278261692f7c778dbf3ee3c53a139526fded5aea8aa8a52f19a9fc20aed1eab5f6da22eac8e0eff4b8ca4ddd-df2cbd31660c1cd9d38673d8362b9466', 
-        modelViewUrl: modelViewUrls['eu-central-1'], 
-    },
-    'Donau City': { 
-        ticket: 'e479c043c7907965e28c5bc422aad1827cbb9a77dde01c72b62b6d9ca8d7d211a9f74ac6c53c21a6029cb1ebc828605721c6bad4734ede24a3a66bc6d60ba8ab39da0a500539e3e182e527df7f8c1c599b2400cdf620168213460239a3034f8dd00f9a4d9cd42dc7b9665b20a4f6e8af51f102a0d414746deeead0984327c9-435d1f500d1f04b76ac49fa7cab2cf4d',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'Material': { 
-        ticket: '75f6f416a8200ed5d64f9c15f39320df0c9a630878d235332451657e1a1524fa7a39ef96d4a0b866c6ebacbf202b32e5fad90f4fe6a54276d892831f5aa4bc2cbd4cdd73231a2db23055c7a9d6d2707eb329315ab0f8d5a489cdff33b99e9b49ed68af70f4b139c941000063d19fff574b7c3b2b55460eac6ec23a86f3fd0d-a2beded2e997ea7d1d6e9b03cd3c86d1',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'Pointillist': { 
-        ticket: '3a5d1cb085437aafeafa44dceedb09417b5c82bccfd355f12cf23abc5546b7f697dd7b150b7abd5ee1288e4ef31dc67b7498a6459babaeae4f63ca39afff6b72235052ba0728f785dd36dc55569a0846df3d8162fc29bffbad9fdc0204f7b43c36ca7c7eb44d4ce67a62000ec68bac4c0960c0e360f06ea82b600f895deb6f-ce913db01b16300d5112a5a484cc56a6',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'Perforated Panel': { 
-        ticket: '1b140110fb009946286d9706db7b576bba76894025ac57b1d3aad48cd34eb58757975053ff1ea08c4cb8dd8b0bf1b526507b981edaf5bf4bf1bdeaec7824f83c2bfb29a21487304eb1a34936d9eb1dc1e90aa45c886b07b1eac73804a021c19e09a1ba52b3217d26d6c191f10090ffef3c46b8eeafa83f2a8b1cfe7a10bc87-978d3eb5e574310fe7d40741623f8a26',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'Sdgtf_All_Types': { 
-        ticket: 'e96c426ed1b983bb05ceb78145e6da83eaf111e6da9fca3b2c97d8447c3706930df7825932421d14100886f6967059330f25c3c12b08ce47d150bea84ea9fe4f3541ee7b1cbdb16c5735899871155bfddb76d82ff664155530ea143995a317653a5ab2de3799affbcfd3075af2c53cb8e40f26b2eba37d00f71c74c7c1a5ffd8-a23d9dc0e103d57f8ccd89b6f1d1e951',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'Ring': {
-        ticket: '61dff41abe9166b08ac7e54e519b71732d001149f139763c5dd8fae91c622811e02ea25f77e9eb89195e720b35c76e320c3f8671336566d9434314deab152aa03b68df31367c949dc03b9d0cd4477dd0a078fe643d35c8997c98af55dc51ee86017c8c513a1ab0840435c6712175dae504cf48eca8f436b134910671d10026-39804597edf047fb68da6d937cd58262',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'Shelf': { 
-        ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'Solar System - Cubes': { 
-        ticket: 'cbbbcf46757400d733216ff689df5ed9a6831eef95add63449deff35853637171260c362c2b00b1f037eea317620a7c0a816c26cd62e76dd5977fafe997aa8f305bc455fbe2775851f9f51d011e8146881d7143e3089d8b551211b07f9f0b283fa78e77767bdb8bff6a4db8d2a5456e38d9ea108e083898334e75a9dc26856f6-27dd8df325649b7ebff7e42d34f43f13',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
-    'Test model for all supported parameter types': { 
-        ticket: 'c9f558e0f553bea84f8e540f1c561aff8fad4015b07d89fab2f2048e8b1fae0a3f61d3538ac8a3966f6827cbe4e4cf867c86f60df63d026a2757db15495ccb99b230337cfb21e03697e14d3593d7a8d7b8fc52fc4f142a686104deb6fb2e884a80a827314097ac1a603bd10065a1129efc28719d93fe0d9760ee83187c4f3012-92b182e5dbe03bc50a6f4e1dabf27def',
-        modelViewUrl: modelViewUrls['eu-central-1']
-    },
+// monitor if the mouse is up or down
+let mouseDown = 0;
+document.body.onmousedown = () => {
+    ++mouseDown;
+};
+document.body.onmouseup = () => {
+    --mouseDown;
 };
 
 
-(async () => {
-    const { ticket, modelViewUrl } = models['Shelf'];
-    let viewer = <SDV.IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
+let session: SDV.ISession;
+let viewer: SDV.IStandardViewer;
 
-    for(let i = 0; i < SDV.api.sceneTree.root.children[0].children.length; i++) {
-        const child = SDV.api.sceneTree.root.children[0].children[i];
-        const data = new InteractionData({drag: true, hover: true});
+let dragManager: DragManager;
+let hoverManager: HoverManager;
 
-        if(!child.boundingBox.isEmpty()) {
-            data.dragOrigin = child.boundingBox.boundingSphere.center;
+type ShelfDefinition = {
+    matrices: mat4[],
+    output?: SDV.IOutput,
+    parameter?: SDV.IParameter<string>,
+    counter: number,
+    snapPoints: { point: vec3, radius: number}[],
+    snapLines: { point1: vec3, point2: vec3, radius: number}[],
+}
+
+let bottomShelf: ShelfDefinition = {
+    matrices: [],
+    counter: 0,
+    snapPoints: [
+        { point: vec3.fromValues(-1.8, 0, 0), radius: 0.5 },
+        { point: vec3.fromValues(-1.2, 0, 0), radius: 0.5 },
+        { point: vec3.fromValues(-0.6, 0, 0), radius: 0.5 },
+        { point: vec3.fromValues(0, 0, 0), radius: 0.5 },
+        { point: vec3.fromValues(0.6, 0, 0), radius: 0.5 },
+        { point: vec3.fromValues(1.2, 0, 0), radius: 0.5 },
+        { point: vec3.fromValues(1.8, 0, 0), radius: 0.5 },
+    ],
+    snapLines: [
+        { point1: vec3.fromValues(-2.2, 0, 0), point2: vec3.fromValues(2.2, 0, 0), radius: 0.5 }
+    ]
+};
+let topShelf: ShelfDefinition = {
+    matrices: [],
+    counter: 0,
+    snapPoints: [
+        { point: vec3.fromValues(-1.8, 0, 1.5), radius: 0.5 },
+        { point: vec3.fromValues(-1.2, 0, 1.5), radius: 0.5 },
+        { point: vec3.fromValues(-0.6, 0, 1.5), radius: 0.5 },
+        { point: vec3.fromValues(0, 0, 1.5), radius: 0.5 },
+        { point: vec3.fromValues(0.6, 0, 1.5), radius: 0.5 },
+        { point: vec3.fromValues(1.2, 0, 1.5), radius: 0.5 },
+        { point: vec3.fromValues(1.8, 0, 1.5), radius: 0.5 },
+    ],
+    snapLines: [
+        { point1: vec3.fromValues(-2.2, 0, 1.5), point2: vec3.fromValues(2.2, 0, 1.5), radius: 0.5 }
+    ]
+};
+
+const dragLineConstraintsIDs: string[] = [];
+const activateInteractionsToken: {
+    start: string, 
+    end: string
+} = {
+    start: '',
+    end: ''
+}
+
+
+const updateParameter = async (def: ShelfDefinition) => {
+    // convert the matrices into the desired format
+    const stringMatrixArray: string[] = [];
+
+    // TODO: multiply with current value
+    def.matrices.forEach(m => stringMatrixArray.push('[' + m.toString() + ']'));
+    def.parameter!.value = stringMatrixArray.length === 0 ? '{}' : `{matrices:[${stringMatrixArray.join()}]}`;
+    await session.customize();
+};
+
+const updateInteractions = (interactionTypes: { [key: string]: boolean; }) => {
+    const shelves = [topShelf, bottomShelf];
+    for(let i = 0; i < shelves.length; i++) {
+        for(let j = 0; j < shelves[i].counter; j++) {
+            const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + j)!;
+            if(!node) continue;
+    
+            // we enable dragging for this node
+            const data = new InteractionData(interactionTypes);
+                
+            // we set an anchor at the bottom back middle of the BB
             data.dragAnchors.push({ 
-                position: vec3.fromValues(child.boundingBox.min[0], child.boundingBox.min[1], child.boundingBox.min[2])
+                position: vec3.fromValues((node.boundingBox.max[0] + node.boundingBox.min[0])/2, node.boundingBox.max[1], node.boundingBox.min[2])
             });
-            data.dragAnchors.push({ 
-                position: vec3.fromValues(child.boundingBox.max[0], child.boundingBox.max[1], child.boundingBox.max[2])
-            });
+            
+            // remove old data
+            const old = node.data.filter(d => d instanceof InteractionData);
+            old.forEach(dTR => node.data.splice(node.data.indexOf(dTR), 1));
+    
+            // we add the data and make the node invisible for now
+            node.data.push(data);
         }
-        SDV.api.sceneTree.root.children[0].children[i].data.push(data)
+    }
+}
+
+/**
+ * Activate the standard interactions
+ */
+const activateInteractions = () => {
+    deactivateInteractions();
+    updateInteractions({drag: true, hover: true});
+
+    activateInteractionsToken.start = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_START, async (e) => {
+        const dragEvent = <IDragEvent>e;
+
+        dragLineConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d))
+
+        // we search for the right definition and add snap lines
+        const shelves = [topShelf, bottomShelf];
+        let def: ShelfDefinition;
+        for(let i = 0; i < shelves.length; i++) {
+            if(dragEvent.node.getPath().includes(shelves[i].output!.id)) {
+                def = shelves[i];
+                shelves[i].snapLines.forEach(element => dragLineConstraintsIDs.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius))));
+                break;
+            }
+        }
+
+        // once the movement has ended, we update the matrix in the parameter definition
+        activateInteractionsToken.end = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
+            dragLineConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d));
+            const dragEvent = <IDragEvent>e;
+            // apply the matrix to the dragged item
+            const number = dragEvent.node.getPath().substring(dragEvent.node.getPath().lastIndexOf('_') + 1, dragEvent.node.getPath().length)
+            mat4.multiply(def.matrices[+number], def.matrices[+number], mat4.transpose(mat4.create(), (<any>e).matrix));
+            await updateParameter(def);
+            SDV.api.removeListener(activateInteractionsToken.end); 
+            activateInteractions();
+        })
+
+        SDV.api.removeListener(activateInteractionsToken.start); 
+    })
+}
+
+/**
+ * Deactivate the standard interactions
+ */
+const deactivateInteractions = () => {
+    dragLineConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d))
+    SDV.api.removeListener(activateInteractionsToken.start); 
+    SDV.api.removeListener(activateInteractionsToken.end); 
+
+    updateInteractions({drag: false, hover: false});
+}
+
+/**
+ * This is the command that executes the external dragging
+ * 
+ * @param def 
+ */
+const addShelf = async (def: ShelfDefinition) => {
+    deactivateInteractions();
+
+    // create snap points for this shelf
+    const dragConstraintsIDs: string[] = [];
+    def.snapPoints.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius))));
+
+    // add a new matrix and update the parameter
+    def.matrices.push(mat4.create());
+    def.counter++;
+    await updateParameter(def);
+
+    // once the new node is created, this is how we find it
+    const newNode = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter-1))!;
+
+    // we enable dragging for this node
+    const data = new InteractionData({drag: true});
+
+    // we set an anchor at the bottom back middle of the BB
+    data.dragAnchors.push({ 
+        position: vec3.fromValues((newNode.boundingBox.max[0] + newNode.boundingBox.min[0])/2, newNode.boundingBox.max[1], newNode.boundingBox.min[2])
+    });
+    
+    // we add the data and make the node invisible for now
+    newNode.data.push(data);
+    newNode!.visible = false;
+    newNode.updateVersion();
+
+    // we tell the dragManager to drag this node
+    dragManager.setNode(newNode!);
+
+    // some things have to be done on the first move in the viewer
+    const tokenMove = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_MOVE, async (e) => {
+        if(!mouseDown) {
+            // the mouse was released before entering the viewer
+            dragManager.removeNode();
+            def.matrices.pop();
+            def.counter--;
+            await updateParameter(def);
+            activateInteractions();
+        } else {
+            // the viewer was entered, make it visible
+            newNode!.visible = true;
+            viewer.updateNode(newNode);
+        }
+        SDV.api.removeListener(tokenMove); 
+    })
+
+    // once the movement has ended, we update the matrix in the parameter definition
+    const tokenEnd = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
+        dragConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d))        
+        mat4.multiply(def.matrices[def.matrices.length-1], def.matrices[def.matrices.length-1], mat4.transpose(mat4.create(), (<any>e).matrix));
+        await updateParameter(def);
+        SDV.api.removeListener(tokenEnd); 
+        activateInteractions();
+    })
+};
+
+(<any>window).addTopShelf = async () => {
+    addShelf(topShelf);
+};
+
+(<any>window).addBottomShelf = async () => {
+    addShelf(bottomShelf);
+};
+
+(async () => {
+    viewer = <SDV.IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    session = await api.createSession({ 
+        ticket: 'd517363654d6ee0d4fb680839557072364ab64556f04cbbfa82b14252eb283e49a16f24e7dfd4de26ac5420fd25b5cbd21ccca2d3139dda29604b08ef69e3002277d3ff9ceb4e96ae0caca86f0bccc63363c732bce217c097262e9734c2b89800e45210b75d8a1-8b178146df58fca61ebcabafd67113e5', 
+        modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
+        id: 'mySession'
+    });
+
+    // TODO: replace once Alex fixed the bug regarding hidden characters in names
+    // normally we could just call `session.getOutputByName()`
+    const bottomShelfName = 'bottomShelf';
+    const topShelfName = 'topShelf';
+    for (let outputId in session.outputs) {
+        const outputName = session.outputs[outputId].name.replace(/[\u200B-\u200D\uFEFF]/g, '');
+        if (topShelfName === outputName) 
+            topShelf.output = session.outputs[outputId];
+        if (bottomShelfName === outputName) 
+            bottomShelf.output = session.outputs[outputId];
     }
     
+    bottomShelf.parameter = session.getParameterByName('bottomShelfMatrices')[0];
+    topShelf.parameter = session.getParameterByName('topShelfMatrices')[0];
+
+    // create the interaction engine and the managers
     const interactionEngine = createInteractionEngine(viewer);
-    interactionEngine.addInteractionManager(new SelectManager());
-    interactionEngine.addInteractionManager(new HoverManager());
-    const dragManager = new DragManager();
-    dragManager.addDragConstraint(new CameraPlaneConstraint())
-    dragManager.addDragConstraint(new PointConstraint(vec3.fromValues(100,0,0), 25))
-    dragManager.addDragConstraint(new LineConstraint(vec3.fromValues(-100,0,0), vec3.fromValues(-50,0,0), 25))
+    hoverManager = new HoverManager();
+    hoverManager.effectMaterial = new SDV.MaterialData({ color: '#dddddd', opacity: 0.25, alphaMode: SDV.MATERIAL_ALPHA.BLEND })
+    interactionEngine.addInteractionManager(hoverManager);
+    dragManager = new DragManager();
     interactionEngine.addInteractionManager(dragManager);
+
+    // create a default plane where objects are dragged
+    dragManager.addDragConstraint(new PlaneConstraint(vec3.fromValues(0, -1, 0), vec3.fromValues(0,-0.3,0)))
 })();
