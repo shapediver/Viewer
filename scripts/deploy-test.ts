@@ -51,7 +51,7 @@ const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
 (async () => {
     try {
         console.log('deploying to s3...')
-        const examples = ['ar', 'ar-query', 'attributes', 'cdn', 'compare', 'doc', 'gltf', 'multiple', 'performance', 'query', 'simple', 'static', 'test'];
+        const examples = ['interaction', 'ar', 'ar-query', 'attributes', 'cdn', 'compare', 'doc', 'gltf', 'multiple', 'performance', 'query', 'simple', 'static', 'test'];
         for(let i = 0; i < examples.length; i++) {
             console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
             const example = examples[i];
