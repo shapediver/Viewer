@@ -4,6 +4,7 @@ import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
 import { IViewer } from "@shapediver/viewer";
 import { Plane } from "@shapediver/viewer.shared.math";
+import { InteractionData } from "../InteractionData";
 
 export class PlaneConstraint implements IDragConstraint {
     // #region Properties (2)
@@ -38,6 +39,8 @@ export class PlaneConstraint implements IDragConstraint {
         } else {
             this._dragPlane = new Plane().setFromNormalAndCoplanarPoint(this._normal, intersection.point);
         }
+        const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
+        this._dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
         return this.intersect(viewer, node, ray);
     }
 

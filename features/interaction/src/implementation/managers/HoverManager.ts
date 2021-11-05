@@ -5,10 +5,15 @@ import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
 import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
 import { InteractionData } from "../InteractionData";
+import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { IHoverEvent } from "../../interfaces/events/IHoverEvent";
+import { container } from "tsyringe";
 
 export class HoverManager extends AbstractInteractionManager {
     // #region Properties (5)
 
+    readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.MOVE) {
             return (node: TreeNode) => {
@@ -28,7 +33,6 @@ export class HoverManager extends AbstractInteractionManager {
     #intersection: IIntersection | null = null;
     #node: TreeNode | null = null;
     #effectMaterialToken!: string;
-    #effectMaterial: MaterialData = new MaterialData({color: "#00ff00"});
 
     // #endregion Properties (5)
 
@@ -78,6 +82,9 @@ export class HoverManager extends AbstractInteractionManager {
         this.viewer.render();
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
         if(data) data.interactionStates['hover'] = false;
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, { node: this.#node } as IHoverEvent);
+
         this.#intersection = null;
         this.#node = null;
     }
@@ -87,7 +94,10 @@ export class HoverManager extends AbstractInteractionManager {
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
         if(data) data.interactionStates['hover'] = true;
-        this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.#effectMaterial)
+        this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.effectMaterial);
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, { node: this.#node } as IHoverEvent);
+
         this.viewer.updateNode(this.#node);
         this.viewer.render();
     }

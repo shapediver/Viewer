@@ -4,6 +4,7 @@ import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
 import { IViewer } from "@shapediver/viewer";
 import { Plane } from "@shapediver/viewer.shared.math";
+import { InteractionData } from "../InteractionData";
 
 export class CameraPlaneConstraint implements IDragConstraint {
     // #region Properties (2)
@@ -28,7 +29,9 @@ export class CameraPlaneConstraint implements IDragConstraint {
     public setup(viewer: IViewer, node: TreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {
         const cameraDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), viewer.camera!.target, viewer.camera!.position));
         this._dragPlane = new Plane().setFromNormalAndCoplanarPoint(cameraDirection, intersection.point);
-        this._dragOrigin = intersection.point;
+
+        const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
+        this._dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
         return this.intersect(viewer, node, ray);
     }
 

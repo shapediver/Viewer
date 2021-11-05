@@ -14,7 +14,7 @@ import {
   ENVIRONMENTMAP_CUBE,
   ThreejsData,
 } from '@shapediver/viewer.rendering-engine-threejs.standard'
-import { CustomData, GeometryData, MaterialData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData } from '@shapediver/viewer.shared.types'
+import { CustomData, GeometryData, MaterialData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA } from '@shapediver/viewer.shared.types'
 import { EVENTTYPE, LOGGINGLEVEL, SettingsEngine } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/api.geometry-api-dto-v1'
@@ -65,7 +65,7 @@ export const api: Api = <Api>container.resolve(Api);
 export const settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
 export {
-    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE
+    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, MATERIAL_ALPHA, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE
 }
 
 export {

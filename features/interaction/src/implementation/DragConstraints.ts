@@ -13,6 +13,12 @@ export class DragConstraints {
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     #dragConstraints: { [key: string]: IDragConstraint } = {};
+    #setupOptions: {
+        viewer: IViewer, 
+        node: TreeNode, 
+        ray: IRay, 
+        intersection: IIntersection
+    } | null = null;
 
     // #endregion Properties (2)
 
@@ -21,6 +27,7 @@ export class DragConstraints {
     public addDragConstraint(constraint: IDragConstraint): string {
         const token = this.#uuidGenerator.create();
         this.#dragConstraints[token] = constraint;
+        if(this.#setupOptions) constraint.setup(this.#setupOptions.viewer, this.#setupOptions.node, this.#setupOptions.ray, this.#setupOptions.intersection);
         return token;
     }
 
@@ -46,6 +53,7 @@ export class DragConstraints {
     }
 
     public setup(viewer: IViewer, node: TreeNode, ray: IRay, intersection: IIntersection): mat4 {
+        this.#setupOptions = { viewer, node, ray, intersection };
         const dragConstraintResults: { distance: number, transformation: mat4 }[] = [];
         for(let d in this.#dragConstraints) {
             const res = this.#dragConstraints[d].setup(viewer, node, ray, intersection);
@@ -58,6 +66,10 @@ export class DragConstraints {
         } else {
             return mat4.create();
         }
+    }
+
+    public reset() {
+        this.#setupOptions = null;
     }
 
     // #endregion Public Methods (4)

@@ -32,6 +32,16 @@ export enum SETTINGS {
     SETTINGS_UPDATE = "settings.update",
 }
 
+export enum INTERACTION {
+    DRAG_START = "interaction.drag.start",
+    DRAG_MOVE = "interaction.drag.move",
+    DRAG_END = "interaction.drag.end",
+    HOVER_ON = "interaction.hover.on",
+    HOVER_OFF = "interaction.hover.off",	
+    SELECT_ON = "interaction.select.on",
+    SELECT_OFF = "interaction.select.off",
+}
+
 // export 
 //     available
 //     registered
@@ -77,7 +87,8 @@ export const EVENTTYPE = {
     SCENE, 
     SESSION,
     SETTINGS,
-    VIEWER
+    VIEWER,
+    INTERACTION
 };
 
-export type MAINEVENTTYPE = typeof CAMERA | typeof ENVIRONMENTMAP | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER;
+export type MAINEVENTTYPE = typeof CAMERA | typeof ENVIRONMENTMAP | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER | typeof INTERACTION;

@@ -30,25 +30,6 @@ export class SceneTreeManager implements IManager {
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
         this._scene.background = new THREE.Color('#ffffff');
-
-    
-        const pointLight = new THREE.PointLight( 0xff0000, 1, 100 );
-        pointLight.position.set( 100,0,0 );
-        
-        const sphereSize = 1;
-        const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
-        this._scene.add( pointLightHelper );
-
-
-
-        const dir = new THREE.Vector3( 1, 0, 0 );
-        const origin = new THREE.Vector3( -100, 0, 0 );
-        const length = 50;
-        const hex = 0xff0000;
-
-        const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, 0, 0 );
-        this._scene.add( arrowHelper );
-        
     }
 
     // #endregion Constructors (1)
@@ -187,23 +168,23 @@ export class SceneTreeManager implements IManager {
                     if (o instanceof SDData) {
 
                         if (o instanceof THREE.Mesh) {
-                            // this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
-                            // this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
-                            // for (const key in o.geometry.attributes)
-                            //     o.geometry.deleteAttribute(key);
-                            // o.geometry.setIndex(null);
-                            // o.geometry.dispose();
-                            // if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
-                            // if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
-                            // if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
-                            // if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
-                            // if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
-                            // if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
-                            // if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
-                            // if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
-                            // if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
-                            // if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
-                            // o.material.dispose();
+                            this._renderingEngine.geometryLoader.removeFromGeometryCache(o.geometry.userData.SDid + '_' + o.geometry.userData.SDversion)
+                            this._renderingEngine.materialLoader.removeFromMaterialCache(o.material.userData.SDid + '_' + o.material.userData.SDversion)
+                            for (const key in o.geometry.attributes)
+                                o.geometry.deleteAttribute(key);
+                            o.geometry.setIndex(null);
+                            o.geometry.dispose();
+                            if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
+                            if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
+                            if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
+                            if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
+                            o.material.dispose();
                         }
                     }
 

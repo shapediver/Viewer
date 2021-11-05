@@ -5,12 +5,17 @@ import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
 import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
 import { InteractionData } from "../InteractionData";
+import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { ISelectEvent } from "../../interfaces/events/ISelectEvent";
+import { container } from "tsyringe";
+
 
 export class SelectManager extends AbstractInteractionManager {
     // #region Properties (4)
 
+    readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    
     #effectMaterialToken!: string;
-    #effectMaterial: MaterialData = new MaterialData({color: "#ff0000"});
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.DOWN) {
             return (node: TreeNode) => {
@@ -73,8 +78,9 @@ export class SelectManager extends AbstractInteractionManager {
         this.viewer.updateNode(this.#node!);
         this.viewer.render();
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
-        if(data)
-            data.interactionStates['select'] = false;
+        if(data) data.interactionStates['select'] = false;
+        
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { node: this.#node } as ISelectEvent);
 
         this.#intersection = null;
         this.#node = null;
@@ -84,9 +90,11 @@ export class SelectManager extends AbstractInteractionManager {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
-        if(data)
-            data.interactionStates['select'] = true;
-        this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.#effectMaterial)
+        if(data) data.interactionStates['select'] = true;
+        this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.effectMaterial)
+        
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { node: this.#node } as ISelectEvent);
+
         this.viewer.updateNode(this.#node);
         this.viewer.render();
     }
