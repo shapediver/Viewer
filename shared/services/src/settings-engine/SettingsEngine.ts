@@ -98,12 +98,15 @@ export class SettingsEngine {
     }
 
     public loadSettings(json: any, sessionId: string, loadAsPrimary: boolean = false) {
-        try { validate(json, '3.0'); this._version = '3.0'; } catch (e) { if(!(e.message && (<string>e.message).includes('The settings do have a different version than the target version.'))) this._logger.error(LOGGINGTOPIC.SETTINGS, new SDError(e.message, e), 'Settings could not be validated.', false, true); }
-        try { validate(json, '2.0'); this._version = '2.0'; } catch (e) {  }
-        try { validate(json, '1.0'); this._version = '1.0'; } catch (e) {  }
+        if(JSON.stringify(json) !== JSON.stringify({})) {
+            try { validate(json, '3.0'); this._version = '3.0'; } catch (e) { if(!(e.message && (<string>e.message).includes('The settings do have a different version than the target version.'))) this._logger.error(LOGGINGTOPIC.SETTINGS, new SDError(e.message, e), 'Settings could not be validated.', false, true); }
+            try { validate(json, '2.0'); this._version = '2.0'; } catch (e) {  }
+            try { validate(json, '1.0'); this._version = '1.0'; } catch (e) {  }
+        }
 
         if(!this._version) {
             this._version = '3.0';
+            (<any>this._settings) = DefaultsV3();
             this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
         } else {
             (<any>this._settings) = convert(json, '3.0');
