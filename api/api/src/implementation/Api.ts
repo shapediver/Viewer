@@ -80,6 +80,12 @@ export class Api implements IApi {
         if(sessionEvent.sessionId)
           if(this.sessions[sessionEvent.sessionId].primarySession) this.#stateEngine.primarySessionLoaded.resolve(true);
       })
+      
+      this.#eventEngine.addListener(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, (e) => { 
+        const sessionEvent: ISessionEvent = <ISessionEvent>e;
+        if(sessionEvent.sessionId)
+          if(this.sessions[sessionEvent.sessionId].primarySession) this.#stateEngine.primarySessionInitialOutputsLoaded.resolve(true);
+      })
 
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
     } catch (e) {
@@ -404,6 +410,7 @@ export class Api implements IApi {
 
       if (this.sessions[id].primarySession) {
         this.#stateEngine.primarySessionLoaded.reset();
+        this.#stateEngine.primarySessionInitialOutputsLoaded.reset();
         this.#stateEngine.primarySettingsRegistered.reset();
         this.#stateEngine.boundingBoxCreated.reset();
         for (let v in this.viewers)

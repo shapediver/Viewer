@@ -24,6 +24,7 @@ export enum SESSION {
     SESSION_INITIALIZED = "session.initialized",
     SESSION_LOADED = "session.loaded",
     SESSION_CUSTOMIZED = "session.customized",
+    SESSION_INITIAL_OUTPUTS_LOADED = "session.initialOutputsLoaded",
     SESSION_CLOSED = "session.closed"
 }
 export enum SETTINGS {
