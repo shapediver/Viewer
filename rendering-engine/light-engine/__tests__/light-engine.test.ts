@@ -230,7 +230,7 @@ describe('light-engine', () => {
         expect(lightScene.name).toBe('something')
         lightEngine.assignLightScene(lightScene.id)
         expect(lightEngine.lightScene!.name).toBe('something')
-        expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(1)
+        expect(Object.keys(lightEngine.lightScene!.lights).length).toBe(3)
     });
 
 
