@@ -2,11 +2,17 @@ import { container, singleton } from "tsyringe";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { GeometryData, MaterialData } from "@shapediver/viewer.shared.types";
 import { UuidGenerator } from "@shapediver/viewer.shared.services";
+import { IInteractionEffectUtils } from "../../interfaces/utils/IInteractionEffectUtils";
 
 @singleton()
-export class InteractionEffects {
-    // #region Public Methods (2)
+export class InteractionEffectUtils implements IInteractionEffectUtils {
+    // #region Properties (1)
+
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+
+    // #endregion Properties (1)
+
+    // #region Public Methods (2)
 
     public applyEffectMaterial(node: TreeNode, material: MaterialData): string {
         const token = this.#uuidGenerator.create();

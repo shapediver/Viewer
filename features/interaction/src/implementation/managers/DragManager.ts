@@ -2,20 +2,23 @@ import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.ren
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE } from "@shapediver/viewer.shared.types";
 import { mat4, vec3 } from "gl-matrix";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
-import { IDragConstraint } from "../../interfaces/IDragConstraint";
+import { EventEngine, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
 import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
 import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
 import { InteractionData } from "../InteractionData";
 import { container } from "tsyringe";
 import { IDragEvent } from "../../interfaces/events/IDragEvent";
+import { IViewer } from "@shapediver/viewer";
 
 export class DragManager extends AbstractInteractionManager {
-    // #region Properties (9)
+    // #region Properties (11)
 
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
+    #dragConstraints: { [key: string]: IDragConstraint } = {};
     #effectMaterialToken!: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.DOWN) {
@@ -35,11 +38,17 @@ export class DragManager extends AbstractInteractionManager {
 
     #intersection: IIntersection | null = null;
     #node: TreeNode | null = null;
+    #setupOptions: {
+        viewer: IViewer, 
+        node: TreeNode, 
+        ray: IRay, 
+        intersection: IIntersection
+    } | null = null;
     #tokenCameraFreeze!: string;
     #tokenContinuousRendering!: string;
     #tokenContinuousShadowMapUpdate!: string;
 
-    // #endregion Properties (9)
+    // #endregion Properties (11)
 
     // #region Public Accessors (1)
 
@@ -52,7 +61,10 @@ export class DragManager extends AbstractInteractionManager {
     // #region Public Methods (7)
 
     public addDragConstraint(constraint: IDragConstraint): string {
-        return this.dragConstraints.addDragConstraint(constraint);
+        const token = this.#uuidGenerator.create();
+        this.#dragConstraints[token] = constraint;
+        if(this.#setupOptions) constraint.setup(this.#setupOptions.viewer, this.#setupOptions.node, this.#setupOptions.ray, this.#setupOptions.intersection);
+        return token;
     }
 
     public onDown(ray: IRay, intersection: IIntersection[]): void {
@@ -68,7 +80,7 @@ export class DragManager extends AbstractInteractionManager {
     public onMove(ray: IRay, intersection: IIntersection[]): void {        
         if(!this.#node) return;
 
-        const transformationMatrix = this.dragConstraints.intersect(this.viewer, this.#node!, ray);
+        const transformationMatrix = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewer, this.#node!, ray);
         this.applyTransformation(this.#node, transformationMatrix);
         this.viewer.updateNode(this.#node!);
 
@@ -76,7 +88,9 @@ export class DragManager extends AbstractInteractionManager {
     }
 
     public removeDragConstraint(token: string): boolean {
-        return this.dragConstraints.removeDragConstraint(token);
+        if(!this.#dragConstraints[token]) return false;
+        delete this.#dragConstraints[token];
+        return true;
     }
 
     public removeNode() {
@@ -84,7 +98,7 @@ export class DragManager extends AbstractInteractionManager {
 
         const transformationMatrix = this.#node.transformations.find(t => t.id === 'SD_drag_matrix')?.matrix;
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_END, { node: this.#node, matrix: transformationMatrix } as IDragEvent);
-        this.dragConstraints.reset();
+        this.#setupOptions = null;
 
         // optional removal
         // this.removeTransformation(this.#node!);
@@ -98,7 +112,8 @@ export class DragManager extends AbstractInteractionManager {
 
     public setNode(node: TreeNode, distance: number = 0, intersectionPoint: vec3 = vec3.create(), ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
         this.activateNode({node, distance, point: intersectionPoint});
-        const transformationMatrix = this.dragConstraints.setup(this.viewer, this.#node!, ray, this.#intersection!);
+        this.#setupOptions = { viewer: this.viewer, node: this.#node!, ray, intersection: this.#intersection! };
+        const transformationMatrix = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewer, this.#node!, ray, this.#intersection!);
         this.applyTransformation(this.#node!, transformationMatrix);
         this.#tokenCameraFreeze = this.viewer.addCameraFreezeFlag();
         this.#tokenContinuousRendering = this.viewer.addContinuousRenderingFlag();
@@ -115,7 +130,7 @@ export class DragManager extends AbstractInteractionManager {
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
         if(data) data.interactionStates['drag'] = true;
-        this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.effectMaterial)
+        this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
         this.viewer.updateNode(this.#node);
         this.viewer.render();
     }
@@ -130,7 +145,7 @@ export class DragManager extends AbstractInteractionManager {
     }
 
     private deactivateNode() {
-        this.effects.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+        this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
         this.viewer.updateNode(this.#node!);
         this.viewer.render();
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);

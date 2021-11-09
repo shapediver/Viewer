@@ -4,7 +4,7 @@ import { api } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
 import {  HoverManager, DragManager, PointConstraint, InteractionData, LineConstraint, PlaneConstraint, IDragEvent } from '@shapediver/viewer.features.interaction'
 import { createInteractionEngine } from '@shapediver/viewer.features.interaction';
-import { mat4, vec3 } from 'gl-matrix';
+import { mat4, quat, vec3 } from 'gl-matrix';
 (<any>window).api = SDV.api;
 
 // monitor if the mouse is up or down
@@ -24,44 +24,70 @@ let dragManager: DragManager;
 let hoverManager: HoverManager;
 
 type ShelfDefinition = {
-    matrices: mat4[],
+    matrices: {
+        transformation: mat4,
+        rotation: mat4,
+        translation: mat4
+    }[],
     output?: SDV.IOutput,
     parameter?: SDV.IParameter<string>,
     counter: number,
-    snapPoints: { point: vec3, radius: number}[],
-    snapLines: { point1: vec3, point2: vec3, radius: number}[],
+    snapPoints: { point: vec3, radius: number, rotation: {axis: vec3, angle: number}}[],
+    snapLines: { point1: vec3, point2: vec3, radius: number, rotation: {axis: vec3, angle: number}}[],
 }
 
 let bottomShelf: ShelfDefinition = {
     matrices: [],
     counter: 0,
     snapPoints: [
-        { point: vec3.fromValues(-1.8, 0, 0), radius: 0.5 },
-        { point: vec3.fromValues(-1.2, 0, 0), radius: 0.5 },
-        { point: vec3.fromValues(-0.6, 0, 0), radius: 0.5 },
-        { point: vec3.fromValues(0, 0, 0), radius: 0.5 },
-        { point: vec3.fromValues(0.6, 0, 0), radius: 0.5 },
-        { point: vec3.fromValues(1.2, 0, 0), radius: 0.5 },
-        { point: vec3.fromValues(1.8, 0, 0), radius: 0.5 },
+        { point: vec3.fromValues(-2.2, 0, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(-1.6, 0, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(-1.0, 0, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(-0.4, 0, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(0.2, 0, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(0.8, 0, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(1.4, 0, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(2.0, 0, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        
+        { point: vec3.fromValues(-2.5, -0.3, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -0.9, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -1.5, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -2.1, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -2.7, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -3.3, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -3.9, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -4.5, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
     ],
     snapLines: [
-        { point1: vec3.fromValues(-2.2, 0, 0), point2: vec3.fromValues(2.2, 0, 0), radius: 0.5 }
+        { point1: vec3.fromValues(-2.2, -5, 0), point2: vec3.fromValues(2.2, -5, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI } },
+        { point1: vec3.fromValues(2.5, -0.3, 0), point2: vec3.fromValues(2.5, -4.7, 0), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: -Math.PI / 2 }},
     ]
 };
 let topShelf: ShelfDefinition = {
     matrices: [],
     counter: 0,
     snapPoints: [
-        { point: vec3.fromValues(-1.8, 0, 1.5), radius: 0.5 },
-        { point: vec3.fromValues(-1.2, 0, 1.5), radius: 0.5 },
-        { point: vec3.fromValues(-0.6, 0, 1.5), radius: 0.5 },
-        { point: vec3.fromValues(0, 0, 1.5), radius: 0.5 },
-        { point: vec3.fromValues(0.6, 0, 1.5), radius: 0.5 },
-        { point: vec3.fromValues(1.2, 0, 1.5), radius: 0.5 },
-        { point: vec3.fromValues(1.8, 0, 1.5), radius: 0.5 },
+        { point: vec3.fromValues(-2.2, 0, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(-1.6, 0, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(-1.0, 0, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(-0.4, 0, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(0.2, 0, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(0.8, 0, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(1.4, 0, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        { point: vec3.fromValues(2.0, 0, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: 0 }},
+        
+        { point: vec3.fromValues(-2.5, -0.3, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -0.9, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -1.5, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -2.1, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -2.7, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -3.3, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -3.9, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
+        { point: vec3.fromValues(-2.5, -4.5, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }},
     ],
     snapLines: [
-        { point1: vec3.fromValues(-2.2, 0, 1.5), point2: vec3.fromValues(2.2, 0, 1.5), radius: 0.5 }
+        { point1: vec3.fromValues(-2.2, -5, 1.5), point2: vec3.fromValues(2.2, -5, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: Math.PI } },
+        { point1: vec3.fromValues(2.5, -0.3, 1.5), point2: vec3.fromValues(2.5, -4.7, 1.5), radius: 0.5, rotation: { axis: vec3.fromValues(0, 0, 1), angle: -Math.PI / 2 }},
     ]
 };
 
@@ -79,8 +105,7 @@ const updateParameter = async (def: ShelfDefinition) => {
     // convert the matrices into the desired format
     const stringMatrixArray: string[] = [];
 
-    // TODO: multiply with current value
-    def.matrices.forEach(m => stringMatrixArray.push('[' + m.toString() + ']'));
+    def.matrices.forEach(m => stringMatrixArray.push('[' + m.transformation.toString() + ']'));
     def.parameter!.value = stringMatrixArray.length === 0 ? '{}' : `{matrices:[${stringMatrixArray.join()}]}`;
     await session.customize();
 };
@@ -96,9 +121,22 @@ const updateInteractions = (interactionTypes: { [key: string]: boolean; }) => {
             const data = new InteractionData(interactionTypes);
                 
             // we set an anchor at the bottom back middle of the BB
-            data.dragAnchors.push({ 
-                position: vec3.fromValues((node.boundingBox.max[0] + node.boundingBox.min[0])/2, node.boundingBox.max[1], node.boundingBox.min[2])
-            });
+            console.log(node.boundingBox)
+            const bb = node.boundingBox.clone().applyMatrix(mat4.invert(mat4.create(), shelves[i].matrices[j].rotation))
+            console.log(bb)
+            const position = vec3.fromValues((bb.max[0] + bb.min[0])/2, bb.max[1], bb.min[2]);
+            // -2.5, -0.9, 0
+            //vec3.transformMat4(position, position, mat4.invert(mat4.create(), shelves[i].matrices[j].translation))
+            vec3.transformMat4(position, position, shelves[i].matrices[j].rotation)
+            //vec3.transformMat4(position, position, shelves[i].matrices[j].translation)
+
+            console.log(position)
+            const angle = quat.getAngle(quat.setAxisAngle(quat.create(), vec3.fromValues(0,0,1), 0), mat4.getRotation(quat.create(), shelves[i].matrices[j].rotation))
+
+            data.dragAnchors.push({ position, rotation: {
+                axis: vec3.fromValues(0,0,1),
+                angle 
+            } });
             
             // remove old data
             const old = node.data.filter(d => d instanceof InteractionData);
@@ -128,7 +166,8 @@ const activateInteractions = () => {
         for(let i = 0; i < shelves.length; i++) {
             if(dragEvent.node.getPath().includes(shelves[i].output!.id)) {
                 def = shelves[i];
-                shelves[i].snapLines.forEach(element => dragLineConstraintsIDs.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius))));
+                def.snapPoints.forEach(element => dragLineConstraintsIDs.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius, element.rotation))));
+                def.snapLines.forEach(element => dragLineConstraintsIDs.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
                 break;
             }
         }
@@ -138,8 +177,10 @@ const activateInteractions = () => {
             dragLineConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d));
             const dragEvent = <IDragEvent>e;
             // apply the matrix to the dragged item
-            const number = dragEvent.node.getPath().substring(dragEvent.node.getPath().lastIndexOf('_') + 1, dragEvent.node.getPath().length)
-            mat4.multiply(def.matrices[+number], def.matrices[+number], mat4.transpose(mat4.create(), (<any>e).matrix));
+            const number = dragEvent.node.getPath().substring(dragEvent.node.getPath().lastIndexOf('_') + 1, dragEvent.node.getPath().length);
+            mat4.multiply(def.matrices[+number].translation, def.matrices[+number].translation, mat4.fromTranslation(mat4.create(), mat4.getTranslation(vec3.create(), dragEvent.matrix)));
+            mat4.multiply(def.matrices[+number].rotation, def.matrices[+number].rotation, mat4.fromQuat(mat4.create(), mat4.getRotation(quat.create(), dragEvent.matrix)));
+            mat4.multiply(def.matrices[+number].transformation, def.matrices[+number].transformation, mat4.transpose(mat4.create(), (<any>e).matrix));
             await updateParameter(def);
             SDV.api.removeListener(activateInteractionsToken.end); 
             activateInteractions();
@@ -170,10 +211,15 @@ const addShelf = async (def: ShelfDefinition) => {
 
     // create snap points for this shelf
     const dragConstraintsIDs: string[] = [];
-    def.snapPoints.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius))));
+    def.snapPoints.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius, element.rotation))));
+    def.snapLines.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
 
     // add a new matrix and update the parameter
-    def.matrices.push(mat4.create());
+    def.matrices.push({
+        transformation: mat4.create(),
+        rotation: mat4.create(),
+        translation: mat4.create(),
+    });
     def.counter++;
     await updateParameter(def);
 
@@ -215,8 +261,11 @@ const addShelf = async (def: ShelfDefinition) => {
 
     // once the movement has ended, we update the matrix in the parameter definition
     const tokenEnd = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
+        const dragEvent = <IDragEvent>e;
         dragConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d))        
-        mat4.multiply(def.matrices[def.matrices.length-1], def.matrices[def.matrices.length-1], mat4.transpose(mat4.create(), (<any>e).matrix));
+        def.matrices[def.matrices.length-1].translation = mat4.fromTranslation(mat4.create(), mat4.getTranslation(vec3.create(), dragEvent.matrix));
+        def.matrices[def.matrices.length-1].rotation = mat4.fromQuat(mat4.create(), mat4.getRotation(quat.create(), dragEvent.matrix));
+        mat4.multiply(def.matrices[def.matrices.length-1].transformation, def.matrices[def.matrices.length-1].transformation, mat4.transpose(mat4.create(), dragEvent.matrix));
         await updateParameter(def);
         SDV.api.removeListener(tokenEnd); 
         activateInteractions();
@@ -234,7 +283,7 @@ const addShelf = async (def: ShelfDefinition) => {
 (async () => {
     viewer = <SDV.IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     session = await api.createSession({ 
-        ticket: 'd517363654d6ee0d4fb680839557072364ab64556f04cbbfa82b14252eb283e49a16f24e7dfd4de26ac5420fd25b5cbd21ccca2d3139dda29604b08ef69e3002277d3ff9ceb4e96ae0caca86f0bccc63363c732bce217c097262e9734c2b89800e45210b75d8a1-8b178146df58fca61ebcabafd67113e5', 
+        ticket: '80612b3a38c125ccd1fa1ebe7231653c556d58e1871e7ba9a6429f1a0703617ae6648a5373f42fb1a2116bc2286ace277b2122bc4837154fc264cfe3cf91f69defd8aa2e19d7bfd7c63d299c605a80dd0d08395a744bb7374ee04b6aa9962c07c94aece288be16-2d63db581abe339046631d2a4723d5b9', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
     });
@@ -263,5 +312,7 @@ const addShelf = async (def: ShelfDefinition) => {
     interactionEngine.addInteractionManager(dragManager);
 
     // create a default plane where objects are dragged
-    dragManager.addDragConstraint(new PlaneConstraint(vec3.fromValues(0, -1, 0), vec3.fromValues(0,-0.3,0)))
+    dragManager.addDragConstraint(new PlaneConstraint(vec3.fromValues(0, -1, 0), vec3.fromValues(0, -0.3, 0)))
+    dragManager.addDragConstraint(new PlaneConstraint(vec3.fromValues(1, 0, 0), vec3.fromValues(-2.5, 0, 0), { axis: vec3.fromValues(0, 0, 1), angle: Math.PI / 2 }))
+    dragManager.addDragConstraint(new PlaneConstraint(vec3.fromValues(0, 0, 1), vec3.fromValues(0, 0, 0)))
 })();

@@ -2,25 +2,30 @@ import { container } from "tsyringe";
 import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { IInteractionFilterOptions, IInteractionManager } from "../interfaces/IInteractionManager";
 import { IViewer, MaterialData } from "@shapediver/viewer";
-import { DragConstraints } from "./DragConstraints";
-import { InteractionEffects } from "./InteractionEffects";
+import { DragConstraintUtils } from "./utils/DragConstraintUtils";
+import { InteractionEffectUtils } from "./utils/InteractionEffectUtils";
+import { IDragConstraintUtils } from "../interfaces/utils/IDragConstraintUtils";
+import { IInteractionEffectUtils } from "../interfaces/utils/IInteractionEffectUtils";
 
 export abstract class AbstractInteractionManager implements IInteractionManager {
-    // #region Properties (4)
+    // #region Properties (5)
 
-    readonly #dragConstraints: DragConstraints = <DragConstraints>container.resolve(DragConstraints);
-    readonly #effects: InteractionEffects = <InteractionEffects>container.resolve(InteractionEffects);
-
+    #dragConstraintUtils: IDragConstraintUtils = <DragConstraintUtils>container.resolve(DragConstraintUtils);
     #effectMaterial: MaterialData = new MaterialData({color: '#00fff7'});
+    #interactionEffectUtils: IInteractionEffectUtils = <InteractionEffectUtils>container.resolve(InteractionEffectUtils);
     #viewer!: IViewer;
     abstract filter: IInteractionFilterOptions;
 
-    // #endregion Properties (4)
+    // #endregion Properties (5)
 
-    // #region Public Accessors (4)
+    // #region Public Accessors (8)
 
-    public get dragConstraints(): DragConstraints {
-        return this.#dragConstraints;
+    public get dragConstraintUtils(): IDragConstraintUtils {
+        return this.#dragConstraintUtils;
+    }
+
+    public set dragConstraintUtils(value: IDragConstraintUtils) {
+        this.#dragConstraintUtils = value;
     }
 
     public get effectMaterial(): MaterialData {
@@ -31,8 +36,12 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#effectMaterial = value;
     }
 
-    public get effects(): InteractionEffects {
-        return this.#effects;
+    public get interactionEffectUtils(): IInteractionEffectUtils {
+        return this.#interactionEffectUtils;
+    }
+
+    public set interactionEffectUtils(value: IInteractionEffectUtils) {
+        this.#interactionEffectUtils = value;
     }
 
     public get viewer(): IViewer {
@@ -43,7 +52,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#viewer = value;
     }
 
-    // #endregion Public Accessors (4)
+    // #endregion Public Accessors (8)
 
     // #region Public Abstract Methods (3)
 

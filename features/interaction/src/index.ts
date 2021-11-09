@@ -8,7 +8,7 @@ import { DragManager } from "./implementation/managers/DragManager";
 import { HoverManager } from "./implementation/managers/HoverManager";
 import { InteractionEngine } from "./implementation/InteractionEngine"
 import { SelectManager } from "./implementation/managers/SelectManager";
-import { IDragConstraint } from "./interfaces/IDragConstraint";
+import { IDragConstraint } from "./interfaces/utils/IDragConstraint";
 import { IInteractionEngine } from "./interfaces/IInteractionEngine"
 import { IInteractionManager } from "./interfaces/IInteractionManager";
 import { InteractionData } from "./implementation/InteractionData";

@@ -77,7 +77,7 @@ export class HoverManager extends AbstractInteractionManager {
     // #region Private Methods (2)
 
     private deactivateNode() {
-        this.effects.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+        this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
         this.viewer.updateNode(this.#node!);
         this.viewer.render();
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
@@ -94,7 +94,7 @@ export class HoverManager extends AbstractInteractionManager {
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
         if(data) data.interactionStates['hover'] = true;
-        this.#effectMaterialToken = this.effects.applyEffectMaterial(this.#node, this.effectMaterial);
+        this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial);
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, { node: this.#node } as IHoverEvent);
 
