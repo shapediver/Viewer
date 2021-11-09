@@ -173,8 +173,11 @@ export class LightEngine implements ILightEngine {
     public createLightScene(properties: {name?: string, standard?: boolean}): ILightScene {
         const lightSceneId = this._uuidGenerator.create();
         const lightScene = new LightScene({id: lightSceneId, name: properties.name});
-        if (properties.standard === true) 
-            lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 1, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
+        if (properties.standard === true) {
+            lightScene.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
+            lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
+            lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
+        }
         this._lightScenes[lightSceneId] = lightScene;
         this._lightScene = lightScene;
         
