@@ -56,9 +56,28 @@ export class InteractionEngine implements IInteractionEngine {
         return { origin, direction };
     }
 
-    public onKeyDown(event: KeyboardEvent): void {
-        throw new Error("Method not implemented.");
+    public touchToRay(event: Touch): {
+        origin: vec3,
+        direction: vec3
+    } {
+        const rect = this.#viewer.canvas.getBoundingClientRect();
+        const camera = this.#viewer.camera;
+        if (!camera) {
+            const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
+            this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
+            throw error;
+        }
+
+        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        let origin = vec3.clone(camera.position);
+        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
+
+        return { origin, direction };
     }
+
+    public onKeyDown(event: KeyboardEvent): void {}
 
     public onMouseDown(event: MouseEvent): void {
         const ray = this.mouseEventToRay(event);
@@ -75,20 +94,30 @@ export class InteractionEngine implements IInteractionEngine {
         this.onEnd(ray);
     }
 
-    public onMouseWheel(event: WheelEvent): void {
-        throw new Error("Method not implemented.");
-    }
+    public onMouseWheel(event: WheelEvent): void {}
 
     public onTouchEnd(event: TouchEvent): void {
-        throw new Error("Method not implemented.");
+        if ( event.touches.length > 1 ) return;
+        const touch = event.changedTouches[ 0 ];
+
+        const ray = this.touchToRay(touch);
+        this.onEnd(ray);
     }
 
     public onTouchMove(event: TouchEvent): void {
-        throw new Error("Method not implemented.");
+        if ( event.touches.length > 1 ) return;
+        const touch = event.changedTouches[ 0 ];
+
+        const ray = this.touchToRay(touch);
+        this.onMove(ray);
     }
 
     public onTouchStart(event: TouchEvent): void {
-        throw new Error("Method not implemented.");
+        if ( event.touches.length > 1 ) return;
+        const touch = event.changedTouches[ 0 ];
+
+        const ray = this.touchToRay(touch);
+        this.onDown(ray);
     }
 
     public removeInteractionManager(token: string): boolean {

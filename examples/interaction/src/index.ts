@@ -16,6 +16,14 @@ document.body.onmouseup = () => {
     --mouseDown;
 };
 
+let touchDown = 0;
+document.body.ontouchstart = () => {
+    ++touchDown;
+};
+document.body.ontouchend = () => {
+    --touchDown;
+};
+
 
 let session: SDV.ISession;
 let viewer: SDV.IStandardViewer;
@@ -121,16 +129,11 @@ const updateInteractions = (interactionTypes: { [key: string]: boolean; }) => {
             const data = new InteractionData(interactionTypes);
                 
             // we set an anchor at the bottom back middle of the BB
-            console.log(node.boundingBox)
             const bb = node.boundingBox.clone().applyMatrix(mat4.invert(mat4.create(), shelves[i].matrices[j].rotation))
-            console.log(bb)
             const position = vec3.fromValues((bb.max[0] + bb.min[0])/2, bb.max[1], bb.min[2]);
-            // -2.5, -0.9, 0
-            //vec3.transformMat4(position, position, mat4.invert(mat4.create(), shelves[i].matrices[j].translation))
-            vec3.transformMat4(position, position, shelves[i].matrices[j].rotation)
-            //vec3.transformMat4(position, position, shelves[i].matrices[j].translation)
 
-            console.log(position)
+            vec3.transformMat4(position, position, shelves[i].matrices[j].rotation)
+
             const angle = quat.getAngle(quat.setAxisAngle(quat.create(), vec3.fromValues(0,0,1), 0), mat4.getRotation(quat.create(), shelves[i].matrices[j].rotation))
 
             data.dragAnchors.push({ position, rotation: {
@@ -244,7 +247,7 @@ const addShelf = async (def: ShelfDefinition) => {
 
     // some things have to be done on the first move in the viewer
     const tokenMove = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_MOVE, async (e) => {
-        if(!mouseDown) {
+        if(!mouseDown && !touchDown ) {
             // the mouse was released before entering the viewer
             dragManager.removeNode();
             def.matrices.pop();
@@ -283,7 +286,7 @@ const addShelf = async (def: ShelfDefinition) => {
 (async () => {
     viewer = <SDV.IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     session = await api.createSession({ 
-        ticket: '80612b3a38c125ccd1fa1ebe7231653c556d58e1871e7ba9a6429f1a0703617ae6648a5373f42fb1a2116bc2286ace277b2122bc4837154fc264cfe3cf91f69defd8aa2e19d7bfd7c63d299c605a80dd0d08395a744bb7374ee04b6aa9962c07c94aece288be16-2d63db581abe339046631d2a4723d5b9', 
+        ticket: 'dbcb8698cd971ec4fedb418f50cc8f64468a2d0104b2f20e2ecb2c54cf9aa40373aee6fb25c9b3313c045d89ad69c2bac41eea1b166ec8a1c94c6fee7257166df93569ed85d222152d7cd760562a13c110d78f991cbb43cc72f25eac9a507ea9237d287f954424-13fa8b9c9fbd0118ed6c27fc47e0f5ce', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
     });

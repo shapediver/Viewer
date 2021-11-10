@@ -32,10 +32,10 @@ const execPromise = (cmd: string) => {
         let example: string = '';
         await new Promise<void>((resolve) => {
             rl2.question('Enter the name of the example to be deployed\n', (answer: string) => {
-                if (['ar', 'ar-query', 'attributes', 'compare', 'gltf', 'multiple', 'performance', 'query', 'simple', 'static', 'test'].includes(answer)) {
+                if (['interaction', 'ar', 'ar-query', 'attributes', 'compare', 'gltf', 'multiple', 'performance', 'query', 'simple', 'static', 'test'].includes(answer)) {
                     example = answer;
                 } else {
-                    throw new Error('Invalid version, has to be major, minor or patch.')
+                    throw new Error('Not a valid example.')
                 }                
                 rl2.close();
                 resolve();

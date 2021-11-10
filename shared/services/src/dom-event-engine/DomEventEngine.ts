@@ -66,9 +66,10 @@ export class DomEventEngine {
         this._canvas.addEventListener("mouseup", this.onMouseUp.bind(this), { passive: false });
         this._canvas.addEventListener("mouseout", this.onMouseUp.bind(this), { passive: false });
 
-        this._canvas.addEventListener("touchstart", this.onTouchStart.bind(this), { passive: false });
-        this._canvas.addEventListener("touchmove", this.onTouchMove.bind(this), { passive: false });
-        this._canvas.addEventListener("touchend", this.onTouchEnd.bind(this), { passive: false });
+        window.addEventListener("touchstart", this.onTouchStart.bind(this), { passive: false });
+        window.addEventListener("touchmove", this.onTouchMove.bind(this), { passive: false });
+        window.addEventListener("touchend", this.onTouchEnd.bind(this), { passive: false });
+        window.addEventListener("touchcancel", this.onTouchEnd.bind(this), { passive: false });
 
         window.addEventListener("keydown", this.onKeyDown.bind(this), { passive: false });
         window.addEventListener("mousemove", this.onKeyDownMousePositionHelper.bind(this), { passive: false });
@@ -112,18 +113,24 @@ export class DomEventEngine {
     }
 
     private onTouchEnd(event: TouchEvent): void {
-        event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
+        if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y)) {
+            event.preventDefault();
+            Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
+        }
     }
 
     private onTouchMove(event: TouchEvent): void {
-        event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event));
+        if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y)) {
+            event.preventDefault();
+            Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event))
+        }
     }
 
     private onTouchStart(event: TouchEvent): void {
-        event.preventDefault();
-        Object.values(this._domEventListeners).forEach(e => e.onTouchStart(event));
+        if (event.composedPath().includes(this._canvas)) {
+            event.preventDefault();
+            Object.values(this._domEventListeners).forEach(e => e.onTouchStart(event));
+        }
     }
 
     private removeEventListeners() {

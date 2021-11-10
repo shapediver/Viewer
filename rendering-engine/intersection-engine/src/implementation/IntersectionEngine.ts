@@ -1,4 +1,4 @@
-import { GeometryData, MaterialData, MATERIAL_SIDE } from "@shapediver/viewer.shared.types";
+import { GeometryData, MaterialData, MATERIAL_SIDE, PRIMITIVE_MODE } from "@shapediver/viewer.shared.types";
 import { mat4, vec3 } from "gl-matrix";
 import { Triangle } from "@shapediver/viewer.shared.math";
 import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
@@ -25,18 +25,18 @@ export class IntersectionEngine implements IIntersectionEngine {
                     break;
                 }
             }
-               
+
             for (let i = 0; i < node.children.length; i++)
                 intersectNode(node.children[i])
         }
         intersectNode(this._tree.root);
 
-        
+
         intersections.sort((a, b) => a.distance - b.distance);
         return intersections;
     }
 
-    
+
     private checkIntersection(node: TreeNode, material: MaterialData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: TreeNode } | undefined {
         let point: vec3 | null;
 
@@ -58,6 +58,74 @@ export class IntersectionEngine implements IIntersectionEngine {
         };
     }
 
+    private checkLineIntersection(node: TreeNode, ray: IRay, radius: number, pA: vec3, pB: vec3): { distance: number, point: vec3, node: TreeNode } | undefined {
+        const direction = vec3.sub(vec3.create(), pB, pA);
+        const lineLength = vec3.length(direction);
+        const lineRay = {
+            origin: pA,
+            direction: vec3.divide(vec3.create(), direction, vec3.fromValues(lineLength, lineLength, lineLength))
+        };
+        const planeNormal = vec3.cross(vec3.create(), ray.direction, lineRay.direction);
+
+        const Na = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), ray.direction, planeNormal));
+        const Nb = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), lineRay.direction, planeNormal));
+
+        const da = vec3.dot(vec3.sub(vec3.create(), pA, ray.origin), Nb) / vec3.dot(ray.direction, Nb);
+        const db = vec3.dot(vec3.sub(vec3.create(), ray.origin, pA), Na) / vec3.dot(lineRay.direction, Na);
+
+        let pointA: vec3 = vec3.create();
+        if (da < 0) {
+            vec3.copy(pointA, ray.origin);
+        } else {
+            pointA = vec3.add(vec3.create(), ray.origin, vec3.mul(vec3.create(), ray.direction, vec3.fromValues(da, da, da)));
+        }
+
+        let pointB: vec3 = vec3.create();
+        if (db < 0) {
+            vec3.copy(pointB, pA);
+        } else if (db < lineLength) {
+            pointB = vec3.add(vec3.create(), pA, vec3.mul(vec3.create(), lineRay.direction, vec3.fromValues(db, db, db)));
+        } else {
+            vec3.copy(pointB, pB);
+        }
+
+        const distance = vec3.distance(pointA, pointB);
+        if (distance < radius) {
+            return {
+                distance: distance,
+                point: vec3.clone(pointB),
+                node
+            }
+        } else {
+            return;
+        }
+    }
+
+
+    private checkPointIntersection(node: TreeNode, ray: IRay, radius: number, p: vec3): { distance: number, point: vec3, node: TreeNode } | undefined {
+        const closestPoint = vec3.sub(vec3.create(), p, ray.origin);
+        const directionDistance = vec3.dot(closestPoint, ray.direction);
+
+        if (directionDistance < 0) {
+            vec3.copy(closestPoint, ray.origin);
+        } else {
+            vec3.multiply(closestPoint, vec3.copy(closestPoint, ray.direction), vec3.fromValues(directionDistance, directionDistance, directionDistance));
+            vec3.add(closestPoint, closestPoint, ray.origin);
+        }
+
+        const distance = vec3.distance(closestPoint, p);
+        if (distance < radius) {
+            return {
+                distance: distance,
+                point: vec3.clone(closestPoint),
+                node
+            }
+        } else {
+            return;
+        }
+    }
+
+
     private intersectNode(node: TreeNode, rayIn: IRay): IIntersection[] | undefined {
         const inverseMatrix = mat4.invert(mat4.create(), node.nodeMatrix);
         const ray = {
@@ -69,9 +137,6 @@ export class IntersectionEngine implements IIntersectionEngine {
             ))
         };
 
-        // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
-        if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
-
         let geometryData: GeometryData | undefined;
         for (let i = 0; i < node.data.length; i++) {
             if (node.data[i] instanceof GeometryData) {
@@ -79,6 +144,7 @@ export class IntersectionEngine implements IIntersectionEngine {
                 break;
             }
         }
+
         if (!geometryData) {
             let intersections: IIntersection[] = [];
             for (let i = 0; i < node.children.length; i++) {
@@ -91,43 +157,126 @@ export class IntersectionEngine implements IIntersectionEngine {
                 return intersections;
             }
             return;
-        };
+        } else if (geometryData.primitive.mode === PRIMITIVE_MODE.LINES) {
+            // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
+            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
+            
+            const index = geometryData.primitive.indices;
+            const position = geometryData.primitive.attributes['POSITION'];
+            const radius = 0.1;
+            let intersections = [];
+            if (index !== null) {
+                // indexed buffer geometry
+                for (let i = 0, il = +index.count; i < il; i += 2) {
+                    const a = index.array[(i) * index.itemSize];
+                    const b = index.array[(i + 1) * index.itemSize];
 
-        const material = geometryData.primitive.material;
-        const index = geometryData.primitive.indices;
-        const position = geometryData.primitive.attributes['POSITION'];
-
-        let intersections = [];
-
-        if (index !== null) {
-            // indexed buffer geometry
-            for (let i = 0, il = +index.count; i < il; i += 3) {
-                const a = index.array[(i) * index.itemSize];
-                const b = index.array[(i + 1) * index.itemSize];
-                const c = index.array[(i + 2) * index.itemSize];
-
-                let intersection = this.checkIntersection(node, material, ray,
-                    vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
-                    vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]),
-                    vec3.fromValues(position.array[c * position.itemSize], position.array[c * position.itemSize + 1], position.array[c * position.itemSize + 2]));
-                if (intersection) intersections.push(intersection)
+                    let intersection = this.checkLineIntersection(node, ray, radius,
+                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
+                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]));
+                    if (intersection) intersections.push(intersection)
+                }
+            } else if (position !== undefined) {
+                // non-indexed buffer geometry
+                for (let i = 0, il = +position.count; i < il; i += 2) {
+                    const a = i;
+                    const b = i + 1;
+                    let intersection = this.checkLineIntersection(node, ray, radius,
+                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
+                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2])); if (intersection) intersections.push(intersection)
+                }
             }
-        } else if (position !== undefined) {
-            // non-indexed buffer geometry
-            for (let i = 0, il = +position.count; i < il; i += 3) {
-                const a = i;
-                const b = i + 1;
-                const c = i + 2;
-                let intersection = this.checkIntersection(node, material, ray,
-                    vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
-                    vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]),
-                    vec3.fromValues(position.array[c * position.itemSize], position.array[c * position.itemSize + 1], position.array[c * position.itemSize + 2]));
-                if (intersection) intersections.push(intersection)
+
+            intersections.sort((a, b) => a.distance - b.distance);
+            return intersections;
+        } else if (geometryData.primitive.mode === PRIMITIVE_MODE.LINE_LOOP || geometryData.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
+            // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
+            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
+            
+            const index = geometryData.primitive.indices;
+            const position = geometryData.primitive.attributes['POSITION'];
+            const radius = 0.1;
+            let intersections = [];
+            if (index !== null) {
+                // indexed buffer geometry
+                for (let i = 0, il = +index.count - 1; i < il; i++) {
+                    const a = index.array[(i) * index.itemSize];
+                    const b = index.array[(i + 1) * index.itemSize];
+
+                    let intersection = this.checkLineIntersection(node, ray, radius,
+                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
+                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]));
+                    if (intersection) intersections.push(intersection)
+                }
+            } else if (position !== undefined) {
+                // non-indexed buffer geometry
+                for (let i = 0, il = +position.count; i < il; i += 2) {
+                    const a = i;
+                    const b = i + 1;
+                    let intersection = this.checkLineIntersection(node, ray, radius,
+                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
+                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2])); if (intersection) intersections.push(intersection)
+                }
             }
+
+            intersections.sort((a, b) => a.distance - b.distance);
+            return intersections;
+        } else if (geometryData.primitive.mode === PRIMITIVE_MODE.POINTS) {
+            const position = geometryData.primitive.attributes['POSITION'];
+            const radius = 0.1;
+            let intersections = [];
+            if (position !== undefined) {
+                // non-indexed buffer geometry
+                for (let i = 0, il = +position.count; i < il; i++) {
+                    let intersection = this.checkPointIntersection(node, ray, radius,
+                        vec3.fromValues(position.array[i * position.itemSize], position.array[i * position.itemSize + 1], position.array[i * position.itemSize + 2]));
+                    if (intersection) intersections.push(intersection)
+                }
+            }
+
+            intersections.sort((a, b) => a.distance - b.distance);
+            return intersections;
+        } else {
+
+            // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
+            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
+
+            const material = geometryData.primitive.material;
+            const index = geometryData.primitive.indices;
+            const position = geometryData.primitive.attributes['POSITION'];
+
+            let intersections = [];
+
+            if (index !== null) {
+                // indexed buffer geometry
+                for (let i = 0, il = +index.count; i < il; i += 3) {
+                    const a = index.array[(i) * index.itemSize];
+                    const b = index.array[(i + 1) * index.itemSize];
+                    const c = index.array[(i + 2) * index.itemSize];
+
+                    let intersection = this.checkIntersection(node, material, ray,
+                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
+                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]),
+                        vec3.fromValues(position.array[c * position.itemSize], position.array[c * position.itemSize + 1], position.array[c * position.itemSize + 2]));
+                    if (intersection) intersections.push(intersection)
+                }
+            } else if (position !== undefined) {
+                // non-indexed buffer geometry
+                for (let i = 0, il = +position.count; i < il; i += 3) {
+                    const a = i;
+                    const b = i + 1;
+                    const c = i + 2;
+                    let intersection = this.checkIntersection(node, material, ray,
+                        vec3.fromValues(position.array[a * position.itemSize], position.array[a * position.itemSize + 1], position.array[a * position.itemSize + 2]),
+                        vec3.fromValues(position.array[b * position.itemSize], position.array[b * position.itemSize + 1], position.array[b * position.itemSize + 2]),
+                        vec3.fromValues(position.array[c * position.itemSize], position.array[c * position.itemSize + 1], position.array[c * position.itemSize + 2]));
+                    if (intersection) intersections.push(intersection)
+                }
+            }
+
+            intersections.sort((a, b) => a.distance - b.distance);
+            return intersections;
         }
-
-        intersections.sort((a, b) => a.distance - b.distance);
-        return intersections;
     }
 
 }
