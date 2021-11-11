@@ -93,6 +93,11 @@ export class DragManager extends AbstractInteractionManager {
         return true;
     }
 
+    /**
+     * Remove the node as the currently used drag node.
+     * 
+     * @returns 
+     */
     public removeNode() {
         if(!this.#node) return;
 
@@ -110,6 +115,16 @@ export class DragManager extends AbstractInteractionManager {
         this.viewer.removeShadowMapUpdateFlag(this.#tokenContinuousShadowMapUpdate);
     }
 
+    /**
+     * Set the current dragged node.
+     * This will serve as the start of the drag event.
+     * This function is also called internally at onDown events.
+     * 
+     * @param node 
+     * @param distance 
+     * @param intersectionPoint 
+     * @param ray 
+     */
     public setNode(node: TreeNode, distance: number = 0, intersectionPoint: vec3 = vec3.create(), ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
         this.activateNode({node, distance, point: intersectionPoint});
         this.#setupOptions = { viewer: this.viewer, node: this.#node!, ray, intersection: this.#intersection! };
@@ -125,6 +140,12 @@ export class DragManager extends AbstractInteractionManager {
 
     // #region Private Methods (4)
 
+    /**
+     * Utility function to make the node the current active node.
+     * Set the according values, apply the effect and emit the event.
+     * 
+     * @param intersection 
+     */
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
@@ -135,6 +156,12 @@ export class DragManager extends AbstractInteractionManager {
         this.viewer.render();
     }
 
+    /**
+     * Utility function to apply the transformation to the current node.
+     * 
+     * @param node 
+     * @param matrix 
+     */
     private applyTransformation(node: TreeNode, matrix: mat4) {
         const index = node.transformations.findIndex(t => t.id === 'SD_drag_matrix');
         if(index !== -1) { 
@@ -144,6 +171,12 @@ export class DragManager extends AbstractInteractionManager {
         }
     }
 
+    /**
+     * Utility function to make the node inactive.
+     * Set the according values, remove the effect and emit the event.
+     * 
+     * @param intersection 
+     */
     private deactivateNode() {
         this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
         this.viewer.updateNode(this.#node!);

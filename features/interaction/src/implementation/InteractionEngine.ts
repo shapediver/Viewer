@@ -7,7 +7,7 @@ import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewe
 import { IInteractionManager } from "../interfaces/IInteractionManager";
 
 export class InteractionEngine implements IInteractionEngine {
-    // #region Properties (4)
+    // #region Properties (5)
 
     readonly #intersectionEngine: IntersectionEngine = <IntersectionEngine>container.resolve(IntersectionEngine);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
@@ -15,7 +15,7 @@ export class InteractionEngine implements IInteractionEngine {
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     readonly #viewer: IViewer;
 
-    // #endregion Properties (4)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
@@ -26,55 +26,13 @@ export class InteractionEngine implements IInteractionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (11)
+    // #region Public Methods (10)
 
     public addInteractionManager(manager: IInteractionManager): string {
         const token = this.#uuidGenerator.create();
         this.#managers[token] = manager;
         manager.viewer = this.#viewer;
         return token;
-    }
-
-    public mouseEventToRay(event: MouseEvent): {
-        origin: vec3,
-        direction: vec3
-    } {
-        const rect = this.#viewer.canvas.getBoundingClientRect();
-        const camera = this.#viewer.camera;
-        if (!camera) {
-            const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
-            this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
-            throw error;
-        }
-
-        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        let origin = vec3.clone(camera.position);
-        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
-
-        return { origin, direction };
-    }
-
-    public touchToRay(event: Touch): {
-        origin: vec3,
-        direction: vec3
-    } {
-        const rect = this.#viewer.canvas.getBoundingClientRect();
-        const camera = this.#viewer.camera;
-        if (!camera) {
-            const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
-            this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
-            throw error;
-        }
-
-        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        let origin = vec3.clone(camera.position);
-        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
-
-        return { origin, direction };
     }
 
     public onKeyDown(event: KeyboardEvent): void {}
@@ -126,10 +84,43 @@ export class InteractionEngine implements IInteractionEngine {
         return true;
     }
 
-    // #endregion Public Methods (11)
+    // #endregion Public Methods (10)
 
-    // #region Private Methods (3)
+    // #region Private Methods (5)
 
+    /**
+     * Calculate the ray that is created by the mouse event and the camera.
+     * 
+     * @param event 
+     * @returns 
+     */
+    private mouseEventToRay(event: MouseEvent): {
+        origin: vec3,
+        direction: vec3
+    } {
+        const rect = this.#viewer.canvas.getBoundingClientRect();
+        const camera = this.#viewer.camera;
+        if (!camera) {
+            const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
+            this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
+            throw error;
+        }
+
+        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        let origin = vec3.clone(camera.position);
+        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
+
+        return { origin, direction };
+    }
+
+    /**
+     * Apply all filters for the intersection of the scene.
+     * Call all according interaction managers with the results.
+     * 
+     * @param ray 
+     */
     private onDown(ray: IRay): void {
         const filters: IIntersectionFilter[] = [];
         for(let m in this.#managers)
@@ -141,6 +132,12 @@ export class InteractionEngine implements IInteractionEngine {
             this.#managers[m].onDown(ray, intersection);
     }
 
+    /**
+     * Apply all filters for the intersection of the scene.
+     * Call all according interaction managers with the results.
+     * 
+     * @param ray 
+     */
     private onEnd(ray: IRay): void {
         const filters: IIntersectionFilter[] = [];
         for(let m in this.#managers)
@@ -152,6 +149,12 @@ export class InteractionEngine implements IInteractionEngine {
             this.#managers[m].onEnd(ray, intersection);
     }
 
+    /**
+     * Apply all filters for the intersection of the scene.
+     * Call all according interaction managers with the results.
+     * 
+     * @param ray 
+     */
     private onMove(ray: IRay): void {
         const filters: IIntersectionFilter[] = [];
         for(let m in this.#managers)
@@ -163,5 +166,32 @@ export class InteractionEngine implements IInteractionEngine {
             this.#managers[m].onMove(ray, intersection);
     }
 
-    // #endregion Private Methods (3)
+    /**
+     * Create the ray that is created by the touch event and the camera.
+     * 
+     * @param event 
+     * @returns 
+     */
+    private touchToRay(event: Touch): {
+        origin: vec3,
+        direction: vec3
+    } {
+        const rect = this.#viewer.canvas.getBoundingClientRect();
+        const camera = this.#viewer.camera;
+        if (!camera) {
+            const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
+            this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
+            throw error;
+        }
+
+        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        let origin = vec3.clone(camera.position);
+        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
+
+        return { origin, direction };
+    }
+
+    // #endregion Private Methods (5)
 }

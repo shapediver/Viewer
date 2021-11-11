@@ -3,10 +3,8 @@ import { vec3 } from 'gl-matrix';
 import { IInteractionData } from '../interfaces/IInteractionData';
 
 export class InteractionData extends AbstractTreeNodeData implements IInteractionData  {
-    // #region Properties (8)
+    // #region Properties (4)
 
-    #interactionTypes: { [key: string]: boolean; } = {};
-    #dragOrigin?: vec3;
     #dragAnchors: { 
         position: vec3,
         rotation?: {
@@ -14,9 +12,11 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
             angle: number
         }
     }[] = [];
+    #dragOrigin?: vec3;
     #interactionStates: { [key: string]: boolean; } = {};
+    #interactionTypes: { [key: string]: boolean; } = {};
 
-    // #endregion Properties (8)
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
@@ -38,31 +38,7 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (9)
-
-    public get interactionTypes(): { [key: string]: boolean } {
-        return this.#interactionTypes;
-    }
-
-    public set interactionTypes(value: { [key: string]: boolean }) {
-        this.#interactionTypes = value;
-    }
-
-    public get interactionStates(): { [key: string]: boolean } {
-        return this.#interactionStates;
-    }
-
-    public set interactionStates(value: { [key: string]: boolean }) {
-        this.#interactionStates = value;
-    }
-
-    public get dragOrigin(): vec3 | undefined {
-        return this.#dragOrigin;
-    }
-
-    public set dragOrigin(value: vec3 | undefined) {
-        this.#dragOrigin = value;
-    }
+    // #region Public Accessors (8)
 
     public get dragAnchors(): { 
         position: vec3,
@@ -84,9 +60,33 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
         this.#dragAnchors = value;
     }
 
-    // #endregion Public Accessors (9)
+    public get dragOrigin(): vec3 | undefined {
+        return this.#dragOrigin;
+    }
 
-    // #region Public Methods (5)
+    public set dragOrigin(value: vec3 | undefined) {
+        this.#dragOrigin = value;
+    }
+
+    public get interactionStates(): { [key: string]: boolean } {
+        return this.#interactionStates;
+    }
+
+    public set interactionStates(value: { [key: string]: boolean }) {
+        this.#interactionStates = value;
+    }
+
+    public get interactionTypes(): { [key: string]: boolean } {
+        return this.#interactionTypes;
+    }
+
+    public set interactionTypes(value: { [key: string]: boolean }) {
+        this.#interactionTypes = value;
+    }
+
+    // #endregion Public Accessors (8)
+
+    // #region Public Methods (1)
 
     /**
      * Clones the scene graph data.
@@ -95,5 +95,5 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
         return new InteractionData(this.#interactionTypes, this.id);
     }
 
-    // #endregion Public Methods (5)
+    // #endregion Public Methods (1)
 }

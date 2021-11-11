@@ -2,8 +2,7 @@ import 'reflect-metadata'
 
 import { api } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
-import {  HoverManager, DragManager, PointConstraint, InteractionData, LineConstraint, PlaneConstraint, IDragEvent } from '@shapediver/viewer.features.interaction'
-import { createInteractionEngine } from '@shapediver/viewer.features.interaction';
+import { InteractionEngine, HoverManager, DragManager, PointConstraint, InteractionData, LineConstraint, PlaneConstraint, IDragEvent } from '@shapediver/viewer.features.interaction'
 import { mat4, quat, vec3 } from 'gl-matrix';
 (<any>window).api = SDV.api;
 
@@ -307,7 +306,7 @@ const addShelf = async (def: ShelfDefinition) => {
     topShelf.parameter = session.getParameterByName('topShelfMatrices')[0];
 
     // create the interaction engine and the managers
-    const interactionEngine = createInteractionEngine(viewer);
+    const interactionEngine = new InteractionEngine(viewer);
     hoverManager = new HoverManager();
     hoverManager.effectMaterial = new SDV.MaterialData({ color: '#dddddd', opacity: 0.25, alphaMode: SDV.MATERIAL_ALPHA.BLEND })
     interactionEngine.addInteractionManager(hoverManager);

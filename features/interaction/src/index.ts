@@ -1,4 +1,3 @@
-import { IViewer } from "@shapediver/viewer"
 import { AbstractInteractionManager } from "./implementation/AbstractInteractionManager";
 import { CameraPlaneConstraint } from "./implementation/dragConstraints/CameraPlaneConstraint";
 import { LineConstraint } from "./implementation/dragConstraints/LineConstraint";
@@ -15,21 +14,28 @@ import { InteractionData } from "./implementation/InteractionData";
 import { ISelectEvent } from "./interfaces/events/ISelectEvent";
 import { IDragEvent } from "./interfaces/events/IDragEvent";
 import { IHoverEvent } from "./interfaces/events/IHoverEvent";
+import { IDragConstraintUtils } from "./interfaces/utils/IDragConstraintUtils";
+import { IInteractionEffectUtils } from "./interfaces/utils/IInteractionEffectUtils";
+import { IInteractionData } from "./interfaces/IInteractionData";
 
-export const createInteractionEngine = (viewer: IViewer): IInteractionEngine =>  {
-    return new InteractionEngine(viewer);
+export {
+    IInteractionEngine, InteractionEngine, IInteractionManager, AbstractInteractionManager
 }
 
 export {
-    IInteractionEngine, IInteractionManager, IDragConstraint, AbstractInteractionManager
+    InteractionData, IInteractionData
 }
 
 export {
-    InteractionData, SelectManager, HoverManager, DragManager
+    SelectManager, HoverManager, DragManager
 }
 
 export {
     IDragEvent, IHoverEvent, ISelectEvent
+}
+
+export {
+    IDragConstraint, IDragConstraintUtils, IInteractionEffectUtils
 }
 
 export {

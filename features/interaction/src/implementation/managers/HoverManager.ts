@@ -13,13 +13,14 @@ export class HoverManager extends AbstractInteractionManager {
     // #region Properties (5)
 
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    
+
+    #effectMaterialToken!: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
-        if(interactionState === INTERACTION_STATE.MOVE) {
+        if (interactionState === INTERACTION_STATE.MOVE) {
             return (node: TreeNode) => {
-                for(let i = 0; i < node.data.length; i++) {
-                    if(node.data[i] instanceof InteractionData) {
-                        if((<InteractionData>node.data[i]).interactionTypes['hover'])
+                for (let i = 0; i < node.data.length; i++) {
+                    if (node.data[i] instanceof InteractionData) {
+                        if ((<InteractionData>node.data[i]).interactionTypes['hover'])
                             return true;
                     }
                 }
@@ -32,7 +33,6 @@ export class HoverManager extends AbstractInteractionManager {
 
     #intersection: IIntersection | null = null;
     #node: TreeNode | null = null;
-    #effectMaterialToken!: string;
 
     // #endregion Properties (5)
 
@@ -46,12 +46,12 @@ export class HoverManager extends AbstractInteractionManager {
 
     // #region Public Methods (3)
 
-    public onDown(ray: IRay, intersection: IIntersection[]): void {}
+    public onDown(ray: IRay, intersection: IIntersection[]): void { }
 
-    public onEnd(ray: IRay, intersection: IIntersection[]): void {}
+    public onEnd(ray: IRay, intersection: IIntersection[]): void { }
 
-    public onMove(ray: IRay, intersection: IIntersection[]): void {        
-        let intersections = intersection.filter( i => this.filter(INTERACTION_STATE.MOVE)(i.node))
+    public onMove(ray: IRay, intersection: IIntersection[]): void {
+        let intersections = intersection.filter(i => this.filter(INTERACTION_STATE.MOVE)(i.node))
         intersections = intersection.filter(i => {
             const data = <InteractionData>i.node.data.find(d => d instanceof InteractionData);
             return !(data && data.interactionStates['drag'] === true);
@@ -76,30 +76,42 @@ export class HoverManager extends AbstractInteractionManager {
 
     // #region Private Methods (2)
 
-    private deactivateNode() {
-        this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
-        this.viewer.updateNode(this.#node!);
-        this.viewer.render();
-        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
-        if(data) data.interactionStates['hover'] = false;
-
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, { node: this.#node } as IHoverEvent);
-
-        this.#intersection = null;
-        this.#node = null;
-    }
-
+    /**
+     * Utility function to make the node the current active node.
+     * Set the according values, apply the effect and emit the event.
+     * 
+     * @param intersection 
+     */
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
-        if(data) data.interactionStates['hover'] = true;
+        if (data) data.interactionStates['hover'] = true;
         this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial);
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, { node: this.#node } as IHoverEvent);
 
         this.viewer.updateNode(this.#node);
         this.viewer.render();
+    }
+
+    /**
+     * Utility function to make the node inactive.
+     * Set the according values, remove the effect and emit the event.
+     * 
+     * @param intersection 
+     */
+    private deactivateNode() {
+        this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+        this.viewer.updateNode(this.#node!);
+        this.viewer.render();
+        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        if (data) data.interactionStates['hover'] = false;
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, { node: this.#node } as IHoverEvent);
+
+        this.#intersection = null;
+        this.#node = null;
     }
 
     // #endregion Private Methods (2)

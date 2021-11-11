@@ -24,7 +24,7 @@ export class CameraPlaneConstraint implements IDragConstraint {
             angle: number
         }
     ) {
-        this.#rotation = _rotation || { axis: vec3.fromValues(0,0,1), angle: 0 };
+        this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
     }
 
     // #endregion Constructors (1)

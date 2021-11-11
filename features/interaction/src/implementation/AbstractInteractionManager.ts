@@ -11,7 +11,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
     // #region Properties (5)
 
     #dragConstraintUtils: IDragConstraintUtils = <DragConstraintUtils>container.resolve(DragConstraintUtils);
-    #effectMaterial: MaterialData = new MaterialData({color: '#00fff7'});
+    #effectMaterial: MaterialData = new MaterialData({ color: '#00fff7' });
     #interactionEffectUtils: IInteractionEffectUtils = <InteractionEffectUtils>container.resolve(InteractionEffectUtils);
     #viewer!: IViewer;
     abstract filter: IInteractionFilterOptions;

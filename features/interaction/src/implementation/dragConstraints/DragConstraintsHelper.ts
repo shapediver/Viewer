@@ -12,25 +12,24 @@ export const calculateDragMatrix =
         },
         dragOrigin: vec3,
         closestPoint: vec3
-    ) => 
-{
-    const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-    if (data && data.dragAnchors.length > 0) {
-        const results: {
-            matrix: mat4,
-            transformedPoint: vec3
-        }[] = [];
-        for (let i = 0; i < data.dragAnchors.length; i++) {
-            const matrix = calculateMatrix(data.dragAnchors[i].position, data.dragAnchors[i].rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation);
-            const transformedPoint = vec3.transformMat4(vec3.create(), dragOrigin!, matrix);
-            results.push({ matrix, transformedPoint })
+    ) => {
+        const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
+        if (data && data.dragAnchors.length > 0) {
+            const results: {
+                matrix: mat4,
+                transformedPoint: vec3
+            }[] = [];
+            for (let i = 0; i < data.dragAnchors.length; i++) {
+                const matrix = calculateMatrix(data.dragAnchors[i].position, data.dragAnchors[i].rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation);
+                const transformedPoint = vec3.transformMat4(vec3.create(), dragOrigin!, matrix);
+                results.push({ matrix, transformedPoint })
+            }
+            results.sort((a, b) => vec3.distance(a.transformedPoint, closestPoint!) - vec3.distance(b.transformedPoint, closestPoint!));
+            return results[0].matrix;
+        } else {
+            return calculateMatrix(dragOrigin, { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation);
         }
-        results.sort((a, b) => vec3.distance(a.transformedPoint, closestPoint!) - vec3.distance(b.transformedPoint, closestPoint!));
-        return results[0].matrix;
-    } else {
-        return calculateMatrix(dragOrigin, { axis: vec3.fromValues(0, 0, 1), angle: 0 }, snapPoint, snapRotation);
     }
-}
 
 const calculateMatrix = (
     dragPoint: vec3,

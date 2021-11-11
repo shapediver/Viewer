@@ -1,6 +1,5 @@
 import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { MaterialData } from "@shapediver/viewer.shared.types";
 import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
 import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
@@ -9,12 +8,11 @@ import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
 import { ISelectEvent } from "../../interfaces/events/ISelectEvent";
 import { container } from "tsyringe";
 
-
 export class SelectManager extends AbstractInteractionManager {
-    // #region Properties (4)
+    // #region Properties (5)
 
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    
+
     #effectMaterialToken!: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.DOWN) {
@@ -35,7 +33,7 @@ export class SelectManager extends AbstractInteractionManager {
     #intersection: IIntersection | null = null;
     #node: TreeNode | null = null;
 
-    // #endregion Properties (4)
+    // #endregion Properties (5)
 
     // #region Public Accessors (1)
 
@@ -73,19 +71,12 @@ export class SelectManager extends AbstractInteractionManager {
 
     // #region Private Methods (2)
 
-    private deactivateNode() {
-        this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
-        this.viewer.updateNode(this.#node!);
-        this.viewer.render();
-        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
-        if(data) data.interactionStates['select'] = false;
-        
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { node: this.#node } as ISelectEvent);
-
-        this.#intersection = null;
-        this.#node = null;
-    }
-
+    /**
+     * Utility function to make the node the current active node.
+     * Set the according values, apply the effect and emit the event.
+     * 
+     * @param intersection 
+     */
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
@@ -97,6 +88,25 @@ export class SelectManager extends AbstractInteractionManager {
 
         this.viewer.updateNode(this.#node);
         this.viewer.render();
+    }
+
+    /**
+     * Utility function to make the node inactive.
+     * Set the according values, remove the effect and emit the event.
+     * 
+     * @param intersection 
+     */
+    private deactivateNode() {
+        this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+        this.viewer.updateNode(this.#node!);
+        this.viewer.render();
+        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        if(data) data.interactionStates['select'] = false;
+        
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { node: this.#node } as ISelectEvent);
+
+        this.#intersection = null;
+        this.#node = null;
     }
 
     // #endregion Private Methods (2)

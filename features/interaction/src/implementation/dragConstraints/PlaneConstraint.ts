@@ -8,7 +8,7 @@ import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
 export class PlaneConstraint implements IDragConstraint {
-    // #region Properties (4)
+    // #region Properties (5)
 
     #coplanarPoint?: vec3;
     #dragOrigin?: vec3;
@@ -19,13 +19,12 @@ export class PlaneConstraint implements IDragConstraint {
         angle: number
     };
 
-
-    // #endregion Properties (4)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
     constructor(
-        _normal: vec3, 
+        _normal: vec3,
         _coplanarPoint?: vec3,
         _rotation?: {
             axis: vec3,
@@ -34,7 +33,7 @@ export class PlaneConstraint implements IDragConstraint {
     ) {
         this.#normal = _normal;
         this.#coplanarPoint = _coplanarPoint;
-        this.#rotation = _rotation || { axis: vec3.fromValues(0,0,1), angle: 0 };
+        this.#rotation = _rotation || { axis: vec3.fromValues(0, 0, 1), angle: 0 };
     }
 
     // #endregion Constructors (1)
@@ -51,7 +50,7 @@ export class PlaneConstraint implements IDragConstraint {
     }
 
     public setup(viewer: IViewer, node: TreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {
-        if(this.#coplanarPoint) {
+        if (this.#coplanarPoint) {
             this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(this.#normal, this.#coplanarPoint);
         } else {
             this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(this.#normal, intersection.point);
