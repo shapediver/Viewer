@@ -45,7 +45,7 @@
     "add-dependency": "bash ./scripts/add-dependency.sh",
     "add-devDependency": "bash ./scripts/add-devDependency.sh",
     "init": "bash ./scripts/init.sh",
-    "test": "lerna run --no-bail test --stream --concurrency 1",
+    "test": "lerna run test --stream --concurrency 1",
     "test-browserstack": "lerna run --no-bail test-browserstack --stream --concurrency 1",
     "build": "lerna run build --stream",
     "build-watch": "lerna run build-watch --stream --parallel",
