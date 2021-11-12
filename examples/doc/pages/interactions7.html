@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ShapeDiver</title>
+</head>
+
+<body>
+    <div style="width: 100%; height: 100%; display: flex; position: absolute; left: 0%; top: 0%">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script src="https://viewer.shapediver.com/v3/latest/doc/bundle.js"></script>
+    <script type='module'>
+        const modelViewUrl = 'https://sddev2.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+        const ticket = 'f458732383d032fe0a479dea5e134da634c557e8d50f69621ce3f7fbd34f84c65a8b607585489f5877443f8292841a6e952c08990690cf127d169d202b098f66ee5368af94d02270f3d6d769de8e416608f80d0994b3d898a41be5f4f38a0c428699d1d7f9d9c4-6e86fe6d52d13f8f55b7b873bd75a0e6'; // PLEASE ADD YOUR TICKET HERE
+        (async () => {
+            const viewer = await window.sdv.api.createViewer({ canvas: document.getElementById('canvas'), id: 'myViewer' });
+            const session = await window.sdv.api.createSession({ ticket, modelViewUrl, id: 'mySession' });
+            viewer.ambientOcclusion = false;
+
+            // create the interactionEngine and provide it the viewer object
+            const interactionEngine = new window.sdvInteractions.InteractionEngine(viewer);
+
+            // create the dragManager and add it
+            const dragManager = new window.sdvInteractions.DragManager();
+            dragManager.effectMaterial = new window.sdv.MaterialData({color: '#00ff00'});
+            interactionEngine.addInteractionManager(dragManager);
+
+            // add the interaction data
+            session.node.data.push(new window.sdvInteractions.InteractionData({drag: true}))
+
+            const lineConstraint = new window.sdvInteractions.LineConstraint([50,-25,0], [-50,-25,0], 25);
+            const token = dragManager.addDragConstraint(lineConstraint);
+        })();
+    </script>
+</body>
+
+</html>

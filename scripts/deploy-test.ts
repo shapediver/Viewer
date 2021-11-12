@@ -18,6 +18,11 @@ const s3 = new AWS.S3({ maxRetries: 5 });
 const bucketName = 'shapediverviewer';
 const prefixLatest = 'v3/latest';
 
+const getDirectories = async (source: string) =>
+    (await fs.promises.readdir(source, { withFileTypes: true }))
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name)
+
 const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
     const fileContents = <string[]>recursiveReadSync(directoryPath);
     if(prefix) {
@@ -51,7 +56,8 @@ const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
 (async () => {
     try {
         console.log('deploying to s3...')
-        const examples = ['interaction', 'ar', 'ar-query', 'attributes', 'cdn', 'compare', 'doc', 'gltf', 'multiple', 'performance', 'query', 'simple', 'static', 'test'];
+        const examples = await getDirectories('examples');
+        
         for(let i = 0; i < examples.length; i++) {
             console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
             const example = examples[i];
