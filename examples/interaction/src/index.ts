@@ -216,15 +216,6 @@ const addShelf = async (def: ShelfDefinition) => {
     def.snapPoints.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius, element.rotation))));
     def.snapLines.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
 
-    // add a new matrix and update the parameter
-    def.matrices.push({
-        transformation: mat4.create(),
-        rotation: mat4.create(),
-        translation: mat4.create(),
-    });
-    def.counter++;
-    await updateParameter(def);
-
     // once the new node is created, this is how we find it
     const newNode = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter-1))!;
 
@@ -249,9 +240,6 @@ const addShelf = async (def: ShelfDefinition) => {
         if(!mouseDown && !touchDown ) {
             // the mouse was released before entering the viewer
             dragManager.removeNode();
-            def.matrices.pop();
-            def.counter--;
-            await updateParameter(def);
             activateInteractions();
         } else {
             // the viewer was entered, make it visible
@@ -268,7 +256,20 @@ const addShelf = async (def: ShelfDefinition) => {
         def.matrices[def.matrices.length-1].translation = mat4.fromTranslation(mat4.create(), mat4.getTranslation(vec3.create(), dragEvent.matrix));
         def.matrices[def.matrices.length-1].rotation = mat4.fromQuat(mat4.create(), mat4.getRotation(quat.create(), dragEvent.matrix));
         mat4.multiply(def.matrices[def.matrices.length-1].transformation, def.matrices[def.matrices.length-1].transformation, mat4.transpose(mat4.create(), dragEvent.matrix));
+        
+        // add a new matrix and update the parameter
+        def.matrices.push({
+            transformation: mat4.create(),
+            rotation: mat4.create(),
+            translation: mat4.create(),
+        });
+        def.counter++;
+
         await updateParameter(def);
+
+        const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter - 1))!;
+        node.visible = false;
+        
         SDV.api.removeListener(tokenEnd); 
         activateInteractions();
     })
@@ -283,7 +284,7 @@ const addShelf = async (def: ShelfDefinition) => {
 };
 
 (async () => {
-    viewer = <SDV.IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    viewer = <SDV.IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: SDV.VISIBILITYMODE.MANUAL });
     session = await api.createSession({ 
         ticket: '295224def826be64146bccfdb6eea2e054bde5822ba748273c019a5bfc2b2c3a492aef28356cb4c4f8e71687d63443148b2690e41f5174378ae8c5e6ff0e6a4e80b419155d0704f688859bbfa90b1fcb5ce3a2728d1e36e1e639fd81e10c4022b5ec6d285a11c3-44bda6b73439a7d573d2c1bc6d27bb6c', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
@@ -304,6 +305,33 @@ const addShelf = async (def: ShelfDefinition) => {
     
     bottomShelf.parameter = session.getParameterByName('bottomShelfMatrices')[0];
     topShelf.parameter = session.getParameterByName('topShelfMatrices')[0];
+
+    bottomShelf.matrices.push({
+        transformation: mat4.create(),
+        rotation: mat4.create(),
+        translation: mat4.create(),
+    });
+    bottomShelf.counter++;
+
+    topShelf.matrices.push({
+        transformation: mat4.create(),
+        rotation: mat4.create(),
+        translation: mat4.create(),
+    });
+    topShelf.counter++;
+
+    
+    await updateParameter(topShelf);
+    await updateParameter(bottomShelf);
+    const shelves = [topShelf, bottomShelf];
+
+    for(let i = 0; i < shelves.length; i++) {
+            const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (shelves[i].counter - 1))!;
+            if(!node) continue;
+            node.visible = false;
+    }
+
+    viewer.show = true;
 
     // create the interaction engine and the managers
     const interactionEngine = new InteractionEngine(viewer);
