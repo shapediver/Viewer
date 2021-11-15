@@ -1,3 +1,3 @@
-import { ShapeDiverResponseOutputDefinition } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseOutput } from '@shapediver/api.geometry-api-dto-v1'
 
-export interface IOutput extends ShapeDiverResponseOutputDefinition { }
+export interface IOutput extends ShapeDiverResponseOutput { }
