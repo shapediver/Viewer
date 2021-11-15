@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ShapeDiver</title>
+</head>
+
+<body>
+    <div style="width: 100%; height: 100%; display: flex; position: absolute; left: 0%; top: 0%">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script src="https://viewer.shapediver.com/v3/latest/doc/bundle.js"></script>
+    <script type='module'>
+        const modelViewUrl = 'https://sdeuc1.eu-central-1.shapediver.com'; // PLEASE ADD YOUR MODEL VIEW URL HERE
+        const ticket = 'cc87ba2d68c7720eecd5bf2d9ac3d256922fbe7eda5ba711a250522af3c6aa99218b932c363ba9175e2c5c4ea0b3280ce2aed25b0a329114be49818587c22efa8644fff97bb47ede461d51aea5b119785d5d59436a8609520031ef0d4d23d02f4a440e05c56122-31a7d22c55ae747c1748c9db2257c91f'; // PLEASE ADD YOUR TICKET HERE
+        (async () => {
+            const viewer = await window.sdv.api.createViewer({ visibility: window.sdv.VISIBILITYMODE.MANUAL, canvas: document.getElementById('canvas'), id: 'myViewer' });
+            // const session = await window.sdv.api.createSession({ ticket, modelViewUrl, id: 'mySession' });
+            viewer.environmentMap = window.sdv.ENVIRONMENTMAP.CANNON_EXTERIOR;
+            viewer.gridVisibility = false;
+            viewer.ambientOcclusion = false;
+            viewer.groundPlaneVisibility = false;
+
+            const node = await dataEngine.loadContent({
+                format: 'gltf',
+                href: 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/buster_drone/scene.gltf'
+            })
+            window.sdv.api.sceneTree.addNode(node);
+            window.sdv.api.update();
+            await viewer.camera.zoomTo(undefined, { duration: 0 });
+            viewer.show = true;
+            
+            viewer.animations[0].repeat = true;
+            viewer.animations[0].startAnimation();
+        })();
+    </script>
+</body>
+
+</html>

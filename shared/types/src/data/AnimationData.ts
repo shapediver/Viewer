@@ -113,10 +113,12 @@ export class AnimationData extends AbstractTreeNodeData {
         for (let i = 0; i < this.#tracks.length; i++) {
             const track = this.#tracks[i];
             const idleTransformation = track.node.transformations.filter(t => t.id === 'gltf_matrix');
-            track.previousMatrix = idleTransformation[0];
-            track.node.transformations = track.node.transformations.filter((el) => {
-                return !idleTransformation.includes(el);
-            });
+            if(idleTransformation) {
+                track.previousMatrix = idleTransformation[0];
+                track.node.transformations = track.node.transformations.filter((el) => {
+                    return !idleTransformation.includes(el);
+                });
+            }
         }
     }
 
