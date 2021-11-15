@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.7.0
-* __Build date:__ 2021-11-11T15:29:20.466Z
-* __Branch:__ feature/interactions
-* __Commit:__ 13e95de70abdfb38c5a3a679d488579b7f6bd24e
+* __Version:__ 1.7.1
+* __Build date:__ 2021-11-15T15:57:22.362Z
+* __Branch:__ development
+* __Commit:__ f49295f4ae19c9d3f961ddccab620f0878673aea
 <!--- VERSION_END -->
 
 ## Version 1.6.4 - `Fight Club`
