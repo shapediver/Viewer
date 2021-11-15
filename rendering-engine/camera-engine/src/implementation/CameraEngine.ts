@@ -74,6 +74,9 @@ export class CameraEngine implements ICameraEngine {
     }
 
     public applySettings() {
+        if(Object.values(this._settingsEngine.settings.camera.cameras).length >= 1)
+            this.removeCamera('standard');
+
         for(let id in this._settingsEngine.settings.camera.cameras) {
             const cameraSetting = this._settingsEngine.settings.camera.cameras[id];
             if(cameraSetting.type === 'perspective') {
@@ -83,8 +86,6 @@ export class CameraEngine implements ICameraEngine {
                 (<OrthographicCamera>camera).direction = <ORTHOGRAPHIC_CAMERA_DIRECTION>cameraSetting.type;
             }
         }
-        if(this._cameras[this._settingsEngine.settings.camera.cameraId] && this._settingsEngine.settings.camera.cameraId !== 'standard')
-            this.removeCamera('standard')
 
         this.assignCamera(this._settingsEngine.settings.camera.cameraId);
 
