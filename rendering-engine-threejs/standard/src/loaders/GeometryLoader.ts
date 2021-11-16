@@ -18,7 +18,7 @@ import { ILoader } from '../interfaces/ILoader'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
 import { SDData } from '../types/SDData'
 import { MaterialSettings } from './MaterialLoader'
-import { RENDERERTYPE } from '../../../../rendering-engine/rendering-engine/dist'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (2)
