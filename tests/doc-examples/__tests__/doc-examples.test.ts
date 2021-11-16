@@ -34,7 +34,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await driver.quit();
         })
 
-        let examples1 = ['sessions1', 'sessions2', 'simple', 'viewers1', 'viewers2', 'viewers3'];
+        let examples1 = ['sessions1', 'sessions2', 'simple', 'viewers1', 'viewers2', 'viewers3', 'attributes1', 'attributes2', 'attributes3', 'attributes4'];
         for(let i = 0; i < examples1.length; i++) {
             test(name + '_' + examples1[i], async () => {
                 await driver.navigate().to('https://viewer.shapediver.com/v3/latest/doc/' + examples1[i] + '.html')
