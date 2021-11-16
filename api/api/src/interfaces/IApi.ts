@@ -103,7 +103,7 @@ export interface IApi {
    * @param properties.logo an optional logo while the viewer is hidden
    * @returns 
    */
-  createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer>;
+  createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer>;
   
   /**
    * Removes an event listener.

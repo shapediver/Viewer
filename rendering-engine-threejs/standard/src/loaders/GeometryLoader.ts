@@ -18,6 +18,7 @@ import { ILoader } from '../interfaces/ILoader'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
 import { SDData } from '../types/SDData'
 import { MaterialSettings } from './MaterialLoader'
+import { RENDERERTYPE } from '../../../../rendering-engine/rendering-engine/dist'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (2)
@@ -118,7 +119,16 @@ export class GeometryLoader implements ILoader {
     public load(geometry: GeometryData, parent: SDNode): Box {    
         if(this._geometryCache[geometry.id + '_' + geometry.version]) {
             const materialSettings = this._geometryCache[geometry.id + '_' + geometry.version].materialSettings;
-            const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material : geometry.primitive.material;
+
+            let materialData: MaterialData | null;
+            if(this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
+                materialData = geometry.primitive.attributeMaterial;
+            } else if(geometry.primitive.effectMaterials.length > 0) {
+                materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
+            } else {
+                materialData = geometry.primitive.material;
+            }
+
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
             const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj;
@@ -142,7 +152,16 @@ export class GeometryLoader implements ILoader {
                 useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
             }
-            const materialData = geometry.primitive.effectMaterials.length > 0 ? geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material : geometry.primitive.material;
+
+            let materialData: MaterialData | null;
+            if(this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
+                materialData = geometry.primitive.attributeMaterial;
+            } else if(geometry.primitive.effectMaterials.length > 0) {
+                materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
+            } else {
+                materialData = geometry.primitive.material;
+            }
+
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
             const obj = new SDData(geometry.id, geometry.version);

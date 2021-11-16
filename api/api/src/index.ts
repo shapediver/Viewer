@@ -20,7 +20,6 @@ import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engin
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/api.geometry-api-dto-v1'
 
 import { Api } from './implementation/Api'
-import { StandardViewer } from './implementation/viewer/StandardViewer'
 import { Output } from './implementation/session/Output'
 import { Export } from './implementation/session/Export'
 import { Session } from './implementation/session/Session'
@@ -57,9 +56,6 @@ import { IPerspectiveCamera } from './interfaces/viewer/camera/IPerspectiveCamer
 import { ICamera } from './interfaces/viewer/camera/ICamera'
 import { ILightScene } from './interfaces/viewer/lights/ILightScene'
 import { ILight } from './interfaces/viewer/lights/ILight'
-import { AttributeViewer } from './implementation/viewer/AttributeViewer'
-import { IAttributeViewer } from './interfaces/viewer/IAttributeViewer'
-import { IStandardViewer } from './interfaces/viewer/IStandardViewer'
 
 export const api: Api = <Api>container.resolve(Api);
 export const settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
@@ -69,10 +65,10 @@ export {
 }
 
 export {
-    Api, Session, StandardViewer, AttributeViewer, Parameter, Export, Output, FileParameter
+    Api, Session, Parameter, Export, Output, FileParameter
 }
 export {
-    IApi, ISession, IViewer, IStandardViewer, IAttributeViewer, IParameter, IExport, IOutput, IFileParameter
+    IApi, ISession, IViewer, IParameter, IExport, IOutput, IFileParameter
 }
 
 export {

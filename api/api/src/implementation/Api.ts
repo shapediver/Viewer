@@ -26,11 +26,10 @@ import { mat4, vec3 } from 'gl-matrix'
 import { IApi } from '../interfaces/IApi'
 import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
-import { StandardViewer } from './viewer/StandardViewer'
 import { Session } from './session/Session'
-import { AttributeViewer } from './viewer/AttributeViewer'
 import { ShapeDiverResponseDto } from '@shapediver/api.geometry-api-dto-v2'
 import { ISessionEvent, ISettingsEvent } from '@shapediver/viewer.shared.types'
+import { Viewer } from './viewer/Viewer'
 
 @singleton()
 export class Api implements IApi {
@@ -544,12 +543,11 @@ export class Api implements IApi {
     }
   }
 
-  public async createViewer(properties?: { type?: RENDERERTYPE, visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer> {
+  public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer> {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
       const prop = Object.assign({}, properties);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.type, 'enum', false, Object.values(RENDERERTYPE));
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.canvas, 'HTMLCanvasElement', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.id, 'string', false);
@@ -567,15 +565,7 @@ export class Api implements IApi {
 
       // create the actual viewer
       let viewerCallbacks = {};
-      const type = prop.type || RENDERERTYPE.STANDARD;
-      let viewer: IViewer;
-      switch(type) {
-        case RENDERERTYPE.ATTRIBUTES:
-          viewer = new AttributeViewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
-          break;
-        default:
-          viewer = new StandardViewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
-      }
+      let viewer: IViewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
 
       if (prop.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {

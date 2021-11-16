@@ -8,9 +8,10 @@ import { IPerspectiveCamera } from './camera/IPerspectiveCamera'
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { AnimationData, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 
 export interface IViewer extends IRenderingEngine {
-    // #region Properties (6)
+    // #region Properties (29)
 
     readonly camera: ICamera | null;
     readonly cameras: { [key: string]: ICamera };
@@ -19,42 +20,66 @@ export interface IViewer extends IRenderingEngine {
     readonly lightScene: ILightScene | null;
     readonly lightScenes: { [key: string]: ILightScene };
 
-    // #endregion Properties (6)
-
-    // #region Public Methods (16)
-
+    ambientOcclusion: boolean;
+    ambientOcclusionIntensity: number;
+    animations: AnimationData[];
+    automaticResizing: boolean;
+    beautyRenderBlendingDuration: number;
+    beautyRenderDelay: number;
+    blur: boolean;
+    blurSceneWhenBusy: boolean;
+    clearAlpha: number;
+    clearColor: string | number | vec3;
     /**
-     * Add an event listener that receives all canvas events.
-     * 
-     * @param listener 
+     * Provide a callback that transforms a {@link SDTFItemData} to a {@link SDTFAttributeVisualizationData}.
+     * The {@link SDTFOverview} provides general information like min and max values for numbers or the available options for strings.
+     * The {@link visualizationAttributes} provide the current selected attributes. These can be used to only show some attributes at a time, but can be ignored as well.
      */
-    addCanvasEventListener(listener: IDomEventListener): string;
+    convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined;
+    environmentMap: string | string[];
+    environmentMapAsBackground: boolean;
+    environmentMapResolution: string;
+    gridVisibility: boolean;
+    groundPlaneVisibility: boolean;
+    lightSceneId: string;
+    pointSize: number;
+    renderingSettings: { physicallyCorrectLights: boolean, envMapIntensity: number, envMapIntensityGroundPlane: number, groundPlaneColor: string, toneMapping: 0 | 1 | 2 | 3 | 4, toneMappingExposure: number, textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007, outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007, };
+    shadows: boolean;
+    show: boolean;
+    showStatistics: boolean;
+    visualizationAttributes: { [key: string]: boolean };
+
+    // #endregion Properties (29)
+
+    // #region Public Methods (25)
 
     /**
      * Add a flag to freeze the camera.
      * If you want to stop this again call {@link removeCameraFreezeFlag} with the returned token.
      */
     addCameraFreezeFlag(): string;
-
+    /**
+     * Add an event listener that receives all canvas events.
+     * 
+     * @param listener 
+     */
+    addCanvasEventListener(listener: IDomEventListener): string;
     /**
      * Add a flag to continuously render the scene.
      * If you want to stop this again call {@link removeContinuousRenderingFlag} with the returned token.
      */
     addContinuousRenderingFlag(): string;
-
     /**
      * Add a flag to continuously update the shadow map.
      * If you want to stop this again call {@link removeShadowMapUpdateFlag} with the returned token.
      */
     addShadowMapUpdateFlag(): string;
-
     /**
      * Assign the camera with the specified id to the viewer.
      * 
      * @param id the id of the camera
      */
     assignCamera(id: string): void;
-
     /**
      * Assign the light scene with the current id to the viewer.
      * 
@@ -62,7 +87,6 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     assignLightScene(id: string): boolean;
-
     /**
      * Create a camera with the specified type.
      * An id can be provided. If not, a unique id will be created.
@@ -72,7 +96,6 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     createCamera(type: CAMERATYPE, id?: string): ICamera;
-
     /**
      * Create a new light scene.
      * An id can be provided. If not, a unique id will be created.
@@ -83,7 +106,6 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     createLightScene(properties?: { name?: string, standard?: boolean }): ILightScene;
-
     /**
      * Create an orthographic camera.
      * An id can be provided. If not, a unique id will be created.
@@ -92,7 +114,6 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     createOrthographicCamera(id?: string): IOrthographicCamera;
-
     /**
      * Create a perspective camera.
      * An id can be provided. If not, a unique id will be created.
@@ -101,14 +122,19 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     createPerspectiveCamera(id?: string): IPerspectiveCamera;
-
+    /**
+     * Create the {@link SDTFOverview} for the provided node.
+     * If no node was provided, the scene root is used instead.
+     * 
+     * @param node 
+     */
+    createSDTFOverview(node: TreeNode): SDTFOverview;
     /**
      * Deregister the busy mode with the specified ID.
      * 
      * @param value 
      */
     deregisterBusyMode(value: string): boolean;
-
     /**
      * Create a screenshot for the requested type and options.
      * 
@@ -117,13 +143,11 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     getScreenshot(type?: string, quality?: number): string;
-
     /**
      * Register the busy mode with the specified ID.
      * @param value 
      */
     registerBusyMode(value: string): boolean;
-
     /**
      * Remove the camera with the specified id.
      * 
@@ -131,35 +155,24 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     removeCamera(id: string): boolean;
-
-    /**
-     * Remove an event listener that received all canvas events.
-     * 
-     * @param token 
-     */
-    removeCanvasEventListener(token: string): boolean;
-
     /**
      * Removes the registered flag for freezing the camera.
      * 
      * @param token 
      */
     removeCameraFreezeFlag(token: string): boolean;
-
+    /**
+     * Remove an event listener that received all canvas events.
+     * 
+     * @param token 
+     */
+    removeCanvasEventListener(token: string): boolean;
     /**
      * Removes the registered flag for continuous rendering.
      * 
      * @param token 
      */
     removeContinuousRenderingFlag(token: string): boolean;
-
-    /**
-     * Removes the registered flag for continuous shadow map updates.
-     * 
-     * @param token 
-     */
-    removeShadowMapUpdateFlag(token: string): boolean;
-
     /**
      * Remove the light scene with the specified id.
      * 
@@ -167,36 +180,36 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     removeLightScene(id: string): boolean;
-
+    /**
+     * Removes the registered flag for continuous shadow map updates.
+     * 
+     * @param token 
+     */
+    removeShadowMapUpdateFlag(token: string): boolean;
     /**
      * Manual call to render the scene.
      */
     render(): void;
-
     /**
      * Reset the viewer.
      * Sets the {@link show}-value to false and waits for new settings to be registered.
      */
     reset(): void;
-
     /**
      * If the {@link automaticResizing} is option is set to `false`, this function resizes the Viewer.
      * @param width 
      * @param height 
      */
     resize(width: number, height: number): void;
-    
     /**
      * Update the viewer with the current changes of the scene tree.
      */
     update(): void;
-
-    
     /**
      * Update the current node and all descendants in the scene tree.
      * @param node 
      */
     updateNode(node: TreeNode): void;
 
-    // #endregion Public Methods (16)
+    // #endregion Public Methods (25)
 }

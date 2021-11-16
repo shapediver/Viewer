@@ -22,6 +22,7 @@ export interface IRenderingEngine {
   blurSceneWhenBusy: boolean;
   id: string;
   pointSize: number;
+  type: RENDERERTYPE;
   show: boolean;
   showStatistics: boolean;
 

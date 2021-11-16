@@ -4,7 +4,7 @@ import {
   OrthographicCamera as OrthographicCameraLogic,
   PerspectiveCamera as PerspectiveCameraLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   Converter,
   EventEngine,
@@ -20,20 +20,20 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
-import { AnimationData, IEnvironmentEvent } from '@shapediver/viewer.shared.types'
+import { AnimationData, IEnvironmentEvent, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 
 import { ICamera } from '../../interfaces/viewer/camera/ICamera'
 import { IOrthographicCamera } from '../../interfaces/viewer/camera/IOrthographicCamera'
 import { IPerspectiveCamera } from '../../interfaces/viewer/camera/IPerspectiveCamera'
-import { IStandardViewer } from '../../interfaces/viewer/IStandardViewer'
 import { ILightScene } from '../../interfaces/viewer/lights/ILightScene'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { LightScene } from './lights/LightScene'
-import { ISDObject, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ISDObject, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { IViewer } from '../../interfaces/viewer/IViewer'
 
 @injectable()
-export class StandardViewer implements IStandardViewer {
+export class Viewer implements IViewer {
   // #region Properties (14)
 
   readonly #cameras: { [key: string]: ICamera } = {};
@@ -43,6 +43,7 @@ export class StandardViewer implements IStandardViewer {
   readonly #lightScenes: { [key: string]: ILightScene } = {};
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+  readonly #sceneTree: Tree = <Tree>container.resolve(Tree);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
@@ -271,6 +272,14 @@ export class StandardViewer implements IStandardViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).clearColor: Something unexpected happened.`, true)
     }
+  }
+
+  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
+    return this.#renderingEngine.convertSDTFItemToVisualizationData;
+  }
+
+  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
+    this.#renderingEngine.convertSDTFItemToVisualizationData = value;
   }
 
   public get environmentMap(): string | string[] {
@@ -518,6 +527,45 @@ export class StandardViewer implements IStandardViewer {
     }
   }
 
+  public get type(): RENDERERTYPE {
+    return this.#renderingEngine.type;
+  }
+
+  public set type(value: RENDERERTYPE) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type: Updating Type to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type`, value, 'enum', true, Object.values(RENDERERTYPE));
+      this.#renderingEngine.type = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: type was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).type: Something unexpected happened.`, true)
+    }
+  }
+
+  public get visualizationAttributes(): {
+    [key: string]: boolean
+  } {
+    return this.#renderingEngine.visualizationAttributes;
+  }
+
+  public set visualizationAttributes(value: {
+    [key: string]: boolean
+  }) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes: Updating visualizationAttributes to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes`, value, 'object');
+      this.#renderingEngine.visualizationAttributes = value;
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes: visualizationAttributes was set to: ${value}`);
+      this.#sceneTree.root.updateVersion();
+      this.update();
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).visualizationAttributes: Something unexpected happened.`, true)
+    }
+  }
+
   // #endregion Public Accessors (47)
 
   // #region Public Methods (24)
@@ -641,6 +689,10 @@ export class StandardViewer implements IStandardViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
     }
+  }
+
+  public createSDTFOverview(node: TreeNode = this.#sceneTree.root): SDTFOverview {
+    return this.#renderingEngine.createSDTFOverview(node);
   }
 
   public deregisterBusyMode(value: string): boolean {
