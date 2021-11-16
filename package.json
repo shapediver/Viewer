@@ -57,7 +57,7 @@
     "deploy-tests": "ts-node ./scripts/deploy-test.ts",
     "deploy-example": "ts-node ./scripts/deploy-example.ts",
     "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md",
-    "doc-migrationGuide": "typedoc --readme documentation/migrationGuide.md",
+    "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md",
     "doc-main": "typedoc"
   }
 }

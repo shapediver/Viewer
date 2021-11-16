@@ -8,7 +8,29 @@
 * __Commit:__ f49295f4ae19c9d3f961ddccab620f0878673aea
 <!--- VERSION_END -->
 
-## Version 1.6.4 - `Fight Club`
+## Version 1.7.1 - `Gladiator`
+- bugfix: glossy specular material 
+- bugfix: duplicate camera at startup
+- expanded outputs to contain data
+- examples and tests
+
+## Version 1.7.0 - `Ghostbusters`
+- implementation of interactions
+- interaction tests
+
+## Version 1.6.7 - `The Fugitive`
+- bugfix: initial settings loading
+- new tests
+
+## Version 1.6.6 - `Frankenstein`
+- bugfix: empty settings
+- viewer visibility adjustments
+- differences in scene tree traversal
+- data / event restructuring
+- improved material loading
+- preparation for interactions
+
+## Version  1.6.5 - `Fight Club`
 - separation between session init and output loading
 
 ## Version 1.6.3 - `The Fifth Element`

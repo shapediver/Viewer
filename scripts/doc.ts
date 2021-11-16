@@ -37,17 +37,17 @@ const execPromise = (cmd: string) => {
         releaseNotes = releaseNotes.substr(0, indexReleaseNotesHeadEnd) + styleToHide + releaseNotes.substr(indexReleaseNotesHeadEnd);
         fs.writeFileSync('./documentation/releaseNotes.html', releaseNotes, 'utf8');
         
-        await execPromise(`npm run doc-migrationGuide`);
-        await execPromise(`cp -r docs/index.html documentation/migrationGuide.html`);
+        await execPromise(`npm run doc-breakingChangesGuide`);
+        await execPromise(`cp -r docs/index.html documentation/breakingChangesGuide.html`);
         // load html and add style
-        let migrationGuide = fs.readFileSync('./documentation/migrationGuide.html', 'utf8');
-        const indexMigrationGuideHeadEnd = migrationGuide.indexOf('</head>')
-        migrationGuide = migrationGuide.substr(0, indexMigrationGuideHeadEnd) + styleToHide + migrationGuide.substr(indexMigrationGuideHeadEnd);
-        fs.writeFileSync('./documentation/migrationGuide.html', migrationGuide, 'utf8');
+        let breakingChangesGuide = fs.readFileSync('./documentation/breakingChangesGuide.html', 'utf8');
+        const indexBreakingChangesGuideHeadEnd = breakingChangesGuide.indexOf('</head>')
+        breakingChangesGuide = breakingChangesGuide.substr(0, indexBreakingChangesGuideHeadEnd) + styleToHide + breakingChangesGuide.substr(indexBreakingChangesGuideHeadEnd);
+        fs.writeFileSync('./documentation/breakingChangesGuide.html', breakingChangesGuide, 'utf8');
 
         await execPromise(`npm run doc-main`);
         await execPromise(`cp -r documentation/releaseNotes.html docs/releaseNotes.html`);
-        await execPromise(`cp -r documentation/migrationGuide.html docs/migrationGuide.html`);
+        await execPromise(`cp -r documentation/breakingChangesGuide.html docs/breakingChangesGuide.html`);
         await execPromise(`cp -r documentation/images docs/images`);
 
     } catch (e) {

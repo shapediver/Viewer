@@ -65,10 +65,11 @@ export {
 }
 
 export {
-    Api, Session, Parameter, Export, Output, FileParameter
+    Session, Parameter, Export, Output, FileParameter
 }
+
 export {
-    IApi, ISession, IViewer, IParameter, IExport, IOutput, IFileParameter
+    ISession, IViewer, IParameter, IExport, IOutput, IFileParameter
 }
 
 export {

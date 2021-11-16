@@ -7,4 +7,4 @@ lerna-debug.log
 docs
 api/api/package.json
 documentation/releaseNotes.html
-documentation/migrationGuide.html
+documentation/breakingChangesGuide.html

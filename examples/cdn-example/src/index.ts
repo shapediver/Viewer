@@ -1,9 +1,8 @@
 import * as SDV from "@shapediver/viewer"
 
 (async () => {
-    const viewer = await (<SDV.Api>(<any>window).SDV.api).createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    const session = await (<SDV.Api>(<any>window).SDV.api).createSession({ ticket: '53af6cbde9e2308f1851ffd0895cbd7b13328cf2bddefbe8a93f2faf9949d2bee5185ee07a5de7ba0e918fed48e07386d21157c53f1665c65e66349edd421d6c3340934b4e2a7ee388422ac4e2ad0230825b7d6f01f3b44c83d62582fa329aa6607217c99968e8c4a13d1acb08083076819db788fadf-6a161aeaf69fff37bcf1ba53679be40e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', id: 'mySession' });
-    console.log(viewer)
+    const viewer = await <SDV.IViewer>(<any>window).SDV.api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    const session = await <SDV.ISession>(<any>window).SDV.api.createSession({ ticket: '53af6cbde9e2308f1851ffd0895cbd7b13328cf2bddefbe8a93f2faf9949d2bee5185ee07a5de7ba0e918fed48e07386d21157c53f1665c65e66349edd421d6c3340934b4e2a7ee388422ac4e2ad0230825b7d6f01f3b44c83d62582fa329aa6607217c99968e8c4a13d1acb08083076819db788fadf-6a161aeaf69fff37bcf1ba53679be40e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', id: 'mySession' });
 
     const globalDiv = document.getElementById("session");
 
