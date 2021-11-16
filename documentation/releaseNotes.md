@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.7.1
-* __Build date:__ 2021-11-15T15:57:22.362Z
+* __Version:__ 1.8.0
+* __Build date:__ 2021-11-16T13:05:49.836Z
 * __Branch:__ development
-* __Commit:__ f49295f4ae19c9d3f961ddccab620f0878673aea
+* __Commit:__ f5b3c747187d447bd6a8bd0963761b0461501bfc
 <!--- VERSION_END -->
 
 ## Version 1.7.1 - `Gladiator`
