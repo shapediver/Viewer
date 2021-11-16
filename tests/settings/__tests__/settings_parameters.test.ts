@@ -1,6 +1,6 @@
 import webdriver, { WebDriver } from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API, DirectionalLight, StandardViewer } from '@shapediver/viewer'
+import { api as API, DirectionalLight } from '@shapediver/viewer'
 
 import {
   capabilities as allCapabilities,
@@ -49,7 +49,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
                 const api: typeof API = (<any>window).SDV.api;
-                let viewer = <StandardViewer>api.viewers['myViewer']!;
+                let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayname = ('COLOR');
 

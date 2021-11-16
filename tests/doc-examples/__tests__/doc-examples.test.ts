@@ -36,7 +36,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
         let examples1 = ['sessions1', 'sessions2', 'simple', 'viewers1', 'viewers2', 'viewers3'];
         for(let i = 0; i < examples1.length; i++) {
-            test(name, async () => {
+            test(name + '_' + examples1[i], async () => {
                 await driver.navigate().to('https://viewer.shapediver.com/v3/latest/doc/' + examples1[i] + '.html')
     
                 // DO SOMETHING WITH THE API
@@ -55,7 +55,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
         let examples2 = ['interactions1', 'interactions2', 'interactions3'];
         for(let i = 0; i < examples2.length; i++) {
-            test(name, async () => {
+            test(name + '_' + examples2[i], async () => {
                 await driver.navigate().to('https://viewer.shapediver.com/v3/latest/doc/' + examples2[i] + '.html')
     
                 // DO SOMETHING WITH THE API
@@ -84,7 +84,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         let examples3 = ['interactions4', 'interactions5', 'interactions6', 'interactions7', 'interactions8', 'interactions9'];
         for(let i = 0; i < examples3.length; i++) {
-            test(name, async () => {
+            test(name + '_' + examples3[i], async () => {
                 await driver.navigate().to('https://viewer.shapediver.com/v3/latest/doc/' + examples3[i] + '.html')
     
                 // DO SOMETHING WITH THE API

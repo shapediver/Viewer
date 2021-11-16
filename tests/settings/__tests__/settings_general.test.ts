@@ -1,6 +1,6 @@
 import webdriver, { WebDriver } from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API, DirectionalLight, StandardViewer } from '@shapediver/viewer'
+import { api as API, DirectionalLight } from '@shapediver/viewer'
 
 import { screenshotCompare } from '../../general/src/setup'
 import {
