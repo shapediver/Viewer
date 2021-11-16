@@ -16,6 +16,10 @@
         (async () => {      
             const viewer = await window.SDV.api.createViewer({ canvas: document.getElementById('canvas'), id: 'myViewer' });
             const session = await window.SDV.api.createSession({ ticket: 'b22758984bda025b74ade62e123efb70d01a11f220918de42462e49cabaf63c4c73c1369c8881b4c6e9245bc35a8993e9b7d140d8d2eb4f43fae35290756bd68aafcf9feede2d7d6f7b9cc2268aa663a3667a1ef6aae6af5d3c6135504c280dab96cc30806e899-b24927af11874874c346a214a19a81e5', modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com' });
+            viewer.camera.zoomExtentsFactor = 2;
+            viewer.camera.zoomTo(undefined, {duration: 0});
+            viewer.camera.controls.zoomRestriction = { minDistance: 500, maxDistance: 1000 };
+
             viewer.ambientOcclusion = false;
             viewer.shadows = false;
             viewer.type = window.SDV.RENDERERTYPE.ATTRIBUTES;

@@ -16,7 +16,10 @@
         (async () => {      
           const viewer = await window.SDV.api.createViewer({ canvas: document.getElementById('canvas'), id: 'myViewer' });
           const session = await window.SDV.api.createSession({ ticket, modelViewUrl, id: 'mySession'});
-          
+          viewer.camera.zoomExtentsFactor = 2;
+          viewer.camera.zoomTo(undefined, {duration: 0});
+          viewer.camera.controls.zoomRestriction = { minDistance: 50, maxDistance: 150 };
+  
           const lengthParameter = session.getParameterByName('Length')[0];
           lengthParameter.value = 6;
           await session.customize();

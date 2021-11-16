@@ -16,6 +16,9 @@
         (async () => {
             const viewer = await window.SDV.api.createViewer({ visibility: window.SDV.VISIBILITYMODE.MANUAL, canvas: document.getElementById('canvas'), id: 'myViewer' });
             // const session = await window.SDV.api.createSession({ ticket, modelViewUrl, id: 'mySession' });
+            viewer.camera.zoomExtentsFactor = 2;
+            viewer.camera.zoomTo(undefined, {duration: 0});
+            
             viewer.environmentMap = window.SDV.ENVIRONMENTMAP.CANNON_EXTERIOR;
             viewer.gridVisibility = false;
             viewer.ambientOcclusion = false;
