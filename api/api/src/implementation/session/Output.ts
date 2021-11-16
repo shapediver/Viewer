@@ -9,6 +9,7 @@ import {
 
 import { IOutput } from '../../interfaces/session/IOutput'
 import { ISession } from '../../interfaces/session/ISession'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 export class Output implements IOutput {
   // #region Properties (20)
@@ -142,6 +143,10 @@ export class Output implements IOutput {
 
   public get name(): string {
     return this.#name;
+  }
+
+  public get node(): TreeNode | undefined {
+    return this.#session.node.children.find(c => c.name === this.id);
   }
 
   public get order(): number | undefined {
