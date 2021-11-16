@@ -50,7 +50,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayname = ('COLOR');
@@ -127,15 +127,15 @@ for (let c = 0; c < allCapabilities.length; c++) {
         it(name + '_adjustments', async () => {
             // check starting default
             let settings1: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
 
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
 
             delete settings1.build_date;
@@ -155,7 +155,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // change and save
             await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = api.viewers['myViewer']!;
                 const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
@@ -171,7 +171,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.sessions['mySession']!;
                 viewer.update();
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                await session.saveSettings();
                 cb();
@@ -181,7 +181,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // reset and save
             let settings3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 const lights = viewer.lightScene!.lights;
@@ -199,10 +199,10 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 }
                 viewer.update();
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
 
             delete settings3.build_date;
@@ -225,14 +225,14 @@ for (let c = 0; c < allCapabilities.length; c++) {
         it(name + '_newLightScene', async () => {
             // check starting default
             let settings1: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
 
             delete settings1.build_date;
@@ -251,7 +251,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // change and save
             await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = api.viewers['myViewer']!;
                 const ls = viewer.createLightScene({ name: 'testLightScene' });
                 ls.addAmbientLight({ color: '#ff0000', intensity: 0.4, name: 'ambient' })
@@ -263,7 +263,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 let session = api.sessions['mySession']!;
                 viewer.update();
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                await session.saveSettings();
                 cb();
@@ -273,7 +273,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // reset and save
             let settings3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
 
@@ -284,10 +284,10 @@ for (let c = 0; c < allCapabilities.length; c++) {
                         viewer.removeLightScene(ls)
                 viewer.update();
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
 
             delete settings3.build_date;

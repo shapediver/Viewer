@@ -3,7 +3,7 @@ import 'reflect-metadata'
 import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
 
-(<any>window).sdv = SDV;
+(<any>window).SDV = SDV;
 let delta_v2 = 0, delta_v3 = 0;
 
 const submitButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById('submitButton');
@@ -22,7 +22,7 @@ submitButton.onclick = async () => {
 
     const initSdvApp = () => {
         let performance_v2 = performance.now();
-        (<any>window).api_v2 = new (<any>window).SDVApp.ParametricViewer({ container: document.getElementById('sdv-container'), ticket, modelViewUrl, showControlsInitial: false, showSettingsInitial: false });
+        (<any>window).api_v2 = new (<any>window).SDVApp.ParametricViewer({ container: document.getElementById('SDV-container'), ticket, modelViewUrl, showControlsInitial: false, showSettingsInitial: false });
         (<any>window).api_v2.scene.addEventListener((<any>window).api_v2.scene.EVENTTYPE.RENDER_BEAUTY_END, () => {
             delta_v2 = performance.now() - performance_v2;
         });

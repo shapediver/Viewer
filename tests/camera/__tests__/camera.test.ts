@@ -43,11 +43,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         test(name + '_positioning', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 
                 cb({
@@ -68,11 +68,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         test(name + '_set', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 
                 cb({
@@ -91,11 +91,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/set_1');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -114,11 +114,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         test(name + '_reset', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 
                 cb({
@@ -137,11 +137,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/reset_1');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -157,11 +157,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/reset_2');
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.reset({});
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -180,11 +180,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         test(name + '_zoomTo', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 
                 cb({
@@ -203,11 +203,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/zoom_1');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -223,11 +223,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/zoom_2');
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.zoomTo();
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -241,11 +241,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
 
         test(name + '_ortho_switch', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
 
                 const camera = viewer.createOrthographicCamera('myOrthographicCamera');
@@ -253,7 +253,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 viewer.update();
 
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
 
                 cb({
@@ -274,18 +274,18 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         test(name + '_ortho_set', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 const camera = viewer.createOrthographicCamera('myOrthographicCamera');
                 viewer.assignCamera(camera.id)
                 viewer.update();
 
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
 
                 cb({
@@ -304,11 +304,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -327,11 +327,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         test(name + '_ortho_reset', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 
                 const camera = viewer.createOrthographicCamera('myOrthographicCamera');
@@ -339,7 +339,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 viewer.update();
 
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
 
                 
@@ -359,11 +359,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -379,11 +379,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_set');
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.reset({});
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -402,11 +402,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         test(name + '_ortho_zoomTo', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
                 let session = await api.createSession({ ticket: 'd6f62ac43b39b2899c85de0258e4f395a49617f6c485da65f1450430f8991e1c31231c434b3504254444b4bb81bc7799e26056b92fcd2fd8f8f1500bbdf73867ed2e87862a9a1349bb182bd4d4a764ff4689bfe19a87b07ebff5847565a83db1ab3002ec006a90841bed2a95fa3ae9663655e05febde-78055df2d71f54f8ca8d3815a352e2c8', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 
                 const camera = viewer.createOrthographicCamera('myOrthographicCamera');
@@ -414,7 +414,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 viewer.update();
 
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
 
                 
@@ -434,11 +434,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
             const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,
@@ -454,11 +454,11 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_zoom');
 
             const r3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api; 
+                const api: typeof API = (<any>window).SDV.api; 
                 let viewer = api.viewers['myViewer']!;
                 await viewer.camera!.zoomTo();
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb({
                     position: viewer.camera!.position,

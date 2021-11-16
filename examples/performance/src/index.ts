@@ -6,7 +6,7 @@ import { PerformanceEvaluator } from '@shapediver/viewer.shared.services';
 import { container } from 'tsyringe';
 import * as SDV from '@shapediver/viewer'
 
-(<any>window).sdv = SDV;
+(<any>window).SDV = SDV;
 const performanceEvaluator = container.resolve(PerformanceEvaluator);
 const charts: {
     [key: string]: Chart

@@ -48,7 +48,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
         afterEach(async () => {
             await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = <StandardViewer>api.viewers['myViewer']!;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('dd319731-fb8a-4aa2-9aef-ac85e96a3060')!.displayname = ('COLOR');
@@ -125,36 +125,36 @@ for (let c = 0; c < allCapabilities.length; c++) {
         it(name + '_controlNames', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
             expect(settings1['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayname']).toBe('COLOR');
             expect(settings1['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayname']).toBe('');
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayname = ('THE LENGTH');
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
             expect(settings2['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayname']).toBe('COLOR');
             expect(settings2['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayname']).toBe('THE LENGTH');
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.displayname = (undefined);
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
             expect(settings3['session.dd319731-fb8a-4aa2-9aef-ac85e96a3060.displayname']).toBe('COLOR');
             expect(settings3['session.de76cade-0cea-47b1-879e-1a0b717910e1.displayname']).toBe('');
@@ -165,14 +165,14 @@ for (let c = 0; c < allCapabilities.length; c++) {
         it(name + '_controlOrder', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
             expect(settings1['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.order']).toBe(0);
             expect(settings1['session.23033d60-7078-4836-99ce-990668e4429d.order']).toBe(1);
@@ -188,12 +188,12 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = (9);
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = (10);
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
             expect(settings2['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.order']).toBe(0);
             expect(settings2['session.23033d60-7078-4836-99ce-990668e4429d.order']).toBe(1);
@@ -209,12 +209,12 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('136b5b03-c3a3-40a1-bc51-009a71c9fc44')!.order = (10);
                 session.getParameterById('55b36bef-a2e8-47cb-bd96-8631f95b11be')!.order = (9);
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
             expect(settings3['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.order']).toBe(0);
             expect(settings3['session.23033d60-7078-4836-99ce-990668e4429d.order']).toBe(1);
@@ -233,14 +233,14 @@ for (let c = 0; c < allCapabilities.length; c++) {
         it(name + '_parametersHidden', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
             expect(settings1['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.hidden']).toBe(true);
             expect(settings1['session.23033d60-7078-4836-99ce-990668e4429d.hidden']).toBe(true);
@@ -254,11 +254,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // change and save
             const settings2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = (false);
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
 
             expect(settings2['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.hidden']).toBe(false);
@@ -273,11 +273,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // reset and save
             const settings3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let session = api.sessions['mySession']!;
                 session.getParameterById('7ad4db6d-dc94-48b1-8e89-486b75b29df9')!.hidden = (true);
                 await session.saveSettings();
-                cb((<any>window).sdv.settingsEngine.flatten());
+                cb((<any>window).SDV.settingsEngine.flatten());
             });
             expect(settings3['session.7ad4db6d-dc94-48b1-8e89-486b75b29df9.hidden']).toBe(true);
             expect(settings3['session.23033d60-7078-4836-99ce-990668e4429d.hidden']).toBe(true);
@@ -294,11 +294,11 @@ for (let c = 0; c < allCapabilities.length; c++) {
         it(name + '_tooltips', async () => {
             // check starting default
             const tooltip1: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
                 let session = await api.createSession({ id: 'mySession', ticket: 'd7275c4a686c2df9ba75ca6c7e05dc674ae60912c1aa75e478f273dab718cd20b2a269073e03b5810daaf461c82ad990b176d3071776ec0f80fa034bb1e2bc6ee6c99fc82764ad55157bcba7dd1856b18eb0390e2b83c201be16e51de33c356fc6ad73cb3100eeecd3fc48ea5405e7f1c2272088d7-ff5d231fc13c2098c7ed85e51331760e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 await session.saveSettings();
                 cb(session.parameters['de76cade-0cea-47b1-879e-1a0b717910e1'].tooltip);
@@ -307,7 +307,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // change and save
             const tooltip2: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let session = api.sessions['mySession']!;
                 session.parameters['de76cade-0cea-47b1-879e-1a0b717910e1'].tooltip = 'test tooltip';
                 await session.saveSettings();
@@ -317,7 +317,7 @@ for (let c = 0; c < allCapabilities.length; c++) {
 
             // reset and save
             const tooltip3: any = await driver.executeAsyncScript(async (cb: any) => {
-                const api: typeof API = (<any>window).sdv.api;
+                const api: typeof API = (<any>window).SDV.api;
                 let session = api.sessions['mySession']!;
                 session.parameters['de76cade-0cea-47b1-879e-1a0b717910e1'].tooltip = '';
                 await session.saveSettings();

@@ -1,8 +1,8 @@
-import * as sdv from "@shapediver/viewer"
+import * as SDV from "@shapediver/viewer"
 
 (async () => {
-    const viewer = await (<sdv.Api>(<any>window).sdv.api).createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    const session = await (<sdv.Api>(<any>window).sdv.api).createSession({ ticket: '53af6cbde9e2308f1851ffd0895cbd7b13328cf2bddefbe8a93f2faf9949d2bee5185ee07a5de7ba0e918fed48e07386d21157c53f1665c65e66349edd421d6c3340934b4e2a7ee388422ac4e2ad0230825b7d6f01f3b44c83d62582fa329aa6607217c99968e8c4a13d1acb08083076819db788fadf-6a161aeaf69fff37bcf1ba53679be40e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', id: 'mySession' });
+    const viewer = await (<SDV.Api>(<any>window).SDV.api).createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    const session = await (<SDV.Api>(<any>window).SDV.api).createSession({ ticket: '53af6cbde9e2308f1851ffd0895cbd7b13328cf2bddefbe8a93f2faf9949d2bee5185ee07a5de7ba0e918fed48e07386d21157c53f1665c65e66349edd421d6c3340934b4e2a7ee388422ac4e2ad0230825b7d6f01f3b44c83d62582fa329aa6607217c99968e8c4a13d1acb08083076819db788fadf-6a161aeaf69fff37bcf1ba53679be40e', modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', id: 'mySession' });
     console.log(viewer)
 
     const globalDiv = document.getElementById("session");
@@ -23,7 +23,7 @@ import * as sdv from "@shapediver/viewer"
         // for the different types of the parameter, we need different inputs, or at least different options for inputs
 
         let parameterInputElement: HTMLInputElement | HTMLSelectElement | null = null;
-        if (parameterObject.type === sdv.PARAMETERTYPE.INT || parameterObject.type === sdv.PARAMETERTYPE.FLOAT || parameterObject.type === sdv.PARAMETERTYPE.EVEN || parameterObject.type === sdv.PARAMETERTYPE.ODD) {
+        if (parameterObject.type === SDV.PARAMETERTYPE.INT || parameterObject.type === SDV.PARAMETERTYPE.FLOAT || parameterObject.type === SDV.PARAMETERTYPE.EVEN || parameterObject.type === SDV.PARAMETERTYPE.ODD) {
 
             parameterInputElement = document.createElement("input");
             parameterInputElement.setAttribute("id", parameterObject.id);
@@ -32,32 +32,32 @@ import * as sdv from "@shapediver/viewer"
             parameterInputElement.setAttribute("max", parameterObject.max! + '');
             parameterInputElement.setAttribute("value", parameterObject.value);
 
-            if (parameterObject.type === sdv.PARAMETERTYPE.INT) parameterInputElement.setAttribute("step", '1');
-            else if (parameterObject.type === sdv.PARAMETERTYPE.EVEN || parameterObject.type === sdv.PARAMETERTYPE.ODD) parameterInputElement.setAttribute("step", '2');
+            if (parameterObject.type === SDV.PARAMETERTYPE.INT) parameterInputElement.setAttribute("step", '1');
+            else if (parameterObject.type === SDV.PARAMETERTYPE.EVEN || parameterObject.type === SDV.PARAMETERTYPE.ODD) parameterInputElement.setAttribute("step", '2');
             else parameterInputElement.setAttribute("step", 1 / Math.pow(10, parameterObject.decimalplaces!) + '');
 
-        } else if (parameterObject.type === sdv.PARAMETERTYPE.BOOL) {
+        } else if (parameterObject.type === SDV.PARAMETERTYPE.BOOL) {
 
             parameterInputElement = document.createElement("input");
             parameterInputElement.setAttribute("id", parameterObject.id);
             parameterInputElement.setAttribute("type", "checkbox");
             parameterInputElement.setAttribute("checked", parameterObject.value);
 
-        } else if (parameterObject.type === sdv.PARAMETERTYPE.STRING) {
+        } else if (parameterObject.type === SDV.PARAMETERTYPE.STRING) {
 
             parameterInputElement = document.createElement("input");
             parameterInputElement.setAttribute("id", parameterObject.id);
             parameterInputElement.setAttribute("type", "text");
             parameterInputElement.setAttribute("value", parameterObject.value);
 
-        } else if (parameterObject.type === sdv.PARAMETERTYPE.COLOR) {
+        } else if (parameterObject.type === SDV.PARAMETERTYPE.COLOR) {
 
             parameterInputElement = document.createElement("input");
             parameterInputElement.setAttribute("id", parameterObject.id);
             parameterInputElement.setAttribute("type", "color");
             parameterInputElement.setAttribute("value", parameterObject.value);
 
-        } else if (parameterObject.type === sdv.PARAMETERTYPE.STRINGLIST) {
+        } else if (parameterObject.type === SDV.PARAMETERTYPE.STRINGLIST) {
 
             parameterInputElement = document.createElement("select");
             parameterInputElement.setAttribute("id", parameterObject.id);

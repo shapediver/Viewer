@@ -3,7 +3,7 @@ import 'reflect-metadata'
 import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
 
-(<any>window).sdv = SDV;
+(<any>window).SDV = SDV;
 
 const getParameterByName = (name: string, url = window.location.href) => {
     name = name.replace(/[\[\]]/g, '\\$&');

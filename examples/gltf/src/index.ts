@@ -27,7 +27,7 @@ import { vec3 } from 'gl-matrix'
 
 import * as SDV from '@shapediver/viewer'
 
-(<any>window).sdv = SDV;
+(<any>window).SDV = SDV;
 (<any>window).gltfVersion = '2.0'
 
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);

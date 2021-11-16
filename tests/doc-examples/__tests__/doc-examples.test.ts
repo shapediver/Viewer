@@ -41,9 +41,9 @@ for(let c = 0; c < allCapabilities.length; c++) {
     
                 // DO SOMETHING WITH THE API
                 await driver.executeAsyncScript(async (cb: any) => {
-                    const api: typeof API = (<any>window).sdv.api; 
+                    const api: typeof API = (<any>window).SDV.api; 
                     await new Promise<void>((resolve) => {
-                        api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                        api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                     })
                     cb();
                 });
@@ -60,9 +60,9 @@ for(let c = 0; c < allCapabilities.length; c++) {
     
                 // DO SOMETHING WITH THE API
                 await driver.executeAsyncScript(async (cb: any) => {
-                    const api: typeof API = (<any>window).sdv.api; 
+                    const api: typeof API = (<any>window).SDV.api; 
                     await new Promise<void>((resolve) => {
-                        api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                        api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                     })
                     cb();
                 });
@@ -89,9 +89,9 @@ for(let c = 0; c < allCapabilities.length; c++) {
     
                 // DO SOMETHING WITH THE API
                 await driver.executeAsyncScript(async (cb: any) => {
-                    const api: typeof API = (<any>window).sdv.api; 
+                    const api: typeof API = (<any>window).SDV.api; 
                     await new Promise<void>((resolve) => {
-                        api.addListener((<any>window).sdv.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                        api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                     })
                     cb();
                 });

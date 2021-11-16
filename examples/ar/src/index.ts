@@ -4,7 +4,7 @@ import { api, CAMERATYPE, ENVIRONMENTMAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGG
 import { mat4, vec3 } from 'gl-matrix';
 import * as SDV from '@shapediver/viewer'
 
-(<any>window).sdv = SDV;
+(<any>window).SDV = SDV;
 
 
 const part1 = <HTMLDivElement>document.getElementById('part1');

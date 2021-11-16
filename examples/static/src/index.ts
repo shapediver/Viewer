@@ -29,7 +29,7 @@ let viewer: IViewer, session: ISession;
 })();
 import * as SDV from '@shapediver/viewer'
 
-(<any>window).sdv = SDV;
+(<any>window).SDV = SDV;
 
 (<any>window).init = async (properties: { 
     ticket: string, 
