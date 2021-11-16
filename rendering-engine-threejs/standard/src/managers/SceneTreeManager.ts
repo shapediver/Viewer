@@ -12,7 +12,7 @@ import { ThreejsData } from '../types/ThreejsData'
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager'
 import { SDData, SD_DATA_TYPE } from '../types/SDData'
-import { RENDERERTYPE } from '../../../../rendering-engine/rendering-engine/dist'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class SceneTreeManager implements IManager {
     // #region Properties (10)
