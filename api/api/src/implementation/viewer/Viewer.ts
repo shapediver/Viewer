@@ -537,6 +537,7 @@ export class Viewer implements IViewer {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type`, value, 'enum', true, Object.values(RENDERERTYPE));
       this.#renderingEngine.type = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: type was set to: ${value}`);
+      this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
       if (e instanceof SDError) throw e;
