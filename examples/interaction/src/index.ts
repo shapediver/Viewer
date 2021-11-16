@@ -25,7 +25,7 @@ document.body.ontouchend = () => {
 
 
 let session: SDV.ISession;
-let viewer: SDV.IStandardViewer;
+let viewer: SDV.IViewer;
 
 let dragManager: DragManager;
 let hoverManager: HoverManager;
@@ -284,7 +284,7 @@ const addShelf = async (def: ShelfDefinition) => {
 };
 
 (async () => {
-    viewer = <SDV.IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: SDV.VISIBILITYMODE.MANUAL });
+    viewer = <SDV.IViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: SDV.VISIBILITYMODE.MANUAL });
     session = await api.createSession({ 
         ticket: '295224def826be64146bccfdb6eea2e054bde5822ba748273c019a5bfc2b2c3a492aef28356cb4c4f8e71687d63443148b2690e41f5174378ae8c5e6ff0e6a4e80b419155d0704f688859bbfa90b1fcb5ce3a2728d1e36e1e639fd81e10c4022b5ec6d285a11c3-44bda6b73439a7d573d2c1bc6d27bb6c', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 

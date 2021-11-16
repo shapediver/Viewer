@@ -8,7 +8,6 @@ import {
   EVENTTYPE,
   Export,
   EXPORTTYPE,
-  IStandardViewer,
   LIGHTTYPE,
   LOGGINGLEVEL,
   ORTHOGRAPHIC_CAMERA_DIRECTION,
@@ -34,7 +33,7 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 let currentNode: TreeNode;
 
 (async () => {
-    let viewer = <IStandardViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png' });
+    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png' });
     viewer.ambientOcclusion = false;
     viewer.groundPlaneVisibility = false;
     viewer.environmentMap = ENVIRONMENTMAP.CANNON_EXTERIOR;
