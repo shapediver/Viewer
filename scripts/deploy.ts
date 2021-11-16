@@ -46,7 +46,12 @@ const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
             ContentEncoding: 'gzip'
         }, (err) => { if (err) console.log(err) });
     });
-}
+};
+
+const getDirectories = async (source: string) =>
+    (await fs.promises.readdir(source, { withFileTypes: true }))
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
 
 (async () => {
     try {
@@ -133,15 +138,15 @@ const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
         
         deployToS3('docs', 'api', prefix)
 
-        console.log(await execPromise('cd examples/test && npm run build-prod && cd ../..'));
-        deployToS3('examples/test/dist-prod', undefined, prefix)
-        deployToS3('examples/test/dist-prod', 'test', prefix)
+        const examples = await getDirectories('examples');
         
-        console.log(await execPromise('cd examples/static && npm run build-prod && cd ../..'));
-        deployToS3('examples/static/dist-prod', 'static', prefix)
-        
-        console.log(await execPromise('cd examples/gltf && npm run build-prod && cd ../..'));
-        deployToS3('examples/gltf/dist-prod', 'gltf', prefix)
+        for(let i = 0; i < examples.length; i++) {
+            console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
+            const example = examples[i];
+            console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
+            deployToS3('examples/' + example + '/dist-prod', example, prefix)
+        }
+        deployToS3('examples/cdn/dist-prod', undefined, prefix)
 
         await execPromise(`git tag -a viewer@${newVersion} -m "deployed viewer version ${newVersion}"`);
         await execPromise(`git push origin viewer@${newVersion}`);

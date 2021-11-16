@@ -33,13 +33,13 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 console.log(capabilities)
                 driver = await new webdriver.Builder().usingServer('http://alexanderschiftn1:csj6VCzMwzBYyRecsbm2@hub-cloud.browserstack.com/wd/hub').withCapabilities(capabilities).build();
             }
-            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
+            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
             const TIMEOUT = 300000000
             await driver.manage().setTimeouts( { implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT } );
         });
 
         beforeEach(async () => {
-            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/test/index.html')
+            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
         });
         
         afterAll(async () => {
