@@ -8,6 +8,21 @@
 * __Commit:__ d78202b92dc9d1bb7b1a877e9c33577fa68d120c
 <!--- VERSION_END -->
 
+## Version 1.8.3 - `Home Alone`
+- updated examples
+- node added to output
+
+## Version 1.8.2 - `Heat`
+- typo
+
+## Version 1.8.1 - `Happiness`
+- typo
+
+## Version 1.8.0 - `Halloween`
+- CDN restructuring
+- attribute visualization fixes
+- tests
+
 ## Version 1.7.1 - `Gladiator`
 - bugfix: glossy specular material 
 - bugfix: duplicate camera at startup
