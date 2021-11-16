@@ -52,13 +52,14 @@ export class AnimationManager implements IManager {
                 const track = animation.tracks[j];
                 const id = animation.id + '_' + j;
 
-                const prevAnimation = track.node.transformations.filter(t => t.id === id);
-                track.node.transformations = track.node.transformations.filter((el) => {
-                    return !prevAnimation.includes(el);
-                });
-
                 for (let j = 1; j < track.times.length; j++) {
                     if (currentAnimationDeltaTime < track.times[j] && currentAnimationDeltaTime > track.times[j - 1]) {
+
+                        const prevAnimation = track.node.transformations.filter(t => t.id === id);
+                        track.node.transformations = track.node.transformations.filter((el) => {
+                            return !prevAnimation.includes(el);
+                        });
+
                         const factor = (currentAnimationDeltaTime - track.times[j - 1]) / (track.times[j] - track.times[j - 1]);
 
                         if (track.path === 'rotation') {

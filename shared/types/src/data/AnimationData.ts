@@ -21,6 +21,7 @@ export class AnimationData extends AbstractTreeNodeData {
     #start: number;
     #started: boolean = false;
     #tracks: AnimationTrack[];
+    #reset: boolean = true;
 
     // #endregion Properties (8)
 
@@ -78,6 +79,14 @@ export class AnimationData extends AbstractTreeNodeData {
         this.#repeat = value;
     }
 
+    public get reset(): boolean {
+        return this.#reset;
+    }
+
+    public set reset(value: boolean) {
+        this.#reset = value;
+    }
+
     public get start(): number {
         return this.#start;
     }
@@ -123,14 +132,16 @@ export class AnimationData extends AbstractTreeNodeData {
     }
 
     public stopAnimation() {
-        for (let i = 0; i < this.#tracks.length; i++) {
-            const track = this.#tracks[i];
-            const id = this.id + '_' + i;
-            const prevAnimation = track.node.transformations.filter(t => t.id === id);
-            track.node.transformations = track.node.transformations.filter((el) => {
-                return !prevAnimation.includes(el);
-            });
-            if (track.previousMatrix) track.node.transformations.push(track.previousMatrix);
+        if(this.reset) {
+            for (let i = 0; i < this.#tracks.length; i++) {
+                const track = this.#tracks[i];
+                const id = this.id + '_' + i;
+                const prevAnimation = track.node.transformations.filter(t => t.id === id);
+                track.node.transformations = track.node.transformations.filter((el) => {
+                    return !prevAnimation.includes(el);
+                });
+                if (track.previousMatrix) track.node.transformations.push(track.previousMatrix);
+            }
         }
         this.#animationTime = -1;
         this.#started = false;
