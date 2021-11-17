@@ -482,8 +482,17 @@ export class GLTFLoader {
             [key: string]: AttributeData
         } = {};
 
-        for (let attribute in primitive.attributes)
-            attributes[attribute] = (await this.loadAccessor(primitive.attributes[attribute]))!;
+        for (let attribute in primitive.attributes) {
+            // attribute name conversion to be consistent witg gltf
+            let attributeName = attribute;
+            if(/\d/.test(attributeName) && !attributeName.includes('_')) {
+                const index = attributeName.search(/\d/)
+                attributeName = attributeName.substring(0, index) + '_' + attributeName.substring(index, attributeName.length);
+            } else if(attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
+                attributeName += '_0';
+            }
+            attributes[attributeName] = (await this.loadAccessor(primitive.attributes[attribute]))!;
+        }
 
         let indices = null;
         if (primitive.indices || primitive.indices === 0)

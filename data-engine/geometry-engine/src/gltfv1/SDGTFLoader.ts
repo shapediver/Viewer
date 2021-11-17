@@ -451,7 +451,7 @@ export class SDGTFLoader {
             } = {};
             attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false, vertices.length / 3)
             attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false, normals.length / 3)
-            attributes['TEXCOORD'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
+            attributes['TEXCOORD_0'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
 
             const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
             singleCylinderNode.data.push(geometry);
@@ -569,7 +569,7 @@ export class SDGTFLoader {
             } = {};
             attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false, vertices.length / 3)
             attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false, normals.length / 3)
-            attributes['TEXCOORD'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
+            attributes['TEXCOORD_0'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
 
             const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
             singleSphereNode.data.push(geometry);
