@@ -69,7 +69,7 @@ export {
 }
 
 export {
-    ISession, IViewer, IParameter, IExport, IOutput, IFileParameter
+    IApi, ISession, IViewer, IParameter, IExport, IOutput, IFileParameter
 }
 
 export {
