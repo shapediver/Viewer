@@ -166,39 +166,27 @@ export class MaterialLoader implements ILoader {
     }
 
     public removeFromMaterialCache(id: string) {
-        if(this._materialCache[id])
-            delete this._materialCache[id];
+        for(let m in this._materialCache) {
+            if(m.startsWith(id)) {
+                delete this._materialCache[m];
+            }
+        }
     }
 
     public init(): void {}
 
     public getMaterialProperties(
         materialData: MaterialData | null,
+        type: MATERIAL_TYPE,
         materialSettings?: MaterialSettings
     ): {
         properties: THREE.PointsMaterialParameters | THREE.LineBasicMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshStandardMaterialParameters | SpecularGlossinessMaterialParameters,
-        mapCount: number,
-        type: MATERIAL_TYPE
+        mapCount: number
     } {
         const generalProperties: THREE.PointsMaterialParameters | THREE.LineBasicMaterialParameters | MeshUnlitMaterialParameters | THREE.MeshStandardMaterialParameters | SpecularGlossinessMaterialParameters = {}
         
         let mapCount = 0;
 
-        // evaluate which type of material properties we are constructing
-        let type: MATERIAL_TYPE;
-        if(materialSettings && materialSettings.mode === 0) {
-            type = MATERIAL_TYPE.POINT;
-        } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
-            type = MATERIAL_TYPE.LINE;
-        } else {
-            if(materialData && materialData.KHR_materials_unlit) {
-                type = MATERIAL_TYPE.UNLIT;
-            } else if(materialData && materialData.KHR_materials_pbrSpecularGlossiness) {
-                type = MATERIAL_TYPE.SPECULAR_GLOSSINESS;
-            } else {
-                type = MATERIAL_TYPE.METALNESS_ROUGHNESS;
-            }
-        }
 
         // if no MaterialData is provided, we return our default
         if(!materialData) {
@@ -206,7 +194,7 @@ export class MaterialLoader implements ILoader {
             if(materialSettings !== undefined && materialSettings.useVertexColors)
                 generalProperties.color = new THREE.Color('#d3d3d3');
             generalProperties.side = THREE.DoubleSide;
-            return { properties: generalProperties, type, mapCount };
+            return { properties: generalProperties, mapCount };
         }
 
         /**
@@ -252,9 +240,9 @@ export class MaterialLoader implements ILoader {
 
         if(type === MATERIAL_TYPE.POINT) {
             (<THREE.PointsMaterialParameters>generalProperties).size = this._pointSize;
-            return { properties: generalProperties, type, mapCount };
+            return { properties: generalProperties, mapCount };
         } else if(type === MATERIAL_TYPE.LINE) {
-            return { properties: generalProperties, type, mapCount };
+            return { properties: generalProperties, mapCount };
         }
 
         /**
@@ -293,7 +281,7 @@ export class MaterialLoader implements ILoader {
             if(materialData.KHR_materials_unlit !== undefined)
                 (<MeshUnlitMaterialParameters>basicProperties).KHR_materials_unlit = materialData.KHR_materials_unlit;
 
-            return { properties: basicProperties, type, mapCount };
+            return { properties: basicProperties, mapCount };
         }
 
         /**
@@ -356,7 +344,7 @@ export class MaterialLoader implements ILoader {
                     mapCount++;
                 }
             }
-            return { properties: meshStandardProperties, type, mapCount };
+            return { properties: meshStandardProperties, mapCount };
 
         } else if (type === MATERIAL_TYPE.SPECULAR_GLOSSINESS) {
             const specularGlossinessProperties: SpecularGlossinessMaterialParameters = standardProperties;
@@ -384,14 +372,14 @@ export class MaterialLoader implements ILoader {
                 }
             }
 
-            return { properties: specularGlossinessProperties, type, mapCount };
+            return { properties: specularGlossinessProperties, mapCount };
         }
 
 
         // We should never get here, if we do, log it
         this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('No proper material properties were found.'))
 
-        return { properties: generalProperties, type, mapCount };
+        return { properties: generalProperties, mapCount };
     }
 
     /**
@@ -404,10 +392,27 @@ export class MaterialLoader implements ILoader {
         materialData: MaterialData | null, 
         materialSettings?: MaterialSettings
     ): THREE.Material {
-        if(materialData && this._materialCache[materialData.id + '_' + materialData.version]) 
-            return this._materialCache[materialData.id + '_' + materialData.version];
 
-        let {properties, type, mapCount} = this.getMaterialProperties(materialData, materialSettings);
+        // evaluate which type of material properties we are constructing
+        let type: MATERIAL_TYPE;
+        if(materialSettings && materialSettings.mode === 0) {
+            type = MATERIAL_TYPE.POINT;
+        } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
+            type = MATERIAL_TYPE.LINE;
+        } else {
+            if(materialData && materialData.KHR_materials_unlit) {
+                type = MATERIAL_TYPE.UNLIT;
+            } else if(materialData && materialData.KHR_materials_pbrSpecularGlossiness) {
+                type = MATERIAL_TYPE.SPECULAR_GLOSSINESS;
+            } else {
+                type = MATERIAL_TYPE.METALNESS_ROUGHNESS;
+            }
+        }
+
+        if(materialData && this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) 
+            return this._materialCache[materialData.id + '_' + materialData.version + '_' + type];
+
+        let {properties, mapCount} = this.getMaterialProperties(materialData, type, materialSettings);
         this.maxMapCount = Math.max(this.maxMapCount, mapCount);
 
         let material: THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.MeshBasicMaterial | THREE.MeshStandardMaterial | SpecularGlossinessMaterial;
@@ -444,13 +449,14 @@ export class MaterialLoader implements ILoader {
             }
         }
         
-        if(materialData && this._materialCache[materialData.id]) {
-            this._materialCache[materialData.id].copy(material)
-            return this._materialCache[materialData.id];
+        if(materialData && this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) {
+            console.log(this._materialCache[materialData.id + '_' + materialData.version + '_' + type], material)
+            this._materialCache[materialData.id + '_' + materialData.version + '_' + type].copy(material)
+            return this._materialCache[materialData.id + '_' + materialData.version + '_' + type];
         }
 
         material.needsUpdate = true;
-        if(materialData) this._materialCache[materialData.id] = material;
+        if(materialData) this._materialCache[materialData.id + '_' + materialData.version + '_' + type] = material;
 
         return material;
     }
