@@ -561,8 +561,10 @@ export class GLTFConverter {
             mode: data.mode
         };
 
-        for (let a in data.attributes)
-            primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a])
+        for (let a in data.attributes) {
+            if(data.attributes[a].byteStride !== undefined && +(data.attributes[a].byteStride!) % 4 == 0)
+                primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a])
+        }
 
         if (data.indices)
             primitiveDef.indices = this.convertAccessor(data.indices);
