@@ -225,7 +225,7 @@ export class MaterialLoader implements ILoader {
             generalProperties.format = THREE.RGBAFormat;
             generalProperties.transparent = true;
             generalProperties.depthWrite = false;
-        } else {
+        } else if(!generalProperties.transparent) {
             generalProperties.format = THREE.RGBFormat;
             generalProperties.transparent = false;
         }

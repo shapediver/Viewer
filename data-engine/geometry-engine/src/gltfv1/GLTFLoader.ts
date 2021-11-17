@@ -270,8 +270,8 @@ export class GLTFLoader {
                 }
 
                 attributes[attributeName] = await this.loadAccessor(primitive.attributes[attribute]);
-                if(attribute.startsWith('COLOR'))
-                    attributes[attributeName] = new AttributeData(attributes[attribute].array, attributes[attribute].itemSize, attributes[attribute].itemBytes, attributes[attribute].byteOffset, attributes[attribute].elementBytes, true, attributes[attribute].count, [], [], attributes[attribute].byteStride)
+                if(attributeName.startsWith('COLOR'))
+                    attributes[attributeName] = new AttributeData(attributes[attributeName].array, attributes[attributeName].itemSize, attributes[attributeName].itemBytes, attributes[attributeName].byteOffset, attributes[attributeName].elementBytes, true, attributes[attributeName].count, [], [], attributes[attributeName].byteStride)
             }
 
             let material: MaterialData;
