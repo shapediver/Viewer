@@ -213,7 +213,7 @@ export class MaterialLoader implements ILoader {
             generalProperties.format = THREE.RGBAFormat;
             generalProperties.transparent = true;
             generalProperties.depthWrite = false;
-        } else {
+        } else if(!generalProperties.transparent) {
             generalProperties.format = THREE.RGBFormat;
             generalProperties.transparent = false;
         }
@@ -252,6 +252,7 @@ export class MaterialLoader implements ILoader {
         const basicProperties: MeshUnlitMaterialParameters | THREE.MeshStandardMaterialParameters | SpecularGlossinessMaterialParameters = generalProperties;
 
         if (materialData.alphaMap !== undefined) {
+            basicProperties.format = THREE.RGBAFormat;
             basicProperties.alphaMap = this.createTexture(materialData.alphaMap);
             basicProperties.transparent = true;
             basicProperties.depthWrite = false;
