@@ -42,7 +42,13 @@ export interface IApi {
    * @param response 
    * @param sections 
    */
-  applySettings( response: ShapeDiverResponseBase, sections: { session: { parameter: { displayname: boolean, order: boolean, hidden: boolean }, export: { displayname: boolean, order: boolean, hidden: boolean } }, viewer: { scene: boolean, camera: boolean, light: boolean, environment: boolean } }): Promise<void>;
+  applySettings( response: ShapeDiverResponseBase, sections?: { 
+    session?: { 
+      parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean },
+      export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
+    },
+    viewer?: { scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
+  }): Promise<void>;
   
   /**
    * Closes the session with the specified id.
@@ -86,7 +92,7 @@ export interface IApi {
    * @param properties.id the unique id the session should have
    * @returns 
    */
-  createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[] }): Promise<ISession>;
+  createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean }): Promise<ISession>;
   
 
   /**
@@ -130,7 +136,7 @@ export interface IApi {
    * 
    * @param androidOptions 
    */
-  viewInAR(androidOptions: { title?: string, resizable?: boolean, fallback_url?: string }): Promise<void>;
+  viewInAR(androidOptions?: { title?: string, resizable?: boolean, fallback_url?: string }): Promise<void>;
   
   /**
    * Determines if the current devices supports the viewing in AR.
