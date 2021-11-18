@@ -657,7 +657,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Private Methods (1)
 
-  private applySettings(sections: { camera?: boolean, lights?: boolean, scene?: boolean, environment?: boolean } = { camera: true, lights: true, scene: true, environment: true }) {
+  private applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
       const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: IEvent) => {
@@ -684,7 +684,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           this.pointSize = this._settingsEngine.general.pointSize;
         }
 
-        if (sections.lights) {
+        if (sections.light) {
           this.lightScene = this._settingsEngine.light.lightSceneId;
           (<LightEngine>this.lightEngine).applySettings();
         }
@@ -711,7 +711,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.pointSize = this._settingsEngine.general.pointSize;
       }
 
-      if (sections.lights) {
+      if (sections.light) {
         this.lightScene = this._settingsEngine.light.lightSceneId;
         (<LightEngine>this.lightEngine).applySettings();
       }

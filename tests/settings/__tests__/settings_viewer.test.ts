@@ -98,6 +98,12 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.environmentMap = ('none');
                 viewer.clearAlpha = 1;
                 viewer.clearColor = '#ffffff';
+                
+                for(let ls in viewer.lightScenes) {
+                    if(ls !== 'a2a392df-c842-4562-acd4-91df7ed68822')
+                        viewer.removeLightScene(ls);
+                }
+                viewer.assignLightScene('default');
 
                 const lights = viewer.lightScene!.lights;
                 for (let l in lights) {

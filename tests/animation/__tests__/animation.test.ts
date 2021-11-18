@@ -109,7 +109,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 const tracks = [{
                     times: [0, 0.5],
                     node: session.node,
-                    values: [1,1,1, 2,2,2],
+                    values: [1,1,1, 1.5, 1.5, 1.5],
                     path: 'scale',
                     interpolation: 'linear'
                 }];

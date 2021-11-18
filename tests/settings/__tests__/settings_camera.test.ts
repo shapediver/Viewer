@@ -99,6 +99,13 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 viewer.clearAlpha = 1;
                 viewer.clearColor = '#ffffff';
                 
+                for(let ls in viewer.lightScenes) {
+                    if(ls !== 'a2a392df-c842-4562-acd4-91df7ed68822')
+                        viewer.removeLightScene(ls);
+                }
+
+                viewer.assignLightScene('default');
+        
                 const lights = viewer.lightScene!.lights;
                 for (let l in lights) {
                     if(l !== '6e219562-c916-4492-b9b9-1dfbac80d51f' && l !== '70bc760c-45dc-46b0-9cd2-8990ac77124f' && l !== '748019ac-ce54-4de7-94d2-737dae6579dd')
@@ -178,8 +185,6 @@ for (let c = 0; c < allCapabilities.length; c++) {
                 await session.saveSettings();
                 cb();
             });
-
-            await screenshotCompare(await driver.takeScreenshot(), name + '/save_perspective_front_1');
 
         });
     });
