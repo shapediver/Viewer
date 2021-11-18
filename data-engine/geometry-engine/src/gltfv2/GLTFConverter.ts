@@ -436,7 +436,7 @@ export class GLTFConverter {
         return this._content.images.length - 1;
     }
 
-    private convertMaterial(data: MaterialData): number {
+    private convertMaterial(data: MaterialData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
@@ -453,10 +453,10 @@ export class GLTFConverter {
 
             ext.diffuseFactor = this._converter.toColorArray(data.color);
             ext.diffuseFactor[3] = data.opacity;
-            if (data.map) ext.diffuseTexture = { index: this.convertTexture(data.map) }
+            if (data.map && includeMaps) ext.diffuseTexture = { index: this.convertTexture(data.map) }
             ext.specularFactor = this._converter.toColorArray(data.specular);
             ext.glossinessFactor = data.glossiness;
-            if (data.specularGlossinessMap)
+            if (data.specularGlossinessMap && includeMaps)
                 ext.specularGlossinessTexture = { index: this.convertTexture(data.specularGlossinessMap) };
 
             materialDef.extensions = {
@@ -469,7 +469,7 @@ export class GLTFConverter {
                 this._extensionsRequired.push('KHR_materials_unlit')
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(data.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = data.opacity;
-            if (data.map) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) }
+            if (data.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) }
 
             materialDef.extensions = {
                 KHR_materials_unlit: {}
@@ -477,21 +477,21 @@ export class GLTFConverter {
         } else {
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(data.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = data.opacity;
-            if (data.map) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) }
+            if (data.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) }
             materialDef.pbrMetallicRoughness!.metallicFactor = data.metalness;
             materialDef.pbrMetallicRoughness!.roughnessFactor = data.roughness;
-            if (data.metalnessRoughnessMap) {
+            if (data.metalnessRoughnessMap && includeMaps) {
                 materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(data.metalnessRoughnessMap) };
-            } else if (data.metalnessMap || data.roughnessMap) {
+            } else if ((data.metalnessMap || data.roughnessMap) && includeMaps) {
                 const map: MapData = (data.metalnessMap || data.roughnessMap)!;
-                const combinedImage = this._converter.combineImages(undefined, data.roughnessMap?.image, data.metalnessMap?.image);
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(new MapData(combinedImage, map.wrapS, map.wrapT, map.minFilter, map.magFilter, map.center, map.color, map.offset, map.repeat, map.rotation, map.flipY)) };
+                // we just take one, conversion is just too slow
+                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(map) };
             }
         }
 
-        if (data.normalMap) materialDef.normalTexture = { index: this.convertTexture(data.normalMap) };
-        if (data.aoMap) materialDef.occlusionTexture = { index: this.convertTexture(data.aoMap) };
-        if (data.emissiveMap) materialDef.emissiveTexture = { index: this.convertTexture(data.emissiveMap) };
+        if (data.normalMap && includeMaps) materialDef.normalTexture = { index: this.convertTexture(data.normalMap) };
+        if (data.aoMap && includeMaps) materialDef.occlusionTexture = { index: this.convertTexture(data.aoMap) };
+        if (data.emissiveMap && includeMaps) materialDef.emissiveTexture = { index: this.convertTexture(data.emissiveMap) };
         if (data.emissiveness) materialDef.emissiveFactor = this._converter.toColorArray(data.emissiveness);
         materialDef.alphaMode = data.alphaMode.toUpperCase();
         if (data.alphaMode === MATERIAL_ALPHA.MASK) materialDef.alphaCutoff = data.alphaCutoff;
@@ -562,15 +562,20 @@ export class GLTFConverter {
         };
 
         for (let a in data.attributes) {
-            if(data.attributes[a].byteStride !== undefined && +(data.attributes[a].byteStride!) % 4 == 0)
+            if((!a.includes('COLOR') && this._convertForAR)) {
                 primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a])
+            } else {
+                // there is a color attribute, this cannot be used in AR, therefore ignore it
+            }
         }
 
         if (data.indices)
             primitiveDef.indices = this.convertAccessor(data.indices);
 
-        if (data.material)
-            primitiveDef.material = this.convertMaterial(data.material);
+        if (data.material) {
+            const k = Object.keys(primitiveDef.attributes).find(k => k.includes('TEXCOORD'));
+            primitiveDef.material = this.convertMaterial(data.material, !!k);
+        }
 
         return primitiveDef;
     }
