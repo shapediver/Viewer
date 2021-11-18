@@ -71,6 +71,17 @@ export class SDGTFLoader {
 
     // #region Private Methods (6)
 
+    private convertToIndicesArray(indices: number[]): Uint8Array | Uint16Array | Uint32Array {
+        const max = Math.max(0, ...indices);
+        if(max < (1 << 8) - 1) {
+            return new Uint8Array(indices);
+        } else if (max < (1 << 16) - 1) {
+            return new Uint16Array(indices);
+        } else {
+            return new Uint32Array(indices);
+        }
+    }
+
     private async loadAccessor(accessorName: string): Promise<AttributeData> {
         if (!this._content.accessors![accessorName]) throw new SDError('Accessor not available.')
         const accessor = this._content.accessors![accessorName];
@@ -451,9 +462,9 @@ export class SDGTFLoader {
             } = {};
             attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false, vertices.length / 3)
             attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false, normals.length / 3)
-            attributes['TEXCOORD'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
+            attributes['TEXCOORD_0'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
+            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
             singleCylinderNode.data.push(geometry);
 
             singleCylinderNode.transformations.push({
@@ -569,9 +580,9 @@ export class SDGTFLoader {
             } = {};
             attributes['POSITION'] = new AttributeData(new Float32Array(vertices), 3, 0, 0, 0, false, vertices.length / 3)
             attributes['NORMAL'] = new AttributeData(new Float32Array(normals), 3, 0, 0, 0, false, normals.length / 3)
-            attributes['TEXCOORD'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
+            attributes['TEXCOORD_0'] = new AttributeData(new Float32Array(uvs), 2, 0, 0, 0, false, uvs.length / 2)
 
-            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
+            const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
             singleSphereNode.data.push(geometry);
 
             singleSphereNode.transformations.push({
@@ -771,7 +782,7 @@ export class SDGTFLoader {
         // in our geometry loader, this array will cause the computation of vertex normals
         attributes['NORMAL'] = new AttributeData(new Float32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 3, 0, 0, 0, false, vertices.length / 3);
         
-        const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(new Uint8Array(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
+        const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length), new MaterialData({ color: '#d3d3d3', roughness: 1, metalness: 0 })));
         surfacepatchNode.data.push(geometry);
 
         return surfacepatchNode;

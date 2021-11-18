@@ -7,7 +7,7 @@ expect.extend({ toMatchImageSnapshot });
 export const screenshotCompare = async (image: any, name: string) => {
     expect(image).toMatchImageSnapshot({
         customSnapshotIdentifier: name,
-        failureThreshold: 0.1,
+        failureThreshold: 0.01,
         failureThresholdType: 'percent'
     });
 }

@@ -6,6 +6,7 @@ import {
   PrimitiveData,
   MATERIAL_SIDE,
   MaterialData,
+  AttributeData,
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -224,6 +225,17 @@ export class GeometryLoader implements ILoader {
                 }
                 if (!blnNormalsOk) {
                     geometry.computeVertexNormals();
+                    const computedNormalAttribute = geometry.getAttribute('normal');
+  
+                    // store the computed normals in the attribute data
+                    primitive.attributes[attributeId] = new AttributeData(
+                        new Float32Array(computedNormalAttribute.array), 
+                        computedNormalAttribute.itemSize,
+                        0,
+                        0,
+                        3,
+                        computedNormalAttribute.normalized,
+                        computedNormalAttribute.array.length / 3);
                     continue;
                 }
             }
@@ -250,10 +262,10 @@ export class GeometryLoader implements ILoader {
                     geometry.setAttribute('color', buffer);
                     break;
                 case 'WEIGHT':
-                    geometry.setAttribute('skinWeight', buffer);
+                    //geometry.setAttribute('skinWeight', buffer);
                     break;
                 case 'JOINT':
-                    geometry.setAttribute('skinIndex', buffer);
+                    //geometry.setAttribute('skinIndex', buffer);
                     break;
                 case 'TANGENT':
                     geometry.setAttribute('tangent', buffer);

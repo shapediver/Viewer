@@ -260,9 +260,18 @@ export class GLTFLoader {
             } = {};
 
             for (let attribute in primitive.attributes) {
-                attributes[attribute] = await this.loadAccessor(primitive.attributes[attribute]);
-                if(attribute === 'COLOR')
-                    attributes[attribute] = new AttributeData(attributes[attribute].array, attributes[attribute].itemSize, attributes[attribute].itemBytes, attributes[attribute].byteOffset, attributes[attribute].elementBytes, true, attributes[attribute].count, [], [], attributes[attribute].byteStride)
+                // attribute name conversion to be consistent witg gltf
+                let attributeName = attribute;
+                if(/\d/.test(attributeName) && !attributeName.includes('_')) {
+                    const index = attributeName.search(/\d/)
+                    attributeName = attributeName.substring(0, index) + '_' + attributeName.substring(index, attributeName.length);
+                } else if(attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
+                    attributeName += '_0';
+                }
+
+                attributes[attributeName] = await this.loadAccessor(primitive.attributes[attribute]);
+                if(attributeName.startsWith('COLOR'))
+                    attributes[attributeName] = new AttributeData(attributes[attributeName].array, attributes[attributeName].itemSize, attributes[attributeName].itemBytes, attributes[attributeName].byteOffset, attributes[attributeName].elementBytes, true, attributes[attributeName].count, [], [], attributes[attributeName].byteStride)
             }
 
             let material: MaterialData;
