@@ -176,7 +176,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     if (this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
 
     if (this._visibility === VISIBILITYMODE.SESSION) {
-      this._stateEngine.primarySessionLoaded.then(() => {
+      this._stateEngine.primarySessionInitialOutputsLoaded.then(() => {
         if (this._closed) return;
         // wait for settings to load before showing the scene
         this._stateEngine.getCustomState(this.id + '_settings_loaded').then(() => {
