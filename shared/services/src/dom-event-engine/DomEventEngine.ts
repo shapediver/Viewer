@@ -113,14 +113,14 @@ export class DomEventEngine {
     }
 
     private onTouchEnd(event: TouchEvent): void {
-        if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y)) {
+        if (event.composedPath().includes(this._canvas)) {
             event.preventDefault();
             Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
         }
     }
 
     private onTouchMove(event: TouchEvent): void {
-        if (this._canvas === document.elementFromPoint(this._currentMousePosition.x, this._currentMousePosition.y)) {
+        if (event.composedPath().includes(this._canvas)) {
             event.preventDefault();
             Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event))
         }
