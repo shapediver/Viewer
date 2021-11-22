@@ -14,17 +14,13 @@ export enum SCENE {
 }
 export enum VIEWER {
     VIEWER_CREATED = "viewer.created",
-    VIEWER_INITIALIZED = "viewer.initialized",
     VIEWER_UPDATED = "viewer.updated",
     VIEWER_CLOSED = "viewer.closed"
 }
 
 export enum SESSION {
     SESSION_CREATED = "session.created",
-    SESSION_INITIALIZED = "session.initialized",
-    SESSION_LOADED = "session.loaded",
     SESSION_CUSTOMIZED = "session.customized",
-    SESSION_INITIAL_OUTPUTS_LOADED = "session.initialOutputsLoaded",
     SESSION_CLOSED = "session.closed"
 }
 export enum SETTINGS {

@@ -80,7 +80,7 @@ export class Viewer implements IViewer {
         if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}): Was not able to close viewer completely, please disregard this viewer.`);
         return closeResult;
       }
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId: properties.id });
+
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer created.`);
     } catch (e) {
       if (e instanceof SDError) throw e;

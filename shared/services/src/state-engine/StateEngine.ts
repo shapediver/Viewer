@@ -14,7 +14,6 @@ export class StateEngine {
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _firstViewerShown: StatePromise<boolean>;
     private readonly _fontLoaded: StatePromise<boolean>;
-    private readonly _primarySessionInitialOutputsLoaded: StatePromise<boolean>;
     private readonly _primarySessionLoaded: StatePromise<boolean>;
     private readonly _primarySettingsRegistered: StatePromise<boolean>;
     private readonly _sessions: {
@@ -38,7 +37,6 @@ export class StateEngine {
         this._primarySettingsRegistered = new StatePromise();
         this._boundingBoxCreated = new StatePromise();
         this._primarySessionLoaded = new StatePromise();
-        this._primarySessionInitialOutputsLoaded = new StatePromise();
         this._firstViewerShown = new StatePromise();
         this._fontLoaded = new StatePromise();
     }
@@ -57,10 +55,6 @@ export class StateEngine {
 
     public get fontLoaded(): StatePromise<boolean> {
         return this._fontLoaded;
-    }
-
-    public get primarySessionInitialOutputsLoaded(): StatePromise<boolean> {
-        return this._primarySessionInitialOutputsLoaded;
     }
 
     public get primarySessionLoaded(): StatePromise<boolean> {

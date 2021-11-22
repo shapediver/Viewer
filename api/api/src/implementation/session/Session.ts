@@ -165,10 +165,8 @@ export class Session implements ISession {
             callbacks.setAsPrimary = async () => {
                 try {
                     this.#primarySession = true;
-                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
                     this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
                     await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
-                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { sessionId: this.id });
                     this.#api.update();
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
                 } catch (e) {
@@ -648,14 +646,12 @@ export class Session implements ISession {
                 this.#node = await this.#sessionEngine.loadOutputs(this.#sessionEngine.parameterValues);
                 if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                 this.node.excludeViewers = this.#excludeViewers;
-                this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: this.id });
                 this.#api.update();
             } else {
                 this.#sessionEngine.loadOutputs(this.#sessionEngine.parameterValues).then(async node => {
                     this.#node = node;
                     if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                     this.node.excludeViewers = this.#excludeViewers;
-                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: this.id });
                     this.#api.update();
                 })
             }
@@ -715,8 +711,6 @@ export class Session implements ISession {
 
             this.#canUploadGLTF = this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload').length !== 0;
 
-            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
-
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
             for (let i = 0; i < viewerIds.length; i++)
@@ -727,7 +721,6 @@ export class Session implements ISession {
 
             if (this.primarySession !== false) await Promise.all(viewerPromises);
 
-            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { sessionId: this.id });
             this.#api.update();
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).init: Session initialized.`);
 

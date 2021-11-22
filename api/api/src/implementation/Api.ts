@@ -75,17 +75,6 @@ export class Api implements IApi {
         if(sessionEvent.sessionId) 
           this.#stateEngine.sessions[sessionEvent.sessionId].settingsRegistered.resolve(true);
       })
-      this.#eventEngine.addListener(EVENTTYPE.SESSION.SESSION_INITIALIZED, (e) => { 
-        const sessionEvent: ISessionEvent = <ISessionEvent>e;
-        if(sessionEvent.sessionId)
-          if(this.sessions[sessionEvent.sessionId].primarySession) this.#stateEngine.primarySessionLoaded.resolve(true);
-      })
-      
-      this.#eventEngine.addListener(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, (e) => { 
-        const sessionEvent: ISessionEvent = <ISessionEvent>e;
-        if(sessionEvent.sessionId)
-          if(this.sessions[sessionEvent.sessionId].primarySession) this.#stateEngine.primarySessionInitialOutputsLoaded.resolve(true);
-      })
 
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
     } catch (e) {
@@ -409,7 +398,6 @@ export class Api implements IApi {
 
       if (this.sessions[id].primarySession) {
         this.#stateEngine.primarySessionLoaded.reset();
-        this.#stateEngine.primarySessionInitialOutputsLoaded.reset();
         this.#stateEngine.primarySettingsRegistered.reset();
         this.#stateEngine.boundingBoxCreated.reset();
         for (let v in this.viewers)
@@ -530,7 +518,6 @@ export class Api implements IApi {
       // create the actual session 
       let sessionCallbacks = {};
       const session = new Session(Object.assign({}, properties, { id: sessionId }), sessionCallbacks);
-      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId });
 
       // save the session
       this.sessions[sessionId] = session;
@@ -538,6 +525,10 @@ export class Api implements IApi {
 
       await session.init(properties.waitForOutputs);
       
+      this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId });
+
+      if(properties.primarySession) this.#stateEngine.primarySessionLoaded.resolve(true);
+
       this.#stateEngine.sessions[sessionId].initialized.resolve(true);
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
@@ -573,7 +564,6 @@ export class Api implements IApi {
       // create the actual viewer
       let viewerCallbacks = {};
       let viewer: IViewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
 
       if (prop.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
         await new Promise<void>(resolve => {
@@ -586,8 +576,8 @@ export class Api implements IApi {
       this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
       viewer.update();
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId });
       
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
       this.#stateEngine.viewers[viewerId].initialized.resolve(true);
 
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
