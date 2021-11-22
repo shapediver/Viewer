@@ -5,68 +5,69 @@ import { StatePromise } from './StatePromise'
 
 @singleton()
 export class StateEngine {
-    // #region Properties (10)
+    // #region Properties (8)
 
     private readonly _boundingBoxCreated: StatePromise<boolean>;
-    private readonly _customStates:  {
+    private readonly _customStates: {
         [key: string]: StatePromise<boolean>
     } = {};
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _firstViewerShown: StatePromise<boolean>;
     private readonly _fontLoaded: StatePromise<boolean>;
-    private readonly _primarySessionLoaded: StatePromise<boolean>;
-    private readonly _primarySettingsRegistered: StatePromise<boolean>;
     private readonly _sessions: {
         [key: string]: {
+            id: string,
+            primary: boolean,
             initialized: StatePromise<boolean>,
             settingsRegistered: StatePromise<boolean>,
         }
     } = {};
     private readonly _viewers: {
         [key: string]: {
+            id: string,
             initialized: StatePromise<boolean>,
             settingsLoaded: StatePromise<boolean>,
         }
     } = {};
 
-    // #endregion Properties (10)
+    // #endregion Properties (8)
 
     // #region Constructors (1)
 
     constructor() {
-        this._primarySettingsRegistered = new StatePromise();
         this._boundingBoxCreated = new StatePromise();
-        this._primarySessionLoaded = new StatePromise();
-        this._firstViewerShown = new StatePromise();
         this._fontLoaded = new StatePromise();
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (8)
+    // #region Public Accessors (7)
 
     public get boundingBoxCreated(): StatePromise<boolean> {
         return this._boundingBoxCreated;
-    }
-
-    public get firstViewerShown(): StatePromise<boolean> {
-        return this._firstViewerShown;
     }
 
     public get fontLoaded(): StatePromise<boolean> {
         return this._fontLoaded;
     }
 
-    public get primarySessionLoaded(): StatePromise<boolean> {
-        return this._primarySessionLoaded;
-    }
+    public get primarySession(): {
+        id: string,
+        primary: boolean,
+        initialized: StatePromise<boolean>,
+        settingsRegistered: StatePromise<boolean>,
+    } | null {
+        console.log(this.sessions)
 
-    public get primarySettingsRegistered(): StatePromise<boolean> {
-        return this._primarySettingsRegistered;
+        for (let s in this.sessions)
+            if (this.sessions[s].primary)
+                return this.sessions[s];
+        return null;
     }
 
     public get sessions(): {
         [key: string]: {
+            id: string,
+            primary: boolean,
             initialized: StatePromise<boolean>,
             settingsRegistered: StatePromise<boolean>,
         }
@@ -76,6 +77,7 @@ export class StateEngine {
 
     public get viewers(): {
         [key: string]: {
+            id: string,
             initialized: StatePromise<boolean>,
             settingsLoaded: StatePromise<boolean>,
         }
@@ -83,5 +85,5 @@ export class StateEngine {
         return this._viewers;
     }
 
-    // #endregion Public Accessors (8)
+    // #endregion Public Accessors (7)
 }

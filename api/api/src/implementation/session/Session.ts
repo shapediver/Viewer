@@ -133,11 +133,9 @@ export class Session implements ISession {
             this.#excludeViewers = properties.excludeViewers || [];
 
             this.#primarySessionRequest = properties.primarySession !== false;
-            if (this.primarySessionRequest === true) {
-                if (this.#stateEngine.primarySessionLoaded.resolved === false) {
-                    this.#primarySession = true;
-                    this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
-                }
+            if (this.#stateEngine.primarySession && this.#stateEngine.primarySession.id === this.id) {
+                this.#primarySession = true;
+                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
 
                 this.#stateEngine.sessions[this.id].settingsRegistered.then(() => {
                     this.#commitParameters = this.#settingsEngine.general.commitParameters;
@@ -165,6 +163,7 @@ export class Session implements ISession {
             callbacks.setAsPrimary = async () => {
                 try {
                     this.#primarySession = true;
+                    this.#stateEngine.sessions[this.id].primary = true;
                     this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
                     await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
                     this.#api.update();
@@ -182,7 +181,6 @@ export class Session implements ISession {
                     this.#api.update();
 
                     this.#settingsEngine.reset();
-                    this.#stateEngine.primarySettingsRegistered.reset();
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: this.id });
 
                     if (!closeResult) this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).close: Was not able to close session completely, please disregard this session.`);
@@ -195,7 +193,9 @@ export class Session implements ISession {
 
             this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
                 const sessionEvent = <ISettingsEvent>e;
-                if(sessionEvent.sessionId === this.id) this.#stateEngine.sessions[this.id].settingsRegistered.resolve(true);
+                if(sessionEvent.sessionId === this.id) {
+                    this.#stateEngine.sessions[this.id].settingsRegistered.resolve(true);
+                } 
             })
 
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).constructor: Session api created.`);

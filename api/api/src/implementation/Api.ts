@@ -62,19 +62,12 @@ export class Api implements IApi {
    */
   constructor() {
     try {
-      this.#stateEngine.primarySettingsRegistered.then(() => {
-        this.showMessages = this.#settingsEngine.general.showMessages;
-      })
+      this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => {
+        if(this.#stateEngine.primarySession && this.#stateEngine.primarySession.settingsRegistered.resolved === true) {
+          this.showMessages = this.#settingsEngine.general.showMessages;
+        }
+      });
       console.log(`ShapeDiver-Viewer version: ${build_data.build_version}`);
-
-      this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
-        const sessionEvent: ISessionEvent = <ISessionEvent>e;
-        if(sessionEvent.sessionId)
-          if(this.sessions[sessionEvent.sessionId].primarySession)
-            this.#stateEngine.primarySettingsRegistered.resolve(true);
-        if(sessionEvent.sessionId) 
-          this.#stateEngine.sessions[sessionEvent.sessionId].settingsRegistered.resolve(true);
-      })
 
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
     } catch (e) {
@@ -397,8 +390,6 @@ export class Api implements IApi {
       this.#stateEngine.sessions[id].settingsRegistered.reset();
 
       if (this.sessions[id].primarySession) {
-        this.#stateEngine.primarySessionLoaded.reset();
-        this.#stateEngine.primarySettingsRegistered.reset();
         this.#stateEngine.boundingBoxCreated.reset();
         for (let v in this.viewers)
           this.viewers[v].reset();
@@ -441,7 +432,6 @@ export class Api implements IApi {
         await new Promise<void>(resolve => { this.#stateEngine.viewers[id].initialized.then(() => resolve()) })
 
       this.#stateEngine.viewers[id].settingsLoaded.reset();
-      this.#stateEngine.firstViewerShown.reset();
       const result = await this.#viewerCallbacks[id].close();
       (<any>this.#viewerCallbacks[id]) = undefined;
       delete this.#viewerCallbacks[id];
@@ -510,7 +500,15 @@ export class Api implements IApi {
         throw error;
       }
 
+      let noPrimarySession = true;
+      for(let s in this.sessions)
+        if(this.sessions[s].primarySession) 
+          noPrimarySession = false;
+
+      let primarySessionRequest = properties.primarySession !== false;
       this.#stateEngine.sessions[sessionId] = {
+        id: sessionId,
+        primary: !!(primarySessionRequest && noPrimarySession),
         initialized: new StatePromise(),
         settingsRegistered: new StatePromise()
       }
@@ -526,9 +524,6 @@ export class Api implements IApi {
       await session.init(properties.waitForOutputs);
       
       this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId });
-
-      if(properties.primarySession) this.#stateEngine.primarySessionLoaded.resolve(true);
-
       this.#stateEngine.sessions[sessionId].initialized.resolve(true);
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
@@ -557,6 +552,7 @@ export class Api implements IApi {
       }
 
       this.#stateEngine.viewers[viewerId] = {
+        id: viewerId,
         initialized: new StatePromise(),
         settingsLoaded: new StatePromise()
       }
@@ -565,7 +561,7 @@ export class Api implements IApi {
       let viewerCallbacks = {};
       let viewer: IViewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
 
-      if (prop.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
+      if (prop.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySession && this.#stateEngine.primarySession.initialized.resolved === true) {
         await new Promise<void>(resolve => {
           this.#stateEngine.viewers[viewerId].settingsLoaded.then(() => resolve())
         })

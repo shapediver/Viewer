@@ -184,13 +184,19 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         })
       })
     }
-    if (this._stateEngine.primarySettingsRegistered.resolved) {
+
+    if(this._stateEngine.primarySession && this._stateEngine.primarySession.settingsRegistered.resolved === true) {
       if (this._closed) return;
       this.applySettings()
     } else {
-      this._stateEngine.primarySettingsRegistered.then(() => {
-        if (this._closed) return;
-        this.applySettings()
+      this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => {
+        const sessionEvent = <ISettingsEvent>e;
+        if(this._stateEngine.primarySession && sessionEvent.sessionId === this._stateEngine.primarySession.id) {
+          this._stateEngine.primarySession.settingsRegistered.then(() => {
+            if (this._closed) return;
+            this.applySettings()
+          })
+        }
       });
     }
 

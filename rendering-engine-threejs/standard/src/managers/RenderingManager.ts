@@ -326,8 +326,6 @@ export class RenderingManager implements IManager {
                 this._activeRendering = false;
             }
         }
-
-        if (!this._stateEngine.firstViewerShown.resolved) this._stateEngine.firstViewerShown.resolve(true);
         this._stats.end();
     }
 
