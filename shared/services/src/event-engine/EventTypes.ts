@@ -3,15 +3,15 @@ export enum CAMERA {
     CAMERA_MOVE = "camera.move",
     CAMERA_END = "camera.end",
 }
-export enum ENVIRONMENTMAP {
-    ENVIRONMENTMAP_LOADED = "environmentmap.loaded",
-}
+
 export enum RENDERING {
     BEAUTY_RENDERING_FINISHED = "rendering.beautyrenderingfinished"
 }
+
 export enum SCENE {
     SCENE_BOUNDING_BOX_CHANGE = "scene.boundingboxchange"
 }
+
 export enum VIEWER {
     VIEWER_CREATED = "viewer.created",
     VIEWER_UPDATED = "viewer.updated",
@@ -23,9 +23,8 @@ export enum SESSION {
     SESSION_CUSTOMIZED = "session.customized",
     SESSION_CLOSED = "session.closed"
 }
+
 export enum SETTINGS {
-    SETTINGS_REGISTERED = "settings.registered",
-    SETTINGS_REGISTERED_EXTERNAL = "settings.registered.external",
     SETTINGS_UPDATE = "settings.update",
 }
 
@@ -79,7 +78,6 @@ export enum INTERACTION {
 
 export const EVENTTYPE = { 
     CAMERA, 
-    ENVIRONMENTMAP,
     RENDERING, 
     SCENE, 
     SESSION,
@@ -88,4 +86,4 @@ export const EVENTTYPE = {
     INTERACTION
 };
 
-export type MAINEVENTTYPE = typeof CAMERA | typeof ENVIRONMENTMAP | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER | typeof INTERACTION;
+export type MAINEVENTTYPE = typeof CAMERA | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER | typeof INTERACTION;

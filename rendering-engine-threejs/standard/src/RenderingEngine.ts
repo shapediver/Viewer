@@ -185,25 +185,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       })
     }
 
-    if(this._stateEngine.primarySession && this._stateEngine.primarySession.settingsRegistered.resolved === true) {
-      if (this._closed) return;
-      this.applySettings()
-    } else {
-      this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => {
-        const sessionEvent = <ISettingsEvent>e;
-        if(this._stateEngine.primarySession && sessionEvent.sessionId === this._stateEngine.primarySession.id) {
-          this._stateEngine.primarySession.settingsRegistered.then(() => {
-            if (this._closed) return;
-            this.applySettings()
-          })
-        }
-      });
-    }
-
-    this._eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, (e) => {
-      if (this._closed) return;
-      const sessionEvent = <ISettingsEvent>e;
-      this.applySettings(sessionEvent.sections?.viewer!);
+    this.stateEngine.primarySessionAvailable.then(() => {
+      this.stateEngine.primarySession?.settingsRegistered.then(() => {
+        if (this._closed) return;
+        this.applySettings()
+      })
     })
   }
 
@@ -661,17 +647,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Private Methods (1)
 
-  private applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
+  public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
-      const token = this._eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e: IEvent) => {
-        const viewerEvent = <IEnvironmentEvent>e;
-        if (viewerEvent.viewerId !== this.id) return;
-
-        this._eventEngine.removeListener(token);
-        // return if a different env map was loaded
-        if (!viewerEvent.environmentMapId || (viewerEvent.environmentMapId && !Array.isArray(this._settingsEngine.environment.map) && viewerEvent.environmentMapId !== this._settingsEngine.environment.map.toLowerCase())) return;
-
+      this._stateEngine.viewers[this.id].environmentMapLoaded.then(() => {
         this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
         this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
         this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;

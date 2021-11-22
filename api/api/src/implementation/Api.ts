@@ -62,11 +62,11 @@ export class Api implements IApi {
    */
   constructor() {
     try {
-      this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => {
-        if(this.#stateEngine.primarySession && this.#stateEngine.primarySession.settingsRegistered.resolved === true) {
+      this.#stateEngine.primarySessionAvailable.then(() => {
+        this.#stateEngine.primarySession?.settingsRegistered.then(() => {
           this.showMessages = this.#settingsEngine.general.showMessages;
-        }
-      });
+        })
+      })
       console.log(`ShapeDiver-Viewer version: ${build_data.build_version}`);
 
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
@@ -365,8 +365,9 @@ export class Api implements IApi {
             resolve();
           })
         }));
+      
+        (<Viewer>this.viewers[v]).applySettings(sections.viewer);
       }
-      this.#eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED_EXTERNAL, <ISettingsEvent>{ sessionId: '', sections });
       return new Promise(resolve => Promise.all(promises).then(() => resolve()));
     } catch (e) {
       if (e instanceof SDError) throw e;
@@ -390,6 +391,7 @@ export class Api implements IApi {
       this.#stateEngine.sessions[id].settingsRegistered.reset();
 
       if (this.sessions[id].primarySession) {
+        this.#stateEngine.primarySessionAvailable.reset();
         this.#stateEngine.boundingBoxCreated.reset();
         for (let v in this.viewers)
           this.viewers[v].reset();
@@ -407,6 +409,7 @@ export class Api implements IApi {
         const session = this.sessions[s];
         if (session.primarySessionRequest) {
           await this.#sessionCallbacks[s].setAsPrimary();
+          this.#stateEngine.primarySessionAvailable.resolve(true);
           this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
           break;
         }
@@ -513,6 +516,8 @@ export class Api implements IApi {
         settingsRegistered: new StatePromise()
       }
 
+      if(!!(primarySessionRequest && noPrimarySession)) this.#stateEngine.primarySessionAvailable.resolve(true);
+
       // create the actual session 
       let sessionCallbacks = {};
       const session = new Session(Object.assign({}, properties, { id: sessionId }), sessionCallbacks);
@@ -554,6 +559,7 @@ export class Api implements IApi {
       this.#stateEngine.viewers[viewerId] = {
         id: viewerId,
         initialized: new StatePromise(),
+        environmentMapLoaded: new StatePromise(),
         settingsLoaded: new StatePromise()
       }
 

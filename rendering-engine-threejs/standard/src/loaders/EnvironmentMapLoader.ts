@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Logger, LOGGINGTOPIC, SDError, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, SDError, EventEngine, EVENTTYPE, StateEngine, StatePromise } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
@@ -91,6 +91,7 @@ export class EnvironmentMapLoader implements ILoader {
         [key: string]: THREE.CubeTexture | THREE.Texture | null
     } = {};
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private _pmremGenerator!: THREE.PMREMGenerator;
 
@@ -122,6 +123,11 @@ export class EnvironmentMapLoader implements ILoader {
         this._pmremGenerator.compileEquirectangularShader();
     }
 
+    private notify() {
+        this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded.resolve(true);
+        this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded = new StatePromise();
+    }
+
     public async load(name: string | string[]): Promise<boolean> {
         const name_original = name;
         if (name === 'none') {
@@ -145,7 +151,7 @@ export class EnvironmentMapLoader implements ILoader {
         } else {
             if (name.length !== 6) {
                 this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.'))
-                this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { viewerId: this._renderingEngine.id,  environmentMapId: this._environmentMapNameInternal })
+                this.notify();
                 return false;
             }
             name_internal = JSON.stringify(name, null, 0);
@@ -192,7 +198,7 @@ export class EnvironmentMapLoader implements ILoader {
                 }
                 else {
                     this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.'))
-                    this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { viewerId: this._renderingEngine.id,  environmentMapId: this._environmentMapNameInternal })
+                    this.notify();
                     return false;
                 }
             } else {
@@ -204,7 +210,7 @@ export class EnvironmentMapLoader implements ILoader {
         }
         catch (error) {
             this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('EnvironmentMapLoader.load: Was not able to load environment map.'))
-            this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { viewerId: this._renderingEngine.id,  environmentMapId: this._environmentMapNameInternal })
+            this.notify();
             return Promise.resolve(false);
         }
     }
@@ -223,7 +229,7 @@ export class EnvironmentMapLoader implements ILoader {
 
         this._environmentMapName = name;
         this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name]);
-        this._eventEngine.emitEvent(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, { viewerId: this._renderingEngine.id,  environmentMapId: this._environmentMapNameInternal })
+        this.notify();
     }
 
     private async loadEnvironmentMap(name: string, url: string[]) {

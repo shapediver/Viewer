@@ -107,17 +107,14 @@ export class SettingsEngine {
         if(!this._version) {
             this._version = '3.0';
             (<any>this._settings) = DefaultsV3();
-            this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
         } else {
             (<any>this._settings) = convert(json, '3.0');
             this.cleanSettings(this._settings);
-            this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId });
         }
     }
 
     public reset() {
         (<any>this._settings) = DefaultsV3();
-        this._eventEngine.emitEvent(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, { sessionId: '' });
     }
 
     // #endregion Public Methods (4)

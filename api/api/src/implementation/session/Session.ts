@@ -191,13 +191,6 @@ export class Session implements ISession {
                 }
             }
 
-            this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
-                const sessionEvent = <ISettingsEvent>e;
-                if(sessionEvent.sessionId === this.id) {
-                    this.#stateEngine.sessions[this.id].settingsRegistered.resolve(true);
-                } 
-            })
-
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).constructor: Session api created.`);
         } catch (e) {
             if (e instanceof SDError) throw e;
@@ -717,7 +710,7 @@ export class Session implements ISession {
                 viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.viewers[this.#api.viewers[viewerIds[i]].id].settingsLoaded; state.resolved === true ? resolve() : state.then(() => resolve()) }));
 
             this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
-            await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
+            this.#stateEngine.sessions[this.id].settingsRegistered.resolve(true);
 
             if (this.primarySession !== false) await Promise.all(viewerPromises);
 

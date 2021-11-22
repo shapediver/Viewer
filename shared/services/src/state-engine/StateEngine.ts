@@ -13,6 +13,7 @@ export class StateEngine {
     } = {};
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _fontLoaded: StatePromise<boolean>;
+    private readonly _primarySessionAvailable: StatePromise<boolean>;
     private readonly _sessions: {
         [key: string]: {
             id: string,
@@ -26,6 +27,7 @@ export class StateEngine {
             id: string,
             initialized: StatePromise<boolean>,
             settingsLoaded: StatePromise<boolean>,
+            environmentMapLoaded: StatePromise<boolean>
         }
     } = {};
 
@@ -36,6 +38,7 @@ export class StateEngine {
     constructor() {
         this._boundingBoxCreated = new StatePromise();
         this._fontLoaded = new StatePromise();
+        this._primarySessionAvailable = new StatePromise();
     }
 
     // #endregion Constructors (1)
@@ -50,14 +53,16 @@ export class StateEngine {
         return this._fontLoaded;
     }
 
+    public get primarySessionAvailable(): StatePromise<boolean> {
+        return this._primarySessionAvailable;
+    }
+
     public get primarySession(): {
         id: string,
         primary: boolean,
         initialized: StatePromise<boolean>,
         settingsRegistered: StatePromise<boolean>,
     } | null {
-        console.log(this.sessions)
-
         for (let s in this.sessions)
             if (this.sessions[s].primary)
                 return this.sessions[s];
@@ -80,6 +85,7 @@ export class StateEngine {
             id: string,
             initialized: StatePromise<boolean>,
             settingsLoaded: StatePromise<boolean>,
+            environmentMapLoaded: StatePromise<boolean>
         }
     } {
         return this._viewers;

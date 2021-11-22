@@ -291,19 +291,12 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: Updating EnvironmentMap to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, value, 'cubeMap');
 
-      new Promise<void>(resolve => {
-        const token = this.#eventEngine.addListener(EVENTTYPE.ENVIRONMENTMAP.ENVIRONMENTMAP_LOADED, (e) => {
-          const viewerEvent = <IEnvironmentEvent>e;
-          if (viewerEvent.viewerId !== this.id) return;
-          if (viewerEvent.environmentMapId === value) {
-            this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
-            this.update();
-            this.#eventEngine.removeListener(token);
-            resolve();
-          }
-        })
-        this.#renderingEngine.environmentMap = value;
+      this.#stateEngine.viewers[this.id].environmentMapLoaded.then(() => {
+        this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
+        this.update();
       })
+    
+      this.#renderingEngine.environmentMap = value;
     } catch (e) {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).environmentMap: Something unexpected happened.`, true)
@@ -870,6 +863,10 @@ export class Viewer implements IViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateNode: Something unexpected happened.`, true)
     }
+  }
+
+  public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
+    this.#renderingEngine.applySettings(sections);
   }
 
   // #endregion Public Methods (24)
