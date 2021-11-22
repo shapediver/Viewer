@@ -16,6 +16,7 @@ import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluat
 import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from './logger/Logger'
 import { SDError } from './logger/SDError'
 import { MimeTypeUtils } from './mime-type-utils/MimeTypeUtils'
+import { StatePromise } from './state-engine/StatePromise'
 
 export {
   EventEngine, EVENTTYPE, MAINEVENTTYPE, IEvent
@@ -26,7 +27,7 @@ export {
 }
 
 export {
-    StateEngine
+    StateEngine, StatePromise
 }
 
 export {

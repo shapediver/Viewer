@@ -171,15 +171,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     this._renderingManager.start()
 
-    this._stateEngine.createCustomState(this.id + '_settings_loaded');
-
     if (this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
 
     if (this._visibility === VISIBILITYMODE.SESSION) {
       this._stateEngine.primarySessionInitialOutputsLoaded.then(() => {
         if (this._closed) return;
         // wait for settings to load before showing the scene
-        this._stateEngine.getCustomState(this.id + '_settings_loaded').then(() => {
+        this._stateEngine.viewers[this.id].settingsLoaded.then(() => {
           if (this._closed) return;
           this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
           this.show = true;
@@ -617,7 +615,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public reset() {
     this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox)
     if (this._visibility === VISIBILITYMODE.SESSION) this.show = false;
-    this._stateEngine.getCustomState(this.id + '_settings_loaded').reset();
+    this._stateEngine.viewers[this.id].settingsLoaded.reset();
   }
 
   public resize(width: number, height: number): void {
@@ -689,7 +687,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           (<LightEngine>this.lightEngine).applySettings();
         }
         if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
-        this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
+        this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
         this.update();
       })
 
@@ -716,7 +714,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         (<LightEngine>this.lightEngine).applySettings();
       }
       if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
-      this._stateEngine.getCustomState(this.id + '_settings_loaded').resolve(true);
+      this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
       this.update();
     }
   }

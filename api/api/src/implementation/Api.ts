@@ -13,6 +13,7 @@ import {
   SDError,
   SettingsEngine,
   StateEngine,
+  StatePromise,
   SystemInfo,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
@@ -72,7 +73,7 @@ export class Api implements IApi {
           if(this.sessions[sessionEvent.sessionId].primarySession)
             this.#stateEngine.primarySettingsRegistered.resolve(true);
         if(sessionEvent.sessionId) 
-          this.#stateEngine.getCustomState((<any>e).sessionId + '_settings_registered').resolve(true);
+          this.#stateEngine.sessions[sessionEvent.sessionId].settingsRegistered.resolve(true);
       })
       this.#eventEngine.addListener(EVENTTYPE.SESSION.SESSION_INITIALIZED, (e) => { 
         const sessionEvent: ISessionEvent = <ISessionEvent>e;
@@ -376,9 +377,9 @@ export class Api implements IApi {
 
       const promises: Promise<void>[] = [];
       for(let v in this.viewers) {
-        this.#stateEngine.getCustomState(v + '_settings_loaded').reset();
+        this.#stateEngine.viewers[v].settingsLoaded.reset();
         promises.push(new Promise<void>(resolve => {
-          this.#stateEngine.getCustomState(v + '_settings_loaded').then(() => {
+          this.#stateEngine.viewers[v].settingsLoaded.then(() => {
             resolve();
           })
         }));
@@ -400,12 +401,11 @@ export class Api implements IApi {
         return false;
       }
       
-      if(this.#stateEngine.getCustomState(id + '_session_initialized').resolved === false)
-        await new Promise<void>(resolve => { this.#stateEngine.getCustomState(id + '_session_initialized').then(() => resolve()) })
+      if(this.#stateEngine.sessions[id].initialized.resolved === false)
+        await new Promise<void>(resolve => { this.#stateEngine.sessions[id].initialized.then(() => resolve()) })
   
       const result = await this.#sessionCallbacks[id].close();
-      if(this.#stateEngine.getCustomState(id + '_settings_registered'))
-        this.#stateEngine.getCustomState(id + '_settings_registered').reset();
+      this.#stateEngine.sessions[id].settingsRegistered.reset();
 
       if (this.sessions[id].primarySession) {
         this.#stateEngine.primarySessionLoaded.reset();
@@ -420,6 +420,7 @@ export class Api implements IApi {
       delete this.#sessionCallbacks[id];
       (<any>this.sessions[id]) = undefined;
       delete this.sessions[id];
+      delete this.#stateEngine.sessions[id];
 
       this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
 
@@ -448,11 +449,10 @@ export class Api implements IApi {
         return false;
       }
 
-      if(this.#stateEngine.getCustomState(id + '_viewer_initialized').resolved === false)
-        await new Promise<void>(resolve => { this.#stateEngine.getCustomState(id + '_viewer_initialized').then(() => resolve()) })
+      if(this.#stateEngine.viewers[id].initialized.resolved === false)
+        await new Promise<void>(resolve => { this.#stateEngine.viewers[id].initialized.then(() => resolve()) })
 
-      if(this.#stateEngine.getCustomState(id + '_settings_loaded'))
-        this.#stateEngine.getCustomState(id + '_settings_loaded').reset();
+      this.#stateEngine.viewers[id].settingsLoaded.reset();
       this.#stateEngine.firstViewerShown.reset();
       const result = await this.#viewerCallbacks[id].close();
       (<any>this.#viewerCallbacks[id]) = undefined;
@@ -460,6 +460,7 @@ export class Api implements IApi {
       (<any>this.viewers[id]) = undefined;
       delete this.viewers[id];
 
+      delete this.#stateEngine.viewers[id];
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
       return result;
     } catch (e) {
@@ -521,7 +522,10 @@ export class Api implements IApi {
         throw error;
       }
 
-      this.#stateEngine.createCustomState(sessionId + '_session_initialized');
+      this.#stateEngine.sessions[sessionId] = {
+        initialized: new StatePromise(),
+        settingsRegistered: new StatePromise()
+      }
 
       // create the actual session 
       let sessionCallbacks = {};
@@ -534,7 +538,7 @@ export class Api implements IApi {
 
       await session.init(properties.waitForOutputs);
       
-      this.#stateEngine.getCustomState(sessionId + '_session_initialized').resolve(true);
+      this.#stateEngine.sessions[sessionId].initialized.resolve(true);
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
     } catch (e) {
@@ -561,7 +565,10 @@ export class Api implements IApi {
         throw error;
       }
 
-      this.#stateEngine.createCustomState(viewerId + '_viewer_initialized');
+      this.#stateEngine.viewers[viewerId] = {
+        initialized: new StatePromise(),
+        settingsLoaded: new StatePromise()
+      }
 
       // create the actual viewer
       let viewerCallbacks = {};
@@ -570,7 +577,7 @@ export class Api implements IApi {
 
       if (prop.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySessionLoaded.resolved === true) {
         await new Promise<void>(resolve => {
-          this.#stateEngine.getCustomState(viewerId + '_settings_loaded').then(() => resolve())
+          this.#stateEngine.viewers[viewerId].settingsLoaded.then(() => resolve())
         })
       }
 
@@ -581,7 +588,7 @@ export class Api implements IApi {
       viewer.update();
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_INITIALIZED, { viewerId });
       
-      this.#stateEngine.getCustomState(viewerId + '_viewer_initialized').resolve(true);
+      this.#stateEngine.viewers[viewerId].initialized.resolve(true);
 
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
       return this.viewers[viewerId];

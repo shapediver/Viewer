@@ -130,7 +130,6 @@ export class Session implements ISession {
             this.#id = this.#sessionEngine.id;
             this.#ticket = this.#sessionEngine.ticket;
             this.#modelViewUrl = this.#sessionEngine.modelViewUrl;
-            this.#stateEngine.createCustomState(this.id + '_settings_registered');
             this.#excludeViewers = properties.excludeViewers || [];
 
             this.#primarySessionRequest = properties.primarySession !== false;
@@ -140,7 +139,7 @@ export class Session implements ISession {
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
                 }
 
-                this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => {
+                this.#stateEngine.sessions[this.id].settingsRegistered.then(() => {
                     this.#commitParameters = this.#settingsEngine.general.commitParameters;
                     this.#commitSettings = this.#settingsEngine.general.commitSettings;
 
@@ -168,7 +167,7 @@ export class Session implements ISession {
                     this.#primarySession = true;
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIALIZED, { sessionId: this.id });
                     this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
-                    await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
+                    await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_LOADED, { sessionId: this.id });
                     this.#api.update();
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
@@ -198,7 +197,7 @@ export class Session implements ISession {
 
             this.#eventEngine.addListener(EVENTTYPE.SETTINGS.SETTINGS_REGISTERED, (e) => { 
                 const sessionEvent = <ISettingsEvent>e;
-                if(sessionEvent.sessionId) this.#stateEngine.getCustomState(sessionEvent.sessionId + '_settings_registered').resolve(true);
+                if(sessionEvent.sessionId === this.id) this.#stateEngine.sessions[this.id].settingsRegistered.resolve(true);
             })
 
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).constructor: Session api created.`);
@@ -721,10 +720,10 @@ export class Session implements ISession {
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
             for (let i = 0; i < viewerIds.length; i++)
-                viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.getCustomState(this.#api.viewers[viewerIds[i]].id + '_settings_loaded'); state.resolved === true ? resolve() : state.then(() => resolve()) }));
+                viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.viewers[this.#api.viewers[viewerIds[i]].id].settingsLoaded; state.resolved === true ? resolve() : state.then(() => resolve()) }));
 
             this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
-            await new Promise<void>((resolve) => this.#stateEngine.getCustomState(this.id + '_settings_registered').then(() => { resolve(); }));
+            await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
 
             if (this.primarySession !== false) await Promise.all(viewerPromises);
 
