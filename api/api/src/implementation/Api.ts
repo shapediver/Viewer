@@ -567,7 +567,7 @@ export class Api implements IApi {
       let viewerCallbacks = {};
       let viewer: IViewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
 
-      if (prop.visibility === VISIBILITYMODE.SESSION && this.#stateEngine.primarySession && this.#stateEngine.primarySession.initialized.resolved === true) {
+      if ((prop.visibility || VISIBILITYMODE.SESSION) === VISIBILITYMODE.SESSION && this.#stateEngine.primarySession && this.#stateEngine.primarySession.initialized.resolved === true) {
         await new Promise<void>(resolve => {
           this.#stateEngine.viewers[viewerId].settingsLoaded.then(() => resolve())
         })

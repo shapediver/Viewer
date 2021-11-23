@@ -451,7 +451,6 @@ export class MaterialLoader implements ILoader {
         }
         
         if(materialData && this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) {
-            console.log(this._materialCache[materialData.id + '_' + materialData.version + '_' + type], material)
             this._materialCache[materialData.id + '_' + materialData.version + '_' + type].copy(material)
             return this._materialCache[materialData.id + '_' + materialData.version + '_' + type];
         }
