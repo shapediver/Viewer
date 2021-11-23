@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.8.9
-* __Build date:__ 2021-11-23T08:57:46.301Z
+* __Version:__ 1.8.10
+* __Build date:__ 2021-11-23T13:23:47.023Z
 * __Branch:__ development
-* __Commit:__ 8e1217fe08af0bf1967ea197c3c5ace553e6ea59
+* __Commit:__ 5eb6cd1526d53bac43da63ab0414aa4261317d84
 <!--- VERSION_END -->
 
 ## Version 1.8.3 - `Home Alone`
