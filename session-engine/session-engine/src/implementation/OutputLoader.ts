@@ -243,6 +243,10 @@ export class OutputLoader {
                     if(materials.length === geometries.length) {
                         for (let n = 0; n < geometries.length; n++)
                             geometries[n].primitive.material = materials[n];
+                    } else {
+                        if (materials.length >= 1)
+                            for (let n = 0; n < geometries.length; n++)
+                                geometries[n].primitive.material = materials[0];
                     }
                 }
             }
