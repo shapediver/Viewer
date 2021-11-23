@@ -211,42 +211,55 @@ export class OutputLoader {
                 // case 1: we have a specific material id defined, let's use that
                 if(sessionOutputData.sessionOutput.material) {
 
-                    let materials: MaterialData[] = [];
+                    let materialNodes: TreeNode[] = [];
                     // now we have id
                     // get material with it    
                     for (let n = 0; n < node.children.length; n++) {
                         const materialNode = node.children[n];
                         if (!materialNode) continue;
                         if (materialNode.name === sessionOutputData.sessionOutput.material)
-                            materials = getMaterialData(materialNode);
+                            materialNodes = materialNode.children;
                     }
 
-                    const geometries = getGeometryData(outputNode);
+                    const geometryNodes = outputNode.children;
 
-                    if(materials.length === geometries.length) {
-                        for (let n = 0; n < geometries.length; n++)
-                            geometries[n].primitive.material = materials[n];
+                    if(materialNodes.length >= geometryNodes.length) {
+                        for (let n = 0; n < geometryNodes.length; n++) {
+                            addMaterialToGeometry(geometryNodes[n], getMaterialData(materialNodes[n])[0]);
+                        }
                     } else {
-                        if (materials.length >= 1)
-                            for (let n = 0; n < geometries.length; n++)
-                                geometries[n].primitive.material = materials[0];
+                        if (materialNodes.length >= 1)
+                            for (let n = 0; n < geometryNodes.length; n++) {
+                                addMaterialToGeometry(geometryNodes[n], getMaterialData(materialNodes[0])[0]);
+                            }
                     }
                 } 
                 // case 2: there is no specific material id defined, maybe in the content we can match geometries to ids
                 else {
                     // now we hope that in our content, there are exactly the amount of geometries and material, this will be interesting :)
+
                     const sessionOutputContent = sessionOutputData.sessionOutput.content;
                     if(sessionOutputContent === undefined) continue;
-                    const materials = getMaterialData(outputNode);
-                    const geometries = getGeometryData(outputNode);
-                    
-                    if(materials.length === geometries.length) {
-                        for (let n = 0; n < geometries.length; n++)
-                            geometries[n].primitive.material = materials[n];
+
+                    const materialNodes = [];
+                    const geometryNodes = [];
+                    for(let i = 0; i < sessionOutputContent.length; i++) {
+                        if(sessionOutputContent[i].format === 'material') {
+                            materialNodes.push(outputNode.children[i]);
+                        } else {
+                            geometryNodes.push(outputNode.children[i]);
+                        }
+                    }
+
+                    if(materialNodes.length >= geometryNodes.length) {
+                        for (let n = 0; n < geometryNodes.length; n++) {
+                            addMaterialToGeometry(geometryNodes[n], getMaterialData(materialNodes[n])[0]);
+                        }
                     } else {
-                        if (materials.length >= 1)
-                            for (let n = 0; n < geometries.length; n++)
-                                geometries[n].primitive.material = materials[0];
+                        if (materialNodes.length >= 1)
+                            for (let n = 0; n < geometryNodes.length; n++) {
+                                addMaterialToGeometry(geometryNodes[n], getMaterialData(materialNodes[0])[0]);
+                            }
                     }
                 }
             }
