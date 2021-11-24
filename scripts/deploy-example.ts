@@ -15,6 +15,11 @@ const execPromise = (cmd: string) => {
     });
 }
 
+const getDirectories = async (source: string) =>
+    (await fs.promises.readdir(source, { withFileTypes: true }))
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
+
 (async () => {
     try {
 
@@ -29,10 +34,11 @@ const execPromise = (cmd: string) => {
         });
 
         const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
+        const examples = await getDirectories('examples');
         let example: string = '';
         await new Promise<void>((resolve) => {
             rl2.question('Enter the name of the example to be deployed\n', (answer: string) => {
-                if (['interaction', 'ar', 'ar-query', 'attributes', 'compare', 'gltf', 'multiple', 'performance', 'query', 'simple', 'static', 'test'].includes(answer)) {
+                if (examples.includes(answer)) {
                     example = answer;
                 } else {
                     throw new Error('Not a valid example.')
