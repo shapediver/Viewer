@@ -562,7 +562,7 @@ export class GLTFConverter {
         };
 
         for (let a in data.attributes) {
-            if((!a.includes('COLOR') && this._convertForAR)) {
+            if((!a.includes('COLOR') && this._convertForAR) && data.attributes[a].array.length > 0) {
                 primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a])
             } else {
                 // there is a color attribute, this cannot be used in AR, therefore ignore it

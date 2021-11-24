@@ -490,6 +490,8 @@ export class GLTFLoader {
                 attributeName = attributeName.substring(0, index) + '_' + attributeName.substring(index, attributeName.length);
             } else if(attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
                 attributeName += '_0';
+            } else if (attributeName === 'UV') {
+                attributeName = 'TEXCOORD_0';
             }
             attributes[attributeName] = (await this.loadAccessor(primitive.attributes[attribute]))!;
         }

@@ -84,6 +84,7 @@ export class Tag3dEngine {
                 let lineArray = [];
 
                 for (let lineIndex = 0; lineIndex < tagLines.length; ++lineIndex) {
+                    if(tagLines[lineIndex] === '') continue;
                     // create tag mesh object
                     let tag = new THREE.TextBufferGeometry(tagLines[lineIndex], { size: tag3dInfo.size, height: tag3dInfo.size / 10, font: this._font });
                     lineArray.push(tag);
@@ -171,9 +172,20 @@ export class Tag3dEngine {
                         [key: string]: AttributeData
                     } = {};
                     for (let attribute in line.attributes) {
-                        attributes[attribute.toUpperCase()] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false, line.attributes[attribute].array.length)
+                        let attributeName = attribute.toUpperCase();
+                        if(/\d/.test(attributeName) && !attributeName.includes('_')) {
+                            const index = attributeName.search(/\d/)
+                            attributeName = attributeName.substring(0, index) + '_' + attributeName.substring(index, attributeName.length);
+                        } else if(attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
+                            attributeName += '_0';
+                        } else if (attributeName === 'UV') {
+                            attributeName = 'TEXCOORD_0';
+                        }
+                        attributes[attributeName] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false, line.attributes[attribute].array.length / line.attributes[attribute].itemSize)
                     }
-                    node.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialData({color: tag3dInfo.color}))));
+                    const child = new TreeNode('tag3d_'+line)
+                    child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialData({color: tag3dInfo.color}))));
+                    node.children.push(child);
                 }   
 
             }
