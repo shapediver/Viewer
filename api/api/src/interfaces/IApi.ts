@@ -90,9 +90,11 @@ export interface IApi {
    * @param properties.bearerToken the bearerToken of the session
    * @param properties.primarySession the bearerToken of the session
    * @param properties.id the unique id the session should have
+   * @param properties.waitForOutputs if the promise should resolve before or after the outputs are loaded
+   * @param properties.initialParameters initial set of parameters
    * @returns 
    */
-  createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean }): Promise<ISession>;
+  createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession>;
   
 
   /**

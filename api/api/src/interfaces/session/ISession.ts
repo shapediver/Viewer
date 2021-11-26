@@ -125,8 +125,9 @@ export interface ISession {
      * The initialization is done on creation via the api.
      * 
      * @param waitForOutputs resolve the promise only when all outputs are loaded
+     * @param initialParameters initial parameter set
      */
-    init(waitForOutputs?: boolean): Promise<void>;
+    init(waitForOutputs?: boolean, initialParameters?: { [key: string]: string }): Promise<void>;
     /**
      * Save the parameters that are currently used for this session as default parameters.
      * This only works when this session was created with an author ticket.

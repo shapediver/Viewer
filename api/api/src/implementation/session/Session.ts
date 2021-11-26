@@ -625,7 +625,7 @@ export class Session implements ISession {
         }
     }
 
-    public async init(waitForOutputs = true): Promise<void> {
+    public async init(waitForOutputs = true, initialParameters?: { [key: string]: string }): Promise<void> {
         try {
             this.#performanceEvaluator.start();
             this.#performanceEvaluator.startSection('init');
@@ -634,7 +634,7 @@ export class Session implements ISession {
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('customize');
 
-            await this.#sessionEngine.init();
+            await this.#sessionEngine.init(initialParameters);
             if(waitForOutputs) {
                 this.#node = await this.#sessionEngine.loadOutputs(this.#sessionEngine.parameterValues);
                 if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);

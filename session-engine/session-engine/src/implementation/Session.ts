@@ -164,7 +164,9 @@ export class Session implements ISession {
      * 
      * @returns promise with a scene graph node
      */
-    public async init(): Promise<void> {
+    public async init(parameterValues?: {
+        [key: string]: string;
+    }): Promise<void> {
         if (this._initialized === true) {
             this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.init: Session already initialized.'));
             return;
@@ -174,7 +176,7 @@ export class Session implements ISession {
             let sessionResponse;
             try {
                 this._performanceEvaluator.startSection('sessionResponse');
-                sessionResponse = <ShapeDiverResponseBase>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post', null)).data;
+                sessionResponse = <ShapeDiverResponseBase>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post',  parameterValues || null)).data;
                 this._performanceEvaluator.endSection('sessionResponse');
             } catch (e) {
                 if (e.response && e.response.status) {
@@ -466,9 +468,9 @@ export class Session implements ISession {
                     if (e.response && e.response.status && e.response.status === 410 && !this._closed) {
                         this._logger.info(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Session customization failed. Session expired. Re-initializing session.');
                         this._initialized = false;
-                        await this.init();
+                        await this.init(parameters);
                         if(cancelRequest()) return new SessionTreeNode();
-                        return this.customizeSession(parameters, cancelRequest);
+                        return this.loadOutputs(parameters, cancelRequest);
                     }
                 }
 

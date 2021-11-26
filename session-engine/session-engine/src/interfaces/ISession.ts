@@ -19,7 +19,9 @@ export interface ISession {
 
     customize(cancelRequest: () => boolean): Promise<TreeNode>;
     loadOutputs(parameters: { [key: string]: string }, cancelRequest: () => boolean): Promise<TreeNode>;
-    init(): Promise<void>;
+    init(parameterValues?: {
+      [key: string]: string;
+    }): Promise<void>;
 
     refreshBearerToken: () => string;
 }
