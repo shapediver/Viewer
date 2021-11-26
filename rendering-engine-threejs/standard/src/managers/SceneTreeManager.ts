@@ -81,27 +81,27 @@ export class SceneTreeManager implements IManager {
 
         switch (true) {
             case data instanceof GeometryData:
-                dataChild.type = SD_DATA_TYPE.GEOMETRY;
+                dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
                 const bb = this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild);
                 node.boundingBox.union(bb);
                 break;
             case data instanceof ThreejsData:
-                dataChild.type = SD_DATA_TYPE.THREEJS;
+                dataChild.SDtype = SD_DATA_TYPE.THREEJS;
                 dataChild.add(<SDData>(<ThreejsData>data).obj);
                 break;
             case data instanceof MaterialData:
-                dataChild.type = SD_DATA_TYPE.MATERIAL;
+                dataChild.SDtype = SD_DATA_TYPE.MATERIAL;
                 break;
             case data instanceof AbstractLight:
-                dataChild.type = SD_DATA_TYPE.LIGHT;
+                dataChild.SDtype = SD_DATA_TYPE.LIGHT;
                 this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild, this._scene, this._boundingBox);
                 break;
             case data instanceof HTMLElementAnchorData:
-                dataChild.type = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
+                dataChild.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
                 this._renderingEngine.htmlElementAnchorLoader.load(<HTMLElementAnchorData>data);
                 break;
             case data instanceof AnimationData:
-                dataChild.type = SD_DATA_TYPE.ANIMATION;
+                dataChild.SDtype = SD_DATA_TYPE.ANIMATION;
                 break;
             default:
                 // if there is no valid conversion here, call the convertData of the implementation
