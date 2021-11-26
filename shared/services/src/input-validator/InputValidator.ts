@@ -1,5 +1,5 @@
 import { container, singleton } from 'tsyringe'
-
+import DOMPurify from 'dompurify';
 import { Logger, LOGGINGTOPIC } from '../logger/Logger'
 import { SDError } from '../logger/SDError'
 import { TypeChecker } from '../type-check/TypeChecker'
@@ -89,5 +89,9 @@ export class InputValidator {
                 return false;
         }
         return false;
+    }
+
+    public sanitize(input: string): string {
+        return DOMPurify.sanitize(input);
     }
 }

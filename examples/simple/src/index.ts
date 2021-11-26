@@ -63,5 +63,5 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
 (async () => {
     const { ticket, modelViewUrl } = models['Shelf'];
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession', initialParameters: { 'de76cade-0cea-47b1-879e-1a0b717910e1': '2' }});
+    let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
 })();

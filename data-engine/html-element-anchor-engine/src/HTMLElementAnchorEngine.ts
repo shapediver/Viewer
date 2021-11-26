@@ -1,7 +1,7 @@
 import { container, singleton } from 'tsyringe'
 import { HTMLElementAnchorData } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Logger, LOGGINGTOPIC, SDError, Converter } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, SDError, Converter, InputValidator } from '@shapediver/viewer.shared.services'
 import { vec3, vec4 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
 import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
@@ -50,6 +50,7 @@ interface Anchor {
 export class HTMLElementAnchorEngine {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
 
     /**
      * Load the material content into a scene graph node.
@@ -59,8 +60,6 @@ export class HTMLElementAnchorEngine {
      */
     public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
         try {
-
-
             const data = content.data;
             const node = new TreeNode('htmlElementAnchors');
             if (content.format === 'tag2d') {
@@ -70,7 +69,8 @@ export class HTMLElementAnchorEngine {
                         this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'HTMLElementAnchorEngine.load: One of the specified Tag2D elements did not have all necessary properties.');
                         return;
                     }
-                    node.data.push(new HTMLElementAnchorData(this._converter.toVec3(element.location), { color: this._converter.toColor(element.color, '#000000'), text: element.text }, 'text'));
+                    const cleanedText = this._inputValidator.sanitize(element.text);
+                    node.data.push(new HTMLElementAnchorData(this._converter.toVec3(element.location), { color: this._converter.toColor(element.color, '#000000'), text: cleanedText }, 'text'));
                 });
             } else if (content.format === 'anchor') {
                 data.forEach((element: Anchor) => {
@@ -101,11 +101,13 @@ export class HTMLElementAnchorEngine {
                             return;
                         }
                         const textData = <AnchorDataText>element.data;
+                        const cleanedText = this._inputValidator.sanitize(textData.text);
+
                         node.data.push(new HTMLElementAnchorData(
                             this._converter.toVec3(element.location),
                             {
                                 color: this._converter.toColor(textData.color, '#000000'),
-                                text: textData.text,
+                                text: cleanedText,
                                 hidden: textData.hidden,
                                 textAlign: textData.textAlign,
                                 position
