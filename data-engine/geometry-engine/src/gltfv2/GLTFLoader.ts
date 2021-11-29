@@ -8,6 +8,7 @@ import {
     IGLTF_v2_Material,
     IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
     IGLTF_v2_Primitive,
+    ISHAPEDIVER_materials_preset,
 } from '@shapediver/viewer.data-engine.shared-types'
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import {
@@ -21,11 +22,13 @@ import {
     AnimationData,
     AnimationTrack,
 } from '@shapediver/viewer.shared.types'
+import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
+    SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
 }
 export class GLTFLoader {
     // #region Properties (6)
@@ -34,6 +37,7 @@ export class GLTFLoader {
 
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
+    private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
@@ -321,6 +325,13 @@ export class GLTFLoader {
 
         const materialData = new MaterialData();
         if (material.name !== undefined) materialData.name = material.name;
+
+        if (material.extensions && material.extensions.SHAPEDIVER_materials_preset) {
+            const materialPreset: ISHAPEDIVER_materials_preset = material.extensions.SHAPEDIVER_materials_preset;
+            await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset, materialData);
+            materialData.color = this._converter.toColor(materialPreset.color);
+            return materialData;
+        }
 
         if (material.extensions && material.extensions.KHR_materials_pbrSpecularGlossiness) {
             const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions.KHR_materials_pbrSpecularGlossiness;

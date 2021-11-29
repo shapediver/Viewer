@@ -163,6 +163,12 @@ export interface IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness {
     }
 }
 
+export interface ISHAPEDIVER_materials_preset {
+    version: string, 
+    materialpreset: number,
+    color: number[]
+}
+
 export interface IGLTF_v2_Material {
     name?: string,
     pbrMetallicRoughness?: {

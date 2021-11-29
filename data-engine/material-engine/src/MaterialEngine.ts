@@ -441,7 +441,7 @@ export class MaterialEngine {
         // line material https://shapediver.atlassian.net/browse/SS-2272
     }
 
-    private async loadPresetMaterial(preset: number, material: MaterialData) {
+    public async loadPresetMaterial(preset: number, material: MaterialData) {
         const idStrings = this.getClassAndSpecificID(preset);
         if (materialDatabase[idStrings.class as any] && materialDatabase[idStrings.class][idStrings.specific]) {
             await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class][idStrings.specific], material);

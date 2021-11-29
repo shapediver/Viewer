@@ -43,6 +43,7 @@ import {
   IGLTF_v2_Scene,
   IGLTF_v2_Skin,
   IGLTF_v2_Texture,
+  ISHAPEDIVER_materials_preset,
 } from './gltfv2/IGLTF_v2'
 import { ISDTF, ISDTF_Accessor, ISDTF_Attribute, ISDTF_BufferView, ISDTF_Buffer, ISDTF_Chunk, ISDTF_Item, ISDTF_Node, ISDTF_TypeHint } from './sdtf/ISDTF'
 
@@ -51,7 +52,7 @@ export {
 }
 
 export {
-    IGLTF_v2, ACCESSORCOMPONENTTYPE_V2, ACCESSORCOMPONENTSIZE_V2, ACCESSORTYPE_V2, IGLTF_v2_Accessor, IGLTF_v2_Animation, IGLTF_v2_Asset, IGLTF_v2_Buffer, IGLTF_v2_BufferView, IGLTF_v2_Camera, IGLTF_v2_Image, IGLTF_v2_Material, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive, IGLTF_v2_Mesh, IGLTF_v2_Node, IGLTF_v2_Sampler, IGLTF_v2_Scene, IGLTF_v2_Skin, IGLTF_v2_Texture 
+    IGLTF_v2, ACCESSORCOMPONENTTYPE_V2, ACCESSORCOMPONENTSIZE_V2, ACCESSORTYPE_V2, IGLTF_v2_Accessor, IGLTF_v2_Animation, IGLTF_v2_Asset, IGLTF_v2_Buffer, IGLTF_v2_BufferView, IGLTF_v2_Camera, IGLTF_v2_Image, IGLTF_v2_Material, ISHAPEDIVER_materials_preset, IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness, IGLTF_v2_Primitive, IGLTF_v2_Mesh, IGLTF_v2_Node, IGLTF_v2_Sampler, IGLTF_v2_Scene, IGLTF_v2_Skin, IGLTF_v2_Texture 
 }
 
 

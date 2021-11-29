@@ -133,5 +133,60 @@ for(let c = 0; c < allCapabilities.length; c++) {
             // TAKE A SCREENSHOT
             await screenshotCompare(await driver.takeScreenshot(), name + '/material_assignment_2');
         });
+
+        test(name, async () => {
+            // DO SOMETHING WITH THE API
+            await driver.executeAsyncScript(async (cb: any) => {
+                const api: typeof API = (<any>window).SDV.api; 
+                let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
+                let session = await api.createSession({ 
+                    ticket: '42fe554cc8ed4c01749c93e248498f8b8ba577fc851a512a7b614d684596d89eee2a949ea9d7a8212be4f10aba21974d5bd05ff71082358ae7eefd899653bd7f40b8060b3bf3df300521f4aa8ca13f4148a8675122e6e3bcf51ddff2a093f3b8cea0bbe42bcd79-03efcdaed33e662bdd764c58cc929fba', 
+                    modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com'
+                });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                cb();
+            });
+            
+            // TAKE A SCREENSHOT
+            await screenshotCompare(await driver.takeScreenshot(), name + '/material_preset');
+        });
+
+        test(name, async () => {
+            // DO SOMETHING WITH THE API
+            await driver.executeAsyncScript(async (cb: any) => {
+                const api: typeof API = (<any>window).SDV.api; 
+                let viewer = await api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
+                let session = await api.createSession({ 
+                    ticket: 'ffe7f800e580335e71eda4432c009b6f6f690a4abd34f875a993c1b5d177ac8504fbaa8b888cc748133b1dd5b6365f0734307ceea9944215c6a99ecaab86a8bab9b96996ab388d6c6f2adb16df7efcc489af44a5a679945780e40e6b39d73ac1e43a2a645ac45b-bd9e27ae21fb5dd6da085463a45793a7', 
+                    modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
+                    id: 'mySession'
+                });
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                cb();
+            });
+
+            await screenshotCompare(await driver.takeScreenshot(), name + '/tag');
+            
+            await driver.executeAsyncScript(async (cb: any) => {
+                const api: typeof API = (<any>window).SDV.api; 
+                api.sessions['mySession'].getParameterByName('Count V')[0].value++;
+                await api.sessions['mySession'].customize();
+
+                await new Promise<void>((resolve) => {
+                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                cb();
+            });
+            
+            
+            // TAKE A SCREENSHOT
+            await screenshotCompare(await driver.takeScreenshot(), name + '/tag_removal');
+        });
+
+        
     });
 }
