@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.examples.cdn",
+  "name": "@shapediver/viewer.examples.example-cdn-interactions",
   "version": "0.0.0",
   "private": true,
   "description": "",
@@ -40,9 +40,6 @@
     }
   },
   "dependencies": {
-    "@shapediver/viewer": "*",
-    "@shapediver/viewer.features.attribute-visualization": "*",
-    "@shapediver/viewer.features.interaction": "*",
     "gl-matrix": "3.3.0",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"

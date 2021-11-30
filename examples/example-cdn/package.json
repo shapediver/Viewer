@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer.examples.cdn-interactions",
+  "name": "@shapediver/viewer.examples.example-cdn",
   "version": "0.0.0",
   "private": true,
   "description": "",
@@ -26,7 +26,7 @@
     "build": "bash ../../scripts/build.sh",
     "build-dep": "bash ../../scripts/build-dep.sh",
     "build-dev": "bash ../../scripts/build-dev.sh",
-    "build-prod": "bash ../../scripts/build-prod.sh './webpack.prod.js'"
+    "build-prod": "bash ../../scripts/build-prod.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
@@ -40,7 +40,6 @@
     }
   },
   "dependencies": {
-    "@shapediver/viewer.features.interaction": "*",
     "gl-matrix": "3.3.0",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"

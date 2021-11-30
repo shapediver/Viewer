@@ -4,7 +4,6 @@ import pako from 'pako';
 
 const recursiveReadSync = require('recursive-readdir-sync');
 const { exec } = require("child_process");
-const readline = require('readline');
 
 const execPromise = (cmd: string) => {
     return new Promise((resolve, reject) => {
@@ -56,23 +55,15 @@ const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
 
 (async () => {
     try {
-        const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
+        console.log('deploying to s3...')
         const examples = await getDirectories('examples');
-        let example: string = '';
-        await new Promise<void>((resolve) => {
-            rl2.question('Enter the name of the example to be deployed\n', (answer: string) => {
-                if (examples.includes(answer)) {
-                    example = answer;
-                } else {
-                    throw new Error('Not a valid example.')
-                }                
-                rl2.close();
-                resolve();
-            });
-        });
         
-        console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
-        deployToS3('examples/' + example + '/dist-prod', example)
+        for(let i = 0; i < examples.length; i++) {
+            console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
+            const example = examples[i];
+            console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
+            deployToS3('examples/' + example + '/dist-prod', example)
+        }
     } catch (e) {
         console.log(e)
     }
