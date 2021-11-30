@@ -27,9 +27,9 @@ const grayscaleVisualization = (factor: number): SDTFAttributeVisualizationData 
     }
 }
 
-const opacityVisualization = (factor: number): SDTFAttributeVisualizationData => {
+const opacityVisualization = (factor: number, defaultMaterial?: MaterialData): SDTFAttributeVisualizationData => {
     return {
-        material: new MaterialData({color: '#00fff7', opacity: factor}),
+        material: new MaterialData({color: defaultMaterial?.color || '#00fff7', opacity: factor}),
         matrix: mat4.create()
     }
 }
@@ -155,14 +155,15 @@ const hslVisualization = (factor: number): SDTFAttributeVisualizationData => {
     }
 }
 
-const numberVisualization = (value: number, min: number, max: number, type: ATTRIBUTEVISUALIZATION): SDTFAttributeVisualizationData => {
-    const factor = (value - min) / (max - min);
+const numberVisualization = (value: number, min: number, max: number, type: ATTRIBUTEVISUALIZATION, defaultMaterial?: MaterialData): SDTFAttributeVisualizationData => {
+    let factor = (value - min) / (max - min);
+    factor = Math.min(1, Math.max(0, factor))
 
     switch(type) {
         case ATTRIBUTEVISUALIZATION.GRAYSCALE:
             return grayscaleVisualization(factor);
         case ATTRIBUTEVISUALIZATION.OPACITY:
-            return opacityVisualization(factor);
+            return opacityVisualization(factor, defaultMaterial);
         case ATTRIBUTEVISUALIZATION.BLUE_RED:
             return blueRedVisualization(factor);
         case ATTRIBUTEVISUALIZATION.BLUE_WHITE_RED:
@@ -180,26 +181,14 @@ const numberVisualization = (value: number, min: number, max: number, type: ATTR
     }
 }
 
-
-const stringOpacityVisualization = (value: string, opacities: { [key: string]: number }): SDTFAttributeVisualizationData => {
-    if(!opacities[value]) return {
-        material: new MaterialData({color: '#00fff7', opacity: 0}),
-        matrix: mat4.create()
-    };
-
-    return {
-        material: new MaterialData({color: '#00fff7', opacity: opacities[value]}),
-        matrix: mat4.create()
-    }
-}
-
-const stringVisualization = (value: string, values: string[], type: ATTRIBUTEVISUALIZATION): SDTFAttributeVisualizationData => {
-    const factor = values.indexOf(value) / (values.length - 1);
+const stringVisualization = (value: string, values: string[], type: ATTRIBUTEVISUALIZATION, defaultMaterial?: MaterialData): SDTFAttributeVisualizationData => {
+    let factor = values.indexOf(value) / (values.length - 1);
+    factor = Math.min(1, Math.max(0, factor))
     switch(type) {
         case ATTRIBUTEVISUALIZATION.GRAYSCALE:
             return grayscaleVisualization(factor);
         case ATTRIBUTEVISUALIZATION.OPACITY:
-            return opacityVisualization(factor);
+            return opacityVisualization(factor, defaultMaterial);
         case ATTRIBUTEVISUALIZATION.BLUE_RED:
             return blueRedVisualization(factor);
         case ATTRIBUTEVISUALIZATION.BLUE_WHITE_RED:
@@ -219,6 +208,5 @@ const stringVisualization = (value: string, values: string[], type: ATTRIBUTEVIS
 
 export const SDTFAttributeVisualization = {
     numberVisualization,
-    stringVisualization,
-    stringOpacityVisualization
+    stringVisualization
 };

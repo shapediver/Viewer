@@ -38,7 +38,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
         for(let i = 0; i < codePenExamples.length; i++) {
             test(name + '_CodePen_' + i, async () => {
                 await driver.navigate().to(codePenExamples[i]);
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 10000));
                 
                 // TAKE A SCREENSHOT
                 await screenshotCompare(await driver.takeScreenshot(), name + '/_CodePen_' + i);
@@ -49,7 +49,7 @@ for(let c = 0; c < allCapabilities.length; c++) {
         for(let i = 0; i < codeSandBoxExamples.length; i++) {
             test(name + '_CodeSandBox_' + i, async () => {
                 await driver.navigate().to(codeSandBoxExamples[i]);
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                await new Promise(resolve => setTimeout(resolve, 10000));
                 
                 // TAKE A SCREENSHOT
                 await screenshotCompare(await driver.takeScreenshot(), name + '/_CodeSandBox_' + i);

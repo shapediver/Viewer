@@ -27,13 +27,13 @@ for(let c = 0; c < allCapabilities.length; c++) {
                 console.log(capabilities)
                 driver = await new webdriver.Builder().usingServer('http://alexanderschiftn1:csj6VCzMwzBYyRecsbm2@hub-cloud.browserstack.com/wd/hub').withCapabilities(capabilities).build();
             }
-            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
+            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/attribute-visualization/index.html')
             const TIMEOUT = 300000000
             await driver.manage().setTimeouts( { implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT } );
         });
 
         beforeEach(async () => {
-            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
+            await driver.navigate().to('https://viewer.shapediver.com/v3/latest/attribute-visualization/index.html')
         });
 
         afterAll(async () => {
@@ -44,14 +44,6 @@ for(let c = 0; c < allCapabilities.length; c++) {
         test(name + '_none', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
                 const SDV = (<any>window).SDV; 
-                let viewer = await SDV.api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
-                let session = await SDV.api.createSession({ ticket: 'b22758984bda025b74ade62e123efb70d01a11f220918de42462e49cabaf63c4c73c1369c8881b4c6e9245bc35a8993e9b7d140d8d2eb4f43fae35290756bd68aafcf9feede2d7d6f7b9cc2268aa663a3667a1ef6aae6af5d3c6135504c280dab96cc30806e899-b24927af11874874c346a214a19a81e5', modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com' });
-                viewer.ambientOcclusion = false;
-                viewer.shadows = false;
-                viewer.type = SDV.RENDERERTYPE.ATTRIBUTES;
-                session.node.updateVersion()
-                viewer.update();
-
                 await new Promise<void>((resolve) => {
                     SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
@@ -60,67 +52,87 @@ for(let c = 0; c < allCapabilities.length; c++) {
             await screenshotCompare(await driver.takeScreenshot(), name + '/none');
         });
 
-        test(name + '_color', async () => {
+        test(name + '_layer_enable', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
                 const SDV = (<any>window).SDV; 
-                let viewer = await SDV.api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
-                let session = await SDV.api.createSession({ ticket: 'b22758984bda025b74ade62e123efb70d01a11f220918de42462e49cabaf63c4c73c1369c8881b4c6e9245bc35a8993e9b7d140d8d2eb4f43fae35290756bd68aafcf9feede2d7d6f7b9cc2268aa663a3667a1ef6aae6af5d3c6135504c280dab96cc30806e899-b24927af11874874c346a214a19a81e5', modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com' });
-                viewer.ambientOcclusion = false;
-                viewer.shadows = false;
-                viewer.type = SDV.RENDERERTYPE.ATTRIBUTES;
-                viewer.visualizationAttributes["color"] = true;
+                await new Promise<void>((resolve) => {
+                    SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                const attributeVisualizationEngine = (<any>window).attributeVisualizationEngine; 
+                attributeVisualizationEngine.layers['pinky'].enabled = false;
+                attributeVisualizationEngine.updateLayers(attributeVisualizationEngine.layers);
 
-                session.node.updateVersion()
-                viewer.update();
 
                 await new Promise<void>((resolve) => {
                     SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb();
             });
-            await screenshotCompare(await driver.takeScreenshot(), name + '/color');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/layer_enable');
         });
 
-        test(name + '_plotcolor', async () => {
+        test(name + '_layer_opacity', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
                 const SDV = (<any>window).SDV; 
-                let viewer = await SDV.api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
-                let session = await SDV.api.createSession({ ticket: 'b22758984bda025b74ade62e123efb70d01a11f220918de42462e49cabaf63c4c73c1369c8881b4c6e9245bc35a8993e9b7d140d8d2eb4f43fae35290756bd68aafcf9feede2d7d6f7b9cc2268aa663a3667a1ef6aae6af5d3c6135504c280dab96cc30806e899-b24927af11874874c346a214a19a81e5', modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com' });
-                viewer.ambientOcclusion = false;
-                viewer.shadows = false;
-                viewer.type = SDV.RENDERERTYPE.ATTRIBUTES;
-                viewer.visualizationAttributes["plotcolor"] = true;
-
-                session.node.updateVersion()
-                viewer.update();
+                await new Promise<void>((resolve) => {
+                    SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                const attributeVisualizationEngine = (<any>window).attributeVisualizationEngine; 
+                attributeVisualizationEngine.layers['pinky'].opacity = 0;
+                attributeVisualizationEngine.updateLayers(attributeVisualizationEngine.layers);
 
                 await new Promise<void>((resolve) => {
                     SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb();
             });
-            await screenshotCompare(await driver.takeScreenshot(), name + '/plotcolor');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/layer_opacity');
         });
 
-        test(name + '_layer', async () => {
+        test(name + '_string_attribute', async () => {
             const r: any = await driver.executeAsyncScript(async (cb: any) => {
                 const SDV = (<any>window).SDV; 
-                let viewer = await SDV.api.createViewer({id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas')})
-                let session = await SDV.api.createSession({ ticket: 'b22758984bda025b74ade62e123efb70d01a11f220918de42462e49cabaf63c4c73c1369c8881b4c6e9245bc35a8993e9b7d140d8d2eb4f43fae35290756bd68aafcf9feede2d7d6f7b9cc2268aa663a3667a1ef6aae6af5d3c6135504c280dab96cc30806e899-b24927af11874874c346a214a19a81e5', modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com' });
-                viewer.ambientOcclusion = false;
-                viewer.shadows = false;
-                viewer.type = SDV.RENDERERTYPE.ATTRIBUTES;
-                viewer.visualizationAttributes["layer"] = true;
-
-                session.node.updateVersion()
-                viewer.update();
+                await new Promise<void>((resolve) => {
+                    SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                const attributeVisualizationEngine = (<any>window).attributeVisualizationEngine; 
+                attributeVisualizationEngine.updateAttributes([
+                    {
+                        key: 'x+y, string',
+                        type: SDV.PRIMITIVETYPEHINT.STRING,
+                        visualization: SDV.ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED
+                    }
+                ])
 
                 await new Promise<void>((resolve) => {
                     SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb();
             });
-            await screenshotCompare(await driver.takeScreenshot(), name + '/layer');
+            await screenshotCompare(await driver.takeScreenshot(), name + '/string_attribute');
+        });
+
+        test(name + '_number_attribute', async () => {
+            const r: any = await driver.executeAsyncScript(async (cb: any) => {
+                const SDV = (<any>window).SDV; 
+                await new Promise<void>((resolve) => {
+                    SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                const attributeVisualizationEngine = (<any>window).attributeVisualizationEngine; 
+                attributeVisualizationEngine.updateAttributes([
+                    {
+                        key: 'x+y, number',
+                        type: SDV.PRIMITIVETYPEHINT.DOUBLE,
+                        visualization: SDV.ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED
+                    }
+                ])
+
+                await new Promise<void>((resolve) => {
+                    SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                })
+                cb();
+            });
+            await screenshotCompare(await driver.takeScreenshot(), name + '/number_attribute');
         });
         
         

@@ -17,6 +17,7 @@ import { SceneTreeManager } from './SceneTreeManager'
 import { BeautyRenderingManager } from './BeautyRenderingManager'
 import { IManager } from '../interfaces/IManager'
 import { ICameraEvent } from '@shapediver/viewer.shared.types'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class RenderingManager implements IManager {
     // #region Properties (20)
@@ -294,11 +295,11 @@ export class RenderingManager implements IManager {
         // animation loop - part 11: adjust some scene settings
         // enable / disable the shadow map
         const enabled = this._renderingEngine.renderer.shadowMap.enabled;
-        this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader ? false : this._renderingEngine.shadows;
+        this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader || this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES ? false : this._renderingEngine.shadows;
         if (enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials()
         
         // update shadowMap if need
-        if(states.updateShadowMap && enabled) this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        if(states.updateShadowMap && this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
@@ -452,7 +453,7 @@ export class RenderingManager implements IManager {
         let beautyRendering = false;
         if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
             ((this._renderingEngine.shadows && this._systemInfo.isMobile) || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
-            this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false)
+            this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false && this._renderingEngine.type !== RENDERERTYPE.ATTRIBUTES)
             beautyRendering = true;
 
         return { showScene, rendering, updateShadowMap, blurScene, beautyRendering };

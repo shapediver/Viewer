@@ -2,10 +2,11 @@ import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { IEvent, LOGGINGLEVEL, MAINEVENTTYPE } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { Tree } from '@shapediver/viewer.shared.node-tree'
+import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ISession } from './session/ISession'
 import { IViewer } from './viewer/IViewer'
+import { SDTFOverview } from '@shapediver/viewer.shared.types'
 
 export interface IApi {
   // #region Properties (10)
@@ -96,6 +97,13 @@ export interface IApi {
    */
   createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession>;
   
+  /**
+   * Create the {@link SDTFOverview} for the provided node.
+   * If no node was provided, the scene root is used instead.
+   * 
+   * @param node 
+   */
+  createSDTFOverview(node: TreeNode): SDTFOverview;
 
   /**
    * Create and initialize a viewer with the provided type and canvas.

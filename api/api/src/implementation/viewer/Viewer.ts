@@ -274,11 +274,11 @@ export class Viewer implements IViewer {
     }
   }
 
-  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
+  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined {
     return this.#renderingEngine.convertSDTFItemToVisualizationData;
   }
 
-  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
+  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined) {
     this.#renderingEngine.convertSDTFItemToVisualizationData = value;
   }
 
@@ -538,28 +538,6 @@ export class Viewer implements IViewer {
     }
   }
 
-  public get visualizationAttributes(): {
-    [key: string]: boolean
-  } {
-    return this.#renderingEngine.visualizationAttributes;
-  }
-
-  public set visualizationAttributes(value: {
-    [key: string]: boolean
-  }) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes: Updating visualizationAttributes to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes`, value, 'object');
-      this.#renderingEngine.visualizationAttributes = value;
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).visualizationAttributes: visualizationAttributes was set to: ${value}`);
-      this.#sceneTree.root.updateVersion();
-      this.update();
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).visualizationAttributes: Something unexpected happened.`, true)
-    }
-  }
-
   // #endregion Public Accessors (47)
 
   // #region Public Methods (24)
@@ -683,10 +661,6 @@ export class Viewer implements IViewer {
       if (e instanceof SDError) throw e;
       throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
     }
-  }
-
-  public createSDTFOverview(node: TreeNode = this.#sceneTree.root): SDTFOverview {
-    return this.#renderingEngine.createSDTFOverview(node);
   }
 
   public deregisterBusyMode(value: string): boolean {

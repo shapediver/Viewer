@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { AnimationData, ATTRIBUTEVISUALIZATION, GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeVisualization, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
+import { AnimationData, ATTRIBUTEVISUALIZATION, GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeOverview, SDTFAttributeVisualization, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { ISDObject, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, SDError, StateEngine } from '@shapediver/viewer.shared.services'
@@ -204,16 +204,7 @@ export class SceneTreeManager implements IManager {
             this._scene.add(this._mainNode);
         }
 
-        this._currentSDTFOverview = this._renderingEngine.createSDTFOverview();
-        for(let key in this._currentSDTFOverview) {
-            if(!this._renderingEngine.visualizationAttributes[key])
-                this._renderingEngine.visualizationAttributes[key] = false;
-        }
-
-        for(let key in this._renderingEngine.visualizationAttributes) {
-            if(!this._currentSDTFOverview[key])
-                delete this._renderingEngine.visualizationAttributes[key];
-        }
+        this._currentSDTFOverview = this.createSDTFOverview();
 
         this.updateNode(root, this._mainNode);
         this._boundingBox = root.boundingBox.clone();
@@ -260,41 +251,17 @@ export class SceneTreeManager implements IManager {
         return this.collectSDTFItemData(node.parent);
     }
 
-    private convertSDTFItemToVisualizationData(itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }): SDTFAttributeVisualizationData {
-        let material = new MaterialData({ color: '#00fff7', opacity: 1 });
-        let matrix = mat4.create();
+    private createSDTFOverview(node: TreeNode = this._tree.root): SDTFOverview {
+        const out: SDTFAttributeOverview = new SDTFAttributeOverview({});
+        for (let i = 0, len = node.data.length; i < len; i++)
+        if (node.data[i] instanceof SDTFAttributeOverview)
+            out.merge(<SDTFAttributeOverview>node.data[i])
 
-        if(visualizationAttributes['color']) {
-            if(itemData.attributes['color'] && itemData.attributes['color'].typeHint === PRIMITIVETYPEHINT.COLOR){
-                const colorAttribute = itemData.attributes['color'];
-                const colorColorOverview = overview['color'].filter(o => o.typeHint === PRIMITIVETYPEHINT.COLOR)[0];
+        for (let i = 0, len = node.children.length; i < len; i++)
+        out.merge(new SDTFAttributeOverview(this.createSDTFOverview(node.children[i])));
 
-                material.color = this._converter.toColor('rgb(' + colorAttribute.value + ')');
-            }
-        }
-        if(visualizationAttributes['plotcolor']){
-            if(itemData.attributes['plotcolor'] && itemData.attributes['plotcolor'].typeHint === PRIMITIVETYPEHINT.COLOR){
-                const plotcolorAttribute = itemData.attributes['plotcolor'];
-                const plotcolorColorOverview = overview['plotcolor'].filter(o => o.typeHint === PRIMITIVETYPEHINT.COLOR)[0];
-
-                material.color = this._converter.toColor('rgb(' + plotcolorAttribute.value + ')');
-            }
-        }
-
-        if(visualizationAttributes['layer']){
-            if(itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === PRIMITIVETYPEHINT.STRING) {
-                const layerAttribute = itemData.attributes['layer'];
-                const layerStringOverview = overview['layer'].filter(o => o.typeHint === PRIMITIVETYPEHINT.STRING)[0];
-
-                return SDTFAttributeVisualization.stringVisualization(
-                    layerAttribute.value, 
-                    layerStringOverview.values!, 
-                    ATTRIBUTEVISUALIZATION.GRAYSCALE
-                );
-            }
-        }
-        return { material, matrix };
-    }
+        return out.overview;
+      }
 
     private injectAttributeData(node: TreeNode, data: ITreeNodeData) {
         const itemData = this.collectSDTFItemData(node);       
@@ -303,21 +270,17 @@ export class SceneTreeManager implements IManager {
             matrix: mat4.create()
         };
 
-        if(itemData) {
-            if(this._renderingEngine.convertSDTFItemToVisualizationData) {
-                const userVisData = this._renderingEngine.convertSDTFItemToVisualizationData(itemData, this._currentSDTFOverview, this._renderingEngine.visualizationAttributes);
-                try {
-                    this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData, 'object', true);
-                    this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData.matrix, 'mat4', true)
-                    visData.material = userVisData.material;
-                    visData.matrix = visData.matrix;
-                } catch(e) {
-                    if(e instanceof SDError)
-                        this._logger.warn(LOGGINGTOPIC.VIEWER, e.message);
-                    this._logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer.convertSDTFItemToVisualizationData: Encountered an error while parsing the visualization data.`, false); 
-                }
-            } else {
-                visData = this.convertSDTFItemToVisualizationData(itemData, this._currentSDTFOverview, this._renderingEngine.visualizationAttributes);
+        if(itemData && this._renderingEngine.convertSDTFItemToVisualizationData) {
+            const userVisData = this._renderingEngine.convertSDTFItemToVisualizationData(itemData, this._currentSDTFOverview);
+            try {
+                this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData, 'object', true);
+                this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData.matrix, 'mat4', true)
+                visData.material = userVisData.material;
+                visData.matrix = visData.matrix;
+            } catch(e) {
+                if(e instanceof SDError)
+                    this._logger.warn(LOGGINGTOPIC.VIEWER, e.message);
+                this._logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer.convertSDTFItemToVisualizationData: Encountered an error while parsing the visualization data.`, false); 
             }
         }
 

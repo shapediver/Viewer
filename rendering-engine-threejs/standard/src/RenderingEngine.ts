@@ -87,7 +87,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _clearColor: string = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
-  private _convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined;
+  private _convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined;
   private _environmentMap: string | string[] = 'none';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
@@ -109,7 +109,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _show: boolean = false;
   private _showStatistics: boolean = false;
   private _type: RENDERERTYPE = RENDERERTYPE.STANDARD;
-  private _visualizationAttributes: { [key: string]: boolean } = {};
 
   #animations: AnimationData[] = [];
 
@@ -325,11 +324,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.continuousShadowMapUpdate = value;
   }
 
-  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined {
+  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined {
     return this._convertSDTFItemToVisualizationData;
   }
 
-  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined) {
+  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined) {
     this._convertSDTFItemToVisualizationData = value;
   }
 
@@ -537,31 +536,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this.renderingManager.usingSwiftShader;
   }
 
-  public get visualizationAttributes(): {
-    [key: string]: boolean
-  } {
-    return this._visualizationAttributes;
-  }
-
-  public set visualizationAttributes(value: {
-    [key: string]: boolean
-  }) {
-    const overview = this.createSDTFOverview();
-    for (let key in overview) {
-      if (value[key]) {
-        this._visualizationAttributes[key] = value[key];
-      } else {
-        this._visualizationAttributes[key] = false;
-        this._logger.info(LOGGINGTOPIC.VIEWER, `VisualizationAttributes does not have Attribute ${key}. Visualization set to false.`)
-      }
-    }
-
-    for (let key in this._visualizationAttributes) {
-      if (!overview[key])
-        delete this._visualizationAttributes[key];
-    }
-  }
-
   // #endregion Public Accessors (78)
 
   // #region Public Methods (8)
@@ -574,18 +548,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._domEventEngine.removeAllDomEventListener();
     this._domEventEngine.dispose();
     return true;
-  }
-
-  public createSDTFOverview(node: TreeNode = this._tree.root): SDTFOverview {
-    const out: SDTFAttributeOverview = new SDTFAttributeOverview({});
-    for (let i = 0, len = node.data.length; i < len; i++)
-      if (node.data[i] instanceof SDTFAttributeOverview)
-        out.merge(<SDTFAttributeOverview>node.data[i])
-
-    for (let i = 0, len = node.children.length; i < len; i++)
-      out.merge(new SDTFAttributeOverview(this.createSDTFOverview(node.children[i])));
-
-    return out.overview;
   }
 
   public gatherAnimations(node: TreeNode = this._tree.root): AnimationData[] {

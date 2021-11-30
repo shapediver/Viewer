@@ -119,8 +119,6 @@ export class GeometryLoader implements ILoader {
      */
     public load(geometry: GeometryData, parent: SDNode): Box {    
         if(this._geometryCache[geometry.id + '_' + geometry.version]) {
-            const materialSettings = this._geometryCache[geometry.id + '_' + geometry.version].materialSettings;
-
             let materialData: MaterialData | null;
             if(this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
@@ -128,6 +126,16 @@ export class GeometryLoader implements ILoader {
                 materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
             } else {
                 materialData = geometry.primitive.material;
+            }
+
+            const threeGeometry = this._geometryCache[geometry.id + '_' + geometry.version].threeGeometry;
+            const materialSettings = {
+                mode: geometry.primitive.mode,
+                useVertexTangents: threeGeometry.attributes.tangent !== undefined,
+                useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERERTYPE.ATTRIBUTES,
+                useFlatShading: threeGeometry.attributes.normal === undefined,
+                useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
+                useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
             }
 
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
@@ -145,14 +153,6 @@ export class GeometryLoader implements ILoader {
             parent.add(obj);
         } else {
             const threeGeometry = this.loadGeometry(geometry.primitive);
-            const materialSettings = {
-                mode: geometry.primitive.mode,
-                useVertexTangents: threeGeometry.attributes.tangent !== undefined,
-                useVertexColors: threeGeometry.attributes.color !== undefined,
-                useFlatShading: threeGeometry.attributes.normal === undefined,
-                useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
-                useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
-            }
 
             let materialData: MaterialData | null;
             if(this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
@@ -161,6 +161,15 @@ export class GeometryLoader implements ILoader {
                 materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
             } else {
                 materialData = geometry.primitive.material;
+            }
+
+            const materialSettings = {
+                mode: geometry.primitive.mode,
+                useVertexTangents: threeGeometry.attributes.tangent !== undefined,
+                useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERERTYPE.ATTRIBUTES,
+                useFlatShading: threeGeometry.attributes.normal === undefined,
+                useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
+                useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
             }
 
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);

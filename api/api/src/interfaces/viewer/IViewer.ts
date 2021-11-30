@@ -33,9 +33,8 @@ export interface IViewer extends IRenderingEngine {
     /**
      * Provide a callback that transforms a {@link SDTFItemData} to a {@link SDTFAttributeVisualizationData}.
      * The {@link SDTFOverview} provides general information like min and max values for numbers or the available options for strings.
-     * The {@link visualizationAttributes} provide the current selected attributes. These can be used to only show some attributes at a time, but can be ignored as well.
      */
-    convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview, visualizationAttributes: { [key: string]: boolean; }) => SDTFAttributeVisualizationData) | undefined;
+    convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;
@@ -47,7 +46,6 @@ export interface IViewer extends IRenderingEngine {
     shadows: boolean;
     show: boolean;
     showStatistics: boolean;
-    visualizationAttributes: { [key: string]: boolean };
 
     // #endregion Properties (29)
 
@@ -122,13 +120,6 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     createPerspectiveCamera(id?: string): IPerspectiveCamera;
-    /**
-     * Create the {@link SDTFOverview} for the provided node.
-     * If no node was provided, the scene root is used instead.
-     * 
-     * @param node 
-     */
-    createSDTFOverview(node: TreeNode): SDTFOverview;
     /**
      * Deregister the busy mode with the specified ID.
      * 

@@ -1,0 +1,49 @@
+{
+  "name": "@shapediver/viewer.features.attribute-visualization",
+  "version": "1.8.14",
+  "description": "",
+  "keywords": [],
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "test": "bash ../../scripts/test.sh",
+    "check": "tsc --noEmit",
+    "build": "bash ../../scripts/build.sh",
+    "build-watch": "bash ../../scripts/build-watch.sh",
+    "build-dep": "bash ../../scripts/build-dep.sh"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "devDependencies": {
+    "@shapediver/viewer": "^1.8.14",
+    "@shapediver/viewer.shared.types": "^1.8.14",
+    "@shapediver/viewer.shared.services": "^1.8.14"
+  },
+  "dependencies": {
+    "detect-it": "4.0.1",
+    "gl-matrix": "3.3.0",
+    "tsyringe": "^4.5.0"
+  },
+  "gitHead": "25b1bd5dade0720d4e40aa8f4db33c58ffcc8aae"
+}

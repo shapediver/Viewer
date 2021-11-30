@@ -1,4 +1,4 @@
-import { Tree } from '@shapediver/viewer.shared.node-tree'
+import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import {
@@ -29,7 +29,7 @@ import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
 import { Session } from './session/Session'
 import { ShapeDiverResponseDto } from '@shapediver/api.geometry-api-dto-v2'
-import { ISessionEvent, ISettingsEvent } from '@shapediver/viewer.shared.types'
+import { ISessionEvent, ISettingsEvent, SDTFAttributeOverview, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { Viewer } from './viewer/Viewer'
 
 @singleton()
@@ -542,6 +542,23 @@ export class Api implements IApi {
     }
   }
 
+  public createSDTFOverview(node: TreeNode = this.sceneTree.root): SDTFOverview {
+    try {
+      const out: SDTFAttributeOverview = new SDTFAttributeOverview({});
+      for (let i = 0, len = node.data.length; i < len; i++)
+        if (node.data[i] instanceof SDTFAttributeOverview)
+          out.merge(<SDTFAttributeOverview>node.data[i])
+
+      for (let i = 0, len = node.children.length; i < len; i++)
+        out.merge(new SDTFAttributeOverview(this.createSDTFOverview(node.children[i])));
+
+      return out.overview;
+    } catch (e) {
+      if (e instanceof SDError) throw e;
+      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.createSDTFOverview: Something unexpected happened.`, true)
+    }
+  }
+  
   public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer> {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
