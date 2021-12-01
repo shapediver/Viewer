@@ -8,6 +8,57 @@
 * __Commit:__ d74286a681fb20116de608073fd38116c0d20b59
 <!--- VERSION_END -->
 
+## Version 1.9.0 - `Guardians of the Galaxy`
+- attribute visualization feature
+- cdn adaptions
+
+## Version 1.8.14 - `The Hunger Games - The Mockingjay - Part1`
+- bugfix: tag2d removal
+- material preset gltf extension
+- string sanitization
+
+## Version 1.8.13 - `The Hunger Games - Catching Fire`
+- initial parameters
+- vertex colors for 4-byte aligned vertex color data
+
+## Version 1.8.12 - `The Hunger Games`
+- tag3D AR improvements
+- deployment adaptions
+
+## Version 1.8.11 - `Harry Potter and the Deathly Hallows - Part 2`
+- bugfix: material assignment
+- version iframe page
+- outputloader improvements
+
+## Version 1.8.10 - `Harry Potter and the Deathly Hallows - Part 1`
+- bugfix: settings loading
+
+## Version 1.8.9 - `Harry Potter and the Half-Blood Prince`
+- interface improvements
+
+## Version 1.8.8 - `Harry Potter and the Order of the Phoenix`
+- removal of unused events
+- adapted event system
+- new tests
+
+## Version 1.8.7 - `Harry Potter and the Goblet of Fire`
+- bugfix: groundplane and grid
+- bugfix: mobile events
+
+## Version 1.8.6 - `Harry Potter and the Prisoner of Azkaban`
+- interfaces improvements
+
+## Version 1.8.5 - `Harry Potter and the Chamber of Secrets`
+- bugfix: material loader
+- bugfix: alphaMap
+- bugfix: ar material assignment and color attributes
+- bugfix: transparency assignment
+- gltf loader improvements
+- AR fixes
+
+## Version 1.8.4 - `Harry Potter and the Philosopher's Stone`
+- type improvements
+
 ## Version 1.8.3 - `Home Alone`
 - updated examples
 - node added to output
