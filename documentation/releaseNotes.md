@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.8.14
-* __Build date:__ 2021-11-29T10:34:45.991Z
+* __Version:__ 1.9.0
+* __Build date:__ 2021-12-01T14:40:23.994Z
 * __Branch:__ development
-* __Commit:__ d74286a681fb20116de608073fd38116c0d20b59
+* __Commit:__ f0c0b3207bd638f0fad5a8f8bf15aa349a152efa
 <!--- VERSION_END -->
 
 ## Version 1.9.0 - `Guardians of the Galaxy`
