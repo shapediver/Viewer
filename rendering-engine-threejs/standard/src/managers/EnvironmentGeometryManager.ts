@@ -19,6 +19,8 @@ export class EnvironmentGeometryManager implements IManager {
     private _gridObject!: SDData;
     private _groundPlane!: THREE.Mesh;
     private _groundPlaneObject!: SDData;
+    private _groundPlaneColor: string = '#d3d3d3';
+    private _gridColor: string = '#444444';
 
     private _initialized: boolean = false;
 
@@ -47,6 +49,29 @@ export class EnvironmentGeometryManager implements IManager {
 
     // #region Public Accessors (2)
 
+    public get gridColor(): string {
+        return this._gridColor;
+    } 
+    
+    public set gridColor(value: string) {
+        this._gridColor = value;
+        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._gridColor);
+    }
+
+    public get groundPlaneColor(): string {
+        return this._groundPlaneColor;
+    } 
+    
+    public set groundPlaneColor(value: string) {
+        this._groundPlaneColor = value;
+        let mat = new MaterialData();
+        mat.color = this._groundPlaneColor;
+        mat.side = MATERIAL_SIDE.FRONT;
+        mat.roughness = 1;
+        mat.metalness = 0;
+        this._groundPlane.material = this._renderingEngine.materialLoader.load(mat);
+    }
+
     public get grid(): THREE.GridHelper {
         return this._grid;
     }
@@ -58,16 +83,6 @@ export class EnvironmentGeometryManager implements IManager {
     // #endregion Public Accessors (2)
 
     // #region Public Methods (2)
-
-    public assignGroundPlaneColor(color: string) {
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).color = new THREE.Color(color);
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).needsUpdate = true;
-    }    
-    
-    public assignGroundPlaneEnvironmentIntensity(intensity: number) {
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).envMapIntensity = intensity;
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).needsUpdate = true;
-    }
 
     public changeSceneExtents(bb: Box) {
         if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
@@ -107,8 +122,9 @@ export class EnvironmentGeometryManager implements IManager {
 
         this._gridObject.remove(this._grid);
         this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
-        (<THREE.Material>this._grid.material).opacity = 0.15;
-        (<THREE.Material>this._grid.material).transparent = true;
+        (<THREE.LineBasicMaterial>this._grid.material).opacity = 0.15;
+        (<THREE.LineBasicMaterial>this._grid.material).transparent = true;
+        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._gridColor);
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this._renderingEngine.gridVisibility;
         this._gridObject.add(this._grid);
@@ -127,8 +143,9 @@ export class EnvironmentGeometryManager implements IManager {
         
         this._gridObject = new SDData('grid', '');
         this._grid = new THREE.GridHelper();
-        (<THREE.Material>this._grid.material).opacity = 0.15;
-        (<THREE.Material>this._grid.material).transparent = true;
+        (<THREE.LineBasicMaterial>this._grid.material).opacity = 0.15;
+        (<THREE.LineBasicMaterial>this._grid.material).transparent = true;
+        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._gridColor);
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this._renderingEngine.gridVisibility;
         this._gridObject.add(this._grid);
@@ -137,7 +154,7 @@ export class EnvironmentGeometryManager implements IManager {
 
         this._groundPlaneObject = new SDData('grid', '');
         let mat = new MaterialData();
-        mat.color = '#d3d3d3';
+        mat.color = this._groundPlaneColor;
         mat.side = MATERIAL_SIDE.FRONT;
         mat.roughness = 1;
         mat.metalness = 0;

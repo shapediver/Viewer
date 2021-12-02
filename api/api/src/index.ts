@@ -1,7 +1,7 @@
 import { CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { container } from 'tsyringe'
 import { LIGHTTYPE } from '@shapediver/viewer.rendering-engine.light-engine'
-import { RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERERTYPE, TEXTUREENCODING, TONEMAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   AbstractTreeNodeData,
   ITransformation,

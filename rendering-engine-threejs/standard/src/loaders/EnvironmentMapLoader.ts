@@ -53,6 +53,7 @@ export enum ENVIRONMENT_MAP {
     STUDIO_SMALL = 'studio_small',
     SUNFLOWERS = 'sunflowers',
     TABLE_MOUNTAIN = 'table_mountain',
+    VENICE_SUNSET = 'venice_sunset',
     WIDE_STREET = 'wide_street',
 }
 
@@ -64,29 +65,6 @@ export enum ENVIRONMENT_MAP_TYPE {
 
 export class EnvironmentMapLoader implements ILoader {
     // #region Properties (8)
-
-    private readonly _oldSettings = {
-        physicallyCorrectLights: false, // should be set to true (out old default was false, but this should definitely change) (old default: false)
-        envMapIntensity: 1, // change the intensity of the environment Map (old default: 1)
-        envMapIntensityGroundPlane: 1, // change the intensity of the environment Map for the groundPlane (old default: 1)
-        groundPlaneColor: '#D3D3D3', // change the color of the ground plane (old default: '#D3D3D3')
-        toneMapping: 0, // Use a different tone mapping (0: none, 1: linear, 2: reinhard, 3: cineon, 4: ACESFilmic) (old default: 0)
-        toneMappingExposure: 1, // change the exposure of the tone mapping (old default: 1)
-        textureEncoding: 3000, // change the encoding of the textures in the scene (3000: linear, 3001: sRGB) (old default: 3000)
-        outputEncoding: 3000, // change the encoding of the textures in the scene (3000: linear, 3001: sRGB) (old default: 3000)
-    }
-
-    private readonly _newSettings = {
-        physicallyCorrectLights: true, // should be set to true (out old default was false, but this should definitely change) (old default: false)
-        envMapIntensity: 1, // change the intensity of the environment Map (old default: 1)
-        envMapIntensityGroundPlane: 0.5, // change the intensity of the environment Map for the groundPlane (old default: 1)
-        groundPlaneColor: '#D3D3D3', // change the color of the ground plane (old default: '#D3D3D3')
-        toneMapping: 0, // Use a different tone mapping (0: none, 1: linear, 2: reinhard, 3: cineon, 4: ACESFilmic) (old default: 0)
-        toneMappingExposure: 1, // change the exposure of the tone mapping (old default: 1)
-        textureEncoding: 3001, // change the encoding of the textures in the scene (3000: linear, 3001: sRGB) (old default: 3000)
-        outputEncoding: 3001, // change the encoding of the textures in the scene (3000: linear, 3001: sRGB) (old default: 3000)
-    }
-
 
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']    
     private readonly _environmentMapHDR: string[] = [];
@@ -104,6 +82,7 @@ export class EnvironmentMapLoader implements ILoader {
 
     private _environmentMapName: string = 'none';
     private _environmentMapNameInternal: string = 'none';
+    private _isHDRMap: boolean = false;
 
     // #endregion Properties (8)
 
@@ -117,6 +96,10 @@ export class EnvironmentMapLoader implements ILoader {
 
     public get environmentMap(): THREE.CubeTexture | THREE.Texture | null {
         return this._environmentMaps[this._environmentMapName];
+    }
+
+    public get isHDRMap(): boolean {
+        return this._isHDRMap;
     }
 
     // #endregion Public Accessors (1)
@@ -229,11 +212,11 @@ export class EnvironmentMapLoader implements ILoader {
     private assignEnvironmentMap(name: string, type: ENVIRONMENT_MAP_TYPE) {
         if(name in this._environmentMaps === false) return;
         if(this._environmentMapHDR.includes(name)) {
-            this._renderingEngine.renderingSettings = this._newSettings;
+            this._isHDRMap = true;
         } else {
-            this._renderingEngine.renderingSettings = this._oldSettings;
+            this._isHDRMap = false;
+            if(this._environmentMaps[name]) this._environmentMaps[name]!.encoding = THREE.sRGBEncoding;
         }
-
         this._environmentMapName = name;
         this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name], type);
         this.notify();

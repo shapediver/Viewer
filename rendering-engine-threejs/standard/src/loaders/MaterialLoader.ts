@@ -46,11 +46,10 @@ export class MaterialLoader implements ILoader {
 
     private _blending: number = 0.0;
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
-    private _envMapIntensity: number = 1;
     private _height: number = 1020;
     private _lightSizeUV: number = 0.025;
     private _pointSize: number = 1.0;
-    private _textureEncoding: THREE.TextureEncoding = THREE.LinearEncoding;
+    private _textureEncoding: THREE.TextureEncoding = THREE.sRGBEncoding;
     private _maxMapCount: number = 0;
     private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NONE;
 
@@ -176,17 +175,6 @@ export class MaterialLoader implements ILoader {
         }
     }
 
-    public assignEnvironmentMapIntensity(e: number) {
-        this._envMapIntensity = e;
-        for(let m in this._materialCache) {
-            if((this._materialCache[m] instanceof THREE.MeshStandardMaterial)
-                && !(<any>this._materialCache[m]).KHR_materials_unlit) {
-                (<THREE.MeshStandardMaterial>this._materialCache[m]).envMapIntensity = e;
-                (<THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
-            }
-        }
-    }
-
     public assignPointSize(p: number) {
         const height = this._renderingEngine.renderer ? this._renderingEngine.renderer.getSize(new THREE.Vector2()).y : 1080;
         if(height === this._height && p * (this._height/1080) === this._pointSize) return;
@@ -200,14 +188,13 @@ export class MaterialLoader implements ILoader {
         }
     }
 
-    public assignTextureEncoding(e: THREE.TextureEncoding) {
-        this._textureEncoding = e;
+    private assignTextureEncoding() {
         for(let m in this._materialCache) {
             if(this._materialCache[m] instanceof THREE.MeshStandardMaterial) {
                 if((<THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap)
-                    (<THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap!.encoding = e;
+                    (<THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap!.encoding = this._textureEncoding;
                 if((<THREE.MeshStandardMaterial>this._materialCache[m]).map)
-                    (<THREE.MeshStandardMaterial>this._materialCache[m]).map!.encoding = e;
+                    (<THREE.MeshStandardMaterial>this._materialCache[m]).map!.encoding = this._textureEncoding;
                 (<THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
             }
         }
@@ -363,7 +350,6 @@ export class MaterialLoader implements ILoader {
         }
 
         standardProperties.envMap = this._envMap;
-        standardProperties.envMapIntensity = this._envMapIntensity;
 
         if (materialData.normalMap !== undefined) {
             standardProperties.normalMap = this.createTexture(materialData.normalMap);
@@ -600,6 +586,15 @@ export class MaterialLoader implements ILoader {
     
     public set maxMapCount(value: number) {
         this._maxMapCount = value;
+    }
+
+    public get textureEncoding(): THREE.TextureEncoding {
+        return this._textureEncoding;
+    }
+    
+    public set textureEncoding(value: THREE.TextureEncoding) {
+        this._textureEncoding = value;
+        this.assignTextureEncoding();
     }
 
     // #endregion Private Methods (1)
