@@ -54,9 +54,9 @@
     "build-current": "cd ./api/api && npm run build-dep && cd ../../",
     "deploy": "ts-node ./scripts/deploy.ts",
     "deploy-no-tests": "ts-node ./scripts/deploy-no-tests.ts",
-    "deploy-test": "ts-node ./scripts/deploy-test.ts",
-    "deploy-tests": "ts-node ./scripts/deploy-tests.ts",
     "deploy-example": "ts-node ./scripts/deploy-example.ts",
+    "deploy-tests": "ts-node ./scripts/deploy-tests.ts",
+    "deploy-demo": "ts-node ./scripts/deploy-demo.ts",
     "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md",
     "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md",
     "doc-main": "typedoc"

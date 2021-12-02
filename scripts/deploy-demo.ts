@@ -15,34 +15,23 @@ const execPromise = (cmd: string) => {
     });
 }
 
-const s3 = new AWS.S3({ maxRetries: 5 });
-const bucketName = 'shapediverviewer';
-
 const getDirectories = async (source: string) =>
     (await fs.promises.readdir(source, { withFileTypes: true }))
         .filter(dirent => dirent.isDirectory())
-        .map(dirent => dirent.name)
-
-const deployToS3 = (directoryPath: string, name: string, prefix: string) => {
-    const fileContents = <string[]>recursiveReadSync(directoryPath);
-    fileContents.map(function (f, cb) {
-        const key = (name ? prefix + '/' + name : prefix) + f.substring(directoryPath.length, f.length).replace(/\\/g, '/');
-        s3.putObject({
-            Bucket: bucketName,
-            Key: key,
-            Body: pako.gzip(fs.readFileSync(f)),
-            ACL: 'public-read',
-            ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
-            CacheControl: 'max-age=3600',
-            ContentEncoding: 'gzip'
-        }, (err) => { if (err) console.log(err) });
-    });
-}
+        .map(dirent => dirent.name);
 
 (async () => {
     try {
-        const git_branch: string = <string>await execPromise('git branch --show-current');
-        const prefix = 'v3/branch/' + git_branch;
+
+        const rl1 = readline.createInterface({ input: process.stdin, output: process.stdout });
+        let name;
+        await new Promise<void>((resolve) => {
+            rl1.question('Enter the name of the demo to be deployed\n', (answer: string) => {
+                name = answer;
+                rl1.close();
+                resolve();
+            });
+        });
 
         const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
         const examples = await getDirectories('examples');
@@ -58,11 +47,30 @@ const deployToS3 = (directoryPath: string, name: string, prefix: string) => {
                 resolve();
             });
         });
-        
-        console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
-        deployToS3('examples/' + example + '/dist-prod', example, prefix)
 
-        console.log(`Deployed to: https://viewer.shapediver.com/${prefix}/${example}/index.html`)
+        console.log(name, example)
+
+        console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
+
+        const bucketName = 'shapediverviewer';
+        const prefix = 'v3/demos/' + name + '/';
+        const s3 = new AWS.S3({ maxRetries: 5 });
+
+        const directoryPathTest = 'examples/' + example + '/dist-prod/';
+        const fileContentsTest = <string[]>recursiveReadSync(directoryPathTest);
+        fileContentsTest.map(function (f, cb) {
+            s3.putObject({
+                Bucket: bucketName,
+                Key: prefix + example + '/' + f.substring(directoryPathTest.length, f.length).replace(/\\/g, '/'),
+                Body: pako.gzip(fs.readFileSync(f)),
+                ACL: 'public-read',
+                ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : 'text/plain',
+                CacheControl: 'max-age=3600',
+                ContentEncoding: 'gzip'
+            }, (err) => { if (err) console.log(err) });
+        });
+
+        console.log(`Deployed to: https://viewer.shapediver.com/${prefix}${example}/index.html`)
     } catch (e) {
         console.log(e)
     }
