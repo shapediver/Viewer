@@ -1,7 +1,7 @@
 import { CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { container } from 'tsyringe'
 import { LIGHTTYPE } from '@shapediver/viewer.rendering-engine.light-engine'
-import { RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERERTYPE, TEXTUREENCODING, TONEMAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   AbstractTreeNodeData,
   ITransformation,
@@ -11,7 +11,7 @@ import {
 } from '@shapediver/viewer.shared.node-tree'
 import {
   ENVIRONMENTMAP,
-  ENVIRONMENTMAP_CUBE,
+  ENVIRONMENTMAPCUBE,
   ThreejsData,
 } from '@shapediver/viewer.rendering-engine-threejs.standard'
 import { CustomData, GeometryData, MaterialData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent } from '@shapediver/viewer.shared.types'
@@ -61,7 +61,7 @@ export const api: Api = <Api>container.resolve(Api);
 export const settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
 export {
-    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, MATERIAL_ALPHA, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE
+    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, MATERIAL_ALPHA, EVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENTMAP, ENVIRONMENTMAPCUBE, TONEMAPPING, TEXTUREENCODING
 }
 
 export {

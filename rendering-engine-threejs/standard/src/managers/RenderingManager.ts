@@ -131,8 +131,9 @@ export class RenderingManager implements IManager {
         const renderer = new THREE.WebGLRenderer(Object.assign({ context }, renderingProperties));
         renderer.setPixelRatio(window.devicePixelRatio);
 
-        renderer.physicallyCorrectLights = false;
-        renderer.outputEncoding = THREE.LinearEncoding;
+        renderer.physicallyCorrectLights = true;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.NoToneMapping;
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.needsUpdate = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;

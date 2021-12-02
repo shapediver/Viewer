@@ -1,5 +1,5 @@
-import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from './IRenderingEngine'
+import { IRenderingEngine, RENDERERTYPE, TEXTUREENCODING, TONEMAPPING, VISIBILITYMODE } from './IRenderingEngine'
 
 export {
-  IRenderingEngine, RENDERERTYPE, VISIBILITYMODE
+  IRenderingEngine, RENDERERTYPE, VISIBILITYMODE, TEXTUREENCODING, TONEMAPPING
 }

@@ -5,7 +5,7 @@ import { ICamera } from './camera/ICamera'
 import { ILightScene } from './lights/ILightScene'
 import { IOrthographicCamera } from './camera/IOrthographicCamera'
 import { IPerspectiveCamera } from './camera/IPerspectiveCamera'
-import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IRenderingEngine, TEXTUREENCODING, TONEMAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { AnimationData, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
@@ -38,14 +38,19 @@ export interface IViewer extends IRenderingEngine {
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;
+    gridColor: string | number | vec3; 
     gridVisibility: boolean;
+    groundPlaneColor: string | number | vec3; 
     groundPlaneVisibility: boolean;
     lightSceneId: string;
+    outputEncoding: TEXTUREENCODING; 
     pointSize: number;
-    renderingSettings: { physicallyCorrectLights: boolean, envMapIntensity: number, envMapIntensityGroundPlane: number, groundPlaneColor: string, toneMapping: 0 | 1 | 2 | 3 | 4, toneMappingExposure: number, textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007, outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007, };
     shadows: boolean;
     show: boolean;
     showStatistics: boolean;
+    textureEncoding: TEXTUREENCODING; 
+    toneMapping: TONEMAPPING; 
+    toneMappingExposure: number;
 
     // #endregion Properties (29)
 

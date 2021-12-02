@@ -15,7 +15,7 @@ import {
 import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IRenderingEngine, RENDERERTYPE, TEXTUREENCODING, TONEMAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import { MATERIAL_SIDE, MaterialData, AnimationData, ISettingsEvent, IEnvironmentEvent, SDTFItemData, SDTFAttributeOverview, SDTFAttributeVisualizationData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -96,15 +96,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _lightScene: string = 'standard';
   private _logoDivElement: HTMLDivElement;
   private _pointSize: number = 1.0;
-  private _renderingSettings: {
-    physicallyCorrectLights: boolean,
-    textureEncoding: number,
-    outputEncoding: number
-  } = {
-      physicallyCorrectLights: false,
-      textureEncoding: THREE.LinearEncoding,
-      outputEncoding: THREE.LinearEncoding
-    };
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showStatistics: boolean = false;
@@ -374,6 +365,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._geometryLoader;
   }
 
+  public get gridColor(): string {
+    return this._environmentGeometryManager.gridColor;
+  }
+
+  public set gridColor(value: string) {
+    this._environmentGeometryManager.gridColor = value;
+  }
+
   public get gridVisibility(): boolean {
     return this._gridVisibility;
   }
@@ -381,6 +380,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set gridVisibility(value: boolean) {
     if (this._environmentGeometryManager.grid) this._environmentGeometryManager.grid.visible = value;
     this._gridVisibility = value;
+  }
+
+  public get groundPlaneColor(): string {
+    return this._environmentGeometryManager.groundPlaneColor;
+  }
+
+  public set groundPlaneColor(value: string) {
+    this._environmentGeometryManager.groundPlaneColor = value;
   }
 
   public get groundPlaneVisibility(): boolean {
@@ -432,6 +439,60 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this.renderingManager.minimalRendering;
   }
 
+  public get outputEncoding(): TEXTUREENCODING {
+    switch (this._renderer.outputEncoding) {
+      case (THREE.sRGBEncoding):
+        return TEXTUREENCODING.SRGB;
+      case (THREE.RGBEEncoding):
+        return TEXTUREENCODING.RGBE;
+      case (THREE.RGBM7Encoding):
+        return TEXTUREENCODING.RGBM7;
+      case (THREE.RGBM16Encoding):
+        return TEXTUREENCODING.RGBM16;
+      case (THREE.RGBDEncoding):
+        return TEXTUREENCODING.RGBD;
+      case (THREE.GammaEncoding):
+        return TEXTUREENCODING.GAMMA;  
+      case (THREE.LinearEncoding):
+      default:
+        return TEXTUREENCODING.LINEAR;
+    }
+  }
+
+  public set outputEncoding(value: TEXTUREENCODING) {
+    switch (value) {
+      case (TEXTUREENCODING.SRGB):
+        this._renderer.outputEncoding = THREE.sRGBEncoding;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
+        break;
+      case (TEXTUREENCODING.RGBE):
+        this._renderer.outputEncoding = THREE.RGBEEncoding;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
+        break;
+      case (TEXTUREENCODING.RGBM7):
+        this._renderer.outputEncoding = THREE.RGBM7Encoding;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
+        break;
+      case (TEXTUREENCODING.RGBM16):
+        this._renderer.outputEncoding = THREE.RGBM16Encoding;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
+        break;
+      case (TEXTUREENCODING.RGBD):
+        this._renderer.outputEncoding = THREE.RGBDEncoding;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
+        break;
+      case (TEXTUREENCODING.GAMMA):
+        this._renderer.outputEncoding = THREE.GammaEncoding;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
+        break;
+      case (TEXTUREENCODING.LINEAR):
+      default:
+        this._renderer.outputEncoding = THREE.LinearEncoding;
+        this._beautyRenderingManager.assignOutputEncoding(THREE.LinearEncoding);
+        break;
+    }
+  }
+
   public get pointSize(): number {
     return this._pointSize;
   }
@@ -447,37 +508,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get renderingManager(): RenderingManager {
     return this._renderingManager;
-  }
-
-  public get renderingSettings(): any {
-    return this._renderingSettings;
-  }
-
-  public set renderingSettings(value: any) {
-    this._renderingSettings = value;
-    if (value.envMapIntensity !== undefined)
-      this._materialLoader.assignEnvironmentMapIntensity(value.envMapIntensity);
-    if (value.envMapIntensityGroundPlane !== undefined)
-      this._environmentGeometryManager.assignGroundPlaneEnvironmentIntensity(value.envMapIntensityGroundPlane);
-    if (value.groundPlaneColor !== undefined)
-      this._environmentGeometryManager.assignGroundPlaneColor(value.groundPlaneColor)
-    if (value.toneMapping !== undefined)
-      this._renderer.toneMapping = value.toneMapping;
-    if (value.toneMappingExposure !== undefined)
-      this._renderer.toneMappingExposure = value.toneMappingExposure;
-    if (value.physicallyCorrectLights !== undefined)
-      this._renderer.physicallyCorrectLights = value.physicallyCorrectLights;
-    if (value.outputEncoding !== undefined) {
-      this._renderer.outputEncoding = value.outputEncoding;
-
-      if (value.outputEncoding === 3000 || value.outputEncoding === 3001) {
-        this._beautyRenderingManager.assignOutputEncoding(value.outputEncoding)
-      } else {
-        this._logger.warn(LOGGINGTOPIC.VIEWER, 'Output encoding of this type cannot be used in combination with Ambient Occlusion at the moment.')
-      }
-    }
-    if (value.textureEncoding !== undefined)
-      this._materialLoader.assignTextureEncoding(value.textureEncoding);
   }
 
   public get scene(): THREE.Scene {
@@ -522,6 +552,97 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get stateEngine(): StateEngine {
     return this._stateEngine;
+  }
+  
+  public get textureEncoding(): TEXTUREENCODING {
+    switch (this.materialLoader.textureEncoding) {
+      case (THREE.sRGBEncoding):
+        return TEXTUREENCODING.SRGB;
+      case (THREE.RGBEEncoding):
+        return TEXTUREENCODING.RGBE;
+      case (THREE.RGBM7Encoding):
+        return TEXTUREENCODING.RGBM7;
+      case (THREE.RGBM16Encoding):
+        return TEXTUREENCODING.RGBM16;
+      case (THREE.RGBDEncoding):
+        return TEXTUREENCODING.RGBD;
+      case (THREE.GammaEncoding):
+        return TEXTUREENCODING.GAMMA;  
+      case (THREE.LinearEncoding):
+      default:
+        return TEXTUREENCODING.LINEAR;
+    }
+  }
+
+  public set textureEncoding(value: TEXTUREENCODING) {
+    switch (value) {
+      case (TEXTUREENCODING.SRGB):
+        this.materialLoader.textureEncoding = THREE.sRGBEncoding;
+        break;
+      case (TEXTUREENCODING.RGBE):
+        this.materialLoader.textureEncoding = THREE.RGBEEncoding;
+        break;
+      case (TEXTUREENCODING.RGBM7):
+        this.materialLoader.textureEncoding = THREE.RGBM7Encoding;
+        break;
+      case (TEXTUREENCODING.RGBM16):
+        this.materialLoader.textureEncoding = THREE.RGBM16Encoding;
+        break;
+      case (TEXTUREENCODING.RGBD):
+        this.materialLoader.textureEncoding = THREE.RGBDEncoding;
+        break;
+      case (TEXTUREENCODING.GAMMA):
+        this.materialLoader.textureEncoding = THREE.GammaEncoding;
+        break;
+      case (TEXTUREENCODING.LINEAR):
+      default:
+        this.materialLoader.textureEncoding = THREE.LinearEncoding;
+    }
+  }
+
+  public get toneMapping(): TONEMAPPING {
+    switch (this._renderer.toneMapping) {
+      case (THREE.LinearToneMapping):
+        return TONEMAPPING.LINEAR;
+      case (THREE.ReinhardToneMapping):
+        return TONEMAPPING.REINHARD;
+      case (THREE.CineonToneMapping):
+        return TONEMAPPING.CINEON;
+      case (THREE.ACESFilmicToneMapping):
+        return TONEMAPPING.ACES_FILMIC;
+      case (THREE.NoToneMapping):
+      default:
+        return TONEMAPPING.NONE;
+    }
+  }
+
+  public set toneMapping(value: TONEMAPPING) {
+    switch (value) {
+      case (TONEMAPPING.LINEAR):
+        this._renderer.toneMapping = THREE.LinearToneMapping;
+        break;
+      case (TONEMAPPING.REINHARD):
+        this._renderer.toneMapping = THREE.ReinhardToneMapping;
+        break;
+      case (TONEMAPPING.CINEON):
+        this._renderer.toneMapping = THREE.CineonToneMapping;
+        break;
+      case (TONEMAPPING.ACES_FILMIC):
+        this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        break;
+      case (TONEMAPPING.NONE):
+      default:
+        this._renderer.toneMapping = THREE.NoToneMapping;
+    }
+    this.materialLoader.updateMaterials();
+  }
+
+  public get toneMappingExposure(): number {
+    return this._renderer.toneMappingExposure;
+  }
+
+  public set toneMappingExposure(value: number) {
+    this._renderer.toneMappingExposure = value;
   }
 
   public get type(): RENDERERTYPE {
