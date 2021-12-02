@@ -58,4 +58,10 @@ const models: { [key: string]: { ticket: string, modelViewUrl: string }} =
     const { ticket, modelViewUrl } = models['Shelf'];
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     let session = await api.createSession({ ticket, modelViewUrl, id: 'mySession'});
+
+    const file = await session.uploadGLTF('gltf');
+    const a = document.createElement('a');
+    a.href = file + '.glb';
+    document.body.appendChild(a);
+    a.click();
 })();
