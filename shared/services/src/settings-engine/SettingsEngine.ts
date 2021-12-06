@@ -23,7 +23,7 @@ export class SettingsEngine {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _settings: ISettingsV3 = DefaultsV3();
 
-    private _version?: '1.0' | '2.0' | '3.0';
+    private _settings_version?: '1.0' | '2.0' | '3.0';
 
     // #endregion Properties (8)
 
@@ -74,7 +74,7 @@ export class SettingsEngine {
     // #region Public Methods (4)
 
     public convertToTargetVersion(): any {
-        return convert(this._settings, this._version || '3.0');
+        return convert(this._settings, this._settings_version || '3.0');
     }
 
     public flatten() {
@@ -98,22 +98,47 @@ export class SettingsEngine {
     }
 
     public loadSettings(json: any, sessionId: string, loadAsPrimary: boolean = false) {
-        if(JSON.stringify(json) !== JSON.stringify({})) {
-            try { validate(json, '3.0'); this._version = '3.0'; } catch (e) { if(!(e.message && (<string>e.message).includes('The settings do have a different version than the target version.'))) this._logger.error(LOGGINGTOPIC.SETTINGS, new SDError(e.message, e), 'Settings could not be validated.', false, true); }
-            try { validate(json, '2.0'); this._version = '2.0'; } catch (e) {  }
-            try { validate(json, '1.0'); this._version = '1.0'; } catch (e) {  }
-        }
+        if (JSON.stringify(json) !== JSON.stringify({})) {
+            try { 
+                validate(json, '1.0'); 
+                this._settings_version = '1.0'; 
+            
+                (<any>this._settings) = convert(json, '3.0');
+                this.cleanSettings(this._settings);
 
-        if(!this._version) {
-            this._version = '3.0';
-            (<any>this._settings) = DefaultsV3();
+                return;
+            } catch (e) {}
+            
+            try { 
+                validate(json, '2.0'); 
+                this._settings_version = '2.0'; 
+            
+                (<any>this._settings) = convert(json, '3.0');
+                this.cleanSettings(this._settings);
+
+                return;
+            } catch (e) {}
+
+            try { 
+                validate(json, '3.0'); 
+                this._settings_version = '3.0'; 
+            
+                (<any>this._settings) = convert(json, '3.0');
+                this.cleanSettings(this._settings);
+
+                return;
+            } catch (e) {
+                this._logger.error(LOGGINGTOPIC.SETTINGS, new SDError(e.message, e), 'Settings could not be validated.', false, true);
+            }
         } else {
-            (<any>this._settings) = convert(json, '3.0');
-            this.cleanSettings(this._settings);
+            this._settings_version = '3.0';
+            (<any>this._settings) = DefaultsV3();
+            return;
         }
     }
 
     public reset() {
+        this._settings_version = undefined;
         (<any>this._settings) = DefaultsV3();
     }
 
