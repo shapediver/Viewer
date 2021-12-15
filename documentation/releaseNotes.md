@@ -8,7 +8,12 @@
 * __Commit:__ f0c0b3207bd638f0fad5a8f8bf15aa349a152efa
 <!--- VERSION_END -->
 
-## Version 1.9.0 - `Guardians of the Galaxy`
+## Version 1.10.0 - `Jurassic Park`
+- sdk2 implementation
+- test adaptions
+- error responses
+
+## Version 1.9.0 - `I am Legend`
 - attribute visualization feature
 - cdn adaptions
 
