@@ -1,4 +1,4 @@
-import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinition } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinition } from "@shapediver/sdk.geometry-api-sdk-v2";
 
 export interface IExport extends ShapeDiverResponseExportDefinition {
     

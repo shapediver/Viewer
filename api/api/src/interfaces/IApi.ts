@@ -1,4 +1,3 @@
-import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { IEvent, LOGGINGLEVEL, MAINEVENTTYPE } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
@@ -7,16 +6,18 @@ import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ISession } from './session/ISession'
 import { IViewer } from './viewer/IViewer'
 import { SDTFOverview } from '@shapediver/viewer.shared.types'
+import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export interface IApi {
-  // #region Properties (10)
+  // #region Properties (11)
 
   readonly sceneTree: Tree;
   readonly sessions: { [key: string]: ISession };
   readonly viewers: { [key: string]: IViewer };
 
-  automaticUpdate: boolean;
   autoScaling: boolean;
+  automaticUpdate: boolean;
   enableAR: boolean;
   globalRotation: vec3;
   globalScale: vec3;
@@ -24,7 +25,7 @@ export interface IApi {
   loggingLevel: LOGGINGLEVEL;
   showMessages: boolean;
 
-  // #endregion Properties (10)
+  // #endregion Properties (11)
 
   // #region Public Methods (11)
 
@@ -36,21 +37,19 @@ export interface IApi {
    * @returns 
    */
   addListener(type: string | MAINEVENTTYPE, cb: (event: IEvent) => void): string;
-
   /**
    * Update all or some settings of the primary session and the viewers via a ShapeDiverResponseBase of another model.
    * 
    * @param response 
    * @param sections 
    */
-  applySettings( response: ShapeDiverResponseBase, sections?: { 
+  applySettings( response: ShapeDiverResponseBase | ShapeDiverResponseDto, sections?: { 
     session?: { 
       parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean },
       export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
     },
     viewer?: { scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
   }): Promise<void>;
-  
   /**
    * Closes the session with the specified id.
    * The geometry will be removed and the settings will be reset (if this session was used for the settings).
@@ -60,7 +59,6 @@ export interface IApi {
    * @returns 
    */
   closeSession(id: string): Promise<boolean>;
-  
   /**
    * Closes the viewer with the specified id.
    * 
@@ -68,14 +66,12 @@ export interface IApi {
    * @returns 
    */
   closeViewer(id: string): Promise<boolean>;
-  
   /**
    * Converts the whole scene (without the groundplane or grid) into a GlTF v2.
    * 
    * @returns
    */
   convertSceneToGLTF(): Promise<Blob>;
-  
   /**
    * Create and initialize a session with the provided ticket and modelViewUrl.
    * An id can be provided. This id can be used to retrieve this object later on.
@@ -120,7 +116,6 @@ export interface IApi {
    * @returns 
    */
   createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer>;
-  
   /**
    * Removes an event listener.
    * 
@@ -128,13 +123,11 @@ export interface IApi {
    * @returns 
    */
   removeListener(id: string): boolean;
-  
   /**
    * Update all viewers.
    * The viewers are updated with all current changes in the scene tree.
    */
   update(): void;
-  
   /**
    * View the current scene in AR.
    * 
@@ -147,7 +140,6 @@ export interface IApi {
    * @param androidOptions 
    */
   viewInAR(androidOptions?: { title?: string, resizable?: boolean, fallback_url?: string }): Promise<void>;
-  
   /**
    * Determines if the current devices supports the viewing in AR.
    * 

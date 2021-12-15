@@ -1,4 +1,4 @@
-import { ShapeDiverResponseOutput } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 export interface IOutput extends ShapeDiverResponseOutput {

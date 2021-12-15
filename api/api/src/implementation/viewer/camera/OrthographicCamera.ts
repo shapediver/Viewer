@@ -3,7 +3,7 @@ import {
   OrthographicCamera as OrthographicCameraLogic,
   OrthographicCameraControls as OrthographicCameraControlsLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
@@ -37,8 +37,8 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
             this.#viewer = viewer;
             this.#controls = new OrthographicCameraControls(<OrthographicCameraControlsLogic>camera.controls, viewer);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).constructor: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor`, e);
         }
     }
 
@@ -63,8 +63,8 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
             this.#viewer.update();
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction: direction was set to: ${value}`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).direction: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction`, e);
         }
     }
 

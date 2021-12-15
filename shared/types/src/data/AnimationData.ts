@@ -1,5 +1,5 @@
 import { AbstractTreeNodeData, ITransformation, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { mat4 } from 'gl-matrix';
+import { mat4, quat, vec3, vec4 } from 'gl-matrix';
 
 export type AnimationTrack = {
     node: TreeNode,
@@ -122,7 +122,7 @@ export class AnimationData extends AbstractTreeNodeData {
         for (let i = 0; i < this.#tracks.length; i++) {
             const track = this.#tracks[i];
             const idleTransformation = track.node.transformations.filter(t => t.id === 'gltf_matrix');
-            if(idleTransformation) {
+            if (idleTransformation) {
                 track.previousMatrix = idleTransformation[0];
                 track.node.transformations = track.node.transformations.filter((el) => {
                     return !idleTransformation.includes(el);
@@ -132,7 +132,7 @@ export class AnimationData extends AbstractTreeNodeData {
     }
 
     public stopAnimation() {
-        if(this.reset) {
+        if (this.reset) {
             for (let i = 0; i < this.#tracks.length; i++) {
                 const track = this.#tracks[i];
                 const id = this.id + '_' + i;
@@ -142,6 +142,40 @@ export class AnimationData extends AbstractTreeNodeData {
                 });
                 if (track.previousMatrix) track.node.transformations.push(track.previousMatrix);
             }
+        } else {
+            for (let i = 0; i < this.#tracks.length; i++) {
+                const track = this.#tracks[i];
+                const id = this.id + '_' + i;
+
+                const prevAnimation = track.node.transformations.filter(t => t.id === id);
+                track.node.transformations = track.node.transformations.filter((el) => {
+                    return !prevAnimation.includes(el);
+                });
+
+                const j = track.times.length-1;
+
+                if (track.path === 'rotation') {
+                    let quaternion: quat = quat.fromValues(track.values[j * 4 + 0], track.values[j * 4 + 1], track.values[j * 4 + 2], track.values[j * 4 + 3]);
+                    track.node.transformations.push({
+                        id,
+                        matrix: mat4.fromQuat(mat4.create(), quaternion)
+                    })
+                } else if (track.path === 'translation') {
+                    let vector: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
+                    track.node.transformations.push({
+                        id,
+                        matrix: mat4.fromTranslation(mat4.create(), vector)
+                    })
+                } else if (track.path === 'scale') {
+                    let vector: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
+                    track.node.transformations.push({
+                        id,
+                        matrix: mat4.fromScaling(mat4.create(), vector)
+                    })
+                }
+            }
+
+            
         }
         this.#animationTime = -1;
         this.#started = false;

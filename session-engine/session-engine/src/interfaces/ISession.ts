@@ -1,27 +1,33 @@
-import {
-  ShapeDiverResponseExport,
-  ShapeDiverResponseOutput,
-  ShapeDiverResponseParameter,
-} from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseExport, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 export interface ISession {
-    id: string;
-    ticket: string;
-    modelViewUrl: string;
-    authorTicket?: boolean;
-    bearerToken?: string;
-    initialized: boolean;
+    // #region Properties (9)
 
-    parameters: { [key: string]: ShapeDiverResponseParameter };
+    bearerToken?: string;
+    canUploadGLTF: boolean;
     exports: { [key: string]: ShapeDiverResponseExport };
+    id: string;
+    initialized: boolean;
+    modelViewUrl: string;
     outputs: { [key: string]: ShapeDiverResponseOutput };
+    parameters: { [key: string]: ShapeDiverResponseParameter };
+    refreshBearerToken: () => string;
+    ticket: string;
+    viewerSettings?: object;
+
+    // #endregion Properties (9)
+
+    // #region Public Methods (4)
 
     customize(cancelRequest: () => boolean): Promise<TreeNode>;
-    loadOutputs(parameters: { [key: string]: string }, cancelRequest: () => boolean): Promise<TreeNode>;
     init(parameterValues?: {
       [key: string]: string;
     }): Promise<void>;
+    loadOutputs(cancelRequest: () => boolean): Promise<TreeNode>;
+    requestExport(exportId: string, parameters: { [key: string]: string }): Promise<ShapeDiverResponseExport>;
+    uploadFile(parameterId: string, data: File, type: string): Promise<string>;
+    uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<string>;
 
-    refreshBearerToken: () => string;
+    // #endregion Public Methods (4)
 }

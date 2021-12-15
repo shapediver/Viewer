@@ -1,6 +1,6 @@
-import { ShapeDiverResponseParameter } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { HttpClient, Logger, LOGGINGTOPIC, MimeTypeUtils, SDError, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { HttpClient, Logger, LOGGINGTOPIC, MimeTypeUtils, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { IFileParameter } from '../../interfaces/session/IFileParameter'
@@ -27,8 +27,8 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
             this.#session = session;
             this.#sessionEngine = sessionEngine;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Parameter(${this.id}).constructor: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).constructor`, e);
         }
     }
 
@@ -53,9 +53,8 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
             );
 
             if (data.size === 0) {
-                const error = new SDError(`Parameter(${this.id}).upload: Error uploading FileParameter, file size was 0.`);
-                this.#logger.warn(LOGGINGTOPIC.PARAMETER, error.message);
-                throw error;
+                const error = new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, file size was 0.`);
+                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
             }
 
             let types = [data.type];
@@ -64,7 +63,7 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
             // get all mimeTypes that are possible for these endings
             endings.forEach((e: string) => types = types.concat(this.#mimeTypeUtils.guessMimeTypeFromFilename(e)));
 
-            let type;
+            let type: string;
             // check if one of the mime types is allowed
             let allowedType = false;
             for(let i = 0; i < types.length; i++) {
@@ -76,34 +75,16 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
             }
 
             if(!allowedType) {
-                const error = new SDError(`Parameter(${this.id}).upload: Error uploading FileParameter, type of data (${data.type}) is not a valid type. Has to be ${this.format}.`);
-                this.#logger.warn(LOGGINGTOPIC.PARAMETER, error.message);
-                throw error;
+                const error = new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, type of data (${data.type}) is not a valid type. Has to be ${this.format}.`);
+                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
             }
 
             this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
-            try {
-                let uploadReply = (
-                        await this.#sessionEngine.sessionCommunication(
-                            this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].href!, 
-                            this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'upload')[0].method!.toLowerCase()!, 
-                            { [this.id]: { size: data.size, format: type } }, 
-                            'application/json'
-                        )
-                    ).data;
-                this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Received reply ${JSON.stringify(uploadReply)}.`);
-                await this.#httpClient.put(uploadReply[this.id].href, { data, headers: { 'Content-Type': type }, });
-                return uploadReply[this.id].id;
-            } catch (e) {
-                if (e.response && e.response.status) {
-                    throw this.#logger.httpError(LOGGINGTOPIC.PARAMETER, e, `Parameter(${this.id}).upload: Upload failed.`, e.response.status, true);
-                } else {
-                    throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Parameter(${this.id}).upload: Upload failed.`, true);
-                }
-            }
+
+            return await this.#sessionEngine.uploadFile(this.id, data, type!)
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Parameter(${this.id}).upload: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload`, e);
         }
     }
 

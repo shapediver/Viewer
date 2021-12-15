@@ -1,10 +1,6 @@
-import {
-  ShapeDiverResponseBase,
-  ShapeDiverResponseExport,
-  ShapeDiverResponseExportDefinitionType,
-} from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { IExport } from '../../interfaces/session/IExport'
@@ -50,8 +46,8 @@ export class Export implements IExport {
 
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${exportDef.id}).constructor: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${exportDef.id}).constructor`, e);
     }
   }
 
@@ -74,8 +70,8 @@ export class Export implements IExport {
       this.#displayname = value;
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).displayname: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname`, e);
     }
   }
 
@@ -90,8 +86,8 @@ export class Export implements IExport {
       this.#hidden = value;
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).hidden: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden`, e);
     }
   }
 
@@ -114,8 +110,8 @@ export class Export implements IExport {
       this.#order = value;
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Order was updated to ${this.order}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).order: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order`, e);
     }
   }
 
@@ -130,8 +126,8 @@ export class Export implements IExport {
       this.#tooltip = value;
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).tooltip: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip`, e);
     }
   }
 
@@ -157,63 +153,12 @@ export class Export implements IExport {
         exportParameters[parameter] = parameters[parameter] || parameters[parameter] === '' ? parameters[parameter] : currentParameters[parameter];
 
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
-      try {
-        let exportReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export')[0].method!.toLowerCase()!, { exports: { id: this.#id }, parameters: exportParameters }, 'application/json')).data;
-        this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Received export reply ${JSON.stringify(exportReply)}.`);
-        let exportResult = <ShapeDiverResponseExport>exportReply.exports![this.#id];
-        this.#sessionEngine.mergeResponses(this.#sessionEngine.sessionResponse, { version: this.#sessionEngine.sessionResponse.version, actions: exportReply.actions });
-        if ('delay' in exportResult) {
-          await new Promise(resolve => setTimeout(resolve, exportResult.delay!));
-          exportResult = (await this.cacheRequest(exportResult.version!))!;
-        }
-        return exportResult;
-      } catch (e) {
-        if (e.response && e.response.status) {
-          throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).request: Request failed.`, e.response.status, true);
-        } else {
-          throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).request: Request failed.`, true);
-        }
-      }
+      return await this.#sessionEngine.requestExport(this.id, exportParameters);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).request: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request`, e);
     }
   }
 
   // #endregion Public Methods (1)
-
-  // #region Private Methods (1)
-
-  /**
-   * Internal cache request for the export request.
-   * 
-   * @param version 
-   * @returns 
-   */
-  private async cacheRequest(version: string): Promise<ShapeDiverResponseExport> {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).cacheRequest: Sending cache request.`);
-      try {
-        let exportCacheReply = <ShapeDiverResponseBase>(await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].href!, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'export-cache')[0].method!.toLowerCase()!, { [this.#id]: version }, 'application/json')).data;
-        this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).cacheRequest: Received export cache reply ${JSON.stringify(exportCacheReply)}.`);
-        let exportCacheResult = <ShapeDiverResponseExport>exportCacheReply.exports![this.#id];
-        if ('delay' in exportCacheResult) {
-          await new Promise(resolve => setTimeout(resolve, exportCacheResult.delay!));
-          exportCacheResult = (await this.cacheRequest(version))!;
-        }
-        return exportCacheResult;
-      } catch (e) {
-        if (e.response && e.response.status) {
-          throw this.#logger.httpError(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).cacheRequest: Cache request failed.`, e.response.status, true);
-        } else {
-          throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).cacheRequest: Cache request failed.`, true);
-        }
-      }
-    } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Export(${this.#id}).cacheRequest: Something unexpected happened.`, true)
-    }
-  }
-
-  // #endregion Private Methods (1)
 }

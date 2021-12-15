@@ -1,56 +1,80 @@
 import { container, singleton } from 'tsyringe'
 import { HTMLElementAnchorData } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Logger, LOGGINGTOPIC, SDError, Converter, InputValidator } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, Converter, ShapeDiverViewerDataProcessingError, InputValidator } from '@shapediver/viewer.shared.services'
 import { vec3, vec4 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
-import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 interface Tag2D {
-    version: string,
+    // #region Properties (4)
+
     color: any,
-    text: string,
     location: { X: number, Y: number, Z: number }
+
+    text: string,
+    version: string,
+
+    // #endregion Properties (4)
 }
 
 interface AnchorDataImage {
-    src: string,
-    height: number | string,
-    width: number | string,
+    // #region Properties (6)
+
     alt: string,
+    height: number | string,
     hidden?: boolean,
     position?: {
         horizontal?: string,
         vertical?: string
     }
+
+    src: string,
+    width: number | string,
+
+    // #endregion Properties (6)
 }
 
 interface AnchorDataText {
+    // #region Properties (5)
+
     color?: any,
-    text: string,
     hidden?: boolean,
     position?: {
         horizontal?: string,
         vertical?: string
     },
+    text: string,
     textAlign?: string
+
+    // #endregion Properties (5)
 }
 
 interface Anchor {
-    version: string,
-    location: { x: number, y: number, z: number },
+    // #region Properties (7)
+
     data?: AnchorDataImage | AnchorDataText,
-    viewports?: [],
     format?: 'text' | 'image',
     hideable?: boolean,
     intersectionTarget?: { min: { x: number, y: number, z: number }, max: { x: number, y: number, z: number } } | string | string[]
+    location: { x: number, y: number, z: number },
+    version: string,
+    viewports?: [],
+
+    // #endregion Properties (7)
 }
 
 @singleton()
 export class HTMLElementAnchorEngine {
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    // #region Properties (2)
+
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+
+    // #endregion Properties (2)
+
+    // #region Public Methods (1)
 
     /**
      * Load the material content into a scene graph node.
@@ -58,7 +82,7 @@ export class HTMLElementAnchorEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         try {
             const data = content.data;
             const node = new TreeNode('htmlElementAnchors');
@@ -139,15 +163,16 @@ export class HTMLElementAnchorEngine {
                             element.viewports,
                             intersectionTarget
                         ));
-
                     }
                     this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, `HTMLElementAnchorEngine.load: The Anchor does not have a recognized format: ${element.format}`);
                 });
             }
             return node;
         } catch (e) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, 'HTMLElementAnchorEngine.load: Loading of anchors failed.');
-            return new TreeNode();
+            const error = new ShapeDiverViewerDataProcessingError('HTMLElementAnchorEngine.load: Loading of anchors failed.');
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `HTMLElementAnchorEngine.load`, error);
         }
     }
+
+    // #endregion Public Methods (1)
 }

@@ -1,6 +1,6 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { Converter, HttpClient, ImageLoader, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, ImageLoader, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import {
   MapData,
   MATERIAL_SIDE,
@@ -9,76 +9,76 @@ import {
   TEXTURE_WRAPPING,
 } from '@shapediver/viewer.shared.types'
 import { vec2, vec3, vec4 } from 'gl-matrix'
-import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
 
 import { materialDatabase } from './materialDatabase'
+import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 interface IPresetMaterialDefinition {
-    // #region Properties (13)
+  // #region Properties (13)
 
-    alphaThreshold?: number;
-    bitmaptexture?: string;
-    bumpAmplitude?: number;
-    bumptexture?: string;
-    color?: number[];
-    metalness?: number;
-    metalnesstexture?: string;
-    normaltexture?: string;
-    roughness?: number;
-    roughnesstexture?: string;
-    side?: string;
-    transparency?: number;
-    transparencytexture?: string;
+  alphaThreshold?: number;
+  bitmaptexture?: string;
+  bumpAmplitude?: number;
+  bumptexture?: string;
+  color?: number[];
+  metalness?: number;
+  metalnesstexture?: string;
+  normaltexture?: string;
+  roughness?: number;
+  roughnesstexture?: string;
+  side?: string;
+  transparency?: number;
+  transparencytexture?: string;
 
-    // #endregion Properties (13)
+  // #endregion Properties (13)
 }
 
 interface ITexture {
-    // #region Properties (13)
+  // #region Properties (9)
 
-    href?: string,
-    canvas?: any,
-    offset?: number[],
-    repeat?: number[],
-    rotation?: number,
-    center?: number[],
-    color?: number[],
-    wrapS?: number,
-    wrapT?: number
+  canvas?: any,
+  center?: number[],
+  color?: number[],
+  href?: string,
+  offset?: number[],
+  repeat?: number[],
+  rotation?: number,
+  wrapS?: number,
+  wrapT?: number
 
-    // #endregion Properties (13)
+  // #endregion Properties (9)
 }
 
 @singleton()
 export class MaterialEngine {
-    // #region Properties (2)
+  // #region Properties (3)
 
-    private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+  private readonly _converter: Converter = <Converter>container.resolve(Converter);
+  private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
+  private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-    // #endregion Properties (2)
+  // #endregion Properties (3)
 
-    // #region Constructors (1)
+  // #region Constructors (1)
 
-    constructor() {}
+  constructor() {}
 
-    // #endregion Constructors (1)
+  // #endregion Constructors (1)
 
-    // #region Public Methods (1)
+  // #region Public Methods (1)
 
-    /**
+  /**
      * Load the material content into a scene graph node.
      * 
      * @param content the material content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
+  public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         const node = new TreeNode(content.name || 'material');
     
         if(!content) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('MaterialEngine.loadContent: Invalid content was provided to material engine.'));
-            return node;
+            const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadContent`, error);
         }
 
         const material = new MaterialData();
@@ -92,27 +92,30 @@ export class MaterialEngine {
                 // gem material https://shapediver.atlassian.net/browse/SS-2514
             } else {
                 if (content.data.version) {
-                    if(content.data.version === '1.0')
+                    if(content.data.version === '1.0') {
                         await this.loadMaterialV1(content.data, material);
-                    
-                    if(content.data.version === '2.0')
+                    } else if(content.data.version === '2.0') {
                         await this.loadMaterialV2(content.data, material);
-                    
-                    if(content.data.version === '3.0')
+                    } else if(content.data.version === '3.0') {
                         await this.loadMaterialV3(content.data, material);
+                    } else {
+                        const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Material data version not supported.');
+                        throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadContent`, error);
+                    }
                 }
             }
         } else {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('MaterialEngine.loadContent: No material data was provided to material engine.'));
+            const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: No material data was provided to material engine.');
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadContent`, error);
         }
         return node;
     }
 
-    // #endregion Public Methods (1)
+  // #endregion Public Methods (1)
 
-    // #region Private Methods (8)
+  // #region Private Methods (9)
 
-    private async assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, material: MaterialData) {
+  private async assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, material: MaterialData) {
         if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture) {
             const map = await this.loadMap(generalDefinition.transparencytexture, id.class);
             if(map) material.alphaMap = map;
@@ -146,7 +149,7 @@ export class MaterialEngine {
         if (generalDefinition.side && !specificDefinition.side) material.side = generalDefinition.side === 'front' ? MATERIAL_SIDE.FRONT : generalDefinition.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
     }
 
-    private async assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, material: MaterialData) {
+  private async assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, material: MaterialData) {
         if (specificDefinition.transparencytexture) {
             const map = await this.loadMap(specificDefinition.transparencytexture, id.class + '/' + id.specific);
             if(map) material.alphaMap = map;
@@ -180,7 +183,7 @@ export class MaterialEngine {
         if (specificDefinition.side) material.side = specificDefinition.side === 'front' ? MATERIAL_SIDE.FRONT : specificDefinition.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
     }
 
-    private getClassAndSpecificID(id: number): { class: string, specific: string } {
+  private getClassAndSpecificID(id: number): { class: string, specific: string } {
         // for a while, we had documented the presets to be 10, 20, 30 and 40 here, we allow for the few cases where this was used to succeed
         if (id < 100 && id % 10 == 0) id /= 10;
 
@@ -198,7 +201,7 @@ export class MaterialEngine {
         };
     }
 
-    private async loadMap(url: string, id?: string): Promise<MapData | null> {
+  private async loadMap(url: string, id?: string): Promise<MapData | null> {
         let image: HTMLImageElement;
         try {
             if(!id) {
@@ -207,21 +210,14 @@ export class MaterialEngine {
                 image = await this._imageLoader.load('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
             }
         } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMap: Loading of map failed.`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMap: Loading of map failed.`, false)
-            }
-            return null;
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMap`, e);
         }
         return new MapData(image);        
     }
 
-    
-    private async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
+  private async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
         let image: HTMLImageElement;
         try {
-
             // if(texture.href) {
                 image = await this._imageLoader.load(texture.href!);  
             // } else {
@@ -229,12 +225,7 @@ export class MaterialEngine {
             //     // canvas https://shapediver.atlassian.net/browse/SS-3106
             // }
         } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMapWithProperties: Loading of map failed.`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `MaterialEngine.loadMapWithProperties: Loading of map failed.`, false)
-            }
-            return null;
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMapWithProperties`, e);
         }
 
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;
@@ -247,7 +238,7 @@ export class MaterialEngine {
         return new MapData(image, wrapS, wrapT, TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, TEXTURE_FILTERING.LINEAR, center, this._converter.toColor(color), offset, repeat, texture.rotation || 0);        
     }
 
-    private async loadMaterialV1(data: {
+  private async loadMaterialV1(data: {
         ambient?: number[],
         diffuse?: number[],
         color?: number[],
@@ -259,7 +250,6 @@ export class MaterialEngine {
         bumptexture?: string,
         transparencytexture?: string,
     }, material: MaterialData) {
-
         // ambient is ignored
         
         if(data.color) {
@@ -297,7 +287,7 @@ export class MaterialEngine {
         }
     }
 
-    private async loadMaterialV2(data: {
+  private async loadMaterialV2(data: {
         color?: number[],
         side?: string,
         metalness?: number,
@@ -312,7 +302,6 @@ export class MaterialEngine {
         transparencytexture?: string,
         line?: any
     }, material: MaterialData) {
-
         // ambient is ignored
         
         if(data.color) 
@@ -365,8 +354,7 @@ export class MaterialEngine {
         // line material https://shapediver.atlassian.net/browse/SS-2272
     }
 
- 
-    private async loadMaterialV3(data: {
+  private async loadMaterialV3(data: {
         color?: number[],
         side?: string,
         metalness?: number,
@@ -385,7 +373,6 @@ export class MaterialEngine {
         transparencytexture?: ITexture,
         line?: any
     }, material: MaterialData) {
-
         // ambient is ignored
         
         if(data.color) 
@@ -455,5 +442,5 @@ export class MaterialEngine {
         }
     }
 
-    // #endregion Private Methods (8)
+  // #endregion Private Methods (9)
 }

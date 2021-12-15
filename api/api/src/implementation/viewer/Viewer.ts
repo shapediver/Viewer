@@ -14,7 +14,8 @@ import {
   Logger,
   LOGGINGTOPIC,
   PerformanceEvaluator,
-  SDError,
+  ShapeDiverBackendError,
+  ShapeDiverViewerError,
   StateEngine,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
@@ -31,6 +32,7 @@ import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { LightScene } from './lights/LightScene'
 import { ISDObject, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { IViewer } from '../../interfaces/viewer/IViewer'
+import { ShapeDiverViewerLightError } from '../../../../../shared/services/dist/logger/ShapeDiverViewerError'
 
 @injectable()
 export class Viewer implements IViewer {
@@ -83,8 +85,8 @@ export class Viewer implements IViewer {
 
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer created.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${properties.id}).constructor: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor`, e);
     }
   }
 
@@ -104,8 +106,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: ambientOcclusion was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).ambientOcclusion: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion`, e);
     }
   }
 
@@ -121,8 +123,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity: ambientOcclusionIntensity was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).ambientOcclusionIntensity: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity`, e);
     }
   }
 
@@ -142,8 +144,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: automaticResizing was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).automaticResizing: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing`, e);
     }
   }
 
@@ -159,8 +161,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).beautyRenderBlendingDuration: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration`, e);
     }
   }
 
@@ -176,8 +178,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: beautyRenderDelay was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).beautyRenderDelay: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay`, e);
     }
   }
 
@@ -193,8 +195,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: blur was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).blur: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur`, e);
     }
   }
 
@@ -210,8 +212,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).blurSceneWhenBusy: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, e);
     }
   }
 
@@ -252,8 +254,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: clearAlpha was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).clearAlpha: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha`, e);
     }
   }
 
@@ -269,8 +271,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor: clearColor was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).clearColor: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor`, e);
     }
   }
 
@@ -298,8 +300,8 @@ export class Viewer implements IViewer {
     
       this.#renderingEngine.environmentMap = value;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).environmentMap: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, e);
     }
   }
 
@@ -315,8 +317,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground: environmentMapAsBackground was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).environmentMapAsBackground: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground`, e);
     }
   }
 
@@ -332,8 +334,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: environmentMapResolution was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).environmentMapResolution: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution`, e);
     }
   }
 
@@ -349,8 +351,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: gridVisibility was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).gridVisibility: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility`, e);
     }
   }
 
@@ -366,8 +368,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).groundPlaneVisibility: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility`, e);
     }
   }
 
@@ -393,13 +395,12 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene: Updating LightScene to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene`, value, 'string');
       if (this.assignLightScene(value)) {
-        this.#renderingEngine.lightScene = value;
         this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene: lightScene was set to: ${value}`);
       }
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).lightScene: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).lightScene`, e);
     }
   }
 
@@ -430,8 +431,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: pointSize was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).pointSize: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize`, e);
     }
   }
 
@@ -464,8 +465,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings: rendering settings were set to: ${JSON.stringify(value)}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).renderingSettings: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings`, e);
     }
   }
 
@@ -481,8 +482,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows: shadows was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).shadows: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows`, e);
     }
   }
 
@@ -498,8 +499,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show: show was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).show: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show`, e);
     }
   }
 
@@ -515,8 +516,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics: showStatistics was set to: ${value}`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).showStatistics: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics`, e);
     }
   }
 
@@ -533,8 +534,8 @@ export class Viewer implements IViewer {
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).type: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, e);
     }
   }
 
@@ -554,8 +555,8 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener: Adding new canvas event listener.`);
       return this.#renderingEngine.domEventEngine.addDomEventListener(listener);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).addCanvasEventListener: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener`, e);
     }
   }
 
@@ -581,8 +582,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Camera with id ${id} assigned.`);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).assignCamera: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).assignCamera`, e);
     }
   }
 
@@ -595,14 +596,16 @@ export class Viewer implements IViewer {
         return true;
       }
       const r = this.#renderingEngine.lightEngine.assignLightScene(id);
-      if (r) this.#renderingEngine.lightScene = id;
       if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigned light scene with id ${id}.`);
-      if (!r) this.#logger.error(LOGGINGTOPIC.LIGHT, new SDError(`Viewer(${this.id}).assignLightScene: Could not assign light scene with id ${id}.`));
+      if (!r) {
+        const error = new ShapeDiverViewerLightError(`Viewer(${this.id}).assignLightScene: Could not assign light scene.`);
+        throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).assignLightScene`, error);
+      }
       this.update();
       return r;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).assignLightScene: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).assignLightScene`, e);
     }
   }
 
@@ -616,8 +619,8 @@ export class Viewer implements IViewer {
       this.assignCamera(cameraLogic.id);
       return this.cameras[cameraLogic.id];
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createCamera: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).createCamera`, e);
     }
   }
 
@@ -634,8 +637,8 @@ export class Viewer implements IViewer {
       this.update();
       return this.lightScenes[lightSceneLogic.id];
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).createLightScene: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).createLightScene`, e);
     }
   }
 
@@ -646,8 +649,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Orthographic camera with id ${id} created.`);
       return <IOrthographicCamera>this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createOrthographicCamera: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).createOrthographicCamera`, e);
     }
   }
 
@@ -658,8 +661,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Perspective camera with id ${id} created.`);
       return <IPerspectiveCamera>this.createCamera(CAMERATYPE.PERSPECTIVE, id);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).createPerspectiveCamera: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).createPerspectiveCamera`, e);
     }
   }
 
@@ -677,8 +680,8 @@ export class Viewer implements IViewer {
       this.update();
       return true;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).deregisterBusyMode: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, e);
     }
   }
 
@@ -690,8 +693,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: screenshot was requested`);
       return this.#renderingEngine.getScreenshot(type, quality);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).getScreenshot: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, e);
     }
   }
 
@@ -709,8 +712,8 @@ export class Viewer implements IViewer {
       this.update();
       return true;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).registerBusyMode: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, e);
     }
   }
 
@@ -724,8 +727,8 @@ export class Viewer implements IViewer {
       this.update();
       return r;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Viewer(${this.id}).removeCamera: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCamera`, e);
     }
   }
 
@@ -742,8 +745,8 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener: Removing canvas event listener.`);
       return this.#renderingEngine.domEventEngine.removeDomEventListener(token);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).removeCanvasEventListener: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener`, e);
     }
   }
 
@@ -765,8 +768,8 @@ export class Viewer implements IViewer {
       this.update();
       return r;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).removeLightScene: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeLightScene`, e);
     }
   }
 
@@ -784,8 +787,8 @@ export class Viewer implements IViewer {
       this.#renderingEngine.renderingManager.render();
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).render: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).render`, e);
     }  
   }
 
@@ -795,8 +798,8 @@ export class Viewer implements IViewer {
       this.#renderingEngine.reset();
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).reset: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).reset`, e);
     }
   }
 
@@ -809,8 +812,8 @@ export class Viewer implements IViewer {
       this.#renderingEngine.resize(width, height);
       this.update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).resize: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, e);
     }
   }
 
@@ -822,8 +825,8 @@ export class Viewer implements IViewer {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updated viewer.`);
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewerId: this.id });
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).update: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update`, e);
     }
   }
 
@@ -834,8 +837,8 @@ export class Viewer implements IViewer {
       this.#renderingEngine.sceneTreeManager.updateNode(node, node.transformedNodes[this.id]);
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updated Node.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer(${this.id}).updateNode: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode`, e);
     }
   }
 

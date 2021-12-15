@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 
 import { container } from 'tsyringe'
+import { ShapeDiverViewerError } from '@shapediver/viewer.shared.services';
 
 import { MaterialEngine } from '../src/index'
 
@@ -12,39 +13,12 @@ describe('material-engine', () => {
         materialEngine = <MaterialEngine>container.resolve(MaterialEngine)
     });
 
-    it('empty', async () => {
-        try {
-            const r = await (<any>materialEngine).loadContent();
-            expect(r).not.toBeDefined();
-        } catch (e) {
-            expect(e).toBeInstanceOf(Error)
-        }
-    });
-
-    it('empty object', async () => {
-        try {
-            const r = await materialEngine.loadContent({ format: '' })
-            expect(r).not.toBeDefined();
-        } catch (e) {
-            expect(e).toBeInstanceOf(Error)
-        }
-    });
-
-    it('empty data', async () => {
-        try {
-            const r = await materialEngine.loadContent({  format: '', data: { } })
-            expect(r).not.toBeDefined();
-        } catch (e) {
-            expect(e).toBeInstanceOf(Error)
-        }
-    });
-
     it('data version invalid', async () => {
         try {
             const r = await materialEngine.loadContent({ format: '', data: { version: '4.0' } })
             expect(r).not.toBeDefined();
         } catch (e) {
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
 
@@ -54,7 +28,7 @@ describe('material-engine', () => {
             expect(r).toBeDefined();
         } catch (e) {
             expect(e).not.toBeDefined();
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
     
@@ -64,7 +38,7 @@ describe('material-engine', () => {
             expect(r).toBeDefined();
         } catch (e) {
             expect(e).not.toBeDefined();
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
     
@@ -74,7 +48,7 @@ describe('material-engine', () => {
             expect(r).toBeDefined();
         } catch (e) {
             expect(e).not.toBeDefined();
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
 })

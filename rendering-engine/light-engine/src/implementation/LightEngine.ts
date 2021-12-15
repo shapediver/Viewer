@@ -1,6 +1,6 @@
 import { container, singleton } from 'tsyringe'
 import { vec3 } from 'gl-matrix'
-import { Converter, SDError, UuidGenerator, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter, UuidGenerator, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 
 import { AmbientLight } from './types/AmbientLight'
 import { DirectionalLight } from './types/DirectionalLight'
@@ -132,9 +132,7 @@ export class LightEngine implements ILightEngine {
             ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
             ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
             this._lightScenes[ls.id] = ls;
-        }
-
-        if (this._settingsEngine.light.lightSceneId) {
+        } else if (this._settingsEngine.light.lightSceneId) {
             const res = this.assignLightScene(this._settingsEngine.light.lightSceneId);
             if(res === false && this._settingsEngine.light.lightSceneId === 'default') {
                 const ls = <LightScene>this.createLightScene({ name: 'default', standard: false });
@@ -196,15 +194,16 @@ export class LightEngine implements ILightEngine {
             }
             return false;
         }
-        delete this._lightScenes[id];
-        if(this._lightScene.id === id)
+
+        if(this._lightScene && this._lightScene.id === id)
             (<any>this._lightScene) = undefined;
-        
+        delete this._lightScenes[id];
+
         return true;
     }
 
     public saveSettings() {
-        this._settingsEngine.light.lightSceneId = this.lightScene!.id;
+        this._settingsEngine.light.lightSceneId = this.lightScene ? this.lightScene.id : 'standard';
         
         const converted: ILightSceneSettingsV3 = {};
         for(let lightSceneId in this._lightScenes) {

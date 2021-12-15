@@ -9,8 +9,7 @@ import {
   AttributeData,
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { SDNode } from '../types/SDNode'
@@ -94,7 +93,8 @@ export class GeometryLoader implements ILoader {
             obj.children.forEach(m => m.castShadow = true);
             obj.children.forEach(m => m.receiveShadow = true);
         } else {
-            throw new SDError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
+            const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.load`, error);
         }
 
         obj.children.forEach(m => {
@@ -208,7 +208,10 @@ export class GeometryLoader implements ILoader {
                     if (bufferAttribute.itemSize >= 2) buffer.setY(index, bufferAttribute.sparseValues![i * bufferAttribute.itemSize + 1]);
                     if (bufferAttribute.itemSize >= 3) buffer.setZ(index, bufferAttribute.sparseValues![i * bufferAttribute.itemSize + 2]);
                     if (bufferAttribute.itemSize >= 4) buffer.setW(index, bufferAttribute.sparseValues![i * bufferAttribute.itemSize + 3]);
-                    if (bufferAttribute.itemSize >= 5) throw new SDError('GeometryLoader.loadGeometry: Unsupported itemSize in sparse BufferAttribute.');
+                    if (bufferAttribute.itemSize >= 5) {
+                        const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.loadGeometry: Unsupported itemSize in sparse BufferAttribute.`);
+                        throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.loadGeometry`, error);
+                    }
                 }
             }
 
@@ -305,14 +308,14 @@ export class GeometryLoader implements ILoader {
                 geometry.setIndex(indices);
                 index = geometry.getIndex();
             } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GeometryLoader.convertToTriangleMode: Undefined position attribute. Processing not possible.'));
-                return geometry;
+                const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined position attribute. Processing not possible.`);
+                throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.convertToTriangleMode`, error);
             }
         }
 
         if (index === null) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GeometryLoader.convertToTriangleMode: Undefined index. Processing not possible.'));
-            return geometry;
+            const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined index. Processing not possible.`);
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.convertToTriangleMode`, error);
         }
         const numberOfTriangles = index.count - 2;
         const newIndices = [];
@@ -337,8 +340,8 @@ export class GeometryLoader implements ILoader {
         }
 
         if ((newIndices.length / 3) !== numberOfTriangles) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('GeometryLoader.convertToTriangleMode:Unable to generate correct amount of triangle.'));
-            return geometry;
+            const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Unable to generate correct amount of triangle.`);
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.convertToTriangleMode`, error);
         }
 
         const newGeometry = geometry.clone();

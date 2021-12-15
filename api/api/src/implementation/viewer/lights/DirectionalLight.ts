@@ -1,6 +1,6 @@
 import { DirectionalLight as DirectionalLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
-import { InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { AbstractLight } from './AbstractLight'
@@ -45,8 +45,8 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).castShadow: castShadow was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).castShadow: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).castShadow`, e);
         }
     }
 
@@ -62,8 +62,8 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).direction: direction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).direction: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).direction`, e);
         }
     }
 
@@ -79,8 +79,8 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapBias: shadowMapBias was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).shadowMapBias: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapBias`, e);
         }
     }
 
@@ -96,8 +96,8 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapResolution: shadowMapResolution was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).shadowMapResolution: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapResolution`, e);
         }
     }
 

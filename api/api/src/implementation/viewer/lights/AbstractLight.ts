@@ -1,5 +1,5 @@
 import { LIGHTTYPE } from '@shapediver/viewer.rendering-engine.light-engine'
-import { Converter, InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { Converter, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
@@ -45,8 +45,8 @@ export abstract class AbstractLight implements ILight {
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: color was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).color: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color`, e);
         }
     }
 
@@ -66,8 +66,8 @@ export abstract class AbstractLight implements ILight {
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: intensity was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).intensity: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity`, e);
         }
     }
 
@@ -83,8 +83,8 @@ export abstract class AbstractLight implements ILight {
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: name was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).name: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name`, e);
         }
     }
 
@@ -100,8 +100,8 @@ export abstract class AbstractLight implements ILight {
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: order was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).order: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order`, e);
         }
     }
 

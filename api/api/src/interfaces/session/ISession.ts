@@ -1,3 +1,4 @@
+import { ShapeDiverRequestGltfUploadQueryConversion } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { IExport } from './IExport'
@@ -7,7 +8,6 @@ import { IParameter } from './IParameter'
 export interface ISession {
     // #region Properties (16)
 
-    readonly authorTicket: boolean | undefined;
     readonly canUploadGLTF: boolean;
     readonly exports: { [key: string]: IExport; };
     readonly id: string;
@@ -156,7 +156,7 @@ export interface ISession {
      * 
      * @returns 
      */
-    uploadGLTF(responseType: 'gltf' | 'usdz'): Promise<string>;
+    uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion): Promise<string>;
 
     // #endregion Public Methods (18)
 }

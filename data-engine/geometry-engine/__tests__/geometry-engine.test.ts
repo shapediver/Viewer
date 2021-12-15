@@ -1,4 +1,5 @@
 import 'reflect-metadata'
+import { ShapeDiverViewerError } from '@shapediver/viewer.shared.services';
 
 import { container } from 'tsyringe'
 
@@ -17,7 +18,7 @@ describe('geometry-engine', () => {
             const r = await (<any>geometryEngine).loadContent()
             expect(r).not.toBeDefined();
         } catch (e) {
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
 
@@ -26,16 +27,7 @@ describe('geometry-engine', () => {
             const r = await geometryEngine.loadContent({ format: '' })
             expect(r).not.toBeDefined();
         } catch (e) {
-            expect(e).toBeInstanceOf(Error)
-        }
-    });
-
-    it('no href', async () => {
-        try {
-            const node = await geometryEngine.loadContent({ format: 'something else' })
-            expect(node).toBeDefined()
-        } catch (e) {
-            expect(e).not.toBeDefined();
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
 
@@ -44,7 +36,7 @@ describe('geometry-engine', () => {
             const r = await geometryEngine.loadContent({ format: 'glb' })
             expect(r).not.toBeDefined();
         } catch (e) {
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
     it('glb format, but invalid href', async () => {
@@ -52,7 +44,7 @@ describe('geometry-engine', () => {
             const r = await geometryEngine.loadContent({ format: 'glb', href: 'temp' })
             expect(r).not.toBeDefined();
         } catch (e) {
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
     
@@ -61,7 +53,7 @@ describe('geometry-engine', () => {
             const r = await geometryEngine.loadContent({ format: 'gltf' })
             expect(r).not.toBeDefined();
         } catch (e) {
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
     it('gltf format, but invalid href', async () => {
@@ -69,7 +61,7 @@ describe('geometry-engine', () => {
             const r = await geometryEngine.loadContent({ format: 'gltf', href: 'temp' })
             expect(r).not.toBeDefined();
         } catch (e) {
-            expect(e).toBeInstanceOf(Error)
+            expect(e).toBeInstanceOf(ShapeDiverViewerError)
         }
     });
 })

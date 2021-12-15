@@ -3,7 +3,7 @@ import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { container } from 'tsyringe'
 import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, ShapeDiverViewerViewerError } from '@shapediver/viewer.shared.services'
 
 import { IManager } from '../interfaces/IManager'
 import { RenderingEngine } from '../RenderingEngine'
@@ -33,9 +33,8 @@ export class SceneTracingManager implements IManager {
 
         const camera = this._renderingEngine.cameraEngine.camera;
         if (!camera){
-            const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
-            this._logger.warn(LOGGINGTOPIC.VIEWER, error.message);
-            throw error;
+            const error = new ShapeDiverViewerViewerError('SceneTracingManager.convert3Dto2D: No camera is defined for this viewer.');
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'SceneTracingManager.convert3Dto2D', error);
         }
 
         const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), p, camera.position));

@@ -2,7 +2,7 @@ import {
   PerspectiveCamera as PerspectiveCameraLogic,
   PerspectiveCameraControls as PerspectiveCameraControlsLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { IPerspectiveCameraControls } from '../../../interfaces/viewer/camera/controls/IPerspectiveCameraControls'
@@ -35,8 +35,8 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
             this.#viewer = viewer;
             this.#controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls, viewer);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).constructor: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor`, e);
         }
     }
 
@@ -60,8 +60,8 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
             this.#viewer.update();
             this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov: fov was set to: ${value}`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERA, e, `Camera(${this.id}).fov: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov`, e);
         }
     }
 

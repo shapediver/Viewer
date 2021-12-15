@@ -1,9 +1,9 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { HttpClient, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
-import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
+import { HttpClient, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { ISDTF } from '@shapediver/viewer.data-engine.shared-types'
 import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributeOverview, SDTFAttributesData, SDTFItemData } from '@shapediver/viewer.shared.types'
+import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @singleton()
 export class SDTFEngine {
@@ -32,12 +32,12 @@ export class SDTFEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         const node = new TreeNode('sdtf');
 
         if (!content || (content && !content.href)) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('SDTFEngine.loadContent: Invalid content was provided to geometry engine.'), '', false);
-            return node;
+            const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid content was provided to geometry engine.');
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         let axiosResponse;
@@ -46,17 +46,12 @@ export class SDTFEngine {
                 responseType: 'arraybuffer'
             });
         } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SDTF, e, `SDTFEngine.loadContent: Was not able to get array buffer from uri.`, e.response.status, false)
-              } else {
-                this._logger.error(LOGGINGTOPIC.SDTF, e, `SDTFEngine.loadContent: Was not able to get array buffer from uri.`, false)
-            }
-            return node;
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, e);
         }
 
         if (!(axiosResponse.headers['content-type'] && axiosResponse.headers['content-type'] === 'model/vnd.sdtf')) {
-            this._logger.error(LOGGINGTOPIC.SDTF, new SDError('SDTFEngine.loadContent: Non-binary SDTF encoding not implemented.'));
-            return node;
+            const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Non-binary SDTF encoding not implemented.');
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         let arrayBuffer: ArrayBuffer;
@@ -70,20 +65,20 @@ export class SDTFEngine {
 
         const magic = String.fromCharCode(headerDataView.getUint8(0)) + String.fromCharCode(headerDataView.getUint8(1)) + String.fromCharCode(headerDataView.getUint8(2)) + String.fromCharCode(headerDataView.getUint8(3));
         if (magic !== 'sdtf') {
-            this._logger.error(LOGGINGTOPIC.SDTF, new SDError('SDTFEngine.loadContent: Invalid data: sdtf magic wrong.'));
-            return node;
+            const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid data: sdtf magic wrong.');
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
         } 
         const version = headerDataView.getUint32(4, true);
         if (version !== 1) {
-            this._logger.error(LOGGINGTOPIC.SDTF, new SDError(`SDTFEngine.loadContent: Invalid version: sdtf loader does not support version ${version}.`));
-            return node;
+            const error = new ShapeDiverViewerDataProcessingError(`SDTFEngine.loadContent: Invalid version: sdtf loader does not support version ${version}.`);
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
         } 
         const totalLength = headerDataView.getUint32(8, true);
         const contentLength = headerDataView.getUint32(12, true);
         const contentFormat = headerDataView.getUint32(16, true);
         if (contentFormat !== 0) {
-            this._logger.error(LOGGINGTOPIC.SDTF, new SDError('SDTFEngine.loadContent: Content format is not Json (0), content invalid.'));
-            return node;
+            const error = new ShapeDiverViewerDataProcessingError(`SDTFEngine.loadContent: Content format is not Json (0), content invalid.`);
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         this._content = <ISDTF>JSON.parse(new TextDecoder().decode(new DataView(arrayBuffer, this.BINARY_EXTENSION_HEADER_LENGTH, contentLength)));
@@ -154,19 +149,18 @@ export class SDTFEngine {
                 node.children.push(await this.loadChunk(i));
             }
             return node;
-        } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `SDTFEngine.load: Loading of sdtf failed. ${e.message}`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `SDTFEngine.load: Loading of sdtf failed. ${e.message}`, false)
-            }
-            return new TreeNode('sdtf');
+        } catch (e) {            
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.load`, e);
         }
     }
 
+    // #endregion Public Methods (1)
+
+    // #region Private Methods (4)
+
     private loadAttributes(attributesID: number): SDTFAttributesData {
-        if (!this._content.attributes) throw new SDError('Attributes not available.')
-        if (!this._content.attributes[attributesID]) throw new SDError('Attributes not available.')
+        if (!this._content.attributes) throw new Error('Attributes not available.')
+        if (!this._content.attributes[attributesID]) throw new Error('Attributes not available.')
         const attributes = this._content.attributes[attributesID];
         const data = new SDTFAttributesData();
         for(let key in attributes) {
@@ -182,51 +176,9 @@ export class SDTFEngine {
         return data;
     }
 
-    private async loadItem(itemId: number, index: number): Promise<TreeNode> {
-        if (!this._content.items) throw new SDError('Item not available.')
-        if (!this._content.items[itemId]) throw new SDError('Item not available.')
-        const item = this._content.items[itemId];
-        const itemDef = new TreeNode(index + '');
-
-        let attributes;
-        if (item.attributes !== undefined) 
-                attributes = this.loadAttributes(item.attributes);
-        const itemData = new SDTFItemData(this._content.typeHints[item.typeHint].name, item.value, attributes?.attributes!)
-        itemDef.data.push(itemData)
-
-        return itemDef;
-    }
-
-
-    private async loadNode(nodeId: number): Promise<TreeNode> {
-        if (!this._content.nodes) throw new SDError('Node not available.')
-        if (!this._content.nodes[nodeId]) throw new SDError('Node not available.')
-        const node = this._content.nodes[nodeId];
-        const nodeDef = new TreeNode(node.name || 'node_' + nodeId);
-
-        if(node.attributes !== undefined) {
-            nodeDef.data.push(this.loadAttributes(node.attributes));
-        }
-        if(node.items !== undefined && node.items.length > 0) {
-            for (let i = 0, len = node.items.length; i < len; i++) {
-                // got through all children
-                nodeDef.addChild(await this.loadItem(node.items[i], i));
-            }
-        }
-
-        if (node.nodes !== undefined && node.nodes.length > 0) {
-            for (let i = 0, len = node.nodes.length; i < len; i++) {
-                // got through all children
-                nodeDef.addChild(await this.loadNode(node.nodes[i]));
-            }
-        }
-
-        return nodeDef;
-    }
-
     private async loadChunk(chunkId: number): Promise<TreeNode> {
-        if (!this._content.chunks) throw new SDError('Chunks not available.')
-        if (!this._content.chunks[chunkId]) throw new SDError('Chunks not available.')
+        if (!this._content.chunks) throw new Error('Chunks not available.')
+        if (!this._content.chunks[chunkId]) throw new Error('Chunks not available.')
         const chunk = this._content.chunks[chunkId];
         const chunkDef = new TreeNode(chunk.name || 'chunk_' + chunkId);
 
@@ -250,5 +202,46 @@ export class SDTFEngine {
         return chunkDef;
     }
 
-    // #endregion Public Methods (1)
+    private async loadItem(itemId: number, index: number): Promise<TreeNode> {
+        if (!this._content.items) throw new Error('Item not available.')
+        if (!this._content.items[itemId]) throw new Error('Item not available.')
+        const item = this._content.items[itemId];
+        const itemDef = new TreeNode(index + '');
+
+        let attributes;
+        if (item.attributes !== undefined) 
+                attributes = this.loadAttributes(item.attributes);
+        const itemData = new SDTFItemData(this._content.typeHints[item.typeHint].name, item.value, attributes?.attributes!)
+        itemDef.data.push(itemData)
+
+        return itemDef;
+    }
+
+    private async loadNode(nodeId: number): Promise<TreeNode> {
+        if (!this._content.nodes) throw new Error('Node not available.')
+        if (!this._content.nodes[nodeId]) throw new Error('Node not available.')
+        const node = this._content.nodes[nodeId];
+        const nodeDef = new TreeNode(node.name || 'node_' + nodeId);
+
+        if(node.attributes !== undefined) {
+            nodeDef.data.push(this.loadAttributes(node.attributes));
+        }
+        if(node.items !== undefined && node.items.length > 0) {
+            for (let i = 0, len = node.items.length; i < len; i++) {
+                // got through all children
+                nodeDef.addChild(await this.loadItem(node.items[i], i));
+            }
+        }
+
+        if (node.nodes !== undefined && node.nodes.length > 0) {
+            for (let i = 0, len = node.nodes.length; i < len; i++) {
+                // got through all children
+                nodeDef.addChild(await this.loadNode(node.nodes[i]));
+            }
+        }
+
+        return nodeDef;
+    }
+
+    // #endregion Private Methods (4)
 }

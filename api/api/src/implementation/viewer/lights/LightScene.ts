@@ -3,7 +3,7 @@ import {
   LightScene as LightSceneLogicImplementation,
 } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
-import { Converter, InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { Converter, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
@@ -103,8 +103,8 @@ export class LightScene implements ILightScene {
             this.#logger.info(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name: name was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `LightScene(${this.id}).name: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name`, e);
         }
     }
 
@@ -139,8 +139,8 @@ export class LightScene implements ILightScene {
             this.#viewer.update();
             return <IAmbientLight>light;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addAmbientLight: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addAmbientLight`, e);
         }
     }
 
@@ -175,8 +175,8 @@ export class LightScene implements ILightScene {
             this.#viewer.update();
             return <IDirectionalLight>light;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addDirectionalLight: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addDirectionalLight`, e);
         }
     }
 
@@ -206,8 +206,8 @@ export class LightScene implements ILightScene {
             this.#viewer.update();
             return <IHemisphereLight>light;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addHemisphereLight: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addHemisphereLight`, e);
         }
     }
 
@@ -240,8 +240,8 @@ export class LightScene implements ILightScene {
             this.#viewer.update();
             return <IPointLight>light;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addPointLight: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addPointLight`, e);
         }
     }
 
@@ -282,8 +282,8 @@ export class LightScene implements ILightScene {
             this.#viewer.update();
             return <ISpotLight>light;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).addSpotLight: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addSpotLight`, e);
         }
     }
 
@@ -303,8 +303,8 @@ export class LightScene implements ILightScene {
             this.#viewer.update();
             return r;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Viewer(${this.id}).removeLight: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).removeLight`, e);
         }
     }
 

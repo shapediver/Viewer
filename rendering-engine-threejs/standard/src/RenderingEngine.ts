@@ -16,7 +16,7 @@ import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engi
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { IRenderingEngine, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, Converter, SDError, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, Converter, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import { MATERIAL_SIDE, MaterialData, AnimationData, ISettingsEvent, IEnvironmentEvent, SDTFItemData, SDTFAttributeOverview, SDTFAttributeVisualizationData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -93,7 +93,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _environmentMapResolution: string = '1024';
   private _gridVisibility: boolean = true;
   private _groundPlaneVisibility: boolean = true;
-  private _lightScene: string = 'standard';
   private _logoDivElement: HTMLDivElement;
   private _pointSize: number = 1.0;
   private _renderingSettings: {
@@ -409,15 +408,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public get lightScene(): string {
-    return this._lightScene;
-  }
-
-  public set lightScene(value: string) {
-    this._lightScene = value;
+    return this.lightEngine.lightScene ? this.lightEngine.lightScene.id : '';
   }
 
   public get lightSceneId(): string {
-    return this._lightEngine.lightScene!.id;
+    return this.lightEngine.lightScene ? this.lightEngine.lightScene.id : '';
   }
 
   public get logoDivElement(): HTMLDivElement {
@@ -584,7 +579,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._settingsEngine.general.blurWhenBusy = this.blurSceneWhenBusy;
     this._settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     this._settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
-    this._settingsEngine.light.lightSceneId = this.lightScene;
     this._settingsEngine.environment.mapResolution = this.environmentMapResolution;
     this._settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
     this._settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
@@ -629,10 +623,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           this.pointSize = this._settingsEngine.general.pointSize;
         }
 
-        if (sections.light) {
-          this.lightScene = this._settingsEngine.light.lightSceneId;
-          (<LightEngine>this.lightEngine).applySettings();
-        }
+        if (sections.light) (<LightEngine>this.lightEngine).applySettings();
         if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
         this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
         this.update();
@@ -645,7 +636,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
       this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
       this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
-      this.lightScene = this._settingsEngine.light.lightSceneId;
 
       if (sections.scene) {
         this.shadows = this._settingsEngine.rendering.shadows;
@@ -656,10 +646,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.pointSize = this._settingsEngine.general.pointSize;
       }
 
-      if (sections.light) {
-        this.lightScene = this._settingsEngine.light.lightSceneId;
-        (<LightEngine>this.lightEngine).applySettings();
-      }
+      if (sections.light) (<LightEngine>this.lightEngine).applySettings();
       if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
       this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
       this.update();

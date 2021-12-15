@@ -10,8 +10,13 @@ import {
   LOGGINGLEVEL,
   LOGGINGTOPIC,
   MAINEVENTTYPE,
-  SDError,
   SettingsEngine,
+  ShapeDiverBackendError,
+  ShapeDiverViewerError,
+  ShapeDiverViewerSessionError,
+  ShapeDiverViewerViewerError,
+  ShapeDiverViewerArError,
+  ShapeDiverViewerSettingsError,
   StateEngine,
   StatePromise,
   SystemInfo,
@@ -20,7 +25,6 @@ import {
 import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
-import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { convert, ISettingsV3, validate } from '@shapediver/viewer.settings'
 import { mat4, vec3 } from 'gl-matrix'
 
@@ -28,9 +32,10 @@ import { IApi } from '../interfaces/IApi'
 import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
 import { Session } from './session/Session'
-import { ShapeDiverResponseDto } from '@shapediver/api.geometry-api-dto-v2'
 import { ISessionEvent, ISettingsEvent, SDTFAttributeOverview, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { Viewer } from './viewer/Viewer'
+import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @singleton()
 export class Api implements IApi {
@@ -71,8 +76,8 @@ export class Api implements IApi {
 
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.constructor: Api created.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.constructor: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.constructor', e);
     }
   }
 
@@ -94,8 +99,8 @@ export class Api implements IApi {
 
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.automaticUpdate: automaticUpdate was set to: ${value}`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.automaticUpdate: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.automaticUpdate', e);
     }
   }
 
@@ -110,8 +115,8 @@ export class Api implements IApi {
       this.#settingsEngine.ar.autoScaling = value;
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.autoScaling: autoScaling was set to: ${value}`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.autoScaling: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', e);
     }
   }
 
@@ -126,8 +131,8 @@ export class Api implements IApi {
       this.#settingsEngine.ar.enable = value;
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.enableAR: enableAR was set to: ${value}`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.enableAR: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.enableAR', e);
     }
   }
 
@@ -146,8 +151,8 @@ export class Api implements IApi {
       this.#settingsEngine.general.transformation.rotation = { x: value[0], y: value[1], z: value[2] };
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalRotation: globalRotation was set to: ${value}`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.globalRotation: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.globalRotation', e);
     }
   }
 
@@ -166,8 +171,8 @@ export class Api implements IApi {
       this.#settingsEngine.general.transformation.scale = { x: value[0], y: value[1], z: value[2] };
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalScale: globalScale was set to: ${value}`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.globalScale: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.globalScale', e);
     }
   }
 
@@ -186,8 +191,8 @@ export class Api implements IApi {
       this.#settingsEngine.general.transformation.translation = { x: value[0], y: value[1], z: value[2] };
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalTranslation: globalTranslation was set to: ${value}`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.globalTranslation: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.globalTranslation', e);
     }
   }
 
@@ -202,8 +207,8 @@ export class Api implements IApi {
       this.#logger.loggingLevel = value;
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.loggingLevel: LoggingLevel was set to: ${value}`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.loggingLevel: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.loggingLevel', e);
     }
   }
 
@@ -219,8 +224,8 @@ export class Api implements IApi {
       this.#settingsEngine.general.showMessages = this.#logger.showMessages;
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.showMessages: ShowMessages was set to: ${value}`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.showMessages: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.showMessages', e);
     }
   }
 
@@ -234,8 +239,8 @@ export class Api implements IApi {
       this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
       return this.#eventEngine.addListener(type, cb);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.addListener: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.addListener', e);
     }
   }
 
@@ -276,13 +281,15 @@ export class Api implements IApi {
       } else if((<ShapeDiverResponseDto>response).viewer !== undefined) {
         config = (<ShapeDiverResponseDto>response).viewer!.config;
       } else {
-        throw new SDError('Api.applySettings: No config object available.')      
+        const error = new ShapeDiverViewerSettingsError('Api.applySettings: No config object available.');
+        throw this.#logger.handleError(LOGGINGTOPIC.SETTINGS, 'Api.applySettings', error);
       }
 
       try {
         validate(config)
       } catch(e) {
-        throw new SDError('Api.applySettings: Was not able to validate config object.')
+        const error = new ShapeDiverViewerSettingsError('Api.applySettings: Was not able to validate config object.');
+        throw this.#logger.handleError(LOGGINGTOPIC.SETTINGS, 'Api.applySettings', error);
       }
 
       const settings = <ISettingsV3>convert(config, '3.0');
@@ -295,7 +302,10 @@ export class Api implements IApi {
               exportMappingUid[response.exports[exportId].uid!] = exportId;
 
       const session = Object.values(this.sessions).filter((s: ISession) => { return s.primarySession; })[0];
-      if(!session) throw new SDError('Api.applySettings: No primary session defined.');
+      if(!session) {
+        const error = new ShapeDiverViewerSettingsError('Api.applySettings: No primary session defined.');
+        throw this.#logger.handleError(LOGGINGTOPIC.SETTINGS, 'Api.applySettings', error);
+      }
     
       const currentSettings = this.#settingsEngine.settings;
 
@@ -305,7 +315,7 @@ export class Api implements IApi {
           if (settings.session[p]) {
             if (sections.session.parameter.displayname) session.parameters[p].displayname = settings.session[p].displayname;
             if (sections.session.parameter.order) session.parameters[p].order = settings.session[p].order;
-            if (sections.session.parameter.hidden) session.parameters[p].hidden = settings.session[p].hidden;
+            if (sections.session.parameter.hidden) session.parameters[p].hidden = settings.session[p].hidden || false;
           }
         }
       }
@@ -325,7 +335,7 @@ export class Api implements IApi {
           if (settings.session[idForSettings]) {
             if (sections.session.parameter.displayname) session.exports[p].displayname = settings.session[idForSettings].displayname;
             if (sections.session.parameter.order) session.exports[p].order = settings.session[idForSettings].order;
-            if (sections.session.parameter.hidden) session.exports[p].hidden = settings.session[idForSettings].hidden;
+            if (sections.session.parameter.hidden) session.exports[p].hidden = settings.session[idForSettings].hidden || false;
           }
         }
       }
@@ -370,8 +380,8 @@ export class Api implements IApi {
       }
       return new Promise(resolve => Promise.all(promises).then(() => resolve()));
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.applySettings: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.applySettings', e);
     }
   }
 
@@ -417,8 +427,8 @@ export class Api implements IApi {
 
       return result;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Api.closeSession: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeSession', e);
     }
   }
 
@@ -445,8 +455,8 @@ export class Api implements IApi {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
       return result;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.closeViewer: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeViewer', e);
     }
   }
 
@@ -477,8 +487,8 @@ export class Api implements IApi {
 
       return new Blob([result], { type: 'application/octet-stream' });
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.convertSceneToGLTF: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.convertSceneToGLTF', e);
     }
   }
 
@@ -502,9 +512,8 @@ export class Api implements IApi {
       // check if the given id is valid
       const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.sessions[sessionId]) {
-        const error = new SDError(`Api.createSession: Session with this id (${sessionId}) already exists.`);
-        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
-        throw error;
+        const error = new ShapeDiverViewerSessionError(`Api.createSession: Session with this id (${sessionId}) already exists.`);
+        throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error);
       }
 
       let noPrimarySession = true;
@@ -537,8 +546,8 @@ export class Api implements IApi {
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Api.createSession: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSession', e);
     }
   }
 
@@ -554,8 +563,8 @@ export class Api implements IApi {
 
       return out.overview;
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.createSDTFOverview: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSDTFOverview', e);
     }
   }
   
@@ -572,9 +581,8 @@ export class Api implements IApi {
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.viewers[viewerId]) {
-        const error = new SDError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`);
-        this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
-        throw error;
+        const error = new ShapeDiverViewerViewerError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`);
+        throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error);
       }
 
       this.#stateEngine.viewers[viewerId] = {
@@ -606,8 +614,8 @@ export class Api implements IApi {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
       return this.viewers[viewerId];
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.createViewer: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createViewer', e);
     }
   }
 
@@ -616,8 +624,8 @@ export class Api implements IApi {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.removeListener: Removing event listener with id ${id}.`);
       return this.#eventEngine.removeListener(id);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.GENERAL, e, `Api.removeListener: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.removeListener', e);
     }
   }
 
@@ -627,8 +635,8 @@ export class Api implements IApi {
       for (let v in this.viewers)
         this.viewers[v].update();
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.update: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.update', e);
     }
   }
 
@@ -641,22 +649,32 @@ export class Api implements IApi {
       if(isIOSSafari || isAndroidChrome)
         return true;
 
-      if(this.#systemInfo.isIOS)
-        throw new SDError(`Api.viewableInAR: The AR feature on iOS is only supported in Safari. Please open this page again in Safari.`);
+      if(this.#systemInfo.isIOS) {
+        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature on iOS is only supported in Safari. Please open this page again in Safari.`);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+      }
         
-      if(this.#systemInfo.isSafari)
-        throw new SDError(`Api.viewableInAR: The AR feature in Safari is only supported on iOS devices. Please open this page again on an iOS device.`);
+      if(this.#systemInfo.isSafari) {
+        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature in Safari is only supported on iOS devices. Please open this page again on an iOS device.`);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+      }
         
-      if(this.#systemInfo.isAndroid)
-        throw new SDError(`Api.viewableInAR: The AR feature on Android is only supported in Chrome. Please open this page again in Chrome.`);
-      
-      if(this.#systemInfo.isChrome)
-        throw new SDError(`Api.viewableInAR: The AR feature in Chrome is only supported on Android devices. Please open this page again on an Android device.`);
+        
+      if(this.#systemInfo.isAndroid) {
+        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature on Android is only supported in Chrome. Please open this page again in Chrome.`);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+      }
 
-      throw new SDError(`Api.viewableInAR: The AR feature is only available on Android with Chrome, or on iOS with Safari.`);
+      if(this.#systemInfo.isChrome) {
+        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature in Chrome is only supported on Android devices. Please open this page again on an Android device.`);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+      }
+
+      const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature is only available on Android with Chrome, or on iOS with Safari.`);
+      throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.VIEWER, e, `Api.viewableInAR: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewableInAR', e);
     }
   }
 
@@ -666,8 +684,10 @@ export class Api implements IApi {
       const isAndroidChrome = this.#systemInfo.isAndroid && this.#systemInfo.isChrome;
 
       // if this is not a supported device, throw an error
-      if(!isIOSSafari && !isAndroidChrome)
-        throw new SDError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
+      if(!isIOSSafari && !isAndroidChrome) {
+        const error = new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error);
+      }
       
       // try to find a session that is "AR-ready"
       // as a backend might be used that does not support uploading the gltf (and conversion)
@@ -677,9 +697,8 @@ export class Api implements IApi {
         if(this.sessions[s].canUploadGLTF)
           arSession = this.sessions[s];
       if(!arSession) {
-        const error = new SDError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
-        this.#logger.warn(LOGGINGTOPIC.AR, error.message);
-        throw error;
+        const error = new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error);
       }
       
       // register the busy mode to blur the scene and create a visual feedback
@@ -688,7 +707,7 @@ export class Api implements IApi {
         this.viewers[v].registerBusyMode(busyModeID)
 
       // convert and upload (and maybe convert to usdz) the file
-      const file = await arSession.uploadGLTF(isIOSSafari ? 'usdz' : 'gltf');
+      const file = await arSession.uploadGLTF(isIOSSafari ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
 
       // separation between Android-Chrome and iOS-Safari
       if(isAndroidChrome) {
@@ -721,8 +740,8 @@ export class Api implements IApi {
       for(let v in this.viewers)
         this.viewers[v].deregisterBusyMode(busyModeID)
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.AR, e, `Api.viewInAR: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewInAR', e);
     }
   }
 

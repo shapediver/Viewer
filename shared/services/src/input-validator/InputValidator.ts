@@ -1,7 +1,7 @@
 import { container, singleton } from 'tsyringe'
 import DOMPurify from 'dompurify';
 import { Logger, LOGGINGTOPIC } from '../logger/Logger'
-import { SDError } from '../logger/SDError'
+import { ShapeDiverViewerValidationError } from '../logger/ShapeDiverViewerError';
 import { TypeChecker } from '../type-check/TypeChecker'
 
 export type Types = 'string' | 'boolean' | 'function' |
@@ -18,9 +18,9 @@ export class InputValidator {
     public validateAndError(topic: LOGGINGTOPIC, scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
         const res = this.validate(value, type, defined, enumValues);
         if(res) return;
-        const error = new SDError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`);
-        this._logger.warn(topic, error.message);
-        throw error;
+
+        const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, value, type);
+        throw this._logger.handleError(LOGGINGTOPIC.GENERAL, 'InputValidator.validateAndError', error);
     }
 
     private validate(value: any, stringLiteral: Types, defined: boolean = true, enumValues: string[] = []): boolean {

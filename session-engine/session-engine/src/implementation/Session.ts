@@ -1,22 +1,15 @@
 import { container } from 'tsyringe'
-import { HttpClient, PerformanceEvaluator, SDError, UuidGenerator, SettingsEngine, StateEngine, SystemInfo, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
-import { AxiosResponse } from 'axios'
-import {
-    ShapeDiverResponseBase,
-    ShapeDiverResponseExport,
-    ShapeDiverResponseExportDefinitionType,
-    ShapeDiverResponseOutput,
-    ShapeDiverResponseParameter,
-} from '@shapediver/api.geometry-api-dto-v1'
+import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
 import { ISession } from '../interfaces/ISession'
 import { SessionData } from './SessionData'
+import { create, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export class Session implements ISession {
-    // #region Properties (19)
+    // #region Properties (22)
 
     private readonly _exports: { [key: string]: ShapeDiverResponseExport; } = {};
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
@@ -25,13 +18,12 @@ export class Session implements ISession {
     private readonly _modelViewUrl: string;
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: ShapeDiverResponseOutput; } = {};
-    private readonly _parameters: { [key: string]: ShapeDiverResponseParameter; } = {};
     private readonly _parameterValues: { [key: string]: string; } = {};
+    private readonly _parameters: { [key: string]: ShapeDiverResponseParameter; } = {};
     private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
     private readonly _ticket: string;
 
-    private _authorTicket?: boolean;
     private _bearerToken?: string;
     private _closed: boolean = false;
     private _headers = {
@@ -39,14 +31,16 @@ export class Session implements ISession {
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
         "X-ShapeDiver-BuildVersion": '',
         "X-ShapeDiver-BuildDate": ''
-    }
-
+    };
     private _initialized: boolean = false;
-    private _refreshBearerToken!: () => string;
-    private _sessionResponse!: ShapeDiverResponseBase;
-    private _settingsConfig: any = {};
+    private _modelId?: string;
+    private _refreshBearerToken?: () => string;
+    private _responseDto?: ShapeDiverResponseDto;
+    private _sdk: ShapeDiverSdk;
+    private _sessionId?: string;
+    private _viewerSettings?: object;
 
-    // #endregion Properties (19)
+    // #endregion Properties (22)
 
     // #region Constructors (1)
 
@@ -62,19 +56,14 @@ export class Session implements ISession {
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
         this._outputLoader = new OutputLoader();
+    
+        this._sdk = create(this._modelViewUrl, this._bearerToken);
+        this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.REQUEST_HEADERS, this._headers);
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (12)
-
-    public get authorTicket(): boolean | undefined {
-        return this._authorTicket;
-    }
-
-    public set authorTicket(value: boolean | undefined) {
-        this._authorTicket = value;
-    }
+    // #region Public Accessors (13)
 
     public get bearerToken(): string | undefined {
         return this._bearerToken;
@@ -82,6 +71,15 @@ export class Session implements ISession {
 
     public set bearerToken(value: string | undefined) {
         this._bearerToken = value;
+    }
+
+    public get canUploadGLTF(): boolean {
+        try {
+            this.checkAvailability('gltf-upload');
+            return true;   
+        } catch (e) {
+            return false;
+        }
     }
 
     public get exports(): { [key: string]: ShapeDiverResponseExport; } {
@@ -104,49 +102,40 @@ export class Session implements ISession {
         return this._outputs;
     }
 
-    public get parameters(): { [key: string]: ShapeDiverResponseParameter; } {
-        return this._parameters;
-    }
-
     public get parameterValues(): { [key: string]: string; } {
         return this._parameterValues;
+    }
+
+    public get parameters(): { [key: string]: ShapeDiverResponseParameter; } {
+        return this._parameters;
     }
 
     public set refreshBearerToken(value: () => string) {
         this._refreshBearerToken = value;
     }
 
-    public get sessionResponse(): ShapeDiverResponseBase {
-        return this._sessionResponse;
-    }
-
-    public get settingsConfig(): any {
-        return this._settingsConfig;
-    }
-
     public get ticket(): string {
         return this._ticket;
     }
 
-    // #endregion Public Accessors (12)
+    public get viewerSettings(): object | undefined {
+        return this._viewerSettings;
+    }
 
-    // #region Public Methods (18)
+    // #endregion Public Accessors (13)
+
+    // #region Public Methods (13)
 
     public async close(): Promise<boolean> {
-        this._closed = true;
-        if (this._initialized) {
-            try {
-                await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'close')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'close')[0].method!, null, 'application/json');
-            } catch (e) {
-                if (e.response && e.response.status) {
-                    this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.close: Session closing failed.`, e.response.status, false)
-                } else {
-                    this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.close: Session closing failed.`, false)
-                }
-                return false;
-            }
+        this.checkAvailability('close');
+
+        try {
+            await this._sdk.session.close(this._sessionId!)
+            this._closed = true;
+            return true;
+        } catch (e) {
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.close', e);
         }
-        return true;
     }
 
     /**
@@ -168,173 +157,92 @@ export class Session implements ISession {
         [key: string]: string;
     }): Promise<void> {
         if (this._initialized === true) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.init: Session already initialized.'));
-            return;
+            const error = new ShapeDiverViewerSessionError('Session.init: Session already initialized.');
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.init', error);
         }
 
         try {
-            let sessionResponse;
-            try {
-                this._performanceEvaluator.startSection('sessionResponse');
-                sessionResponse = <ShapeDiverResponseBase>(await this.sessionCommunication(this._modelViewUrl + "/ticket/" + this._ticket, 'post',  parameterValues || null)).data;
-                this._performanceEvaluator.endSection('sessionResponse');
-            } catch (e) {
-                if (e.response && e.response.status) {
-                    throw this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, e.response.status, true)
-                } else {
-                    throw this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.init: Session init failed.`, true, false)
-                }
-            }
+            this._performanceEvaluator.startSection('sessionResponse');
+            this._responseDto = await this._sdk.session.init(this._ticket);
+            this._performanceEvaluator.endSection('sessionResponse');
 
-            this._settingsConfig = sessionResponse.config;
-            (<any>this._parameters) = {};
-            (<any>this._outputs) = {};
-            (<any>this._exports) = {};
-            this._sessionResponse = this.mergeResponses(sessionResponse, sessionResponse, this._parameters, this._outputs, this._exports);
-            this._authorTicket = !!(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0] && this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]);
+            this._viewerSettings = this._responseDto.viewer?.config;
+            this._sessionId = this._responseDto.sessionId;
+            this._modelId = this._responseDto.model?.id;
 
+            if(!this._sessionId) 
+                throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a sessionId.`)
+            if(!this._modelId) 
+                throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a model.id.`)
+
+            this.updateResponseDto(this._responseDto);
             this._initialized = true;
+
+            if(parameterValues) {
+                const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameterValues);
+                this.updateResponseDto(responseDto);
+            }
         } catch (e) {
-            throw this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.init: Something went wrong at session init.', true);
-        }
-    }
-
-    public mergeResponses(r1: ShapeDiverResponseBase, r2: ShapeDiverResponseBase, parameters?: { [key: string]: ShapeDiverResponseParameter; }, outputs?: { [key: string]: ShapeDiverResponseOutput; }, exports?: { [key: string]: ShapeDiverResponseExport; }): ShapeDiverResponseBase {
-        if (!r1)
-            r1 = { version: r2.version };
-
-        // convert version
-        if (r2.version)
-            r1.version = r2.version;
-
-        // convert version
-        if (r2.collection)
-            r1.collection = r2.collection;
-
-        // merge actions
-        if (r2.actions) {
-            for (let i = 0, len = r2.actions.length; i < len; i++) {
-                r1.actions = r1.actions || [];
-                if (r1.actions.findIndex((value) => value.name === r2.actions![i].name) === -1)
-                    r1.actions.push(r2.actions[i])
-            }
-        }
-
-        // merge templates
-        if (r2.templates) {
-            for (let i = 0, len = r2.templates.length; i < len; i++) {
-                r1.templates = r1.templates || [];
-                if (r1.templates.findIndex((value) => value.name === r2.actions![i].name) === -1)
-                    r1.templates.push(r2.templates[i])
-            }
-        }
-
-        // convert config
-        if (r2.config && !r1.config)
-            r1.config = r2.config;
-
-        // convert name
-        if (r2.name && !r1.name)
-            r1.name = r2.name;
-
-        // convert parameters
-        if (r2.parameters) {
-            for (let parameterId in r2.parameters) {
-                r1.parameters = r1.parameters || {};
-                r1.parameters[parameterId] = r1.parameters[parameterId] || r2.parameters[parameterId];
-            }
-        }
-
-        // convert outputs
-        if (r2.outputs) {
-            for (let outputId in r2.outputs) {
-                r1.outputs = r1.outputs || {};
-                if ('version' in r2.outputs[outputId] || !(r1.outputs[outputId] && 'version' in r1.outputs[outputId]))
-                    r1.outputs[outputId] = r2.outputs[outputId];
-            }
-        }
-
-        // convert exports
-        if (r2.exports) {
-            for (let exportId in r2.exports) {
-                r1.exports = r1.exports || {};
-                if ('version' in r2.exports[exportId] || !(r1.exports[exportId] && 'version' in r1.exports[exportId]))
-                    r1.exports[exportId] = r2.exports[exportId];
-            }
-        }
-
-        if (parameters) {
-            for (let parameterId in r1.parameters) {
-                if (parameters[parameterId]) continue;
-                parameters[parameterId] = r1.parameters[parameterId];
-                parameters[parameterId].id = parameterId;
-            }
-        }
-
-        if (exports) {
-            for (let exportId in r1.exports)
-                if (r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.EMAIL || r1.exports[exportId].type === ShapeDiverResponseExportDefinitionType.DOWNLOAD) {
-                    exports[exportId] = r1.exports[exportId];
-                    exports[exportId].id = exportId;
-                }
-        }
-
-        if (outputs) {
-            for (let outputId in r1.outputs) {
-                outputs[outputId] = <ShapeDiverResponseOutput>r1.outputs[outputId];
-                outputs[outputId].id = outputId;
-            }
-        }
-
-        return r1;
-    }
-
-    public async saveDefaultParameters(): Promise<boolean> {
-        if (!this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0]) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.saveDefaultParameters: Session has to be in edit mode to be able to save the settings.'));
-            return false;
-        }
-        try {
-            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'defaultparam')[0].method!, this._parameterValues, 'application/json');
-            return true;
-        } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveDefaultParameters: Saving of default parameters failed.`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveDefaultParameters: Saving of default parameters failed.`, false)
-            }
-            return false;
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.init', e);
         }
     }
 
     /**
-     * Save the parameter properties for displayname, order, tooltip and hidden
+     * Load the outputs and return the scene graph node of the result.
+     * In case the outputs have a delay property, another customization request with the parameter set is sent.
      * 
-     * @param parameters 
-     * @returns 
+     * @param parameters the parameter set to update the session 
+     * @param outputs the outputs to load
+     * @returns promise with a scene graph node
      */
-    public async saveParameterProperties(parameters: {
-        [key: string]: {
-            displayname: string,
-            hidden: boolean,
-            order: number,
-            tooltip: string
-        }
-    }): Promise<boolean> {
-        if (!this._sessionResponse.actions?.filter(v => v.name === 'parameter-definition')[0]) {
-            this._logger.warn(LOGGINGTOPIC.SESSION, 'Session.saveParameterProperties: Session does not have the required action.');
-            return false;
-        }
+    public async loadOutputs(cancelRequest: () => boolean = () => false): Promise<SessionTreeNode> {
+        this.checkAvailability();
+
+        const o = Object.assign({}, this._outputs);
         try {
-            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'parameter-definition')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'parameter-definition')[0].method!, parameters, 'application/json');
+            const node = await this._outputLoader.loadOutputs(this._responseDto!, o);
+            node.data.push(new SessionData(this._responseDto!));
+            return node;
+        }
+        catch (e) {
+            // TODO other errors
+            if (e instanceof OutputDelayException)
+                await this.timeout(e.delay);
+
+            if(cancelRequest()) return new SessionTreeNode();
+            let outputMapping: { [key: string]: string } = {};
+            for (let output in o)
+                outputMapping[output] = o[output].version;
+            
+            try {
+                const responseDto = await this._sdk.output.getCache(this._sessionId!, outputMapping);
+                if(cancelRequest()) return new SessionTreeNode();
+                this.updateResponseDto(responseDto);
+                return await this.loadOutputs(cancelRequest);
+            } catch(e) {
+                throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e);
+            }
+        }
+    }
+
+    public async requestExport(exportId: string, parameters: { [key: string]: string }): Promise<ShapeDiverResponseExport> {
+        this.checkAvailability('export');
+        try {
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters })
+            this.updateResponseDto(responseDto);
+            return this.exports[exportId];
+        } catch (e) {
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.requestExport', e);
+        }
+    }
+
+    public async saveDefaultParameters(): Promise<boolean> {
+        this.checkAvailability('defaultparam', true);
+        try {
+            await this._sdk.model.setDefaultParams(this._modelId!, this._parameterValues)
             return true;
         } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveParameterProperties: Saving of parameter properties failed.`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveParameterProperties: Saving of parameter properties failed.`, false)
-            }
-            return false;
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveDefaultParameters', e);
         }
     }
 
@@ -352,20 +260,12 @@ export class Session implements ISession {
             tooltip: string
         }
     }): Promise<boolean> {
-        if (!this._sessionResponse.actions?.filter(v => v.name === 'export-definition')[0]) {
-            this._logger.warn(LOGGINGTOPIC.SESSION, 'Session.saveExportProperties: Session does not have the required action.');
-            return false;
-        }
+        this.checkAvailability('export-definition', true);
         try {
-            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'export-definition')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'export-definition')[0].method!, exports, 'application/json');
+            await this._sdk.export.updateDefinitions(this._modelId!, exports);
             return true;
         } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveExportProperties: Saving of export properties failed.`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveExportProperties: Saving of export properties failed.`, false)
-            }
-            return false;
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveExportProperties', e);
         }
     }
 
@@ -383,138 +283,134 @@ export class Session implements ISession {
             tooltip: string
         }
     }): Promise<boolean> {
-        if (!this._sessionResponse.actions?.filter(v => v.name === 'output-definition')[0]) {
-            this._logger.warn(LOGGINGTOPIC.SESSION, 'Session.saveOutputProperties: Session does not have the required action.');
-            return false;
-        }
+        this.checkAvailability('output-definition', true);
         try {
-            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'output-definition')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'output-definition')[0].method!, outputs, 'application/json');
+            await this._sdk.output.updateDefinitions(this._modelId!, outputs);
             return true;
         } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveOutputProperties: Saving of output properties failed.`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveOutputProperties: Saving of output properties failed.`, false)
-            }
-            return false;
-        }
-    }
-
-    public async saveSettings(json: any): Promise<boolean> {
-        if (!this._sessionResponse.actions?.filter(v => v.name === 'configure')[0]) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.saveSettings: Session has to be in edit mode to be able to save the settings.'));
-            return false;
-        }
-        try {
-            await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'configure')[0].method!, json, 'application/json');
-            return true;
-        } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.saveSettings: Saving of settings failed.`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.saveSettings: Saving of settings failed.`, false)
-            }
-            return false;
-        }
-    }
-
-    public async sessionCommunication(href: string, method: string | 'post' | 'get' | 'patch', data: any, contentType?: string): Promise<AxiosResponse<any>> {
-        let headers = this._bearerToken ? Object.assign({ "Authorization": this._bearerToken }, this._headers) : this._headers;
-        if (contentType) headers = Object.assign({ "Content-Type": contentType }, this._headers);
-
-        method = method.toLowerCase();
-        if (method !== 'post' && method !== 'get' && method !== 'patch') throw this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session: Method ' + method + ' not recognized.'));
-        try {
-            return await this._httpClient[method](href, { data, headers });
-        } catch (e) {
-            if (e.response && e.response.status && e.response.status === 403 && e.response.data && (e.response.data.error === 'SdJwtValidationError' || e.response.data.error === 'SdErrorUnauthorized')) {
-                if (!this._refreshBearerToken) {
-                    this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.sessionCommunication: Session request failed. Bearer Token invalid, please try to supply a valid token or assign the "refreshBearerToken" callback.'));
-                    throw e;
-                } else {
-                    const bearerToken = this.bearerToken;
-                    const newToken = this._refreshBearerToken();
-                    if (bearerToken === newToken) {
-                        this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.sessionCommunication: Session request failed. Bearer Token invalid, callback "refreshBearerToken" supplied the same token.'));
-                        throw e;
-                    } else {
-                        this.bearerToken = newToken;
-                        return this.sessionCommunication(href, method, data, contentType);
-                    }
-                }
-            }
-            throw e;
-        }
-    }
-
-    // #endregion Public Methods (18)
-
-    // #region Private Methods (3)
-
-    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean): Promise<SessionTreeNode> {
-        if (this._initialized === false) {
-            this._logger.error(LOGGINGTOPIC.SESSION, new SDError('Session.customizeSession: Session not initialized.'));
-            return new SessionTreeNode();
-        }
-        try {
-            let responseCustomize;
-            try {
-                this._performanceEvaluator.startSection('sessionResponse');
-                responseCustomize = <ShapeDiverResponseBase>(await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'customize')[0].href!, 'post', parameters, 'application/json')).data;
-                this._performanceEvaluator.endSection('sessionResponse');
-                if(cancelRequest()) return new SessionTreeNode();
-            } catch (e) {
-                if (e.response && e.response.status) {
-                    if (e.response && e.response.status && e.response.status === 410 && !this._closed) {
-                        this._logger.info(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Session customization failed. Session expired. Re-initializing session.');
-                        this._initialized = false;
-                        await this.init(parameters);
-                        if(cancelRequest()) return new SessionTreeNode();
-                        return this.loadOutputs(parameters, cancelRequest);
-                    }
-                }
-
-                if (e.response && e.response.status) {
-                    throw this._logger.httpError(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, e.response.status, true)
-                } else {
-                    throw this._logger.error(LOGGINGTOPIC.SESSION, e, `Session.customizeSession: Session customization failed.`, true, false)
-                }
-            }
-            this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCustomize, this._parameters, this._outputs, this._exports);
-            return this.loadOutputs(parameters, cancelRequest);
-        } catch (e) {
-            throw this._logger.error(LOGGINGTOPIC.SESSION, e, 'Session.customizeSession: Something went wrong at session customization.', true);
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveOutputProperties', e);
         }
     }
 
     /**
-     * Load the outputs and return the scene graph node of the result.
-     * In case the outputs have a delay property, another customization request with the parameter set is sent.
+     * Save the parameter properties for displayname, order, tooltip and hidden
      * 
-     * @param parameters the parameter set to update the session 
-     * @param outputs the outputs to load
-     * @returns promise with a scene graph node
+     * @param parameters 
+     * @returns 
      */
-    public async loadOutputs(parameters: { [key: string]: string }, cancelRequest: () => boolean = () => false): Promise<SessionTreeNode> {
-        const o = Object.assign({}, this._outputs);
-        try {
-            const node = await this._outputLoader.loadOutputs(this._sessionResponse, o);
-            node.data.push(new SessionData(this._sessionResponse));
-            return node;
+    public async saveParameterProperties(parameters: {
+        [key: string]: {
+            displayname: string,
+            hidden: boolean,
+            order: number,
+            tooltip: string
         }
-        catch (e) {
-            if (e instanceof OutputDelayException)
-                await this.timeout(e.delay);
+    }): Promise<boolean> {
+        this.checkAvailability('parameter-definition', true);
+        try {
+            await this._sdk.model.updateParameterDefinitions(this._modelId!, parameters);
+            return true;
+        } catch (e) {
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveParameterProperties', e);
+        }
+    }
 
-            if(cancelRequest()) return new SessionTreeNode();
-            let outputMapping: { [key: string]: string } = {};
-            for (let output in o)
-                outputMapping[output] = o[output].version;
+    public async saveSettings(json: any): Promise<boolean> {
+        this.checkAvailability('configure', true);
+        try {
+            await this._sdk.model.updateConfig(this._modelId!, json);
+            return true;
+        } catch (e) {
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveSettings', e);
+        }
+    }
 
-            let responseCache = (await this.sessionCommunication(this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].href!, this._sessionResponse.actions?.filter(v => v.name === 'cache')[0].method!.toLowerCase()!, outputMapping, 'application/json')).data;
+    public async uploadFile(parameterId: string, data: File, type: string): Promise<string> {
+        this.checkAvailability('upload');
+        try {
+            const responseDto = await this._sdk.file.requestUpload(this._sessionId!, {
+                [parameterId]: { size: data.size, format: type }
+            })
+
+            if(responseDto && responseDto.asset && responseDto.asset.file && responseDto.asset.file[parameterId]) {
+                const fileAsset = responseDto.asset.file[parameterId];
+                await this._sdk.utils.upload(fileAsset.href, await data.arrayBuffer(), type);
+                return fileAsset.id;
+            } else {
+                const error = new ShapeDiverViewerSessionError(`Session.uploadFile: Upload reply has not the required format.`);
+                throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', error);
+            }
+        } catch (e) {
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', e);
+        }
+    }
+
+    public async uploadGLTF(blob: Blob, conversion: ShapeDiverRequestGltfUploadQueryConversion = ShapeDiverRequestGltfUploadQueryConversion.NONE): Promise<string> {
+        this.checkAvailability('gltf-upload');
+        try {
+            const responseDto = await this._sdk.gltf.upload(this._sessionId!, await blob.arrayBuffer(), 'model/gltf-binary', conversion);
+            if(!responseDto || !responseDto.gltf || !responseDto.gltf.href) {
+                const error = new ShapeDiverViewerSessionError(`Session.uploadGLTF: Upload reply has not the required format.`);
+                throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadGLTF', error);
+            }
+            return responseDto.gltf.href;
+        } catch (e) {
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadGLTF', e);
+        }
+    }
+
+    // #endregion Public Methods (13)
+
+    // #region Private Methods (5)
+
+    private checkAvailability(action?: string, checkForModelId = false) {
+        if(!this._responseDto) {
+            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: responseDto not available.`);
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.checkAvailability', error);
+        }
+
+        if(!this._sessionId) {
+            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: sessionId not available.`);
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.checkAvailability', error);
+        }
+
+        if(checkForModelId && !this._modelId) {
+            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: modelId not available.`);
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.checkAvailability', error);
+        }
+        
+        if(action && !this._responseDto.actions) {
+            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: actions not available.`);
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.checkAvailability', error);
+        }
+
+        const responseDtoAction = this._responseDto.actions?.find(a => a.name === action);
+        if(action && !responseDtoAction) {
+            const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: action ${action} not available.`);
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.checkAvailability', error);
+        }
+    }
+
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean): Promise<SessionTreeNode> {
+        this.checkAvailability('customize');
+        try {
+            this._performanceEvaluator.startSection('sessionResponse');
+            const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameters);
+            this._performanceEvaluator.endSection('sessionResponse');
             if(cancelRequest()) return new SessionTreeNode();
-            this._sessionResponse = this.mergeResponses(this._sessionResponse, responseCache, this._parameters, this._outputs, this._exports);
-            return await this.loadOutputs(parameters, cancelRequest);
+            this.updateResponseDto(responseDto);
+            return this.loadOutputs(cancelRequest);
+        } catch (e) {
+            if (e.response && e.response.status) {
+                if (e.response && e.response.status && e.response.status === 410 && !this._closed) {
+                    this._logger.info(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Session customization failed. Session expired. Re-initializing session.');
+                    this._initialized = false;
+                    await this.init(parameters);
+                    if(cancelRequest()) return new SessionTreeNode();
+                    return this.loadOutputs(cancelRequest);
+                }
+            }
+            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.customizeSession', e);
         }
     }
 
@@ -528,5 +424,55 @@ export class Session implements ISession {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // #endregion Private Methods (3)
+    private updateResponseDto(responseDto: ShapeDiverResponseDto) {
+        if(!this._responseDto) {
+            this._responseDto = responseDto;
+            return;
+        }
+
+        // convert parameters
+        if (responseDto.parameters) {
+            for (let parameterId in responseDto.parameters) {
+                this._responseDto.parameters = this._responseDto.parameters || {};
+                this._responseDto.parameters[parameterId] = this._responseDto.parameters[parameterId] || responseDto.parameters[parameterId];
+            }
+        }
+
+        // convert outputs
+        if (responseDto.outputs) {
+            for (let outputId in responseDto.outputs) {
+                this._responseDto.outputs = this._responseDto.outputs || {};
+                if ('version' in responseDto.outputs[outputId] || !(this._responseDto.outputs[outputId] && 'version' in this._responseDto.outputs[outputId]))
+                    this._responseDto.outputs[outputId] = responseDto.outputs[outputId];
+            }
+        }
+
+        // convert exports
+        if (responseDto.exports) {
+            for (let exportId in responseDto.exports) {
+                this._responseDto.exports = this._responseDto.exports || {};
+                if ('version' in responseDto.exports[exportId] || !(this._responseDto.exports[exportId] && 'version' in this._responseDto.exports[exportId]))
+                    this._responseDto.exports[exportId] = responseDto.exports[exportId];
+            }
+        }
+
+        for (let parameterId in this._responseDto.parameters) {
+            if (this.parameters[parameterId]) continue;
+            this.parameters[parameterId] = this._responseDto.parameters[parameterId];
+            this.parameters[parameterId].id = parameterId;
+        }
+
+        for (let exportId in this._responseDto.exports)
+            if (this._responseDto.exports[exportId].type === ShapeDiverResponseExportDefinitionType.EMAIL || this._responseDto.exports[exportId].type === ShapeDiverResponseExportDefinitionType.DOWNLOAD) {
+                this.exports[exportId] = this._responseDto.exports[exportId];
+                this.exports[exportId].id = exportId;
+            }
+
+        for (let outputId in this._responseDto.outputs) {
+            this.outputs[outputId] = <ShapeDiverResponseOutput>this._responseDto.outputs[outputId];
+            this.outputs[outputId].id = outputId;
+        }
+    }
+
+    // #endregion Private Methods (5)
 }

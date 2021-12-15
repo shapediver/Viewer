@@ -4,7 +4,7 @@ import { container, singleton } from 'tsyringe'
 import { EventEngine } from '../event-engine/EventEngine'
 import { EVENTTYPE } from '../event-engine/EventTypes'
 import { Logger, LOGGINGTOPIC } from '../logger/Logger';
-import { SDError } from '../logger/SDError';
+import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerError';
 
 type IARSettings = ISettingsV3["ar"];
 type ICameraSettings = ISettingsV3["camera"];
@@ -74,7 +74,7 @@ export class SettingsEngine {
     // #region Public Methods (4)
 
     public convertToTargetVersion(): any {
-        return convert(this._settings, this._settings_version || '3.0');
+        return convert(this._settings, '3.0');
     }
 
     public flatten() {
@@ -128,7 +128,8 @@ export class SettingsEngine {
 
                 return;
             } catch (e) {
-                this._logger.error(LOGGINGTOPIC.SETTINGS, new SDError(e.message, e), 'Settings could not be validated.', false, true);
+                const error = new ShapeDiverViewerSettingsError('SettingsEngine.loadSettings: Settings could not be validated.', e);
+                throw this._logger.handleError(LOGGINGTOPIC.SETTINGS, `SettingsEngine.loadSettings`, error);
             }
         } else {
             this._settings_version = '3.0';

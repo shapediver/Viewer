@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { singleton } from 'tsyringe'
+import { ShapeDiverBackendError, ShapeDiverError } from '../logger/ShapeDiverError';
 
 @singleton()
 export class HttpClient {
@@ -9,7 +10,13 @@ export class HttpClient {
     } = {};
 
     constructor() {
-        axios.interceptors.response.use(response => { return response; }, error => { throw error; });
+        axios.interceptors.response.use(
+            response => { 
+                return response; 
+            }, 
+            error => { 
+                throw error;
+            });
     }
 
     public async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {

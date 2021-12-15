@@ -2,29 +2,25 @@ import { container } from 'tsyringe'
 import { GeometryData, MaterialData } from '@shapediver/viewer.shared.types'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import {
-  ShapeDiverResponseBase as ShapeDiverResponse,
-  ShapeDiverResponseOutput,
-  ShapeDiverResponseOutputPart,
-} from '@shapediver/api.geometry-api-dto-v1'
 
 import { OutputDelayException } from './OutputDelayException'
 import { SessionTreeNode } from './SessionTreeNode'
 import { SessionOutputData } from './SessionOutputData'
 import { PerformanceEvaluator } from '@shapediver/viewer.shared.services'
+import { ShapeDiverResponseDto, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export class OutputLoader {
-    // #region Properties (2)
+    // #region Properties (3)
 
     private readonly _dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
-    private readonly _performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     private readonly _lastOutputNodes: { 
         [key: string]: {
             [key: string]: SessionTreeNode
         }; 
     } = {};
+    private readonly _performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 
-    // #endregion Properties (2)
+    // #endregion Properties (3)
 
     // #region Constructors (1)
 
@@ -46,9 +42,9 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(session: ShapeDiverResponse, outputs?: { [key: string]: ShapeDiverResponseOutput; }): Promise<SessionTreeNode> {
+    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs?: { [key: string]: ShapeDiverResponseOutput; }): Promise<SessionTreeNode> {
         this._performanceEvaluator.startSection('outputLoading');
-        const node = new SessionTreeNode(session.name);
+        const node = new SessionTreeNode(responseDto.model?.name);
         let currentNodes: { 
             [key: string]: {
                 [key: string]: SessionTreeNode
@@ -117,44 +113,7 @@ export class OutputLoader {
 
     // #endregion Public Methods (1)
 
-    // #region Private Methods (1)
-
-    private mergeContentNodes(node: SessionTreeNode) {
-        if(!(node.children.length > 1)) return;
-
-        const children = [];
-        while(node.children.length > 0) {
-            children.push(node.children[0]);
-            node.removeChild(node.children[0]);
-        }
-
-        const mergeNodes = (node1: TreeNode, node2: TreeNode) => {
-            for(let i = 0; i < node1.data.length; i++)
-                node2.data.push(node1.data[i]);
-
-            for(let i = 0; i < node1.children.length; i++) {
-                let childNode;
-                for(let j = 0; j < node2.children.length; j++) {
-                    if(node1.children[i].name === node2.children[j].name) {
-                        childNode = node2.children[j];
-                        break;
-                    }
-                }
-                if(!childNode) {
-                    childNode = new TreeNode(node1.children[i].name);
-                    node2.addChild(childNode);
-                }
-
-                mergeNodes(node1.children[i], childNode);
-            }
-        }
-
-        const newChild = new TreeNode('content_array');
-        node.addChild(newChild);
-        for(let i = 0; i < children.length; i++) 
-            mergeNodes(children[i], newChild)
-
-    }
+    // #region Private Methods (2)
 
     private assignMaterials(node: TreeNode) {
         const addMaterialToGeometry = (node: TreeNode, material: MaterialData) => {
@@ -199,7 +158,6 @@ export class OutputLoader {
             const outputNode = node.children[m];
             if (!outputNode) continue;
 
-
             // we go through all data properties, normally, there should ony one, but we just make sure
             for (let i = 0; i < outputNode.data.length; i++) {
                 if (!(outputNode.data[i] instanceof SessionOutputData)) continue;
@@ -209,15 +167,14 @@ export class OutputLoader {
                 const sessionOutputData = <SessionOutputData>outputNode.data[i];
 
                 // case 1: we have a specific material id defined, let's use that
-                if(sessionOutputData.sessionOutput.material) {
-
+                if(sessionOutputData.responseOutput.material) {
                     let materialNodes: TreeNode[] = [];
                     // now we have id
                     // get material with it    
                     for (let n = 0; n < node.children.length; n++) {
                         const materialNode = node.children[n];
                         if (!materialNode) continue;
-                        if (materialNode.name === sessionOutputData.sessionOutput.material)
+                        if (materialNode.name === sessionOutputData.responseOutput.material)
                             materialNodes = materialNode.children;
                     }
 
@@ -238,7 +195,7 @@ export class OutputLoader {
                 else {
                     // now we hope that in our content, there are exactly the amount of geometries and material, this will be interesting :)
 
-                    const sessionOutputContent = sessionOutputData.sessionOutput.content;
+                    const sessionOutputContent = sessionOutputData.responseOutput.content;
                     if(sessionOutputContent === undefined) continue;
 
                     const materialNodes = [];
@@ -263,9 +220,44 @@ export class OutputLoader {
                     }
                 }
             }
-
         }
     }
 
-    // #endregion Private Methods (1)
+    private mergeContentNodes(node: SessionTreeNode) {
+        if(!(node.children.length > 1)) return;
+
+        const children = [];
+        while(node.children.length > 0) {
+            children.push(node.children[0]);
+            node.removeChild(node.children[0]);
+        }
+
+        const mergeNodes = (node1: TreeNode, node2: TreeNode) => {
+            for(let i = 0; i < node1.data.length; i++)
+                node2.data.push(node1.data[i]);
+
+            for(let i = 0; i < node1.children.length; i++) {
+                let childNode;
+                for(let j = 0; j < node2.children.length; j++) {
+                    if(node1.children[i].name === node2.children[j].name) {
+                        childNode = node2.children[j];
+                        break;
+                    }
+                }
+                if(!childNode) {
+                    childNode = new TreeNode(node1.children[i].name);
+                    node2.addChild(childNode);
+                }
+
+                mergeNodes(node1.children[i], childNode);
+            }
+        }
+
+        const newChild = new TreeNode('content_array');
+        node.addChild(newChild);
+        for(let i = 0; i < children.length; i++) 
+            mergeNodes(children[i], newChild)
+    }
+
+    // #endregion Private Methods (2)
 }

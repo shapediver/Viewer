@@ -8,3 +8,4 @@ docs
 api/api/package.json
 documentation/releaseNotes.html
 documentation/breakingChangesGuide.html
+tests/general/src/credentials.ts

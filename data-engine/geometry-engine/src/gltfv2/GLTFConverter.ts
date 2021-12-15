@@ -1,6 +1,6 @@
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, ImageLoader, SDError, UuidGenerator, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, ImageLoader, UuidGenerator, Logger } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import {
     ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,

@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "devDependencies": {
+    "@shapediver/sdk.platform-api": "^1.13.5",
     "@types/chromedriver": "^81.0.0",
     "@types/jest": "^26.0.15",
     "@types/jest-image-snapshot": "^4.3.0",
@@ -45,7 +46,7 @@
     "add-dependency": "bash ./scripts/add-dependency.sh",
     "add-devDependency": "bash ./scripts/add-devDependency.sh",
     "init": "bash ./scripts/init.sh",
-    "test": "lerna run test --no-bail --stream --concurrency 1",
+    "test": "lerna run test --stream --concurrency 1",
     "test-browserstack": "lerna run --no-bail test-browserstack --stream --concurrency 1",
     "build": "lerna run build --stream",
     "build-watch": "lerna run build-watch --stream --parallel",
@@ -57,6 +58,7 @@
     "deploy-example": "ts-node ./scripts/deploy-example.ts",
     "deploy-tests": "ts-node ./scripts/deploy-tests.ts",
     "deploy-demo": "ts-node ./scripts/deploy-demo.ts",
+    "platform-api-token": "ts-node ./tests/general/src/utils.ts",
     "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md",
     "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md",
     "doc-main": "typedoc"

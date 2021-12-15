@@ -1,32 +1,15 @@
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
 import webdriver, { WebDriver } from "selenium-webdriver";
 require('chromedriver');
-import { api as API} from "@shapediver/viewer"
 import { screenshotCompare } from "../../general/src/setup";
 import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
 
-for(let c = 0; c < allCapabilities.length; c++) {
     let name = 'attribute_tests';
-    const capabilities = Object.assign({ 'name': 'attribute_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
-
-    if(process.env.PORT !== 'browserstack') {
-        name = 'attribute_tests';
-        c = allCapabilities.length;
-    } else {
-        name = 'attribute_tests/' + ((allCapabilities[c] as DesktopCapabilities).os ? 
-        (<DesktopCapabilities>capabilities).os + '_' + (<DesktopCapabilities>capabilities).os_version + '_' + (<DesktopCapabilities>capabilities).browserName + '_' + (<DesktopCapabilities>capabilities).browser_version : 
-        (<MobileCapabilities>capabilities).device + '_' + (<MobileCapabilities>capabilities).os_version);
-    }
 
     let driver: WebDriver;
     describe('device testing', () => {
         beforeAll(async () => {
-            if(process.env.PORT !== 'browserstack') {
-                driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
-            } else {
-                console.log(capabilities)
-                driver = await new webdriver.Builder().usingServer('http://alexanderschiftn1:csj6VCzMwzBYyRecsbm2@hub-cloud.browserstack.com/wd/hub').withCapabilities(capabilities).build();
-            }
+            driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
             await driver.navigate().to('https://viewer.shapediver.com/v3/latest/attribute-visualization/index.html')
             const TIMEOUT = 300000000
             await driver.manage().setTimeouts( { implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT } );
@@ -137,4 +120,3 @@ for(let c = 0; c < allCapabilities.length; c++) {
         
         
     });
-}

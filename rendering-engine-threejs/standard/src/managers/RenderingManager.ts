@@ -2,19 +2,16 @@ import * as TWEEN from '@tweenjs/tween.js'
 import * as Stats from 'stats.js'
 import * as THREE from 'three'
 import {
-    AbstractCamera,
     CAMERATYPE,
-    OrthographicCamera,
     PerspectiveCamera,
     PerspectiveCameraControls
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { EventEngine, EVENTTYPE, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerWebGLError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
-import { BeautyRenderingManager } from './BeautyRenderingManager'
 import { IManager } from '../interfaces/IManager'
 import { ICameraEvent } from '@shapediver/viewer.shared.types'
 import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
@@ -383,7 +380,8 @@ export class RenderingManager implements IManager {
                 if (_gl !== null) {
                     this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
                 } else {
-                    throw new SDError('We were unable to get a WebGL context.');
+                    const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.');
+                    throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error);
                 }
             }
 
@@ -408,8 +406,9 @@ export class RenderingManager implements IManager {
                 this._minimalRendering = true;
 
             return _gl;
-        } catch (error) {
-            throw this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', error), '', true);
+        } catch (e) {
+            const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', e);
+            throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error);
         }
     }
 

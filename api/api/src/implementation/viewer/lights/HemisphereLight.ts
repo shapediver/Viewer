@@ -1,6 +1,6 @@
 import { HemisphereLight as HemisphereLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
-import { Converter, InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { Converter, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { AbstractLight } from './AbstractLight'
@@ -46,8 +46,8 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
             this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor: groundColor was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.LIGHT, e, `Light(${this.id}).groundColor: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor`, e);
         }
     }
 

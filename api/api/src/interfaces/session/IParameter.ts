@@ -1,4 +1,4 @@
-import { ShapeDiverResponseParameter } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseParameter } from "@shapediver/sdk.geometry-api-sdk-v2";
 
 export interface IParameter<T> extends ShapeDiverResponseParameter {
     lastValidatedValue: T | string;

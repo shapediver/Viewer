@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { AnimationData, ATTRIBUTEVISUALIZATION, GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeOverview, SDTFAttributeVisualization, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { ISDObject, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
-import { Converter, EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, SDError, StateEngine } from '@shapediver/viewer.shared.services'
+import { Converter, EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, StateEngine } from '@shapediver/viewer.shared.services'
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, quat, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
@@ -278,9 +278,9 @@ export class SceneTreeManager implements IManager {
                 visData.material = userVisData.material;
                 visData.matrix = visData.matrix;
             } catch(e) {
-                if(e instanceof SDError)
-                    this._logger.warn(LOGGINGTOPIC.VIEWER, e.message);
-                this._logger.error(LOGGINGTOPIC.VIEWER, e, `Viewer.convertSDTFItemToVisualizationData: Encountered an error while parsing the visualization data.`, false); 
+                if(e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError)
+                    throw e;
+                throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData: Encountered an error while parsing the visualization data.`, e); 
             }
         }
 

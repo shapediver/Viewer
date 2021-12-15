@@ -16,7 +16,7 @@ import { SpecularGlossinessMaterial, SpecularGlossinessMaterialParameters } from
 import { RenderingManager } from '../managers/RenderingManager'
 import { ILoader } from '../interfaces/ILoader'
 import { MeshUnlitMaterialParameters } from '../materials/MeshUnlitMaterialParameters'
-import { Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 export enum MATERIAL_TYPE {
@@ -376,11 +376,9 @@ export class MaterialLoader implements ILoader {
             return { properties: specularGlossinessProperties, mapCount };
         }
 
-
-        // We should never get here, if we do, log it
-        this._logger.error(LOGGINGTOPIC.VIEWER, new SDError('No proper material properties were found.'))
-
-        return { properties: generalProperties, mapCount };
+        // we should never get here
+        const error = new ShapeDiverViewerDataProcessingError(`MaterialLoader.getMaterialProperties: No proper material properties were found.`);
+        throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialLoader.getMaterialProperties`, error);
     }
 
     /**

@@ -1,7 +1,6 @@
 import { vec3, vec4 } from 'gl-matrix'
 import { TinyColor } from '@ctrl/tinycolor'
 import { singleton } from 'tsyringe'
-import { SDError } from '../logger/SDError';
 
 @singleton()
 export class Converter {
@@ -26,130 +25,6 @@ export class Converter {
         const rgb = tColor.toRgb()
         return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
     }
-
-
-    public combineImages(redChannel?: HTMLImageElement, greenChannel?: HTMLImageElement, blueChannel?: HTMLImageElement): HTMLImageElement {
-        if (!redChannel && !greenChannel && !blueChannel) throw new SDError('No channels provided.');
-
-        if (redChannel && greenChannel && blueChannel) {
-            if (redChannel.width !== greenChannel.width || redChannel.width !== blueChannel.width || redChannel.height !== greenChannel.height || redChannel.height !== blueChannel.height) throw new SDError('Image sizes are different.');
-
-            const image: HTMLImageElement = redChannel;
-            const canvas = document.createElement("canvas");
-            canvas.width = image.width;
-            canvas.height = image.height;
-
-            // Copy the image contents to the canvas
-            const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
-            ctx.drawImage(image, 0, 0);
-
-            const imageDataR = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(greenChannel, 0, 0);
-            const imageDataG = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(blueChannel, 0, 0);
-            const imageDataB = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < imageDataR.data.length; i += 4) {
-                // G
-                imageDataR.data[i + 1] = imageDataG.data[i + 1];
-                // B
-                imageDataR.data[i + 2] = imageDataB.data[i + 2];
-            }
-            // put the altered data back on the canvas  
-            ctx.putImageData(imageDataR, 0, 0);
-
-            const resultImage = document.createElement('img');
-            resultImage.src = canvas.toDataURL();
-            return resultImage;
-        } else if (redChannel && blueChannel || redChannel && greenChannel || blueChannel && greenChannel) {
-
-            let mainImage, secondImage;
-            if (!greenChannel) {
-                mainImage = redChannel;
-                secondImage = blueChannel;
-            } else if (!blueChannel) {
-                mainImage = redChannel;
-                secondImage = greenChannel;
-            } else {
-                mainImage = greenChannel;
-                secondImage = blueChannel;
-            }
-
-            if (mainImage!.width !== secondImage!.width || mainImage!.height !== secondImage!.height) throw new SDError('Image sizes are different.');
-
-            const image: HTMLImageElement = mainImage!;
-            const canvas = document.createElement("canvas");
-            canvas.width = image.width;
-            canvas.height = image.height;
-
-            // Copy the image contents to the canvas
-            const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
-            ctx.drawImage(image, 0, 0);
-
-            const imageDataMain = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(mainImage!, 0, 0);
-            const imageDataSecond = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(secondImage!, 0, 0);
-
-            for (let i = 0; i < imageDataMain.data.length; i += 4) {
-                // R
-                if (!redChannel) {
-                    imageDataMain.data[i + 0] = 255;
-                    imageDataMain.data[i + 2] = imageDataSecond.data[i + 2];
-                }
-                // G
-                if (!greenChannel) {
-                    imageDataMain.data[i + 1] = 255;
-                    imageDataMain.data[i + 2] = imageDataSecond.data[i + 2];
-                }
-                // B
-                if (!blueChannel) {
-                    imageDataMain.data[i + 1] = imageDataSecond.data[i + 2];
-                    imageDataMain.data[i + 2] = 255;
-                }
-            }
-            // put the altered data back on the canvas  
-            ctx.putImageData(imageDataMain, 0, 0);
-
-            const resultImage = document.createElement('img');
-            resultImage.src = canvas.toDataURL();
-            return resultImage;
-        } else {
-            const image: HTMLImageElement = (redChannel || blueChannel || greenChannel)!;
-            const canvas = document.createElement("canvas");
-            canvas.width = image.width;
-            canvas.height = image.height;
-
-            // Copy the image contents to the canvas
-            const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
-            ctx.drawImage(image, 0, 0);
-
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < imageData.data.length; i += 4) {
-                // R
-                if (redChannel) {
-                    imageData.data[i + 1] = 255;
-                    imageData.data[i + 2] = 255;
-                }
-                // G
-                if (greenChannel) {
-                    imageData.data[i + 0] = 255;
-                    imageData.data[i + 2] = 255;
-                }
-                // B
-                if (blueChannel) {
-                    imageData.data[i + 0] = 255;
-                    imageData.data[i + 1] = 255;
-                }
-            }
-            // put the altered data back on the canvas  
-            ctx.putImageData(imageData, 0, 0);
-
-            const resultImage = document.createElement('img');
-            resultImage.src = canvas.toDataURL();
-            return resultImage;
-        }
-    }
-
 
     /**
      * This color converter is mostly left 'as-is' from viewer v2.

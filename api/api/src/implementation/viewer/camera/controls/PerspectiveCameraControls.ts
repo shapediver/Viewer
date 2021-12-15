@@ -1,7 +1,7 @@
 import {
   PerspectiveCameraControls as PerspectiveCameraControlsLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
@@ -30,8 +30,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#viewer = viewer;
             this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).constructor: PerspectiveCameraControlsLogic api created.`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls.constructor: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${controls.camera.id}).constructor`, e);
         }
     }
 
@@ -51,8 +51,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).autoRotationSpeed: autoRotationSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).autoRotationSpeed: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).autoRotationSpeed`, e);
         }
     }
 
@@ -69,8 +69,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubePositionRestriction: cubePositionRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).cubePositionRestriction: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).cubePositionRestriction`, e);
         }
     }
 
@@ -87,8 +87,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).cubeTargetRestriction: cubeTargetRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).cubeTargetRestriction: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).cubeTargetRestriction`, e);
         }
     }
 
@@ -104,8 +104,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).damping: damping was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).damping: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).damping`, e);
         }
     }
 
@@ -121,8 +121,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableAutoRotation: enableAutoRotation was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enableAutoRotation: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).enableAutoRotation`, e);
         }
     }
 
@@ -138,8 +138,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: enableKeyPan was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enableKeyPan: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).enableKeyPan`, e);
         }
     }
 
@@ -155,8 +155,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan: enablePan was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enablePan: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).enablePan`, e);
         }
     }
 
@@ -172,8 +172,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableRotation: enableRotation was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enableRotation: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).enableRotation`, e);
         }
     }
 
@@ -189,8 +189,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom: enableZoom was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enableZoom: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).enableZoom`, e);
         }
     }
 
@@ -206,8 +206,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled: enabled was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).enabled: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).enabled`, e);
         }
     }
 
@@ -232,8 +232,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input: input was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).input: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).input`, e);
         }
     }
 
@@ -249,8 +249,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: keyPanSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).keyPanSpeed: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).keyPanSpeed`, e);
         }
     }
 
@@ -266,8 +266,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: movementSmoothness was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).movementSmoothness: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).movementSmoothness`, e);
         }
     }
 
@@ -283,8 +283,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed: panSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).panSpeed: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).panSpeed`, e);
         }
     }
 
@@ -303,8 +303,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationRestriction: rotationRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).rotationRestriction: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).rotationRestriction`, e);
         }
     }
 
@@ -320,8 +320,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).rotationSpeed: rotationSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).rotationSpeed: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).rotationSpeed`, e);
         }
     }
 
@@ -338,8 +338,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).spherePositionRestriction: spherePositionRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).spherePositionRestriction: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).spherePositionRestriction`, e);
         }
     }
 
@@ -356,8 +356,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).sphereTargetRestriction: sphereTargetRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).sphereTargetRestriction: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).sphereTargetRestriction`, e);
         }
     }
 
@@ -374,8 +374,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomRestriction: zoomRestriction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).zoomRestriction: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).zoomRestriction`, e);
         }
     }
 
@@ -391,8 +391,8 @@ export class PerspectiveCameraControls implements IPerspectiveCameraControls {
             this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: zoomSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.CAMERACONTROL, e, `Controls(${this.#controls.camera.id}).zoomSpeed: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.#controls.camera.id}).zoomSpeed`, e);
         }
     }
 

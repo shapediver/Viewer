@@ -1,6 +1,6 @@
 import { IViewer } from "@shapediver/viewer";
 import { vec3 } from "gl-matrix";
-import { Logger, LOGGINGTOPIC, SDError, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { Logger, LOGGINGTOPIC, UuidGenerator, ShapeDiverViewerViewerError } from "@shapediver/viewer.shared.services";
 import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractionEngine";
 import { container } from "tsyringe";
 import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
@@ -101,9 +101,8 @@ export class InteractionEngine implements IInteractionEngine {
         const rect = this.#viewer.canvas.getBoundingClientRect();
         const camera = this.#viewer.camera;
         if (!camera) {
-            const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
-            this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
-            throw error;
+            const error = new ShapeDiverViewerViewerError('InteractionEngine.mouseEventToRay: No camera is defined for this viewer.');
+            throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `InteractionEngine.mouseEventToRay`, error);
         }
 
         let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -179,9 +178,8 @@ export class InteractionEngine implements IInteractionEngine {
         const rect = this.#viewer.canvas.getBoundingClientRect();
         const camera = this.#viewer.camera;
         if (!camera) {
-            const error = new SDError('RenderingEngine: No camera is defined for this viewer.');
-            this.#logger.warn(LOGGINGTOPIC.VIEWER, error.message);
-            throw error;
+            const error = new ShapeDiverViewerViewerError('InteractionEngine.touchToRay: No camera is defined for this viewer.');
+            throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `InteractionEngine.touchToRay`, error);
         }
 
         let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;

@@ -1,29 +1,33 @@
-import { ShapeDiverResponseOutput } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
 export class SessionOutputData extends AbstractTreeNodeData {
-    #sessionOutput: ShapeDiverResponseOutput;
+    // #region Properties (1)
+
+    #responseOutput: ShapeDiverResponseOutput;
+
+    // #endregion Properties (1)
 
     // #region Constructors (1)
 
     constructor(
-        sessionOutput: ShapeDiverResponseOutput,
+        responseOutput: ShapeDiverResponseOutput,
         id?: string
     ) {
         super(id);
-        this.#sessionOutput = sessionOutput;
+        this.#responseOutput = responseOutput;
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (2)
 
-    public get sessionOutput(): ShapeDiverResponseOutput {
-		return this.#sessionOutput;
+    public get responseOutput(): ShapeDiverResponseOutput {
+		return this.#responseOutput;
 	}
 
-    public set sessionOutput(value: ShapeDiverResponseOutput) {
-		this.#sessionOutput = value;
+    public set responseOutput(value: ShapeDiverResponseOutput) {
+		this.#responseOutput = value;
 	}
 
     // #endregion Public Accessors (2)
@@ -31,7 +35,7 @@ export class SessionOutputData extends AbstractTreeNodeData {
     // #region Public Methods (1)
 
     public clone(): ITreeNodeData {
-        return new SessionOutputData(this.sessionOutput, this.id);
+        return new SessionOutputData(this.responseOutput, this.id);
     }
 
     // #endregion Public Methods (1)

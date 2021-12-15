@@ -17,7 +17,7 @@ import {
 import { CustomData, GeometryData, MaterialData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent } from '@shapediver/viewer.shared.types'
 import { EVENTTYPE, LOGGINGLEVEL, SettingsEngine } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'
-import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 import { Api } from './implementation/Api'
 import { Output } from './implementation/session/Output'

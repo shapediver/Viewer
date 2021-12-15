@@ -1,23 +1,19 @@
 import { container } from 'tsyringe'
-import { InputValidator, Logger, LOGGINGTOPIC, SDError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import {
-  ShapeDiverResponseOutput,
-  ShapeDiverResponseOutputChunk as OutputChunk,
-  ShapeDiverResponseOutputPart,
-} from '@shapediver/api.geometry-api-dto-v1'
 
 import { IOutput } from '../../interfaces/session/IOutput'
 import { ISession } from '../../interfaces/session/ISession'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ShapeDiverResponseOutput, ShapeDiverResponseOutputChunk, ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export class Output implements IOutput {
   // #region Properties (20)
 
   readonly #bbmax?: number[];
   readonly #bbmin?: number[];
-  readonly #chunks?: OutputChunk[];
-  readonly #content?: ShapeDiverResponseOutputPart[];
+  readonly #chunks?: ShapeDiverResponseOutputChunk[];
+  readonly #content?: ShapeDiverResponseOutputContent[];
   readonly #delay?: number;
   readonly #dependency!: string[];
   readonly #id: string;
@@ -64,8 +60,8 @@ export class Output implements IOutput {
 
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${outputDef.id}).constructor: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${outputDef.id}).constructor`, e);
     }
   }
 
@@ -81,11 +77,11 @@ export class Output implements IOutput {
     return this.#bbmin;
   }
 
-  public get chunks(): OutputChunk[] | undefined {
+  public get chunks(): ShapeDiverResponseOutputChunk[] | undefined {
     return this.#chunks;
   }
 
-  public get content(): ShapeDiverResponseOutputPart[] | undefined {
+  public get content(): ShapeDiverResponseOutputContent[] | undefined {
     return this.#content;
   }
 
@@ -108,8 +104,8 @@ export class Output implements IOutput {
       this.#displayname = value;
       this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.#id}).displayname: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).displayname`, e);
     }
   }
 
@@ -124,8 +120,8 @@ export class Output implements IOutput {
       this.#hidden = value;
       this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.#id}).hidden: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).hidden`, e);
     }
   }
 
@@ -160,8 +156,8 @@ export class Output implements IOutput {
       this.#order = value;
       this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order: Order was updated to ${this.order}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.#id}).order: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).order`, e);
     }
   }
 
@@ -176,8 +172,8 @@ export class Output implements IOutput {
       this.#tooltip = value;
       this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
     } catch (e) {
-      if (e instanceof SDError) throw e;
-      throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Output(${this.#id}).tooltip: Something unexpected happened.`, true)
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).tooltip`, e);
     }
   }
 

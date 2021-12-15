@@ -1,22 +1,19 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, SDError, UuidGenerator, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import {
   ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
   ACCESSORTYPE_V1 as ACCESSORTYPE,
-  IGLTF_v1,
-  IGLTF_v1_Material,
   ISDGTF_v1,
 } from '@shapediver/viewer.data-engine.shared-types'
 import {
   AttributeData,
   GeometryData,
-  MATERIAL_SIDE,
   MaterialData,
   PRIMITIVE_MODE,
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'
 import { container } from 'tsyringe'
-import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
+import { mat4, vec3, vec4 } from 'gl-matrix'
 
 export class SDGTFLoader {
     // #region Properties (5)
@@ -42,8 +39,8 @@ export class SDGTFLoader {
                 contentFormat: headerDataView.getUint32(17, true)
             }
             if (header.magic != 'sdgTF') {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('SDGTFLoader.load: Invalid data: sdgTF magic wrong.'));
-                return new TreeNode();
+                const error = new ShapeDiverViewerDataProcessingError('SDGTFLoader.load: Invalid data: sdgTF magic wrong.');
+                throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDGTFLoader.load`, error);
             }
 
             // create content
@@ -58,12 +55,7 @@ export class SDGTFLoader {
         try {
             return await this.loadScene();
         } catch (e) {
-            if (e.response && e.response.status) {
-                this._logger.httpError(LOGGINGTOPIC.DATAPROCESSING, e, `SDGTFLoader.load: Loading of geometry failed. ${e.message}`, e.response.status, false)
-            } else {
-                this._logger.error(LOGGINGTOPIC.DATAPROCESSING, e, `SDGTFLoader.load: Loading of geometry failed. ${e.message}`, false)
-            }
-            return new TreeNode();
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDGTFLoader.load`, e);
         }
     }
 
@@ -83,7 +75,7 @@ export class SDGTFLoader {
     }
 
     private async loadAccessor(accessorName: string): Promise<AttributeData> {
-        if (!this._content.accessors![accessorName]) throw new SDError('Accessor not available.')
+        if (!this._content.accessors![accessorName]) throw new Error('Accessor not available.')
         const accessor = this._content.accessors![accessorName];
         const bufferView = this._body;
 
@@ -98,7 +90,7 @@ export class SDGTFLoader {
     }
 
     private async loadArcs(): Promise<TreeNode> {
-        if (!this._content.arcs) throw new SDError('Arcs not available.')
+        if (!this._content.arcs) throw new Error('Arcs not available.')
         const arc = this._content.arcs;
         const arcNode = new TreeNode('arcs');
 
@@ -176,7 +168,7 @@ export class SDGTFLoader {
     }
 
     private async loadBeziercurve(beziercurveName: string): Promise<TreeNode> {
-        if (!this._content.beziercurves![beziercurveName]) throw new SDError('Beziercurve not available.')
+        if (!this._content.beziercurves![beziercurveName]) throw new Error('Beziercurve not available.')
         const beziercurve = this._content.beziercurves![beziercurveName];
         const beziercurveNode = new TreeNode(beziercurveName);
 
@@ -285,7 +277,7 @@ export class SDGTFLoader {
     }
 
     private async loadCircles(): Promise<TreeNode> {
-        if (!this._content.circles) throw new SDError('Circles not available.')
+        if (!this._content.circles) throw new Error('Circles not available.')
         const circle = this._content.circles;
         const circleNode = new TreeNode('circles');
 
@@ -358,7 +350,7 @@ export class SDGTFLoader {
     }
 
     private async loadCylinders(): Promise<TreeNode> {
-        if (!this._content.cylinders) throw new SDError('Cylinders not available.')
+        if (!this._content.cylinders) throw new Error('Cylinders not available.')
         const cylinder = this._content.cylinders;
         const cylinderNode = new TreeNode('cylinders');
 
@@ -499,7 +491,7 @@ export class SDGTFLoader {
     }
 
     private async loadSpheres(): Promise<TreeNode> {
-        if (!this._content.spheres) throw new SDError('Spheres not available.')
+        if (!this._content.spheres) throw new Error('Spheres not available.')
         const sphere = this._content.spheres;
         const sphereNode = new TreeNode('spheres');
 
@@ -596,7 +588,7 @@ export class SDGTFLoader {
     }
 
     private async loadPoint(pointName: string): Promise<TreeNode> {
-        if (!this._content.points![pointName]) throw new SDError('Point not available.')
+        if (!this._content.points![pointName]) throw new Error('Point not available.')
         const point = this._content.points![pointName];
         const pointNode = new TreeNode(pointName);
 
@@ -614,7 +606,7 @@ export class SDGTFLoader {
     }
 
     private async loadPolyline(polylineName: string): Promise<TreeNode> {
-        if (!this._content.polylines![polylineName]) throw new SDError('Polyline not available.')
+        if (!this._content.polylines![polylineName]) throw new Error('Polyline not available.')
         const polyLine = this._content.polylines![polylineName];
         const polyLineNode = new TreeNode(polylineName);
 
@@ -632,7 +624,7 @@ export class SDGTFLoader {
     }
 
     private async loadSurfacepatch(surfacepatchName: string): Promise<TreeNode> {
-        if (!this._content.surfacepatches![surfacepatchName]) throw new SDError('Surfacepatch not available.')
+        if (!this._content.surfacepatches![surfacepatchName]) throw new Error('Surfacepatch not available.')
         const surfacepatch = this._content.surfacepatches![surfacepatchName];
         const surfacepatchNode = new TreeNode(surfacepatchName);
 

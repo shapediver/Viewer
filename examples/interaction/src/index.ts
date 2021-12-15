@@ -286,7 +286,7 @@ const addShelf = async (def: ShelfDefinition) => {
 (async () => {
     viewer = <SDV.IViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: SDV.VISIBILITYMODE.MANUAL });
     session = await api.createSession({ 
-        ticket: '295224def826be64146bccfdb6eea2e054bde5822ba748273c019a5bfc2b2c3a492aef28356cb4c4f8e71687d63443148b2690e41f5174378ae8c5e6ff0e6a4e80b419155d0704f688859bbfa90b1fcb5ce3a2728d1e36e1e639fd81e10c4022b5ec6d285a11c3-44bda6b73439a7d573d2c1bc6d27bb6c', 
+        ticket: '855ada5173c8ea4b7ee2ccb78efe082f092229942db6017217cd677166ab5bed6f04d07060e002602d5a0d819a517e6b2958bcb4400176b0018862be817b8a1cc57a3acd84bd7039076f1b807ae26cc554b77b9be48c0bd053652d8ecb6cb74252dc5df70151a8-798c320934a5643f8c6272de5b2a830c', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
     });

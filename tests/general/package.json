@@ -5,29 +5,18 @@
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
   "license": "polyform-noncommercial-1.0.0",
-  "main": "dist/index.js",
   "private": true,
   "directories": {
     "test": "__tests__"
   },
-  "files": [
-    "dist"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shapediver/Viewer.git"
-  },
-  "scripts": {
-    "check": "tsc --noEmit",
-    "build": "bash ../../scripts/build.sh",
-    "build-watch": "bash ../../scripts/build-watch.sh",
-    "build-dep": "bash ../../scripts/build-dep.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
   },
   "homepage": "https://github.com/shapediver/Viewer#readme",
-  "typings": "dist/index.d.ts",
   "jest": {
     "setupFilesAfterEnv": [
       "./__tests__/setup.ts"

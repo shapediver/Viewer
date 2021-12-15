@@ -8,8 +8,10 @@ import {
   Logger,
   LOGGINGTOPIC,
   PerformanceEvaluator,
-  SDError,
   SettingsEngine,
+  ShapeDiverBackendError,
+  ShapeDiverViewerError,
+  ShapeDiverViewerSessionError,
   StateEngine,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
@@ -28,6 +30,7 @@ import { FileParameter } from './FileParameter'
 import { Export } from './Export'
 import { Output } from './Output'
 import { ISettingsEvent } from '@shapediver/viewer.shared.types'
+import { ShapeDiverRequestGltfUploadQueryConversion } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @injectable()
 export class Session implements ISession {
@@ -94,7 +97,6 @@ export class Session implements ISession {
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     #automaticUpdate: boolean = false;
-    #canUploadGLTF: boolean = false;
     #commitParameters: boolean = false;
     #commitSettings: boolean = false;
     #customizationProcess!: string;
@@ -164,13 +166,13 @@ export class Session implements ISession {
                 try {
                     this.#primarySession = true;
                     this.#stateEngine.sessions[this.id].primary = true;
-                    this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
+                    this.#settingsEngine.loadSettings(this.#sessionEngine.viewerSettings, this.id, this.primarySession);
                     await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
                     this.#api.update();
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
                 } catch (e) {
-                    if (e instanceof SDError) throw e;
-                    throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).setAsPrimary: Something unexpected happened.`, true)
+                    if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+                    throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary`, e);
                 }
             }
 
@@ -186,15 +188,15 @@ export class Session implements ISession {
                     if (!closeResult) this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).close: Was not able to close session completely, please disregard this session.`);
                     return closeResult;
                 } catch (e) {
-                    if (e instanceof SDError) throw e;
-                    throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).close: Something unexpected happened.`, true)
+                    if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+                    throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).close`, e);
                 }
             }
 
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).constructor: Session api created.`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session.constructor: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session.constructor`, e);
         }
     }
 
@@ -213,13 +215,9 @@ export class Session implements ISession {
             this.#automaticUpdate = value;
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate: automaticUpdate was set to: ${value}`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).automaticUpdate: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate`, e);
         }
-    }
-
-    public get authorTicket(): boolean | undefined {
-        return this.#sessionEngine.authorTicket;
     }
 
     public get bearerToken(): string | undefined {
@@ -233,13 +231,13 @@ export class Session implements ISession {
             this.#sessionEngine.bearerToken = value;
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken: bearerToken was set to: ${value}`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).bearerToken: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken`, e);
         }
     }
 
     public get canUploadGLTF(): boolean {
-        return this.#canUploadGLTF;
+        return this.#sessionEngine.canUploadGLTF;
     }
 
     public get commitParameters(): boolean {
@@ -253,8 +251,8 @@ export class Session implements ISession {
             this.#commitParameters = value;
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: commitParameters was set to: ${value}`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).commitParameters: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters`, e);
         }
     }
 
@@ -269,8 +267,8 @@ export class Session implements ISession {
             this.#commitSettings = value;
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: commitSettings was set to: ${value}`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).commitSettings: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings`, e);
         }
     }
 
@@ -321,8 +319,8 @@ export class Session implements ISession {
             this.#sessionEngine.refreshBearerToken = value;
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken: refreshBearerToken was set to: ${value}`);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).refreshBearerToken: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken`, e);
         }
     }
 
@@ -454,8 +452,8 @@ export class Session implements ISession {
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
             return this.node;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).customize: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize`, e);
         }
     }
 
@@ -465,8 +463,8 @@ export class Session implements ISession {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Session(${this.id}).getExportById`, id, 'string');
             return this.exports[id];
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Session(${this.id}).getExportById: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Session(${this.id}).getExportById`, e);
         }
     }
 
@@ -481,8 +479,8 @@ export class Session implements ISession {
             }
             return exports;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Session(${this.id}).getExportByName: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Session(${this.id}).getExportByName`, e);
         }
     }
 
@@ -497,8 +495,8 @@ export class Session implements ISession {
             }
             return exports;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.EXPORT, e, `Session(${this.id}).getExportByType: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Session(${this.id}).getExportByType`, e);
         }
     }
 
@@ -508,8 +506,8 @@ export class Session implements ISession {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Session(${this.id}).getOutputById`, id, 'string');
             return this.outputs[id];
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Session(${this.id}).getOutputById: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Session(${this.id}).getOutputById`, e);
         }
     }
 
@@ -524,8 +522,8 @@ export class Session implements ISession {
             }
             return outputs;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.OUTPUT, e, `Session(${this.id}).getOutputByName: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Session(${this.id}).getOutputByName`, e);
         }
     }
 
@@ -535,8 +533,8 @@ export class Session implements ISession {
             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Session(${this.id}).getParameterById`, id, 'string');
             return this.parameters[id];
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Session(${this.id}).getParameterById: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Session(${this.id}).getParameterById`, e);
         }
     }
 
@@ -551,8 +549,8 @@ export class Session implements ISession {
             }
             return parameters;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Session(${this.id}).getParameterByName: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Session(${this.id}).getParameterByName`, e);
         }
     }
 
@@ -567,8 +565,8 @@ export class Session implements ISession {
             }
             return parameters;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.PARAMETER, e, `Session(${this.id}).getParameterByType: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Session(${this.id}).getParameterByType`, e);
         }
     }
 
@@ -595,15 +593,15 @@ export class Session implements ISession {
             this.#parameterHistoryForward.push(currentParameterSet);
             return node;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).goBack: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).goBack`, e);
         }
     }
 
     public async goForward(): Promise<TreeNode> {
         try {
             if(!this.canGoForward()) {
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).goBack: Cannot go further forward.`);
+                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).goForward: Cannot go further forward.`);
                 return new TreeNode();
             }
             // get the last undone parameter set and apply the values to the parameters
@@ -620,8 +618,8 @@ export class Session implements ISession {
             this.#parameterHistory.push(lastParameterSet);
             return node;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).goForward: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).goForward`, e);
         }
     }
 
@@ -636,12 +634,12 @@ export class Session implements ISession {
 
             await this.#sessionEngine.init(initialParameters);
             if(waitForOutputs) {
-                this.#node = await this.#sessionEngine.loadOutputs(this.#sessionEngine.parameterValues);
+                this.#node = await this.#sessionEngine.loadOutputs();
                 if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                 this.node.excludeViewers = this.#excludeViewers;
                 this.#api.update();
             } else {
-                this.#sessionEngine.loadOutputs(this.#sessionEngine.parameterValues).then(async node => {
+                this.#sessionEngine.loadOutputs().then(async node => {
                     this.#node = node;
                     if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                     this.node.excludeViewers = this.#excludeViewers;
@@ -702,14 +700,12 @@ export class Session implements ISession {
                 this.outputs[o] = new Output(this, this.#sessionEngine, this.#sessionEngine.outputs[o]);
             }
 
-            this.#canUploadGLTF = this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload').length !== 0;
-
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
             for (let i = 0; i < viewerIds.length; i++)
                 viewerPromises.push(new Promise<void>(resolve => { const state = this.#stateEngine.viewers[this.#api.viewers[viewerIds[i]].id].settingsLoaded; state.resolved === true ? resolve() : state.then(() => resolve()) }));
 
-            this.#settingsEngine.loadSettings(this.#sessionEngine.settingsConfig, this.id, this.primarySession);
+            this.#settingsEngine.loadSettings(this.#sessionEngine.viewerSettings, this.id, this.primarySession);
             this.#stateEngine.sessions[this.id].settingsRegistered.resolve(true);
 
             if (this.primarySession !== false) await Promise.all(viewerPromises);
@@ -720,8 +716,8 @@ export class Session implements ISession {
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).init: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).init`, e);
         }
     }
 
@@ -732,12 +728,13 @@ export class Session implements ISession {
             if (response) {
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
             } else {
-                this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`));
+                const error = new ShapeDiverViewerSessionError(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`);
+                throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters`, error);
             }
             return response;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).saveDefaultParameters: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters`, e);
         }
     }
 
@@ -798,8 +795,8 @@ export class Session implements ISession {
             }
             return response && responseP && responseO && responseE;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).saveSessionProperties: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties`, e);
         }
     }
 
@@ -832,36 +829,25 @@ export class Session implements ISession {
                 if (response) {
                     this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Saved settings.`);
                 } else {
-                    this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Session(${this.id}).saveSettings: Could not save settings.`));
+                    const error = new ShapeDiverViewerSessionError(`Session(${this.id}).saveSettings: Could not save settings.`);
+                    throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings`, error);
                 }
                 return response;
             }
-
-            this.#logger.error(LOGGINGTOPIC.SESSION, new SDError(`Session(${this.id}).saveSettings: Could not save settings, no viewer initialized.`));
             return false;
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).saveSettings: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings`, e);
         }
     }
 
-    public async uploadGLTF(responseType: 'gltf' | 'usdz' = 'gltf') {
+    public async uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion) {
         try {
-            if(this.canUploadGLTF === false) {
-                const error = new SDError(`Session(${this.id}).uploadGLTF: GLTF upload not available in this session.`);
-                this.#logger.warn(LOGGINGTOPIC.SESSION, error.message);
-                throw error;
-            }
-
             const blob = await this.#api.convertSceneToGLTF(true);
-            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploading GLTF.`);
-            const conversion = responseType === 'usdz' ? '?conversion=usdz' : '';
-            const uploadReply = (await this.#sessionEngine.sessionCommunication(this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].href! + conversion, this.#sessionEngine.sessionResponse.actions?.filter(v => v.name === 'gltf-upload')[0].method!.toLowerCase()!, blob, 'model/gltf-binary')).data;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF: Uploaded GLTF.`);
-            return uploadReply.gltf.href;
+            return await this.#sessionEngine.uploadGLTF(blob, conversion);
         } catch (e) {
-            if (e instanceof SDError) throw e;
-            throw this.#logger.error(LOGGINGTOPIC.SESSION, e, `Session(${this.id}).uploadGLTF: Something unexpected happened.`, true)
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).uploadGLTF`, e);
         }
     }
 

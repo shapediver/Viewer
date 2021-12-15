@@ -1,9 +1,9 @@
 import * as THREE from 'three'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { ShapeDiverResponseOutputPart } from '@shapediver/api.geometry-api-dto-v1'
-import { HttpClient, Logger, LOGGINGTOPIC, SDError, Converter, StateEngine } from '@shapediver/viewer.shared.services'
+import { HttpClient, Logger, LOGGINGTOPIC, Converter, StateEngine, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { AttributeData, GeometryData, MaterialData, PrimitiveData } from '@shapediver/viewer.shared.types'
+import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 enum JUSTIFICATION {
     TOP_LEFT = 'TL',
@@ -18,6 +18,8 @@ enum JUSTIFICATION {
 }
 
 interface Tag3dDefinition {
+    // #region Properties (6)
+
     color: string,
     justification: JUSTIFICATION,
     location: {
@@ -29,19 +31,22 @@ interface Tag3dDefinition {
     size?: number,
     text?: string,
     version: string
+
+    // #endregion Properties (6)
 }
 
 @singleton()
 export class Tag3dEngine {
-    // #region Properties (2)
+    // #region Properties (5)
 
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
+
     private _font!: THREE.Font;
 
-    // #endregion Properties (2)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
@@ -62,15 +67,15 @@ export class Tag3dEngine {
      * @param content the tag3d content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputPart): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         const node = new TreeNode('tag3d');
 
         if(this._stateEngine.fontLoaded.resolved === false)
             await this._stateEngine.fontLoaded;
 
         if (!content) {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.'));
-            return node;
+            const error = new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.');
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `Tag3dEngine.loadContent`, error);
         }
 
         if (content.data && Array.isArray(content.data)) {
@@ -111,7 +116,6 @@ export class Tag3dEngine {
                 lineArray.forEach((line, i) => {
                     line.translate(0, (-i - 1) * lineHeight, 0);
                 });
-
 
                 // justification
                 bb = new THREE.Box3().setFromObject(parentObject);
@@ -187,10 +191,10 @@ export class Tag3dEngine {
                     child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialData({color: tag3dInfo.color}))));
                     node.children.push(child);
                 }   
-
             }
         } else {
-            this._logger.error(LOGGINGTOPIC.DATAPROCESSING, new SDError('Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.'));
+            const error = new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.');
+            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `Tag3dEngine.loadContent`, error);
         }
         return node;
     }
