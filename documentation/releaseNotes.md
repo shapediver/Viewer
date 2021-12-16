@@ -8,6 +8,10 @@
 * __Commit:__ ea5c1f351191773c3a3ef8f38b08b4cf03edd207
 <!--- VERSION_END -->
 
+## Version 1.10.1 - `Joker`
+- bugfix: output content updates
+- refactoring of default light scenes
+
 ## Version 1.10.0 - `Jurassic Park`
 - sdk2 implementation
 - test adaptions
