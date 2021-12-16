@@ -29,7 +29,7 @@
     "ts-jest": "^26.4.4",
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
-    "typedoc": "^0.21.0",
+    "typedoc": "^0.21.9",
     "typescript": "^4.3.4",
     "webpack": "^5.40.0",
     "webpack-cli": "^4.7.2",
@@ -59,8 +59,8 @@
     "deploy-tests": "ts-node ./scripts/deploy-tests.ts",
     "deploy-demo": "ts-node ./scripts/deploy-demo.ts",
     "platform-api-token": "ts-node ./tests/general/src/utils.ts",
-    "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md",
-    "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md",
-    "doc-main": "typedoc"
+    "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md --options ./typedoc.js --tsconfig ./api/api/tsconfig.json",
+    "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md --options ./typedoc.js --tsconfig ./api/api/tsconfig.json",
+    "doc-main": "typedoc --options ./typedoc.js --tsconfig ./api/api/tsconfig.json"
   }
 }
