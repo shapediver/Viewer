@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.9.0
-* __Build date:__ 2021-12-01T14:40:23.994Z
+* __Version:__ 1.10.0
+* __Build date:__ 2021-12-16T10:30:36.717Z
 * __Branch:__ development
-* __Commit:__ f0c0b3207bd638f0fad5a8f8bf15aa349a152efa
+* __Commit:__ ea5c1f351191773c3a3ef8f38b08b4cf03edd207
 <!--- VERSION_END -->
 
 ## Version 1.10.0 - `Jurassic Park`
