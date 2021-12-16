@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.10.0
-* __Build date:__ 2021-12-16T10:30:36.717Z
+* __Version:__ 1.10.1
+* __Build date:__ 2021-12-16T15:25:33.988Z
 * __Branch:__ development
-* __Commit:__ ea5c1f351191773c3a3ef8f38b08b4cf03edd207
+* __Commit:__ a07fc9cc15ba312d19f69a2e9aeeca43c3c5f9c5
 <!--- VERSION_END -->
 
 ## Version 1.10.1 - `Joker`
