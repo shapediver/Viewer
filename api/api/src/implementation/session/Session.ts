@@ -439,6 +439,10 @@ export class Session implements ISession {
             for (const parameterId in this.parameters)
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
 
+            // set the output content to what has been updated
+            for (const outputId in this.outputs) 
+                this.outputs[outputId].updateOutput();
+
             this.node.excludeViewers = this.#excludeViewers;
 
             for (let viewerId in this.#api.viewers)

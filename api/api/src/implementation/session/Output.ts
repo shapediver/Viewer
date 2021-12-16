@@ -10,27 +10,27 @@ import { ShapeDiverResponseOutput, ShapeDiverResponseOutputChunk, ShapeDiverResp
 export class Output implements IOutput {
   // #region Properties (20)
 
-  readonly #bbmax?: number[];
-  readonly #bbmin?: number[];
   readonly #chunks?: ShapeDiverResponseOutputChunk[];
-  readonly #content?: ShapeDiverResponseOutputContent[];
-  readonly #delay?: number;
   readonly #dependency!: string[];
   readonly #id: string;
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #material?: string;
-  readonly #msg?: string;
   readonly #name: string;
   readonly #session: ISession;
   readonly #sessionEngine: Session;
   readonly #uid?: string;
-  readonly #version: string;
 
+  #bbmax?: number[];
+  #bbmin?: number[];
+  #content?: ShapeDiverResponseOutputContent[];
+  #delay?: number;
   #displayname?: string;
   #hidden: boolean = false;
+  #msg?: string;
   #order?: number;
   #tooltip?: string;
+  #version: string;
 
   // #endregion Properties (20)
 
@@ -67,7 +67,7 @@ export class Output implements IOutput {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (20)
+  // #region Public Accessors (21)
 
   public get bbmax(): number[] | undefined {
     return this.#bbmax;
@@ -185,5 +185,19 @@ export class Output implements IOutput {
     return this.#version;
   }
 
-  // #endregion Public Accessors (20)
+  // #endregion Public Accessors (21)
+
+  // #region Public Methods (1)
+
+  public updateOutput() {
+    const outputDef = this.#sessionEngine.outputs[this.id];
+    this.#version = outputDef.version;
+    this.#delay = outputDef.delay;
+    this.#content = outputDef.content;
+    this.#bbmin = outputDef.bbmin;
+    this.#bbmax = outputDef.bbmax;
+    this.#msg = outputDef.msg;
+  }
+
+  // #endregion Public Methods (1)
 }

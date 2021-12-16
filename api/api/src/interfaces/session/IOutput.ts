@@ -3,4 +3,5 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree';
 
 export interface IOutput extends ShapeDiverResponseOutput {
     readonly node?: TreeNode;
+    updateOutput(): void;
 }
