@@ -50,12 +50,10 @@ export class LightEngine implements ILightEngine {
 
     public applySettings(): void {
         this._lightScenes = {};
-        let standardLS = false;
 
         for (let lightSceneId in this._settingsEngine.light.lightScenes) {
             const lightSceneUUID = this._uuidGenerator.validate(lightSceneId) ? lightSceneId : this._uuidGenerator.create();
             const lightSceneName = this._settingsEngine.light.lightScenes[lightSceneId].name ? this._settingsEngine.light.lightScenes[lightSceneId].name : lightSceneId;
-            if(lightSceneName === 'default' || lightSceneName === 'standard') standardLS = true;
             const ls = new LightScene({id: lightSceneUUID, name: lightSceneName});
             for (let lightId in this._settingsEngine.light.lightScenes[lightSceneId].lights) {
                 const lightUUID = this._uuidGenerator.validate(lightId) ? lightId : this._uuidGenerator.create();
@@ -126,22 +124,10 @@ export class LightEngine implements ILightEngine {
         }
 
         // there is no standard light scene in the light scenes, but a light scene name is specified (old viewer)
-        if(!standardLS && this._settingsEngine.light.lightSceneId) {
-            const ls = <LightScene>this.createLightScene({ name: 'default', standard: false });
-            ls.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
-            ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
-            ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
-            this._lightScenes[ls.id] = ls;
-        } else if (this._settingsEngine.light.lightSceneId) {
+        if (this._settingsEngine.light.lightSceneId) {
             const res = this.assignLightScene(this._settingsEngine.light.lightSceneId);
-            if(res === false && this._settingsEngine.light.lightSceneId === 'default') {
-                const ls = <LightScene>this.createLightScene({ name: 'default', standard: false });
-                ls.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
-                ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
-                ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
-                this._lightScenes[ls.id] = ls;
-            } else if(res === false){
-                const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
+            if(res === false){
+                const ls = <LightScene>this.createLightScene({ name: this._settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard', standard: true });
                 this._lightScenes[ls.id] = ls;
             }
         } else {        
