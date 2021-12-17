@@ -12,21 +12,6 @@ export class ShapeDiverError extends Error {
     // #endregion Constructors (1)
 }
 
-export class ShapeDiverBackendError extends ShapeDiverError {
-    // #region Constructors (1)
-
-    constructor(
-        public readonly status: string,
-        public readonly error: string,
-        public readonly desc: string,
-        message: string,
-    ) {
-        super(error, desc, message)
-    }
-
-    // #endregion Constructors (1)
-}
-
 export class ShapeDiverViewerError extends ShapeDiverError {
     // #region Constructors (1)
 

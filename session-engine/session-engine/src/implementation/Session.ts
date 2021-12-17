@@ -1,12 +1,12 @@
 import { container } from 'tsyringe'
-import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services'
+import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
 import { ISession } from '../interfaces/ISession'
 import { SessionData } from './SessionData'
-import { create, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export class Session implements ISession {
     // #region Properties (22)
@@ -122,6 +122,24 @@ export class Session implements ISession {
         return this._viewerSettings;
     }
 
+    private async handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error) {
+        if((<any>e).status && (<any>e).status === 410) {
+            this._logger.warn(topic, `The session has been closed, trying to initialize.`);
+            try {
+                this._initialized = false;
+                await this.init(this.parameterValues);
+            } catch(e) {
+                if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+                throw this._logger.handleError(topic, scope, e);
+            }
+        } else if((<any>e).status && (<any>e).status === 403) {
+            // TODO when error types are here
+            throw this._logger.handleError(topic, scope, e);
+        } else {
+            throw this._logger.handleError(topic, scope, e);
+        }
+    }
+
     // #endregion Public Accessors (13)
 
     // #region Public Methods (13)
@@ -134,7 +152,7 @@ export class Session implements ISession {
             this._closed = true;
             return true;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.close', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.close', e);
         }
     }
 
@@ -183,7 +201,7 @@ export class Session implements ISession {
                 this.updateResponseDto(responseDto);
             }
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.init', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.init', e);
         }
     }
 
@@ -205,9 +223,11 @@ export class Session implements ISession {
             return node;
         }
         catch (e) {
-            // TODO other errors
-            if (e instanceof OutputDelayException)
+            if (e instanceof OutputDelayException) {
                 await this.timeout(e.delay);
+            } else {
+                throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e);
+            }
 
             if(cancelRequest()) return new SessionTreeNode();
             let outputMapping: { [key: string]: string } = {};
@@ -220,7 +240,7 @@ export class Session implements ISession {
                 this.updateResponseDto(responseDto);
                 return await this.loadOutputs(cancelRequest);
             } catch(e) {
-                throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e);
+                throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e);
             }
         }
     }
@@ -232,7 +252,7 @@ export class Session implements ISession {
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.requestExport', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.requestExport', e);
         }
     }
 
@@ -242,7 +262,7 @@ export class Session implements ISession {
             await this._sdk.model.setDefaultParams(this._modelId!, this._parameterValues)
             return true;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveDefaultParameters', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveDefaultParameters', e);
         }
     }
 
@@ -265,7 +285,7 @@ export class Session implements ISession {
             await this._sdk.export.updateDefinitions(this._modelId!, exports);
             return true;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveExportProperties', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveExportProperties', e);
         }
     }
 
@@ -288,7 +308,7 @@ export class Session implements ISession {
             await this._sdk.output.updateDefinitions(this._modelId!, outputs);
             return true;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveOutputProperties', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveOutputProperties', e);
         }
     }
 
@@ -311,7 +331,7 @@ export class Session implements ISession {
             await this._sdk.model.updateParameterDefinitions(this._modelId!, parameters);
             return true;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveParameterProperties', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveParameterProperties', e);
         }
     }
 
@@ -321,7 +341,7 @@ export class Session implements ISession {
             await this._sdk.model.updateConfig(this._modelId!, json);
             return true;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.saveSettings', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveSettings', e);
         }
     }
 
@@ -341,7 +361,7 @@ export class Session implements ISession {
                 throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', error);
             }
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', e);
         }
     }
 
@@ -355,7 +375,7 @@ export class Session implements ISession {
             }
             return responseDto.gltf.href;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadGLTF', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadGLTF', e);
         }
     }
 
@@ -410,7 +430,7 @@ export class Session implements ISession {
                     return this.loadOutputs(cancelRequest);
                 }
             }
-            throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.customizeSession', e);
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.customizeSession', e);
         }
     }
 

@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "devDependencies": {
-    "@shapediver/sdk.platform-api": "^1.13.5",
+    "@shapediver/sdk.platform-api": "^1.14.0",
     "@types/chromedriver": "^81.0.0",
     "@types/jest": "^26.0.15",
     "@types/jest-image-snapshot": "^4.3.0",
@@ -59,8 +59,8 @@
     "deploy-tests": "ts-node ./scripts/deploy-tests.ts",
     "deploy-demo": "ts-node ./scripts/deploy-demo.ts",
     "platform-api-token": "ts-node ./tests/general/src/utils.ts",
-    "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md --options ./typedoc.js --tsconfig ./api/api/tsconfig.json",
-    "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md --options ./typedoc.js --tsconfig ./api/api/tsconfig.json",
-    "doc-main": "typedoc --options ./typedoc.js --tsconfig ./api/api/tsconfig.json"
+    "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md",
+    "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md",
+    "doc-main": "typedoc"
   }
 }
