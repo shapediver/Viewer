@@ -50,6 +50,7 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
     public applySettings() {
         const cameraSetting = this._settingsEngine.camera.cameras[this.camera.id];
         if(!cameraSetting) return;
+        this.reset();
         const controlsSettings = <IOrbitControlsSettingsV3>cameraSetting.controls;
         this.autoRotationSpeed = controlsSettings.autoRotationSpeed;
         this.damping = controlsSettings.damping;
@@ -64,6 +65,24 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
         this.rotationSpeed = controlsSettings.rotationSpeed;
         this.panSpeed = controlsSettings.panSpeed;
         this.zoomSpeed = controlsSettings.zoomSpeed;
+
+        if(controlsSettings.restrictions.position.cube.min.x === null) controlsSettings.restrictions.position.cube.min.x = -Infinity;
+        if(controlsSettings.restrictions.position.cube.min.y === null) controlsSettings.restrictions.position.cube.min.y = -Infinity;
+        if(controlsSettings.restrictions.position.cube.min.z === null) controlsSettings.restrictions.position.cube.min.z = -Infinity;
+        if(controlsSettings.restrictions.position.cube.max.x === null) controlsSettings.restrictions.position.cube.max.x = Infinity;
+        if(controlsSettings.restrictions.position.cube.max.y === null) controlsSettings.restrictions.position.cube.max.y = Infinity;
+        if(controlsSettings.restrictions.position.cube.max.z === null) controlsSettings.restrictions.position.cube.max.z = Infinity;
+        if(controlsSettings.restrictions.position.sphere.radius === null) controlsSettings.restrictions.position.sphere.radius = Infinity;
+        if(controlsSettings.restrictions.target.cube.min.x === null) controlsSettings.restrictions.target.cube.min.x = -Infinity;
+        if(controlsSettings.restrictions.target.cube.min.y === null) controlsSettings.restrictions.target.cube.min.y = -Infinity;
+        if(controlsSettings.restrictions.target.cube.min.z === null) controlsSettings.restrictions.target.cube.min.z = -Infinity;
+        if(controlsSettings.restrictions.target.cube.max.x === null) controlsSettings.restrictions.target.cube.max.x = Infinity;
+        if(controlsSettings.restrictions.target.cube.max.y === null) controlsSettings.restrictions.target.cube.max.y = Infinity;
+        if(controlsSettings.restrictions.target.cube.max.z === null) controlsSettings.restrictions.target.cube.max.z = Infinity;
+        if(controlsSettings.restrictions.target.sphere.radius === null) controlsSettings.restrictions.target.sphere.radius = Infinity;
+        if(controlsSettings.restrictions.rotation.minAzimuthAngle === null) controlsSettings.restrictions.rotation.minAzimuthAngle = -Infinity;
+        if(controlsSettings.restrictions.rotation.maxAzimuthAngle === null) controlsSettings.restrictions.rotation.maxAzimuthAngle = Infinity;
+        if(controlsSettings.restrictions.zoom.maxDistance === null) controlsSettings.restrictions.zoom.maxDistance = Infinity;
 
         this.cubePositionRestriction = { 
             min: this._converter.toVec3(controlsSettings.restrictions.position.cube.min),

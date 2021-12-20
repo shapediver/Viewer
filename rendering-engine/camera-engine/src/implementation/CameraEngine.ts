@@ -74,8 +74,8 @@ export class CameraEngine implements ICameraEngine {
     }
 
     public applySettings() {
-        if(Object.values(this._settingsEngine.settings.camera.cameras).length >= 1)
-            this.removeCamera('standard');
+        for (let c in this._cameras)
+            this.removeCamera(c);
 
         for(let id in this._settingsEngine.settings.camera.cameras) {
             const cameraSetting = this._settingsEngine.settings.camera.cameras[id];
@@ -87,16 +87,31 @@ export class CameraEngine implements ICameraEngine {
             }
         }
 
-        this.assignCamera(this._settingsEngine.settings.camera.cameraId);
+        if(!this._settingsApplied)
+            for (let c in this._cameras)
+                this._cameras[c].applySettings();
 
-        for (let c in this._cameras)
-            this._cameras[c].applySettings();
+        const cameraKeys = Object.keys(this._settingsEngine.settings.camera.cameras);
+
+        if(cameraKeys.length > 0) {
+            if(!this._settingsEngine.settings.camera.cameraId) {
+                this.assignCamera(cameraKeys[0]);
+            } else {
+                this.assignCamera(this._settingsEngine.settings.camera.cameraId);
+            }
+        } else {
+            this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard')
+            this.assignCamera('standard')
+        }
+
         this._settingsApplied = true;
     }
 
     public assignCamera(id: string): void {
+        console.log('assignCamera', id)
         const camera = this._cameras[id];
         if (!camera) return;
+        console.log('yes',  camera)
         this._camera = camera;
     }
 

@@ -39,6 +39,7 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     public applySettings() {
         const cameraSetting = this._settingsEngine.camera.cameras[this.camera.id];
         if(!cameraSetting) return;
+        this.reset();
         const controlsSettings = <IOrthographicControlsSettingsV3>cameraSetting.controls;
         this.damping = controlsSettings.damping;
         this.enableKeyPan = controlsSettings.enableKeyPan;
