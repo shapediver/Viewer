@@ -8,6 +8,10 @@
 * __Commit:__ a07fc9cc15ba312d19f69a2e9aeeca43c3c5f9c5
 <!--- VERSION_END -->
 
+## Version 1.10.2 - `Jason Bourne`
+- bugfix: camera settings application
+- error handling improvements
+
 ## Version 1.10.1 - `Joker`
 - bugfix: output content updates
 - refactoring of default light scenes
