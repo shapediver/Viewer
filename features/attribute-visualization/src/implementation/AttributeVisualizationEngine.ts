@@ -15,7 +15,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     readonly #viewer: IViewer;
 
     #attributes: IAttribute[] = [];
-    #defaultMaterial: MaterialData = new MaterialData({color: '#f0f0f0', opacity: 0.2, KHR_materials_unlit: true});
+    #defaultMaterial: MaterialData = new MaterialData({color: '#f0f0f0', opacity: 1, KHR_materials_unlit: true});
     #layers: {
         [key: string]: ILayer
     } = {};
@@ -104,6 +104,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                     material: this.#defaultMaterial
                 }
 
+            const mat = <MaterialData>this.#defaultMaterial.clone();
             let hasLayer = false;
             let opacity = this.defaultMaterial.opacity;
 
@@ -118,6 +119,8 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                         material: mat
                     }
                 } else {
+                    if(this.#attributes.length === 0)
+                        mat.color = this.#converter.toColor(this.#layers[layerAttributes.value].color);
                     hasLayer = true;
                     opacity = this.#layers[layerAttributes.value].opacity;
                 }
@@ -173,7 +176,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 }
             }
 
-            const mat = <MaterialData>this.#defaultMaterial.clone();
+            console.log(opacity)
             mat.opacity *= opacity;
             return {
                 matrix: mat4.create(),
@@ -193,7 +196,8 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 for(let i = 0; i < layerStringAttributeOverview.values.length; i++) {
                     this.#layers[layerStringAttributeOverview.values[i]] = {
                         enabled: true,
-                        opacity: 1
+                        opacity: 1,
+                        color: this.defaultMaterial.color
                     }
                 }
             }

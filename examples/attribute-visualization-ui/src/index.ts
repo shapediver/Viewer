@@ -37,9 +37,19 @@ const updateLayerMenu = () => {
             attributeVisualizationEngine.layers[inputElement.id].opacity = +inputElement.value;
             attributeVisualizationEngine.updateLayers(attributeVisualizationEngine.layers)
         };
+        
+        const colorInputElement = document.createElement("input");
+        colorInputElement.id = l;
+        colorInputElement.setAttribute("type", "color");
+        colorInputElement.setAttribute("value", attributeVisualizationEngine.defaultMaterial.color);
+        colorInputElement.onchange = async () => {
+            attributeVisualizationEngine.layers[colorInputElement.id].color = colorInputElement.value;
+            attributeVisualizationEngine.updateLayers(attributeVisualizationEngine.layers)
+        };
 
         layerDiv.appendChild(label);
         layerDiv.appendChild(inputElement);
+        layerDiv.appendChild(colorInputElement);
         layerMenuDiv.appendChild(layerDiv);
     }
 }
