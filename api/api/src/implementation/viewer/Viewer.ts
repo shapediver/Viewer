@@ -16,6 +16,7 @@ import {
   PerformanceEvaluator,
   ShapeDiverBackendError,
   ShapeDiverViewerError,
+  ShapeDiverViewerLightError,
   StateEngine,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
@@ -32,7 +33,6 @@ import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { LightScene } from './lights/LightScene'
 import { ISDObject, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { IViewer } from '../../interfaces/viewer/IViewer'
-import { ShapeDiverViewerLightError } from '../../../../../shared/services/dist/logger/ShapeDiverViewerError'
 
 @injectable()
 export class Viewer implements IViewer {
