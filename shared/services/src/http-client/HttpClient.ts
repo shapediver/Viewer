@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { singleton } from 'tsyringe'
-import { ShapeDiverBackendError, ShapeDiverError } from '../logger/ShapeDiverError';
+import { ShapeDiverError } from '../logger/ShapeDiverError';
 
 @singleton()
 export class HttpClient {
