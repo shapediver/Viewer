@@ -11,6 +11,7 @@
     "@types/puppeteer": "^5.4.3",
     "@types/selenium-webdriver": "^4.0.14",
     "aws-sdk": "^2.932.0",
+    "chargebee-typescript": "^2.0.8",
     "chromedriver": "^96.0.0",
     "chromium": "^3.0.2",
     "http-server": "^0.12.3",
