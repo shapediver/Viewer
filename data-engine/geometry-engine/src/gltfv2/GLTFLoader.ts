@@ -51,7 +51,7 @@ export class GLTFLoader {
             [key: string]: any
         }
     } = {};
-    private _loadData?: (img: string) => Promise<Blob>;
+    private _loadData?: (img: string) => Promise<Blob> = this._httpClient.loadData.bind(this._httpClient);;
     private _nodes: {
         [key: number]: TreeNode
     } = {};

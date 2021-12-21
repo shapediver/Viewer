@@ -1,6 +1,6 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { Converter, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import {
   MapData,
   MATERIAL_SIDE,
@@ -54,9 +54,10 @@ export class MaterialEngine {
   // #region Properties (3)
 
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
+  private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-  private _loadData?: (img: string) => Promise<Blob>;
+  private _loadData?: (img: string) => Promise<Blob> = this._httpClient.loadData.bind(this._httpClient);;
   // #endregion Properties (3)
 
   // #region Constructors (1)
