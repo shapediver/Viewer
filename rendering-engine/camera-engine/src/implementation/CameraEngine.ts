@@ -108,10 +108,8 @@ export class CameraEngine implements ICameraEngine {
     }
 
     public assignCamera(id: string): void {
-        console.log('assignCamera', id)
         const camera = this._cameras[id];
         if (!camera) return;
-        console.log('yes',  camera)
         this._camera = camera;
     }
 

@@ -5,7 +5,7 @@ import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { SDTFEngine } from '@shapediver/viewer.data-engine.sdtf-engine'
 import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine'
 import { ITransformation, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { HttpClient, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine'
 
 import { mat4 } from 'gl-matrix'
@@ -17,16 +17,24 @@ export class DataEngine {
 
     private readonly _geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
     private readonly _htmlElementAnchorEngine: HTMLElementAnchorEngine = <HTMLElementAnchorEngine>container.resolve(HTMLElementAnchorEngine);
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _sdtfEngine: SDTFEngine = <SDTFEngine>container.resolve(SDTFEngine);
     private readonly _tag3dEngine: Tag3dEngine = <Tag3dEngine>container.resolve(Tag3dEngine);
+    private _loadData: (img: string) => Promise<Blob> = this._httpClient.loadData;
 
     // #endregion Properties (6)
 
     // #region Public Methods (1)
 
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, loadData?: (img: string) => Promise<Blob>): Promise<TreeNode> {
+        if(loadData) {
+            this._loadData = loadData;
+        } else {
+            this._loadData = this._httpClient.loadData;
+        }
+
         if(!content || (content && !content.format)) {
             const error = new ShapeDiverViewerDataProcessingError('DataEngine cannot load content.');
             throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `DataEngine.loadContent`, error);
@@ -49,23 +57,23 @@ export class DataEngine {
             } 
 
             if (content.format === 'glb' || content.format === 'gltf') {
-                const node = await this._geometryEngine.loadContent(content);
+                const node = await this._geometryEngine.loadContent(content, this._loadData);
                 node.transformations = transformations.concat(node.transformations);
                 return node;
             } else if (content.format === 'material') {
-                const node = await this._materialEngine.loadContent(content);
+                const node = await this._materialEngine.loadContent(content, this._loadData);
                 node.transformations = transformations.concat(node.transformations);
                 return node;
             } else if (content.format === 'tag2d' || content.format === 'anchor') {
-                const node = await this._htmlElementAnchorEngine.loadContent(content);
+                const node = await this._htmlElementAnchorEngine.loadContent(content, this._loadData);
                 node.transformations = transformations.concat(node.transformations);
                 return node;
             } else if (content.format === 'tag3d') {
-                const node = await this._tag3dEngine.loadContent(content);
+                const node = await this._tag3dEngine.loadContent(content, this._loadData);
                 node.transformations = transformations.concat(node.transformations);
                 return node;
             } else if (content.format === 'sdtf') {
-                const node = await this._sdtfEngine.loadContent(content);
+                const node = await this._sdtfEngine.loadContent(content, this._loadData);
                 node.transformations = transformations.concat(node.transformations);
                 return node;
             } else {

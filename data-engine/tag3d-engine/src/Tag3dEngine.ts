@@ -51,10 +51,6 @@ export class Tag3dEngine {
     // #region Constructors (1)
 
     constructor() {
-        this._httpClient.get('https://viewer.shapediver.com/graphik_regular.typeface.json').then((fontJson) => {
-            this._font = new THREE.Font(fontJson.data);
-            this._stateEngine.fontLoaded.resolve(true);
-        });
     }
 
     // #endregion Constructors (1)
@@ -67,7 +63,13 @@ export class Tag3dEngine {
      * @param content the tag3d content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob>): Promise<TreeNode> {
+        if(!this._font) {
+            const json = await this._httpClient.loadData('https://viewer.shapediver.com/graphik_regular.typeface.json', { responseType: 'json' })
+            this._font = new THREE.Font(json);
+            this._stateEngine.fontLoaded.resolve(true);
+        }
+
         const node = new TreeNode('tag3d');
 
         if(this._stateEngine.fontLoaded.resolved === false)

@@ -7,6 +7,7 @@ import { SessionTreeNode } from './SessionTreeNode'
 import { ISession } from '../interfaces/ISession'
 import { SessionData } from './SessionData'
 import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { AxiosRequestConfig } from 'axios'
 
 export class Session implements ISession {
     // #region Properties (22)
@@ -218,7 +219,7 @@ export class Session implements ISession {
 
         const o = Object.assign({}, this._outputs);
         try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!, o);
+            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, this.loadData.bind(this));
             node.data.push(new SessionData(this._responseDto!));
             return node;
         }
@@ -431,6 +432,19 @@ export class Session implements ISession {
                 }
             }
             throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.customizeSession', e);
+        }
+    }
+
+    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }): Promise<any> {
+        this.checkAvailability();
+        try {
+            const response = await this._httpClient.get(
+                `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${btoa(href)}`,
+                config
+            );
+            return response.data;
+        } catch (e) {
+            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadData', e);
         }
     }
 

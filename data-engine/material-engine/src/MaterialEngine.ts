@@ -1,6 +1,6 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { Converter, HttpClient, ImageLoader, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Converter, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import {
   MapData,
   MATERIAL_SIDE,
@@ -54,9 +54,9 @@ export class MaterialEngine {
   // #region Properties (3)
 
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
-  private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
+  private _loadData?: (img: string) => Promise<Blob>;
   // #endregion Properties (3)
 
   // #region Constructors (1)
@@ -73,9 +73,9 @@ export class MaterialEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-  public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+  public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob>): Promise<TreeNode> {
         const node = new TreeNode(content.name || 'material');
-    
+        this._loadData = loadData;
         if(!content) {
             const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
             throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadContent`, error);
@@ -205,9 +205,9 @@ export class MaterialEngine {
         let image: HTMLImageElement;
         try {
             if(!id) {
-                image = await this._imageLoader.load(url);  
+                image = await this._converter.blobToImage(await this._loadData!(url));
             } else {
-                image = await this._imageLoader.load('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
+                image = await this._converter.blobToImage(await this._loadData!('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
             }
         } catch (e) {
             throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMap`, e);
@@ -218,12 +218,7 @@ export class MaterialEngine {
   private async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
         let image: HTMLImageElement;
         try {
-            // if(texture.href) {
-                image = await this._imageLoader.load(texture.href!);  
-            // } else {
-            //     image = await this._imageLoader.load();  
-            //     // canvas https://shapediver.atlassian.net/browse/SS-3106
-            // }
+            image = await this._converter.blobToImage(await this._loadData!(texture.href!));  
         } catch (e) {
             throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMapWithProperties`, e);
         }
