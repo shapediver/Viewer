@@ -22,7 +22,7 @@ export class DataEngine {
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _sdtfEngine: SDTFEngine = <SDTFEngine>container.resolve(SDTFEngine);
     private readonly _tag3dEngine: Tag3dEngine = <Tag3dEngine>container.resolve(Tag3dEngine);
-    private _loadData: (img: string) => Promise<Blob> = this._httpClient.loadData;
+    private _loadData: (img: string) => Promise<Blob> = this._httpClient.loadData.bind(this._httpClient);
 
     // #endregion Properties (6)
 
@@ -32,7 +32,7 @@ export class DataEngine {
         if(loadData) {
             this._loadData = loadData;
         } else {
-            this._loadData = this._httpClient.loadData;
+            this._loadData = this._httpClient.loadData.bind(this._httpClient);
         }
 
         if(!content || (content && !content.format)) {

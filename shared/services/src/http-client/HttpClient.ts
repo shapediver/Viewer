@@ -6,7 +6,7 @@ import { ShapeDiverError } from '../logger/ShapeDiverError';
 export class HttpClient {
 
     private readonly _cache: {
-        [key: string]: Promise<AxiosResponse<any>>
+        [key: string]: Promise<any>
     } = {};
     private _loadData?: (img: string, config?: AxiosRequestConfig) => Promise<Blob>;
 
@@ -37,14 +37,19 @@ export class HttpClient {
     };
 
     public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }): Promise<any> {
-        if (this._loadData)
-            return await this._loadData(href, config);
+        if(this._cache[href]) return await this._cache[href];
 
-        const response = await this.get(
-            href,
-            config
-        );
-        return response.data;
+        if (this._loadData){
+            this._cache[href] = this._loadData(href, config);
+            return await this._cache[href];
+        }
+
+        this._cache[href] = new Promise(async resolve => {
+            const res = await this.get(href, config);
+            resolve(res.data);
+        })
+
+        return await this._cache[href];
     }
 
     public addDataLoading(value: (img: string, config?: AxiosRequestConfig) => Promise<any>) {
