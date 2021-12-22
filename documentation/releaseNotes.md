@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.10.4
-* __Build date:__ 2021-12-20T11:17:02.463Z
+* __Version:__ 1.10.6
+* __Build date:__ 2021-12-22T11:53:35.898Z
 * __Branch:__ development
-* __Commit:__ d95166368060a3a0acc8551f515cde34a15b8586
+* __Commit:__ 6c2df3b45e8560d000a2ed71c76f41a7c6b7c372
 <!--- VERSION_END -->
 
 ## Version 1.10.2 - `Jason Bourne`
