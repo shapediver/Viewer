@@ -32,7 +32,7 @@ export class SDTFEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob>): Promise<TreeNode> {
         const node = new TreeNode('sdtf');
 
         if (!content || (content && !content.href)) {

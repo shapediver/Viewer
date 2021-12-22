@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
@@ -93,6 +93,7 @@ export class EnvironmentMapLoader implements ILoader {
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private _pmremGenerator!: THREE.PMREMGenerator;
 
     private _environmentMapName: string = 'none';
@@ -233,9 +234,10 @@ export class EnvironmentMapLoader implements ILoader {
     }
 
     private async loadEnvironmentMap(name: string, url: string[]) {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             if(name.endsWith('.hdr')) {
-                new RGBELoader().setDataType(THREE.UnsignedByteType).load(name, (texture) => {
+                const blob = await this._httpClient.loadData(name);
+                new RGBELoader().setDataType(THREE.UnsignedByteType).load(URL.createObjectURL(blob), (texture) => {
                     const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                     this._pmremGenerator.dispose();
                     this._environmentMaps[name] = map;
@@ -245,7 +247,11 @@ export class EnvironmentMapLoader implements ILoader {
                 () => {},
                 (error) =>  reject(error));
             } else {
-                new THREE.CubeTextureLoader().load(url,
+                const promises: Promise<Blob>[] = [];
+                url.forEach(u => promises.push(this._httpClient.loadData(u)));
+                const blobs = await Promise.all(promises);
+                
+                new THREE.CubeTextureLoader().load(blobs.map(b => URL.createObjectURL(b)),
                     (map: THREE.CubeTexture) => {
                         map.format = THREE.RGBFormat;
                         map.mapping = THREE.CubeReflectionMapping;

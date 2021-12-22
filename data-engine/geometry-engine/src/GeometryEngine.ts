@@ -36,7 +36,7 @@ export class GeometryEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob>): Promise<TreeNode> {
         if (!content || (content && !content.href)) {
             const error = new ShapeDiverViewerDataProcessingError('GeometryEngine cannot load content.');
             throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryEngine.loadContent`, error);
@@ -125,9 +125,9 @@ export class GeometryEngine {
 
         let node;
         if (version === '1.0') {
-            node = await new GLTF_v1Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl);
+            node = await new GLTF_v1Loader().load(gltfContent, loadData, gltfBinary, gltfHeader, gltfBaseUrl);
         } else {
-            node = await new GLTF_v2Loader().load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl);
+            node = await new GLTF_v2Loader().load(gltfContent, loadData, gltfBinary, gltfHeader, gltfBaseUrl);
         }
         this._performanceEvaluator.endSection('gltfProcessing.' + url);
 

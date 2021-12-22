@@ -1,6 +1,6 @@
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, ImageLoader, UuidGenerator, Logger } from '@shapediver/viewer.shared.services'
+import { Converter, UuidGenerator, Logger } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import {
     ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
@@ -41,7 +41,6 @@ export enum GLTF_EXTENSIONS {
 export class GLTFConverter {
     // #region Properties (17)
 
-    private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _globalTransformation = mat4.fromValues(
         1, 0, 0, 0,
@@ -53,9 +52,6 @@ export class GLTFConverter {
         0, 0, -1, 0,
         0, 1, 0, 0,
         0, 0, 0, 1);
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _baseUri!: string;
