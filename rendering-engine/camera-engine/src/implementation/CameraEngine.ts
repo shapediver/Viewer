@@ -100,18 +100,17 @@ export class CameraEngine implements ICameraEngine {
                 this.assignCamera(this._settingsEngine.settings.camera.cameraId);
             }
         } else {
-            this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard')
-            this.assignCamera('standard')
+            const camera = this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
+            this.assignCamera(camera.id);
+            camera.applySettings();
         }
 
         this._settingsApplied = true;
     }
 
     public assignCamera(id: string): void {
-        console.log('assignCamera', id)
         const camera = this._cameras[id];
         if (!camera) return;
-        console.log('yes',  camera)
         this._camera = camera;
     }
 

@@ -176,7 +176,6 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 }
             }
 
-            console.log(opacity)
             mat.opacity *= opacity;
             return {
                 matrix: mat4.create(),
