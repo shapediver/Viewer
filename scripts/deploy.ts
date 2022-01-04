@@ -61,11 +61,11 @@ const getDirectories = async (source: string) =>
         const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         let version;
         await new Promise<void>((resolve) => {
-            rl.question('Which part of the version would you like to increment? (major, minor, patch)\n', (answer: string) => {
-                if (answer === 'major' || answer === 'minor' || answer === 'patch') {
+            rl.question('Which part of the version would you like to increment? (major, minor, patch, prerelease, preminor, premajor)\n', (answer: string) => {
+                if (answer === 'major' || answer === 'minor' || answer === 'patch' || answer === 'prerelease' || answer === 'preminor' || answer === 'premajor') {
                     version = answer;
                 } else {
-                    throw new Error('Invalid version, has to be major, minor or patch.')
+                    throw new Error('Invalid version, has to be major, minor, patch, prerelease, preminor or premajor.')
                 }
                 rl.close();
                 resolve();
@@ -123,11 +123,13 @@ const getDirectories = async (source: string) =>
         console.log(await execPromise('git add .'));
         console.log(await execPromise('git commit -m "automatic pre-publishing commit"'));
 
-        console.log(await execPromise(`npm whoami`));
-        console.log('publishing to npm...')
-        console.log(await execPromise(`lerna publish ${version} --yes --no-private --force-publish --registry https://registry.npmjs.org/`));
+        console.log(await execPromise(`lerna version ${version} --yes --no-private --exact --force-publish`));
         console.log(await execPromise('git tag -l "@shapediver*" | xargs -n 1 git push --delete origin'));
         console.log(await execPromise('git tag -l "@shapediver*" | xargs git tag -d'));
+
+        console.log(await execPromise(`npm whoami`));
+        console.log('publishing to npm...')
+        console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/`));
 
         console.log('publishing to github...')
         console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
