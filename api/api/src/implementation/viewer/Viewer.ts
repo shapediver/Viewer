@@ -71,7 +71,7 @@ export class Viewer implements IViewer {
       container.registerInstance('renderingEngine', this.#renderingEngine);
 
       if (!this.camera)
-        this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
+        this.createCamera(CAMERATYPE.PERSPECTIVE);
 
       this.update();
 
