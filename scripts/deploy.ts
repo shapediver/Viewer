@@ -61,11 +61,11 @@ const getDirectories = async (source: string) =>
         const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         let version;
         await new Promise<void>((resolve) => {
-            rl.question('Which part of the version would you like to increment? (major, minor, patch)\n', (answer: string) => {
-                if (answer === 'major' || answer === 'minor' || answer === 'patch') {
+            rl.question('Which part of the version would you like to increment? (major, minor, patch, prerelease, preminor, premajor)\n', (answer: string) => {
+                if (answer === 'major' || answer === 'minor' || answer === 'patch' || answer === 'prerelease' || answer === 'preminor' || answer === 'premajor') {
                     version = answer;
                 } else {
-                    throw new Error('Invalid version, has to be major, minor or patch.')
+                    throw new Error('Invalid version, has to be major, minor, patch, prerelease, preminor or premajor.')
                 }
                 rl.close();
                 resolve();
