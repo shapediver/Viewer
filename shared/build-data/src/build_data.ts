@@ -1,1 +1,1 @@
-export const build_data = {"build_version":"3.1.10.13","build_date":"2022-01-04T14:28:43.029Z","build_branch":"feature/image-caching","build_commit":"01e3e6052cfa069f696e94ad9dfbf5c6370d6580"};
+export const build_data = {"build_version":"3.1.10.13","build_date":"2022-01-04T14:37:13.185Z","build_branch":"feature/image-caching","build_commit":"2e7a329d217c08e2645a027126e63427e50b7959"};
