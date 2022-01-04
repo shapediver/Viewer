@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.html-element-anchor-engine",
-  "version": "1.10.12",
+  "version": "1.10.13",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -37,10 +37,10 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.11",
-    "@shapediver/viewer.shared.math": "1.10.12",
-    "@shapediver/viewer.shared.node-tree": "1.10.12",
-    "@shapediver/viewer.shared.services": "1.10.12",
-    "@shapediver/viewer.shared.types": "1.10.12",
+    "@shapediver/viewer.shared.math": "1.10.13",
+    "@shapediver/viewer.shared.node-tree": "1.10.13",
+    "@shapediver/viewer.shared.services": "1.10.13",
+    "@shapediver/viewer.shared.types": "1.10.13",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
   },
