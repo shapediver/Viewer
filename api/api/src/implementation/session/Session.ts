@@ -164,6 +164,9 @@ export class Session implements ISession {
 
             callbacks.setAsPrimary = async () => {
                 try {
+                    if(this.#stateEngine.sessions[this.id].initialized.resolved === false)
+                        await this.#stateEngine.sessions[this.id].initialized;
+
                     this.#primarySession = true;
                     this.#stateEngine.sessions[this.id].primary = true;
                     this.#settingsEngine.loadSettings(this.#sessionEngine.viewerSettings, this.id, this.primarySession);
