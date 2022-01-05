@@ -492,7 +492,7 @@ export class Api implements IApi {
     }
   }
 
-  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession> {
+  public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, loadOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession> {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
       // input validation
@@ -504,6 +504,7 @@ export class Api implements IApi {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.excludeViewers, 'stringArray', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.id, 'string', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.waitForOutputs, 'boolean', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.loadOutputs, 'boolean', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.initialParameters, 'object', false);
       if(properties.initialParameters)
         for(let p in properties.initialParameters)
@@ -539,7 +540,7 @@ export class Api implements IApi {
       this.sessions[sessionId] = session;
       this.#sessionCallbacks[sessionId] = sessionCallbacks;
 
-      await session.init(properties.waitForOutputs, properties.initialParameters);
+      await session.init(properties.waitForOutputs, properties.loadOutputs, properties.initialParameters);
       
       this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId });
       this.#stateEngine.sessions[sessionId].initialized.resolve(true);

@@ -630,7 +630,7 @@ export class Session implements ISession {
         }
     }
 
-    public async init(waitForOutputs = true, initialParameters?: { [key: string]: string }): Promise<void> {
+    public async init(waitForOutputs = true, loadOutputs = true, initialParameters?: { [key: string]: string }): Promise<void> {
         try {
             this.#performanceEvaluator.start();
             this.#performanceEvaluator.startSection('init');
@@ -640,18 +640,21 @@ export class Session implements ISession {
             this.#performanceEvaluator.startSection('customize');
 
             await this.#sessionEngine.init(initialParameters);
-            if(waitForOutputs) {
-                this.#node = await this.#sessionEngine.loadOutputs();
-                if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
-                this.node.excludeViewers = this.#excludeViewers;
-                this.#api.update();
-            } else {
-                this.#sessionEngine.loadOutputs().then(async node => {
-                    this.#node = node;
+
+            if(loadOutputs) {
+                    if(waitForOutputs) {
+                    this.#node = await this.#sessionEngine.loadOutputs();
                     if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                     this.node.excludeViewers = this.#excludeViewers;
                     this.#api.update();
-                })
+                } else {
+                    this.#sessionEngine.loadOutputs().then(async node => {
+                        this.#node = node;
+                        if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
+                        this.node.excludeViewers = this.#excludeViewers;
+                        this.#api.update();
+                    })
+                }
             }
 
             this.#performanceEvaluator.endSection('customize');
