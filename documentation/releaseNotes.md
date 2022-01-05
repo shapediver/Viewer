@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.10.14
-* __Build date:__ 2022-01-05T10:52:12.294Z
-* __Branch:__ development
-* __Commit:__ 572a2b8fa9e5b9b41745b07a52f9b2632badac97
+* __Version:__ 1.11.0
+* __Build date:__ 2022-01-05T11:15:13.906Z
+* __Branch:__ feature/image-caching
+* __Commit:__ 07c0f34bf58d844edc07ad3bd49aa1273f12c506
 <!--- VERSION_END -->
 
 ## Version 1.10.2 - `Jason Bourne`
