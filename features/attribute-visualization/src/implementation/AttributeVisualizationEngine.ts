@@ -15,7 +15,12 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     readonly #viewer: IViewer;
 
     #attributes: IAttribute[] = [];
-    #defaultMaterial: MaterialData = new MaterialData({color: '#f0f0f0', opacity: 1, KHR_materials_unlit: true});
+    #defaultMaterial: MaterialData = new MaterialData({ color: '#f0f0f0', opacity: 1, KHR_materials_unlit: true });
+    #defaultLayer: ILayer = {
+        color: '#ff0000',
+        opacity: 1,
+        enabled: true
+    };
     #layers: {
         [key: string]: ILayer
     } = {};
@@ -40,7 +45,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
             this.createLayers();
             this.constructAttributeVisualization();
 
-            for(let l in this.#listeners)
+            for (let l in this.#listeners)
                 this.#listeners[l]();
         })
     }
@@ -51,6 +56,10 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     public get defaultMaterial(): MaterialData {
         return this.#defaultMaterial;
+    }
+
+    public get defaultLayer(): ILayer {
+        return this.#defaultLayer;
     }
 
     public get layers(): { [key: string]: ILayer } {
@@ -67,6 +76,11 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     public updateAttributes(attributes: IAttribute[]) {
         this.#attributes = attributes;
+        this.constructAttributeVisualization();
+    }
+
+    public updateDefaultLayer(layer: ILayer) {
+        this.#defaultLayer = layer;
         this.constructAttributeVisualization();
     }
 
@@ -87,7 +101,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     }
 
     public removeListener(token: string): boolean {
-        if(!this.#listeners[token]) return false;
+        if (!this.#listeners[token]) return false;
         delete this.#listeners[token];
         return true;
     }
@@ -98,88 +112,113 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     private constructAttributeVisualization() {
         this.#viewer.convertSDTFItemToVisualizationData = (itemData: SDTFItemData, overview: SDTFOverview) => {
-            if(!itemData.attributes) 
-                return {
-                    matrix: mat4.create(),
-                    material: this.#defaultMaterial
-                }
-
-            const mat = <MaterialData>this.#defaultMaterial.clone();
-            let hasLayer = false;
-            let opacity = this.defaultMaterial.opacity;
-
-            // check if the visualization for this attribute is activated
-            if (itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === PRIMITIVETYPEHINT.STRING) {
-                const layerAttributes = itemData.attributes['layer'];
-                if(this.#layers[layerAttributes.value].enabled === false) {
-                    const mat = <MaterialData>this.#defaultMaterial.clone();
-                    mat.opacity = 0;
+            // early out if there are not attributes in this itemData
+            if (!itemData.attributes) {
+                if (this.#attributes.length === 0) {
+                    // return default layer material
+                    const material = new MaterialData({
+                        KHR_materials_unlit: true,
+                        opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity : 0,
+                        color: this.#converter.toColor(this.#defaultLayer.color)
+                    });
                     return {
                         matrix: mat4.create(),
-                        material: mat
+                        material
                     }
                 } else {
-                    if(this.#attributes.length === 0)
-                        mat.color = this.#converter.toColor(this.#layers[layerAttributes.value].color);
-                    hasLayer = true;
-                    opacity = this.#layers[layerAttributes.value].opacity;
-                }
-            }
-
-            const material = new MaterialData({KHR_materials_unlit: true});
-
-            for(let i = 0; i < this.#attributes.length; i++) {
-                const a = this.#attributes[i];
-                if(itemData.attributes[a.key] && itemData.attributes[a.key].typeHint === a.type) {
-                    if(!hasLayer) opacity = 1;
-                    const itemDataAttribute = itemData.attributes[a.key];
-                    const itemDataAttributeOverview = overview[a.key].filter(o => o.typeHint === a.type)[0];
-                    
-                    switch(true) {
-                        case a.type == PRIMITIVETYPEHINT.COLOR:
-                            material.color = this.#converter.toColor('rgb(' + itemDataAttribute.value + ')');
-                            material.opacity = opacity;
-                            return {
-                                matrix: mat4.create(),
-                                material
-                            };
-                        case a.type == PRIMITIVETYPEHINT.DECIMAL || a.type == PRIMITIVETYPEHINT.DOUBLE || a.type == PRIMITIVETYPEHINT.FLOAT || a.type == PRIMITIVETYPEHINT.INT:
-                            const numberAttribute = <INumberAttribute>a;
-                            const numberVisualizationData = SDTFAttributeVisualization.numberVisualization(
-                                itemDataAttribute.value,
-                                (numberAttribute.min !== undefined ? numberAttribute.min : itemDataAttributeOverview.min)!,
-                                (numberAttribute.max !== undefined ? numberAttribute.max : itemDataAttributeOverview.max)!,
-                                numberAttribute.visualization,
-                                this.#defaultMaterial
-                            );
-                            numberVisualizationData.material.opacity *= opacity;
-                            return numberVisualizationData;
-                        case a.type == PRIMITIVETYPEHINT.STRING:
-                            const stringAttribute = <IStringAttribute>a;
-                            const stringVisualizationData = SDTFAttributeVisualization.stringVisualization(
-                                itemDataAttribute.value,
-                                stringAttribute.values || itemDataAttributeOverview.values,
-                                stringAttribute.visualization,
-                                this.#defaultMaterial);
-
-                            stringVisualizationData.material.opacity *= opacity;
-                            return stringVisualizationData;
-                        default:
-                            const defaultAttribute = <IDefaultAttribute>a;
-                            material.color = this.#converter.toColor(defaultAttribute.color);
-                            material.opacity = opacity;
-                            return {
-                                matrix: mat4.create(),
-                                material
-                            };
+                    // return default attribute material
+                    return {
+                        matrix: mat4.create(),
+                        material: <MaterialData>this.#defaultMaterial.clone()
                     }
                 }
             }
 
-            mat.opacity *= opacity;
-            return {
-                matrix: mat4.create(),
-                material: mat
+            // search for the responsible layer property, if none is found, default layer is assigned
+            let layer: ILayer = this.defaultLayer;
+            if (itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === PRIMITIVETYPEHINT.STRING) {
+                const layerAttributes = itemData.attributes['layer'];
+                layer = this.#layers[layerAttributes.value];
+            }
+
+            // early out, layer is not enabled
+            if (layer.enabled === false) {
+                const mat = <MaterialData>this.#defaultMaterial.clone();
+                mat.opacity = 0;
+                return {
+                    matrix: mat4.create(),
+                    material: mat
+                }
+            }
+
+            if (this.#attributes.length === 0) {
+                // no attributes are specified, we go into layer visualization mode
+                const material = new MaterialData({
+                    KHR_materials_unlit: true,
+                    opacity: layer.opacity,
+                    color: this.#converter.toColor(layer.color)
+                });
+                return {
+                    matrix: mat4.create(),
+                    material
+                }
+            } else {
+                // attributes are specified, we go into attribute visualization mode
+                const material = new MaterialData({KHR_materials_unlit: true});
+                for (let i = 0; i < this.#attributes.length; i++) {
+                    const a = this.#attributes[i];
+                    if (itemData.attributes[a.key] && itemData.attributes[a.key].typeHint === a.type) {
+                        const itemDataAttribute = itemData.attributes[a.key];
+                        const itemDataAttributeOverview = overview[a.key].filter(o => o.typeHint === a.type)[0];
+
+                        switch (true) {
+                            case a.type == PRIMITIVETYPEHINT.COLOR:
+                                material.color = this.#converter.toColor('rgb(' + itemDataAttribute.value + ')');
+                                material.opacity *= layer.opacity;
+                                return {
+                                    matrix: mat4.create(),
+                                    material
+                                };
+                            case a.type == PRIMITIVETYPEHINT.DECIMAL || a.type == PRIMITIVETYPEHINT.DOUBLE || a.type == PRIMITIVETYPEHINT.FLOAT || a.type == PRIMITIVETYPEHINT.INT:
+                                const numberAttribute = <INumberAttribute>a;
+                                const numberVisualizationData = SDTFAttributeVisualization.numberVisualization(
+                                    itemDataAttribute.value,
+                                    (numberAttribute.min !== undefined ? numberAttribute.min : itemDataAttributeOverview.min)!,
+                                    (numberAttribute.max !== undefined ? numberAttribute.max : itemDataAttributeOverview.max)!,
+                                    numberAttribute.visualization,
+                                    this.#defaultMaterial
+                                );
+                                numberVisualizationData.material.opacity *= layer.opacity;
+                                return numberVisualizationData;
+                            case a.type == PRIMITIVETYPEHINT.STRING:
+                                const stringAttribute = <IStringAttribute>a;
+                                const stringVisualizationData = SDTFAttributeVisualization.stringVisualization(
+                                    itemDataAttribute.value,
+                                    stringAttribute.values || itemDataAttributeOverview.values,
+                                    stringAttribute.visualization,
+                                    this.#defaultMaterial);
+
+                                stringVisualizationData.material.opacity *= layer.opacity;
+                                return stringVisualizationData;
+                            default:
+                                const defaultAttribute = <IDefaultAttribute>a;
+                                material.color = this.#converter.toColor(defaultAttribute.color);
+                                material.opacity *= layer.opacity;
+                                return {
+                                    matrix: mat4.create(),
+                                    material
+                                };
+                        }
+                    }
+                }
+
+                // no attributes were found, return the default material adjusted by the layer opacity
+                const mat = <MaterialData>this.#defaultMaterial.clone();
+                mat.opacity *= layer.opacity;
+                return {
+                    matrix: mat4.create(),
+                    material: mat
+                }
             }
         }
 
@@ -189,10 +228,10 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     private createLayers() {
         this.#layers = {};
-        if(this.#overview['layer']) {
+        if (this.#overview['layer']) {
             const layerStringAttributeOverview = this.#overview['layer'].find(a => a.typeHint === 'string');
-            if(layerStringAttributeOverview && layerStringAttributeOverview.values) {
-                for(let i = 0; i < layerStringAttributeOverview.values.length; i++) {
+            if (layerStringAttributeOverview && layerStringAttributeOverview.values) {
+                for (let i = 0; i < layerStringAttributeOverview.values.length; i++) {
                     this.#layers[layerStringAttributeOverview.values[i]] = {
                         enabled: true,
                         opacity: 1,
