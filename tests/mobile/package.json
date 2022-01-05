@@ -1,0 +1,38 @@
+{
+  "name": "@shapediver/viewer.tests.mobile",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [],
+  "private": true,
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "directories": {
+    "test": "__tests__"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "test": "bash ../../scripts/test.sh"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "jest": {
+    "setupFilesAfterEnv": [
+      "../general/src/setup.ts"
+    ],
+    "preset": "ts-jest",
+    "testEnvironment": "jsdom"
+  },
+  "devDependencies": {
+    "@shapediver/viewer": "*",
+    "chromedriver": "^96.0.0",
+    "gl-matrix": "3.3.0",
+    "jest-image-snapshot": "^4.5.0",
+    "selenium-webdriver": "^4.0.0-beta.4",
+    "tsyringe": "^4.5.0"
+  }
+}
