@@ -182,7 +182,7 @@ export class Session implements ISession {
 
         try {
             this._performanceEvaluator.startSection('sessionResponse');
-            this._responseDto = await this._sdk.session.init(this._ticket);
+            this._responseDto = await this._sdk.session.init(this._ticket, parameterValues);
             this._performanceEvaluator.endSection('sessionResponse');
 
             this._viewerSettings = this._responseDto.viewer?.config;
@@ -196,11 +196,6 @@ export class Session implements ISession {
 
             this.updateResponseDto(this._responseDto);
             this._initialized = true;
-
-            if(parameterValues) {
-                const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameterValues);
-                this.updateResponseDto(responseDto);
-            }
         } catch (e) {
             throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.init', e);
         }
