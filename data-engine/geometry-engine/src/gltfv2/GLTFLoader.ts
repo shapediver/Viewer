@@ -1,5 +1,5 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, ImageLoader, PerformanceEvaluator, UuidGenerator, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, PerformanceEvaluator, UuidGenerator, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import {
     ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
@@ -36,7 +36,6 @@ export class GLTFLoader {
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
 
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _imageLoader: ImageLoader = <ImageLoader>container.resolve(ImageLoader);
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
@@ -52,6 +51,7 @@ export class GLTFLoader {
             [key: string]: any
         }
     } = {};
+    private _loadData?: (img: string) => Promise<Blob> = this._httpClient.loadData.bind(this._httpClient);;
     private _nodes: {
         [key: number]: TreeNode
     } = {};
@@ -60,7 +60,8 @@ export class GLTFLoader {
 
     // #region Public Methods (1)
 
-    public async load(content: IGLTF_v2, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
+    public async load(content: IGLTF_v2, loadData: (img: string) => Promise<Blob>, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
+        this._loadData = loadData;
         this._baseUri = baseUri;
         if (gltfBinary && gltfHeader)
             this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength + 8, gltfHeader.length);
@@ -292,11 +293,10 @@ export class GLTFLoader {
                 array[i] = dataView.getUint8(i);
 
             const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
-            const dataUri = window.URL.createObjectURL(blob);
-            mapData = new MapData(await this._imageLoader.load(dataUri!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
+            mapData = new MapData(await this._converter.blobToImage(blob), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         } else {
             const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
-            mapData = new MapData(await this._imageLoader.load(url!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
+            mapData = new MapData(await this._converter.blobToImage(await this._loadData!(url!)), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         }
 
         if (!this._loaded['texture']) this._loaded['texture'] = {};

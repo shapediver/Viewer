@@ -8,7 +8,6 @@ import { IDomEventListener } from './dom-event-engine/IDomEventListener'
 import { IEvent } from './event-engine/interfaces/IEvent'
 import { Converter } from './converter/Converter'
 import { HttpClient } from './http-client/HttpClient'
-import { ImageLoader } from './image-loader/ImageLoader'
 import { InputValidator } from './input-validator/InputValidator'
 import { TypeChecker } from './type-check/TypeChecker'
 import { UuidGenerator } from './uuid-generator/UuidGenerator'
@@ -41,10 +40,6 @@ export {
 
 export {
     HttpClient
-}
-
-export {
-    ImageLoader
 }
 
 export {

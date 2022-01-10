@@ -4,6 +4,7 @@ import { container, injectable } from 'tsyringe'
 import {
   EventEngine,
   EVENTTYPE,
+  HttpClient,
   InputValidator,
   Logger,
   LOGGINGTOPIC,
@@ -40,6 +41,7 @@ export class Session implements ISession {
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     readonly #exports: { [key: string]: IExport; } = {};
     readonly #id: string;
+    readonly #httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #modelViewUrl: string;
@@ -168,6 +170,7 @@ export class Session implements ISession {
                         await this.#stateEngine.sessions[this.id].initialized;
 
                     this.#primarySession = true;
+                    this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
                     this.#stateEngine.sessions[this.id].primary = true;
                     this.#settingsEngine.loadSettings(this.#sessionEngine.viewerSettings, this.id, this.primarySession);
                     await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
@@ -184,6 +187,9 @@ export class Session implements ISession {
                     const closeResult = await this.#sessionEngine.close();
                     if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
                     this.#api.update();
+
+                    if(this.primarySession)
+                        this.#httpClient.removeDataLoading()
 
                     this.#settingsEngine.reset();
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: this.id });
@@ -640,6 +646,9 @@ export class Session implements ISession {
             this.#performanceEvaluator.startSection('customize');
 
             await this.#sessionEngine.init(initialParameters);
+
+            if(this.primarySession)
+                this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
 
             if(loadOutputs) {
                     if(waitForOutputs) {
