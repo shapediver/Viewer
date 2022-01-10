@@ -381,7 +381,7 @@ export class RenderingManager implements IManager {
                     this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
                 } else {
                     const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.');
-                    throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error);
+                    throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error, false);
                 }
             }
 
@@ -408,7 +408,7 @@ export class RenderingManager implements IManager {
             return _gl;
         } catch (e) {
             const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', e);
-            throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error, false);
         }
     }
 

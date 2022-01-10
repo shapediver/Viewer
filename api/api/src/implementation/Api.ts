@@ -494,7 +494,7 @@ export class Api implements IApi {
 
   public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, loadOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession> {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
+      this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
       // input validation
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties, 'object');
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.ticket, 'string');
@@ -514,7 +514,7 @@ export class Api implements IApi {
       const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.sessions[sessionId]) {
         const error = new ShapeDiverViewerSessionError(`Api.createSession: Session with this id (${sessionId}) already exists.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error);
+        throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error, false);
       }
 
       let noPrimarySession = true;
@@ -571,7 +571,7 @@ export class Api implements IApi {
   
   public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer> {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Creating and initializing viewer with properties ${JSON.stringify(properties)}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
       const prop = Object.assign({}, properties);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
@@ -583,7 +583,7 @@ export class Api implements IApi {
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.viewers[viewerId]) {
         const error = new ShapeDiverViewerViewerError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error);
+        throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error, false);
       }
 
       this.#stateEngine.viewers[viewerId] = {
@@ -652,27 +652,27 @@ export class Api implements IApi {
 
       if(this.#systemInfo.isIOS) {
         const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature on iOS is only supported in Safari. Please open this page again in Safari.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
       }
         
       if(this.#systemInfo.isSafari) {
         const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature in Safari is only supported on iOS devices. Please open this page again on an iOS device.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
       }
         
         
       if(this.#systemInfo.isAndroid) {
         const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature on Android is only supported in Chrome. Please open this page again in Chrome.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
       }
 
       if(this.#systemInfo.isChrome) {
         const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature in Chrome is only supported on Android devices. Please open this page again on an Android device.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
       }
 
       const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature is only available on Android with Chrome, or on iOS with Safari.`);
-      throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error);
+      throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewableInAR', e);
@@ -687,7 +687,7 @@ export class Api implements IApi {
       // if this is not a supported device, throw an error
       if(!isIOSSafari && !isAndroidChrome) {
         const error = new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error, false);
       }
       
       // try to find a session that is "AR-ready"
@@ -699,7 +699,7 @@ export class Api implements IApi {
           arSession = this.sessions[s];
       if(!arSession) {
         const error = new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error);
+        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error, false);
       }
       
       // register the busy mode to blur the scene and create a visual feedback

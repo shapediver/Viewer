@@ -318,7 +318,7 @@ export class Parameter<T> implements IParameter<T> {
                         if (typeof value === 'string') {
                             if (!(value === 'true' || value === 'false')) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is a string that is neither true or false.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         } else {
                             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'boolean');
@@ -338,29 +338,29 @@ export class Parameter<T> implements IParameter<T> {
                         if (this.type === PARAMETERTYPE.EVEN) {
                             if (temp % 2 !== 0) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not even.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         } else if (this.type === PARAMETERTYPE.ODD) {
                             if (temp % 2 === 0) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not odd.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         } else if (this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.SINTEGER) {
                             if (!Number.isInteger(temp)) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not an integer.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         }
                         if (this.min || this.min === 0)
                             if (temp < this.min) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is smaller than the minimum ${this.min}.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
 
                         if (this.max || this.max === 0)
                             if (temp > this.max) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is larger than the maximum ${this.max}.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
 
                         if (this.decimalplaces || this.decimalplaces === 0) {
@@ -370,7 +370,7 @@ export class Parameter<T> implements IParameter<T> {
                                 decimalplaces = numStr.split('.')[1].length;
                             if (this.decimalplaces < decimalplaces) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         }
 
@@ -385,7 +385,7 @@ export class Parameter<T> implements IParameter<T> {
                             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
                             if (temp < 0 || temp > this.choices!.length - 1) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${v} is not within the range of the defined number choices.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         }
 
@@ -396,7 +396,7 @@ export class Parameter<T> implements IParameter<T> {
                                 for (let i = 0; i < values.length; i++) {
                                     if (values.filter(item => item === values[i]).length !== 1) {
                                         const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${values[i]} exists multiple times, but should only exist once.`);
-                                        throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                                        throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                                     }
                                     choicesChecker(values[i]);
                                 }

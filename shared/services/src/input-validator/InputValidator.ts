@@ -20,7 +20,7 @@ export class InputValidator {
         if(res) return;
 
         const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, value, type);
-        throw this._logger.handleError(LOGGINGTOPIC.GENERAL, 'InputValidator.validateAndError', error);
+        throw this._logger.handleError(LOGGINGTOPIC.GENERAL, 'InputValidator.validateAndError', error, false);
     }
 
     private validate(value: any, stringLiteral: Types, defined: boolean = true, enumValues: string[] = []): boolean {

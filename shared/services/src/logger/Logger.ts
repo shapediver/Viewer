@@ -139,17 +139,17 @@ export class Logger {
 
     // #region Public Methods (8)
     
-    public handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error) {
+    public handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error, logToSentry = true) {
         if(e instanceof ShapeDiverBackendError) {
             throw e;
         } else if (e instanceof ShapeDiverViewerError) {
             const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
-            this.sentryError(topic, e, messageProperty);
+            if(logToSentry) this.sentryError(topic, e, messageProperty);
             throw e;
         } else if(e) {
             const messageProperty = e.message ? e.message : `An unknown issue occurred in ${scope}.`;
             const viewerError = new ShapeDiverViewerUnknownError(messageProperty, e);
-            this.sentryError(topic, viewerError, messageProperty);
+            if(logToSentry) this.sentryError(topic, viewerError, messageProperty);
             throw viewerError;
         }
     }
@@ -192,7 +192,6 @@ export class Logger {
      * @param msg the message
      */
     public debug(topic: LOGGINGTOPIC, msg: string): void {
-        this.sentryBreadcrumb(topic, msg, Sentry.Severity.Debug);
         if (this.canLog(LOGGINGLEVEL.DEBUG) && this.showMessages === true)
             console.debug('(DEBUG) ' + this.messageConstruction(msg));
     }
@@ -202,7 +201,6 @@ export class Logger {
      * @param msg the message
      */
     public debugHigh(topic: LOGGINGTOPIC, msg: string): void {
-        this.sentryBreadcrumb(topic, msg, Sentry.Severity.Debug);
         if (this.canLog(LOGGINGLEVEL.DEBUG_HIGH) && this.showMessages === true)
             console.debug('(DEBUG_HIGH) ' + this.messageConstruction(msg));
     }
@@ -212,7 +210,6 @@ export class Logger {
      * @param msg the message
      */
     public debugLow(topic: LOGGINGTOPIC, msg: string): void {
-        this.sentryBreadcrumb(topic, msg, Sentry.Severity.Debug);
         if (this.canLog(LOGGINGLEVEL.DEBUG_LOW) && this.showMessages === true)
             console.debug('(DEBUG_LOW) ' + this.messageConstruction(msg));
     }
@@ -222,7 +219,6 @@ export class Logger {
      * @param msg the message
      */
     public debugMedium(topic: LOGGINGTOPIC, msg: string): void {
-        this.sentryBreadcrumb(topic, msg, Sentry.Severity.Debug);
         if (this.canLog(LOGGINGLEVEL.DEBUG_MEDIUM) && this.showMessages === true)
             console.debug('(DEBUG_MEDIUM) ' + this.messageConstruction(msg));
     }
