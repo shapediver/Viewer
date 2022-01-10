@@ -346,7 +346,7 @@ export class Session implements ISession {
     }
 
     public async uploadFile(parameterId: string, data: File, type: string): Promise<string> {
-        this.checkAvailability('upload');
+        this.checkAvailability('file-upload');
         try {
             const responseDto = await this._sdk.file.requestUpload(this._sessionId!, {
                 [parameterId]: { size: data.size, format: type }
