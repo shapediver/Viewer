@@ -6,7 +6,7 @@ import { OutputLoader } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
 import { ISession } from '../interfaces/ISession'
 import { SessionData } from './SessionData'
-import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { AxiosRequestConfig } from 'axios'
 
 export class Session implements ISession {
@@ -27,6 +27,7 @@ export class Session implements ISession {
 
     private _bearerToken?: string;
     private _closed: boolean = false;
+    private _closeOnFailure: () => Promise<void>
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
@@ -35,8 +36,9 @@ export class Session implements ISession {
     };
     private _initialized: boolean = false;
     private _modelId?: string;
-    private _refreshBearerToken?: () => string;
+    private _refreshBearerToken?: () => Promise<string>;
     private _responseDto?: ShapeDiverResponseDto;
+    private _retryCounter = 0;
     private _sdk: ShapeDiverSdk;
     private _sessionId?: string;
     private _viewerSettings?: object;
@@ -49,10 +51,11 @@ export class Session implements ISession {
      * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string, primarySession?: boolean }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, closeOnFailure: () => Promise<void>, bearerToken?: string, primarySession?: boolean }) {
         this._id = properties.id;
         this._ticket = properties.ticket;
         this._modelViewUrl = properties.modelViewUrl;
+        this._closeOnFailure = properties.closeOnFailure;
         this._bearerToken = properties.bearerToken;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
@@ -72,6 +75,7 @@ export class Session implements ISession {
 
     public set bearerToken(value: string | undefined) {
         this._bearerToken = value;
+        this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.JWT_TOKEN, value);
     }
 
     public get canUploadGLTF(): boolean {
@@ -111,7 +115,7 @@ export class Session implements ISession {
         return this._parameters;
     }
 
-    public set refreshBearerToken(value: () => string) {
+    public set refreshBearerToken(value: () => Promise<string>) {
         this._refreshBearerToken = value;
     }
 
@@ -123,19 +127,63 @@ export class Session implements ISession {
         return this._viewerSettings;
     }
 
-    private async handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error) {
-        if((<any>e).status && (<any>e).status === 410) {
-            this._logger.warn(topic, `The session has been closed, trying to initialize.`);
-            try {
-                this._initialized = false;
-                await this.init(this.parameterValues);
-            } catch(e) {
-                if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+    private async handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error, retry = false) {
+        if(e instanceof ShapeDiverResponseError) {
+            if(e.error === ShapeDiverResponseErrorType.SESSION_GONE_ERROR) {
+                // case 1: the session is no longer available
+                // we try to re-initialize the session 3 times, if that does not work, we close it
+
+                this._logger.warn(topic, `The session has been closed, trying to re-initialize.`);
+
+                if(this._retryCounter < 3) {
+                    // we retry this 3 times, the `retry` option in the init function is set to true and passed on 
+                    this._retryCounter = retry ? this._retryCounter + 1 : 1;
+                    try {
+                        this._initialized = false;
+                        await this.init(this.parameterValues, true);
+                    } catch(e) {
+                        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+                        throw this._logger.handleError(topic, scope, e);
+                    }
+                } else {
+                    // the retries were exceeded, we close the session
+                    this._logger.warn(LOGGINGTOPIC.SESSION, 'Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
+                    await this._closeOnFailure();
+                    throw this._logger.handleError(topic, scope, e);
+                }
+            } else if(
+                e.error === ShapeDiverResponseErrorType.ERROR_FORBIDDEN || 
+                e.error === ShapeDiverResponseErrorType.ERROR_UNAUTHORIZED ||
+                e.error === ShapeDiverResponseErrorType.TOKEN_MISSING_ERROR ||
+                e.error === ShapeDiverResponseErrorType.JWT_VALIDATION_ERROR ||
+                e.error === ShapeDiverResponseErrorType.MODEL_VALIDATION_ERROR ||
+                e.error === ShapeDiverResponseErrorType.TICKET_VALIDATION_ERROR ||
+                e.error === ShapeDiverResponseErrorType.REQUEST_VALIDATION_ERROR ||
+                e.error === ShapeDiverResponseErrorType.SESSION_VALIDATION_ERROR ||
+                e.error === ShapeDiverResponseErrorType.PARAMETER_VALIDATION_ERROR 
+            ) {
+                // if any of the above errors occur, we try to get a new bearer token
+                // if we get a new one, we retry 3 times (by requiring new bearer tokens every time)
+                if(this._retryCounter < 3) {
+                    if(this._refreshBearerToken) {
+                        this.bearerToken = await this._refreshBearerToken();
+                        this._retryCounter = retry ? this._retryCounter + 1 : 1;
+                        this._logger.warn(LOGGINGTOPIC.SESSION, 'Re-trying with new bearer token.');
+                    } else {
+                        // no bearer tokens are supplied, we close the session
+                        this._logger.warn(LOGGINGTOPIC.SESSION, 'No retry possible, no new bearer token was supplied. Closing Session.');
+                        await this._closeOnFailure();
+                        throw this._logger.handleError(topic, scope, e);
+                    }
+                } else {
+                    // the retries were exceeded, we close the session
+                    this._logger.warn(LOGGINGTOPIC.SESSION, 'Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
+                    await this._closeOnFailure();
+                    throw this._logger.handleError(topic, scope, e);
+                }
+            } else {
                 throw this._logger.handleError(topic, scope, e);
             }
-        } else if((<any>e).status && (<any>e).status === 403) {
-            // TODO when error types are here
-            throw this._logger.handleError(topic, scope, e);
         } else {
             throw this._logger.handleError(topic, scope, e);
         }
@@ -145,7 +193,7 @@ export class Session implements ISession {
 
     // #region Public Methods (13)
 
-    public async close(): Promise<boolean> {
+    public async close(retry = false): Promise<boolean> {
         this.checkAvailability('close');
 
         try {
@@ -153,7 +201,8 @@ export class Session implements ISession {
             this._closed = true;
             return true;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.close', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.close', e, retry);
+            return await this.close(true); 
         }
     }
 
@@ -174,7 +223,7 @@ export class Session implements ISession {
      */
     public async init(parameterValues?: {
         [key: string]: string;
-    }): Promise<void> {
+    }, retry = false): Promise<void> {
         if (this._initialized === true) {
             const error = new ShapeDiverViewerSessionError('Session.init: Session already initialized.');
             throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.init', error);
@@ -197,7 +246,8 @@ export class Session implements ISession {
             this.updateResponseDto(this._responseDto);
             this._initialized = true;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.init', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.init', e, retry);
+            return await this.init(parameterValues, true);
         }
     }
 
@@ -209,7 +259,7 @@ export class Session implements ISession {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(cancelRequest: () => boolean = () => false): Promise<SessionTreeNode> {
+    public async loadOutputs(cancelRequest: () => boolean = () => false, retry = false): Promise<SessionTreeNode> {
         this.checkAvailability();
 
         const o = Object.assign({}, this._outputs);
@@ -222,7 +272,8 @@ export class Session implements ISession {
             if (e instanceof OutputDelayException) {
                 await this.timeout(e.delay);
             } else {
-                throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e);
+                await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e, retry);
+                return await this.loadOutputs(cancelRequest, true);
             }
 
             if(cancelRequest()) return new SessionTreeNode();
@@ -236,29 +287,32 @@ export class Session implements ISession {
                 this.updateResponseDto(responseDto);
                 return await this.loadOutputs(cancelRequest);
             } catch(e) {
-                throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e);
+                await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e, retry);
+                return await this.loadOutputs(cancelRequest, true);
             }
         }
     }
 
-    public async requestExport(exportId: string, parameters: { [key: string]: string }): Promise<ShapeDiverResponseExport> {
+    public async requestExport(exportId: string, parameters: { [key: string]: string }, retry = false): Promise<ShapeDiverResponseExport> {
         this.checkAvailability('export');
         try {
             const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters })
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.requestExport', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.requestExport', e, retry);
+            return await this.requestExport(exportId, parameters, true);
         }
     }
 
-    public async saveDefaultParameters(): Promise<boolean> {
+    public async saveDefaultParameters(retry = false): Promise<boolean> {
         this.checkAvailability('defaultparam', true);
         try {
             await this._sdk.model.setDefaultParams(this._modelId!, this._parameterValues)
             return true;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveDefaultParameters', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveDefaultParameters', e, retry);
+            return await this.saveDefaultParameters(true);
         }
     }
 
@@ -275,13 +329,14 @@ export class Session implements ISession {
             order: number,
             tooltip: string
         }
-    }): Promise<boolean> {
+    }, retry = false): Promise<boolean> {
         this.checkAvailability('export-definition', true);
         try {
             await this._sdk.export.updateDefinitions(this._modelId!, exports);
             return true;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveExportProperties', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveExportProperties', e, retry);
+            return await this.saveExportProperties(exports, true);
         }
     }
 
@@ -298,13 +353,14 @@ export class Session implements ISession {
             order: number,
             tooltip: string
         }
-    }): Promise<boolean> {
+    }, retry = false): Promise<boolean> {
         this.checkAvailability('output-definition', true);
         try {
             await this._sdk.output.updateDefinitions(this._modelId!, outputs);
             return true;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveOutputProperties', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveOutputProperties', e, retry);
+            return await this.saveOutputProperties(outputs, true);
         }
     }
 
@@ -321,27 +377,29 @@ export class Session implements ISession {
             order: number,
             tooltip: string
         }
-    }): Promise<boolean> {
+    }, retry = false): Promise<boolean> {
         this.checkAvailability('parameter-definition', true);
         try {
             await this._sdk.model.updateParameterDefinitions(this._modelId!, parameters);
             return true;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveParameterProperties', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveParameterProperties', e, retry);
+            return await this.saveParameterProperties(parameters, true);
         }
     }
 
-    public async saveSettings(json: any): Promise<boolean> {
+    public async saveSettings(json: any, retry = false): Promise<boolean> {
         this.checkAvailability('configure', true);
         try {
             await this._sdk.model.updateConfig(this._modelId!, json);
             return true;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveSettings', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.saveSettings', e, retry);
+            return await this.saveSettings(json, true);
         }
     }
 
-    public async uploadFile(parameterId: string, data: File, type: string): Promise<string> {
+    public async uploadFile(parameterId: string, data: File, type: string, retry = false): Promise<string> {
         this.checkAvailability('file-upload');
         try {
             const responseDto = await this._sdk.file.requestUpload(this._sessionId!, {
@@ -357,11 +415,12 @@ export class Session implements ISession {
                 throw this._logger.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', error);
             }
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', e, retry);
+            return await this.uploadFile(parameterId, data, type, retry);
         }
     }
 
-    public async uploadGLTF(blob: Blob, conversion: ShapeDiverRequestGltfUploadQueryConversion = ShapeDiverRequestGltfUploadQueryConversion.NONE): Promise<string> {
+    public async uploadGLTF(blob: Blob, conversion: ShapeDiverRequestGltfUploadQueryConversion = ShapeDiverRequestGltfUploadQueryConversion.NONE, retry = false): Promise<string> {
         this.checkAvailability('gltf-upload');
         try {
             const responseDto = await this._sdk.gltf.upload(this._sessionId!, await blob.arrayBuffer(), 'model/gltf-binary', conversion);
@@ -371,7 +430,8 @@ export class Session implements ISession {
             }
             return responseDto.gltf.href;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadGLTF', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadGLTF', e, retry);
+            return await this.uploadGLTF(blob, conversion, retry);
         }
     }
 
@@ -407,7 +467,7 @@ export class Session implements ISession {
         }
     }
 
-    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean): Promise<SessionTreeNode> {
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, retry = false): Promise<SessionTreeNode> {
         this.checkAvailability('customize');
         try {
             this._performanceEvaluator.startSection('sessionResponse');
@@ -417,20 +477,12 @@ export class Session implements ISession {
             this.updateResponseDto(responseDto);
             return this.loadOutputs(cancelRequest);
         } catch (e) {
-            if (e.response && e.response.status) {
-                if (e.response && e.response.status && e.response.status === 410 && !this._closed) {
-                    this._logger.info(LOGGINGTOPIC.SESSION, 'Session.customizeSession: Session customization failed. Session expired. Re-initializing session.');
-                    this._initialized = false;
-                    await this.init(parameters);
-                    if(cancelRequest()) return new SessionTreeNode();
-                    return this.loadOutputs(cancelRequest);
-                }
-            }
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.customizeSession', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.customizeSession', e, retry);
+            return await this.customizeSession(parameters, cancelRequest, true);
         }
     }
 
-    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }): Promise<any> {
+    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }, retry = false): Promise<any> {
         this.checkAvailability();
         try {
             const response = await this._httpClient.get(
@@ -439,7 +491,8 @@ export class Session implements ISession {
             );
             return response.data;
         } catch (e) {
-            throw await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadData', e);
+            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadData', e, retry);
+            return await this.loadData(href, config, true);
         }
     }
 

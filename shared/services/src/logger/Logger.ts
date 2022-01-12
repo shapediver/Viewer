@@ -5,7 +5,9 @@ import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geome
 
 import { UuidGenerator } from '../uuid-generator/UuidGenerator'
 import { BrowserClient, Hub } from '@sentry/browser'
-import { ShapeDiverViewerError, ShapeDiverViewerUnknownError } from './ShapeDiverViewerError'
+import { ShapeDiverViewerUnknownError } from './ShapeDiverViewerErrors'
+import { ShapeDiverRequestError, ShapeDiverResponseError, ShapeDiverResponseErrorType } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { ShapeDiverViewerError } from './ShapeDiverError'
 
 export enum LOGGINGLEVEL {
     NONE = 'none',
@@ -29,8 +31,8 @@ export enum LOGGINGTOPIC {
     VIEWER = 'viewer',
     CAMERA = 'camera',
     LIGHT = 'light',
-    CAMERACONTROL = 'cameracontrol',
-    DATAPROCESSING = 'dataprocessing',
+    CAMERA_CONTROL = 'camera_control',
+    DATA_PROCESSING = 'data_processing',
     SDTF = 'sdtf',
     THREE = 'three',
     SETTINGS = 'settings',
@@ -140,7 +142,15 @@ export class Logger {
     // #region Public Methods (8)
     
     public handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error, logToSentry = true) {
-        if(e instanceof ShapeDiverBackendError) {
+        if(e instanceof ShapeDiverRequestError) {
+            const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
+            if(logToSentry) this.sentryError(topic, e, messageProperty);
+            throw e;
+        } else if(e instanceof ShapeDiverResponseError && e.error === ShapeDiverResponseErrorType.UNKNOWN) {
+            const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
+            if(logToSentry) this.sentryError(topic, e, messageProperty);
+            throw e;
+        } else if(e instanceof ShapeDiverResponseError) {
             throw e;
         } else if (e instanceof ShapeDiverViewerError) {
             const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
@@ -171,10 +181,10 @@ export class Logger {
         this._sentryHub.setTag('topic', topic);
         this._sentryHub.setUser({ id: this._userId })
         
-        if(error instanceof Error) {
-            this._sentryHub.captureException(error);
-        } else {
+        if(error instanceof ShapeDiverBackendError || error instanceof ShapeDiverViewerError) {
             this._sentryHub.captureMessage(error.message, Sentry.Severity.Error);
+        } else {            
+            this._sentryHub.captureException(error);
         }
     }
 

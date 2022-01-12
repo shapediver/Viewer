@@ -37,7 +37,7 @@ export class DataEngine {
 
         if(!content || (content && !content.format)) {
             const error = new ShapeDiverViewerDataProcessingError('DataEngine cannot load content.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `DataEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `DataEngine.loadContent`, error);
         }
 
         try {
@@ -83,7 +83,7 @@ export class DataEngine {
                 return customNode;
             }
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `DataEngine.loadContent`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `DataEngine.loadContent`, e);
         }
     }
 

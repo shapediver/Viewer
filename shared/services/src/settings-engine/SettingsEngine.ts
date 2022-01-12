@@ -2,9 +2,8 @@ import { ISettingsV3, DefaultsV3, convert, validate } from '@shapediver/viewer.s
 import { container, singleton } from 'tsyringe'
 
 import { EventEngine } from '../event-engine/EventEngine'
-import { EVENTTYPE } from '../event-engine/EventTypes'
 import { Logger, LOGGINGTOPIC } from '../logger/Logger';
-import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerError';
+import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
 
 type IARSettings = ISettingsV3["ar"];
 type ICameraSettings = ISettingsV3["camera"];

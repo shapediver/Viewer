@@ -130,7 +130,18 @@ export class Session implements ISession {
     constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, excludeViewers?: string[] }, callbacks: any) {
         try {
             this.#node = new TreeNode(properties.id);
-            this.#sessionEngine = new SessionEngine(Object.assign({ buildDate: build_data.build_date, buildVersion: build_data.build_version }, properties));
+            this.#sessionEngine = new SessionEngine(Object.assign({ 
+                buildDate: build_data.build_date, 
+                buildVersion: build_data.build_version,
+                closeOnFailure: async () => {
+                    // this function closes the Session if an error occurred that cannot be solved
+                    // case 1: the bearer token is invalid and no new valid bearer token was supplied
+                    // case 2: session init failed multiple times
+                    this.bearerToken = '';
+                    await this.#api.closeSession(this.#id);
+                }
+            }, properties));
+
             this.#id = this.#sessionEngine.id;
             this.#ticket = this.#sessionEngine.ticket;
             this.#modelViewUrl = this.#sessionEngine.modelViewUrl;
@@ -317,11 +328,11 @@ export class Session implements ISession {
         return this.#primarySessionRequest;
     }
 
-    public get refreshBearerToken(): () => string {
+    public get refreshBearerToken(): () => Promise<string> {
         return this.#sessionEngine.refreshBearerToken;
     }
 
-    public set refreshBearerToken(value: () => string) {
+    public set refreshBearerToken(value: () => Promise<string>) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken: Updating RefreshBearerToken to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken`, value, 'function');

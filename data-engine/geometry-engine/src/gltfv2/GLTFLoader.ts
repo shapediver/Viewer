@@ -75,7 +75,7 @@ export class GLTFLoader {
                     node.data.push(await this.loadAnimation(i));
             return node;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
     }
 
@@ -90,7 +90,7 @@ export class GLTFLoader {
             });
             this._performanceEvaluator.endSection('loadGltf.' + url);
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
 
         const magic = new TextDecoder().decode(new Uint8Array(axiosResponse.data, 0, 4));
@@ -112,7 +112,7 @@ export class GLTFLoader {
             }
             if (header.magic != 'glTF') {
                 const error = new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: sdgTF magic wrong.');
-                throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load`, error);
+                throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, error);
             }
             // create content
             const contentDataView = new DataView(binaryGeometry, this.BINARY_EXTENSION_HEADER_LENGTH, header.contentLength);
@@ -142,7 +142,7 @@ export class GLTFLoader {
             this._performanceEvaluator.endSection('gltfProcessing.' + url);
             return node;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
     }
 
@@ -166,7 +166,7 @@ export class GLTFLoader {
         const arrayBuffer = await this.loadBufferView(accessor.bufferView!);
 
         const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
-        if (accessor.componentType === 5124) this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
+        if (accessor.componentType === 5124) this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
         const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
 
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
@@ -524,7 +524,7 @@ export class GLTFLoader {
                     message += '"' + element + '"' + (index === notSupported.length - 1 ? '' : index === notSupported.length - 2 ? ' and ' : ', ');
                 });
                 message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
-                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
+                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
             }
         }
 
@@ -589,12 +589,12 @@ export class GLTFLoader {
             const output = await this.loadAccessor(sampler.output);
             let interpolation = sampler.interpolation;
             if(interpolation === 'CUBICSPLINE') {
-                this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
                 interpolation = 'linear';
             }
 
             if(target.path === 'weights') {
-                this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'Animation with weights is currently not supported.')
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'Animation with weights is currently not supported.')
                 break;
             }
 

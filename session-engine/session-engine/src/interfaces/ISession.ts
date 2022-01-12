@@ -12,7 +12,7 @@ export interface ISession {
     modelViewUrl: string;
     outputs: { [key: string]: ShapeDiverResponseOutput };
     parameters: { [key: string]: ShapeDiverResponseParameter };
-    refreshBearerToken: () => string;
+    refreshBearerToken: () => Promise<string>;
     ticket: string;
     viewerSettings?: object;
 

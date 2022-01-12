@@ -56,7 +56,7 @@ export class GLTFLoader {
             if(sdgtfNode) node.addChild(sdgtfNode);
             return node;
         } catch (e) {            
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.loadContent`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.loadContent`, e);
         }
     }
 
@@ -71,7 +71,7 @@ export class GLTFLoader {
             })).data;
             this._performanceEvaluator.endSection('loadGltf.' + url);
         } catch (e) {            
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
 
         // create header data
@@ -85,7 +85,7 @@ export class GLTFLoader {
         }
         if (header.magic != 'glTF') {
             const error = new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: glTF magic wrong.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, error);
         }
 
         // create content
@@ -105,7 +105,7 @@ export class GLTFLoader {
             this._performanceEvaluator.endSection('gltfProcessing.' + url);
             return node;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GLTFLoader.load`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
     }
 
@@ -126,7 +126,7 @@ export class GLTFLoader {
                     message += '"' + element + '"' + (index === notSupported.length-1 ? '' : index === notSupported.length-2 ? ' and ' : ', ');
                 });
                 message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
-                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
+                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
             }
         }
     }
@@ -137,7 +137,7 @@ export class GLTFLoader {
         const bufferView = await this.loadBufferView(accessor.bufferView!);
 
         const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
-        if(accessor.componentType === 5124) this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
+        if(accessor.componentType === 5124) this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
         const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
         const elementBytes = ArrayType.BYTES_PER_ELEMENT;
         const itemBytes = elementBytes * itemSize;
@@ -188,11 +188,11 @@ export class GLTFLoader {
 
         if(material.extensions && material.extensions.KHR_materials_common) {
             const technique = material.extensions.KHR_materials_common.technique;
-            if(technique && technique !== 'BLINN') this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'The technique ' + technique + ' is not supported. Trying to load the material either way.')
+            if(technique && technique !== 'BLINN') this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'The technique ' + technique + ' is not supported. Trying to load the material either way.')
             const values = material.extensions.KHR_materials_common.values;
 
             if (values.hasOwnProperty('ambient')) 
-                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: The value ambient was set for a material, but is not supported.')
+                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value ambient was set for a material, but is not supported.')
 
             if (values.hasOwnProperty('doubleSided')) 
                 materialData.side = values.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
@@ -202,13 +202,13 @@ export class GLTFLoader {
                 materialData.color = this._converter.toColor(values.diffuse);
                 materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
             } else if(values.hasOwnProperty('diffuse') && !Array.isArray(values.diffuse)) {
-                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
+                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
             }
 
             if (values.hasOwnProperty('emission') && Array.isArray(values.emission)) {
                 materialData.emissiveness = this._converter.toColor(values.emission);
             } else {
-                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
+                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
             }
 
             if (values.hasOwnProperty('shininess')) {
@@ -220,7 +220,7 @@ export class GLTFLoader {
                 materialData.opacity = Math.max(0.0, Math.min(values.transparency, 1.0));
 
             if (values.hasOwnProperty('transparent')) 
-                this._logger.info(LOGGINGTOPIC.DATAPROCESSING, 'GLTFLoader.loadMaterial: The value transparent was set for a material, but is not supported.')
+                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value transparent was set for a material, but is not supported.')
 
             if (values.hasOwnProperty('_roughness'))
                 materialData.roughness = Math.min(1, Math.max(0, values.roughness));

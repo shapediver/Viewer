@@ -10,8 +10,8 @@ import {
   TreeNode,
 } from '@shapediver/viewer.shared.node-tree'
 import {
-  ENVIRONMENTMAP,
-  ENVIRONMENTMAP_CUBE,
+  ENVIRONMENT_MAP,
+  ENVIRONMENT_MAP_CUBE,
   ThreejsData,
 } from '@shapediver/viewer.rendering-engine-threejs.standard'
 import { CustomData, GeometryData, MaterialData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent } from '@shapediver/viewer.shared.types'
@@ -61,7 +61,7 @@ export const api: Api = <Api>container.resolve(Api);
 export const settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
 export {
-    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, MATERIAL_ALPHA, EVENTTYPE, MAINEVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE
+    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, MATERIAL_ALPHA, EVENTTYPE, MAINEVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE
 }
 
 export {

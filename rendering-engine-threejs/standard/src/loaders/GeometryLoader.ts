@@ -94,7 +94,7 @@ export class GeometryLoader implements ILoader {
             obj.children.forEach(m => m.receiveShadow = true);
         } else {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.load`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.load`, error);
         }
 
         obj.children.forEach(m => {
@@ -210,7 +210,7 @@ export class GeometryLoader implements ILoader {
                     if (bufferAttribute.itemSize >= 4) buffer.setW(index, bufferAttribute.sparseValues![i * bufferAttribute.itemSize + 3]);
                     if (bufferAttribute.itemSize >= 5) {
                         const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.loadGeometry: Unsupported itemSize in sparse BufferAttribute.`);
-                        throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.loadGeometry`, error);
+                        throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.loadGeometry`, error);
                     }
                 }
             }
@@ -283,7 +283,7 @@ export class GeometryLoader implements ILoader {
                     geometry.setAttribute('tangent', buffer);
                     break;
                 default:
-                    this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.loadGeometry: Unrecognized attribute id ${attributeId}.`);
+                    this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.loadGeometry: Unrecognized attribute id ${attributeId}.`);
             }
 
             if (primitive.indices)
@@ -309,13 +309,13 @@ export class GeometryLoader implements ILoader {
                 index = geometry.getIndex();
             } else {
                 const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined position attribute. Processing not possible.`);
-                throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.convertToTriangleMode`, error);
+                throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
             }
         }
 
         if (index === null) {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined index. Processing not possible.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.convertToTriangleMode`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
         }
         const numberOfTriangles = index.count - 2;
         const newIndices = [];
@@ -341,7 +341,7 @@ export class GeometryLoader implements ILoader {
 
         if ((newIndices.length / 3) !== numberOfTriangles) {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Unable to generate correct amount of triangle.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `GeometryLoader.convertToTriangleMode`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
         }
 
         const newGeometry = geometry.clone();

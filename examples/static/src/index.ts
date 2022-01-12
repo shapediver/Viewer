@@ -3,7 +3,7 @@ import 'reflect-metadata'
 import {
   api,
   CAMERATYPE,
-  ENVIRONMENTMAP,
+  ENVIRONMENT_MAP,
   EVENTTYPE,
   Export,
   EXPORTTYPE,

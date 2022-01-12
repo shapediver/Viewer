@@ -1,7 +1,7 @@
 import { container, singleton } from 'tsyringe'
 import DOMPurify from 'dompurify';
 import { Logger, LOGGINGTOPIC } from '../logger/Logger'
-import { ShapeDiverViewerValidationError } from '../logger/ShapeDiverViewerError';
+import { ShapeDiverViewerValidationError } from '../logger/ShapeDiverViewerErrors';
 import { TypeChecker } from '../type-check/TypeChecker'
 
 export type Types = 'string' | 'boolean' | 'function' |

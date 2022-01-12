@@ -1,8 +1,8 @@
 import { RenderingEngine } from './RenderingEngine'
 import { ThreejsData } from './types/ThreejsData'
 import { SDNode } from './types/SDNode'
-import { ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE } from './loaders/EnvironmentMapLoader'
+import { ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE } from './loaders/EnvironmentMapLoader'
 
 export {
-  RenderingEngine, ThreejsData, SDNode as SDThreejsObject, ENVIRONMENTMAP, ENVIRONMENTMAP_CUBE
+  RenderingEngine, ThreejsData, SDNode as SDThreejsObject, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE
 }

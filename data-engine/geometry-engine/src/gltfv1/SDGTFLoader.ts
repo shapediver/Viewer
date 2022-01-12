@@ -40,7 +40,7 @@ export class SDGTFLoader {
             }
             if (header.magic != 'sdgTF') {
                 const error = new ShapeDiverViewerDataProcessingError('SDGTFLoader.load: Invalid data: sdgTF magic wrong.');
-                throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDGTFLoader.load`, error);
+                throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDGTFLoader.load`, error);
             }
 
             // create content
@@ -55,7 +55,7 @@ export class SDGTFLoader {
         try {
             return await this.loadScene();
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDGTFLoader.load`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDGTFLoader.load`, e);
         }
     }
 
@@ -115,7 +115,7 @@ export class SDGTFLoader {
             const arcZAxis = vec3.cross(vec3.create(), arcXAxis, arcYAxis)
 
             if (arcRadius <= 0) {
-                this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'SDGTFLoader.loadArcs: Arc radius is <= 0.');
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'SDGTFLoader.loadArcs: Arc radius is <= 0.');
                 continue;
             }
             const points: number[] = [];
@@ -295,7 +295,7 @@ export class SDGTFLoader {
             const circleZAxis = vec3.cross(vec3.create(), circleXAxis, circleYAxis)
 
             if (circleRadius <= 0) {
-                this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'SDGTFLoader.loadCircles: Circle radius is <= 0.');
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'SDGTFLoader.loadCircles: Circle radius is <= 0.');
                 continue;
             }
 
@@ -382,7 +382,7 @@ export class SDGTFLoader {
             vec3.normalize(cylinderYAxis, cylinderYAxis);
 
             if (cylinderRadius <= 0) {
-                this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'SDGTFLoader.loadCylinders: Cylinder radius is <= 0.');
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'SDGTFLoader.loadCylinders: Cylinder radius is <= 0.');
                 continue;
             }
 
@@ -505,7 +505,7 @@ export class SDGTFLoader {
             const sphereTranslation = vec3.fromValues(data.array[index + 0], data.array[index + 1], data.array[index + 2]);
             const sphereRadius = data.array[index + 3];
             if (sphereRadius <= 0) {
-                this._logger.warn(LOGGINGTOPIC.DATAPROCESSING, 'SDGTFLoader.loadSpheres: Sphere radius is <= 0.');
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'SDGTFLoader.loadSpheres: Sphere radius is <= 0.');
                 continue;
             }
 

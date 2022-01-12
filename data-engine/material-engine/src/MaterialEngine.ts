@@ -79,7 +79,7 @@ export class MaterialEngine {
         this._loadData = loadData;
         if(!content) {
             const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
         }
 
         const material = new MaterialData();
@@ -101,13 +101,13 @@ export class MaterialEngine {
                         await this.loadMaterialV3(content.data, material);
                     } else {
                         const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Material data version not supported.');
-                        throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadContent`, error);
+                        throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
                     }
                 }
             }
         } else {
             const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: No material data was provided to material engine.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
         }
         return node;
     }
@@ -211,7 +211,7 @@ export class MaterialEngine {
                 image = await this._converter.blobToImage(await this._loadData!('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
             }
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMap`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMap`, e);
         }
         return new MapData(image);        
     }
@@ -221,7 +221,7 @@ export class MaterialEngine {
         try {
             image = await this._converter.blobToImage(await this._loadData!(texture.href!));  
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialEngine.loadMapWithProperties`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMapWithProperties`, e);
         }
 
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;

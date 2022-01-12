@@ -77,7 +77,7 @@ export class Tag3dEngine {
 
         if (!content) {
             const error = new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `Tag3dEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `Tag3dEngine.loadContent`, error);
         }
 
         if (content.data && Array.isArray(content.data)) {
@@ -196,7 +196,7 @@ export class Tag3dEngine {
             }
         } else {
             const error = new ShapeDiverViewerDataProcessingError('Tag3dEngine.loadContent: No tag3d data was provided to tag3d engine.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `Tag3dEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `Tag3dEngine.loadContent`, error);
         }
         return node;
     }

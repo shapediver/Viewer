@@ -37,7 +37,7 @@ export class SDTFEngine {
 
         if (!content || (content && !content.href)) {
             const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid content was provided to geometry engine.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         let axiosResponse;
@@ -46,12 +46,12 @@ export class SDTFEngine {
                 responseType: 'arraybuffer'
             });
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, e);
         }
 
         if (!(axiosResponse.headers['content-type'] && axiosResponse.headers['content-type'] === 'model/vnd.sdtf')) {
             const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Non-binary SDTF encoding not implemented.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         let arrayBuffer: ArrayBuffer;
@@ -66,19 +66,19 @@ export class SDTFEngine {
         const magic = String.fromCharCode(headerDataView.getUint8(0)) + String.fromCharCode(headerDataView.getUint8(1)) + String.fromCharCode(headerDataView.getUint8(2)) + String.fromCharCode(headerDataView.getUint8(3));
         if (magic !== 'sdtf') {
             const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid data: sdtf magic wrong.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         } 
         const version = headerDataView.getUint32(4, true);
         if (version !== 1) {
             const error = new ShapeDiverViewerDataProcessingError(`SDTFEngine.loadContent: Invalid version: sdtf loader does not support version ${version}.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         } 
         const totalLength = headerDataView.getUint32(8, true);
         const contentLength = headerDataView.getUint32(12, true);
         const contentFormat = headerDataView.getUint32(16, true);
         if (contentFormat !== 0) {
             const error = new ShapeDiverViewerDataProcessingError(`SDTFEngine.loadContent: Content format is not Json (0), content invalid.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         this._content = <ISDTF>JSON.parse(new TextDecoder().decode(new DataView(arrayBuffer, this.BINARY_EXTENSION_HEADER_LENGTH, contentLength)));
@@ -150,7 +150,7 @@ export class SDTFEngine {
             }
             return node;
         } catch (e) {            
-            throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `SDTFEngine.load`, e);
+            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.load`, e);
         }
     }
 

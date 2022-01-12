@@ -4,7 +4,7 @@ import { container } from 'tsyringe'
 import {
   api,
   CAMERATYPE,
-  ENVIRONMENTMAP,
+  ENVIRONMENT_MAP,
   EVENTTYPE,
   Export,
   EXPORTTYPE,
@@ -36,7 +36,7 @@ let currentNode: TreeNode;
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png' });
     viewer.ambientOcclusion = false;
     viewer.groundPlaneVisibility = false;
-    viewer.environmentMap = ENVIRONMENTMAP.CANNON_EXTERIOR;
+    viewer.environmentMap = ENVIRONMENT_MAP.CANNON_EXTERIOR;
     viewer.gridVisibility = false;
     viewer.clearColor = 'rgb(3, 5, 49)'
 })();

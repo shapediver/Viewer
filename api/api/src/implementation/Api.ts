@@ -14,7 +14,7 @@ import {
   ShapeDiverBackendError,
   ShapeDiverViewerError,
   ShapeDiverViewerSessionError,
-  ShapeDiverViewerViewerError,
+  ShapeDiverViewerGeneralError,
   ShapeDiverViewerArError,
   ShapeDiverViewerSettingsError,
   StateEngine,
@@ -582,7 +582,7 @@ export class Api implements IApi {
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.viewers[viewerId]) {
-        const error = new ShapeDiverViewerViewerError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`);
+        const error = new ShapeDiverViewerGeneralError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`);
         throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error, false);
       }
 

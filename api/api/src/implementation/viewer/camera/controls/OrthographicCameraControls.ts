@@ -27,7 +27,7 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
         try {
             this.#controls = controls;
             this.#viewer = viewer;
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).constructor: OrthographicCameraControlsLogic api created.`);
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).constructor: OrthographicCameraControlsLogic api created.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${controls.camera.id}).constructor`, e);
@@ -44,10 +44,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set damping(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).damping: Updating Damping to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).updateDamping`, value, 'positive');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).damping: Updating Damping to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).updateDamping`, value, 'positive');
             this.#controls.damping = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).damping: damping was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).damping: damping was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -61,10 +61,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set enableKeyPan(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: Updating EnableKeyPan to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: Updating EnableKeyPan to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan`, value, 'boolean');
             this.#controls.enableKeyPan = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: enableKeyPan was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enableKeyPan: enableKeyPan was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -78,10 +78,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set enablePan(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan: Updating EnablePan to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enablePan: Updating EnablePan to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enablePan`, value, 'boolean');
             this.#controls.enablePan = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enablePan: enablePan was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enablePan: enablePan was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -95,10 +95,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set enableZoom(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom: Updating EnableZoom to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enableZoom: Updating EnableZoom to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enableZoom`, value, 'boolean');
             this.#controls.enableZoom = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enableZoom: enableZoom was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enableZoom: enableZoom was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -112,10 +112,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set enabled(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled: Updating Enabled to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled`, value, 'boolean');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enabled: Updating Enabled to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enabled`, value, 'boolean');
             this.#controls.enabled = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).enabled: enabled was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).enabled: enabled was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -129,19 +129,19 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set input(value: { keys: { up: number, down: number, left: number, right: number }, mouse: { rotate: number, zoom: number, pan: number }, touch: { rotate: number, zoom: number, pan: number } }) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input: Updating Input to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.down, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.left, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.right, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.up, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.pan, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.rotate, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.zoom, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.pan, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.rotate, 'number');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.zoom, 'number');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input: Updating Input to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.down, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.left, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.right, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.keys.up, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.pan, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.rotate, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.mouse.zoom, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.pan, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.rotate, 'number');
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input`, value.touch.zoom, 'number');
             this.#controls.input = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).input: input was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).input: input was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -155,10 +155,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set keyPanSpeed(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: Updating KeyPanSpeed to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: Updating KeyPanSpeed to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed`, value, 'factor');
             this.#controls.keyPanSpeed = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: keyPanSpeed was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).keyPanSpeed: keyPanSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -172,10 +172,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set movementSmoothness(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: Updating MovementSmoothness to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: Updating MovementSmoothness to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness`, value, 'factor');
             this.#controls.movementSmoothness = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: movementSmoothness was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).movementSmoothness: movementSmoothness was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -189,10 +189,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set panSpeed(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed: Updating PanSpeed to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).panSpeed: Updating PanSpeed to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).panSpeed`, value, 'factor');
             this.#controls.panSpeed = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).panSpeed: panSpeed was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).panSpeed: panSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -206,10 +206,10 @@ export class OrthographicCameraControls implements IOrthographicCameraControls {
 
     public set zoomSpeed(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: ZoomSpeed to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed`, value, 'factor');
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: ZoomSpeed to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed`, value, 'factor');
             this.#controls.zoomSpeed = value;
-            this.#logger.info(LOGGINGTOPIC.CAMERACONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: zoomSpeed was set to: ${value}`);
+            this.#logger.info(LOGGINGTOPIC.CAMERA_CONTROL, `Controls(${this.#controls.camera.id}).zoomSpeed: zoomSpeed was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

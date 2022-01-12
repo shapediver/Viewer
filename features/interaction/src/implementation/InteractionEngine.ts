@@ -1,6 +1,6 @@
 import { IViewer } from "@shapediver/viewer";
 import { vec3 } from "gl-matrix";
-import { Logger, LOGGINGTOPIC, UuidGenerator, ShapeDiverViewerViewerError } from "@shapediver/viewer.shared.services";
+import { Logger, LOGGINGTOPIC, UuidGenerator, ShapeDiverViewerGeneralError } from "@shapediver/viewer.shared.services";
 import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractionEngine";
 import { container } from "tsyringe";
 import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
@@ -101,7 +101,7 @@ export class InteractionEngine implements IInteractionEngine {
         const rect = this.#viewer.canvas.getBoundingClientRect();
         const camera = this.#viewer.camera;
         if (!camera) {
-            const error = new ShapeDiverViewerViewerError('InteractionEngine.mouseEventToRay: No camera is defined for this viewer.');
+            const error = new ShapeDiverViewerGeneralError('InteractionEngine.mouseEventToRay: No camera is defined for this viewer.');
             throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `InteractionEngine.mouseEventToRay`, error);
         }
 
@@ -178,7 +178,7 @@ export class InteractionEngine implements IInteractionEngine {
         const rect = this.#viewer.canvas.getBoundingClientRect();
         const camera = this.#viewer.camera;
         if (!camera) {
-            const error = new ShapeDiverViewerViewerError('InteractionEngine.touchToRay: No camera is defined for this viewer.');
+            const error = new ShapeDiverViewerGeneralError('InteractionEngine.touchToRay: No camera is defined for this viewer.');
             throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `InteractionEngine.touchToRay`, error);
         }
 

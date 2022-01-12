@@ -6,7 +6,7 @@ import { RenderingEngine } from '..'
 import { RGBELoader } from '../three/loaders/RGBELoader'
 import { ILoader } from '../interfaces/ILoader'
 
-export enum ENVIRONMENTMAP_CUBE {
+export enum ENVIRONMENT_MAP_CUBE {
     DEFAULT = 'default', 
     DEFAULT_BW = 'default_bw', 
     BLURRED_LIGHTS = 'blurred_lights', 
@@ -30,7 +30,7 @@ export enum ENVIRONMENTMAP_CUBE {
     YOKOHAMA = 'yokohama',
 }
 
-export enum ENVIRONMENTMAP {
+export enum ENVIRONMENT_MAP {
     ANNIVERSARY_LOUNGE = 'anniversary_lounge', 
     BALLROOM = 'ballroom', 
     CANNON_EXTERIOR = 'cannon_exterior', 
@@ -84,7 +84,7 @@ export class EnvironmentMapLoader implements ILoader {
 
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']    
     private readonly _environmentMapHDR: string[] = [];
-    private readonly _environmentMapNamesHDR = Object.values(ENVIRONMENTMAP).filter(value => typeof value === 'string') as string[]
+    private readonly _environmentMapNamesHDR = Object.values(ENVIRONMENT_MAP).filter(value => typeof value === 'string') as string[]
     private readonly _environmentMapNamesHDRKhronos = ['cannon_exterior', 'colorful_studio', 'neutral', 'wide_street'];
     private readonly _environmentMapNamesJPG = ['default', 'default_bw', 'blurred_lights', 'georgentor', 'georgentor_blur', 'georgentor_blue_blur', 'georgentor_bw_blur', 'levelsets', 'lythwood_field', 'mountains', 'ocean', 'piazza_san_marco', 'residential_garden', 'room_abstract_1', 'sky', 'storage_room', 'storm', 'subway_entrance', 'subway_entrance_bw_blur', 'white', 'yokohama'];
     private readonly _environmentMaps: {

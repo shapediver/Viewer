@@ -24,7 +24,7 @@ export interface ISession {
     bearerToken: string | undefined;
     commitParameters: boolean;
     commitSettings: boolean;
-    refreshBearerToken: () => string;
+    refreshBearerToken: () => Promise<string>;
 
     // #endregion Properties (16)
 

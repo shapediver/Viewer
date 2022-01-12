@@ -378,7 +378,7 @@ export class MaterialLoader implements ILoader {
 
         // we should never get here
         const error = new ShapeDiverViewerDataProcessingError(`MaterialLoader.getMaterialProperties: No proper material properties were found.`);
-        throw this._logger.handleError(LOGGINGTOPIC.DATAPROCESSING, `MaterialLoader.getMaterialProperties`, error);
+        throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialLoader.getMaterialProperties`, error);
     }
 
     /**
