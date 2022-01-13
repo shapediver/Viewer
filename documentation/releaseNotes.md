@@ -7,6 +7,59 @@
 * __Branch:__ development
 * __Commit:__ 7dae3348357b13601320b63d657b0389c8ef54df
 <!--- VERSION_END -->
+## Version 1.11.1 - `Kick-Ass`
+- implemented proper error handling and messaging
+
+## Version 1.11.1 - `King Kong`
+- sentry error logging improvements
+
+## Version 1.11.0 - `The Karate Kid`
+- sdk version update and parameter initial values
+
+## Version 1.10.15 - `John Wick`
+- bugfix: file-upload
+- mobile tests
+
+## Version 1.10.14 - `Justice League`
+- attribute visualization adaptions
+- optional flag to not load outputs
+
+## Version 1.10.13 - `Juno`
+- session management
+- new exports
+
+## Version 1.10.12 - `Jumper`
+- deployment script adaptions
+- internal versioning adjustments
+
+## Version 1.10.11 - `Jumanji`
+- update for deployment process
+
+## Version 1.10.10 - `Jay and Silent Bob Strike Back`
+- update for deployment process
+
+## Version 1.10.9 - `Jack the Giant Slayer`
+- bugfix: default camera assignment
+
+## Version 1.10.8 - `Jack Reacher`
+- bugfix: default camera assignment
+
+## Version 1.10.7 - `Jackass: The Movie`
+- tests
+
+## Version 1.10.6 - `The Jungle Book`
+- bugfix: starting camera
+
+## Version 1.10.5 - `Jerry Maguire`
+- image caching in backend
+- http-client adaptions
+
+## Version 1.10.4 - `Jaws`
+- attribute visualization tests
+- layer coloring
+
+## Version 1.10.3 - `Jackie Brown`
+-bugfix: import error
 
 ## Version 1.10.2 - `Jason Bourne`
 - bugfix: camera settings application
