@@ -8,14 +8,17 @@ import * as SDV from '@shapediver/viewer'
 (async () => {
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     let session = await api.createSession({ 
-        ticket: '5dbb5117b630fb83a8056f06ee719f570a904be69ac45152822c327f33d21483a8dae9e3122ae17c992ea6b3e2b65af09ac9871dd83a263ef488e58b2c2260a07899418548bd4a8dcf1cff3ca33954c9e4c0fe60118f730d03c56b7e598eab908b34e16ba8625d-b5ac96869614191d8ada6725aba8fba6', 
+        ticket: '98d1c45ef2cc48a165d8acfc13c682ec45eff93a06ccf76dc08bf63ecb6110d3720029e91a709e36376e7800b52bb33140f513891a184dbb75d140067aa1db38df3088a6e3f96a9bbac314f7a63fe5b226a58e3b895b070c757647696562c54f69ca64c1516e60-c351761efc140e342ed819b4d0707a22', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
     });
 
-    const file = await session.uploadGLTF(<any>"gltf");
-    const a = document.createElement('a');
-    a.href = file + '.glb';
-    document.body.appendChild(a);
+    const blob = await api.convertSceneToGLTF(true);
+    const file = new Blob([blob], {type: 'model/gltf-binary'});
+    const fileURL = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = fileURL;
+    a.download = 'glTFDownload.gltf';
     a.click();
+    URL.revokeObjectURL(fileURL);
 })();
