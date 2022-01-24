@@ -36,7 +36,7 @@ export class GeometryEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob>): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<TreeNode> {
         if (!content || (content && !content.href)) {
             const error = new ShapeDiverViewerDataProcessingError('GeometryEngine cannot load content.');
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryEngine.loadContent`, error);

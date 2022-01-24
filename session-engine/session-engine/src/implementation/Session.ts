@@ -42,6 +42,9 @@ export class Session implements ISession {
     private _sdk: ShapeDiverSdk;
     private _sessionId?: string;
     private _viewerSettings?: object;
+    private _dataCache: {
+        [key: string]: Promise<Blob | HTMLImageElement>
+    } = {};
 
     // #endregion Properties (22)
 
@@ -482,14 +485,34 @@ export class Session implements ISession {
         }
     }
 
-    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }, retry = false): Promise<any> {
+    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }, retry = false): Promise<Blob | HTMLImageElement> {
         this.checkAvailability();
         try {
-            const response = await this._httpClient.get(
-                `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${btoa(href)}`,
-                config
-            );
-            return response.data;
+            const dataKey = btoa(href);
+            if(this._dataCache[dataKey]) return await this._dataCache[dataKey];
+
+            this._dataCache[dataKey] = new Promise<Blob | HTMLImageElement>(async resolve => {
+                const response = await this._httpClient.get(
+                    `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${dataKey}`,
+                    config
+                );
+                const bitmapContentTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/svg+xml'];
+                
+                if(response.headers && response.headers['content-type'] && bitmapContentTypes.includes(response.headers['content-type'])) {
+                    const img = new Image();
+                    const promise = new Promise<void>(resolve => {
+                      img.onload = () => resolve();
+                    })
+                    img.crossOrigin = "anonymous";
+                    img.src = href;
+                    await promise;
+                    resolve(img);
+                } else {
+                    resolve(response.data);
+                }
+            });
+
+            return await this._dataCache[dataKey];
         } catch (e) {
             await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadData', e, retry);
             return await this.loadData(href, config, true);

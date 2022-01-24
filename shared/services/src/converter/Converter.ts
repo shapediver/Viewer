@@ -26,17 +26,6 @@ export class Converter {
         return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
     }
 
-    public async blobToImage(blob: Blob): Promise<HTMLImageElement> {
-        const img = new Image();
-        const promise = new Promise<void>(resolve => {
-          img.onload = () => resolve();
-        })
-        img.crossOrigin = "anonymous";
-        img.src = URL.createObjectURL(blob);
-        await promise;
-        return img;
-    }
-
     /**
      * This color converter is mostly left 'as-is' from viewer v2.
      * I didn't want to break something that works.

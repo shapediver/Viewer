@@ -42,7 +42,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs: { [key: string]: ShapeDiverResponseOutput; }, loadData: (img: string) => Promise<Blob>): Promise<SessionTreeNode> {
+    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs: { [key: string]: ShapeDiverResponseOutput; }, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<SessionTreeNode> {
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(responseDto.model?.name);
         let currentNodes: { 

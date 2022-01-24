@@ -63,7 +63,7 @@ export class Tag3dEngine {
      * @param content the tag3d content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob>): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<TreeNode> {
         if(!this._font) {
             const json = await this._httpClient.loadData('https://viewer.shapediver.com/graphik_regular.typeface.json', { responseType: 'json' })
             this._font = new THREE.Font(json);

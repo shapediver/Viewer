@@ -51,7 +51,7 @@ export class GLTFLoader {
             [key: string]: any
         }
     } = {};
-    private _loadData?: (img: string) => Promise<Blob> = this._httpClient.loadData.bind(this._httpClient);;
+    private _loadData?: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);;
     private _nodes: {
         [key: number]: TreeNode
     } = {};
@@ -60,7 +60,7 @@ export class GLTFLoader {
 
     // #region Public Methods (1)
 
-    public async load(content: IGLTF_v2, loadData: (img: string) => Promise<Blob>, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
+    public async load(content: IGLTF_v2, loadData: (img: string) => Promise<Blob | HTMLImageElement>, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
         this._loadData = loadData;
         this._baseUri = baseUri;
         if (gltfBinary && gltfHeader)
@@ -293,10 +293,11 @@ export class GLTFLoader {
                 array[i] = dataView.getUint8(i);
 
             const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
-            mapData = new MapData(await this._converter.blobToImage(blob), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
+            const dataUri = window.URL.createObjectURL(blob);
+            mapData = new MapData(<HTMLImageElement>await this._loadData!(dataUri), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         } else {
             const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
-            mapData = new MapData(await this._converter.blobToImage(await this._loadData!(url!)), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
+            mapData = new MapData(<HTMLImageElement>await this._loadData!(url!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         }
 
         if (!this._loaded['texture']) this._loaded['texture'] = {};

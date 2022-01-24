@@ -82,7 +82,7 @@ export class HTMLElementAnchorEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent, loadImage: (img: string) => Promise<Blob>): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<TreeNode> {
         try {
             const data = content.data;
             const node = new TreeNode('htmlElementAnchors');

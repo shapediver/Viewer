@@ -22,13 +22,13 @@ export class DataEngine {
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _sdtfEngine: SDTFEngine = <SDTFEngine>container.resolve(SDTFEngine);
     private readonly _tag3dEngine: Tag3dEngine = <Tag3dEngine>container.resolve(Tag3dEngine);
-    private _loadData: (img: string) => Promise<Blob> = this._httpClient.loadData.bind(this._httpClient);
+    private _loadData: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);
 
     // #endregion Properties (6)
 
     // #region Public Methods (1)
 
-    public async loadContent(content: ShapeDiverResponseOutputContent, loadData?: (img: string) => Promise<Blob>): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, loadData?: (img: string) => Promise<Blob | HTMLImageElement>): Promise<TreeNode> {
         if(loadData) {
             this._loadData = loadData;
         } else {

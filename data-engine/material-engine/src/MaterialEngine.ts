@@ -57,7 +57,7 @@ export class MaterialEngine {
   private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-  private _loadData?: (img: string) => Promise<Blob> = this._httpClient.loadData.bind(this._httpClient);;
+  private _loadData?: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);;
   // #endregion Properties (3)
 
   // #region Constructors (1)
@@ -74,7 +74,7 @@ export class MaterialEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-  public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob>): Promise<TreeNode> {
+  public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<TreeNode> {
         const node = new TreeNode(content.name || 'material');
         this._loadData = loadData;
         if(!content) {
@@ -206,9 +206,9 @@ export class MaterialEngine {
         let image: HTMLImageElement;
         try {
             if(!id) {
-                image = await this._converter.blobToImage(await this._loadData!(url));
+                image = <HTMLImageElement>await this._loadData!(url);
             } else {
-                image = await this._converter.blobToImage(await this._loadData!('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
+                image = <HTMLImageElement>await this._loadData!('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
             }
         } catch (e) {
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMap`, e);
@@ -219,7 +219,7 @@ export class MaterialEngine {
   private async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
         let image: HTMLImageElement;
         try {
-            image = await this._converter.blobToImage(await this._loadData!(texture.href!));  
+            image = <HTMLImageElement>await this._loadData!(texture.href!);  
         } catch (e) {
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMapWithProperties`, e);
         }
