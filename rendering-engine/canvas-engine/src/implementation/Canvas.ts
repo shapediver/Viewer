@@ -33,7 +33,8 @@ export class Canvas implements ICanvas {
         const parent = this._canvasElement?.parentElement;
         parent?.removeChild(this._canvasElement!);
 
-        if (this._originalDefinition instanceof HTMLCanvasElement)
-            parent?.appendChild(this._originalDefinition);
+        if (this._originalDefinition instanceof HTMLCanvasElement) {
+            parent?.appendChild(this._canvasElement!);
+        }
     }
 }

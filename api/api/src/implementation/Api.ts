@@ -58,6 +58,92 @@ export class Api implements IApi {
 
   #automaticUpdate: boolean = true;
 
+  #closeViewer = async (id: string, force = false) => {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Closing viewer ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.closeViewer', id, 'string');
+      if (!this.viewers[id]) {
+        this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
+        return false;
+      }
+
+      if(force === false && this.#stateEngine.viewers[id].initialized.resolved === false)
+        await new Promise<void>(resolve => { this.#stateEngine.viewers[id].initialized.then(() => resolve()) })
+
+      this.#stateEngine.viewers[id].settingsLoaded.reset();
+      let result;
+      if(force === false) {
+        result = await this.#viewerCallbacks[id].close();
+      } else {
+        try { result = await this.#viewerCallbacks[id].close(); } catch {}
+      }
+      (<any>this.#viewerCallbacks[id]) = undefined;
+      delete this.#viewerCallbacks[id];
+      (<any>this.viewers[id]) = undefined;
+      delete this.viewers[id];
+
+      delete this.#stateEngine.viewers[id];
+      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
+      return result;
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeViewer', e);
+    }
+  }
+
+  #closeSession = async (id: string, force = false) => {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
+      if (!this.sessions[id]){
+        this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.closeSession: Session with id ${id} was not registered.`);
+        return false;
+      }
+      
+      if(force === false && this.#stateEngine.sessions[id].initialized.resolved === false)
+        await new Promise<void>(resolve => { this.#stateEngine.sessions[id].initialized.then(() => resolve()) })
+  
+      let result;
+      if(force === false) {
+        result = await this.#sessionCallbacks[id].close();
+      } else {
+        try { result = await this.#sessionCallbacks[id].close(); } catch {}
+      }
+
+      this.#stateEngine.sessions[id].settingsRegistered.reset();
+
+      if (this.sessions[id].primarySession) {
+        this.#stateEngine.primarySessionAvailable.reset();
+        this.#stateEngine.boundingBoxCreated.reset();
+        for (let v in this.viewers)
+          this.viewers[v].reset();
+      }
+
+      (<any>this.#sessionCallbacks[id]) = undefined;
+      delete this.#sessionCallbacks[id];
+      (<any>this.sessions[id]) = undefined;
+      delete this.sessions[id];
+      delete this.#stateEngine.sessions[id];
+
+      this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
+
+      for (let s in this.sessions) {
+        const session = this.sessions[s];
+        if (session.primarySessionRequest) {
+          await this.#sessionCallbacks[s].setAsPrimary();
+          this.#stateEngine.primarySessionAvailable.resolve(true);
+          this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
+          break;
+        }
+      }
+
+      return result;
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeSession', e);
+    }
+  }
+
   // #endregion Properties (13)
 
   // #region Constructors (1)
@@ -386,78 +472,11 @@ export class Api implements IApi {
   }
 
   public async closeSession(id: string): Promise<boolean> {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
-      if (!this.sessions[id]){
-        this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.closeSession: Session with id ${id} was not registered.`);
-        return false;
-      }
-      
-      if(this.#stateEngine.sessions[id].initialized.resolved === false)
-        await new Promise<void>(resolve => { this.#stateEngine.sessions[id].initialized.then(() => resolve()) })
-  
-      const result = await this.#sessionCallbacks[id].close();
-      this.#stateEngine.sessions[id].settingsRegistered.reset();
-
-      if (this.sessions[id].primarySession) {
-        this.#stateEngine.primarySessionAvailable.reset();
-        this.#stateEngine.boundingBoxCreated.reset();
-        for (let v in this.viewers)
-          this.viewers[v].reset();
-      }
-
-      (<any>this.#sessionCallbacks[id]) = undefined;
-      delete this.#sessionCallbacks[id];
-      (<any>this.sessions[id]) = undefined;
-      delete this.sessions[id];
-      delete this.#stateEngine.sessions[id];
-
-      this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
-
-      for (let s in this.sessions) {
-        const session = this.sessions[s];
-        if (session.primarySessionRequest) {
-          await this.#sessionCallbacks[s].setAsPrimary();
-          this.#stateEngine.primarySessionAvailable.resolve(true);
-          this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
-          break;
-        }
-      }
-
-      return result;
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeSession', e);
-    }
+    return this.#closeSession(id);
   }
 
   public async closeViewer(id: string): Promise<boolean> {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Closing viewer ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.closeViewer', id, 'string');
-      if (!this.viewers[id]) {
-        this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
-        return false;
-      }
-
-      if(this.#stateEngine.viewers[id].initialized.resolved === false)
-        await new Promise<void>(resolve => { this.#stateEngine.viewers[id].initialized.then(() => resolve()) })
-
-      this.#stateEngine.viewers[id].settingsLoaded.reset();
-      const result = await this.#viewerCallbacks[id].close();
-      (<any>this.#viewerCallbacks[id]) = undefined;
-      delete this.#viewerCallbacks[id];
-      (<any>this.viewers[id]) = undefined;
-      delete this.viewers[id];
-
-      delete this.#stateEngine.viewers[id];
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
-      return result;
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeViewer', e);
-    }
+    return this.#closeViewer(id);
   }
 
   public async convertSceneToGLTF(convertForAR = false): Promise<Blob> {
@@ -493,6 +512,7 @@ export class Api implements IApi {
   }
 
   public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, loadOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession> {
+    let sessionId: string = '';
     try {
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
       // input validation
@@ -511,10 +531,10 @@ export class Api implements IApi {
           this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.initialParameters[p], 'string');
 
       // check if the given id is valid
-      const sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+      sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.sessions[sessionId]) {
-        const error = new ShapeDiverViewerSessionError(`Api.createSession: Session with this id (${sessionId}) already exists.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error, false);
+        this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.createSession: Session with this id (${sessionId}) already exists. Closing initial instance.`);
+        await this.#closeSession(sessionId, true);
       }
 
       let noPrimarySession = true;
@@ -547,6 +567,7 @@ export class Api implements IApi {
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
     } catch (e) {
+      await this.#closeSession(sessionId, true);
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSession', e);
     }
@@ -570,6 +591,7 @@ export class Api implements IApi {
   }
   
   public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer> {
+    let viewerId: string = '';
     try {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
       const prop = Object.assign({}, properties);
@@ -581,8 +603,8 @@ export class Api implements IApi {
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.viewers[viewerId]) {
-        const error = new ShapeDiverViewerGeneralError(`Api.createViewer: Viewer with this id (${viewerId}) already exists.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.SESSION, 'Api.createSession', error, false);
+        this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.createViewer: Viewer with this id (${viewerId}) already exists. Closing initial instance.`);
+        await this.#closeViewer(viewerId, true);
       }
 
       this.#stateEngine.viewers[viewerId] = {
@@ -614,6 +636,7 @@ export class Api implements IApi {
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
       return this.viewers[viewerId];
     } catch (e) {
+      try { this.#closeViewer(viewerId, true); } catch {}
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createViewer', e);
     }
