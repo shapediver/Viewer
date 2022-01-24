@@ -51,7 +51,7 @@ export class GLTFLoader {
             [key: string]: any
         }
     } = {};
-    private _loadData?: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);;
+    private _loadData?: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);
     private _nodes: {
         [key: number]: TreeNode
     } = {};
@@ -450,7 +450,7 @@ export class GLTFLoader {
             const matT = node.translation ? mat4.fromTranslation(mat4.create(), vec3.fromValues(node.translation[0], node.translation[1], node.translation[2])) : mat4.create();
             const matS = node.scale ? mat4.fromScaling(mat4.create(), vec3.fromValues(node.scale[0], node.scale[1], node.scale[2])) : mat4.create();
             const matR = node.rotation ? mat4.fromQuat(mat4.create(), vec4.fromValues(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3])) : mat4.create();
-            const matrix = mat4.mul(mat4.create(), mat4.mul(mat4.create(), matT, matS), matR);
+            const matrix = mat4.mul(mat4.create(), mat4.mul(mat4.create(), matT, matR), matS);
             nodeDef.transformations.push({
                 id: 'gltf_matrix',
                 matrix: matrix

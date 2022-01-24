@@ -3,11 +3,10 @@ import { singleton } from 'tsyringe'
 
 @singleton()
 export class HttpClient {
-
-    private readonly _cache: {
-        [key: string]: Promise<any>
-    } = {};
     private _loadData?: (img: string, config?: AxiosRequestConfig) => Promise<Blob>;
+    private _dataCache: {
+        [key: string]: Promise<Blob | HTMLImageElement>
+    } = {};
 
     constructor() {
         axios.interceptors.response.use(
@@ -36,19 +35,34 @@ export class HttpClient {
     };
 
     public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }): Promise<any> {
-        if(this._cache[href]) return await this._cache[href];
+        const dataKey = btoa(href);
+        if(this._dataCache[dataKey]) return await this._dataCache[dataKey];
 
-        if (this._loadData){
-            this._cache[href] = this._loadData(href, config);
-            return await this._cache[href];
-        }
+        this._dataCache[dataKey] = new Promise<Blob | HTMLImageElement>(async resolve => {
 
-        this._cache[href] = new Promise(async resolve => {
-            const res = await this.get(href, config);
-            resolve(res.data);
-        })
+            if (this._loadData){
+                this._dataCache[href] = this._loadData(href, config);
+                return await this._dataCache[href];
+            }
 
-        return await this._cache[href];
+            const response = await this.get(href, config);
+            const bitmapContentTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/svg+xml'];
+            
+            if(response.headers && response.headers['content-type'] && bitmapContentTypes.includes(response.headers['content-type'])) {
+                const img = new Image();
+                const promise = new Promise<void>(resolve => {
+                  img.onload = () => resolve();
+                })
+                img.crossOrigin = "anonymous";
+                img.src = href;
+                await promise;
+                resolve(img);
+            } else {
+                resolve(response.data);
+            }
+        });
+
+        return await this._dataCache[dataKey];
     }
 
     public addDataLoading(value: (img: string, config?: AxiosRequestConfig) => Promise<any>) {
