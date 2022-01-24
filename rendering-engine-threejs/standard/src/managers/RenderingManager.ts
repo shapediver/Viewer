@@ -235,7 +235,10 @@ export class RenderingManager implements IManager {
         TWEEN.update(time);
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
-        this._runningAnimation = this._renderingEngine.animationManager.update(deltaTime);
+
+        const runningAnimation = this._renderingEngine.animationManager.update(deltaTime);
+        if(runningAnimation !== this._runningAnimation) this.render();
+        this._runningAnimation = runningAnimation;
         if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNodeTransformations();
 
         // get the current size
