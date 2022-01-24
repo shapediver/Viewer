@@ -69,11 +69,9 @@ export class BeautyRenderingManager implements IManager {
     // #region Public Methods (7)
 
     public activateBeautyRenderShaders() {
-        if(this._systemInfo.isMobile) {
-            this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
-            this._renderingEngine.renderer.shadowMap.needsUpdate = true;
-            this._renderingEngine.materialLoader.updateMaterials();
-        }
+        this._renderingEngine.renderer.shadowMap.type = THREE.PCFShadowMap;
+        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.materialLoader.updateMaterials();
     }
 
     public assignOutputEncoding(encoding: number) {
@@ -90,12 +88,10 @@ export class BeautyRenderingManager implements IManager {
         this._beautyRenderingTimeout = null;
         this._beautyRenderingActive = false;
         this._beautyRenderingDurationActive = 0;
-        if(this._systemInfo.isMobile) {
-            this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            this._renderingEngine.renderer.shadowMap.needsUpdate = true;
-            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
-            this._renderingEngine.materialLoader.updateMaterials();
-        }
+        this._renderingEngine.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+        this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, 0.1);
+        this._renderingEngine.materialLoader.updateMaterials();
     }
 
     public init(): void {
@@ -213,16 +209,14 @@ export class BeautyRenderingManager implements IManager {
         const deltaTime = Math.min(this._beautyRenderingDurationActive, this._renderingEngine.beautyRenderBlendingDuration)
         const percentage = deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
 
-        if(this._systemInfo.isMobile) {
-            if (percentage < 0.25) {
-                const percentageMapped = percentage / 0.25;
-                this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
-    
-            } else {
-                const percentageMapped = (percentage - 0.25) / (1 - 0.25);
-                // this._lightSizeUVStart -> this._lightSizeUVEnd
-                this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
-            }
+        if (percentage < 0.25) {
+            const percentageMapped = percentage / 0.25;
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart, percentageMapped);
+
+        } else {
+            const percentageMapped = (percentage - 0.25) / (1 - 0.25);
+            // this._lightSizeUVStart -> this._lightSizeUVEnd
+            this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVStart + (this._lightSizeUVEnd - this._lightSizeUVStart) * percentageMapped, 1.0);
         }
         return percentage;
     }

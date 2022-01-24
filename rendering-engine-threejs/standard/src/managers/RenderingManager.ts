@@ -236,7 +236,7 @@ export class RenderingManager implements IManager {
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
         this._runningAnimation = this._renderingEngine.animationManager.update(deltaTime);
-        this._renderingEngine.sceneTreeManager.updateNodeTransformations();
+        if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNodeTransformations();
 
         // get the current size
         const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
@@ -451,7 +451,7 @@ export class RenderingManager implements IManager {
         // If we should render in beauty mode
         let beautyRendering = false;
         if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
-            ((this._renderingEngine.shadows && this._systemInfo.isMobile) || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
+            (this._renderingEngine.shadows || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
             this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false && this._renderingEngine.type !== RENDERERTYPE.ATTRIBUTES)
             beautyRendering = true;
 
