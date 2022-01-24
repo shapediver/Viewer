@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.11.4
-* __Build date:__ 2022-01-24T08:26:45.265Z
+* __Version:__ 1.11.5
+* __Build date:__ 2022-01-24T08:38:24.009Z
 * __Branch:__ development
-* __Commit:__ ecb63e36357e48714fe43174dff4f8d3f8b090d1
+* __Commit:__ d1c65d43dc2ae5f5a2417f7cd4b60283665b6d7c
 <!--- VERSION_END -->
 ## Version 1.11.1 - `Kick-Ass`
 - implemented proper error handling and messaging
