@@ -56,6 +56,12 @@ export enum ENVIRONMENT_MAP {
     WIDE_STREET = 'wide_street',
 }
 
+export enum ENVIRONMENT_MAP_TYPE {
+    LDR = 'ldr',
+    HDR = 'hdr',
+    NONE = 'none'
+}
+
 export class EnvironmentMapLoader implements ILoader {
     // #region Properties (8)
 
@@ -133,7 +139,7 @@ export class EnvironmentMapLoader implements ILoader {
         const name_original = name;
         if (name === 'none') {
             this._environmentMapNameInternal = name;
-            this.assignEnvironmentMap(name);
+            this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.NONE);
             return true;
         };
 
@@ -164,7 +170,7 @@ export class EnvironmentMapLoader implements ILoader {
         // check if environment map is already cached
         for (let environmentMap in this._environmentMaps)
             if (environmentMap === name_caching) {
-                this.assignEnvironmentMap(environmentMap);
+                this.assignEnvironmentMap(environmentMap, this._environmentMaps[environmentMap] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR);
                 return true;
             }
 
@@ -220,7 +226,7 @@ export class EnvironmentMapLoader implements ILoader {
 
     // #region Private Methods (2)
 
-    private assignEnvironmentMap(name: string) {
+    private assignEnvironmentMap(name: string, type: ENVIRONMENT_MAP_TYPE) {
         if(name in this._environmentMaps === false) return;
         if(this._environmentMapHDR.includes(name)) {
             this._renderingEngine.renderingSettings = this._newSettings;
@@ -229,7 +235,7 @@ export class EnvironmentMapLoader implements ILoader {
         }
 
         this._environmentMapName = name;
-        this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name]);
+        this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name], type);
         this.notify();
     }
 
@@ -241,7 +247,7 @@ export class EnvironmentMapLoader implements ILoader {
                     const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                     this._pmremGenerator.dispose();
                     this._environmentMaps[name] = map;
-                    this.assignEnvironmentMap(name);
+                    this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.HDR);
                     resolve();
                 },
                 () => {},
@@ -256,7 +262,7 @@ export class EnvironmentMapLoader implements ILoader {
                         map.format = THREE.RGBFormat;
                         map.mapping = THREE.CubeReflectionMapping;
                         this._environmentMaps[name] = map;
-                        this.assignEnvironmentMap(name);
+                        this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.LDR);
                         resolve();
                     },
                     () => {},
