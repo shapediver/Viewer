@@ -3,7 +3,7 @@ import { singleton } from 'tsyringe'
 
 @singleton()
 export class HttpClient {
-    private _loadData?: (img: string, config?: AxiosRequestConfig) => Promise<Blob>;
+    private _loadData?: (img: string, config?: AxiosRequestConfig) => Promise<Blob | HTMLImageElement>;
     private _dataCache: {
         [key: string]: Promise<Blob | HTMLImageElement>
     } = {};
@@ -39,15 +39,13 @@ export class HttpClient {
         if(this._dataCache[dataKey]) return await this._dataCache[dataKey];
 
         this._dataCache[dataKey] = new Promise<Blob | HTMLImageElement>(async resolve => {
-
             if (this._loadData){
-                this._dataCache[href] = this._loadData(href, config);
-                return await this._dataCache[href];
+                const response = await this._loadData(href, config);
+                resolve(response);
             }
 
             const response = await this.get(href, config);
             const bitmapContentTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/svg+xml'];
-            
             if(response.headers && response.headers['content-type'] && bitmapContentTypes.includes(response.headers['content-type'])) {
                 const img = new Image();
                 const promise = new Promise<void>(resolve => {
@@ -65,7 +63,7 @@ export class HttpClient {
         return await this._dataCache[dataKey];
     }
 
-    public addDataLoading(value: (img: string, config?: AxiosRequestConfig) => Promise<any>) {
+    public addDataLoading(value: (img: string, config?: AxiosRequestConfig) => Promise<Blob | HTMLImageElement>) {
         this._loadData = value;
     }
 

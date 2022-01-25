@@ -255,9 +255,8 @@ export class EnvironmentMapLoader implements ILoader {
             } else {
                 const promises: Promise<Blob>[] = [];
                 url.forEach(u => promises.push(this._httpClient.loadData(u)));
-                const blobs = await Promise.all(promises);
                 
-                new THREE.CubeTextureLoader().load(blobs.map(b => URL.createObjectURL(b)),
+                new THREE.CubeTextureLoader().load(url,
                     (map: THREE.CubeTexture) => {
                         map.format = THREE.RGBFormat;
                         map.mapping = THREE.CubeReflectionMapping;
