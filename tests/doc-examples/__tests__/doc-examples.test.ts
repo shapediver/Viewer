@@ -28,7 +28,7 @@ describe('device testing', () => {
                 await new Promise<void>((resolve) => {
                     api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 2500));
                 cb();
             });
 

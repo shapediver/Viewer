@@ -73,6 +73,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -113,7 +116,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -131,7 +136,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.reset({});
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -172,7 +179,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -190,7 +199,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.zoomTo();
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -210,7 +221,9 @@ describe('device testing', () => {
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
             viewer.assignCamera(camera.id)
             viewer.update();
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
                 defaultTarget: viewer.camera!.defaultTarget,
@@ -236,7 +249,9 @@ describe('device testing', () => {
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
             viewer.assignCamera(camera.id)
             viewer.update();
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
                 defaultTarget: viewer.camera!.defaultTarget,
@@ -256,7 +271,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -281,7 +298,9 @@ describe('device testing', () => {
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
             viewer.assignCamera(camera.id)
             viewer.update();
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
                 defaultTarget: viewer.camera!.defaultTarget,
@@ -301,7 +320,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -319,7 +340,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.reset({});
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -344,7 +367,9 @@ describe('device testing', () => {
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
             viewer.assignCamera(camera.id)
             viewer.update();
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
                 defaultTarget: viewer.camera!.defaultTarget,
@@ -364,7 +389,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,
@@ -382,7 +409,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = api.viewers['myViewer']!;
             await viewer.camera!.zoomTo();
-
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb({
                 position: viewer.camera!.position,
                 target: viewer.camera!.target,

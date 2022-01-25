@@ -125,6 +125,12 @@ describe('device testing', () => {
         await actions.move({ origin: topImage }).press().pause(500).move({ x: 575, y: 500 }).release().pause(500).perform()
         await actions.clear()
 
+        await driver.executeAsyncScript(async (cb: any) => {
+            //const api: typeof API = (<any>window).api; 
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            cb();
+        });
+
         await screenshotCompare(await driver.takeScreenshot(), name + '/interaction');
     });
 });

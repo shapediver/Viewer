@@ -48,6 +48,9 @@ describe('device testing', () => {
 
 
             await new Promise(resolve => setTimeout(resolve, 600))
+            await new Promise<void>((resolve) => {
+                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb()
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/translation');
@@ -77,6 +80,9 @@ describe('device testing', () => {
 
 
             await new Promise(resolve => setTimeout(resolve, 600))
+            await new Promise<void>((resolve) => {
+                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb()
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/rotation');
@@ -105,6 +111,9 @@ describe('device testing', () => {
 
 
             await new Promise(resolve => setTimeout(resolve, 600))
+            await new Promise<void>((resolve) => {
+                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb()
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/scale');

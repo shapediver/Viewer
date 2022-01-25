@@ -3,6 +3,7 @@ import webdriver, { WebDriver } from "selenium-webdriver";
 require('chromedriver');
 import { screenshotCompare } from "../../general/src/setup";
 import { sddev2, sdtest, sdeuc1 } from "../../general/src/models";
+import { createTokenFromSlug } from "../../general/src/utils";
 
 let name = 'screenshot_tests';
 
@@ -24,7 +25,7 @@ describe('device testing', () => {
         await driver.quit();
     })
 
-    for(let modelDescription of [sddev2, sdtest, sdeuc1]) {
+    for(let modelDescription of [/*sddev2, sdtest, */sdeuc1]) {
         const backend = modelDescription.backend;
 
         for(let model in modelDescription.models) {
