@@ -722,8 +722,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
     this._settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
     this._settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
-    this._settingsEngine.rendering.gridColor = this.gridColor;
-    this._settingsEngine.rendering.groundPlaneColor = this.groundPlaneColor;
+    this._settingsEngine.environmentGeometry.gridColor = this.gridColor;
+    this._settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
     this._settingsEngine.rendering.outputEncoding = this.outputEncoding;
     this._settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
     this._settingsEngine.rendering.textureEncoding = this.textureEncoding;
@@ -763,8 +763,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           this.shadows = this._settingsEngine.rendering.shadows;
           this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
           this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
-          this.gridColor = this._settingsEngine.rendering.gridColor;
-          this.groundPlaneColor = this._settingsEngine.rendering.groundPlaneColor;
+          this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
+          this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
           this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
           this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
           this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
@@ -793,8 +793,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.shadows = this._settingsEngine.rendering.shadows;
         this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
         this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
-        this.gridColor = this._settingsEngine.rendering.gridColor;
-        this.groundPlaneColor = this._settingsEngine.rendering.groundPlaneColor;
+        this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
+        this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
         this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
         this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
         this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;

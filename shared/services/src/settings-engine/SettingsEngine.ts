@@ -21,6 +21,7 @@ export class SettingsEngine {
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _settings: ISettingsV3_1 = DefaultsV3_1();
+    private _settings_version: '1.0' | '2.0' | '3.0' | '3.1' = '3.1';
 
     // #endregion Properties (8)
 
@@ -71,7 +72,7 @@ export class SettingsEngine {
     // #region Public Methods (4)
 
     public convertToTargetVersion(): any {
-        return convert(this._settings, '3.0');
+        return convert(this._settings, this._settings_version);
     }
 
     public flatten() {
@@ -98,6 +99,7 @@ export class SettingsEngine {
         if (JSON.stringify(json) !== JSON.stringify({})) {
             try { 
                 validate(json, '1.0');             
+                this._settings_version = '1.0';       
                 (<any>this._settings) = convert(json, '3.1');
                 this.cleanSettings(this._settings);
                 return;
@@ -105,6 +107,7 @@ export class SettingsEngine {
             
             try { 
                 validate(json, '2.0');             
+                this._settings_version = '2.0';       
                 (<any>this._settings) = convert(json, '3.1');
                 this.cleanSettings(this._settings);
                 return;
@@ -112,6 +115,7 @@ export class SettingsEngine {
 
             try { 
                 validate(json, '3.0');             
+                this._settings_version = '3.0';       
                 (<any>this._settings) = convert(json, '3.1');
                 this.cleanSettings(this._settings);
                 return;
@@ -119,6 +123,7 @@ export class SettingsEngine {
 
             try { 
                 validate(json, '3.1');             
+                this._settings_version = '3.1';       
                 (<any>this._settings) = convert(json, '3.1');
                 this.cleanSettings(this._settings);
                 return;
@@ -127,12 +132,14 @@ export class SettingsEngine {
                 throw this._logger.handleError(LOGGINGTOPIC.SETTINGS, `SettingsEngine.loadSettings`, error);
             }
         } else {
+            this._settings_version = '3.1';       
             (<any>this._settings) = DefaultsV3_1();
             return;
         }
     }
 
     public reset() {
+        this._settings_version = '3.1';       
         (<any>this._settings) = DefaultsV3_1();
     }
 
