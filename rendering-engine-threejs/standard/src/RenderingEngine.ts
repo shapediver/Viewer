@@ -15,7 +15,7 @@ import {
 import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { IRenderingEngine, RENDERERTYPE, TEXTUREENCODING, TONEMAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IRenderingEngine, RENDERERTYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, Converter, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
 import { MATERIAL_SIDE, MaterialData, AnimationData, ISettingsEvent, IEnvironmentEvent, SDTFItemData, SDTFAttributeOverview, SDTFAttributeVisualizationData, SDTFOverview } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -434,53 +434,53 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this.renderingManager.minimalRendering;
   }
 
-  public get outputEncoding(): TEXTUREENCODING {
+  public get outputEncoding(): TEXTURE_ENCODING {
     switch (this._renderer.outputEncoding) {
       case (THREE.sRGBEncoding):
-        return TEXTUREENCODING.SRGB;
+        return TEXTURE_ENCODING.SRGB;
       case (THREE.RGBEEncoding):
-        return TEXTUREENCODING.RGBE;
+        return TEXTURE_ENCODING.RGBE;
       case (THREE.RGBM7Encoding):
-        return TEXTUREENCODING.RGBM7;
+        return TEXTURE_ENCODING.RGBM7;
       case (THREE.RGBM16Encoding):
-        return TEXTUREENCODING.RGBM16;
+        return TEXTURE_ENCODING.RGBM16;
       case (THREE.RGBDEncoding):
-        return TEXTUREENCODING.RGBD;
+        return TEXTURE_ENCODING.RGBD;
       case (THREE.GammaEncoding):
-        return TEXTUREENCODING.GAMMA;  
+        return TEXTURE_ENCODING.GAMMA;  
       case (THREE.LinearEncoding):
       default:
-        return TEXTUREENCODING.LINEAR;
+        return TEXTURE_ENCODING.LINEAR;
     }
   }
 
-  public set outputEncoding(value: TEXTUREENCODING) {
+  public set outputEncoding(value: TEXTURE_ENCODING) {
     switch (value) {
-      case (TEXTUREENCODING.SRGB):
+      case (TEXTURE_ENCODING.SRGB):
         this._renderer.outputEncoding = THREE.sRGBEncoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
         break;
-      case (TEXTUREENCODING.RGBE):
+      case (TEXTURE_ENCODING.RGBE):
         this._renderer.outputEncoding = THREE.RGBEEncoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
         break;
-      case (TEXTUREENCODING.RGBM7):
+      case (TEXTURE_ENCODING.RGBM7):
         this._renderer.outputEncoding = THREE.RGBM7Encoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
         break;
-      case (TEXTUREENCODING.RGBM16):
+      case (TEXTURE_ENCODING.RGBM16):
         this._renderer.outputEncoding = THREE.RGBM16Encoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
         break;
-      case (TEXTUREENCODING.RGBD):
+      case (TEXTURE_ENCODING.RGBD):
         this._renderer.outputEncoding = THREE.RGBDEncoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
         break;
-      case (TEXTUREENCODING.GAMMA):
+      case (TEXTURE_ENCODING.GAMMA):
         this._renderer.outputEncoding = THREE.GammaEncoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
         break;
-      case (TEXTUREENCODING.LINEAR):
+      case (TEXTURE_ENCODING.LINEAR):
       default:
         this._renderer.outputEncoding = THREE.LinearEncoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.LinearEncoding);
@@ -557,83 +557,90 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._stateEngine;
   }
   
-  public get textureEncoding(): TEXTUREENCODING {
+  public get textureEncoding(): TEXTURE_ENCODING {
     switch (this.materialLoader.textureEncoding) {
       case (THREE.sRGBEncoding):
-        return TEXTUREENCODING.SRGB;
+        return TEXTURE_ENCODING.SRGB;
       case (THREE.RGBEEncoding):
-        return TEXTUREENCODING.RGBE;
+        return TEXTURE_ENCODING.RGBE;
       case (THREE.RGBM7Encoding):
-        return TEXTUREENCODING.RGBM7;
+        return TEXTURE_ENCODING.RGBM7;
       case (THREE.RGBM16Encoding):
-        return TEXTUREENCODING.RGBM16;
+        return TEXTURE_ENCODING.RGBM16;
       case (THREE.RGBDEncoding):
-        return TEXTUREENCODING.RGBD;
+        return TEXTURE_ENCODING.RGBD;
       case (THREE.GammaEncoding):
-        return TEXTUREENCODING.GAMMA;  
+        return TEXTURE_ENCODING.GAMMA;  
       case (THREE.LinearEncoding):
       default:
-        return TEXTUREENCODING.LINEAR;
+        return TEXTURE_ENCODING.LINEAR;
     }
   }
 
-  public set textureEncoding(value: TEXTUREENCODING) {
+  public set textureEncoding(value: TEXTURE_ENCODING) {
     switch (value) {
-      case (TEXTUREENCODING.SRGB):
+      case (TEXTURE_ENCODING.SRGB):
+        this.environmentMapLoader.textureEncoding = THREE.sRGBEncoding;
         this.materialLoader.textureEncoding = THREE.sRGBEncoding;
         break;
-      case (TEXTUREENCODING.RGBE):
-        this.materialLoader.textureEncoding = THREE.RGBEEncoding;
+      case (TEXTURE_ENCODING.RGBE):
+        this.environmentMapLoader.textureEncoding = THREE.sRGBEncoding;
+        this.materialLoader.textureEncoding = THREE.sRGBEncoding;
         break;
-      case (TEXTUREENCODING.RGBM7):
+      case (TEXTURE_ENCODING.RGBM7):
+        this.environmentMapLoader.textureEncoding = THREE.RGBM7Encoding;
         this.materialLoader.textureEncoding = THREE.RGBM7Encoding;
         break;
-      case (TEXTUREENCODING.RGBM16):
+      case (TEXTURE_ENCODING.RGBM16):
+        this.environmentMapLoader.textureEncoding = THREE.RGBM16Encoding;
         this.materialLoader.textureEncoding = THREE.RGBM16Encoding;
         break;
-      case (TEXTUREENCODING.RGBD):
+      case (TEXTURE_ENCODING.RGBD):
+        this.environmentMapLoader.textureEncoding = THREE.RGBDEncoding;
         this.materialLoader.textureEncoding = THREE.RGBDEncoding;
         break;
-      case (TEXTUREENCODING.GAMMA):
+      case (TEXTURE_ENCODING.GAMMA):
+        this.environmentMapLoader.textureEncoding = THREE.GammaEncoding;
         this.materialLoader.textureEncoding = THREE.GammaEncoding;
         break;
-      case (TEXTUREENCODING.LINEAR):
+      case (TEXTURE_ENCODING.LINEAR):
       default:
+        this.environmentMapLoader.textureEncoding = THREE.LinearEncoding;
         this.materialLoader.textureEncoding = THREE.LinearEncoding;
     }
   }
 
-  public get toneMapping(): TONEMAPPING {
+  public get toneMapping(): TONE_MAPPING {
     switch (this._renderer.toneMapping) {
       case (THREE.LinearToneMapping):
-        return TONEMAPPING.LINEAR;
+        return TONE_MAPPING.LINEAR;
       case (THREE.ReinhardToneMapping):
-        return TONEMAPPING.REINHARD;
+        return TONE_MAPPING.REINHARD;
       case (THREE.CineonToneMapping):
-        return TONEMAPPING.CINEON;
+        return TONE_MAPPING.CINEON;
       case (THREE.ACESFilmicToneMapping):
-        return TONEMAPPING.ACES_FILMIC;
+        return TONE_MAPPING.ACES_FILMIC;
       case (THREE.NoToneMapping):
       default:
-        return TONEMAPPING.NONE;
+        return TONE_MAPPING.NONE;
     }
   }
 
-  public set toneMapping(value: TONEMAPPING) {
+  public set toneMapping(value: TONE_MAPPING) {
     switch (value) {
-      case (TONEMAPPING.LINEAR):
+      case (TONE_MAPPING.LINEAR):
         this._renderer.toneMapping = THREE.LinearToneMapping;
         break;
-      case (TONEMAPPING.REINHARD):
+      case (TONE_MAPPING.REINHARD):
         this._renderer.toneMapping = THREE.ReinhardToneMapping;
         break;
-      case (TONEMAPPING.CINEON):
+      case (TONE_MAPPING.CINEON):
         this._renderer.toneMapping = THREE.CineonToneMapping;
         break;
-      case (TONEMAPPING.ACES_FILMIC):
+      case (TONE_MAPPING.ACES_FILMIC):
         this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
         break;
-      case (TONEMAPPING.NONE):
+      case (TONE_MAPPING.NONE):
       default:
         this._renderer.toneMapping = THREE.NoToneMapping;
     }
@@ -715,6 +722,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
     this._settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
     this._settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
+    this._settingsEngine.rendering.gridColor = this.gridColor;
+    this._settingsEngine.rendering.groundPlaneColor = this.groundPlaneColor;
+    this._settingsEngine.rendering.outputEncoding = this.outputEncoding;
+    this._settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
+    this._settingsEngine.rendering.textureEncoding = this.textureEncoding;
+    this._settingsEngine.rendering.toneMapping = this.toneMapping;
+    this._settingsEngine.rendering.toneMappingExposure = this.toneMappingExposure;
     this._settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
     this._settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
     this._settingsEngine.environment.clearAlpha = this.clearAlpha;
@@ -749,6 +763,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           this.shadows = this._settingsEngine.rendering.shadows;
           this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
           this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
+          this.gridColor = this._settingsEngine.rendering.gridColor;
+          this.groundPlaneColor = this._settingsEngine.rendering.groundPlaneColor;
+          this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
+          this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
+          this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
+          this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
+          this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
           this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
           this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
           this.pointSize = this._settingsEngine.general.pointSize;
@@ -772,6 +793,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.shadows = this._settingsEngine.rendering.shadows;
         this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
         this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
+        this.gridColor = this._settingsEngine.rendering.gridColor;
+        this.groundPlaneColor = this._settingsEngine.rendering.groundPlaneColor;
+        this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
+        this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
+        this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
+        this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
+        this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
         this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
         this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
         this.pointSize = this._settingsEngine.general.pointSize;

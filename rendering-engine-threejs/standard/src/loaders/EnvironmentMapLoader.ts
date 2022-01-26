@@ -83,6 +83,8 @@ export class EnvironmentMapLoader implements ILoader {
     private _environmentMapName: string = 'none';
     private _environmentMapNameInternal: string = 'none';
     private _isHDRMap: boolean = false;
+    private _textureEncoding: THREE.TextureEncoding = THREE.sRGBEncoding;
+    private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NONE;
 
     // #endregion Properties (8)
 
@@ -211,15 +213,20 @@ export class EnvironmentMapLoader implements ILoader {
 
     private assignEnvironmentMap(name: string, type: ENVIRONMENT_MAP_TYPE) {
         if(name in this._environmentMaps === false) return;
-        if(this._environmentMapHDR.includes(name)) {
-            this._isHDRMap = true;
-        } else {
-            this._isHDRMap = false;
-            if(this._environmentMaps[name]) this._environmentMaps[name]!.encoding = THREE.sRGBEncoding;
-        }
+        this._type = type;
         this._environmentMapName = name;
         this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name], type);
         this.notify();
+    }
+
+    private assignTextureEncoding() {
+        for(let e in this._environmentMaps) {
+            if(this._environmentMaps[e] && !this._environmentMapHDR.includes(e)) {
+                this._environmentMaps[e]?.dispose();
+                this._environmentMaps[e]!.encoding = this._textureEncoding;
+                this._environmentMaps[e]!.needsUpdate = true;
+            }
+        }
     }
 
     private async loadEnvironmentMap(name: string, url: string[]) {
@@ -241,6 +248,7 @@ export class EnvironmentMapLoader implements ILoader {
                 
                 new THREE.CubeTextureLoader().load(url,
                     (map: THREE.CubeTexture) => {
+                        map.encoding = THREE.sRGBEncoding;
                         map.format = THREE.RGBFormat;
                         map.mapping = THREE.CubeReflectionMapping;
                         this._environmentMaps[name] = map;
@@ -251,6 +259,15 @@ export class EnvironmentMapLoader implements ILoader {
                     (error) =>  reject(error));
             }
         })
+    }
+
+    public get textureEncoding(): THREE.TextureEncoding {
+        return this._textureEncoding;
+    }
+    
+    public set textureEncoding(value: THREE.TextureEncoding) {
+        this._textureEncoding = value;
+        this.assignTextureEncoding();
     }
 
     // #endregion Private Methods (2)

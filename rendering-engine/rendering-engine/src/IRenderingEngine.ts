@@ -14,7 +14,7 @@ export enum VISIBILITYMODE {
   MANUAL = 'manual'
 }
 
-export enum TEXTUREENCODING {
+export enum TEXTURE_ENCODING {
   LINEAR = 'linear',
   SRGB = 'srgb',
   RGBE = 'rgbe',
@@ -24,7 +24,7 @@ export enum TEXTUREENCODING {
   GAMMA = 'gamma'
 }
 
-export enum TONEMAPPING {
+export enum TONE_MAPPING {
   NONE = 'none',
   LINEAR = 'linear',
   REINHARD = 'reinhard',

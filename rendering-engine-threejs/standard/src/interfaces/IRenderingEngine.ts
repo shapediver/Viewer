@@ -1,4 +1,4 @@
-import { IRenderingEngine, TEXTUREENCODING, TONEMAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
 import { AnimationData, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from "@shapediver/viewer.shared.types";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
@@ -22,11 +22,11 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     groundPlaneColor: string | number | vec3; 
     groundPlaneVisibility: boolean;
     lightSceneId: string;
-    outputEncoding: TEXTUREENCODING; 
+    outputEncoding: TEXTURE_ENCODING; 
     physicallyCorrectLights: boolean;
     shadows: boolean;
-    textureEncoding: TEXTUREENCODING; 
-    toneMapping: TONEMAPPING; 
+    textureEncoding: TEXTURE_ENCODING; 
+    toneMapping: TONE_MAPPING; 
     toneMappingExposure: number; 
 
     // #endregion Properties (17)

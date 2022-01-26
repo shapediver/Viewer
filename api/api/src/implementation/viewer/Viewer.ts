@@ -4,7 +4,7 @@ import {
   OrthographicCamera as OrthographicCameraLogic,
   PerspectiveCamera as PerspectiveCameraLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { RENDERERTYPE, TEXTUREENCODING, TONEMAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERERTYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   Converter,
   EventEngine,
@@ -453,14 +453,14 @@ export class Viewer implements IViewer {
     return this.#lightScenes;
   }
 
-  public get outputEncoding(): TEXTUREENCODING {
+  public get outputEncoding(): TEXTURE_ENCODING {
     return this.#renderingEngine.outputEncoding;
   }
 
-  public set outputEncoding(value: TEXTUREENCODING) {
+  public set outputEncoding(value: TEXTURE_ENCODING) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: Updating outputEncoding to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding`, value, 'enum', true, Object.values(TEXTUREENCODING));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
       this.#renderingEngine.outputEncoding = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: outputEncoding was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
@@ -556,14 +556,14 @@ export class Viewer implements IViewer {
     }
   }
 
-  public get textureEncoding(): TEXTUREENCODING {
+  public get textureEncoding(): TEXTURE_ENCODING {
     return this.#renderingEngine.textureEncoding;
   }
 
-  public set textureEncoding(value: TEXTUREENCODING) {
+  public set textureEncoding(value: TEXTURE_ENCODING) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: Updating textureEncoding to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding`, value, 'enum', true, Object.values(TEXTUREENCODING));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
       this.#renderingEngine.textureEncoding = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: textureEncoding was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
@@ -574,14 +574,14 @@ export class Viewer implements IViewer {
     }
   }
 
-  public get toneMapping(): TONEMAPPING {
+  public get toneMapping(): TONE_MAPPING {
     return this.#renderingEngine.toneMapping;
   }
 
-  public set toneMapping(value: TONEMAPPING) {
+  public set toneMapping(value: TONE_MAPPING) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping: Updating toneMapping to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping`, value, 'enum', true, Object.values(TONEMAPPING));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping`, value, 'enum', true, Object.values(TONE_MAPPING));
       this.#renderingEngine.toneMapping = value;
       this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: toneMapping was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
