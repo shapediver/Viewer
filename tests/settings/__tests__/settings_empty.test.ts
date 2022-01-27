@@ -54,10 +54,12 @@ describe('device testing', () => {
             'camera.cameraId': '',
             'environment.clearAlpha': 1,
             'environment.clearColor': '#ffffff',
-            'environment.map': 'none',
+            'environment.map': 'photo_studio',
             'environment.mapAsBackground': false,
             'environment.mapResolution': '1024',
+            'environmentGeometry.gridColor': '#444444',
             'environmentGeometry.gridVisibility': true,
+            'environmentGeometry.groundPlaneColor': '#636363',        
             'environmentGeometry.groundPlaneVisibility': true,        
             'general.blurWhenBusy': true,
             'general.commitParameters': false,
@@ -78,8 +80,13 @@ describe('device testing', () => {
             'rendering.ambientOcclusionIntensity': 0.1,
             'rendering.beautyRenderBlendingDuration': 1500,
             'rendering.beautyRenderDelay': 50,
+            'rendering.outputEncoding': 'srgb',
+            'rendering.physicallyCorrectLights': true,
             'rendering.shadows': true,
-            settings_version: '3.0'
+            'rendering.textureEncoding': 'srgb',
+            'rendering.toneMapping': 'none',
+            'rendering.toneMappingExposure': 1,
+            settings_version: '3.1'
           }
         ))
     });
@@ -112,10 +119,12 @@ describe('device testing', () => {
             'camera.cameraId': '',
             'environment.clearAlpha': 1,
             'environment.clearColor': '#ffffff',
-            'environment.map': 'none',
+            'environment.map': 'photo_studio',
             'environment.mapAsBackground': false,
             'environment.mapResolution': '1024',
+            'environmentGeometry.gridColor': '#444444',
             'environmentGeometry.gridVisibility': true,
+            'environmentGeometry.groundPlaneColor': '#636363',        
             'environmentGeometry.groundPlaneVisibility': true,        
             'general.blurWhenBusy': true,
             'general.commitParameters': false,
@@ -136,8 +145,13 @@ describe('device testing', () => {
             'rendering.ambientOcclusionIntensity': 0.1,
             'rendering.beautyRenderBlendingDuration': 1500,
             'rendering.beautyRenderDelay': 50,
+            'rendering.outputEncoding': 'srgb',
+            'rendering.physicallyCorrectLights': true,
             'rendering.shadows': true,
-            settings_version: '3.0'
+            'rendering.textureEncoding': 'srgb',
+            'rendering.toneMapping': 'none',
+            'rendering.toneMappingExposure': 1,
+            settings_version: '3.1'
           }
         ))
     });

@@ -54,6 +54,9 @@ describe('device testing', () => {
                 bearerToken
             });
             await session.saveSettings();
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket, token);
         await screenshotCompare(await driver.takeScreenshot(), name + '/default');
@@ -73,6 +76,9 @@ describe('device testing', () => {
             viewer.createLightScene({name: 'test3'});
             viewer.assignLightScene('standard');
             await session.saveSettings();
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket, token);
         await screenshotCompare(await driver.takeScreenshot(), name + '/default');
@@ -104,6 +110,9 @@ describe('device testing', () => {
             }); 
             viewer.assignLightScene('test1');
             viewer.lightScene!.addAmbientLight({color: '#ff0000'})
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket, token);
         await screenshotCompare(await driver.takeScreenshot(), name + '/test1');
@@ -120,6 +129,9 @@ describe('device testing', () => {
             }); 
             viewer.assignLightScene('test2');
             viewer.lightScene!.addDirectionalLight({color: '#00ff00'})
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket, token);
         await screenshotCompare(await driver.takeScreenshot(), name + '/test2');
@@ -136,6 +148,9 @@ describe('device testing', () => {
             }); 
             viewer.assignLightScene('test3');
             viewer.lightScene!.addPointLight({color: '#0000ff'})
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket, token);
         await screenshotCompare(await driver.takeScreenshot(), name + '/test3');
@@ -153,8 +168,14 @@ describe('device testing', () => {
             for(let ls in viewer.lightScenes)
                 viewer.removeLightScene(ls);
 
-            viewer.createLightScene({name: 'standard', standard: true});
+            const ls = viewer.createLightScene({name: 'standard'});
+            ls.addAmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'});
+            ls.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [.5774, -.5774, .5774], castShadow: true, name: 'directional0'});
+            ls.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1'});
             await session.saveSettings();
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket, token);
         await screenshotCompare(await driver.takeScreenshot(), name + '/default');
