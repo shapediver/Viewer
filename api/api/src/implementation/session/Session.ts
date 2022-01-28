@@ -667,12 +667,14 @@ export class Session implements ISession {
                     if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                     this.node.excludeViewers = this.#excludeViewers;
                     this.#api.update();
+                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: this.id });
                 } else {
                     this.#sessionEngine.loadOutputs().then(async node => {
                         this.#node = node;
                         if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                         this.node.excludeViewers = this.#excludeViewers;
                         this.#api.update();
+                        this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: this.id });
                     })
                 }
             }

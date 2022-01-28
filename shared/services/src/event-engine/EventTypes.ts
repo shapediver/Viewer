@@ -5,11 +5,11 @@ export enum CAMERA {
 }
 
 export enum RENDERING {
-    BEAUTY_RENDERING_FINISHED = "rendering.beautyrenderingfinished"
+    BEAUTY_RENDERING_FINISHED = "rendering.beautyRenderingFinished"
 }
 
 export enum SCENE {
-    SCENE_BOUNDING_BOX_CHANGE = "scene.boundingboxchange"
+    SCENE_BOUNDING_BOX_CHANGE = "scene.boundingBoxChange"
 }
 
 export enum VIEWER {
@@ -21,7 +21,8 @@ export enum VIEWER {
 export enum SESSION {
     SESSION_CREATED = "session.created",
     SESSION_CUSTOMIZED = "session.customized",
-    SESSION_CLOSED = "session.closed"
+    SESSION_CLOSED = "session.closed",
+    SESSION_INITIAL_OUTPUTS_LOADED = 'session.initialOutputsLoaded'
 }
 
 export enum SETTINGS {
