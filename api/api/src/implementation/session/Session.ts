@@ -871,6 +871,62 @@ export class Session implements ISession {
         }
     }
 
+    public async updateOutputs(): Promise<TreeNode> {
+        try {
+            const customizationID = this.#uuidGenerator.create();
+            this.#customizationProcess = customizationID;
+
+            this.#performanceEvaluator.start();
+            this.#performanceEvaluator.startSection('init');
+
+            this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating Outputs.`);
+
+            for (let viewerId in this.#api.viewers)
+                if (this.#api.viewers[viewerId].blurSceneWhenBusy)
+                    this.#api.viewers[viewerId].registerBusyMode(customizationID);
+
+            this.#performanceEvaluator.endSection('init');
+            this.#performanceEvaluator.startSection('updateOutputs');
+            const node = await this.#sessionEngine.loadOutputs(() => this.#customizationProcess !== customizationID);
+            this.#performanceEvaluator.endSection('updateOutputs');
+
+            // OPTION TO SKIP - PART 1
+            if (this.#customizationProcess !== customizationID) {
+                this.#performanceEvaluator.end();
+                for (let viewerId in this.#api.viewers)
+                    this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
+                return node;
+            }
+
+            this.#performanceEvaluator.startSection('finish');
+            if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
+            this.#node = node;
+            if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
+
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
+
+            // set the output content to what has been updated
+            for (const outputId in this.outputs) 
+                this.outputs[outputId].updateOutput();
+
+            this.node.excludeViewers = this.#excludeViewers;
+
+            for (let viewerId in this.#api.viewers)
+                this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+
+            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updated outputs.`);
+
+            this.#performanceEvaluator.endSection('finish');
+            this.#performanceEvaluator.end();
+
+            return this.node;
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs`, e);
+        }
+      }
+
     public async uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion) {
         try {
             const blob = await this.#api.convertSceneToGLTF(true);

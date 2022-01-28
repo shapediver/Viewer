@@ -1,3 +1,4 @@
+import { JUSTIFICATION, ITag3D, ITag2D, IAnchorDataImage, IAnchorDataText, IAnchor } from './anchor/interfaces'
 import {
   ACCESSORCOMPONENTSIZE as ACCESSORCOMPONENTSIZE_V1,
   ACCESSORCOMPONENTTYPE as ACCESSORCOMPONENTTYPE_V1,
@@ -45,6 +46,7 @@ import {
   IGLTF_v2_Texture,
   ISHAPEDIVER_materials_preset,
 } from './gltfv2/IGLTF_v2'
+import { ITexture, IPresetMaterialDefinition, IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3 } from './material/interfaces'
 import { ISDTF, ISDTF_Accessor, ISDTF_Attribute, ISDTF_BufferView, ISDTF_Buffer, ISDTF_Chunk, ISDTF_Item, ISDTF_Node, ISDTF_TypeHint } from './sdtf/ISDTF'
 
 export {
@@ -58,4 +60,12 @@ export {
 
 export {
   ISDTF, ISDTF_Accessor, ISDTF_Attribute, ISDTF_BufferView, ISDTF_Buffer, ISDTF_Chunk, ISDTF_Item, ISDTF_Node, ISDTF_TypeHint
+}
+
+export {
+  ITexture, IPresetMaterialDefinition, IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3
+}
+
+export {
+  JUSTIFICATION, ITag3D, ITag2D, IAnchorDataImage, IAnchorDataText, IAnchor
 }

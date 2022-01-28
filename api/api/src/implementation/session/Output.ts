@@ -1,11 +1,11 @@
 import { container } from 'tsyringe'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
 
-import { IOutput } from '../../interfaces/session/IOutput'
+import { IOutput, ShapeDiverResponseOutput, ShapeDiverResponseOutputContent } from '../../interfaces/session/IOutput'
 import { ISession } from '../../interfaces/session/ISession'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { ShapeDiverResponseOutput, ShapeDiverResponseOutputChunk, ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { ShapeDiverResponseOutputChunk } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export class Output implements IOutput {
   // #region Properties (20)
@@ -20,6 +20,7 @@ export class Output implements IOutput {
   readonly #session: ISession;
   readonly #sessionEngine: Session;
   readonly #uid?: string;
+  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
   #bbmax?: number[];
   #bbmin?: number[];
@@ -197,6 +198,11 @@ export class Output implements IOutput {
     this.#bbmin = outputDef.bbmin;
     this.#bbmax = outputDef.bbmax;
     this.#msg = outputDef.msg;
+  }
+
+  public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[]) {
+    this.#sessionEngine.outputs[this.id].content = outputContent;
+    this.#sessionEngine.outputs[this.id].version = this.#uuidGenerator.create();
   }
 
   // #endregion Public Methods (1)

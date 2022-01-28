@@ -12,42 +12,7 @@ import { vec2, vec3, vec4 } from 'gl-matrix'
 
 import { materialDatabase } from './materialDatabase'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
-
-interface IPresetMaterialDefinition {
-  // #region Properties (13)
-
-  alphaThreshold?: number;
-  bitmaptexture?: string;
-  bumpAmplitude?: number;
-  bumptexture?: string;
-  color?: number[];
-  metalness?: number;
-  metalnesstexture?: string;
-  normaltexture?: string;
-  roughness?: number;
-  roughnesstexture?: string;
-  side?: string;
-  transparency?: number;
-  transparencytexture?: string;
-
-  // #endregion Properties (13)
-}
-
-interface ITexture {
-  // #region Properties (9)
-
-  canvas?: any,
-  center?: number[],
-  color?: number[],
-  href?: string,
-  offset?: number[],
-  repeat?: number[],
-  rotation?: number,
-  wrapS?: number,
-  wrapT?: number
-
-  // #endregion Properties (9)
-}
+import { IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITexture } from '@shapediver/viewer.data-engine.shared-types'
 
 @singleton()
 export class MaterialEngine {
@@ -86,19 +51,20 @@ export class MaterialEngine {
         node.data.push(material);
 
         if (content.data) {
-            if (content.data.materialpreset) 
-                await this.loadPresetMaterial(content.data.materialpreset, material);
+            const data: IMaterialContentData = content.data;
+            if (data.materialpreset) 
+                await this.loadPresetMaterial(data.materialpreset, material);
 
-            if (content.data.materialType && content.data.materialType !== 'standard') {
+            if (data.materialType && data.materialType !== 'standard') {
                 // gem material https://shapediver.atlassian.net/browse/SS-2514
             } else {
-                if (content.data.version) {
-                    if(content.data.version === '1.0') {
-                        await this.loadMaterialV1(content.data, material);
-                    } else if(content.data.version === '2.0') {
-                        await this.loadMaterialV2(content.data, material);
-                    } else if(content.data.version === '3.0') {
-                        await this.loadMaterialV3(content.data, material);
+                if (data.version) {
+                    if(data.version === '1.0') {
+                        await this.loadMaterialV1(data, material);
+                    } else if(data.version === '2.0') {
+                        await this.loadMaterialV2(data, material);
+                    } else if(data.version === '3.0') {
+                        await this.loadMaterialV3(data, material);
                     } else {
                         const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Material data version not supported.');
                         throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
@@ -234,18 +200,7 @@ export class MaterialEngine {
         return new MapData(image, wrapS, wrapT, TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, TEXTURE_FILTERING.LINEAR, center, this._converter.toColor(color), offset, repeat, texture.rotation || 0);        
     }
 
-  private async loadMaterialV1(data: {
-        ambient?: number[],
-        diffuse?: number[],
-        color?: number[],
-        emission?: number[],
-        specular?: number[],
-        shine?: number,
-        transparency?: number,
-        bitmaptexture?: string,
-        bumptexture?: string,
-        transparencytexture?: string,
-    }, material: MaterialData) {
+  private async loadMaterialV1(data: IMaterialContentDataV1, material: MaterialData) {
         // ambient is ignored
         
         if(data.color) {
@@ -283,21 +238,7 @@ export class MaterialEngine {
         }
     }
 
-  private async loadMaterialV2(data: {
-        color?: number[],
-        side?: string,
-        metalness?: number,
-        roughness?: number,
-        transparency?: number,
-        alphaThreshold?: number,
-        bitmaptexture?: string,
-        metalnesstexture?: string,
-        roughnesstexture?: string,
-        bumptexture?: string,
-        normaltexture?: string,
-        transparencytexture?: string,
-        line?: any
-    }, material: MaterialData) {
+  private async loadMaterialV2(data: IMaterialContentDataV2, material: MaterialData) {
         // ambient is ignored
         
         if(data.color) 
@@ -350,25 +291,7 @@ export class MaterialEngine {
         // line material https://shapediver.atlassian.net/browse/SS-2272
     }
 
-  private async loadMaterialV3(data: {
-        color?: number[],
-        side?: string,
-        metalness?: number,
-        roughness?: number,
-        transparency?: number,
-        alphaThreshold?: number,
-        shadowOpacity?: number,
-        lightReflectivity?: number,
-        bumpAmplitude?: number,
-        threeDNoise?: any
-        bitmaptexture?: ITexture,
-        metalnesstexture?: ITexture,
-        roughnesstexture?: ITexture,
-        bumptexture?: ITexture,
-        normaltexture?: ITexture,
-        transparencytexture?: ITexture,
-        line?: any
-    }, material: MaterialData) {
+  private async loadMaterialV3(data: IMaterialContentDataV3, material: MaterialData) {
         // ambient is ignored
         
         if(data.color) 

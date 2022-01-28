@@ -152,6 +152,13 @@ export interface ISession {
      */
     saveSettings(viewerId?: string): Promise<boolean>;
     /**
+     * Update the current available outputs.
+     * Calling this function makes sense if you have updated the outputs manually
+     * 
+     * @returns
+     */
+    updateOutputs(): Promise<TreeNode>;
+    /**
      * Creates a gltf from the current scene and uploads it to the server.
      * Returns the href to the gltf.
      * 

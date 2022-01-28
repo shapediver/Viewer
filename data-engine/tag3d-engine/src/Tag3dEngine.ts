@@ -4,36 +4,7 @@ import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGINGTOPIC, Converter, StateEngine, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { AttributeData, GeometryData, MaterialData, PrimitiveData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
-
-enum JUSTIFICATION {
-    TOP_LEFT = 'TL',
-    TOP_CENTER = 'TC',
-    TOP_RIGHT = 'TR',
-    MIDDLE_LEFT = 'ML',
-    MIDDLE_CENTER = 'MC',
-    MIDDLE_RIGHT = 'MR',
-    BOTTOM_LEFT = 'BL',
-    BOTTOM_CENTER = 'BC',
-    BOTTOM_RIGHT = 'BR'
-}
-
-interface Tag3dDefinition {
-    // #region Properties (6)
-
-    color: string,
-    justification: JUSTIFICATION,
-    location: {
-        normal: { X: number, Y: number, Z: number },
-        yAxis: { X: number, Y: number, Z: number },
-        xAxis: { X: number, Y: number, Z: number },
-        origin: { X: number, Y: number, Z: number }
-    },
-    size?: number,
-    text?: string,
-    version: string
-
-    // #endregion Properties (6)
-}
+import { ITag3D } from '@shapediver/viewer.data-engine.shared-types'
 
 @singleton()
 export class Tag3dEngine {
@@ -82,7 +53,7 @@ export class Tag3dEngine {
 
         if (content.data && Array.isArray(content.data)) {
             for (let i = 0; i < content.data.length; i++) {
-                const tag3dInfo: Tag3dDefinition = content.data[i];
+                const tag3dInfo: ITag3D = content.data[i];
                 tag3dInfo.size = tag3dInfo.size ? +tag3dInfo.size : 1;
                 tag3dInfo.text = tag3dInfo.text || '';
                 tag3dInfo.color = this._converter.toColor(tag3dInfo.color);
