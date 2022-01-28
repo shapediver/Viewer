@@ -74,10 +74,8 @@ export class SceneTreeManager implements IManager {
 
         obj.add(dataChild);
 
-        if(this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
-            const visData = this.injectAttributeData(node, data);
-            if(visData.material.opacity === 0) return;
-        }
+        if(this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES)
+            this.injectAttributeData(node, data);
 
         switch (true) {
             case data instanceof GeometryData:
@@ -291,8 +289,6 @@ export class SceneTreeManager implements IManager {
 
         if(data instanceof GeometryData)
             data.primitive.attributeMaterial = visData.material;
-        
-        return visData;
     }
 
     private removeData(dataObject: SDData) {

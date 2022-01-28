@@ -126,10 +126,15 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                         material
                     }
                 } else {
-                    // return default attribute material
+                    // return default layer material
+                    const material = new MaterialData({
+                        KHR_materials_unlit: true,
+                        opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity * this.#defaultMaterial.opacity : 0,
+                        color: this.#converter.toColor(this.#defaultMaterial.color)
+                    });
                     return {
                         matrix: mat4.create(),
-                        material: <MaterialData>this.#defaultMaterial.clone()
+                        material
                     }
                 }
             }
