@@ -15,9 +15,9 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     readonly #viewer: IViewer;
 
     #attributes: IAttribute[] = [];
-    #defaultMaterial: MaterialData = new MaterialData({ color: '#f0f0f0', opacity: 1, KHR_materials_unlit: true });
+    #defaultMaterial: MaterialData = new MaterialData({ color: '#000000', opacity: 1, KHR_materials_unlit: true });
     #defaultLayer: ILayer = {
-        color: '#ff0000',
+        color: '#000000',
         opacity: 1,
         enabled: true
     };
@@ -111,9 +111,9 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     // #region Private Methods (2)
 
     private constructAttributeVisualization() {
-        this.#viewer.convertSDTFItemToVisualizationData = (itemData: SDTFItemData, overview: SDTFOverview) => {
+        this.#viewer.convertSDTFItemToVisualizationData = (overview: SDTFOverview, itemData?: SDTFItemData) => {
             // early out if there are not attributes in this itemData
-            if (!itemData.attributes) {
+            if (!itemData || !itemData.attributes) {
                 if (this.#attributes.length === 0) {
                     // return default layer material
                     const material = new MaterialData({

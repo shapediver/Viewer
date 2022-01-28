@@ -34,7 +34,7 @@ export interface IViewer extends IRenderingEngine {
      * Provide a callback that transforms a {@link SDTFItemData} to a {@link SDTFAttributeVisualizationData}.
      * The {@link SDTFOverview} provides general information like min and max values for numbers or the available options for strings.
      */
-    convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined;
+    convertSDTFItemToVisualizationData: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;

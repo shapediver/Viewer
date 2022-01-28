@@ -87,7 +87,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _clearColor: string = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
-  private _convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined;
+  private _convertSDTFItemToVisualizationData: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
   private _environmentMap: string | string[] = 'none';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
@@ -323,11 +323,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.continuousShadowMapUpdate = value;
   }
 
-  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined {
+  public get convertSDTFItemToVisualizationData(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
     return this._convertSDTFItemToVisualizationData;
   }
 
-  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined) {
+  public set convertSDTFItemToVisualizationData(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
     this._convertSDTFItemToVisualizationData = value;
   }
 

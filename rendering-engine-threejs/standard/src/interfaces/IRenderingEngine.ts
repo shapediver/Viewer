@@ -13,7 +13,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     beautyRenderDelay: number;
     clearAlpha: number;
     clearColor: string | number | vec3;
-    convertSDTFItemToVisualizationData: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined;
+    convertSDTFItemToVisualizationData: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;

@@ -270,8 +270,8 @@ export class SceneTreeManager implements IManager {
             matrix: mat4.create()
         };
 
-        if(itemData && this._renderingEngine.convertSDTFItemToVisualizationData) {
-            const userVisData = this._renderingEngine.convertSDTFItemToVisualizationData(itemData, this._currentSDTFOverview);
+        if(this._renderingEngine.convertSDTFItemToVisualizationData) {
+            const userVisData = this._renderingEngine.convertSDTFItemToVisualizationData(this._currentSDTFOverview, itemData);
             try {
                 this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData, 'object', true);
                 this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData.matrix, 'mat4', true)

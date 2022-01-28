@@ -276,11 +276,11 @@ export class Viewer implements IViewer {
     }
   }
 
-  public get convertSDTFItemToVisualizationData(): ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined {
+  public get convertSDTFItemToVisualizationData(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
     return this.#renderingEngine.convertSDTFItemToVisualizationData;
   }
 
-  public set convertSDTFItemToVisualizationData(value: ((itemData: SDTFItemData, overview: SDTFOverview) => SDTFAttributeVisualizationData) | undefined) {
+  public set convertSDTFItemToVisualizationData(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
     this.#renderingEngine.convertSDTFItemToVisualizationData = value;
   }
 
