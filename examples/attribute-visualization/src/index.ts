@@ -13,7 +13,6 @@ import * as SDVAttributeVisualization from '@shapediver/viewer.features.attribut
         id: 'mySession'
     });
     viewer.type = SDV.RENDERERTYPE.ATTRIBUTES;
-    viewer.clearColor = '#000000'
 
     const attributeVisualizationEngine = new SDVAttributeVisualization.AttributeVisualizationEngine(SDV.api, viewer);
     (<any>window).attributeVisualizationEngine = attributeVisualizationEngine;
