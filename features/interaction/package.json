@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.features.interaction",
-  "version": "1.11.6",
+  "version": "1.11.7",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -36,12 +36,12 @@
     "testEnvironment": "node"
   },
   "devDependencies": {
-    "@shapediver/viewer": "1.11.6",
-    "@shapediver/viewer.rendering-engine.intersection-engine": "1.11.6",
-    "@shapediver/viewer.shared.math": "1.11.6",
-    "@shapediver/viewer.shared.node-tree": "1.11.6",
-    "@shapediver/viewer.shared.services": "1.11.6",
-    "@shapediver/viewer.shared.types": "1.11.6"
+    "@shapediver/viewer": "1.11.7",
+    "@shapediver/viewer.rendering-engine.intersection-engine": "1.11.7",
+    "@shapediver/viewer.shared.math": "1.11.7",
+    "@shapediver/viewer.shared.node-tree": "1.11.7",
+    "@shapediver/viewer.shared.services": "1.11.7",
+    "@shapediver/viewer.shared.types": "1.11.7"
   },
   "dependencies": {
     "detect-it": "4.0.1",
