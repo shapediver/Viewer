@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { MATERIAL_SIDE, MaterialData, ISceneEvent } from '@shapediver/viewer.shared.types'
 import { vec3 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
-import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 
 import { RenderingEngine } from '..'
 import { IManager } from '../interfaces/IManager'
@@ -12,6 +12,7 @@ import { SDData } from '../types/SDData'
 
 export class EnvironmentGeometryManager implements IManager {
     // #region Properties (5)
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
     private _environmentGeometryObject!: SDNode;
@@ -60,7 +61,7 @@ export class EnvironmentGeometryManager implements IManager {
     // #region Public Methods (2)
 
     public assignGroundPlaneColor(color: string) {
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).color = new THREE.Color(color);
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).color = new THREE.Color(this._converter.toThreeJsColorInput(color));
         (<THREE.MeshStandardMaterial>this._groundPlane.material).needsUpdate = true;
     }    
     

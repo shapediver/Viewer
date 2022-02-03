@@ -13,10 +13,14 @@ import { vec3 } from 'gl-matrix'
 import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
+import { Converter } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
 
 export class LightLoader implements ILoader {
 
 
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    
     private _shadowMapCount = 0;
     private _forceDisabledShadows: boolean = false;
 
@@ -36,7 +40,7 @@ export class LightLoader implements ILoader {
         if (light instanceof AmbientLight) {
             const threeLight: THREE.AmbientLight = converted.children[0] instanceof THREE.AmbientLight ? (<THREE.AmbientLight>converted.children[0]) : new THREE.AmbientLight();
             if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(light.color);
+            threeLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
             threeLight.intensity = light.intensity;
         }
         
@@ -45,7 +49,7 @@ export class LightLoader implements ILoader {
             if (converted.children.length === 0) converted.add(threeLight);
             scene.add(threeLight.target);
 
-            threeLight.color = new THREE.Color(light.color);
+            threeLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
             threeLight.intensity = light.intensity;
 
             const bs: Sphere = boundingBox.boundingSphere;
@@ -74,15 +78,15 @@ export class LightLoader implements ILoader {
         if (light instanceof HemisphereLight) {
             const threeLight: THREE.HemisphereLight = converted.children[0] instanceof THREE.HemisphereLight ? (<THREE.HemisphereLight>converted.children[0]) : new THREE.HemisphereLight();
             if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(light.color);
+            threeLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
             threeLight.intensity = light.intensity;
-            threeLight.groundColor = new THREE.Color(light.groundColor);
+            threeLight.groundColor = new THREE.Color(this._converter.toThreeJsColorInput(light.groundColor));
         }
         
         if (light instanceof PointLight) {
             const threeLight: THREE.PointLight = converted.children[0] instanceof THREE.PointLight ? (<THREE.PointLight>converted.children[0]) : new THREE.PointLight();
             if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(light.color);
+            threeLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
             threeLight.intensity = light.intensity;
             threeLight.distance = light.distance;
             threeLight.decay = light.decay;
@@ -91,7 +95,7 @@ export class LightLoader implements ILoader {
         
         if (light instanceof SpotLight) {
             const threeLight: THREE.SpotLight = converted.children[0] instanceof THREE.SpotLight ? (<THREE.SpotLight>converted.children[0]) : 
-            new THREE.SpotLight(new THREE.Color(light.color), light.intensity, vec3.distance(light.position, light.target), light.angle, light.penumbra, light.decay)
+            new THREE.SpotLight(new THREE.Color(this._converter.toThreeJsColorInput(light.color)), light.intensity, vec3.distance(light.position, light.target), light.angle, light.penumbra, light.decay)
             if (converted.children.length === 0) converted.add(threeLight);
             scene.add(threeLight.target);
             threeLight.position.set(light.position[0], light.position[1], light.position[2]);

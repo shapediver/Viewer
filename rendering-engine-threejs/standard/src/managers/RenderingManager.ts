@@ -6,7 +6,7 @@ import {
     PerspectiveCamera,
     PerspectiveCameraControls
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { EventEngine, EVENTTYPE, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerWebGLError } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerWebGLError, Converter } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
@@ -19,6 +19,7 @@ import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engi
 export class RenderingManager implements IManager {
     // #region Properties (20)
 
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -304,7 +305,7 @@ export class RenderingManager implements IManager {
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         // set the background color / alpha
-        this._renderingEngine.renderer.setClearColor(new THREE.Color(this._renderingEngine.clearColor), this._renderingEngine.clearAlpha);
+        this._renderingEngine.renderer.setClearColor(new THREE.Color(this._converter.toThreeJsColorInput(this._renderingEngine.clearColor)), this._renderingEngine.clearAlpha);
 
         // animation loop - part 12: actual rendering separation
         if (states.beautyRendering === true) {

@@ -6,7 +6,7 @@ import { singleton } from 'tsyringe'
 export class Converter {
 
     private tinyColorToString(color: TinyColor): string {
-        return color.toHexString();
+        return color.toHex8String();
     }
 
     /**
@@ -24,6 +24,11 @@ export class Converter {
         const tColor = new TinyColor(color);
         const rgb = tColor.toRgb()
         return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
+    }
+
+    public toThreeJsColorInput(color: string): string {
+        const c = this.toColor(color);
+        return c.slice(0, c.length - 2);
     }
 
     /**

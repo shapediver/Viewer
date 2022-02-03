@@ -16,7 +16,7 @@ import { SpecularGlossinessMaterial, SpecularGlossinessMaterialParameters } from
 import { RenderingManager } from '../managers/RenderingManager'
 import { ILoader } from '../interfaces/ILoader'
 import { MeshUnlitMaterialParameters } from '../materials/MeshUnlitMaterialParameters'
-import { Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Converter, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { ENVIRONMENT_MAP_TYPE } from './EnvironmentMapLoader'
 
@@ -40,6 +40,7 @@ export type MaterialSettings = {
 export class MaterialLoader implements ILoader {
     // #region Properties (8)
 
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _defaultColor: string = '#00fff7';
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private _materialCache: { [key:string]: (THREE.Material | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial)} = {};
@@ -242,7 +243,7 @@ export class MaterialLoader implements ILoader {
 
         // if no MaterialData is provided, we return our default
         if(!materialData) {
-            generalProperties.color = new THREE.Color(this._defaultColor);
+            generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(this._defaultColor));
             if(materialSettings !== undefined && materialSettings.useVertexColors)
                 generalProperties.color = new THREE.Color('#d3d3d3');
             generalProperties.side = THREE.DoubleSide;
@@ -271,13 +272,13 @@ export class MaterialLoader implements ILoader {
         }
 
         if(materialData.color !== undefined)
-            generalProperties.color = new THREE.Color(materialData.color);
+            generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(materialData.color));
         
         if(!materialData.color !== undefined && materialData.map !== undefined && materialData.map.color !== undefined)
-            generalProperties.color = new THREE.Color(materialData.map.color);
+            generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(materialData.map.color));
 
         if(!materialData.color !== undefined && materialData.map !== undefined && materialData.map.color !== undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
-            generalProperties.color = new THREE.Color(this._defaultColor);
+            generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(this._defaultColor));
 
         if((materialSettings !== undefined && materialSettings.useVertexColors) && materialData.color === this._defaultColor)
             generalProperties.color = new THREE.Color('#d3d3d3');
@@ -354,7 +355,7 @@ export class MaterialLoader implements ILoader {
         standardProperties.bumpScale = materialData.bumpScale;
 
         if(materialData.emissiveness !== undefined)
-            standardProperties.emissive = new THREE.Color(materialData.emissiveness);
+            standardProperties.emissive = new THREE.Color(this._converter.toThreeJsColorInput(materialData.emissiveness));
 
         if (materialData.emissiveMap !== undefined) {
             standardProperties.emissiveMap = this.createTexture(materialData.emissiveMap);
