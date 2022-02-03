@@ -41,47 +41,44 @@ export class DataEngine {
         }
 
         try {
-            const transformations: ITransformation[] = [];
-            if (content.transformations && Array.isArray(content.transformations)) {
-                for(let i = 0; i < content.transformations.length; i++) {
-                    const t = content.transformations[i];
-                    if(Array.isArray(t) && t.length === 16)
-                        transformations.push({
-                            id: 'content_' + i,
-                            matrix: mat4.fromValues(t[0], t[1], t[2], t[3], 
-                                                    t[4], t[5], t[6], t[7], 
-                                                    t[8], t[9], t[10], t[11], 
-                                                    t[12], t[13], t[14], t[15])
-                        })
-                }
-            } 
+            let node: TreeNode;
 
             if (content.format === 'glb' || content.format === 'gltf') {
-                const node = await this._geometryEngine.loadContent(content, this._loadData);
-                node.transformations = transformations.concat(node.transformations);
-                return node;
+                node = await this._geometryEngine.loadContent(content, this._loadData);
             } else if (content.format === 'material') {
-                const node = await this._materialEngine.loadContent(content, this._loadData);
-                node.transformations = transformations.concat(node.transformations);
-                return node;
+                node = await this._materialEngine.loadContent(content, this._loadData);
             } else if (content.format === 'tag2d' || content.format === 'anchor') {
-                const node = await this._htmlElementAnchorEngine.loadContent(content, this._loadData);
-                node.transformations = transformations.concat(node.transformations);
-                return node;
+                node = await this._htmlElementAnchorEngine.loadContent(content, this._loadData);
             } else if (content.format === 'tag3d') {
-                const node = await this._tag3dEngine.loadContent(content, this._loadData);
-                node.transformations = transformations.concat(node.transformations);
-                return node;
+                node = await this._tag3dEngine.loadContent(content, this._loadData);
             } else if (content.format === 'sdtf') {
-                const node = await this._sdtfEngine.loadContent(content, this._loadData);
-                node.transformations = transformations.concat(node.transformations);
-                return node;
+                node = await this._sdtfEngine.loadContent(content, this._loadData);
             } else {
-                const customNode = new TreeNode('custom');
-                customNode.data.push(new CustomData({ ...content }));
-                customNode.transformations = transformations.concat(customNode.transformations);
-                return customNode;
+                node = new TreeNode('custom');
+                node.data.push(new CustomData({ ...content }));
             }
+
+            const transformationNode = new TreeNode('transformation');
+            if (content.transformations && Array.isArray(content.transformations)) {
+                for (let i = 0; i < content.transformations.length; i++) {
+                    const t = content.transformations[i];
+                    if (Array.isArray(t) && t.length === 16) {
+                        const nodeInstance = node.cloneInstance();
+                        nodeInstance.transformations.push({
+                            id: 'content_' + i,
+                            matrix: mat4.fromValues(t[0], t[1], t[2], t[3],
+                                t[4], t[5], t[6], t[7],
+                                t[8], t[9], t[10], t[11],
+                                t[12], t[13], t[14], t[15])
+                        })
+                        transformationNode.addChild(nodeInstance)
+                    }
+                }
+            } else {
+                transformationNode.addChild(node)
+            }
+            return transformationNode;
+
         } catch (e) {
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `DataEngine.loadContent`, e);
         }

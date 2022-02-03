@@ -128,7 +128,7 @@ export class GeometryLoader implements ILoader {
                 materialData = geometry.primitive.material;
             }
 
-            const threeGeometry = this._geometryCache[geometry.id + '_' + geometry.version].threeGeometry;
+            const threeGeometry = this._geometryCache[geometry.id + '_' + geometry.version].threeGeometry.clone();
             const materialSettings = {
                 mode: geometry.primitive.mode,
                 useVertexTangents: threeGeometry.attributes.tangent !== undefined,
@@ -140,7 +140,7 @@ export class GeometryLoader implements ILoader {
 
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
-            const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj;
+            const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj.clone();
             obj.traverse(o => {
                 if(
                     o instanceof THREE.Points || 
