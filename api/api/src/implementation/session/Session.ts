@@ -364,6 +364,7 @@ export class Session implements ISession {
 
     public async customize(): Promise<TreeNode> {
         try {
+            const oldNode = this.#node.cloneInstance();
             const customizationID = this.#uuidGenerator.create();
             this.#customizationProcess = customizationID;
 
@@ -450,7 +451,6 @@ export class Session implements ISession {
 
             this.#performanceEvaluator.startSection('finish');
             if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
-            const oldNode = this.#node;
             this.#node = newNode;
             if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
 
@@ -879,6 +879,7 @@ export class Session implements ISession {
 
     public async updateOutputs(): Promise<TreeNode> {
         try {
+            const oldNode = this.#node.cloneInstance();
             const customizationID = this.#uuidGenerator.create();
             this.#customizationProcess = customizationID;
 
@@ -907,7 +908,6 @@ export class Session implements ISession {
 
             this.#performanceEvaluator.startSection('finish');
             if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
-            const oldNode = this.#node;
             this.#node = newNode;
             if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
 

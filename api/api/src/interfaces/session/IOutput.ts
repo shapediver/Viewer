@@ -12,18 +12,7 @@ export interface ShapeDiverResponseOutputContent extends ShapeDiverResponseOutpu
 export interface IOutput extends ShapeDiverResponseOutput {
     readonly node?: TreeNode;
     freeze: boolean;
-
-    /**
-     * Register a new callback that is called whenever the output node is updated.
-     * This can be used to adjust transformation, set visibility or just in general, manipulate the node
-     * @param cb 
-     */
-    addUpdateCallback(cb: (newNode: TreeNode, oldNode: TreeNode) => void): void;
-
-    /**
-     * Remove the update callback that was specified.
-     */
-    removeUpdateCallback(): boolean;
+    updateCallback: ((newNode: TreeNode, oldNode: TreeNode) => void) | null;
 
     /**
      * Update the output (used internally)

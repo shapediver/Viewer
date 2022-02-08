@@ -198,6 +198,22 @@ export class Output implements IOutput {
   public get uid(): string | undefined {
     return this.#uid;
   }
+  
+  public get updateCallback(): ((newNode: TreeNode, oldNode: TreeNode) => void) | null {
+    return this.#updateCallback;
+  }
+
+  public set updateCallback(value: ((newNode: TreeNode, oldNode: TreeNode) => void) | null) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).updateCallback: Updating updateCallback to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).updateCallback`, value, 'function', false);
+      this.#updateCallback = value;
+      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).updateCallback: updateCallback was updated to ${this.updateCallback}.`);
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateCallback`, e);
+    }
+  }
 
   public get version(): string {
     return this.#version;
@@ -206,16 +222,6 @@ export class Output implements IOutput {
   // #endregion Public Accessors (21)
 
   // #region Public Methods (4)
-
-  public addUpdateCallback(cb: (newNode: TreeNode, oldNode: TreeNode) => void): void {
-    this.#updateCallback = cb;
-  }
-
-  public removeUpdateCallback(): boolean {
-    if(!this.#updateCallback) return false;
-    this.#updateCallback = null;
-    return true;
-  }
 
   public updateOutput(newNode: TreeNode, oldNode: TreeNode) {
     const outputDef = this.#sessionEngine.outputs[this.id];
