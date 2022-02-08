@@ -551,7 +551,7 @@ export class GLTFLoader {
         const sceneID = this._content.scene || 0;
         if (!this._content.scenes[sceneID]) throw new Error('Scene not available.')
         const scene = this._content.scenes[sceneID];
-        const sceneDef = new TreeNode('scene_' + scene.name || sceneID + '');
+        const sceneDef = new TreeNode(scene.name || 'scene_' + sceneID + '');
         sceneDef.transformations.push({
             id: this._uuidGenerator.create(),
             matrix: this._globalTransformation

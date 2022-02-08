@@ -121,7 +121,7 @@ const updateInteractions = (interactionTypes: { [key: string]: boolean; }) => {
     const shelves = [topShelf, bottomShelf];
     for(let i = 0; i < shelves.length; i++) {
         for(let j = 0; j < shelves[i].counter; j++) {
-            const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + j)!;
+            const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + j)!;
             if(!node) continue;
     
             // we enable dragging for this node
@@ -217,7 +217,7 @@ const addShelf = async (def: ShelfDefinition) => {
     def.snapLines.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
 
     // once the new node is created, this is how we find it
-    const newNode = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter-1))!;
+    const newNode = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter-1))!;
 
     // we enable dragging for this node
     const data = new InteractionData({drag: true});
@@ -230,7 +230,7 @@ const addShelf = async (def: ShelfDefinition) => {
     // we add the data and make the node invisible for now
     newNode.data.push(data);
     newNode!.visible = false;
-    newNode.updateVersion();
+    SDV.api.update();
 
     // we tell the dragManager to drag this node
     dragManager.setNode(newNode!);
@@ -267,8 +267,9 @@ const addShelf = async (def: ShelfDefinition) => {
 
         await updateParameter(def);
 
-        const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter - 1))!;
+        const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter - 1))!;
         node.visible = false;
+        SDV.api.update();
         
         SDV.api.removeListener(tokenEnd); 
         activateInteractions();
@@ -326,10 +327,11 @@ const addShelf = async (def: ShelfDefinition) => {
     const shelves = [topShelf, bottomShelf];
 
     for(let i = 0; i < shelves.length; i++) {
-            const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.scene_undefined.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (shelves[i].counter - 1))!;
+            const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (shelves[i].counter - 1))!;
             if(!node) continue;
             node.visible = false;
     }
+    SDV.api.update();
 
     viewer.show = true;
 
