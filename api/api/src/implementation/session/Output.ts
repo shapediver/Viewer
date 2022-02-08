@@ -8,7 +8,7 @@ import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ShapeDiverResponseOutputChunk } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export class Output implements IOutput {
-  // #region Properties (20)
+  // #region Properties (21)
 
   readonly #chunks?: ShapeDiverResponseOutputChunk[];
   readonly #dependency!: string[];
@@ -31,9 +31,10 @@ export class Output implements IOutput {
   #msg?: string;
   #order?: number;
   #tooltip?: string;
+  #updateCallback: ((newNode: TreeNode, oldNode: TreeNode) => void) | null = null;
   #version: string;
 
-  // #endregion Properties (20)
+  // #endregion Properties (21)
 
   // #region Constructors (1)
 
@@ -107,6 +108,22 @@ export class Output implements IOutput {
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).displayname`, e);
+    }
+  }
+
+  public get freeze(): boolean {
+    return this.#sessionEngine.outputsFreeze[this.#id];
+  }
+
+  public set freeze(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze: Updating Freeze to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze`, value, 'boolean');
+      this.#sessionEngine.outputsFreeze[this.#id] = value;
+      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze: Freeze was updated to ${this.freeze}.`);
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).freeze`, e);
     }
   }
 
@@ -188,9 +205,19 @@ export class Output implements IOutput {
 
   // #endregion Public Accessors (21)
 
-  // #region Public Methods (1)
+  // #region Public Methods (4)
 
-  public updateOutput() {
+  public addUpdateCallback(cb: (newNode: TreeNode, oldNode: TreeNode) => void): void {
+    this.#updateCallback = cb;
+  }
+
+  public removeUpdateCallback(): boolean {
+    if(!this.#updateCallback) return false;
+    this.#updateCallback = null;
+    return true;
+  }
+
+  public updateOutput(newNode: TreeNode, oldNode: TreeNode) {
     const outputDef = this.#sessionEngine.outputs[this.id];
     this.#version = outputDef.version;
     this.#delay = outputDef.delay;
@@ -198,12 +225,15 @@ export class Output implements IOutput {
     this.#bbmin = outputDef.bbmin;
     this.#bbmax = outputDef.bbmax;
     this.#msg = outputDef.msg;
+    if(this.#updateCallback) this.#updateCallback(newNode, oldNode);
   }
 
-  public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[]) {
+  public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[], preventUpdate: boolean = false): Promise<TreeNode | undefined> {
     this.#sessionEngine.outputs[this.id].content = outputContent;
     this.#sessionEngine.outputs[this.id].version = this.#uuidGenerator.create();
+    if(!preventUpdate) await this.#session.updateOutputs();
+    return this.node;
   }
 
-  // #endregion Public Methods (1)
+  // #endregion Public Methods (4)
 }

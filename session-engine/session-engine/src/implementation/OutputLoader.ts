@@ -13,10 +13,13 @@ export class OutputLoader {
     // #region Properties (3)
 
     private readonly _dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
-    private readonly _lastOutputNodes: { 
+    private readonly _loadedOutputNodes: { 
         [key: string]: {
             [key: string]: SessionTreeNode
         }; 
+    } = {};
+    private readonly _lastOutputNodes: { 
+        [key: string]: SessionTreeNode
     } = {};
     private readonly _performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 
@@ -42,7 +45,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs: { [key: string]: ShapeDiverResponseOutput; }, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<SessionTreeNode> {
+    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<SessionTreeNode> {
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(responseDto.model?.name);
         let currentNodes: { 
@@ -56,12 +59,14 @@ export class OutputLoader {
 
         for (let outputID in outputs) {
             currentNodes[outputID] = {};
-            if(!this._lastOutputNodes[outputID]) 
-                this._lastOutputNodes[outputID] = {};
-                
-            if(outputs[outputID].delay) {
+            if(!this._loadedOutputNodes[outputID]) 
+                this._loadedOutputNodes[outputID] = {};
+             
+            if(outputsFreeze[outputID]) {
+                currentNodes[outputID][outputs[outputID].version] = this._lastOutputNodes[outputID];
+            } else if(outputs[outputID].delay) {
                 maxDelay = Math.max(maxDelay, outputs[outputID].delay!);
-            } else if(!this._lastOutputNodes[outputID][outputs[outputID].version]) {
+            } else if(!this._loadedOutputNodes[outputID][outputs[outputID].version]) {
                 currentNodes[outputID][outputs[outputID].version] = new SessionTreeNode(outputID);
                 currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
@@ -71,7 +76,7 @@ export class OutputLoader {
                     }
                 }
             } else {
-                currentNodes[outputID][outputs[outputID].version] = this._lastOutputNodes[outputID][outputs[outputID].version];
+                currentNodes[outputID][outputs[outputID].version] = this._loadedOutputNodes[outputID][outputs[outputID].version];
             }
         }
 
@@ -91,8 +96,9 @@ export class OutputLoader {
 
         // save the nodes as the last available version
         for (let outputID in outputs) {
-            this._lastOutputNodes[outputID] = {};
-            this._lastOutputNodes[outputID][outputs[outputID].version] = currentNodes[outputID][outputs[outputID].version];
+            this._loadedOutputNodes[outputID] = {};
+            this._loadedOutputNodes[outputID][outputs[outputID].version] = currentNodes[outputID][outputs[outputID].version];
+            this._lastOutputNodes[outputID] = currentNodes[outputID][outputs[outputID].version];
         }
 
         for (let outputID in outputs) {

@@ -19,6 +19,7 @@ export class Session implements ISession {
     private readonly _modelViewUrl: string;
     private readonly _outputLoader: OutputLoader;
     private readonly _outputs: { [key: string]: ShapeDiverResponseOutput; } = {};
+    private readonly _outputsFreeze: { [key: string]: boolean; } = {};
     private readonly _parameterValues: { [key: string]: string; } = {};
     private readonly _parameters: { [key: string]: ShapeDiverResponseParameter; } = {};
     private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
@@ -108,6 +109,10 @@ export class Session implements ISession {
 
     public get outputs(): { [key: string]: ShapeDiverResponseOutput; } {
         return this._outputs;
+    }
+
+    public get outputsFreeze(): { [key: string]: boolean; } {
+        return this._outputsFreeze;
     }
 
     public get parameterValues(): { [key: string]: string; } {
@@ -266,8 +271,9 @@ export class Session implements ISession {
         this.checkAvailability();
 
         const o = Object.assign({}, this._outputs);
+        const of = Object.assign({}, this._outputsFreeze);
         try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, this.loadData.bind(this));
+            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of, this.loadData.bind(this));
             node.data.push(new SessionData(this._responseDto!));
             return node;
         }
@@ -576,6 +582,7 @@ export class Session implements ISession {
         for (let outputId in this._responseDto.outputs) {
             this.outputs[outputId] = <ShapeDiverResponseOutput>this._responseDto.outputs[outputId];
             this.outputs[outputId].id = outputId;
+            if(this.outputsFreeze[outputId] === undefined) this.outputsFreeze[outputId] = false;
         }
     }
 

@@ -430,7 +430,7 @@ export class Session implements ISession {
 
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('customize');
-            const node = await this.#sessionEngine.customize(() => this.#customizationProcess !== customizationID);
+            const newNode = await this.#sessionEngine.customize(() => this.#customizationProcess !== customizationID);
             this.#performanceEvaluator.endSection('customize');
 
             // OPTION TO SKIP - PART 2
@@ -439,7 +439,7 @@ export class Session implements ISession {
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
-                return node;
+                return newNode;
             }
 
             // if this is not a call by the goBack or goForward functions, add the parameter values to the history and delete the forward history
@@ -450,7 +450,8 @@ export class Session implements ISession {
 
             this.#performanceEvaluator.startSection('finish');
             if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
-            this.#node = node;
+            const oldNode = this.#node;
+            this.#node = newNode;
             if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
 
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
@@ -461,7 +462,10 @@ export class Session implements ISession {
 
             // set the output content to what has been updated
             for (const outputId in this.outputs) 
-                this.outputs[outputId].updateOutput();
+                this.outputs[outputId].updateOutput(
+                    newNode.children.find(c => c.name === outputId)!, 
+                    oldNode.children.find(c => c.name === outputId)!
+                );
 
             this.node.excludeViewers = this.#excludeViewers;
 
@@ -889,7 +893,7 @@ export class Session implements ISession {
 
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('updateOutputs');
-            const node = await this.#sessionEngine.loadOutputs(() => this.#customizationProcess !== customizationID);
+            const newNode = await this.#sessionEngine.loadOutputs(() => this.#customizationProcess !== customizationID);
             this.#performanceEvaluator.endSection('updateOutputs');
 
             // OPTION TO SKIP - PART 1
@@ -898,19 +902,23 @@ export class Session implements ISession {
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
                 this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
-                return node;
+                return newNode;
             }
 
             this.#performanceEvaluator.startSection('finish');
             if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
-            this.#node = node;
+            const oldNode = this.#node;
+            this.#node = newNode;
             if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
 
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
 
             // set the output content to what has been updated
             for (const outputId in this.outputs) 
-                this.outputs[outputId].updateOutput();
+                this.outputs[outputId].updateOutput(
+                    newNode.children.find(c => c.name === outputId)!, 
+                    oldNode.children.find(c => c.name === outputId)!
+                );
 
             this.node.excludeViewers = this.#excludeViewers;
 
