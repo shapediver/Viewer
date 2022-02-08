@@ -42,7 +42,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle: Updating Angle to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle`, value, 'positive');
             this.#light.angle = value;
-            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle: angle was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle: angle was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle`, e);
@@ -58,7 +58,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: Updating Decay to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay`, value, 'positive');
             this.#light.decay = value;
-            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: decay was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: decay was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -75,7 +75,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: Updating Distance to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance`, value, 'positive');
             this.#light.distance = value;
-            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: distance was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: distance was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -92,7 +92,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra: Updating Penumbra to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra`, value, 'positive');
             this.#light.penumbra = value;
-            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra: penumbra was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra: penumbra was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -109,7 +109,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: Updating Position to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position`, value, 'vec3');
             this.#light.position = value;
-            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: position was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: position was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -126,7 +126,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target: Updating Target to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target`, value, 'vec3');
             this.#light.target = value;
-            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target: target was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target: target was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
