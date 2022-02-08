@@ -73,7 +73,6 @@ export class TreeNode {
 
   public set boundingBox(value: Box) {
     this.#boundingBox = value;
-    this.updateVersion();
   }
 
   public get children(): TreeNode[] {
@@ -90,7 +89,6 @@ export class TreeNode {
 
   public set excludeViewers(value: string[]) {
     this.#excludeViewers = value;
-    this.updateVersion();
   }
 
   public get id(): string {
@@ -99,7 +97,6 @@ export class TreeNode {
 
   public set id(value: string) {
     this.#id = value;
-    this.updateVersion();
   }
 
   public get name(): string {
@@ -134,7 +131,6 @@ export class TreeNode {
       value.addChild(this);
 
     this.#parent = value;
-    this.updateVersion();
   }
 
   public get transformations(): ITransformation[] {
@@ -156,7 +152,6 @@ export class TreeNode {
     [key: string]: ISDObject
   }) {
     this.#transformedNodes = value;
-    this.updateVersion();
   }
 
   public get version(): string {
@@ -203,7 +198,6 @@ export class TreeNode {
     if (child.parent !== null)
       child.parent.removeChild(child);
     child.parent = this;
-    this.updateVersion();
     return true;
   }
 
@@ -288,7 +282,6 @@ export class TreeNode {
     if (index === -1) return false;
     this.#children.splice(index, 1);
     child.parent = null;
-    this.updateVersion();
     return true;
   }
 
