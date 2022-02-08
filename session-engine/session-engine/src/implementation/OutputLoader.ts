@@ -234,7 +234,7 @@ export class OutputLoader {
 
         const children = [];
         while(node.children.length > 0) {
-            children.push(node.children[0]);
+            children.push(...node.children[0].children);
             node.removeChild(node.children[0]);
         }
 
