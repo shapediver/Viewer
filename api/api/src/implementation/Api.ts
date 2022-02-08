@@ -63,7 +63,7 @@ export class Api implements IApi {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Closing viewer ${id}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.closeViewer', id, 'string');
       if (!this.viewers[id]) {
-        this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
+        this.#logger.warn(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
         return false;
       }
 
@@ -83,7 +83,7 @@ export class Api implements IApi {
       delete this.viewers[id];
 
       delete this.#stateEngine.viewers[id];
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
       return result;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -125,14 +125,14 @@ export class Api implements IApi {
       delete this.sessions[id];
       delete this.#stateEngine.sessions[id];
 
-      this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
+      this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
 
       for (let s in this.sessions) {
         const session = this.sessions[s];
         if (session.primarySessionRequest) {
           await this.#sessionCallbacks[s].setAsPrimary();
           this.#stateEngine.primarySessionAvailable.resolve(true);
-          this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
+          this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
           break;
         }
       }
@@ -183,7 +183,7 @@ export class Api implements IApi {
       for(let s in this.sessions)
         this.#automaticUpdate ? this.sceneTree.addNode(this.sessions[s].node) : this.sceneTree.removeNode(this.sessions[s].node)
 
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.automaticUpdate: automaticUpdate was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.automaticUpdate: automaticUpdate was set to: ${value}`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.automaticUpdate', e);
@@ -199,7 +199,7 @@ export class Api implements IApi {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.autoScaling: Updating autoScaling to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', value, 'boolean');
       this.#settingsEngine.ar.autoScaling = value;
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.autoScaling: autoScaling was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.autoScaling: autoScaling was set to: ${value}`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', e);
@@ -215,7 +215,7 @@ export class Api implements IApi {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.enableAR: Updating enableAR to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.enableAR', value, 'boolean');
       this.#settingsEngine.ar.enable = value;
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.enableAR: enableAR was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.enableAR: enableAR was set to: ${value}`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.enableAR', e);
@@ -235,7 +235,7 @@ export class Api implements IApi {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalRotation: Updating globalRotation to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.globalRotation', value, 'vec3');
       this.#settingsEngine.general.transformation.rotation = { x: value[0], y: value[1], z: value[2] };
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalRotation: globalRotation was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.globalRotation: globalRotation was set to: ${value}`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.globalRotation', e);
@@ -255,7 +255,7 @@ export class Api implements IApi {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalScale: Updating globalScale to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.globalScale', value, 'vec3');
       this.#settingsEngine.general.transformation.scale = { x: value[0], y: value[1], z: value[2] };
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalScale: globalScale was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.globalScale: globalScale was set to: ${value}`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.globalScale', e);
@@ -275,7 +275,7 @@ export class Api implements IApi {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.globalTranslation: Updating globalTranslation to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.globalTranslation', value, 'vec3');
       this.#settingsEngine.general.transformation.translation = { x: value[0], y: value[1], z: value[2] };
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.globalTranslation: globalTranslation was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.globalTranslation: globalTranslation was set to: ${value}`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.globalTranslation', e);
@@ -291,7 +291,7 @@ export class Api implements IApi {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.loggingLevel: Updating LoggingLevel to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.loggingLevel', value, 'enum', true, Object.values(LOGGINGLEVEL));
       this.#logger.loggingLevel = value;
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.loggingLevel: LoggingLevel was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.loggingLevel: LoggingLevel was set to: ${value}`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.loggingLevel', e);
@@ -308,7 +308,7 @@ export class Api implements IApi {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.showMessages', value, 'boolean');
       this.#logger.showMessages = value;
       this.#settingsEngine.general.showMessages = this.#logger.showMessages;
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.showMessages: ShowMessages was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.showMessages: ShowMessages was set to: ${value}`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.showMessages', e);
@@ -322,7 +322,7 @@ export class Api implements IApi {
   public addListener(type: string | MAINEVENTTYPE, cb: (event: IEvent) => void): string {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
-      this.#logger.info(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
       return this.#eventEngine.addListener(type, cb);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -564,7 +564,7 @@ export class Api implements IApi {
       
       this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId });
       this.#stateEngine.sessions[sessionId].initialized.resolve(true);
-      this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
+      this.#logger.debug(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
     } catch (e) {
       await this.#closeSession(sessionId, true);
@@ -633,7 +633,7 @@ export class Api implements IApi {
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
       this.#stateEngine.viewers[viewerId].initialized.resolve(true);
 
-      this.#logger.info(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
       return this.viewers[viewerId];
     } catch (e) {
       try { this.#closeViewer(viewerId, true); } catch {}

@@ -68,7 +68,7 @@ export class Export implements IExport {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname: Updating DisplayName to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname`, value, 'string', false);
       this.#displayname = value;
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
+      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname`, e);
@@ -84,7 +84,7 @@ export class Export implements IExport {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Updating Hidden to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden`, value, 'boolean');
       this.#hidden = value;
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
+      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden`, e);
@@ -108,7 +108,7 @@ export class Export implements IExport {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Updating Order to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order`, value, 'number', false);
       this.#order = value;
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Order was updated to ${this.order}.`);
+      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Order was updated to ${this.order}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order`, e);
@@ -124,7 +124,7 @@ export class Export implements IExport {
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip: Updating tooltip to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip`, value, 'string', false);
       this.#tooltip = value;
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip`, e);

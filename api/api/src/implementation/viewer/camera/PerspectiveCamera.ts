@@ -58,7 +58,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
             this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov`, value, 'positive');
             this.#camera.fov = value;
             this.#viewer.update();
-            this.#logger.info(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov: fov was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov: fov was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov`, e);

@@ -42,7 +42,7 @@ export abstract class AbstractLight implements ILight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: Updating Color to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color`, value, 'color');
             this.#light.color = this.#converter.toColor(value);
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: color was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: color was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -63,7 +63,7 @@ export abstract class AbstractLight implements ILight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: Updating Intensity to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity`, value, 'positive');
             this.#light.intensity = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: intensity was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: intensity was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -80,7 +80,7 @@ export abstract class AbstractLight implements ILight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: Updating Name to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name`, value, 'string', false);
             this.#light.name = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: name was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: name was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -97,7 +97,7 @@ export abstract class AbstractLight implements ILight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: Updating Order to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order`, value, 'number', false);
             this.#light.order = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: order was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: order was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

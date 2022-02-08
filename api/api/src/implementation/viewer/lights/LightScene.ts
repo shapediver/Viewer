@@ -100,7 +100,7 @@ export class LightScene implements ILightScene {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name: Updating Name to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name`, value, 'string', false);
             this.#lightSceneLogic.name = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name: name was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name: name was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -135,7 +135,7 @@ export class LightScene implements ILightScene {
             if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
             const lightLogic = this.#lightSceneLogic.addAmbientLight(<any>props);
             const light = this.lights[lightLogic.id];
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Ambient light with id ${light.id} created.`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Ambient light with id ${light.id} created.`);
             this.#viewer.update();
             return <IAmbientLight>light;
         } catch (e) {
@@ -171,7 +171,7 @@ export class LightScene implements ILightScene {
             if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
             const lightLogic = this.#lightSceneLogic.addDirectionalLight(<any>props);
             const light = this.lights[lightLogic.id];
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Directional light with id ${light.id} created.`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Directional light with id ${light.id} created.`);
             this.#viewer.update();
             return <IDirectionalLight>light;
         } catch (e) {
@@ -202,7 +202,7 @@ export class LightScene implements ILightScene {
             if (props.groundColor !== undefined) props.groundColor = this.#converter.toColor(props.groundColor);
             const lightLogic = this.#lightSceneLogic.addHemisphereLight(<any>props);
             const light = this.lights[lightLogic.id];
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Hemisphere light with id ${light.id} created.`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Hemisphere light with id ${light.id} created.`);
             this.#viewer.update();
             return <IHemisphereLight>light;
         } catch (e) {
@@ -236,7 +236,7 @@ export class LightScene implements ILightScene {
             if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
             const lightLogic = this.#lightSceneLogic.addPointLight(<any>props);
             const light = this.lights[lightLogic.id];
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Point light with id ${light.id} created.`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Point light with id ${light.id} created.`);
             this.#viewer.update();
             return <IPointLight>light;
         } catch (e) {
@@ -278,7 +278,7 @@ export class LightScene implements ILightScene {
             const lightLogic = this.#lightSceneLogic.addSpotLight(<any>props);
             const light = this.lights[lightLogic.id];
 
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Spot light with id ${light.id} created.`);
+            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Spot light with id ${light.id} created.`);
             this.#viewer.update();
             return <ISpotLight>light;
         } catch (e) {
@@ -298,8 +298,8 @@ export class LightScene implements ILightScene {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Removing Light with id ${id}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight`, id, 'string');
             const r = this.#lightSceneLogic.removeLight(id);
-            if (r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Light with id ${id} removed.`);
-            if (!r) this.#logger.info(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Could not remove light with id ${id}.`);
+            if (r) this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Light with id ${id} removed.`);
+            if (!r) this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Could not remove light with id ${id}.`);
             this.#viewer.update();
             return r;
         } catch (e) {

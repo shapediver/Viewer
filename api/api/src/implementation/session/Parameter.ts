@@ -164,7 +164,7 @@ export class Parameter<T> implements IParameter<T> {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).displayname: Updating DisplayName to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).displayname`, value, 'string', false);
             this.#displayname = value;
-            this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
+            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).displayname`, e);
@@ -192,7 +192,7 @@ export class Parameter<T> implements IParameter<T> {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).hidden: Updating Hidden to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).hidden`, value, 'boolean');
             this.#hidden = value;
-            this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
+            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).hidden`, e);
@@ -228,7 +228,7 @@ export class Parameter<T> implements IParameter<T> {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).order: Updating Order to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).order`, value, 'number', false);
             this.#order = value;
-            this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).order: Order was updated to ${this.order}.`);
+            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).order: Order was updated to ${this.order}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).order`, e);
@@ -244,7 +244,7 @@ export class Parameter<T> implements IParameter<T> {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).sessionValue: Updating SessionValue to ${value}.`);
             if (this.isValid(value, true)) {
                 this.#sessionValue = value;
-                this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).sessionValue: SessionValue was updated to ${this.value}.`);
+                this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).sessionValue: SessionValue was updated to ${this.value}.`);
             } else {
                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).sessionValue: Could not validate value.`);
                 throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).sessionValue`, error);
@@ -268,7 +268,7 @@ export class Parameter<T> implements IParameter<T> {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: Updating tooltip to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip`, value, 'string', false);
             this.#tooltip = value;
-            this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).tooltip`, e);
@@ -289,7 +289,7 @@ export class Parameter<T> implements IParameter<T> {
             if (this.isValid(value, true)) {
                 this.#value = value;
                 this.#lastValidatedValue = this.value;
-                this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).value: Value was updated to ${this.value}.`);
+                this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).value: Value was updated to ${this.value}.`);
                 if(this.#session.automaticUpdate) this.#session.customize();
             } else {
                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).value: Could not validate value.`);
@@ -436,7 +436,7 @@ export class Parameter<T> implements IParameter<T> {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToDefaultValue: Resetting value ${this.value} to default value ${this.#defaultValue}.`);
             this.#value = this.#defaultValue;
-            this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToDefaultValue: value was set to default value ${this.#defaultValue}.`);
+            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToDefaultValue: value was set to default value ${this.#defaultValue}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).resetToDefaultValue`, e);
@@ -447,7 +447,7 @@ export class Parameter<T> implements IParameter<T> {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToSessionValue: Resetting value ${this.value} to last session value ${this.sessionValue}.`);
             this.#value = this.sessionValue;
-            this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToSessionValue: value was set to last session value ${this.sessionValue}.`);
+            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToSessionValue: value was set to last session value ${this.sessionValue}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).resetToSessionValue`, e);

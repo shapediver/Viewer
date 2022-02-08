@@ -42,7 +42,7 @@ export class PointLight extends AbstractLight implements IPointLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: Updating Decay to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay`, value, 'positive');
             this.#light.decay = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: decay was set to: ${value}`);
+            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: decay was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -59,7 +59,7 @@ export class PointLight extends AbstractLight implements IPointLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: Updating Distance to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance`, value, 'positive');
             this.#light.distance = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: distance was set to: ${value}`);
+            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: distance was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -76,7 +76,7 @@ export class PointLight extends AbstractLight implements IPointLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: Updating Position to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position`, value, 'vec3');
             this.#light.position = value;
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: position was set to: ${value}`);
+            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: position was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

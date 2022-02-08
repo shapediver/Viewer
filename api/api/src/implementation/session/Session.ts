@@ -150,7 +150,7 @@ export class Session implements ISession {
             this.#primarySessionRequest = properties.primarySession !== false;
             if (this.#stateEngine.primarySession && this.#stateEngine.primarySession.id === this.id) {
                 this.#primarySession = true;
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
+                this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
 
                 this.#stateEngine.sessions[this.id].settingsRegistered.then(() => {
                     this.#commitParameters = this.#settingsEngine.general.commitParameters;
@@ -186,7 +186,7 @@ export class Session implements ISession {
                     this.#settingsEngine.loadSettings(this.#sessionEngine.viewerSettings, this.id, this.primarySession);
                     await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
                     this.#api.update();
-                    this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
+                    this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
                 } catch (e) {
                     if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
                     throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary`, e);
@@ -233,7 +233,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate: Updating automaticUpdate to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate`, value, 'boolean');
             this.#automaticUpdate = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate: automaticUpdate was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate: automaticUpdate was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).automaticUpdate`, e);
@@ -249,7 +249,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken: Updating BearerToken to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken`, value, 'string', false);
             this.#sessionEngine.bearerToken = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken: bearerToken was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken: bearerToken was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).bearerToken`, e);
@@ -269,7 +269,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: Updating CommitParameters to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters`, value, 'boolean');
             this.#commitParameters = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: commitParameters was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: commitParameters was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters`, e);
@@ -285,7 +285,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: Updating CommitSettings to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings`, value, 'boolean');
             this.#commitSettings = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: commitSettings was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: commitSettings was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings`, e);
@@ -337,7 +337,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken: Updating RefreshBearerToken to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken`, value, 'function');
             this.#sessionEngine.refreshBearerToken = value;
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken: refreshBearerToken was set to: ${value}`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken: refreshBearerToken was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).refreshBearerToken`, e);
@@ -388,7 +388,7 @@ export class Session implements ISession {
                         this.#performanceEvaluator.end();
                         for (let viewerId in this.#api.viewers)
                             this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
-                        this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                        this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                         return new TreeNode();
                     }
                 }
@@ -400,7 +400,7 @@ export class Session implements ISession {
                 this.#performanceEvaluator.end();
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return new TreeNode();
             }
 
@@ -438,7 +438,7 @@ export class Session implements ISession {
                 this.#performanceEvaluator.end();
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return newNode;
             }
 
@@ -454,7 +454,7 @@ export class Session implements ISession {
             this.#node = newNode;
             if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
 
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customization request finished, updating geometry.`);
 
             // set the session values to the current ones in all parameters
             for (const parameterId in this.parameters)
@@ -472,7 +472,7 @@ export class Session implements ISession {
             for (let viewerId in this.#api.viewers)
                 this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
 
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
 
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
@@ -601,7 +601,7 @@ export class Session implements ISession {
     public async goBack(): Promise<TreeNode> { 
         try {
             if(!this.canGoBack()) {
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).goBack: Cannot go further back.`);
+                this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).goBack: Cannot go further back.`);
                 return new TreeNode();
             }
             // get the current parameter set and store it in the forward history later on
@@ -629,7 +629,7 @@ export class Session implements ISession {
     public async goForward(): Promise<TreeNode> {
         try {
             if(!this.canGoForward()) {
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).goForward: Cannot go further forward.`);
+                this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).goForward: Cannot go further forward.`);
                 return new TreeNode();
             }
             // get the last undone parameter set and apply the values to the parameters
@@ -747,7 +747,7 @@ export class Session implements ISession {
             if (this.primarySession !== false) await Promise.all(viewerPromises);
 
             this.#api.update();
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).init: Session initialized.`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).init: Session initialized.`);
 
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
@@ -762,7 +762,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saving default parameters.`);
             const response = await this.#sessionEngine.saveDefaultParameters();
             if (response) {
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
+                this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
             } else {
                 const error = new ShapeDiverViewerSessionError(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`);
                 throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveDefaultParameters`, error);
@@ -825,7 +825,7 @@ export class Session implements ISession {
             const response = saveInSettings ? await this.#sessionEngine.saveSettings(this.#settingsEngine.convertToTargetVersion()) : true;
 
             if (response && responseP && responseO && responseE) {
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saved session properties.`);
+                this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saved session properties.`);
             } else {
                 this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Could not save session properties.`);
             }
@@ -863,7 +863,7 @@ export class Session implements ISession {
                 renderingEngine!.saveSettings();
                 const response = await this.#sessionEngine.saveSettings(this.#settingsEngine.convertToTargetVersion());
                 if (response) {
-                    this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Saved settings.`);
+                    this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings: Saved settings.`);
                 } else {
                     const error = new ShapeDiverViewerSessionError(`Session(${this.id}).saveSettings: Could not save settings.`);
                     throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSettings`, error);
@@ -901,7 +901,7 @@ export class Session implements ISession {
                 this.#performanceEvaluator.end();
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
-                this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
+                this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
                 return newNode;
             }
 
@@ -911,7 +911,7 @@ export class Session implements ISession {
             this.#node = newNode;
             if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
 
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
 
             // set the output content to what has been updated
             for (const outputId in this.outputs) 
@@ -925,7 +925,7 @@ export class Session implements ISession {
             for (let viewerId in this.#api.viewers)
                 this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
 
-            this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updated outputs.`);
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updated outputs.`);
 
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();

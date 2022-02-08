@@ -104,7 +104,7 @@ export class Output implements IOutput {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname: Updating DisplayName to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname`, value, 'string', false);
       this.#displayname = value;
-      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
+      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).displayname`, e);
@@ -120,7 +120,7 @@ export class Output implements IOutput {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze: Updating Freeze to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze`, value, 'boolean');
       this.#sessionEngine.outputsFreeze[this.#id] = value;
-      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze: Freeze was updated to ${this.freeze}.`);
+      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze: Freeze was updated to ${this.freeze}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).freeze`, e);
@@ -136,7 +136,7 @@ export class Output implements IOutput {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden: Updating Hidden to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden`, value, 'boolean');
       this.#hidden = value;
-      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
+      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).hidden`, e);
@@ -172,7 +172,7 @@ export class Output implements IOutput {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order: Updating Order to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order`, value, 'number', false);
       this.#order = value;
-      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order: Order was updated to ${this.order}.`);
+      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order: Order was updated to ${this.order}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).order`, e);
@@ -188,7 +188,7 @@ export class Output implements IOutput {
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip: Updating tooltip to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip`, value, 'string', false);
       this.#tooltip = value;
-      this.#logger.info(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).tooltip`, e);

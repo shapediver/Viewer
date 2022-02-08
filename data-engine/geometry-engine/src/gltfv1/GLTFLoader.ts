@@ -188,11 +188,11 @@ export class GLTFLoader {
 
         if(material.extensions && material.extensions.KHR_materials_common) {
             const technique = material.extensions.KHR_materials_common.technique;
-            if(technique && technique !== 'BLINN') this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'The technique ' + technique + ' is not supported. Trying to load the material either way.')
+            if(technique && technique !== 'BLINN') this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'The technique ' + technique + ' is not supported. Trying to load the material either way.')
             const values = material.extensions.KHR_materials_common.values;
 
             if (values.hasOwnProperty('ambient')) 
-                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value ambient was set for a material, but is not supported.')
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value ambient was set for a material, but is not supported.')
 
             if (values.hasOwnProperty('doubleSided')) 
                 materialData.side = values.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
@@ -202,13 +202,13 @@ export class GLTFLoader {
                 materialData.color = this._converter.toColor(values.diffuse);
                 materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
             } else if(values.hasOwnProperty('diffuse') && !Array.isArray(values.diffuse)) {
-                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
             }
 
             if (values.hasOwnProperty('emission') && Array.isArray(values.emission)) {
                 materialData.emissiveness = this._converter.toColor(values.emission);
             } else {
-                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
             }
 
             if (values.hasOwnProperty('shininess')) {
@@ -220,7 +220,7 @@ export class GLTFLoader {
                 materialData.opacity = Math.max(0.0, Math.min(values.transparency, 1.0));
 
             if (values.hasOwnProperty('transparent')) 
-                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value transparent was set for a material, but is not supported.')
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value transparent was set for a material, but is not supported.')
 
             if (values.hasOwnProperty('_roughness'))
                 materialData.roughness = Math.min(1, Math.max(0, values.roughness));

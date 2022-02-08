@@ -43,7 +43,7 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
             this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor: Updating GroundColor to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor`, value, 'color');
             this.#light.groundColor = this.#converter.toColor(value);
-            this.#logger.info(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor: groundColor was set to: ${value}`);
+            this.#(LOGGINGTOPIC.LIGHT, `Light(${this.id}).groundColor: groundColor was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

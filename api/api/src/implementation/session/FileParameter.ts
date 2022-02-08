@@ -78,7 +78,7 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
                 throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
             }
 
-            this.#logger.info(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
+            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
 
             return await this.#sessionEngine.uploadFile(this.id, data, type!)
         } catch (e) {
