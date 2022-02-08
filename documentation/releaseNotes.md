@@ -7,7 +7,42 @@
 * __Branch:__ development
 * __Commit:__ ac7a7c537044b60de2ca39feab032f2c767f1bb9
 <!--- VERSION_END -->
-## Version 1.11.1 - `Kick-Ass`
+
+## Version 1.11.11 - `Kingdom of Heaven`
+- bugfix: multiple transformations
+- bugfix: alpha color updates
+- persistent updates integration
+
+## Version 1.11.10 - `Kung Fu Panda 3`
+- bugfix: default color / material
+
+## Version 1.11.9 - `Kung Fu Panda 2`
+- added new event types
+
+## Version 1.11.8 - `Kung Fu Panda`
+- attribute visualization updates
+
+## Version 1.11.7 - `Knives Out`
+- output update functionality
+
+## Version 1.11.6 - `Knocked Up`
+- bugfix: performance improvements
+- bugfix: envMap rotation
+- bugfix: animations 
+- bugfix: http-client
+- improved closing and error behavior
+- improved data loading
+- data loading and gltf matrix fixes
+
+## Version 1.11.5 - `Kong: Skull Island`
+
+## Version 1.11.4 - `The King’s Speech`
+
+## Version 1.11.3 - `The Killing`
+- updated viewer settings
+- gltf download improvements
+
+## Version 1.11.2 - `Kick-Ass`
 - implemented proper error handling and messaging
 
 ## Version 1.11.1 - `King Kong`

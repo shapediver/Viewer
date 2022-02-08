@@ -1,5 +1,8 @@
 # Breaking Changes Guide
 
+## Version 1.11.10 -> 1.11.11
+- `updateOutputContent` function signature, `session.updateOutputs()` now included, can be disabled via flag
+
 ## Version 1.11.1 -> 1.11.2
 - renamed `ENVIRONMENTMAP` to `ENVIRONMENT_MAP`
 - renamed `ENVIRONMENTMAP_CUBE` to `ENVIRONMENT_MAP_CUBE`
