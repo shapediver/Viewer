@@ -847,7 +847,7 @@ export class Session implements ISession {
             
             this.#settingsEngine.settings.build_version = build_data.build_version;
             this.#settingsEngine.settings.build_date = build_data.build_date;
-            this.#settingsEngine.settings.settings_version = '3.0';
+            this.#settingsEngine.settings.settings_version = '3.1';
 
             if (Object.values(this.#api.viewers).length !== 0) {
                 let viewer = viewerId ? this.#api.viewers[viewerId] : null;

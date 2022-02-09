@@ -31,6 +31,9 @@ describe('device testing', () => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/default');
@@ -42,6 +45,9 @@ describe('device testing', () => {
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             viewer.lightScene!.addAmbientLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/addAmbientLight');
@@ -53,6 +59,9 @@ describe('device testing', () => {
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             viewer.lightScene!.addDirectionalLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/addDirectionalLight');
@@ -64,6 +73,9 @@ describe('device testing', () => {
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             viewer.lightScene!.addHemisphereLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/addHemisphereLight');
@@ -75,6 +87,9 @@ describe('device testing', () => {
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             viewer.lightScene!.addPointLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/addPointLight');
@@ -86,6 +101,9 @@ describe('device testing', () => {
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             viewer.lightScene!.addSpotLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/addSpotLight');
@@ -99,6 +117,9 @@ describe('device testing', () => {
             viewer.createLightScene();
             viewer.removeLightScene('default');
             viewer.lightScene!.addAmbientLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/soloAmbientLight');
@@ -112,6 +133,9 @@ describe('device testing', () => {
             viewer.createLightScene();
             viewer.removeLightScene('default');
             viewer.lightScene!.addDirectionalLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/soloDirectionalLight');
@@ -125,6 +149,9 @@ describe('device testing', () => {
             viewer.createLightScene();
             viewer.removeLightScene('default');
             viewer.lightScene!.addHemisphereLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/soloHemisphereLight');
@@ -138,6 +165,9 @@ describe('device testing', () => {
             viewer.createLightScene();
             viewer.removeLightScene('default');
             viewer.lightScene!.addPointLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/soloPointLight');
@@ -151,6 +181,9 @@ describe('device testing', () => {
             viewer.createLightScene();
             viewer.removeLightScene('default');
             viewer.lightScene!.addSpotLight({});
+            await new Promise<void>((resolve) => {
+                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
             cb(Object.keys(viewer.lightScenes).length);
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/soloSpotLight');

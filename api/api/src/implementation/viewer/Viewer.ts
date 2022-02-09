@@ -4,7 +4,7 @@ import {
   OrthographicCamera as OrthographicCameraLogic,
   PerspectiveCamera as PerspectiveCameraLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERERTYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   Converter,
   EventEngine,
@@ -339,6 +339,23 @@ export class Viewer implements IViewer {
     }
   }
 
+  public get gridColor(): string | number | vec3 {
+    return this.#renderingEngine.gridColor;
+  }
+
+  public set gridColor(value: string | number | vec3) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridColor: Updating GridColor to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridColor`, value, 'color');
+      this.#renderingEngine.gridColor = this.#converter.toColor(value);
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridColor: gridColor was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridColor: Something unexpected happened.`, e)
+    }
+  }
+
   public get gridVisibility(): boolean {
     return this.#renderingEngine.gridVisibility;
   }
@@ -353,6 +370,23 @@ export class Viewer implements IViewer {
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility`, e);
+    }
+  }
+
+  public get groundPlaneColor(): string | number | vec3 {
+    return this.#renderingEngine.groundPlaneColor;
+  }
+
+  public set groundPlaneColor(value: string | number | vec3) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: Updating groundPlaneColor to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor`, value, 'color');
+      this.#renderingEngine.groundPlaneColor = this.#converter.toColor(value);
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: groundPlaneColor was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: Something unexpected happened.`, e)
     }
   }
 
@@ -419,6 +453,41 @@ export class Viewer implements IViewer {
     return this.#lightScenes;
   }
 
+  public get outputEncoding(): TEXTURE_ENCODING {
+    return this.#renderingEngine.outputEncoding;
+  }
+
+  public set outputEncoding(value: TEXTURE_ENCODING) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: Updating outputEncoding to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
+      this.#renderingEngine.outputEncoding = value;
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: outputEncoding was set to: ${value}`);
+      this.#sceneTree.root.updateVersion();
+      this.update();
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: Something unexpected happened.`, e);
+    }
+  }
+
+  public get physicallyCorrectLights(): boolean {
+    return this.#renderingEngine.physicallyCorrectLights;
+  }
+
+  public set physicallyCorrectLights(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights: Updating physicallyCorrectLights to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights`, value, 'boolean');
+      this.#renderingEngine.physicallyCorrectLights = value;
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights: physicallyCorrectLights was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights`, e);
+    }
+  }
+
   public get pointSize(): number {
     return this.#renderingEngine.pointSize;
   }
@@ -432,41 +501,7 @@ export class Viewer implements IViewer {
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize`, e);
-    }
-  }
-
-  public get renderingSettings(): {
-    physicallyCorrectLights: boolean,
-    envMapIntensity: number,
-    envMapIntensityGroundPlane: number,
-    groundPlaneColor: string,
-    toneMapping: 0 | 1 | 2 | 3 | 4,
-    toneMappingExposure: number,
-    textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
-    outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
-  } {
-    return this.#renderingEngine.renderingSettings;
-  }
-
-  public set renderingSettings(value: {
-    physicallyCorrectLights: boolean,
-    envMapIntensity: number,
-    envMapIntensityGroundPlane: number,
-    groundPlaneColor: string,
-    toneMapping: 0 | 1 | 2 | 3 | 4,
-    toneMappingExposure: number,
-    textureEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
-    outputEncoding: 3000 | 3001 | 3002 | 3003 | 3004 | 3005 | 3006 | 3007,
-  }) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings: Rendering settings were set to ${JSON.stringify(value)}.`);
-      this.#renderingEngine.renderingSettings = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings: rendering settings were set to: ${JSON.stringify(value)}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).renderingSettings`, e);
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: Something unexpected happened.`, e);
     }
   }
 
@@ -518,6 +553,59 @@ export class Viewer implements IViewer {
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics`, e);
+    }
+  }
+
+  public get textureEncoding(): TEXTURE_ENCODING {
+    return this.#renderingEngine.textureEncoding;
+  }
+
+  public set textureEncoding(value: TEXTURE_ENCODING) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: Updating textureEncoding to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
+      this.#renderingEngine.textureEncoding = value;
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: textureEncoding was set to: ${value}`);
+      this.#sceneTree.root.updateVersion();
+      this.update();
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: Something unexpected happened.`, e)
+    }
+  }
+
+  public get toneMapping(): TONE_MAPPING {
+    return this.#renderingEngine.toneMapping;
+  }
+
+  public set toneMapping(value: TONE_MAPPING) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping: Updating toneMapping to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping`, value, 'enum', true, Object.values(TONE_MAPPING));
+      this.#renderingEngine.toneMapping = value;
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: toneMapping was set to: ${value}`);
+      this.#sceneTree.root.updateVersion();
+      this.update();
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping: Something unexpected happened.`, e)
+    }
+  }
+
+  public get toneMappingExposure(): number {
+    return this.#renderingEngine.toneMappingExposure;
+  }
+
+  public set toneMappingExposure(value: number) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: Updating toneMappingExposure to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure`, value, 'positive');
+      this.#renderingEngine.toneMappingExposure = value;
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: toneMappingExposure was set to: ${value}`);
+      this.update();
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: Something unexpected happened.`, e)
     }
   }
 

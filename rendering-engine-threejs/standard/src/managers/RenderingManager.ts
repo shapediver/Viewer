@@ -130,7 +130,8 @@ export class RenderingManager implements IManager {
         renderer.setPixelRatio(window.devicePixelRatio);
 
         renderer.physicallyCorrectLights = false;
-        renderer.outputEncoding = THREE.LinearEncoding;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.NoToneMapping;
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.needsUpdate = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;

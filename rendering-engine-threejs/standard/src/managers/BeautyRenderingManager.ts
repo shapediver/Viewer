@@ -146,8 +146,7 @@ export class BeautyRenderingManager implements IManager {
         this._saoPass.params.saoBlurDepthCutoff = 1;
 
         this._gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
-        
-        //this._effectComposer.addPass(this._gammaCorrectionPass);
+        this._effectComposer.addPass(this._gammaCorrectionPass);
 
         this._renderingEngine.materialLoader.updateSoftShadow(this._lightSizeUVEnd, 1.0);
 

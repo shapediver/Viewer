@@ -1,18 +1,18 @@
-import { ISettingsV3, DefaultsV3, convert, validate } from '@shapediver/viewer.settings';
+import { convert, validate, DefaultsV3_1, ISettingsV3_1 } from '@shapediver/viewer.settings';
 import { container, singleton } from 'tsyringe'
 
 import { EventEngine } from '../event-engine/EventEngine'
 import { Logger, LOGGINGTOPIC } from '../logger/Logger';
 import { ShapeDiverViewerSettingsError } from '../logger/ShapeDiverViewerErrors';
 
-type IARSettings = ISettingsV3["ar"];
-type ICameraSettings = ISettingsV3["camera"];
-type IEnvironmentSettings = ISettingsV3["environment"];
-type IEnvironmentGeometrySettings = ISettingsV3["environmentGeometry"];
-type IGeneralSettings = ISettingsV3["general"];
-type ILightSettings = ISettingsV3["light"];
-type IRenderingSettings = ISettingsV3["rendering"];
-type ISessionSettings = ISettingsV3["session"];
+type IARSettings = ISettingsV3_1["ar"];
+type ICameraSettings = ISettingsV3_1["camera"];
+type IEnvironmentSettings = ISettingsV3_1["environment"];
+type IEnvironmentGeometrySettings = ISettingsV3_1["environmentGeometry"];
+type IGeneralSettings = ISettingsV3_1["general"];
+type ILightSettings = ISettingsV3_1["light"];
+type IRenderingSettings = ISettingsV3_1["rendering"];
+type ISessionSettings = ISettingsV3_1["session"];
 
 @singleton()
 export class SettingsEngine {
@@ -20,9 +20,8 @@ export class SettingsEngine {
 
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _settings: ISettingsV3 = DefaultsV3();
-
-    private _settings_version?: '1.0' | '2.0' | '3.0';
+    private readonly _settings: ISettingsV3_1 = DefaultsV3_1();
+    private _settings_version: '1.0' | '2.0' | '3.0' | '3.1' = '3.1';
 
     // #endregion Properties (8)
 
@@ -64,7 +63,7 @@ export class SettingsEngine {
         this._settings.session = value;
     }
 
-    public get settings(): ISettingsV3 {
+    public get settings(): ISettingsV3_1 {
         return this._settings;
     }
 
@@ -73,7 +72,7 @@ export class SettingsEngine {
     // #region Public Methods (4)
 
     public convertToTargetVersion(): any {
-        return convert(this._settings, '3.0');
+        return convert(this._settings, this._settings_version);
     }
 
     public flatten() {
@@ -99,54 +98,56 @@ export class SettingsEngine {
     public loadSettings(json: any, sessionId: string, loadAsPrimary: boolean = false) {
         if (JSON.stringify(json) !== JSON.stringify({})) {
             try { 
-                validate(json, '1.0'); 
-                this._settings_version = '1.0'; 
-            
-                (<any>this._settings) = convert(json, '3.0');
+                validate(json, '1.0');             
+                this._settings_version = '1.0';       
+                (<any>this._settings) = convert(json, '3.1');
                 this.cleanSettings(this._settings);
-
                 return;
             } catch (e) {}
             
             try { 
-                validate(json, '2.0'); 
-                this._settings_version = '2.0'; 
-            
-                (<any>this._settings) = convert(json, '3.0');
+                validate(json, '2.0');             
+                this._settings_version = '2.0';       
+                (<any>this._settings) = convert(json, '3.1');
                 this.cleanSettings(this._settings);
-
                 return;
             } catch (e) {}
 
             try { 
-                validate(json, '3.0'); 
-                this._settings_version = '3.0'; 
-            
-                (<any>this._settings) = convert(json, '3.0');
+                validate(json, '3.0');             
+                this._settings_version = '3.0';       
+                (<any>this._settings) = convert(json, '3.1');
                 this.cleanSettings(this._settings);
+                return;
+            } catch (e) {}
 
+            try { 
+                validate(json, '3.1');             
+                this._settings_version = '3.1';       
+                (<any>this._settings) = convert(json, '3.1');
+                this.cleanSettings(this._settings);
                 return;
             } catch (e) {
                 const error = new ShapeDiverViewerSettingsError('SettingsEngine.loadSettings: Settings could not be validated.', e);
                 throw this._logger.handleError(LOGGINGTOPIC.SETTINGS, `SettingsEngine.loadSettings`, error);
             }
         } else {
-            this._settings_version = '3.0';
-            (<any>this._settings) = DefaultsV3();
+            this._settings_version = '3.1';       
+            (<any>this._settings) = DefaultsV3_1();
             return;
         }
     }
 
     public reset() {
-        this._settings_version = undefined;
-        (<any>this._settings) = DefaultsV3();
+        this._settings_version = '3.1';       
+        (<any>this._settings) = DefaultsV3_1();
     }
 
     // #endregion Public Methods (4)
 
     // #region Private Methods (1)
 
-    private cleanSettings(json: ISettingsV3) {
+    private cleanSettings(json: ISettingsV3_1) {
         for(let c in json.camera.cameras) {
             const camera = json.camera.cameras[c];
             if(camera.type === 'perspective') {
