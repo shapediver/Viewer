@@ -58,6 +58,7 @@
     "deploy-no-tests": "ts-node ./scripts/deploy-no-tests.ts",
     "deploy-example": "ts-node ./scripts/deploy-example.ts",
     "deploy-tests": "ts-node ./scripts/deploy-tests.ts",
+    "deploy-test": "ts-node ./scripts/deploy-test.ts",
     "deploy-and-test": "npm run deploy-tests && npm run test",
     "deploy-demo": "ts-node ./scripts/deploy-demo.ts",
     "platform-api-token": "ts-node ./tests/general/src/utils.ts",

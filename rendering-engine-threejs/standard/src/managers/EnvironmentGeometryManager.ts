@@ -57,6 +57,7 @@ export class EnvironmentGeometryManager implements IManager {
     public set gridColor(value: string) {
         this._gridColor = value;
         (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).needsUpdate = true;
     }
 
     public get groundPlaneColor(): string {
@@ -65,12 +66,7 @@ export class EnvironmentGeometryManager implements IManager {
     
     public set groundPlaneColor(value: string) {
         this._groundPlaneColor = value;
-        let mat = new MaterialData();
-        mat.color = this._groundPlaneColor;
-        mat.side = MATERIAL_SIDE.FRONT;
-        mat.roughness = 1;
-        mat.metalness = 0;
-        this._groundPlane.material = this._renderingEngine.materialLoader.load(mat);
+        this.assignGroundPlaneColor(value);
     }
 
     public get grid(): THREE.GridHelper {
