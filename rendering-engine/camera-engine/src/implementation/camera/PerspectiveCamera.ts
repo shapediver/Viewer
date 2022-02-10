@@ -126,7 +126,7 @@ export class PerspectiveCamera extends AbstractCamera {
     let fovDown = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, (this.fov / 2) * (Math.PI / 180))));
     let fovUp = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), cross, -(this.fov / 2) * (Math.PI / 180))));
 
-    const aspect = this.aspect || 1.5;
+    const aspect = samePosition ? 1.5 : this.aspect || 1.5;
     let hFoV = 2 * Math.atan(Math.tan(this.fov * Math.PI / 180 / 2) * aspect);
     let fovRight = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, hFoV / 2)));
     let fovLeft = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), direction, quat.setAxisAngle(quat.create(), up, -hFoV / 2)));

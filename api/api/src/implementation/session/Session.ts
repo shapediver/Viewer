@@ -666,7 +666,7 @@ export class Session implements ISession {
                 this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
 
             if(loadOutputs) {
-                    if(waitForOutputs) {
+                if(waitForOutputs) {
                     this.#node = await this.#sessionEngine.loadOutputs();
                     if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                     this.node.excludeViewers = this.#excludeViewers;
