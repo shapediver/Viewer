@@ -72,6 +72,26 @@ const getDirectories = async (source: string) =>
             });
         });
         
+        const rl3 = readline.createInterface({ input: process.stdin, output: process.stdout });
+        let github_publish = false;
+        await new Promise<void>((resolve) => {
+            rl3.question('Publish to github?\n', (answer: string) => {
+                github_publish = (answer === 'yes' || answer === 'y');
+                rl3.close();
+                resolve();
+            });
+        });
+        
+        const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
+        let npm_publish = false;
+        await new Promise<void>((resolve) => {
+            rl2.question('Publish to npm?\n', (answer: string) => {
+                npm_publish = (answer === 'yes' || answer === 'y');
+                rl2.close();
+                resolve();
+            });
+        });
+        
         console.log('deploying tests...')
         await execPromise(`npm run deploy-tests`)
         console.log('starting tests...')
@@ -128,12 +148,17 @@ const getDirectories = async (source: string) =>
         console.log(await execPromise('git tag -l "@shapediver*" | xargs git tag -d'));
 
         console.log(await execPromise(`npm whoami`));
-        console.log('publishing to npm...')
-        console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/`));
 
-        console.log('publishing to github...')
-        console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
-        
+        if(npm_publish) {
+            console.log('publishing to npm...')
+            console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/`));
+        }
+
+        if(github_publish) {
+            console.log('publishing to github...')
+            console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
+        }
+
         const prefix = 'v3/' + newVersion;
       
         console.log('deploying to s3...')

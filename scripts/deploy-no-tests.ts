@@ -62,13 +62,33 @@ const getDirectories = async (source: string) =>
         const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         let version;
         await new Promise<void>((resolve) => {
-            rl.question('Which part of the version would you like to increment? (major, minor, patch, prerelease, preminor, premajor)\n', (answer: string) => {
-                if (answer === 'major' || answer === 'minor' || answer === 'patch' || answer === 'prerelease' || answer === 'preminor' || answer === 'premajor') {
+            rl.question('Which part of the version would you like to increment? (major, minor, patch)\n', (answer: string) => {
+                if (answer === 'major' || answer === 'minor' || answer === 'patch') {
                     version = answer;
                 } else {
-                    throw new Error('Invalid version, has to be major, minor, patch, prerelease, preminor or premajor.')
+                    throw new Error('Invalid version, has to be major, minor or patch.')
                 }
                 rl.close();
+                resolve();
+            });
+        });
+        
+        const rl3 = readline.createInterface({ input: process.stdin, output: process.stdout });
+        let github_publish = false;
+        await new Promise<void>((resolve) => {
+            rl3.question('Publish to github?\n', (answer: string) => {
+                github_publish = (answer === 'yes' || answer === 'y');
+                rl3.close();
+                resolve();
+            });
+        });
+        
+        const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
+        let npm_publish = false;
+        await new Promise<void>((resolve) => {
+            rl2.question('Publish to npm?\n', (answer: string) => {
+                npm_publish = (answer === 'yes' || answer === 'y');
+                rl2.close();
                 resolve();
             });
         });
@@ -124,11 +144,16 @@ const getDirectories = async (source: string) =>
         console.log(await execPromise('git tag -l "@shapediver*" | xargs git tag -d'));
 
         console.log(await execPromise(`npm whoami`));
-        console.log('publishing to npm...')
-        console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/`));
 
-        console.log('publishing to github...')
-        console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
+        if(npm_publish) {
+            console.log('publishing to npm...')
+            console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/`));
+        }
+
+        if(github_publish) {
+            console.log('publishing to github...')
+            console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
+        }
         
         const prefix = 'v3/' + newVersion;
       
