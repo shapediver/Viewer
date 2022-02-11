@@ -56,7 +56,7 @@ export class EnvironmentGeometryManager implements IManager {
     
     public set gridColor(value: string) {
         this._gridColor = value;
-        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._converter.toThreeJsColorInput(this._gridColor));
         (<THREE.LineBasicMaterial>this._grid.material).needsUpdate = true;
     }
 
@@ -131,7 +131,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
         (<THREE.LineBasicMaterial>this._grid.material).opacity = 0.15;
         (<THREE.LineBasicMaterial>this._grid.material).transparent = true;
-        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._converter.toThreeJsColorInput(this._gridColor));
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this._renderingEngine.gridVisibility;
         this._gridObject.add(this._grid);
@@ -152,7 +152,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._grid = new THREE.GridHelper();
         (<THREE.LineBasicMaterial>this._grid.material).opacity = 0.15;
         (<THREE.LineBasicMaterial>this._grid.material).transparent = true;
-        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._converter.toThreeJsColorInput(this._gridColor));
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this._renderingEngine.gridVisibility;
         this._gridObject.add(this._grid);
