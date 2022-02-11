@@ -68,16 +68,6 @@ export class MaterialLoader implements ILoader {
         THREE.ShaderChunk.shadowmap_pars_fragment = shader;
 
         THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
-            `vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );`,
-            `
-            #ifdef ENVMAP_TYPE_LDR
-                vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );
-            #else
-                vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.zy ) );
-            #endif
-            `
-        )
-        THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment.replace(
             `vec4 envColor = textureCubeUV( envMap, reflectVec, 0.0 );`,
             `
             #ifdef ENVMAP_TYPE_LDR
