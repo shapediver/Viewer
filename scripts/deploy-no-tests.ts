@@ -157,18 +157,20 @@ const getDirectories = async (source: string) =>
         
         const prefix = 'v3/' + newVersion;
       
-        console.log('deploying to s3...')
-        
-        deployToS3('docs', 'api', prefix)
+        if(npm_publish) {
+            console.log('deploying to s3...')
+            deployToS3('docs', 'api', prefix)
 
-        const examples = await getDirectories('examples');
-        
-        for(let i = 0; i < examples.length; i++) {
-            console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
-            const example = examples[i];
-            console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
-            deployToS3('examples/' + example + '/dist-prod', example, prefix)
+            const examples = await getDirectories('examples');
+            
+            for(let i = 0; i < examples.length; i++) {
+                console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
+                const example = examples[i];
+                console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
+                deployToS3('examples/' + example + '/dist-prod', example, prefix)
+            }
         }
+            
         deployToS3('examples/cdn/dist-prod', undefined, prefix)
 
         await execPromise(`git tag -a viewer@${newVersion} -m "deployed viewer version ${newVersion}"`);
