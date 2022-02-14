@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.12.0
-* __Build date:__ 2022-02-11T16:22:27.231Z
+* __Version:__ 1.12.1
+* __Build date:__ 2022-02-14T13:43:49.862Z
 * __Branch:__ feature/rendering-settings
-* __Commit:__ 77f9362f6fdf262c95535b0b40dadfc7721bfa5b
+* __Commit:__ d76fdb38f9ba5574e09deaaf81aaa6b8c5d69e7f
 <!--- VERSION_END -->
 
 ## Version 1.11.11 - `Kingdom of Heaven`
