@@ -20,8 +20,8 @@ export class EnvironmentGeometryManager implements IManager {
     private _gridObject!: SDData;
     private _groundPlane!: THREE.Mesh;
     private _groundPlaneObject!: SDData;
-    private _groundPlaneColor: string = '#d3d3d3';
-    private _gridColor: string = '#444444';
+    private _groundPlaneColor: string = '#d3d3d3ff';
+    private _gridColor: string = '#44444426';
 
     private _initialized: boolean = false;
 
@@ -56,6 +56,8 @@ export class EnvironmentGeometryManager implements IManager {
     
     public set gridColor(value: string) {
         this._gridColor = value;
+        (<THREE.LineBasicMaterial>this._grid.material).opacity = this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
         (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._converter.toThreeJsColorInput(this._gridColor));
         (<THREE.LineBasicMaterial>this._grid.material).needsUpdate = true;
     }
@@ -82,6 +84,9 @@ export class EnvironmentGeometryManager implements IManager {
     // #region Public Methods (2)
 
     public assignGroundPlaneColor(color: string) {
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).opacity = this._converter.toAlpha(color);
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).transparent = (<THREE.MeshStandardMaterial>this._groundPlane.material).opacity !== 1;
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).depthWrite = !(<THREE.MeshStandardMaterial>this._groundPlane.material).transparent;
         (<THREE.MeshStandardMaterial>this._groundPlane.material).color = new THREE.Color(this._converter.toThreeJsColorInput(color));
         (<THREE.MeshStandardMaterial>this._groundPlane.material).needsUpdate = true;
     }    
@@ -129,8 +134,8 @@ export class EnvironmentGeometryManager implements IManager {
 
         this._gridObject.remove(this._grid);
         this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
-        (<THREE.LineBasicMaterial>this._grid.material).opacity = 0.15;
-        (<THREE.LineBasicMaterial>this._grid.material).transparent = true;
+        (<THREE.LineBasicMaterial>this._grid.material).opacity = this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
         (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._converter.toThreeJsColorInput(this._gridColor));
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this._renderingEngine.gridVisibility;
@@ -150,8 +155,8 @@ export class EnvironmentGeometryManager implements IManager {
         
         this._gridObject = new SDData('grid', '');
         this._grid = new THREE.GridHelper();
-        (<THREE.LineBasicMaterial>this._grid.material).opacity = 0.15;
-        (<THREE.LineBasicMaterial>this._grid.material).transparent = true;
+        (<THREE.LineBasicMaterial>this._grid.material).opacity = this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
         (<THREE.LineBasicMaterial>this._grid.material).color = new THREE.Color(this._converter.toThreeJsColorInput(this._gridColor));
         this._grid.rotateX(Math.PI / 2);
         this._grid.visible = this._renderingEngine.gridVisibility;
@@ -163,9 +168,11 @@ export class EnvironmentGeometryManager implements IManager {
         let mat = new MaterialData();
         mat.color = this._groundPlaneColor;
         mat.side = MATERIAL_SIDE.FRONT;
+        mat.opacity = this._converter.toAlpha(this._groundPlaneColor);        
         mat.roughness = 1;
         mat.metalness = 0;
         this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(), this._renderingEngine.materialLoader.load(mat));
+        (<THREE.MeshStandardMaterial>this._groundPlane.material).format = THREE.RGBAFormat;
         this._groundPlane.receiveShadow = true;
         this._groundPlane.visible = this._renderingEngine.groundPlaneVisibility;
         this._groundPlaneObject.add(this._groundPlane);

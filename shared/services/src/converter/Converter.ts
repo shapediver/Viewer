@@ -26,6 +26,12 @@ export class Converter {
         return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
     }
 
+    public toAlpha(color: string): number {
+        const c = this.toColor(color);
+        if(c.length <= 8) return 1;
+        return parseInt(c.slice(c.length - 2, c.length), 16) / 255;
+    }
+
     public toThreeJsColorInput(color: string): string {
         const c = this.toColor(color);
         return c.slice(0, c.length - 2);
