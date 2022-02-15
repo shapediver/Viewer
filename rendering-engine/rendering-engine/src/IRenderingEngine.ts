@@ -52,11 +52,7 @@ export interface IRenderingEngine {
   /**
    * Update the current tree with the provided node.
    * 
-   * @param root the root node 
-     * @param root the root node 
-   * @param root the root node 
-     * @param root the root node 
-   * @param root the root node 
+   * @param root the root node
    */
   update(): void;
   reset(): void;

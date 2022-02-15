@@ -683,6 +683,27 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return true;
   }
 
+  public displayErrorMessage(message: string) {
+    for(let i = 0; i < this.logoDivElement.children.length; i++)
+      (<HTMLElement>this.logoDivElement.children[i]).style.visibility = 'hidden';
+    
+    const d = <HTMLDivElement>document.createElement('div');
+    d.style.position = 'absolute';
+    d.style.top = '50%';
+    d.style.left = '50%';
+    d.style.transform = 'translateX(-50%) translateY(-50%)';
+    d.style.textAlign='center';
+    this.logoDivElement.appendChild(d);
+
+    const p = <HTMLParagraphElement>document.createElement('p');
+    p.textContent = message;
+    p.style.fontFamily = '"CircularXXWeb-Book",sans-serif';
+    p.style.fontSize = 'x-large';
+    p.style.color = this.logoDivElement.style.backgroundColor;
+    p.style['filter'] = 'invert(100%)';
+    d.appendChild(p);
+  }
+
   public gatherAnimations(node: TreeNode = this._tree.root): AnimationData[] {
     let out: AnimationData[] = [];
     for (let i = 0, len = node.data.length; i < len; i++)

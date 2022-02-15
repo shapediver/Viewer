@@ -166,7 +166,7 @@ export class Session implements ISession {
                     // case 1: the bearer token is invalid and no new valid bearer token was supplied
                     // case 2: session init failed multiple times
                     this.bearerToken = '';
-                    await this.#api.closeSession(this.#id);
+                    try { await this.#api.closeSession(this.#id, true); } catch (e) {}
                 }
             }, properties));
 

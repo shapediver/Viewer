@@ -83,6 +83,11 @@ export class Viewer implements IViewer {
         return closeResult;
       }
 
+      callbacks.displayErrorMessage = (message: string) => {
+        if(this.show === false)
+          this.#renderingEngine.displayErrorMessage(message);
+      }
+
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer created.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

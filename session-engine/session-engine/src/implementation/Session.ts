@@ -156,7 +156,7 @@ export class Session implements ISession {
                 } else {
                     // the retries were exceeded, we close the session
                     this._logger.warn(LOGGINGTOPIC.SESSION, 'Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
-                    await this._closeOnFailure();
+                    try { await this._closeOnFailure(); } catch(e) {}
                     throw this._logger.handleError(topic, scope, e);
                 }
             } else if(
@@ -180,13 +180,13 @@ export class Session implements ISession {
                     } else {
                         // no bearer tokens are supplied, we close the session
                         this._logger.warn(LOGGINGTOPIC.SESSION, 'No retry possible, no new bearer token was supplied. Closing Session.');
-                        await this._closeOnFailure();
+                        try { await this._closeOnFailure(); } catch(e) {}
                         throw this._logger.handleError(topic, scope, e);
                     }
                 } else {
                     // the retries were exceeded, we close the session
                     this._logger.warn(LOGGINGTOPIC.SESSION, 'Tried to retry the connect multiple times, bearer token still not valid. Closing Session.');
-                    await this._closeOnFailure();
+                    try { await this._closeOnFailure(); } catch(e) {}
                     throw this._logger.handleError(topic, scope, e);
                 }
             } else {

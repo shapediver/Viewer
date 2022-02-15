@@ -471,8 +471,8 @@ export class Api implements IApi {
     }
   }
 
-  public async closeSession(id: string): Promise<boolean> {
-    return this.#closeSession(id);
+  public async closeSession(id: string, force = false): Promise<boolean> {
+    return this.#closeSession(id, force);
   }
 
   public async closeViewer(id: string): Promise<boolean> {
@@ -567,6 +567,14 @@ export class Api implements IApi {
       this.#logger.debug(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
       return session;
     } catch (e) {
+      // special behavior, if this was the only session, display the error on the logo screen
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) {
+        if ((this.sessions[sessionId] && Object.values(this.sessions).length === 1) || (!this.sessions[sessionId] && Object.values(this.sessions).length === 0)) {
+          for(let v in this.viewers)
+            (<(v: string) => void>this.#viewerCallbacks[v].displayErrorMessage)(e.message);
+        }
+      }
+
       await this.#closeSession(sessionId, true);
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSession', e);

@@ -56,9 +56,10 @@ export interface IApi {
    * The session cannot be used further.
    * 
    * @param id the id of the session
+   * @param force optional setting to force closing
    * @returns 
    */
-  closeSession(id: string): Promise<boolean>;
+  closeSession(id: string, force?: boolean): Promise<boolean>;
   /**
    * Closes the viewer with the specified id.
    * 
