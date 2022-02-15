@@ -37,13 +37,13 @@
   },
   "devDependencies": {
     "@shapediver/viewer": "1.12.1",
-    "@shapediver/viewer.rendering-engine.intersection-engine": "1.12.1",
     "@shapediver/viewer.shared.math": "1.12.1",
     "@shapediver/viewer.shared.node-tree": "1.12.1",
     "@shapediver/viewer.shared.services": "1.12.1",
     "@shapediver/viewer.shared.types": "1.12.1"
   },
   "dependencies": {
+    "@shapediver/viewer.rendering-engine.intersection-engine": "1.12.1",
     "detect-it": "4.0.1",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
