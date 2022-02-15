@@ -65,7 +65,7 @@ export class Viewer implements IViewer {
    * @param type 
    * @param canvas 
    */
-  constructor(properties: { id: string, canvas?: HTMLCanvasElement, visibility: VISIBILITYMODE, logo: string }, callbacks: any) {
+  constructor(properties: { id: string, canvas?: HTMLCanvasElement, visibility: VISIBILITYMODE, branding: { logo: string | null, backgroundColor: string } }, callbacks: any) {
     try {
       this.#renderingEngine = new RenderingEngineThreejs(properties);
       container.registerInstance('renderingEngine', this.#renderingEngine);

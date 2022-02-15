@@ -96,21 +96,23 @@ export class RenderingManager implements IManager {
 
     // #region Public Methods (9)
 
-    public addLogo(canvas: HTMLCanvasElement, logo: string): HTMLDivElement {
+    public addLogo(canvas: HTMLCanvasElement, branding: { logo: string | null, backgroundColor: string }): HTMLDivElement {
         const logoDivElement = document.createElement('div');
-        logoDivElement.style.background = '#030531';
+        logoDivElement.style.backgroundColor = branding.backgroundColor;
         logoDivElement.style.position = 'relative';
         logoDivElement.style.height = '100%';
         logoDivElement.style.width = '100%';
         canvas.parentElement?.insertBefore(logoDivElement, canvas.parentElement?.firstChild);
 
-        const img = new Image();
-        img.style.position = 'absolute';
-        img.style.top = '50%';
-        img.style.left = '50%';
-        img.style.transform = 'translateX(-50%) translateY(-50%)';
-        img.src = logo;
-        logoDivElement.appendChild(img)
+        if(branding.logo) {
+            const img = new Image();
+            img.style.position = 'absolute';
+            img.style.top = '50%';
+            img.style.left = '50%';
+            img.style.transform = 'translateX(-50%) translateY(-50%)';
+            img.src = branding.logo;
+            logoDivElement.appendChild(img)
+        }
 
         return logoDivElement;
     }

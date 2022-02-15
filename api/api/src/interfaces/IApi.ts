@@ -113,10 +113,12 @@ export interface IApi {
    * @param properties.visibility the visibility of the viewer
    * @param properties.canvas the canvas that the viewer should use
    * @param properties.id the unique id the session should have 
-   * @param properties.logo an optional logo while the viewer is hidden
+   * @param properties.branding optional branding options while the viewer is hidden
+   * @param properties.branding.logo optional logo while the viewer is hidden (our default will be used if none is provided, null will display no logo at all)
+   * @param properties.branding.backgroundColor optional background color while the viewer is hidden, can include alpha channel (our default will be used if none is provided)
    * @returns 
    */
-  createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer>;
+  createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string } }): Promise<IViewer>;
   /**
    * Removes an event listener.
    * 

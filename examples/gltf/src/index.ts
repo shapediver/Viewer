@@ -1,6 +1,5 @@
 
 
-import { container } from 'tsyringe'
 import {
   api,
   CAMERATYPE,
@@ -21,6 +20,7 @@ import {
   TreeNode,
   VISIBILITYMODE,
 } from '@shapediver/viewer'
+import { container } from 'tsyringe'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { vec3 } from 'gl-matrix'
 
@@ -33,7 +33,7 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 let currentNode: TreeNode;
 
 (async () => {
-    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png' });
+    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', branding: { logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png', backgroundColor: 'rgb(3, 5, 49)' } });
     viewer.ambientOcclusion = false;
     viewer.groundPlaneVisibility = false;
     viewer.environmentMap = ENVIRONMENT_MAP.CANNON_EXTERIOR;

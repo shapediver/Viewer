@@ -590,7 +590,7 @@ export class Api implements IApi {
     }
   }
   
-  public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, logo?: string }): Promise<IViewer> {
+  public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string } }): Promise<IViewer> {
     let viewerId: string = '';
     try {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
@@ -598,7 +598,10 @@ export class Api implements IApi {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.canvas, 'HTMLCanvasElement', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.id, 'string', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.logo, 'string', false);
+
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', prop.branding, 'object', false);
+      const branding = Object.assign({}, prop.branding);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.backgroundColor, 'string', false);
 
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
@@ -616,7 +619,15 @@ export class Api implements IApi {
 
       // create the actual viewer
       let viewerCallbacks = {};
-      let viewer: IViewer = new Viewer({ id: viewerId, canvas: prop.canvas, visibility: prop.visibility || VISIBILITYMODE.SESSION, logo: prop.logo || this.#defaultLogo }, viewerCallbacks);
+      let viewer: IViewer = new Viewer({ 
+        id: viewerId, 
+        canvas: prop.canvas, 
+        visibility: prop.visibility || VISIBILITYMODE.SESSION, 
+        branding: { 
+          logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
+          backgroundColor: branding.backgroundColor || '#030531FF'
+        }
+      }, viewerCallbacks);
 
       if ((prop.visibility || VISIBILITYMODE.SESSION) === VISIBILITYMODE.SESSION && this.#stateEngine.primarySession && this.#stateEngine.primarySession.initialized.resolved === true) {
         await new Promise<void>(resolve => {

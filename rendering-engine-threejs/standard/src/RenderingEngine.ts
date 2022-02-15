@@ -59,11 +59,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _geometryLoader: GeometryLoader;
   private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
   // constructor properties
+  private readonly _branding: { logo: string | null, backgroundColor: string };
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
-  private readonly _logo: string;
   private readonly _materialLoader: MaterialLoader;
   private readonly _renderer: THREE.WebGLRenderer;
   private readonly _renderingManager: RenderingManager;
@@ -106,14 +106,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Constructors (1)
 
-  constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE, logo: string }) {
+  constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE, branding: { logo: string | null, backgroundColor: string } }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
     // setting some of the provided properties
     this._id = properties.id;
     this._visibility = properties.visibility;
-    this._logo = properties.logo;
+    this._branding = properties.branding;
 
     // creation of viewer essentials
     this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(properties.canvas));
@@ -141,7 +141,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // start the creation and initialization process 
     this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
-    this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._logo);
+    this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._branding);
 
     // creation of the managers (all singleton engines were created already)
     this._beautyRenderingManager.init();
