@@ -1,4 +1,4 @@
-import 'reflect-metadata'
+
 import { build_data } from '@shapediver/viewer.shared.build-data'
 
 (() => {

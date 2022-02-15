@@ -1,4 +1,4 @@
-import 'reflect-metadata'
+
 import * as SDV from '@shapediver/viewer'
 import * as SDVAttributeVisualization from '@shapediver/viewer.features.attribute-visualization'
 

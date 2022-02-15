@@ -1,4 +1,4 @@
-import 'reflect-metadata'
+
 import * as SDV from '@shapediver/viewer'
 import * as SDVInteractions from '@shapediver/viewer.features.interaction'
 import * as SDVDataEngine from '@shapediver/viewer.data-engine.data-engine'

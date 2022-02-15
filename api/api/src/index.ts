@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import { CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { container } from 'tsyringe'
 import { LIGHTTYPE } from '@shapediver/viewer.rendering-engine.light-engine'

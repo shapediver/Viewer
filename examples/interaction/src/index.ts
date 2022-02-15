@@ -1,4 +1,4 @@
-import 'reflect-metadata'
+
 
 import { api } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
