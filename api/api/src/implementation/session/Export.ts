@@ -1,4 +1,4 @@
-import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
 import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
@@ -7,9 +7,8 @@ import { IExport } from '../../interfaces/session/IExport'
 import { ISession } from '../../interfaces/session/ISession'
 
 export class Export implements IExport {
-  // #region Properties (11)
+  // #region Properties (21)
 
-  readonly #dependency!: string[];
   readonly #id: string;
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
@@ -17,14 +16,23 @@ export class Export implements IExport {
   readonly #session: ISession;
   readonly #sessionEngine: Session;
   readonly #type: ShapeDiverResponseExportDefinitionType;
-  readonly #uid?: string;
 
+  #content?: ShapeDiverResponseExportContent[];
+  #delay?: number;
+  #dependency!: string[];
   #displayname?: string;
+  #filename?: string;
   #hidden: boolean = false;
+  #msg?: string
   #order?: number;
+  #result?: ShapeDiverResponseExportResult
+  #status_collect?: ShapeDiverResponseModelComputationStatus;
+  #status_computation?: ShapeDiverResponseModelComputationStatus;
   #tooltip?: string;
+  #uid?: string;
+  #version?: string;
 
-  // #endregion Properties (11)
+  // #endregion Properties (21)
 
   // #region Constructors (1)
 
@@ -33,16 +41,11 @@ export class Export implements IExport {
       this.#session = session;
       this.#sessionEngine = sessionEngine;
 
-      if (exportDef.dependency) this.#dependency = exportDef.dependency;
       this.#id = exportDef.id;
       this.#name = exportDef.name;
       this.#type = exportDef.type;
 
-      if (exportDef.uid !== undefined) this.#uid = exportDef.uid;
-
-      if (exportDef.displayname !== undefined) this.#displayname = exportDef.displayname;
-      if (exportDef.order !== undefined) this.#order = exportDef.order;
-      if (exportDef.hidden !== undefined) this.#hidden = exportDef.hidden;
+      this.updateExportDefinition(exportDef);
 
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
     } catch (e) {
@@ -53,7 +56,15 @@ export class Export implements IExport {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (11)
+  // #region Public Accessors (21)
+
+  public get content(): ShapeDiverResponseExportContent[] | undefined {
+    return this.#content;
+  }
+
+  public get delay(): number | undefined {
+    return this.#delay;
+  }
 
   public get dependency(): string[] {
     return this.#dependency;
@@ -73,6 +84,10 @@ export class Export implements IExport {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname`, e);
     }
+  }
+
+  public get filename(): string | undefined {
+    return this.#filename;
   }
 
   public get hidden(): boolean {
@@ -95,6 +110,10 @@ export class Export implements IExport {
     return this.#id;
   }
 
+  public get msg(): string | undefined {
+    return this.#msg;
+  }
+
   public get name(): string {
     return this.#name;
   }
@@ -113,6 +132,18 @@ export class Export implements IExport {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order`, e);
     }
+  }
+
+  public get result(): ShapeDiverResponseExportResult | undefined {
+    return this.#result;
+  }
+
+  public get status_collect(): ShapeDiverResponseModelComputationStatus | undefined {
+    return this.#status_collect;
+  }
+
+  public get status_computation(): ShapeDiverResponseModelComputationStatus | undefined {
+    return this.#status_computation;
   }
 
   public get tooltip(): string | undefined {
@@ -139,9 +170,13 @@ export class Export implements IExport {
     return this.#uid;
   }
 
-  // #endregion Public Accessors (11)
+  public get version(): string | undefined {
+    return this.#version;
+  }
 
-  // #region Public Methods (1)
+  // #endregion Public Accessors (21)
+
+  // #region Public Methods (2)
 
   public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
     try {
@@ -153,12 +188,54 @@ export class Export implements IExport {
         exportParameters[parameter] = parameters[parameter] || parameters[parameter] === '' ? parameters[parameter] : currentParameters[parameter];
 
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
-      return await this.#sessionEngine.requestExport(this.id, exportParameters);
+
+      const exportDef = await this.#sessionEngine.requestExport(this.id, exportParameters);
+      this.updateExportDefinition(exportDef);
+      return exportDef;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request`, e);
     }
   }
 
-  // #endregion Public Methods (1)
+  public updateExport() {
+    const exportDef = this.#sessionEngine.exports[this.id];
+    this.#dependency = exportDef.dependency;
+    this.#uid = exportDef.uid;
+    this.#displayname = exportDef.displayname;
+    this.#order = exportDef.order;
+    this.#hidden = exportDef.hidden;
+    this.#tooltip = exportDef.tooltip;
+    this.#version = exportDef.version;
+    this.#delay = exportDef.delay;
+    this.#content = exportDef.content;
+    this.#msg = exportDef.msg;
+    this.#filename = exportDef.filename;
+    this.#result = exportDef.result;
+    this.#status_computation = exportDef.status_computation;
+    this.#status_collect = exportDef.status_collect;
+  }
+
+  // #endregion Public Methods (2)
+
+  // #region Private Methods (1)
+
+  private updateExportDefinition(exportDef: ShapeDiverResponseExport) {
+    this.#dependency = exportDef.dependency;
+    this.#uid = exportDef.uid;
+    this.#displayname = exportDef.displayname;
+    this.#order = exportDef.order;
+    this.#hidden = exportDef.hidden;
+    this.#tooltip = exportDef.tooltip;
+    this.#version = exportDef.version;
+    this.#delay = exportDef.delay;
+    this.#content = exportDef.content;
+    this.#msg = exportDef.msg;
+    this.#filename = exportDef.filename;
+    this.#result = exportDef.result;
+    this.#status_computation = exportDef.status_computation;
+    this.#status_collect = exportDef.status_collect;
+  }
+
+  // #endregion Private Methods (1)
 }

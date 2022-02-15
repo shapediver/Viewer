@@ -31,7 +31,7 @@ import { FileParameter } from './FileParameter'
 import { Export } from './Export'
 import { Output } from './Output'
 import { ISettingsEvent } from '@shapediver/viewer.shared.types'
-import { ShapeDiverRequestGltfUploadQueryConversion } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @injectable()
 export class Session implements ISession {
@@ -88,6 +88,34 @@ export class Session implements ISession {
             if (this.outputs[controlOrderOutputs[i]])
                 if (this.outputs[controlOrderOutputs[i]]!.order !== i)
                     this.outputs[controlOrderOutputs[i]]!.order = i;
+        }
+    }
+
+    readonly #warningCreator = () => {
+        // set the output content to what has been updated
+        for (const outputId in this.outputs) {
+            let warning: string = '';
+            if (this.outputs[outputId].msg)
+                warning += `\n\t- ${this.outputs[outputId].msg}`;
+            if (this.outputs[outputId].status_collect && this.outputs[outputId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_collect is ${this.outputs[outputId].status_collect}`;
+            if (this.outputs[outputId].status_computation && this.outputs[outputId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_computation is ${this.outputs[outputId].status_computation}`;
+            if (warning)
+                this.#logger.warn(LOGGINGTOPIC.SESSION, `\nOutput(${outputId}):${warning}`);
+        }
+
+        // set the export definitions
+        for (const exportId in this.exports) {
+            let warning: string = '';
+            if (this.exports[exportId].msg)
+                warning += `\n\t- ${this.exports[exportId].msg}`;
+            if (this.exports[exportId].status_collect && this.exports[exportId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_collect is ${this.exports[exportId].status_collect}`;
+            if (this.exports[exportId].status_computation && this.exports[exportId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_computation is ${this.exports[exportId].status_computation}`;
+            if (warning)
+                this.#logger.warn(LOGGINGTOPIC.SESSION, `\nExport(${exportId}):${warning}`);
         }
     }
 
@@ -463,9 +491,15 @@ export class Session implements ISession {
             // set the output content to what has been updated
             for (const outputId in this.outputs) 
                 this.outputs[outputId].updateOutput(
-                    newNode.children.find(c => c.name === outputId)!, 
+                    newNode.children.find(c => c.name === outputId)!,
                     oldNode.children.find(c => c.name === outputId)!
                 );
+
+            // set the export definitions
+            for (const exportId in this.exports) 
+                this.exports[exportId].updateExport();
+            
+            this.#warningCreator();
 
             this.node.excludeViewers = this.#excludeViewers;
 
@@ -724,17 +758,19 @@ export class Session implements ISession {
             // store the initialization as the first parameter set in the history
             this.#parameterHistory.push(parameterSet);
 
-            for (let e in this.#sessionEngine.exports) {
-                if (this.#sessionEngine.exports[e].displayname !== undefined || this.#sessionEngine.exports[e].order !== undefined)
+            for (let exportId in this.#sessionEngine.exports) {
+                if (this.#sessionEngine.exports[exportId].displayname !== undefined || this.#sessionEngine.exports[exportId].order !== undefined)
                     this.#useSessionSettings = false;
-                this.exports[e] = new Export(this, this.#sessionEngine, this.#sessionEngine.exports[e]);
+                this.exports[exportId] = new Export(this, this.#sessionEngine, this.#sessionEngine.exports[exportId]);
             }
 
-            for (let o in this.#sessionEngine.outputs) {
-                if (this.#sessionEngine.outputs[o].displayname !== undefined || this.#sessionEngine.outputs[o].order !== undefined)
+            for (let outputId in this.#sessionEngine.outputs) {
+                if (this.#sessionEngine.outputs[outputId].displayname !== undefined || this.#sessionEngine.outputs[outputId].order !== undefined)
                     this.#useSessionSettings = false;
-                this.outputs[o] = new Output(this, this.#sessionEngine, this.#sessionEngine.outputs[o]);
+                this.outputs[outputId] = new Output(this, this.#sessionEngine, this.#sessionEngine.outputs[outputId]);
             }
+
+            this.#warningCreator();
 
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
@@ -914,12 +950,18 @@ export class Session implements ISession {
             this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
 
             // set the output content to what has been updated
-            for (const outputId in this.outputs) 
+            for (const outputId in this.outputs) {
                 this.outputs[outputId].updateOutput(
                     newNode.children.find(c => c.name === outputId)!, 
                     oldNode.children.find(c => c.name === outputId)!
                 );
+            }
 
+            // set the export definitions
+            for (const exportId in this.exports)
+                this.exports[exportId].updateExport();
+
+            this.#warningCreator();
             this.node.excludeViewers = this.#excludeViewers;
 
             for (let viewerId in this.#api.viewers)

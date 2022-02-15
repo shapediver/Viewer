@@ -1,7 +1,12 @@
-import { ShapeDiverResponseExport, ShapeDiverResponseExportDefinition } from "@shapediver/sdk.geometry-api-sdk-v2";
+import { ShapeDiverResponseExport } from "@shapediver/sdk.geometry-api-sdk-v2";
 
-export interface IExport extends ShapeDiverResponseExportDefinition {
+export interface IExport extends ShapeDiverResponseExport {
     
+    /**
+     * Update the export (used internally)
+     */
+     updateExport(): void;
+
     /**
      * Request the export with an optional additional parameter set.
      * 

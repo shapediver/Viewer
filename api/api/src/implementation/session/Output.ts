@@ -5,36 +5,38 @@ import { Session } from '@shapediver/viewer.session-engine.session-engine'
 import { IOutput, ShapeDiverResponseOutput, ShapeDiverResponseOutputContent } from '../../interfaces/session/IOutput'
 import { ISession } from '../../interfaces/session/ISession'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { ShapeDiverResponseOutputChunk } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutputChunk } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export class Output implements IOutput {
-  // #region Properties (21)
+  // #region Properties (24)
 
-  readonly #chunks?: ShapeDiverResponseOutputChunk[];
-  readonly #dependency!: string[];
   readonly #id: string;
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
-  readonly #material?: string;
   readonly #name: string;
   readonly #session: ISession;
   readonly #sessionEngine: Session;
-  readonly #uid?: string;
   readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
   #bbmax?: number[];
   #bbmin?: number[];
+  #chunks?: ShapeDiverResponseOutputChunk[];
   #content?: ShapeDiverResponseOutputContent[];
   #delay?: number;
+  #dependency!: string[];
   #displayname?: string;
   #hidden: boolean = false;
+  #material?: string;
   #msg?: string;
   #order?: number;
+  #status_collect?: ShapeDiverResponseModelComputationStatus;
+  #status_computation?: ShapeDiverResponseModelComputationStatus;
   #tooltip?: string;
+  #uid?: string;
   #updateCallback: ((newNode: TreeNode, oldNode: TreeNode) => void) | null = null;
   #version: string;
 
-  // #endregion Properties (21)
+  // #endregion Properties (24)
 
   // #region Constructors (1)
 
@@ -43,22 +45,10 @@ export class Output implements IOutput {
       this.#session = session;
       this.#sessionEngine = sessionEngine;
 
-      if (outputDef.dependency !== undefined) this.#dependency = outputDef.dependency;
       this.#id = outputDef.id;
       this.#name = outputDef.name;
       this.#version = outputDef.version;
-      if (outputDef.uid !== undefined) this.#uid = outputDef.uid;
-      if (outputDef.material !== undefined) this.#material = outputDef.material;
-      if (outputDef.chunks !== undefined) this.#chunks = outputDef.chunks;
-      if (outputDef.msg !== undefined) this.#msg = outputDef.msg;
-      if (outputDef.bbmin !== undefined) this.#bbmin = outputDef.bbmin;
-      if (outputDef.bbmax !== undefined) this.#bbmax = outputDef.bbmax;
-      if (outputDef.content !== undefined) this.#content = outputDef.content;
-      if (outputDef.delay !== undefined) this.#delay = outputDef.delay;
-
-      if (outputDef.displayname !== undefined) this.#displayname = outputDef.displayname;
-      if (outputDef.order !== undefined) this.#order = outputDef.order;
-      if (outputDef.hidden !== undefined) this.#hidden = outputDef.hidden;
+      this.updateOutputDefinition(outputDef);
 
       this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
     } catch (e) {
@@ -69,7 +59,7 @@ export class Output implements IOutput {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (21)
+  // #region Public Accessors (27)
 
   public get bbmax(): number[] | undefined {
     return this.#bbmax;
@@ -179,6 +169,14 @@ export class Output implements IOutput {
     }
   }
 
+  public get status_collect(): ShapeDiverResponseModelComputationStatus | undefined {
+    return this.#status_collect;
+  }
+
+  public get status_computation(): ShapeDiverResponseModelComputationStatus | undefined {
+    return this.#status_computation;
+  }
+
   public get tooltip(): string | undefined {
     return this.#tooltip;
   }
@@ -198,7 +196,7 @@ export class Output implements IOutput {
   public get uid(): string | undefined {
     return this.#uid;
   }
-  
+
   public get updateCallback(): ((newNode: TreeNode, oldNode: TreeNode) => void) | null {
     return this.#updateCallback;
   }
@@ -219,18 +217,13 @@ export class Output implements IOutput {
     return this.#version;
   }
 
-  // #endregion Public Accessors (21)
+  // #endregion Public Accessors (27)
 
-  // #region Public Methods (4)
+  // #region Public Methods (2)
 
   public updateOutput(newNode: TreeNode, oldNode: TreeNode) {
     const outputDef = this.#sessionEngine.outputs[this.id];
-    this.#version = outputDef.version;
-    this.#delay = outputDef.delay;
-    this.#content = outputDef.content;
-    this.#bbmin = outputDef.bbmin;
-    this.#bbmax = outputDef.bbmax;
-    this.#msg = outputDef.msg;
+    this.updateOutputDefinition(outputDef);
     if(this.#updateCallback) this.#updateCallback(newNode, oldNode);
   }
 
@@ -241,5 +234,27 @@ export class Output implements IOutput {
     return this.node;
   }
 
-  // #endregion Public Methods (4)
+  // #endregion Public Methods (2)
+
+  // #region Private Methods (1)
+
+  private updateOutputDefinition(outputDef: ShapeDiverResponseOutput) {
+    this.#dependency = outputDef.dependency;
+    this.#uid = outputDef.uid;
+    this.#material = outputDef.material;
+    this.#chunks = outputDef.chunks;
+    this.#msg = outputDef.msg;
+    this.#bbmin = outputDef.bbmin;
+    this.#bbmax = outputDef.bbmax;
+    this.#status_computation = outputDef.status_computation;
+    this.#status_collect = outputDef.status_collect;
+    this.#content = outputDef.content;
+    this.#delay = outputDef.delay;
+    this.#version = outputDef.version;
+    this.#displayname = outputDef.displayname;
+    this.#order = outputDef.order;
+    this.#hidden = outputDef.hidden;
+  }
+
+  // #endregion Private Methods (1)
 }
