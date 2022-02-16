@@ -9,7 +9,7 @@ import {
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING,
 } from './data/MaterialData'
-import { HTMLElementAnchorData } from './data/HTMLElementAnchorData'
+import { AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData } from './data/HTMLElementAnchorData'
 import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributesData } from './data/sdtf/SDTFAttributesData'
 import { SDTFItemData } from './data/sdtf/SDTFItemData'
 import { SDTFAttributeOverview, SDTFOverview } from './data/sdtf/SDTFAttributeOverview'
@@ -31,7 +31,7 @@ export {
 }
 
 export {
-  HTMLElementAnchorData
+  AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData
 }
 
 export {

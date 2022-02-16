@@ -1,5 +1,5 @@
 import { container, singleton } from 'tsyringe'
-import { HTMLElementAnchorData } from '@shapediver/viewer.shared.types'
+import { HTMLElementAnchorData, HTMLElementAnchorTextData, HTMLElementAnchorImageData } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Logger, LOGGINGTOPIC, Converter, ShapeDiverViewerDataProcessingError, InputValidator } from '@shapediver/viewer.shared.services'
 import { vec3, vec4 } from 'gl-matrix'
@@ -37,7 +37,10 @@ export class HTMLElementAnchorEngine {
                         return;
                     }
                     const cleanedText = this._inputValidator.sanitize(element.text);
-                    node.data.push(new HTMLElementAnchorData(this._converter.toVec3(element.location), { color: this._converter.toColor(element.color, '#000000'), text: cleanedText }, 'text'));
+                    node.data.push(new HTMLElementAnchorTextData({
+                        location: this._converter.toVec3(element.location),
+                        data: { color: this._converter.toColor(element.color, '#000000'), text: cleanedText }
+                    }))
                 });
             } else if (content.format === 'anchor') {
                 const data: IAnchor[] = content.data;
@@ -71,20 +74,19 @@ export class HTMLElementAnchorEngine {
                         const textData = <IAnchorDataText>element.data;
                         const cleanedText = this._inputValidator.sanitize(textData.text);
 
-                        node.data.push(new HTMLElementAnchorData(
-                            this._converter.toVec3(element.location),
-                            {
+                        node.data.push(new HTMLElementAnchorTextData({
+                            location: this._converter.toVec3(element.location),
+                            data: {
                                 color: this._converter.toColor(textData.color, '#000000'),
                                 text: cleanedText,
                                 hidden: textData.hidden,
                                 textAlign: textData.textAlign,
                                 position
                             },
-                            'text',
-                            element.hideable,
-                            element.viewports,
+                            hideable: element.hideable,
+                            viewers: element.viewports,
                             intersectionTarget
-                        ));
+                        }));
 
                     } else if (element.format === 'image') {
                         if (!(<IAnchorDataImage>element.data).src || !(<IAnchorDataImage>element.data).width || !(<IAnchorDataImage>element.data).height || !(<IAnchorDataImage>element.data).alt) {
@@ -92,9 +94,9 @@ export class HTMLElementAnchorEngine {
                             return;
                         }
                         const imageData = <IAnchorDataImage>element.data;
-                        node.data.push(new HTMLElementAnchorData(
-                            this._converter.toVec3(element.location),
-                            {
+                        node.data.push(new HTMLElementAnchorImageData({
+                            location: this._converter.toVec3(element.location),
+                            data: {
                                 alt: imageData.alt,
                                 height: typeof imageData.height === 'string' ? +imageData.height : imageData.height,
                                 width: typeof imageData.width === 'string' ? +imageData.width : imageData.width,
@@ -102,11 +104,10 @@ export class HTMLElementAnchorEngine {
                                 hidden: imageData.hidden,
                                 position
                             },
-                            'image',
-                            element.hideable,
-                            element.viewports,
+                            hideable: element.hideable,
+                            viewers: element.viewports,
                             intersectionTarget
-                        ));
+                        }));
                     }
                     this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, `HTMLElementAnchorEngine.load: The Anchor does not have a recognized format: ${element.format}`);
                 });
