@@ -745,21 +745,21 @@ export class SDGTFLoader {
         const indices: number[] = [];
         const vertices = [];
 
-        for (let d = 0; d < numberOfPoints; d++) {
+        for (let d = 0; d <= numberOfPoints; d++) {
             const v = d / numberOfPoints;
-            for (let f = 0; f < numberOfPoints; f++) {
+            for (let f = 0; f <= numberOfPoints; f++) {
                 const u = f / numberOfPoints;
                 const vertex = getPointOnSurfacepatch(u, v);
                 vertices.push(vertex[0], vertex[1], vertex[2]);
             }
         }
 
-        for (let d = 1; d < numberOfPoints; d++) {
-            for (let f = 1; f < numberOfPoints; f++) {
-                const i1 = (d-1) * numberOfPoints + f - 1;
-                const i2 = (d-1) * numberOfPoints + f;
-                const i3 = d * numberOfPoints + f - 1;
-                const i4 = d * numberOfPoints + f;
+        for (let d = 0; d < numberOfPoints; d++) {
+            for (let f = 0; f < numberOfPoints; f++) {
+                const i1 = d * (numberOfPoints + 1) + f;
+                const i2 = d * (numberOfPoints + 1) + f + 1;
+                const i3 = (d+1) * (numberOfPoints + 1) + f;
+                const i4 = (d+1) * (numberOfPoints + 1) + f + 1;
                 // faces one and two
                 indices.push(i3, i2, i1);
                 indices.push(i2, i3, i4);
