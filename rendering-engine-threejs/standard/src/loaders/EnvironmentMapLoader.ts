@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, Converter } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
@@ -66,6 +66,7 @@ export enum ENVIRONMENT_MAP_TYPE {
 export class EnvironmentMapLoader implements ILoader {
     // #region Properties (8)
 
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _environmentMapFilenames = ['px', 'nx', 'pz', 'nz', 'py', 'ny']    
     private readonly _environmentMapHDR: string[] = [];
     private readonly _environmentMapNamesHDR = Object.values(ENVIRONMENT_MAP).filter(value => typeof value === 'string') as string[]
@@ -232,7 +233,7 @@ export class EnvironmentMapLoader implements ILoader {
     private async loadEnvironmentMap(name: string, url: string[]) {
         return new Promise<void>(async (resolve, reject) => {
             if(name.endsWith('.hdr')) {
-                const blob = await this._httpClient.loadData(name);
+                const blob = (await this._httpClient.loadData(name)).data;
                 new RGBELoader().setDataType(THREE.UnsignedByteType).load(URL.createObjectURL(blob), (texture) => {
                     const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                     this._pmremGenerator.dispose();
@@ -243,8 +244,8 @@ export class EnvironmentMapLoader implements ILoader {
                 () => {},
                 (error) =>  reject(error));
             } else {
-                const promises: Promise<Blob>[] = [];
-                url.forEach(u => promises.push(this._httpClient.loadData(u)));
+                const promises: Promise<HTMLImageElement>[] = [];
+                url.forEach(u => promises.push(this._httpClient.loadData(u).then(d => this._converter.responseToImage(d))));
                 
                 new THREE.CubeTextureLoader().load(url,
                     (map: THREE.CubeTexture) => {

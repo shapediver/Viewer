@@ -13,6 +13,7 @@ import { vec2, vec3, vec4 } from 'gl-matrix'
 import { materialDatabase } from './materialDatabase'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITexture } from '@shapediver/viewer.data-engine.shared-types'
+import { AxiosResponse } from 'axios'
 
 @singleton()
 export class MaterialEngine {
@@ -22,7 +23,7 @@ export class MaterialEngine {
   private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-  private _loadData?: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);;
+  private _loadData?: (img: string) => Promise<AxiosResponse<any>> = this._httpClient.loadData.bind(this._httpClient);;
   // #endregion Properties (3)
 
   // #region Constructors (1)
@@ -39,9 +40,8 @@ export class MaterialEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-  public async loadContent(content: ShapeDiverResponseOutputContent, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<TreeNode> {
+  public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         const node = new TreeNode(content.name || 'material');
-        this._loadData = loadData;
         if(!content) {
             const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
@@ -172,9 +172,9 @@ export class MaterialEngine {
         let image: HTMLImageElement;
         try {
             if(!id) {
-                image = <HTMLImageElement>await this._loadData!(url);
+                image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!(url));
             } else {
-                image = <HTMLImageElement>await this._loadData!('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url);
+                image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
             }
         } catch (e) {
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMap`, e);
@@ -185,7 +185,7 @@ export class MaterialEngine {
   private async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
         let image: HTMLImageElement;
         try {
-            image = <HTMLImageElement>await this._loadData!(texture.href!);  
+            image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!(texture.href!));  
         } catch (e) {
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMapWithProperties`, e);
         }

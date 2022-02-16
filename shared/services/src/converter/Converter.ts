@@ -1,9 +1,12 @@
 import { vec3, vec4 } from 'gl-matrix'
 import { TinyColor } from '@ctrl/tinycolor'
-import { singleton } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
+import { HttpClient } from '../http-client/HttpClient';
+import { AxiosResponse } from 'axios';
 
 @singleton()
 export class Converter {
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
 
     private tinyColorToString(color: TinyColor): string {
         return color.toHex8String();
@@ -28,13 +31,142 @@ export class Converter {
 
     public toAlpha(color: string): number {
         const c = this.toColor(color);
-        if(c.length <= 8) return 1;
+        if (c.length <= 8) return 1;
         return parseInt(c.slice(c.length - 2, c.length), 16) / 255;
     }
 
     public toThreeJsColorInput(color: string): string {
         const c = this.toColor(color);
         return c.slice(0, c.length - 2);
+    }
+
+
+    public async processSVG(blob: Blob): Promise<HTMLImageElement> {
+        let data = <string>await new Promise((resolve, _) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(<string>reader.result);
+            reader.readAsDataURL(blob);
+        });
+        data = data.replace('data:image/svg+xml;base64,', '')
+        data = atob(data);
+
+        let svgC = document.createElement('DIV');
+        svgC.id = 'svgc';
+        svgC.innerHTML = <string>data;
+
+        // now we can access the svg element as a DOM object
+        let svgE = svgC.getElementsByTagName('svg');
+        let childImageURIs: string[] = [];
+        let styleURIs: string[] = [];
+
+        // collect image urls
+        for (let i = 0; i < svgE.length; ++i) {
+            for (let j = 0; j < 2; ++j) {
+                let childImages = <HTMLCollectionOf<SVGImageElement>>svgE[i].getElementsByTagName(['image', 'img'][j]);
+                for (let k = 0; k < childImages.length; ++k) {
+                    if (childImages[k].href.baseVal.substring(0, 5) != 'data:') {
+                        childImageURIs.push(childImages[k].href.baseVal);
+                    }
+                }
+            }
+            // collect potential font definitions
+            // we assume styles are imported using the following syntax:
+            // @import url(CSS_URL);
+            let styleElements = <HTMLCollectionOf<HTMLStyleElement>>svgE[i].getElementsByTagName('style');
+            for (let j = 0; j < styleElements.length; ++j) {
+                let regex = /@import\x20url\(\s*(.*?)\s*\);/g;
+                let m;
+                while ((m = regex.exec(styleElements[j].innerHTML)) !== null) {
+                    styleURIs.push(m[1]);
+                }
+                // make unique
+                styleURIs = styleURIs.filter(
+                    function (value, index, self) {
+                        return self.indexOf(value) === index;
+                    }
+                );
+            }
+        }
+
+        // creating a promise for each image which needs to be converted to a data URI
+        let replacementPromises = [];
+        let createImagePromise = async (uri: string) => {
+            if (uri.length > 0) {
+                const response = await this._httpClient.loadData(
+                    uri,
+                    { responseType: 'arraybuffer' }
+                );
+                let uInt8Array = new Uint8Array(response.data), i = uInt8Array.length;
+                let biStr = []; //new Array(i);
+                while (i--)
+                    biStr[i] = String.fromCharCode(uInt8Array[i]);
+
+                let base64Data = window.btoa(biStr.join(''));
+                let imgDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
+
+                // replace url in SVG string
+                // CAUTION theoretically this could cause unwanted replacements
+                data = data.replace(uri, imgDataUrl);
+            }
+        };
+
+        for (let i = 0; i < childImageURIs.length; ++i)
+            replacementPromises.push(createImagePromise(childImageURIs[i]));
+
+        // now we create promises for the google fonts to be imported
+        let createStylePromise = async (styleUrl: string) => {
+            const response = await this._httpClient.get(
+                styleUrl,
+                { responseType: 'text' }
+            );
+            let cssString = response.data;
+            // we assume that fonts are imported using the following syntax:
+            // url(FONT_URI);
+            let fontURLs = [];
+            let regex = /url\(\s*(.*?)\s*\)/g;
+            let m;
+            while ((m = regex.exec(cssString)) !== null) {
+                fontURLs.push(m[1]);
+            }
+
+            let fontPromises = [];
+            let createFontPromise = async (fUrl: string) => {
+                const response = await this._httpClient.get(
+                    fUrl,
+                    { responseType: 'arraybuffer' }
+                );
+                let uInt8Array = new Uint8Array(response.data), i = uInt8Array.length;
+                let biStr = []; //new Array(i);
+                while (i--)
+                    biStr[i] = String.fromCharCode(uInt8Array[i]);
+
+                let base64Data = window.btoa(biStr.join(''));
+                let fontDataUrl = 'data:' + response.headers['content-type'] + ';base64,' + base64Data;
+                if (fUrl.length > 0)
+                    cssString = cssString.replace(fUrl, fontDataUrl);
+            };
+
+            for (let j = 0; j < fontURLs.length; ++j)
+                fontPromises.push(createFontPromise(fontURLs[j]));
+
+            await Promise.all(fontPromises);
+            data = data.replace('@import url(' + styleUrl + ');', cssString);
+        };
+
+        for (let i = 0; i < styleURIs.length; ++i)
+            replacementPromises.push(createStylePromise(styleURIs[i]));
+
+        await Promise.all(replacementPromises);
+
+        let du = 'data:image/svg+xml,' + encodeURIComponent(data);
+        let img = new Image(); // same as document.createElement('img')
+        img.crossOrigin = 'Anonymous';
+        const promise = new Promise<void>(resolve => {
+            img.onload = () => resolve();
+        })
+        img.src = du;
+        await promise;
+        return img;
     }
 
     /**
@@ -106,7 +238,7 @@ export class Converter {
         }
 
         // tinycolor doesn't like 0x
-        var tmpColor = color.replace('0x', '#');
+        let tmpColor = color.replace('0x', '#');
 
         // if we got no alpha value, add full opacity
         if (tmpColor.match(/^#[a-f0-9]{6}$/i) !== null) {
@@ -142,5 +274,32 @@ export class Converter {
             return vec3.fromValues(point.X, point.Y, point.Z);
 
         return vec3.create();
+    }
+
+    public async responseToImage(response: AxiosResponse<any>): Promise<HTMLImageElement> {
+        const bitmapContentTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/svg+xml'];
+        if (response.headers && response.headers['content-type'] && bitmapContentTypes.includes(response.headers['content-type'])) {
+            if (response.headers['content-type'] === 'image/svg+xml') {
+                const img = await this.processSVG(response.data);
+                return img;
+            } else {
+                const img = new Image();
+                const promise = new Promise<void>(resolve => {
+                    img.onload = () => resolve();
+                })
+                img.crossOrigin = "anonymous";
+
+                let data = <string>await new Promise((resolve, _) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(<string>reader.result);
+                    reader.readAsDataURL(response.data);
+                });
+                img.src = data;
+                await promise;
+                return img;
+            }
+        } else {
+            throw new Error();
+        }
     }
 }

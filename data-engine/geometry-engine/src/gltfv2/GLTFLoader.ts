@@ -23,6 +23,7 @@ import {
     AnimationTrack,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
+import { AxiosResponse } from 'axios'
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
@@ -51,7 +52,7 @@ export class GLTFLoader {
             [key: string]: any
         }
     } = {};
-    private _loadData?: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);
+    private _loadData: (img: string) => Promise<AxiosResponse<any>> = this._httpClient.loadData.bind(this._httpClient);
     private _nodes: {
         [key: number]: TreeNode
     } = {};
@@ -60,8 +61,7 @@ export class GLTFLoader {
 
     // #region Public Methods (1)
 
-    public async load(content: IGLTF_v2, loadData: (img: string) => Promise<Blob | HTMLImageElement>, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
-        this._loadData = loadData;
+    public async load(content: IGLTF_v2, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
         this._baseUri = baseUri;
         if (gltfBinary && gltfHeader)
             this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength + 8, gltfHeader.length);
@@ -294,10 +294,10 @@ export class GLTFLoader {
 
             const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
             const dataUri = window.URL.createObjectURL(blob);
-            mapData = new MapData(<HTMLImageElement>await this._loadData!(dataUri), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
+            mapData = new MapData(await this._converter.responseToImage(await this._loadData!(dataUri)), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         } else {
             const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
-            mapData = new MapData(<HTMLImageElement>await this._loadData!(url!), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
+            mapData = new MapData(await this._converter.responseToImage(await this._loadData!(url!)), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
         }
 
         if (!this._loaded['texture']) this._loaded['texture'] = {};

@@ -251,10 +251,10 @@ export class MaterialLoader implements ILoader {
         if(materialData.color !== undefined)
             generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(materialData.color));
         
-        if(!materialData.color !== undefined && materialData.map !== undefined && materialData.map.color !== undefined)
+        if(materialData.color === undefined && materialData.map !== undefined && materialData.map.color !== undefined)
             generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(materialData.map.color));
 
-        if(!materialData.color !== undefined && materialData.map !== undefined && materialData.map.color !== undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
+        if(materialData.color === undefined && materialData.map !== undefined && materialData.map.color === undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
             generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(this._defaultColor));
 
         if((materialSettings !== undefined && materialSettings.useVertexColors) && materialData.color === this._defaultColor)

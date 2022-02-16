@@ -8,6 +8,7 @@ import { SessionTreeNode } from './SessionTreeNode'
 import { SessionOutputData } from './SessionOutputData'
 import { PerformanceEvaluator } from '@shapediver/viewer.shared.services'
 import { ShapeDiverResponseDto, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { AxiosResponse } from 'axios'
 
 export class OutputLoader {
     // #region Properties (3)
@@ -45,7 +46,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, loadData: (img: string) => Promise<Blob | HTMLImageElement>): Promise<SessionTreeNode> {
+    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }): Promise<SessionTreeNode> {
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(responseDto.model?.name);
         let currentNodes: { 
@@ -71,7 +72,7 @@ export class OutputLoader {
                 currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], loadData))
+                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i]))
                         promisesNodes.push(currentNodes[outputID][outputs[outputID].version])
                     }
                 }

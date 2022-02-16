@@ -17,24 +17,16 @@ export class DataEngine {
 
     private readonly _geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
     private readonly _htmlElementAnchorEngine: HTMLElementAnchorEngine = <HTMLElementAnchorEngine>container.resolve(HTMLElementAnchorEngine);
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _sdtfEngine: SDTFEngine = <SDTFEngine>container.resolve(SDTFEngine);
     private readonly _tag3dEngine: Tag3dEngine = <Tag3dEngine>container.resolve(Tag3dEngine);
-    private _loadData: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);
 
     // #endregion Properties (6)
 
     // #region Public Methods (1)
 
-    public async loadContent(content: ShapeDiverResponseOutputContent, loadData?: (img: string) => Promise<Blob | HTMLImageElement>): Promise<TreeNode> {
-        if(loadData) {
-            this._loadData = loadData;
-        } else {
-            this._loadData = this._httpClient.loadData.bind(this._httpClient);
-        }
-
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         if(!content || (content && !content.format)) {
             const error = new ShapeDiverViewerDataProcessingError('DataEngine cannot load content.');
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `DataEngine.loadContent`, error);
@@ -44,15 +36,15 @@ export class DataEngine {
             let node: TreeNode;
 
             if (content.format === 'glb' || content.format === 'gltf') {
-                node = await this._geometryEngine.loadContent(content, this._loadData);
+                node = await this._geometryEngine.loadContent(content);
             } else if (content.format === 'material') {
-                node = await this._materialEngine.loadContent(content, this._loadData);
+                node = await this._materialEngine.loadContent(content);
             } else if (content.format === 'tag2d' || content.format === 'anchor') {
-                node = await this._htmlElementAnchorEngine.loadContent(content, this._loadData);
+                node = await this._htmlElementAnchorEngine.loadContent(content);
             } else if (content.format === 'tag3d') {
-                node = await this._tag3dEngine.loadContent(content, this._loadData);
+                node = await this._tag3dEngine.loadContent(content);
             } else if (content.format === 'sdtf') {
-                node = await this._sdtfEngine.loadContent(content, this._loadData);
+                node = await this._sdtfEngine.loadContent(content);
             } else {
                 node = new TreeNode('custom');
                 node.data.push(new CustomData({ ...content }));

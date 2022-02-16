@@ -41,6 +41,7 @@
     "@shapediver/viewer.shared.node-tree": "1.12.1",
     "@shapediver/viewer.shared.services": "1.12.1",
     "@shapediver/viewer.shared.types": "1.12.1",
+    "axios": "^0.21.1",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
   },

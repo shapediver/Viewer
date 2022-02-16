@@ -178,6 +178,7 @@ export class Session implements ISession {
             this.#primarySessionRequest = properties.primarySession !== false;
             if (this.#stateEngine.primarySession && this.#stateEngine.primarySession.id === this.id) {
                 this.#primarySession = true;
+                this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
 
                 this.#stateEngine.sessions[this.id].settingsRegistered.then(() => {

@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
@@ -7,11 +7,12 @@ import { SessionTreeNode } from './SessionTreeNode'
 import { ISession } from '../interfaces/ISession'
 import { SessionData } from './SessionData'
 import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { AxiosRequestConfig } from 'axios'
+import { AxiosRequestConfig, AxiosResponse } from 'axios'
 
 export class Session implements ISession {
     // #region Properties (22)
 
+    private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _exports: { [key: string]: ShapeDiverResponseExport; } = {};
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _id: string;
@@ -44,7 +45,7 @@ export class Session implements ISession {
     private _sessionId?: string;
     private _viewerSettings?: object;
     private _dataCache: {
-        [key: string]: Promise<Blob | HTMLImageElement>
+        [key: string]: Promise<AxiosResponse<any>>
     } = {};
 
     // #endregion Properties (22)
@@ -273,7 +274,7 @@ export class Session implements ISession {
         const o = Object.assign({}, this._outputs);
         const of = Object.assign({}, this._outputsFreeze);
         try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of, this.loadData.bind(this));
+            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of);
             node.data.push(new SessionData(this._responseDto!));
             return node;
         }
@@ -491,33 +492,16 @@ export class Session implements ISession {
         }
     }
 
-    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }, retry = false): Promise<Blob | HTMLImageElement> {
+    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }, retry = false): Promise<AxiosResponse<any>> {
         this.checkAvailability();
         try {
             const dataKey = btoa(href);
             if(this._dataCache[dataKey]) return await this._dataCache[dataKey];
 
-            this._dataCache[dataKey] = new Promise<Blob | HTMLImageElement>(async resolve => {
-                const response = await this._httpClient.get(
-                    `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${dataKey}`,
-                    config
-                );
-                const bitmapContentTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/svg+xml'];
-                
-                if(response.headers && response.headers['content-type'] && bitmapContentTypes.includes(response.headers['content-type'])) {
-                    const img = new Image();
-                    const promise = new Promise<void>(resolve => {
-                      img.onload = () => resolve();
-                    })
-                    img.crossOrigin = "anonymous";
-                    img.src = href;
-                    await promise;
-                    resolve(img);
-                } else {
-                    resolve(response.data);
-                }
-            });
-
+            this._dataCache[dataKey] = this._httpClient.get(
+                `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${dataKey}`,
+                config
+            );
             return await this._dataCache[dataKey];
         } catch (e) {
             await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadData', e, retry);

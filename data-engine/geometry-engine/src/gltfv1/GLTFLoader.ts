@@ -33,14 +33,12 @@ export class GLTFLoader {
     private _baseUri: string | undefined;
     private _body: ArrayBuffer | undefined;
     private _content!: IGLTF_v1;
-    private _loadData?: (img: string) => Promise<Blob | HTMLImageElement> = this._httpClient.loadData.bind(this._httpClient);;
 
     // #endregion Properties (5)
 
     // #region Public Methods (1)
 
-    public async load(content: IGLTF_v1, loadData: (img: string) => Promise<Blob | HTMLImageElement>, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
-        this._loadData = loadData;
+    public async load(content: IGLTF_v1, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
         this._baseUri = baseUri;
         if(gltfBinary && gltfHeader)
             this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength, gltfHeader.length);
