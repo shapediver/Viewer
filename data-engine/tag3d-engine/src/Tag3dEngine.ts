@@ -161,7 +161,7 @@ export class Tag3dEngine {
                         attributes[attributeName] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false, line.attributes[attribute].array.length / line.attributes[attribute].itemSize)
                     }
                     const child = new TreeNode('tag3d_'+line)
-                    child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialData({color: tag3dInfo.color}))));
+                    child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialData({color: tag3dInfo.color, metalness: 0, roughness: 1}))));
                     node.children.push(child);
                 }   
             }
