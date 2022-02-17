@@ -303,15 +303,15 @@ export class Session implements ISession {
         }
     }
 
-    public async requestExport(exportId: string, parameters: { [key: string]: string }, retry = false): Promise<ShapeDiverResponseExport> {
+    public async requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number, retry = false): Promise<ShapeDiverResponseExport> {
         this.checkAvailability('export');
         try {
-            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters })
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters }, maxWaitTime)
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
         } catch (e) {
             await this.handleError(LOGGINGTOPIC.SESSION, 'Session.requestExport', e, retry);
-            return await this.requestExport(exportId, parameters, true);
+            return await this.requestExport(exportId, parameters, maxWaitTime, true);
         }
     }
 

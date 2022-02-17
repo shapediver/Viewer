@@ -23,6 +23,7 @@ export class Export implements IExport {
   #displayname?: string;
   #filename?: string;
   #hidden: boolean = false;
+  #maxWaitTime: number = 300000;
   #msg?: string
   #order?: number;
   #result?: ShapeDiverResponseExportResult
@@ -110,6 +111,22 @@ export class Export implements IExport {
     return this.#id;
   }
 
+  public get maxWaitTime(): number {
+    return this.#maxWaitTime;
+  }
+
+  public set maxWaitTime(value: number) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).maxWaitTime: Updating maxWaitTime to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).maxWaitTime`, value, 'number');
+      this.#maxWaitTime = value;
+      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).maxWaitTime: maxWaitTime was updated to ${this.maxWaitTime}.`);
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).maxWaitTime`, e);
+    }
+  }
+
   public get msg(): string | undefined {
     return this.#msg;
   }
@@ -189,7 +206,7 @@ export class Export implements IExport {
 
       this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
 
-      const exportDef = await this.#sessionEngine.requestExport(this.id, exportParameters);
+      const exportDef = await this.#sessionEngine.requestExport(this.id, exportParameters, this.#maxWaitTime);
       this.updateExportDefinition(exportDef);
       return exportDef;
     } catch (e) {

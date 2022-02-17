@@ -25,7 +25,7 @@ export interface ISession {
       [key: string]: string;
     }): Promise<void>;
     loadOutputs(cancelRequest: () => boolean): Promise<TreeNode>;
-    requestExport(exportId: string, parameters: { [key: string]: string }): Promise<ShapeDiverResponseExport>;
+    requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
     uploadFile(parameterId: string, data: File, type: string): Promise<string>;
     uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<string>;
 
