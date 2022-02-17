@@ -8,6 +8,9 @@
 * __Commit:__ 6e5e88dfc160238c21e1aec0de7fcb8e8478618e
 <!--- VERSION_END -->
 
+## Version 1.12.3 - `The Lion King`
+- doc updates
+
 ## Version 1.12.2 - `The Lord of the Rings: The Return of the King`
 - bugfix: surface display
 - bugfix: old default light scene reconstruction
