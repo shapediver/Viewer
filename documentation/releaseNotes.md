@@ -8,6 +8,29 @@
 * __Commit:__ 6e5e88dfc160238c21e1aec0de7fcb8e8478618e
 <!--- VERSION_END -->
 
+## Version 1.12.2 - `The Lord of the Rings: The Return of the King`
+- bugfix: surface display
+- bugfix: old default light scene reconstruction
+- removed reflect-metadata requirement
+- displaying output and export errors
+- branding options
+- canvas error messaging
+- HTMLElementAnchorData structure update
+- improved SVG support
+- metalness / roughness 3d tag defaults
+- maxWaitTime for exports
+- viewer status updates
+- error logging
+
+## Version 1.12.1 - `The Lord of the Rings: The Two Towers`
+- bugfixes
+
+## Version 1.12.0 - `The Lord of the Rings: The Fellowship of the Ring`
+- new rendering settings
+
+## Version 1.11.12 - `Kick-Ass 2`
+- bugfix: environment map rotation
+
 ## Version 1.11.11 - `Kingdom of Heaven`
 - bugfix: multiple transformations
 - bugfix: alpha color updates

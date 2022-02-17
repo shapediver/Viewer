@@ -1,5 +1,10 @@
 # Breaking Changes Guide
 
+## Version 1.12.1 -> 1.12.2
+- import of `reflect-metadata` not necessary any more
+- branding options changed, `logo` was moved into object
+- the `HTMLElementAnchorData` was reworked, there are now `HTMLElementAnchorTextData`, `HTMLElementAnchorImageData` and `HTMLElementAnchorCustomData` to better fit your needs
+
 ## Version 1.11.10 -> 1.11.11
 - `updateOutputContent` function signature, `session.updateOutputs()` now included, can be disabled via flag
 
