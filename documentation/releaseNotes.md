@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.12.2
-* __Build date:__ 2022-02-17T17:23:55.556Z
+* __Version:__ 1.12.3
+* __Build date:__ 2022-02-17T17:52:15.456Z
 * __Branch:__ development
-* __Commit:__ 6e5e88dfc160238c21e1aec0de7fcb8e8478618e
+* __Commit:__ 4c0a2f71e68998062be4780d661713c722497ab8
 <!--- VERSION_END -->
 
 ## Version 1.12.3 - `The Lion King`
