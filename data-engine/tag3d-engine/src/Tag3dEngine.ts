@@ -36,8 +36,8 @@ export class Tag3dEngine {
      */
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         if(!this._font) {
-            const json = await this._httpClient.loadData('https://viewer.shapediver.com/graphik_regular.typeface.json', { responseType: 'json' })
-            this._font = new THREE.Font(json);
+            const json = await this._httpClient.loadData('https://viewer.shapediver.com/graphik_regular.typeface.json', { responseType: 'json' });
+            this._font = new THREE.Font(json.data);
             this._stateEngine.fontLoaded.resolve(true);
         }
 

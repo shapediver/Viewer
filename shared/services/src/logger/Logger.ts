@@ -142,6 +142,8 @@ export class Logger {
     // #region Public Methods (8)
     
     public handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error, logToSentry = true) {
+        if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true) 
+            console.error('(ERROR) ', e);
         if(e instanceof ShapeDiverRequestError) {
             const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
             if(logToSentry) this.sentryError(topic, e, messageProperty);
