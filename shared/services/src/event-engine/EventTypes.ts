@@ -29,6 +29,13 @@ export enum SETTINGS {
     SETTINGS_UPDATE = "settings.update",
 }
 
+export enum TASK {
+    TASK_START = "task.start",
+    TASK_PROCESS = "task.process",
+    TASK_END = "task.end",
+    TASK_CANCEL = "task.cancel",
+}
+
 export enum INTERACTION {
     DRAG_START = "interaction.drag.start",
     DRAG_MOVE = "interaction.drag.move",
@@ -84,7 +91,8 @@ export const EVENTTYPE = {
     SESSION,
     SETTINGS,
     VIEWER,
-    INTERACTION
+    INTERACTION,
+    TASK
 };
 
-export type MAINEVENTTYPE = typeof CAMERA | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER | typeof INTERACTION;
+export type MAINEVENTTYPE = typeof CAMERA | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER | typeof INTERACTION | typeof TASK;

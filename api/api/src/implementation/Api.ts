@@ -32,7 +32,7 @@ import { IApi } from '../interfaces/IApi'
 import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
 import { Session } from './session/Session'
-import { ISessionEvent, ISettingsEvent, SDTFAttributeOverview, SDTFOverview } from '@shapediver/viewer.shared.types'
+import { ISessionEvent, ISettingsEvent, ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
 import { Viewer } from './viewer/Viewer'
 import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
@@ -513,7 +513,11 @@ export class Api implements IApi {
 
   public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, loadOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession> {
     let sessionId: string = '';
+    const eventId = this.#uuidGenerator.create();
     try {
+      const eventStart: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 0, status: 'Creating session' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+
       this.#logger.info(LOGGINGTOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
       // input validation
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties, 'object');
@@ -533,6 +537,9 @@ export class Api implements IApi {
       // check if the given id is valid
       sessionId = properties.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.sessions[sessionId]) {
+        const eventClose: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 0.1, status: 'Closing session with same id' };
+        this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
+
         this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.createSession: Session with this id (${sessionId}) already exists. Closing initial instance.`);
         await this.#closeSession(sessionId, true);
       }
@@ -559,12 +566,19 @@ export class Api implements IApi {
       // save the session
       this.sessions[sessionId] = session;
       this.#sessionCallbacks[sessionId] = sessionCallbacks;
+      
+      const eventInit: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventInit);
 
       await session.init(properties.waitForOutputs, properties.loadOutputs, properties.initialParameters);
       
       this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId });
       this.#stateEngine.sessions[sessionId].initialized.resolve(true);
       this.#logger.debug(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
+
+      const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
       return session;
     } catch (e) {
       // special behavior, if this was the only session, display the error on the logo screen
@@ -575,7 +589,14 @@ export class Api implements IApi {
         }
       }
 
+      const eventCancel1: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 0.9, status: 'Session created failed, closing session' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventCancel1);
+
       await this.#closeSession(sessionId, true);
+
+      const eventCancel2: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created failed' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
+
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSession', e);
     }
@@ -600,7 +621,11 @@ export class Api implements IApi {
   
   public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string } }): Promise<IViewer> {
     let viewerId: string = '';
+    const eventId = this.#uuidGenerator.create();
     try {
+      const eventStart: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 0, status: 'Creating viewer' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
       const prop = Object.assign({}, properties);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITYMODE));
@@ -614,6 +639,9 @@ export class Api implements IApi {
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
       if (this.viewers[viewerId]) {
+        const eventClose: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 0.1, status: 'Closing viewer with same id' };
+        this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
+
         this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.createViewer: Viewer with this id (${viewerId}) already exists. Closing initial instance.`);
         await this.#closeViewer(viewerId, true);
       }
@@ -638,6 +666,10 @@ export class Api implements IApi {
       }, viewerCallbacks);
 
       if ((prop.visibility || VISIBILITYMODE.SESSION) === VISIBILITYMODE.SESSION && this.#stateEngine.primarySession && this.#stateEngine.primarySession.initialized.resolved === true) {
+        
+        const eventEnd: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 0.75, status: 'Waiting for primary session settings' };
+        this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventEnd);
+
         await new Promise<void>(resolve => {
           this.#stateEngine.viewers[viewerId].settingsLoaded.then(() => resolve())
         })
@@ -653,9 +685,21 @@ export class Api implements IApi {
       this.#stateEngine.viewers[viewerId].initialized.resolve(true);
 
       this.#logger.debug(LOGGINGTOPIC.VIEWER, `Api.createViewer: Viewer(${viewer.id}) created.`);
+
+      const eventEnd: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 1, status: 'Viewer created' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
       return this.viewers[viewerId];
     } catch (e) {
-      try { this.#closeViewer(viewerId, true); } catch {}
+      
+      const eventCancel1: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 0.9, status: 'Viewer created failed, closing viewer' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventCancel1);
+
+      try { await this.#closeViewer(viewerId, true); } catch {}
+
+      const eventCancel2: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 1, status: 'Viewer created failed, exiting' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
+      
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createViewer', e);
     }
@@ -721,12 +765,18 @@ export class Api implements IApi {
   }
 
   public async viewInAR(androidOptions: { title?: string, resizable?: boolean, fallback_url?: string } = { title: '', resizable: true, fallback_url: 'https://shapediver.com/' }): Promise<void> {
+    const eventId = this.#uuidGenerator.create();
     try {
+      const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
+
       const isIOSSafari = this.#systemInfo.isIOS && this.#systemInfo.isSafari;
       const isAndroidChrome = this.#systemInfo.isAndroid && this.#systemInfo.isChrome;
 
       // if this is not a supported device, throw an error
       if(!isIOSSafari && !isAndroidChrome) {
+        const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
+        this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
         const error = new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
         throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error, false);
       }
@@ -739,6 +789,8 @@ export class Api implements IApi {
         if(this.sessions[s].canUploadGLTF)
           arSession = this.sessions[s];
       if(!arSession) {
+        const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
+        this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
         const error = new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
         throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error, false);
       }
@@ -749,7 +801,7 @@ export class Api implements IApi {
         this.viewers[v].registerBusyMode(busyModeID)
 
       // convert and upload (and maybe convert to usdz) the file
-      const file = await arSession.uploadGLTF(isIOSSafari ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
+      const file = await arSession.uploadGLTF(isIOSSafari ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE, eventId);
 
       // separation between Android-Chrome and iOS-Safari
       if(isAndroidChrome) {
@@ -777,11 +829,17 @@ export class Api implements IApi {
         a.appendChild(img);
         a.click();
       }
+      
+      const event2: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Done loading AR scene, launching AR' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event2);
 
       // deregister the busy mod
       for(let v in this.viewers)
         this.viewers[v].deregisterBusyMode(busyModeID)
     } catch (e) {
+      const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
+
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewInAR', e);
     }

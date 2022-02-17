@@ -1,10 +1,11 @@
 import * as THREE from 'three'
-import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, Converter } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
 import { RGBELoader } from '../three/loaders/RGBELoader'
 import { ILoader } from '../interfaces/ILoader'
+import { ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
 
 export enum ENVIRONMENT_MAP_CUBE {
     DEFAULT = 'default', 
@@ -79,6 +80,7 @@ export class EnvironmentMapLoader implements ILoader {
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private _pmremGenerator!: THREE.PMREMGenerator;
 
     private _environmentMapName: string = 'none';
@@ -116,16 +118,29 @@ export class EnvironmentMapLoader implements ILoader {
         this._pmremGenerator.compileEquirectangularShader();
     }
 
-    private notify() {
-        this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded.resolve(true);
-        this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded = new StatePromise();
+    private notify(eventId: string, failed = false) {
+
+        let event: ITaskEvent;
+        if(failed) {
+            event = { type: TASKTYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loading of EnvironmentMap failed` };
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
+        } else {
+            event = { type: TASKTYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loaded EnvironmentMap` };
+            this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded.resolve(true);
+            this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded = new StatePromise();
+            this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event);
+        }
     }
 
     public async load(name: string | string[]): Promise<boolean> {
+        const eventId = this._uuidGenerator.create();
+        const event: ITaskEvent = { type: TASKTYPE.ENVIRONMENT_MAP_LOADING, id: eventId, data: { input: name }, progress: 0, status: `Loading EnvironmentMap` };
+        this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
+        
         const name_original = name;
         if (name === 'none') {
             this._environmentMapNameInternal = name;
-            this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.NONE);
+            this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.NONE, eventId);
             return true;
         };
 
@@ -134,6 +149,7 @@ export class EnvironmentMapLoader implements ILoader {
         // check if name is a JSON.stringified version of an array of urls
         if (!Array.isArray(name) && (name.startsWith('["https') && name.endsWith('"]')))
             try { name = JSON.parse(name); } catch (e) {
+                this.notify(eventId, true);
                 const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map.', name);
                 throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
             }
@@ -144,7 +160,7 @@ export class EnvironmentMapLoader implements ILoader {
             name_caching = name_internal + this._renderingEngine.environmentMapResolution;
         } else {
             if (name.length !== 6) {
-                this.notify();
+                this.notify(eventId, true);
                 const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.', name);
                 throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
             }
@@ -156,7 +172,7 @@ export class EnvironmentMapLoader implements ILoader {
         // check if environment map is already cached
         for (let environmentMap in this._environmentMaps)
             if (environmentMap === name_caching) {
-                this.assignEnvironmentMap(environmentMap, this._environmentMaps[environmentMap] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR);
+                this.assignEnvironmentMap(environmentMap, this._environmentMaps[environmentMap] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR, eventId);
                 return true;
             }
 
@@ -171,7 +187,7 @@ export class EnvironmentMapLoader implements ILoader {
                         url_hdr = 'https://viewer.shapediver.com/v3/envmaps/khronos/' + name_internal + '.hdr';
 
                     this._environmentMapHDR.push(url_hdr)
-                    await this.loadEnvironmentMap(url_hdr, []);
+                    await this.loadEnvironmentMap(url_hdr, [], eventId);
                     return Promise.resolve(true);
                 } else if (this._environmentMapNamesJPG.indexOf(name_internal) >= 0) {
                     // found in list of available environment maps with file type jpg
@@ -180,7 +196,7 @@ export class EnvironmentMapLoader implements ILoader {
                 } else if (name.startsWith('https://') || name.startsWith('http://')) {
                     if (name.endsWith('.hdr')) {
                         this._environmentMapHDR.push(name)
-                        await this.loadEnvironmentMap(name, []);
+                        await this.loadEnvironmentMap(name, [], eventId);
                         return Promise.resolve(true);
                     } else {
                         if (!name.endsWith('/'))
@@ -191,7 +207,7 @@ export class EnvironmentMapLoader implements ILoader {
                     }
                 }
                 else {
-                    this.notify();
+                    this.notify(eventId, true);
                     const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.', name);
                     throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
                 }
@@ -199,11 +215,11 @@ export class EnvironmentMapLoader implements ILoader {
                 url = name;
             }
 
-            await this.loadEnvironmentMap(name_caching, url);
+            await this.loadEnvironmentMap(name_caching, url, eventId);
             return Promise.resolve(true);
         }
         catch (e) {
-            this.notify();
+            this.notify(eventId, true);
             throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `EnvironmentMapLoader.load`, e);
         }
     }
@@ -212,12 +228,12 @@ export class EnvironmentMapLoader implements ILoader {
 
     // #region Private Methods (2)
 
-    private assignEnvironmentMap(name: string, type: ENVIRONMENT_MAP_TYPE) {
+    private assignEnvironmentMap(name: string, type: ENVIRONMENT_MAP_TYPE, eventId: string) {
         if(name in this._environmentMaps === false) return;
         this._type = type;
         this._environmentMapName = name;
         this._renderingEngine.materialLoader.assignEnvironmentMap(this._environmentMaps[name], type);
-        this.notify();
+        this.notify(eventId);
     }
 
     private assignTextureEncoding() {
@@ -230,7 +246,7 @@ export class EnvironmentMapLoader implements ILoader {
         }
     }
 
-    private async loadEnvironmentMap(name: string, url: string[]) {
+    private async loadEnvironmentMap(name: string, url: string[], eventId: string) {
         return new Promise<void>(async (resolve, reject) => {
             if(name.endsWith('.hdr')) {
                 const blob = (await this._httpClient.loadData(name)).data;
@@ -238,7 +254,7 @@ export class EnvironmentMapLoader implements ILoader {
                     const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                     this._pmremGenerator.dispose();
                     this._environmentMaps[name] = map;
-                    this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.HDR);
+                    this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.HDR, eventId);
                     resolve();
                 },
                 () => {},
@@ -253,7 +269,7 @@ export class EnvironmentMapLoader implements ILoader {
                         map.format = THREE.RGBFormat;
                         map.mapping = THREE.CubeReflectionMapping;
                         this._environmentMaps[name] = map;
-                        this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.LDR);
+                        this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.LDR, eventId);
                         resolve();
                     },
                     () => {},

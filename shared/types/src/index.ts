@@ -21,6 +21,7 @@ import { ICameraEvent } from './events/ICameraEvent'
 import { IEnvironmentEvent } from './events/IEnvironmentEvent'
 import { ISceneEvent } from './events/ISceneEvent'
 import { ISettingsEvent } from './events/ISettingsEvent'
+import { ITaskEvent, TASKTYPE } from './events/ITaskEvent'
 
 export {
   MaterialData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
@@ -39,7 +40,7 @@ export {
 }
 
 export {
-  IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent
+  IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, ITaskEvent, TASKTYPE
 }
 
 export {

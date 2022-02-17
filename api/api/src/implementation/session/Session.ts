@@ -30,7 +30,7 @@ import { IFileParameter } from '../../interfaces/session/IFileParameter'
 import { FileParameter } from './FileParameter'
 import { Export } from './Export'
 import { Output } from './Output'
-import { ISettingsEvent } from '@shapediver/viewer.shared.types'
+import { ISettingsEvent, ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @injectable()
@@ -392,7 +392,11 @@ export class Session implements ISession {
     }
 
     public async customize(): Promise<TreeNode> {
+        const eventId = this.#uuidGenerator.create();
         try {
+            const eventStart: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+
             const oldNode = this.#node.cloneInstance();
             const customizationID = this.#uuidGenerator.create();
             this.#customizationProcess = customizationID;
@@ -405,6 +409,10 @@ export class Session implements ISession {
             for (let viewerId in this.#api.viewers)
                 if (this.#api.viewers[viewerId].blurSceneWhenBusy)
                     this.#api.viewers[viewerId].registerBusyMode(customizationID);
+
+
+            const eventFileUpload: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
 
             const fileParameterIds: { [key: string]: string } = {}
             // load file parameter first
@@ -419,6 +427,9 @@ export class Session implements ISession {
                         for (let viewerId in this.#api.viewers)
                             this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
                         this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
+                                    
+                        const eventCancel1a: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
+                        this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
                         return new TreeNode();
                     }
                 }
@@ -430,6 +441,9 @@ export class Session implements ISession {
                 this.#performanceEvaluator.end();
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+
+                const eventCancel1b: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
+                this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1b);
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return new TreeNode();
             }
@@ -458,16 +472,25 @@ export class Session implements ISession {
                 this.#sessionEngine.parameterValues[parameterId] = parameterSet[parameterId].valueString;
             this.#logger.info(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customizing session with parameters ${JSON.stringify(this.#sessionEngine.parameterValues)}.`);
 
+            const eventRequest: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Sending customization request' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
+
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('customize');
             const newNode = await this.#sessionEngine.customize(() => this.#customizationProcess !== customizationID);
             this.#performanceEvaluator.endSection('customize');
+
+            const eventSceneUpdate: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.75, data: { sessionId: this.id }, status: 'Updating scene' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
 
             // OPTION TO SKIP - PART 2
             if (this.#customizationProcess !== customizationID) {
                 this.#performanceEvaluator.end();
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+                
+                const eventCancel2: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
+                this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
                 return newNode;
             }
@@ -513,8 +536,15 @@ export class Session implements ISession {
             this.#performanceEvaluator.end();
 
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
+
+            const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+                
             return this.node;
         } catch (e) {
+            const eventCancel: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
+
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize`, e);
         }
@@ -688,6 +718,10 @@ export class Session implements ISession {
 
     public async init(waitForOutputs = true, loadOutputs = true, initialParameters?: { [key: string]: string }): Promise<void> {
         try {
+            const eventId = this.#uuidGenerator.create();
+            const event: ITaskEvent = { type: TASKTYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 0, status: 'Initializing session' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
+
             this.#performanceEvaluator.start();
             this.#performanceEvaluator.startSection('init');
 
@@ -696,6 +730,9 @@ export class Session implements ISession {
             this.#performanceEvaluator.startSection('customize');
 
             await this.#sessionEngine.init(initialParameters);
+            
+            const eventLoading: ITaskEvent = { type: TASKTYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 0.5, status: 'Loading outputs' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventLoading);
 
             if(this.primarySession)
                 this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
@@ -707,6 +744,9 @@ export class Session implements ISession {
                     this.node.excludeViewers = this.#excludeViewers;
                     this.#api.update();
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: this.id });
+                    
+                    const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
+                    this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
                 } else {
                     this.#sessionEngine.loadOutputs().then(async node => {
                         this.#node = node;
@@ -714,6 +754,9 @@ export class Session implements ISession {
                         this.node.excludeViewers = this.#excludeViewers;
                         this.#api.update();
                         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: this.id });
+                        
+                        const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
+                        this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
                     })
                 }
             }
@@ -915,7 +958,11 @@ export class Session implements ISession {
     }
 
     public async updateOutputs(): Promise<TreeNode> {
+        const eventId = this.#uuidGenerator.create();
         try {
+            const eventStart: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Updating outputs' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
+
             const oldNode = this.#node.cloneInstance();
             const customizationID = this.#uuidGenerator.create();
             this.#customizationProcess = customizationID;
@@ -929,16 +976,24 @@ export class Session implements ISession {
                 if (this.#api.viewers[viewerId].blurSceneWhenBusy)
                     this.#api.viewers[viewerId].registerBusyMode(customizationID);
 
+            const eventRequest: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Loading outputs' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
+        
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('updateOutputs');
             const newNode = await this.#sessionEngine.loadOutputs(() => this.#customizationProcess !== customizationID);
             this.#performanceEvaluator.endSection('updateOutputs');
+            
+            const eventSceneUpdate: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.75, data: { sessionId: this.id }, status: 'Updating scene' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
 
             // OPTION TO SKIP - PART 1
             if (this.#customizationProcess !== customizationID) {
                 this.#performanceEvaluator.end();
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
+                const eventCancel1: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Output updating was exceeded by other customization request' };
+                this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1);
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
                 return newNode;
             }
@@ -972,17 +1027,27 @@ export class Session implements ISession {
 
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
+            
+            const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Outputs updated' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
             return this.node;
         } catch (e) {
+            const eventCancel: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Output updating failed' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
+
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs`, e);
         }
       }
 
-    public async uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion) {
+    public async uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion, eventId: string) {
         try {
+            const event1: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 0.25, status: 'Converting AR scene' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, event1);
             const blob = await this.#api.convertSceneToGLTF(true);
+            const event2: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 0.75, status: 'Uploading AR scene' };
+            this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, event2);
             return await this.#sessionEngine.uploadGLTF(blob, conversion);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

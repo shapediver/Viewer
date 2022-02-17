@@ -1,7 +1,8 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
+import { ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
 
 import { IExport } from '../../interfaces/session/IExport'
 import { ISession } from '../../interfaces/session/ISession'
@@ -9,6 +10,7 @@ import { ISession } from '../../interfaces/session/ISession'
 export class Export implements IExport {
   // #region Properties (21)
 
+  readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #id: string;
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
@@ -16,6 +18,7 @@ export class Export implements IExport {
   readonly #session: ISession;
   readonly #sessionEngine: Session;
   readonly #type: ShapeDiverResponseExportDefinitionType;
+  readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
   #content?: ShapeDiverResponseExportContent[];
   #delay?: number;
@@ -196,7 +199,11 @@ export class Export implements IExport {
   // #region Public Methods (2)
 
   public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
+    const eventId = this.#uuidGenerator.create();
     try {
+      const event: ITaskEvent = { type: TASKTYPE.EXPORT_REQUEST, id: eventId, progress: 0, status: 'Requesting export' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
+
       this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Sending export request.`);
       const currentParameters = this.#sessionEngine.parameterValues;
       const exportParameters: { [key: string]: string } = {}
@@ -208,8 +215,15 @@ export class Export implements IExport {
 
       const exportDef = await this.#sessionEngine.requestExport(this.id, exportParameters, this.#maxWaitTime);
       this.updateExportDefinition(exportDef);
+
+      const eventEnd: ITaskEvent = { type: TASKTYPE.EXPORT_REQUEST, id: eventId, progress: 1, status: 'Returning export' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
+
       return exportDef;
     } catch (e) {
+      const eventEnd: ITaskEvent = { type: TASKTYPE.EXPORT_REQUEST, id: eventId, progress: 1, status: 'Export request failed' };
+      this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventEnd);
+
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request`, e);
     }

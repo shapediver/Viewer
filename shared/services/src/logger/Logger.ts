@@ -16,9 +16,9 @@ export enum LOGGINGLEVEL {
     WARN = 'warn',
     INFO = 'info',
     DEBUG = 'debug',
-    DEBUG_HIGH = 'debug.high',
-    DEBUG_MEDIUM = 'debug.medium',
-    DEBUG_LOW = 'debug.low',
+    DEBUG_HIGH = 'debug_high',
+    DEBUG_MEDIUM = 'debug_medium',
+    DEBUG_LOW = 'debug_low',
 }
 
 export enum LOGGINGTOPIC {

@@ -164,7 +164,7 @@ export interface ISession {
      * 
      * @returns 
      */
-    uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion): Promise<string>;
+    uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion, eventId: string): Promise<string>;
 
     // #endregion Public Methods (18)
 }
