@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.12.3
-* __Build date:__ 2022-02-17T17:52:15.456Z
+* __Version:__ 1.12.4
+* __Build date:__ 2022-02-21T15:37:23.005Z
 * __Branch:__ development
-* __Commit:__ 4c0a2f71e68998062be4780d661713c722497ab8
+* __Commit:__ f49bac55b6a4c699c2a00f1f389fbaf7904a55b0
 <!--- VERSION_END -->
 
 ## Version 1.12.4 - `LA Confidential`
