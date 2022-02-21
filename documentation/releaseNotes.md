@@ -8,6 +8,11 @@
 * __Commit:__ 4c0a2f71e68998062be4780d661713c722497ab8
 <!--- VERSION_END -->
 
+## Version 1.12.4 - `LA Confidential`
+- deploy comments in npm package
+- data exposing
+- test adaptions
+
 ## Version 1.12.3 - `The Lion King`
 - doc updates
 
