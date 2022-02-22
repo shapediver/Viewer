@@ -79,6 +79,15 @@ export class SystemInfo {
     };
 
     /**
+     * Check if we are running in Firefox
+     */
+    public get isFirefox(): boolean {
+        const browserName = this._parser.getBrowser().name;
+        console.log(browserName)
+        return !!(browserName && browserName.includes('Firefox'));
+    };
+
+    /**
      * Check if we are running in a browser
      */
     public get isBrowser(): boolean {

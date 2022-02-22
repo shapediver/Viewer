@@ -143,7 +143,7 @@ export interface IApi {
    * 
    * @param androidOptions 
    */
-  viewInAR(androidOptions?: { title?: string, resizable?: boolean, fallback_url?: string }): Promise<void>;
+  viewInAR(options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
   /**
    * Determines if the current devices supports the viewing in AR.
    * 
