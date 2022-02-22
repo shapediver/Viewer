@@ -160,17 +160,7 @@ export class Session implements ISession {
                     try { await this._closeOnFailure(); } catch(e) {}
                     throw this._logger.handleError(topic, scope, e);
                 }
-            } else if(
-                e.error === ShapeDiverResponseErrorType.ERROR_FORBIDDEN || 
-                e.error === ShapeDiverResponseErrorType.ERROR_UNAUTHORIZED ||
-                e.error === ShapeDiverResponseErrorType.TOKEN_MISSING_ERROR ||
-                e.error === ShapeDiverResponseErrorType.JWT_VALIDATION_ERROR ||
-                e.error === ShapeDiverResponseErrorType.MODEL_VALIDATION_ERROR ||
-                e.error === ShapeDiverResponseErrorType.TICKET_VALIDATION_ERROR ||
-                e.error === ShapeDiverResponseErrorType.REQUEST_VALIDATION_ERROR ||
-                e.error === ShapeDiverResponseErrorType.SESSION_VALIDATION_ERROR ||
-                e.error === ShapeDiverResponseErrorType.PARAMETER_VALIDATION_ERROR 
-            ) {
+            } else if(e.error === ShapeDiverResponseErrorType.JWT_VALIDATION_ERROR) {
                 // if any of the above errors occur, we try to get a new bearer token
                 // if we get a new one, we retry 3 times (by requiring new bearer tokens every time)
                 if(this._retryCounter < 3) {
