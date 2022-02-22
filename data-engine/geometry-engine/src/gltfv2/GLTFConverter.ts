@@ -474,15 +474,15 @@ export class GLTFConverter {
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(data.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = data.opacity;
             if (data.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) }
-            materialDef.pbrMetallicRoughness!.metallicFactor = data.metalness;
-            materialDef.pbrMetallicRoughness!.roughnessFactor = data.roughness;
-            if (data.metalnessRoughnessMap && includeMaps) {
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(data.metalnessRoughnessMap) };
-            } else if ((data.metalnessMap || data.roughnessMap) && includeMaps) {
-                const map: MapData = (data.metalnessMap || data.roughnessMap)!;
-                // we just take one, conversion is just too slow
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(map) };
-            }
+            materialDef.pbrMetallicRoughness!.metallicFactor = data.metalnessMap ? 0 : data.metalness;
+            materialDef.pbrMetallicRoughness!.roughnessFactor = data.roughnessMap ? 0 : data.roughness;
+            // if (data.metalnessRoughnessMap && includeMaps) {
+            //     materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(data.metalnessRoughnessMap) };
+            // } else if ((data.metalnessMap || data.roughnessMap) && includeMaps) {
+            //     const map: MapData = (data.metalnessMap || data.roughnessMap)!;
+            //     // we just take one, conversion is just too slow
+            //     materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(map) };
+            // }
         }
 
         if (data.normalMap && includeMaps) materialDef.normalTexture = { index: this.convertTexture(data.normalMap) };
