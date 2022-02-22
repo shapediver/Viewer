@@ -426,7 +426,7 @@ export class Session implements ISession {
             }
         } catch (e) {
             await this.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadFile', e, retry);
-            return await this.uploadFile(parameterId, data, type, retry);
+            return await this.uploadFile(parameterId, data, type, true);
         }
     }
 
@@ -441,7 +441,7 @@ export class Session implements ISession {
             return responseDto.gltf.href;
         } catch (e) {
             await this.handleError(LOGGINGTOPIC.SESSION, 'Session.uploadGLTF', e, retry);
-            return await this.uploadGLTF(blob, conversion, retry);
+            return await this.uploadGLTF(blob, conversion, true);
         }
     }
 
