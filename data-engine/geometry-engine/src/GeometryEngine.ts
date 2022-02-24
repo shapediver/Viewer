@@ -4,7 +4,6 @@ import { HttpClient, Logger, LOGGINGTOPIC, PerformanceEvaluator, ShapeDiverViewe
 
 import { GLTFLoader as GLTF_v1Loader } from './gltfv1/GLTFLoader'
 import { GLTFLoader as GLTF_v2Loader } from './gltfv2/GLTFLoader'
-import { GLTFConverter } from './gltfv2/GLTFConverter'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @singleton()
@@ -25,11 +24,7 @@ export class GeometryEngine {
     // #endregion Constructors (1)
 
     // #region Public Methods (2)
-
-    public async convertSceneToGLTF(node: TreeNode, convertForAR = false): Promise<any | string | ArrayBuffer | null> {
-        return new GLTFConverter().convert(node, convertForAR);
-    }
-
+    
     /**
      * Load the geometry content into a scene graph node.
      * 

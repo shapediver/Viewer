@@ -147,9 +147,9 @@ export interface IApi {
   /**
    * Determines if the current devices supports the viewing in AR.
    * 
-   * An error will be thrown with debugging information if it is not possible.
+   * A string with the error message will be returned if the device is not capable.
    */
-  viewableInAR(): boolean;
+  viewableInAR(): boolean | string;
 
   // #endregion Public Methods (11)
 }

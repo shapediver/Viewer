@@ -1,6 +1,7 @@
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
+import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter'
 import {
   EventEngine,
   EVENTTYPE,
@@ -13,8 +14,6 @@ import {
   SettingsEngine,
   ShapeDiverBackendError,
   ShapeDiverViewerError,
-  ShapeDiverViewerSessionError,
-  ShapeDiverViewerGeneralError,
   ShapeDiverViewerArError,
   ShapeDiverViewerSettingsError,
   StateEngine,
@@ -22,7 +21,6 @@ import {
   SystemInfo,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { convert, ISettingsV3, validate } from '@shapediver/viewer.settings'
@@ -32,7 +30,7 @@ import { IApi } from '../interfaces/IApi'
 import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
 import { Session } from './session/Session'
-import { ISessionEvent, ISettingsEvent, ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
+import { ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
 import { Viewer } from './viewer/Viewer'
 import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
@@ -45,6 +43,7 @@ export class Api implements IApi {
   readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
+  readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
@@ -498,7 +497,7 @@ export class Api implements IApi {
       this.sceneTree.root.transformations.push({ id: scalingMatrixID, matrix: scalingMatrix })
 
       // create the gltf
-      const result = await this.#geometryEngine.convertSceneToGLTF(this.sceneTree.root, convertForAR);
+      const result = await this.#gltfConverter.convert(this.sceneTree.root, convertForAR);
 
       // remove the matrix
       for (let i = 0; i < this.sceneTree.root.transformations.length; i++)
@@ -727,26 +726,23 @@ export class Api implements IApi {
     }
   }
 
-  public viewableInAR(): boolean {
+  public viewableInAR(): boolean | string {
     try {
-      if ((this.#systemInfo.isIOS || this.#systemInfo.isAndroid) && this.#systemInfo.isFirefox) {
-        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature is not available of Firefox.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
-      }
+      if ((this.#systemInfo.isIOS || this.#systemInfo.isAndroid) && this.#systemInfo.isFirefox)
+        return `The AR feature is not available of Firefox.`;
 
       // if this is a supported device, return true
       if (this.#systemInfo.isIOS || this.#systemInfo.isAndroid)
         return true;
 
-      const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature is only available on mobile devices.`);
-      throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
+      return `The AR feature is only available on mobile devices.`;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewableInAR', e);
     }
   }
 
-  public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'fixed', arPlacement: 'floor', xrEnvironment: true}): Promise<void> {
+  public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'fixed', arPlacement: 'floor', xrEnvironment: false}): Promise<void> {
     const eventId = this.#uuidGenerator.create();
     try {
       const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };
@@ -763,7 +759,7 @@ export class Api implements IApi {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.viewInAR', options, 'object', false);
       const arScale = options.arScale !== 'auto' ? 'fixed' : 'auto';
       const arPlacement = options.arPlacement !== 'wall' ? 'floor' : 'wall';
-      const xrEnvironment = options.xrEnvironment !== false ? true : false;
+      const xrEnvironment = options.xrEnvironment !== true ? false : true;
 
       // try to find a session that is "AR-ready"
       // as a backend might be used that does not support uploading the gltf (and conversion)
