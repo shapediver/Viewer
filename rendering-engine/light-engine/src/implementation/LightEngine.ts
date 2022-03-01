@@ -123,8 +123,18 @@ export class LightEngine implements ILightEngine {
             this._lightScenes[ls.id] = ls;
         }
 
-        // there is no standard light scene in the light scenes, but a light scene name is specified (old viewer)
-        if (this._settingsEngine.light.lightSceneId) {
+        // there is a light scene but no id is saved (old viewer)
+        if(this._settingsEngine.light.lightSceneId === undefined && Object.values(this._settingsEngine.light.lightScenes).length > 0) {
+            const res = this.assignLightScene(Object.keys(this._settingsEngine.light.lightScenes)[0]);
+            if(res === false){
+                const ls = <LightScene>this.createLightScene({ name: this._settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard' });
+                ls.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
+                ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
+                ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
+                this._lightScenes[ls.id] = ls;
+            }
+        } // there is no standard light scene in the light scenes, but a light scene name is specified (old viewer)
+        else if (this._settingsEngine.light.lightSceneId) {
             const res = this.assignLightScene(this._settingsEngine.light.lightSceneId);
             if(res === false){
                 const ls = <LightScene>this.createLightScene({ name: this._settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard' });
@@ -133,8 +143,9 @@ export class LightEngine implements ILightEngine {
                 ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
                 this._lightScenes[ls.id] = ls;
             }
-        } else {        
-            // this can only be the case if the settings were empty, therefore we assign the new light scene
+        } 
+        // this can only be the case if the settings were empty, therefore we assign the new light scene
+        else {    
             const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
             this._lightScenes[ls.id] = ls;
         }
