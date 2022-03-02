@@ -1,5 +1,8 @@
 # Breaking Changes Guide
 
+## Version 1.12.5 -> 1.13.0
+- `viewableInAR` only returns a boolean now, no more errors
+
 ## Version 1.12.1 -> 1.12.2
 - import of `reflect-metadata` not necessary any more
 - branding options changed, `logo` was moved into object

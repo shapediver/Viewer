@@ -8,6 +8,17 @@
 * __Commit:__ 70023508af6deb2153b7bda18b05f3bd27a82791
 <!--- VERSION_END -->
 
+## Version 1.13.0 - `Memento`
+- improved AR capabilities
+- gltf converter fixes
+- bugfix for texture loading
+- bugfix: html anchor data
+
+## Version 1.12.5 - `La La Land`
+- bugfix: old viewer light settings
+- bearer token refresh functionality
+- retry only for JWT_VALIDATION_ERROR
+
 ## Version 1.12.4 - `LA Confidential`
 - deploy comments in npm package
 - data exposing
