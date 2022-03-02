@@ -726,16 +726,21 @@ export class Api implements IApi {
     }
   }
 
-  public viewableInAR(): boolean | string {
+  public viewableInAR(): boolean {
     try {
-      if ((this.#systemInfo.isIOS || this.#systemInfo.isAndroid) && this.#systemInfo.isFirefox)
-        return `The AR feature is not available of Firefox.`;
+      // has to be a mobile device (duh)
+      if (this.#systemInfo.isIOS === false && this.#systemInfo.isAndroid === false)
+        return false;
 
-      // if this is a supported device, return true
-      if (this.#systemInfo.isIOS || this.#systemInfo.isAndroid)
-        return true;
+      // no Firefox on Android
+      if(this.#systemInfo.isAndroid === true && this.#systemInfo.isFirefox === true)
+        return false;
 
-      return `The AR feature is only available on mobile devices.`;
+      // only Safari on iOS
+      if (this.#systemInfo.isIOS === true && (this.#systemInfo.isFirefox === true || this.#systemInfo.isChrome === true))
+        return false;
+
+      return true;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewableInAR', e);
@@ -749,7 +754,7 @@ export class Api implements IApi {
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
       // if this is not a supported device, throw an error
-      if(!(this.#systemInfo.isIOS || this.#systemInfo.isAndroid) || this.#systemInfo.isFirefox) {
+      if(this.viewableInAR() === false) {
         const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
         const error = new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
@@ -765,9 +770,13 @@ export class Api implements IApi {
       // as a backend might be used that does not support uploading the gltf (and conversion)
       // we have to do this check and abort if none is found
       let arSession;
-      for (let s in this.sessions)
-        if (this.sessions[s].canUploadGLTF)
+      for (let s in this.sessions) {
+        if (this.sessions[s].canUploadGLTF) {
           arSession = this.sessions[s];
+          break;
+        }
+      }
+
       if (!arSession) {
         const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
@@ -775,68 +784,85 @@ export class Api implements IApi {
         throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error, false);
       }
 
+      let arEnvironment = '';
+      for (let v in this.viewers) {
+        if(!arSession.node.excludeViewers.includes(this.viewers[v].id)) {
+          const envMapUrl = this.#viewerCallbacks[v].getEnvironmentMapImageUrl();
+          if(envMapUrl !== '') {
+            if(envMapUrl.endsWith('.hdr')) {
+              arEnvironment = 'skybox-image=' + envMapUrl;
+            } else {
+              arEnvironment = 'environment-image=' + envMapUrl;
+            }
+          }
+          break;
+        }
+      }
+
       // register the busy mode to blur the scene and create a visual feedback
       const busyModeID = this.#uuidGenerator.create();
       for (let v in this.viewers)
         this.viewers[v].registerBusyMode(busyModeID)
 
-      const modelViewerDiv = <HTMLDivElement>document.createElement('div');
-      document.body.appendChild(modelViewerDiv);
-
       // convert and upload (and maybe convert to usdz) the file
       const file = await arSession.uploadGLTF(this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE, eventId);
 
-      // creation of the model-viewer element, including some buttons and style sheets
-      modelViewerDiv.innerHTML = `
+      if (this.#systemInfo.isIOS) {
+        // create the link and click it
+        const a = document.createElement('a');
+        document.body.appendChild(a);
+        a.href = file;
+        a.rel = 'ar';
+        const img = document.createElement('img');
+        img.src = this.#defaultLogo;
+        a.appendChild(img);
+        a.click();
+      } else {
+        const modelViewerDiv = <HTMLDivElement>document.createElement('div');
+        document.body.appendChild(modelViewerDiv);
+
+        // creation of the model-viewer element, including some buttons and style sheets
+        modelViewerDiv.innerHTML = `
         <model-viewer 
         ${this.#systemInfo.isIOS ? `ios-src="${file}.usdz"` : `src="${file}.glb"`} 
-        ar ar-modes="webxr scene-viewer quick-look" 
+        ar ar-modes="scene-viewer webxr quick-look" 
         ar-scale="${arScale}"
         ar-placement="${arPlacement}"
         ${xrEnvironment ? 'xr-environment' : ''}
+        ${arEnvironment}
         style="width: 100%; height: 100%;" > 
         <button slot="ar-button" id="ar-button"> View in your space </button>
         <button id="ar-failure"> AR is not tracking! </button> </model-viewer> 
         <style> /* This keeps child nodes hidden while the element loads */ :not(:defined)>* { display: none; } model-viewer { overflow-x: hidden; width: 100%; height: 100%; position: absolute; left: 0%; top: 0%; } #ar-button { background-image: url(https://modelviewer.dev/assets/ic_view_in_ar_new_googblue_48dp.png); background-repeat: no-repeat; background-size: 20px 20px; background-position: 12px 50%; background-color: #fff; position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; bottom: 132px; padding: 0px 16px 0px 40px; font-family: Roboto Regular, Helvetica Neue, sans-serif; font-size: 14px; color:#4285f4; height: 36px; line-height: 36px; border-radius: 18px; border: 1px solid #DADCE0; } #ar-button:active { background-color: #E8EAED; } #ar-button:focus { outline: none; } #ar-button:focus-visible { outline: 1px solid #4285f4; } @keyframes circle { from { transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg) translateX(50px) rotate(-360deg); } } @keyframes elongate { from { transform: translateX(100px); } to { transform: translateX(-100px); } } model-viewer>#ar-failure { position: absolute; left: 50%; transform: translateX(-50%); bottom: 175px; display: none; } model-viewer[ar-tracking="not-tracking"]>#ar-failure { display: block; } </style>`;
 
-      const modelViewer = <any>document.querySelector("model-viewer")!;
-      const shadowRoot = <ShadowRoot>modelViewer.shadowRoot;
-      const btnLaunch = <HTMLButtonElement>document.getElementById('ar-button');
-      shadowRoot.styleSheets[0].insertRule(".userInput, .slot.poster, .slot.interaction-prompt, .slot.default {visibility:hidden}", 0);
+        const modelViewer = <HTMLElement>document.querySelector("model-viewer")!;
+        const btnLaunch = <HTMLButtonElement>document.getElementById('ar-button');
+        modelViewer.style.visibility = 'hidden';
 
-      // cancel the process if the modelViewer has an issue
-      const eventListenerLoad = () => {
-        if (!modelViewer.canActivateAR) cancelAR();
-      };
-      modelViewer.addEventListener('load', eventListenerLoad);
+        // cancel the process if the modelViewer has an issue
+        const eventListenerLoad = () => {
+          if (!(<any>modelViewer).canActivateAR) cancelAR();
+          btnLaunch.click();
+        };
+        modelViewer.addEventListener('load', eventListenerLoad);
 
-      // as we hide some things, like the actual model-viewer, for AR, we need to show it again
-      const eventListenerStatus = (e: any) => {
-        if (e.detail.status === "not-presenting") {
-          cancelAR();
-        } else if (e.detail.status === "session-started") {
-          shadowRoot.styleSheets[0].removeRule(0);
+        // as we hide some things, like the actual model-viewer, for AR, we need to show it again
+        const eventListenerStatus = (e: any) => {
+          if (e.detail.status === "not-presenting") {
+            cancelAR();
+          } else if (e.detail.status === "session-started") {
+            modelViewer.style.visibility = '';
+          }
         }
-      }
-      modelViewer.addEventListener('ar-status', eventListenerStatus);
+        modelViewer.addEventListener('ar-status', eventListenerStatus);
 
-      // cancel if the ar-button is not pressed but something else
-      const eventListenerTouch = (e: TouchEvent) => {
-        if (e.target !== btnLaunch) {
-          cancelAR();
-        } else {
-          document.body.removeEventListener('touchstart', eventListenerTouch);
-        }
+        // remove listeners and div
+        const cancelAR = () => {
+          modelViewer.removeEventListener('load', eventListenerLoad);
+          modelViewer.removeEventListener('ar-status', eventListenerStatus);
+          document.body.removeChild(modelViewerDiv);
+        };
       }
-      document.body.addEventListener('touchstart', eventListenerTouch);
-
-      // remove listeners and div
-      const cancelAR = () => {
-        modelViewer.removeEventListener('load', eventListenerLoad);
-        modelViewer.removeEventListener('ar-status', eventListenerStatus);
-        document.body.removeEventListener('touchstart', eventListenerTouch);
-        document.body.removeChild(modelViewerDiv);
-      };
 
       for (let v in this.viewers)
         this.viewers[v].deregisterBusyMode(busyModeID)

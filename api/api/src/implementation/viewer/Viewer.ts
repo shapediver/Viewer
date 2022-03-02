@@ -88,6 +88,10 @@ export class Viewer implements IViewer {
           this.#renderingEngine.displayErrorMessage(message);
       }
 
+      callbacks.getEnvironmentMapImageUrl = () => {
+        return this.#renderingEngine.getEnvironmentMapImageUrl();
+      }
+
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer created.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

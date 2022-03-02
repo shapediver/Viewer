@@ -96,6 +96,18 @@ export class GLTFConverter {
             },
             vertexShader: `// @author Michael Oppitz 
 
+            uniform sampler2D tRed;
+            uniform bool activeRed;
+            uniform float defaultRed;
+            
+            uniform sampler2D tGreen;		
+            uniform bool activeGreen;
+            uniform float defaultGreen;
+            
+            uniform sampler2D tBlue;		
+            uniform bool activeBlue;
+            uniform float defaultBlue;
+
             varying vec2 vUv;
             
             void main() {
@@ -119,28 +131,27 @@ export class GLTFConverter {
             varying vec2 vUv;
             
             void main() {
-                float red = 0.0f;
-                if(activeRed) {
-                    red = texture2D(tRed, vUv).r;
+                vec4 outColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+                if(activeRed == true) {
+                    outColor.r = texture2D(tRed, vUv).r;
                 } else {
-                    red = defaultRed;
+                    outColor.r = defaultRed;
                 }
             
-                float green = 0.0f;
-                if(activeGreen) {
-                    green = texture2D(tGreen, vUv).g;
+                if(activeGreen == true) {
+                    outColor.g = texture2D(tGreen, vUv).g;
                 } else {
-                    green = defaultGreen;
+                    outColor.g = defaultGreen;
                 }
             
-                float blue = 0.0f;
-                if(activeBlue) {
-                    blue = texture2D(tBlue, vUv).b;
+                if(activeBlue == true) {
+                    outColor.b = texture2D(tBlue, vUv).b;
                 } else {
-                    blue = defaultBlue;
+                    outColor.b = defaultBlue;
                 }
             
-                gl_FragColor = vec4(red,green,blue,1);
+                gl_FragColor = outColor;
             }`
         });
 

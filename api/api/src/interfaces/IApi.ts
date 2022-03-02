@@ -146,10 +146,8 @@ export interface IApi {
   viewInAR(options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
   /**
    * Determines if the current devices supports the viewing in AR.
-   * 
-   * A string with the error message will be returned if the device is not capable.
    */
-  viewableInAR(): boolean | string;
+  viewableInAR(): boolean;
 
   // #endregion Public Methods (11)
 }
