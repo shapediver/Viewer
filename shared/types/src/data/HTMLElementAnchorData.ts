@@ -80,18 +80,9 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData {
         this.#intersectionTarget = properties.intersectionTarget;
 
         this.internalHtmlElement = <HTMLDivElement>document.createElement('div');
-        // this.internalHtmlElement.type = 'text/css';
-        this.internalHtmlElement.style.display = 'none';
-
-        this.internalHtmlElement.style.userSelect = 'none';
-        this.internalHtmlElement.style.cursor = 'default';
-        this.internalHtmlElement.style.pointerEvents = 'none';
         this.internalHtmlElement.style.position = 'absolute';
-        this.internalHtmlElement.style.fontFamily = '"Helvetica Neue", Helvetica, Arial, sans-serif';
         this.internalHtmlElement.style.whiteSpace = 'nowrap';
         this.internalHtmlElement.style.textOverflow = 'clip';
-
-        this.internalHtmlElement.classList.add('shapediver-domElement');
     }
 
     // #endregion Constructors (1)
@@ -154,6 +145,7 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData {
         if (this.#viewerHtmlElement[viewer]) return this.#viewerHtmlElement[viewer];
         if (this.viewers.includes(viewer) || this.viewers.length === 0) {
             this.#viewerHtmlElement[viewer] = <HTMLDivElement>this.internalHtmlElement.cloneNode(true);
+            this.create({ anchor: this, parent: this.#viewerHtmlElement[viewer] });
             return this.#viewerHtmlElement[viewer];
         }
         return null;
@@ -163,6 +155,8 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData {
         if (this.#viewerHtmlElement[viewer]) return this.#viewerHtmlElement[viewer];
         return null;
     }
+
+    public abstract create(properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }): void;
 
     public update(properties: {
         anchor: HTMLElementAnchorData, 
@@ -234,8 +228,6 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
             intersectionTarget: properties.intersectionTarget,
             id: properties.id,
         })
-
-        this.create({ anchor: this, parent: this.internalHtmlElement });
     }
 
     // #endregion Constructors (1)
@@ -257,8 +249,13 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
 
     // #region Private Methods (1)
 
-    private create(properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) {
+    public create(properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) {
+
         const span = document.createElement('span');
+        span.style.display = 'none';
+        span.style.userSelect = 'none';
+        span.style.cursor = 'default';
+        span.style.pointerEvents = 'none';
         span.style.color = properties.anchor.data.color?.toString();
         span.innerHTML = properties.anchor.data.text;
         span.style.display = 'block';
@@ -297,8 +294,6 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
             intersectionTarget: properties.intersectionTarget,
             id: properties.id,
         })
-
-        this.create({ anchor: this, parent: this.internalHtmlElement });
     }
 
     // #endregion Constructors (1)
@@ -320,8 +315,12 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
 
     // #region Private Methods (1)
 
-    private create(properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) {
+    public create(properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) {
+        
         const img = document.createElement('img');
+        img.style.userSelect = 'none';
+        img.style.cursor = 'default';
+        img.style.pointerEvents = 'none';
         properties.parent.appendChild(img);
         img.src = properties.anchor.data.src;
         if (properties.anchor.data.height) img.height = properties.anchor.data.height;
@@ -365,10 +364,13 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
 
         this.#create = properties.create;
         this.#update = properties.update;
-        this.#create({ anchor: this, parent: this.internalHtmlElement });
     }
 
     // #endregion Constructors (1)
+
+    public create(properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) {
+        this.#create(properties)
+    }
 
     public update(properties: { anchor: HTMLElementAnchorData, htmlElement: HTMLDivElement, page: vec2, container: vec2, client: vec2, scale: vec2, hidden: boolean }) {
         this.#update(properties)
