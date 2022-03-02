@@ -811,7 +811,7 @@ export class Api implements IApi {
         // create the link and click it
         const a = document.createElement('a');
         document.body.appendChild(a);
-        a.href = file;
+        a.href = file + (arScale === 'fixed' ? '.usdz#allowsContentScaling=0' : '.usdz')
         a.rel = 'ar';
         const img = document.createElement('img');
         img.src = this.#defaultLogo;
