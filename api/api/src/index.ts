@@ -59,6 +59,7 @@ import { ILightScene } from './interfaces/viewer/lights/ILightScene'
 import { ILight } from './interfaces/viewer/lights/ILight'
 import { IAnchor, IAnchorDataImage, IAnchorDataText, IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITag2D, ITag3D, ITexture, JUSTIFICATION } from '@shapediver/viewer.data-engine.shared-types'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
+import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 
@@ -118,5 +119,5 @@ export {
 }
 
 export {
-    DataEngine, MaterialEngine, GeometryEngine
+    DataEngine, MaterialEngine, GeometryEngine, GLTFConverter
 }

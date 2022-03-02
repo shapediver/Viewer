@@ -1,6 +1,7 @@
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
+import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter'
 import {
   EventEngine,
   EVENTTYPE,
@@ -13,8 +14,6 @@ import {
   SettingsEngine,
   ShapeDiverBackendError,
   ShapeDiverViewerError,
-  ShapeDiverViewerSessionError,
-  ShapeDiverViewerGeneralError,
   ShapeDiverViewerArError,
   ShapeDiverViewerSettingsError,
   StateEngine,
@@ -22,7 +21,6 @@ import {
   SystemInfo,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { convert, ISettingsV3, validate } from '@shapediver/viewer.settings'
@@ -32,10 +30,11 @@ import { IApi } from '../interfaces/IApi'
 import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
 import { Session } from './session/Session'
-import { ISessionEvent, ISettingsEvent, ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
+import { ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
 import { Viewer } from './viewer/Viewer'
 import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
+import '@google/model-viewer/dist/model-viewer';
 
 @singleton()
 export class Api implements IApi {
@@ -44,6 +43,7 @@ export class Api implements IApi {
   readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
+  readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
@@ -67,15 +67,15 @@ export class Api implements IApi {
         return false;
       }
 
-      if(force === false && this.#stateEngine.viewers[id].initialized.resolved === false)
+      if (force === false && this.#stateEngine.viewers[id].initialized.resolved === false)
         await new Promise<void>(resolve => { this.#stateEngine.viewers[id].initialized.then(() => resolve()) })
 
       this.#stateEngine.viewers[id].settingsLoaded.reset();
       let result;
-      if(force === false) {
+      if (force === false) {
         result = await this.#viewerCallbacks[id].close();
       } else {
-        try { result = await this.#viewerCallbacks[id].close(); } catch {}
+        try { result = await this.#viewerCallbacks[id].close(); } catch { }
       }
       (<any>this.#viewerCallbacks[id]) = undefined;
       delete this.#viewerCallbacks[id];
@@ -95,19 +95,19 @@ export class Api implements IApi {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
-      if (!this.sessions[id]){
+      if (!this.sessions[id]) {
         this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.closeSession: Session with id ${id} was not registered.`);
         return false;
       }
-      
-      if(force === false && this.#stateEngine.sessions[id].initialized.resolved === false)
+
+      if (force === false && this.#stateEngine.sessions[id].initialized.resolved === false)
         await new Promise<void>(resolve => { this.#stateEngine.sessions[id].initialized.then(() => resolve()) })
-  
+
       let result;
-      if(force === false) {
+      if (force === false) {
         result = await this.#sessionCallbacks[id].close();
       } else {
-        try { result = await this.#sessionCallbacks[id].close(); } catch {}
+        try { result = await this.#sessionCallbacks[id].close(); } catch { }
       }
 
       this.#stateEngine.sessions[id].settingsRegistered.reset();
@@ -172,15 +172,15 @@ export class Api implements IApi {
   // #region Public Accessors (14)
   public get automaticUpdate(): boolean {
     return this.#automaticUpdate;
-  }  
-  
+  }
+
   public set automaticUpdate(value: boolean) {
     try {
       this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.automaticUpdate: Updating automaticUpdate to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.automaticUpdate', value, 'boolean');
       this.#automaticUpdate = value;
 
-      for(let s in this.sessions)
+      for (let s in this.sessions)
         this.#automaticUpdate ? this.sceneTree.addNode(this.sessions[s].node) : this.sceneTree.removeNode(this.sessions[s].node)
 
       this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.automaticUpdate: automaticUpdate was set to: ${value}`);
@@ -330,41 +330,41 @@ export class Api implements IApi {
     }
   }
 
-  public async applySettings( 
-    response: ShapeDiverResponseBase | ShapeDiverResponseDto, 
-    sections: { 
-      session?: { 
+  public async applySettings(
+    response: ShapeDiverResponseBase | ShapeDiverResponseDto,
+    sections: {
+      session?: {
         parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean },
         export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
       },
       viewer?: { scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
-    } = 
-    {
-      session: {
-        parameter: { displayname: false, order: false, hidden: false },
-        export: { displayname: false, order: false, hidden: false }
-      },
-      viewer: { scene: false, camera: false, light: false, environment: false }
-    }
+    } =
+      {
+        session: {
+          parameter: { displayname: false, order: false, hidden: false },
+          export: { displayname: false, order: false, hidden: false }
+        },
+        viewer: { scene: false, camera: false, light: false, environment: false }
+      }
   ): Promise<void> {
     try {
-      if(sections.session === undefined) {
+      if (sections.session === undefined) {
         sections.session = {
           parameter: { displayname: false, order: false, hidden: false },
           export: { displayname: false, order: false, hidden: false }
         };
       }
-      if(sections.session.parameter === undefined) 
+      if (sections.session.parameter === undefined)
         sections.session.parameter = { displayname: false, order: false, hidden: false };
-      if(sections.session.export === undefined) 
+      if (sections.session.export === undefined)
         sections.session.export = { displayname: false, order: false, hidden: false };
-      if(sections.viewer === undefined) 
+      if (sections.viewer === undefined)
         sections.viewer = { scene: false, camera: false, light: false, environment: false };
 
       let config: object;
-      if((<ShapeDiverResponseBase>response).config !== undefined) {
+      if ((<ShapeDiverResponseBase>response).config !== undefined) {
         config = (<ShapeDiverResponseBase>response).config!;
-      } else if((<ShapeDiverResponseDto>response).viewer !== undefined) {
+      } else if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
         config = (<ShapeDiverResponseDto>response).viewer!.config;
       } else {
         const error = new ShapeDiverViewerSettingsError('Api.applySettings: No config object available.');
@@ -373,7 +373,7 @@ export class Api implements IApi {
 
       try {
         validate(config)
-      } catch(e) {
+      } catch (e) {
         const error = new ShapeDiverViewerSettingsError('Api.applySettings: Was not able to validate config object.');
         throw this.#logger.handleError(LOGGINGTOPIC.SETTINGS, 'Api.applySettings', error);
       }
@@ -381,18 +381,18 @@ export class Api implements IApi {
       const settings = <ISettingsV3>convert(config, '3.0');
 
       const exportMappingUid: { [key: string]: string | undefined } = {};
-      if(sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
-        if (response.exports) 
-          for (let exportId in response.exports) 
-            if(response.exports[exportId].uid !== undefined)
+      if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
+        if (response.exports)
+          for (let exportId in response.exports)
+            if (response.exports[exportId].uid !== undefined)
               exportMappingUid[response.exports[exportId].uid!] = exportId;
 
       const session = Object.values(this.sessions).filter((s: ISession) => { return s.primarySession; })[0];
-      if(!session) {
+      if (!session) {
         const error = new ShapeDiverViewerSettingsError('Api.applySettings: No primary session defined.');
         throw this.#logger.handleError(LOGGINGTOPIC.SETTINGS, 'Api.applySettings', error);
       }
-    
+
       const currentSettings = this.#settingsEngine.settings;
 
       // apply parameter settings
@@ -410,7 +410,7 @@ export class Api implements IApi {
       if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden) {
         for (let p in session.exports) {
           let idForSettings = '';
-          if(settings.session[p]) {
+          if (settings.session[p]) {
             idForSettings = p;
           } else {
             const uid = session.exports[p].uid;
@@ -427,15 +427,15 @@ export class Api implements IApi {
       }
 
       // apply camera settings
-      if(sections.viewer.camera)
+      if (sections.viewer.camera)
         currentSettings.camera = settings.camera;
 
       // apply light settings
-      if(sections.viewer.light)
+      if (sections.viewer.light)
         currentSettings.light = settings.light;
-        
+
       // apply scene settings
-      if(sections.viewer.scene) {
+      if (sections.viewer.scene) {
         currentSettings.rendering.shadows = settings.rendering.shadows;
         currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
         currentSettings.rendering.ambientOcclusionIntensity = settings.rendering.ambientOcclusionIntensity;
@@ -446,7 +446,7 @@ export class Api implements IApi {
       }
 
       // apply environment settings
-      if(sections.viewer.environment) {
+      if (sections.viewer.environment) {
         currentSettings.environment.clearAlpha = settings.environment.clearAlpha;
         currentSettings.environment.clearColor = settings.environment.clearColor;
         currentSettings.environment.map = settings.environment.map;
@@ -454,14 +454,14 @@ export class Api implements IApi {
       }
 
       const promises: Promise<void>[] = [];
-      for(let v in this.viewers) {
+      for (let v in this.viewers) {
         this.#stateEngine.viewers[v].settingsLoaded.reset();
         promises.push(new Promise<void>(resolve => {
           this.#stateEngine.viewers[v].settingsLoaded.then(() => {
             resolve();
           })
         }));
-      
+
         (<Viewer>this.viewers[v]).applySettings(sections.viewer);
       }
       return new Promise(resolve => Promise.all(promises).then(() => resolve()));
@@ -497,11 +497,11 @@ export class Api implements IApi {
       this.sceneTree.root.transformations.push({ id: scalingMatrixID, matrix: scalingMatrix })
 
       // create the gltf
-      const result = await this.#geometryEngine.convertSceneToGLTF(this.sceneTree.root, convertForAR);
+      const result = await this.#gltfConverter.convert(this.sceneTree.root, convertForAR);
 
       // remove the matrix
-      for(let i = 0; i < this.sceneTree.root.transformations.length; i++)
-        if(this.sceneTree.root.transformations[i].id === scalingMatrixID)
+      for (let i = 0; i < this.sceneTree.root.transformations.length; i++)
+        if (this.sceneTree.root.transformations[i].id === scalingMatrixID)
           this.sceneTree.root.transformations.splice(i, 1);
 
       return new Blob([result], { type: 'application/octet-stream' });
@@ -530,8 +530,8 @@ export class Api implements IApi {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.waitForOutputs, 'boolean', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.loadOutputs, 'boolean', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.initialParameters, 'object', false);
-      if(properties.initialParameters)
-        for(let p in properties.initialParameters)
+      if (properties.initialParameters)
+        for (let p in properties.initialParameters)
           this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Api.createSession`, properties.initialParameters[p], 'string');
 
       // check if the given id is valid
@@ -545,8 +545,8 @@ export class Api implements IApi {
       }
 
       let noPrimarySession = true;
-      for(let s in this.sessions)
-        if(this.sessions[s].primarySession) 
+      for (let s in this.sessions)
+        if (this.sessions[s].primarySession)
           noPrimarySession = false;
 
       let primarySessionRequest = properties.primarySession !== false;
@@ -557,7 +557,7 @@ export class Api implements IApi {
         settingsRegistered: new StatePromise()
       }
 
-      if(!!(primarySessionRequest && noPrimarySession)) this.#stateEngine.primarySessionAvailable.resolve(true);
+      if (!!(primarySessionRequest && noPrimarySession)) this.#stateEngine.primarySessionAvailable.resolve(true);
 
       // create the actual session 
       let sessionCallbacks = {};
@@ -566,12 +566,12 @@ export class Api implements IApi {
       // save the session
       this.sessions[sessionId] = session;
       this.#sessionCallbacks[sessionId] = sessionCallbacks;
-      
+
       const eventInit: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventInit);
 
       await session.init(properties.waitForOutputs, properties.loadOutputs, properties.initialParameters);
-      
+
       this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionId });
       this.#stateEngine.sessions[sessionId].initialized.resolve(true);
       this.#logger.debug(LOGGINGTOPIC.SESSION, `Api.createSession: Session(${session.id}) created.`);
@@ -584,7 +584,7 @@ export class Api implements IApi {
       // special behavior, if this was the only session, display the error on the logo screen
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) {
         if ((this.sessions[sessionId] && Object.values(this.sessions).length === 1) || (!this.sessions[sessionId] && Object.values(this.sessions).length === 0)) {
-          for(let v in this.viewers)
+          for (let v in this.viewers)
             (<(v: string) => void>this.#viewerCallbacks[v].displayErrorMessage)(e.message);
         }
       }
@@ -618,7 +618,7 @@ export class Api implements IApi {
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSDTFOverview', e);
     }
   }
-  
+
   public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string } }): Promise<IViewer> {
     let viewerId: string = '';
     const eventId = this.#uuidGenerator.create();
@@ -655,18 +655,18 @@ export class Api implements IApi {
 
       // create the actual viewer
       let viewerCallbacks = {};
-      let viewer: IViewer = new Viewer({ 
-        id: viewerId, 
-        canvas: prop.canvas, 
-        visibility: prop.visibility || VISIBILITYMODE.SESSION, 
-        branding: { 
+      let viewer: IViewer = new Viewer({
+        id: viewerId,
+        canvas: prop.canvas,
+        visibility: prop.visibility || VISIBILITYMODE.SESSION,
+        branding: {
           logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
           backgroundColor: branding.backgroundColor || '#030531FF'
         }
       }, viewerCallbacks);
 
       if ((prop.visibility || VISIBILITYMODE.SESSION) === VISIBILITYMODE.SESSION && this.#stateEngine.primarySession && this.#stateEngine.primarySession.initialized.resolved === true) {
-        
+
         const eventEnd: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 0.75, status: 'Waiting for primary session settings' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventEnd);
 
@@ -680,7 +680,7 @@ export class Api implements IApi {
       this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
       viewer.update();
-      
+
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId });
       this.#stateEngine.viewers[viewerId].initialized.resolve(true);
 
@@ -691,15 +691,15 @@ export class Api implements IApi {
 
       return this.viewers[viewerId];
     } catch (e) {
-      
+
       const eventCancel1: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 0.9, status: 'Viewer created failed, closing viewer' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventCancel1);
 
-      try { await this.#closeViewer(viewerId, true); } catch {}
+      try { await this.#closeViewer(viewerId, true); } catch { }
 
       const eventCancel2: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 1, status: 'Viewer created failed, exiting' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
-      
+
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createViewer', e);
     }
@@ -728,97 +728,86 @@ export class Api implements IApi {
 
   public viewableInAR(): boolean {
     try {
-      const isIOSSafari = this.#systemInfo.isIOS && this.#systemInfo.isSafari;
-      const isAndroidChrome = this.#systemInfo.isAndroid && this.#systemInfo.isChrome;
+      // has to be a mobile device (duh)
+      if (this.#systemInfo.isIOS === false && this.#systemInfo.isAndroid === false)
+        return false;
 
-      // if this is a supported device, return true
-      if(isIOSSafari || isAndroidChrome)
-        return true;
+      // no Firefox on Android
+      if(this.#systemInfo.isAndroid === true && this.#systemInfo.isFirefox === true)
+        return false;
 
-      if(this.#systemInfo.isIOS) {
-        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature on iOS is only supported in Safari. Please open this page again in Safari.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
-      }
-        
-      if(this.#systemInfo.isSafari) {
-        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature in Safari is only supported on iOS devices. Please open this page again on an iOS device.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
-      }
-        
-        
-      if(this.#systemInfo.isAndroid) {
-        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature on Android is only supported in Chrome. Please open this page again in Chrome.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
-      }
+      // only Safari on iOS
+      if (this.#systemInfo.isIOS === true && (this.#systemInfo.isFirefox === true || this.#systemInfo.isChrome === true))
+        return false;
 
-      if(this.#systemInfo.isChrome) {
-        const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature in Chrome is only supported on Android devices. Please open this page again on an Android device.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
-      }
-
-      const error = new ShapeDiverViewerArError(`Api.viewableInAR: The AR feature is only available on Android with Chrome, or on iOS with Safari.`);
-      throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewableInAR', error, false);
+      return true;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewableInAR', e);
     }
   }
 
-  public async viewInAR(androidOptions: { title?: string, resizable?: boolean, fallback_url?: string } = { title: '', resizable: true, fallback_url: 'https://shapediver.com/' }): Promise<void> {
+  public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'fixed', arPlacement: 'floor', xrEnvironment: false}): Promise<void> {
     const eventId = this.#uuidGenerator.create();
     try {
       const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
-      const isIOSSafari = this.#systemInfo.isIOS && this.#systemInfo.isSafari;
-      const isAndroidChrome = this.#systemInfo.isAndroid && this.#systemInfo.isChrome;
-
       // if this is not a supported device, throw an error
-      if(!isIOSSafari && !isAndroidChrome) {
+      if(this.viewableInAR() === false) {
         const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
         const error = new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
         throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error, false);
       }
-      
+
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.viewInAR', options, 'object', false);
+      const arScale = options.arScale !== 'auto' ? 'fixed' : 'auto';
+      const arPlacement = options.arPlacement !== 'wall' ? 'floor' : 'wall';
+      const xrEnvironment = options.xrEnvironment !== true ? false : true;
+
       // try to find a session that is "AR-ready"
       // as a backend might be used that does not support uploading the gltf (and conversion)
       // we have to do this check and abort if none is found
       let arSession;
-      for(let s in this.sessions)
-        if(this.sessions[s].canUploadGLTF)
+      for (let s in this.sessions) {
+        if (this.sessions[s].canUploadGLTF) {
           arSession = this.sessions[s];
-      if(!arSession) {
+          break;
+        }
+      }
+
+      if (!arSession) {
         const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
         const error = new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
         throw this.#logger.handleError(LOGGINGTOPIC.AR, 'Api.viewInAR', error, false);
       }
-      
+
+      let arEnvironment = '';
+      for (let v in this.viewers) {
+        if(!arSession.node.excludeViewers.includes(this.viewers[v].id)) {
+          const envMapUrl = this.#viewerCallbacks[v].getEnvironmentMapImageUrl();
+          if(envMapUrl !== '') {
+            if(envMapUrl.endsWith('.hdr')) {
+              arEnvironment = 'skybox-image=' + envMapUrl;
+            } else {
+              arEnvironment = 'environment-image=' + envMapUrl;
+            }
+          }
+          break;
+        }
+      }
+
       // register the busy mode to blur the scene and create a visual feedback
       const busyModeID = this.#uuidGenerator.create();
-      for(let v in this.viewers)
+      for (let v in this.viewers)
         this.viewers[v].registerBusyMode(busyModeID)
 
       // convert and upload (and maybe convert to usdz) the file
-      const file = await arSession.uploadGLTF(isIOSSafari ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE, eventId);
+      const file = await arSession.uploadGLTF(this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE, eventId);
 
-      // separation between Android-Chrome and iOS-Safari
-      if(isAndroidChrome) {
-        // check the incoming properties
-        this.#logger.debugLow(LOGGINGTOPIC.AR, `Api.viewInAR: Viewing in AR with properties ${JSON.stringify(androidOptions)}.`);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.AR, 'Api.viewInAR', androidOptions, 'object', false);
-        const prop = Object.assign({}, androidOptions);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.AR, `Api.viewInAR`, prop.title, 'string', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.AR, `Api.viewInAR`, prop.resizable, 'boolean', false);
-        this.#inputValidator.validateAndError(LOGGINGTOPIC.AR, `Api.viewInAR`, prop.fallback_url, 'string', false);
-
-        // create the link and click it
-        const a = document.createElement('a');
-        a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${androidOptions.resizable}&title=${androidOptions.title}&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${androidOptions.fallback_url};end;`
-        document.body.appendChild(a);
-        a.click();
-      } else {
+      if (this.#systemInfo.isIOS) {
         // create the link and click it
         const a = document.createElement('a');
         document.body.appendChild(a);
@@ -828,14 +817,59 @@ export class Api implements IApi {
         img.src = this.#defaultLogo;
         a.appendChild(img);
         a.click();
+      } else {
+        const modelViewerDiv = <HTMLDivElement>document.createElement('div');
+        document.body.appendChild(modelViewerDiv);
+
+        // creation of the model-viewer element, including some buttons and style sheets
+        modelViewerDiv.innerHTML = `
+        <model-viewer 
+        ${this.#systemInfo.isIOS ? `ios-src="${file}.usdz"` : `src="${file}.glb"`} 
+        ar ar-modes="scene-viewer webxr quick-look" 
+        ar-scale="${arScale}"
+        ar-placement="${arPlacement}"
+        ${xrEnvironment ? 'xr-environment' : ''}
+        ${arEnvironment}
+        style="width: 100%; height: 100%;" > 
+        <button slot="ar-button" id="ar-button"> View in your space </button>
+        <button id="ar-failure"> AR is not tracking! </button> </model-viewer> 
+        <style> /* This keeps child nodes hidden while the element loads */ :not(:defined)>* { display: none; } model-viewer { overflow-x: hidden; width: 100%; height: 100%; position: absolute; left: 0%; top: 0%; } #ar-button { background-image: url(https://modelviewer.dev/assets/ic_view_in_ar_new_googblue_48dp.png); background-repeat: no-repeat; background-size: 20px 20px; background-position: 12px 50%; background-color: #fff; position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; bottom: 132px; padding: 0px 16px 0px 40px; font-family: Roboto Regular, Helvetica Neue, sans-serif; font-size: 14px; color:#4285f4; height: 36px; line-height: 36px; border-radius: 18px; border: 1px solid #DADCE0; } #ar-button:active { background-color: #E8EAED; } #ar-button:focus { outline: none; } #ar-button:focus-visible { outline: 1px solid #4285f4; } @keyframes circle { from { transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg) translateX(50px) rotate(-360deg); } } @keyframes elongate { from { transform: translateX(100px); } to { transform: translateX(-100px); } } model-viewer>#ar-failure { position: absolute; left: 50%; transform: translateX(-50%); bottom: 175px; display: none; } model-viewer[ar-tracking="not-tracking"]>#ar-failure { display: block; } </style>`;
+
+        const modelViewer = <HTMLElement>document.querySelector("model-viewer")!;
+        const btnLaunch = <HTMLButtonElement>document.getElementById('ar-button');
+        modelViewer.style.visibility = 'hidden';
+
+        // cancel the process if the modelViewer has an issue
+        const eventListenerLoad = () => {
+          if (!(<any>modelViewer).canActivateAR) cancelAR();
+          btnLaunch.click();
+        };
+        modelViewer.addEventListener('load', eventListenerLoad);
+
+        // as we hide some things, like the actual model-viewer, for AR, we need to show it again
+        const eventListenerStatus = (e: any) => {
+          if (e.detail.status === "not-presenting") {
+            cancelAR();
+          } else if (e.detail.status === "session-started") {
+            modelViewer.style.visibility = '';
+          }
+        }
+        modelViewer.addEventListener('ar-status', eventListenerStatus);
+
+        // remove listeners and div
+        const cancelAR = () => {
+          modelViewer.removeEventListener('load', eventListenerLoad);
+          modelViewer.removeEventListener('ar-status', eventListenerStatus);
+          document.body.removeChild(modelViewerDiv);
+        };
       }
-      
+
+      for (let v in this.viewers)
+        this.viewers[v].deregisterBusyMode(busyModeID)
+
       const event2: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Done loading AR scene, launching AR' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event2);
 
-      // deregister the busy mod
-      for(let v in this.viewers)
-        this.viewers[v].deregisterBusyMode(busyModeID)
     } catch (e) {
       const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);

@@ -9,17 +9,16 @@ import * as SDV from '@shapediver/viewer'
 (async () => {
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     let session = await api.createSession({ 
-        ticket: '5dbb5117b630fb83a8056f06ee719f570a904be69ac45152822c327f33d21483a8dae9e3122ae17c992ea6b3e2b65af09ac9871dd83a263ef488e58b2c2260a07899418548bd4a8dcf1cff3ca33954c9e4c0fe60118f730d03c56b7e598eab908b34e16ba8625d-b5ac96869614191d8ada6725aba8fba6', 
+        ticket: 'd2795be17bb5f36ad8e799cd58c35b4fb84e84cb7ef5b8aa1365b7fe76fcaf3234167f0924fa613f03f31f82057b3107631c003bcc9077f785d38ad9a354a489e652d2be97a8e1f69c975bba070727b28f24af7ff68a9c966a124121362de07f6aecbdb9ebc46a-c13747650a644e02d24c0579cc104655', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
     });
 })();
 
 (<any>window).loadAR = async () => {
-    try {
-        api.viewableInAR()
+    if(api.viewableInAR()) {
         await api.viewInAR();
-    } catch(e) {
-        alert(e);
+    } else {
+        alert('Hello there! Unfortunately, you cannot use the AR feature. The AR feature is available on Android (all browsers except Firefox) and on iOS (all browsers except Firefox and Chrome).')
     }
 }

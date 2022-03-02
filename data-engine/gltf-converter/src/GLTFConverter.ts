@@ -1,7 +1,7 @@
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, UuidGenerator, Logger } from '@shapediver/viewer.shared.services'
-import { container } from 'tsyringe'
+import { Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { container, singleton } from 'tsyringe'
 import {
     ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
     ACCESSORTYPE_V2 as ACCESSORTYPE,
@@ -15,12 +15,11 @@ import {
     IGLTF_v2_Accessor,
     ACCESSORCOMPONENTSIZE_V2,
     IGLTF_v2_BufferView,
-    IGLTF_v2_Buffer,
     IGLTF_v2_Texture,
     IGLTF_v2_Image,
     IGLTF_v2_Animation,
 } from '@shapediver/viewer.data-engine.shared-types'
-import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
+import { mat4 } from 'gl-matrix'
 import {
     AttributeData,
     GeometryData,
@@ -32,30 +31,31 @@ import {
     AnimationData,
     PRIMITIVE_MODE,
 } from '@shapediver/viewer.shared.types'
+import * as THREE from 'three'
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
 }
+
+@singleton()
 export class GLTFConverter {
     // #region Properties (17)
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _globalTransformation = mat4.fromValues(
-        1, 0, 0, 0,
-        0, 0, 1, 0,
-        0, -1, 0, 0,
-        0, 0, 0, 1);
     private readonly _globalTransformationInverse = mat4.fromValues(
         1, 0, 0, 0,
         0, 0, -1, 0,
         0, 1, 0, 0,
         0, 0, 0, 1);
+    private readonly _mergeShader: THREE.ShaderMaterial;
+    private readonly _quadCamera: THREE.OrthographicCamera;
+    private readonly _quadScene: THREE.Scene;
+    private readonly _renderer: THREE.WebGLRenderer;
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
-    private _baseUri!: string;
-    private _body!: ArrayBuffer;
+    private _animations: AnimationData[] = [];
     private _buffers: ArrayBuffer[] = [];
     private _byteOffset: number = 0;
     private _content: IGLTF_v2 = {
@@ -67,28 +67,109 @@ export class GLTFConverter {
         },
     }
 
+    private _convertForAR = false;
     private _extensionsRequired: string[] = [];
     private _extensionsUsed: string[] = [];
     private _imageCache: { [key: string]: number } = {};
-    private _loaded: {
-        [key: string]: {
-            [key: string]: any
-        }
-    } = {};
-
-    private _promises: Promise<any>[] = [];
     private _nodes: {
         node: TreeNode,
         id: number
     }[] = [];
-    private _animations: AnimationData[] = [];
-    private _convertForAR = false;
+    private _promises: Promise<any>[] = [];
 
     // #endregion Properties (17)
 
+    // #region Constructors (1)
+
+    constructor() {
+        this._mergeShader = new THREE.ShaderMaterial({
+            uniforms: {
+                tRed: { value: null },
+                activeRed: { value: false },
+                defaultRed: { value: 1.0 },
+                tGreen: { value: null },
+                activeGreen: { value: false },
+                defaultGreen: { value: 1.0 },
+                tBlue: { value: null },
+                activeBlue: { value: false },
+                defaultBlue: { value: 1.0 },
+            },
+            vertexShader: `// @author Michael Oppitz 
+
+            uniform sampler2D tRed;
+            uniform bool activeRed;
+            uniform float defaultRed;
+            
+            uniform sampler2D tGreen;		
+            uniform bool activeGreen;
+            uniform float defaultGreen;
+            
+            uniform sampler2D tBlue;		
+            uniform bool activeBlue;
+            uniform float defaultBlue;
+
+            varying vec2 vUv;
+            
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+            }`,
+            fragmentShader: `// @author Michael Oppitz 
+
+            uniform sampler2D tRed;
+            uniform bool activeRed;
+            uniform float defaultRed;
+            
+            uniform sampler2D tGreen;		
+            uniform bool activeGreen;
+            uniform float defaultGreen;
+            
+            uniform sampler2D tBlue;		
+            uniform bool activeBlue;
+            uniform float defaultBlue;
+            
+            varying vec2 vUv;
+            
+            void main() {
+                vec4 outColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+                if(activeRed == true) {
+                    outColor.r = texture2D(tRed, vUv).r;
+                } else {
+                    outColor.r = defaultRed;
+                }
+            
+                if(activeGreen == true) {
+                    outColor.g = texture2D(tGreen, vUv).g;
+                } else {
+                    outColor.g = defaultGreen;
+                }
+            
+                if(activeBlue == true) {
+                    outColor.b = texture2D(tBlue, vUv).b;
+                } else {
+                    outColor.b = defaultBlue;
+                }
+            
+                gl_FragColor = outColor;
+            }`
+        });
+
+        this._quadCamera = new THREE.OrthographicCamera(- 1, 1, 1, - 1, 0, 1);
+        this._quadScene = new THREE.Scene();
+        const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this._mergeShader);
+        this._quadScene.add(quad);
+
+        this._renderer = new THREE.WebGLRenderer();
+    }
+
+    // #endregion Constructors (1)
+
     // #region Public Methods (1)
 
-    public async convert(node: TreeNode, convertForAR = false): Promise<IGLTF_v2 | string | ArrayBuffer | null> {
+    public async convert(node: TreeNode, convertForAR = false): Promise<ArrayBuffer> {
+        this.reset();
+
         this._convertForAR = convertForAR;
         const sceneNode = new TreeNode('ShapeDiverRootNode');
         sceneNode.addChild(node);
@@ -120,14 +201,19 @@ export class GLTFConverter {
         const extensionsRequiredList = Object.keys(this._extensionsRequired);
         if (extensionsRequiredList.length > 0) this._content.extensionsRequired = extensionsRequiredList;
 
-        await Promise.all(this._promises);
+        let promisesLength = 0;
+        while (promisesLength !== this._promises.length) {
+            promisesLength = this._promises.length;
+            await Promise.all(this._promises);
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
         // Merge buffers.
         const blob = new Blob(this._buffers, { type: 'application/octet-stream' });
 
         // Update byte length of the single buffer.
         if (this._content.buffers && this._content.buffers.length > 0) this._content.buffers[0].byteLength = blob.size;
 
-        return new Promise<IGLTF_v2 | string | ArrayBuffer | null>(resolve => {
+        return new Promise<ArrayBuffer>(resolve => {
             // https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-file-format-specification
 
             const reader = new window.FileReader();
@@ -166,7 +252,7 @@ export class GLTFConverter {
                 const glbReader = new window.FileReader();
                 glbReader.readAsArrayBuffer(glbBlob);
                 glbReader.onloadend = () => {
-                    resolve(glbReader.result);
+                    resolve(<ArrayBuffer>glbReader.result);
                 };
 
             };
@@ -175,95 +261,84 @@ export class GLTFConverter {
 
     // #endregion Public Methods (1)
 
-    // #region Private Methods (14)
+    // #region Private Methods (18)
 
-    private convertAnimations() {
-        if (!this._content.animations && this._animations.length > 0) this._content.animations = [];
-        for(let i = 0; i < this._animations.length; i++) {
-            const animation = this._animations[i];
-            const animationDef: IGLTF_v2_Animation = {
-                name: animation.name || 'animation_' + i,
-                channels: [],
-                samplers: []
+    private async combineTextures(red?: MapData, green?: MapData, blue?: MapData): Promise<MapData> {
+        if (!red && !green && !blue)
+            throw new Error('No maps supplied.')
+
+        let width = 0, height = 0;
+        const textures = [red, green, blue];
+        for (let t of textures) {
+            if (t) {
+                if (width === 0 && height === 0) {
+                    width = t.image.width;
+                    height = t.image.height;
+                } else if (t.image.width !== width && t.image.height !== height) {
+                    throw new Error('Maps have different sizes. Combining not supported.')
+                }
             }
-
-            for(let j = 0; j < animation.tracks.length; j++) {    
-                const track = animation.tracks[j];            
-                const value = this._nodes.find(a => a.node === track.node);
-                if(!value) continue;
-
-                const inputMin = Math.min(...track.times);
-                const inputMax = Math.max(...track.times);
-                const inputData = new AttributeData(
-                    new Float32Array(track.times), 
-                    1,
-                    4,
-                    0,
-                    4, 
-                    false,
-                    track.times.length,
-                    [inputMin],
-                    [inputMax]);
-                    
-                const outputMin = [];
-                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 0)));
-                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 1)));
-                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 2)));
-                    
-                if(track.path === 'rotation') {
-                    outputMin.push(Math.min(...track.values.filter((s, i) => i % 4 === 3)));
-                }
-                
-                const outputMax = [];
-                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 0)));
-                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 1)));
-                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 2)));
-                    
-                if(track.path === 'rotation') {
-                    outputMax.push( Math.max(...track.values.filter((s, i) => i % 4 === 3)));
-                }
-
-                const outputData = new AttributeData(
-                    new Float32Array(track.values),
-                    track.path === 'rotation' ? 4 : 3, //itemSize
-                    track.path === 'rotation' ? 16 : 12, //itemBytes
-                    0,
-                    4,
-                    false,
-                    track.times.length,
-                    outputMin,
-                    outputMax,
-                    track.path === 'rotation' ? 16 : 12)
-
-                const samplerDef: {
-                    input: number,
-                    interpolation?: string,
-                    output: number,
-                } = {
-                    input: this.convertAccessor(inputData),
-                    output: this.convertAccessor(outputData),
-                    interpolation: track.interpolation.toUpperCase()
-                }
-                animationDef.samplers.push(samplerDef);
-
-                const channelDef: {
-                    sampler: number,
-                    target: {
-                        node: number,
-                        path: string,
-                    }
-                } = {
-                    sampler: animationDef.samplers.length -1,
-                    target: {
-                        node: value.id,
-                        path: track.path
-                    }
-                }                
-                animationDef.channels.push(channelDef);
-
-            }
-            this._content.animations?.push(animationDef)
         }
+
+        if (red) {
+            const redTexture = new THREE.Texture(red.image);
+            redTexture.needsUpdate = true;
+            this._mergeShader.uniforms.tRed.value = redTexture;
+            this._mergeShader.uniforms.activeRed.value = true;
+        } else {
+            this._mergeShader.uniforms.activeRed.value = false;
+        }
+
+        if (green) {
+            const greenTexture = new THREE.Texture(green.image);
+            greenTexture.needsUpdate = true;
+            this._mergeShader.uniforms.tGreen.value = greenTexture;
+            this._mergeShader.uniforms.activeGreen.value = true;
+        } else {
+            this._mergeShader.uniforms.activeGreen.value = false;
+        }
+
+        if (blue) {
+            const blueTexture = new THREE.Texture(blue.image);
+            blueTexture.needsUpdate = true;
+            this._mergeShader.uniforms.tBlue.value = blueTexture;
+            this._mergeShader.uniforms.activeBlue.value = true;
+        } else {
+            this._mergeShader.uniforms.activeBlue.value = false;
+        }
+
+        // The different render targets that are used by the passes
+        const renderTarget = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat
+        });
+        renderTarget.texture.name = 'target.rt';
+        this._renderer.setRenderTarget(renderTarget)
+
+        this._renderer.render(this._quadScene, this._quadCamera);
+
+        const buffer = new Uint8ClampedArray(4 * width * height);
+        this._renderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, buffer)
+
+        let imageData = new ImageData(buffer, width, height);
+        var canvas = document.createElement('canvas');
+        var ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
+        canvas.width = imageData.width;
+        canvas.height = imageData.height;
+        ctx.putImageData(imageData, 0, 0);
+
+        const image = new Image();
+        const promise = new Promise<void>(resolve => {
+            image.onload = () => resolve();
+        })
+        image.crossOrigin = "anonymous";
+        image.src = canvas.toDataURL("image/jpeg", 1.0);
+
+        await promise;
+
+        const m = (red || green || blue)!;
+        return new MapData(image, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.flipY);
     }
 
     private convertAccessor(data: AttributeData): number {
@@ -303,6 +378,94 @@ export class GLTFConverter {
 
         this._content.accessors.push(accessorDef);
         return this._content.accessors.length - 1;
+    }
+
+    private convertAnimations() {
+        if (!this._content.animations && this._animations.length > 0) this._content.animations = [];
+        for (let i = 0; i < this._animations.length; i++) {
+            const animation = this._animations[i];
+            const animationDef: IGLTF_v2_Animation = {
+                name: animation.name || 'animation_' + i,
+                channels: [],
+                samplers: []
+            }
+
+            for (let j = 0; j < animation.tracks.length; j++) {
+                const track = animation.tracks[j];
+                const value = this._nodes.find(a => a.node === track.node);
+                if (!value) continue;
+
+                const inputMin = Math.min(...track.times);
+                const inputMax = Math.max(...track.times);
+                const inputData = new AttributeData(
+                    new Float32Array(track.times),
+                    1,
+                    4,
+                    0,
+                    4,
+                    false,
+                    track.times.length,
+                    [inputMin],
+                    [inputMax]);
+
+                const outputMin = [];
+                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 0)));
+                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 1)));
+                outputMin.push(Math.min(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 2)));
+
+                if (track.path === 'rotation') {
+                    outputMin.push(Math.min(...track.values.filter((s, i) => i % 4 === 3)));
+                }
+
+                const outputMax = [];
+                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 0)));
+                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 1)));
+                outputMax.push(Math.max(...track.values.filter((s, i) => i % (track.path === 'rotation' ? 4 : 3) === 2)));
+
+                if (track.path === 'rotation') {
+                    outputMax.push(Math.max(...track.values.filter((s, i) => i % 4 === 3)));
+                }
+
+                const outputData = new AttributeData(
+                    new Float32Array(track.values),
+                    track.path === 'rotation' ? 4 : 3, //itemSize
+                    track.path === 'rotation' ? 16 : 12, //itemBytes
+                    0,
+                    4,
+                    false,
+                    track.times.length,
+                    outputMin,
+                    outputMax,
+                    track.path === 'rotation' ? 16 : 12)
+
+                const samplerDef: {
+                    input: number,
+                    interpolation?: string,
+                    output: number,
+                } = {
+                    input: this.convertAccessor(inputData),
+                    output: this.convertAccessor(outputData),
+                    interpolation: track.interpolation.toUpperCase()
+                }
+                animationDef.samplers.push(samplerDef);
+
+                const channelDef: {
+                    sampler: number,
+                    target: {
+                        node: number,
+                        path: string,
+                    }
+                } = {
+                    sampler: animationDef.samplers.length - 1,
+                    target: {
+                        node: value.id,
+                        path: track.path
+                    }
+                }
+                animationDef.channels.push(channelDef);
+            }
+            this._content.animations?.push(animationDef)
+        }
     }
 
     private convertBuffer(buffer: ArrayBuffer): number {
@@ -391,7 +554,7 @@ export class GLTFConverter {
         canvas.height = data.image.height;
 
         const ctx: CanvasRenderingContext2D = canvas.getContext('2d')!;
-        if (data.flipY === true) {
+        if (data.flipY) {
             ctx.translate(0, canvas.height);
             ctx.scale(1, - 1);
         }
@@ -474,14 +637,16 @@ export class GLTFConverter {
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(data.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = data.opacity;
             if (data.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) }
-            materialDef.pbrMetallicRoughness!.metallicFactor = data.metalness;
-            materialDef.pbrMetallicRoughness!.roughnessFactor = data.roughness;
+            materialDef.pbrMetallicRoughness!.metallicFactor = data.metalnessMap ? 1 : data.metalness;
+            materialDef.pbrMetallicRoughness!.roughnessFactor = data.roughnessMap ? 1 : data.roughness;
             if (data.metalnessRoughnessMap && includeMaps) {
                 materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(data.metalnessRoughnessMap) };
             } else if ((data.metalnessMap || data.roughnessMap) && includeMaps) {
-                const map: MapData = (data.metalnessMap || data.roughnessMap)!;
-                // we just take one, conversion is just too slow
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(map) };
+                this._promises.push(new Promise<void>(async resolve => {
+                    const mapData = await this.combineTextures(undefined, data.roughnessMap, data.metalnessMap);
+                    materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(mapData) }
+                    resolve();
+                }))
             }
         }
 
@@ -525,7 +690,7 @@ export class GLTFConverter {
         for (let i = 0; i < node.data.length; i++) {
             if (node.data[i] instanceof GeometryData) {
                 if (this._convertForAR) {
-                    if( (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.POINTS &&
+                    if ((<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.POINTS &&
                         (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINES &&
                         (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINE_LOOP &&
                         (<GeometryData>node.data[i]).primitive.mode !== PRIMITIVE_MODE.LINE_STRIP)
@@ -534,7 +699,7 @@ export class GLTFConverter {
                     nodeDef.mesh = this.convertMesh(<GeometryData>node.data[i])
                 }
             }
-            
+
             if (node.data[i] instanceof AnimationData)
                 this._animations.push(<AnimationData>node.data[i])
         }
@@ -558,10 +723,24 @@ export class GLTFConverter {
         };
 
         for (let a in data.attributes) {
-            if(data.attributes[a].array.length > 0) {
-                if(a.includes('COLOR')) {
-                    if(data.attributes[a].itemSize % 4 === 0) {
+            if (data.attributes[a].array.length > 0) {
+                if (a.includes('COLOR')) {
+                    if (data.attributes[a].itemSize % 4 === 0) {
                         primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a])
+                    } else if (data.attributes[a].itemSize % 3 === 0) {
+                        const oldAttributeData = data.attributes[a];
+                        const newArray = new Float32Array((oldAttributeData.array.length/3)*4);
+
+                        let counter = 0;
+                        for(let i = 0; i < newArray.length; i+=4) {
+                            newArray[i] = oldAttributeData.array[counter] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
+                            newArray[i+1] = oldAttributeData.array[counter+1] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
+                            newArray[i+2] = oldAttributeData.array[counter+2] / (oldAttributeData.elementBytes === 1 ? 255.0 : 1.0);
+                            newArray[i+3] = 1.0;
+                            counter+=3;
+                        }
+                        primitiveDef.attributes[a] = this.convertAccessor(new AttributeData(newArray, 4, 4*4, oldAttributeData.byteOffset, 4, oldAttributeData.normalized, oldAttributeData.count, oldAttributeData.min, oldAttributeData.max, oldAttributeData.byteStride));
+                        
                     }
                 } else {
                     primitiveDef.attributes[a] = this.convertAccessor(data.attributes[a])
@@ -670,6 +849,26 @@ export class GLTFConverter {
         }
     }
 
+    private reset() {
+        this._animations = [];
+        this._buffers = [];
+        this._byteOffset = 0;
+        this._content = {
+            asset: {
+                copyright: '2021 (c) ShapeDiver',
+                generator: 'ShapeDiverViewer@' + build_data.build_version,
+                version: '2.0',
+                extensions: {}
+            },
+        }
+
+        this._extensionsRequired = [];
+        this._extensionsUsed = [];
+        this._imageCache = {};
+        this._nodes = [];
+        this._promises = [];
+    }
+
     private stringToArrayBuffer(text: string) {
         if (window.TextEncoder !== undefined) {
             return new TextEncoder().encode(text).buffer;
@@ -687,5 +886,5 @@ export class GLTFConverter {
         return array.buffer;
     }
 
-    // #endregion Private Methods (14)
+    // #endregion Private Methods (18)
 }

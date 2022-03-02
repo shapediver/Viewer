@@ -224,6 +224,23 @@ export class EnvironmentMapLoader implements ILoader {
         }
     }
 
+    public getEnvironmentMapImageUrl(name: string | string[]): string {
+        if(Array.isArray(name)) return '';
+        
+        if(this._environmentMapNamesHDR.indexOf(name) >= 0) {
+            let url_hdr = 'https://viewer.shapediver.com/v3/envmaps/1k/' + name + '_1k.hdr';
+            if(this._environmentMapNamesHDRKhronos.indexOf(name) >= 0)
+                url_hdr = 'https://viewer.shapediver.com/v3/envmaps/khronos/' + name + '.hdr';
+
+            return url_hdr;
+        }else if (name.startsWith('https://') || name.startsWith('http://')) {
+            if (name.endsWith('.hdr') || name.endsWith('.jpg') || name.endsWith('.png')) {
+                return name;
+            }
+        }
+        return '';
+    }
+
     // #endregion Public Methods (2)
 
     // #region Private Methods (2)

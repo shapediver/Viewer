@@ -488,10 +488,14 @@ export class Session implements ISession {
             const dataKey = btoa(href);
             if(this._dataCache[dataKey]) return await this._dataCache[dataKey];
 
-            this._dataCache[dataKey] = this._httpClient.get(
-                `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${dataKey}`,
-                config
-            );
+            if(href.startsWith('blob:')) {
+                this._dataCache[dataKey] = this._httpClient.get(href, config);
+            } else {
+                this._dataCache[dataKey] = this._httpClient.get(
+                    `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${dataKey}`,
+                    config
+                );
+            }
             return await this._dataCache[dataKey];
         } catch (e) {
             await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadData', e, retry);

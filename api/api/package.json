@@ -45,10 +45,12 @@
     "testEnvironment": "jsdom"
   },
   "dependencies": {
+    "@google/model-viewer": "^1.10.1",
     "@shapediver/api.geometry-api-dto-v1": "^1.1.3",
     "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.17",
     "@shapediver/viewer.data-engine.data-engine": "1.12.5",
     "@shapediver/viewer.data-engine.geometry-engine": "1.12.5",
+    "@shapediver/viewer.data-engine.gltf-converter": "1.12.5",
     "@shapediver/viewer.data-engine.material-engine": "1.12.5",
     "@shapediver/viewer.data-engine.shared-types": "1.12.5",
     "@shapediver/viewer.rendering-engine-threejs.standard": "1.12.5",

@@ -45,10 +45,10 @@ export class HttpClient {
             if (this._loadData){
                 const response = await this._loadData(href, config);
                 resolve(response);
+            } else {
+                const response = await this.get(href, config);
+                resolve(response);
             }
-
-            const response = await this.get(href, config);
-            resolve(response);
         });
 
         return await this._dataCache[dataKey];

@@ -716,6 +716,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return out;
   }
 
+  public getEnvironmentMapImageUrl() {
+    return this._environmentMapLoader.getEnvironmentMapImageUrl(this.environmentMap);
+  }
+
   public getScreenshot(type?: string, encoderOptions?: number): string {
     return this._renderingManager.getScreenshot(type, encoderOptions);
   }

@@ -257,12 +257,11 @@ export class MaterialLoader implements ILoader {
         if(materialData.color === undefined && materialData.map !== undefined && materialData.map.color === undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
             generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(this._defaultColor));
 
-        if((materialSettings !== undefined && materialSettings.useVertexColors) && materialData.color === this._defaultColor)
+        if((materialSettings !== undefined && materialSettings.useVertexColors) && (materialData.color === this._defaultColor || materialData.color === this._defaultColor+'ff' || materialData.color === undefined))
             generalProperties.color = new THREE.Color('#d3d3d3');
 
         if(materialData.side !== undefined)
             generalProperties.side = materialData.side === MATERIAL_SIDE.BACK ? THREE.BackSide : materialData.side === MATERIAL_SIDE.FRONT ? THREE.FrontSide : THREE.DoubleSide;
-    
 
         /**
          * First exit, lines ans points
