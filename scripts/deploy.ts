@@ -1,6 +1,6 @@
-import AWS from 'aws-sdk';
-import * as fs from 'fs';
-import pako from 'pako';
+import * as fs from 'fs'
+import AWS from 'aws-sdk'
+import pako from 'pako'
 
 const recursiveReadSync = require('recursive-readdir-sync');
 const { exec } = require("child_process");
@@ -95,7 +95,7 @@ const getDirectories = async (source: string) =>
         console.log('deploying tests...')
         await execPromise(`npm run deploy-tests`)
         console.log('starting tests...')
-        await execPromise(`npm run test`)
+        await execPromise(`npm run test-all`)
 
         const changes = await execPromise(`git status --porcelain`);
         if(changes) {

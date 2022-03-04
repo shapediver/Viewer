@@ -14,7 +14,7 @@
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
   "scripts": {
-    "test": "bash ../../scripts/test.sh"
+    "test-no-concurrency": "bash ../../scripts/test.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"

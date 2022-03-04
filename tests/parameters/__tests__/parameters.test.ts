@@ -1,19 +1,20 @@
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import webdriver, { WebDriver } from "selenium-webdriver";
-require('chromedriver');
-import { api as API } from "@shapediver/viewer"
-import { screenshotCompare } from "../../general/src/setup";
-import { sdeuc1 } from "../../general/src/models";
+import webdriver from 'selenium-webdriver'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { api as API } from '@shapediver/viewer'
 
-let name = 'parameter_change';
+import { createDriver, screenshotCompare } from '../../general/src/setup'
+import { sdeuc1 } from '../../general/src/models'
+
+require('chromedriver');
+
 const shelfTicket = sdeuc1.models['Shelf'].ticket;
-let driver: WebDriver;
+
+let driver: webdriver.WebDriver;
+let name = 'parameter_change';
+
 describe('device testing', () => {
     beforeAll(async () => {
-        driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
-        const TIMEOUT = 300000000
-        await driver.manage().setTimeouts({ implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT });
+        driver = await createDriver();
     });
 
     beforeEach(async () => {
@@ -50,7 +51,6 @@ describe('device testing', () => {
             await screenshotCompare(await driver.takeScreenshot(), name + '/' + i);
         }
     });
-
 
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {

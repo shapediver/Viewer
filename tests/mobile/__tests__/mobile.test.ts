@@ -1,23 +1,29 @@
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import webdriver, { WebDriver } from "selenium-webdriver";
+import webdriver from 'selenium-webdriver'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+
+import { screenshotCompare } from '../../general/src/setup'
+import {
+  capabilities as allCapabilities,
+  DesktopCapabilities,
+  MobileCapabilities,
+} from '../../general/src/capabilities'
+import { sdeuc1 } from '../../general/src/models'
+
 require('chromedriver');
-import { screenshotCompare } from "../../general/src/setup";
-import { capabilities as allCapabilities, DesktopCapabilities, MobileCapabilities } from "../../general/src/capabilities";
-import { sdeuc1 } from "../../general/src/models";
 
-for(let c = 0; c < allCapabilities.length; c++) {
+for (let c = 0; c < allCapabilities.length; c++) {
     const capabilities = Object.assign({ 'name': 'mobile_tests', 'build': require('../../../api/api/package.json').version }, allCapabilities[c]);
-    let name = 'mobile_tests/' + ((allCapabilities[c] as DesktopCapabilities).os ? 
-    (<DesktopCapabilities>capabilities).os + '_' + (<DesktopCapabilities>capabilities).os_version + '_' + (<DesktopCapabilities>capabilities).browserName + '_' + (<DesktopCapabilities>capabilities).browser_version : 
-    (<MobileCapabilities>capabilities).device + '_' + (<MobileCapabilities>capabilities).os_version);
+    let name = 'mobile_tests/' + ((allCapabilities[c] as DesktopCapabilities).os ?
+        (<DesktopCapabilities>capabilities).os + '_' + (<DesktopCapabilities>capabilities).os_version + '_' + (<DesktopCapabilities>capabilities).browserName + '_' + (<DesktopCapabilities>capabilities).browser_version :
+        (<MobileCapabilities>capabilities).device + '_' + (<MobileCapabilities>capabilities).os_version);
 
-    let driver: WebDriver;
+    let driver: webdriver.WebDriver;
     describe('device testing', () => {
         beforeAll(async () => {
             driver = await new webdriver.Builder().usingServer('http://alexanderschiftn1:csj6VCzMwzBYyRecsbm2@hub-cloud.browserstack.com/wd/hub').withCapabilities(capabilities).build();
             await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
             const TIMEOUT = 300000000
-            await driver.manage().setTimeouts( { implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT } );
+            await driver.manage().setTimeouts({ implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT });
             console.log(name)
         });
 

@@ -1,22 +1,22 @@
-import webdriver, { WebDriver } from 'selenium-webdriver'
+import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
 import { api as API, DirectionalLight } from '@shapediver/viewer'
 
-import { screenshotCompare } from '../../general/src/setup'
-import { createTokenFromSlug } from '../../general/src/utils';
-import { sdeuc1 } from '../../general/src/models';
+import { createDriver, screenshotCompare } from '../../general/src/setup'
+import { createTokenFromSlug } from '../../general/src/createTokenFromSlug'
+import { sdeuc1 } from '../../general/src/models'
 
 require('chromedriver');
-let name = 'settings_viewer';
+
 const shelfTicket = sdeuc1.models['Shelf'].ticket;
+
+let driver: webdriver.WebDriver;
+let name = 'settings_viewer';
 let token: string;
-let driver: WebDriver;
+
 describe('device testing', () => {
     beforeAll(async () => {
-        driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
-        const TIMEOUT = 300000000
-        await driver.manage().setTimeouts({ implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT });
+        driver = await createDriver();
         token = await createTokenFromSlug(sdeuc1.models['Shelf'].slug);
     });
 
@@ -42,7 +42,7 @@ describe('device testing', () => {
         }
     }
 
-    for(let s in settings) {
+    for (let s in settings) {
         const setting = (<any>settings)[s];
 
         it(name + '_' + s, async () => {
@@ -59,7 +59,7 @@ describe('device testing', () => {
             expect(settings1[setting.location]).toBe(setting.defaultValue);
             await screenshotCompare(await driver.takeScreenshot(), name + '/' + s);
         });
-    
+
         it(name + '_' + s + 'Change', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, s: string, setting: any, cb: any) => {
@@ -76,7 +76,7 @@ describe('device testing', () => {
             expect(settings1[setting.location]).toBe(setting.newValue);
             await screenshotCompare(await driver.takeScreenshot(), name + '/' + s + 'Change');
         });
-    
+
         it(name + '_' + s + 'Check', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
@@ -91,7 +91,7 @@ describe('device testing', () => {
             expect(settings1[setting.location]).toBe(setting.newValue);
             await screenshotCompare(await driver.takeScreenshot(), name + '/' + s + 'Change');
         });
-    
+
         it(name + '_' + s + 'Reset', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, s: string, setting: any, cb: any) => {
@@ -108,7 +108,7 @@ describe('device testing', () => {
             expect(settings1[setting.location]).toBe(setting.defaultValue);
             await screenshotCompare(await driver.takeScreenshot(), name + '/' + s);
         });
-    
+
         it(name + '_' + s + 'ResetCheck', async () => {
             // check starting default
             const settings1: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {

@@ -1,22 +1,22 @@
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import webdriver, { WebDriver } from "selenium-webdriver";
-require('chromedriver');
-import { api as API } from "@shapediver/viewer"
-import { screenshotCompare } from "../../general/src/setup";
-import { sdeuc1 } from "../../general/src/models";
-import { createTokenFromSlug } from "../../general/src/utils";
+import webdriver from 'selenium-webdriver'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { api as API } from '@shapediver/viewer'
 
-let name = 'lights_api_tests';
+import { createDriver, screenshotCompare } from '../../general/src/setup'
+import { sdeuc1 } from '../../general/src/models'
+import { createTokenFromSlug } from '../../general/src/createTokenFromSlug'
+
+require('chromedriver');
+
 const shelfTicket = sdeuc1.models['Shelf'].ticket;
+
+let driver: webdriver.WebDriver;
+let name = 'lights_api_tests';
 let token: string;
 
-let driver: WebDriver;
 describe('device testing', () => {
     beforeAll(async () => {
-        driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
-        const TIMEOUT = 300000000
-        await driver.manage().setTimeouts({ implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT });
+        driver = await createDriver();
         token = await createTokenFromSlug(sdeuc1.models['Shelf'].slug);
     });
 
@@ -48,8 +48,8 @@ describe('device testing', () => {
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ 
-                ticket, 
+            let session = await api.createSession({
+                ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
                 bearerToken
             });
@@ -66,14 +66,14 @@ describe('device testing', () => {
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ 
-                ticket, 
+            let session = await api.createSession({
+                ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
                 bearerToken
-            }); 
-            viewer.createLightScene({name: 'test1'});
-            viewer.createLightScene({name: 'test2'});
-            viewer.createLightScene({name: 'test3'});
+            });
+            viewer.createLightScene({ name: 'test1' });
+            viewer.createLightScene({ name: 'test2' });
+            viewer.createLightScene({ name: 'test3' });
             viewer.assignLightScene('standard');
             await session.saveSettings();
             await new Promise<void>((resolve) => {
@@ -84,16 +84,16 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/default');
     });
 
-    
+
     it(name + '_createNewLightSceneCount', async () => {
-        const r:any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
+        const r: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ 
-                ticket, 
+            let session = await api.createSession({
+                ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
                 bearerToken
-            }); 
+            });
             cb(Object.keys(viewer.lightScenes).length);
         }, shelfTicket, token);
         expect(r).toBe(4);
@@ -103,13 +103,13 @@ describe('device testing', () => {
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ 
-                ticket, 
+            let session = await api.createSession({
+                ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
                 bearerToken
-            }); 
+            });
             viewer.assignLightScene('test1');
-            viewer.lightScene!.addAmbientLight({color: '#ff0000'})
+            viewer.lightScene!.addAmbientLight({ color: '#ff0000' })
             await new Promise<void>((resolve) => {
                 api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
@@ -117,18 +117,18 @@ describe('device testing', () => {
         }, shelfTicket, token);
         await screenshotCompare(await driver.takeScreenshot(), name + '/test1');
     });
-    
+
     it(name + '_lightScene2Adjustments', async () => {
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ 
-                ticket, 
+            let session = await api.createSession({
+                ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
                 bearerToken
-            }); 
+            });
             viewer.assignLightScene('test2');
-            viewer.lightScene!.addDirectionalLight({color: '#00ff00'})
+            viewer.lightScene!.addDirectionalLight({ color: '#00ff00' })
             await new Promise<void>((resolve) => {
                 api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
@@ -136,18 +136,18 @@ describe('device testing', () => {
         }, shelfTicket, token);
         await screenshotCompare(await driver.takeScreenshot(), name + '/test2');
     });
-    
+
     it(name + '_lightScene3Adjustments', async () => {
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ 
-                ticket, 
+            let session = await api.createSession({
+                ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
                 bearerToken
-            }); 
+            });
             viewer.assignLightScene('test3');
-            viewer.lightScene!.addPointLight({color: '#0000ff'})
+            viewer.lightScene!.addPointLight({ color: '#0000ff' })
             await new Promise<void>((resolve) => {
                 api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
@@ -160,18 +160,18 @@ describe('device testing', () => {
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ 
-                ticket, 
+            let session = await api.createSession({
+                ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
                 bearerToken
-            }); 
-            for(let ls in viewer.lightScenes)
+            });
+            for (let ls in viewer.lightScenes)
                 viewer.removeLightScene(ls);
 
-            const ls = viewer.createLightScene({name: 'standard'});
-            ls.addAmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'});
-            ls.addDirectionalLight({color: '#ffffff', intensity: 0.75, direction: [.5774, -.5774, .5774], castShadow: true, name: 'directional0'});
-            ls.addDirectionalLight({color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1'});
+            const ls = viewer.createLightScene({ name: 'standard' });
+            ls.addAmbientLight({ color: '#ffffff', intensity: 0.5, name: 'ambient0' });
+            ls.addDirectionalLight({ color: '#ffffff', intensity: 0.75, direction: [.5774, -.5774, .5774], castShadow: true, name: 'directional0' });
+            ls.addDirectionalLight({ color: '#ffffff', intensity: 0.35, direction: [.25, -1, 1], castShadow: false, name: 'directional1' });
             await session.saveSettings();
             await new Promise<void>((resolve) => {
                 api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -182,14 +182,14 @@ describe('device testing', () => {
     });
 
     it(name + '_checkDefaultLightScene', async () => {
-        const r:any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
+        const r: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
             let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ 
-                ticket, 
+            let session = await api.createSession({
+                ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
                 bearerToken
-            }); 
+            });
             cb(Object.keys(viewer.lightScenes).length);
         }, shelfTicket, token);
         expect(r).toBe(1);

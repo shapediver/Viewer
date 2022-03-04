@@ -1,17 +1,17 @@
-import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import webdriver, { WebDriver } from "selenium-webdriver";
-require('chromedriver');
-import { api as API, PerspectiveCamera, PerspectiveCameraControls } from "@shapediver/viewer"
-import { screenshotCompare } from "../../general/src/setup";
+import webdriver from 'selenium-webdriver'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { api as API, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer'
 
+import { createDriver, screenshotCompare } from '../../general/src/setup'
+
+require('chromedriver');
+
+let driver: webdriver.WebDriver;
 let name = 'geometry_tests';
-let driver: WebDriver;
+
 describe('device testing', () => {
     beforeAll(async () => {
-        driver = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/gltf/index.html')
-        const TIMEOUT = 300000000
-        await driver.manage().setTimeouts({ implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT });
+        driver = await createDriver();
     });
 
     beforeEach(async () => {
