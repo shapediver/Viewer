@@ -19,6 +19,11 @@ import {
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { vec3 } from 'gl-matrix'
 import { RenderingEngine } from '@shapediver/viewer.rendering-engine-threejs.standard'
+import { ISettingsEvent, ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
+import {
+  ShapeDiverRequestGltfUploadQueryConversion,
+  ShapeDiverResponseModelComputationStatus,
+} from '@shapediver/sdk.geometry-api-sdk-v2'
 
 import { Parameter, PARAMETERTYPE } from './Parameter'
 import { ISession } from '../../interfaces/session/ISession'
@@ -30,18 +35,16 @@ import { IFileParameter } from '../../interfaces/session/IFileParameter'
 import { FileParameter } from './FileParameter'
 import { Export } from './Export'
 import { Output } from './Output'
-import { ISettingsEvent, ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
-import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @injectable()
 export class Session implements ISession {
-    // #region Properties (28)
+    // #region Properties (29)
 
     readonly #api: Api = <Api>container.resolve(Api);
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     readonly #exports: { [key: string]: IExport; } = {};
-    readonly #id: string;
     readonly #httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    readonly #id: string;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #modelViewUrl: string;
@@ -49,76 +52,6 @@ export class Session implements ISession {
     readonly #parameters: { [key: string]: IParameter<any> } = {};
     readonly #performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     readonly #primarySessionRequest: boolean = false;
-    readonly #saveSessionSettings = () => {
-        const parameters = this.parameters;
-        const exports = this.exports;
-
-        const sessionProperties: {
-            [key: string]: {
-                order: number;
-                displayname: string;
-                hidden: boolean;
-            }
-        } = {};
-        for (let p in parameters) {
-            sessionProperties[p] = {
-                order: parameters[p].order || 0,
-                displayname: parameters[p].displayname || '',
-                hidden: parameters[p].hidden
-            }
-        }
-        for (let e in exports) {
-            sessionProperties[e] = {
-                order: exports[e].order || 0,
-                displayname: exports[e].displayname || '',
-                hidden: exports[e].hidden
-            }
-        }
-        this.#settingsEngine.session = sessionProperties;
-
-        let orderedOutputs: IOutput[] = [];
-        for (let o in this.outputs) orderedOutputs.push(this.outputs[o]);
-        orderedOutputs.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
-        let zerosOutputs = orderedOutputs.filter(x => x.order === 0);
-        orderedOutputs = orderedOutputs.filter((el) => { return !zerosOutputs.includes(el); });
-        orderedOutputs = zerosOutputs.concat(orderedOutputs);
-
-        const controlOrderOutputs = orderedOutputs.map((value) => { return value.id; });
-        for (let i = 0; i < controlOrderOutputs.length; i++) {
-            if (this.outputs[controlOrderOutputs[i]])
-                if (this.outputs[controlOrderOutputs[i]]!.order !== i)
-                    this.outputs[controlOrderOutputs[i]]!.order = i;
-        }
-    }
-
-    readonly #warningCreator = () => {
-        // set the output content to what has been updated
-        for (const outputId in this.outputs) {
-            let warning: string = '';
-            if (this.outputs[outputId].msg)
-                warning += `\n\t- ${this.outputs[outputId].msg}`;
-            if (this.outputs[outputId].status_collect && this.outputs[outputId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_collect is ${this.outputs[outputId].status_collect}`;
-            if (this.outputs[outputId].status_computation && this.outputs[outputId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_computation is ${this.outputs[outputId].status_computation}`;
-            if (warning)
-                this.#logger.warn(LOGGINGTOPIC.SESSION, `\nOutput(${outputId}):${warning}`);
-        }
-
-        // set the export definitions
-        for (const exportId in this.exports) {
-            let warning: string = '';
-            if (this.exports[exportId].msg)
-                warning += `\n\t- ${this.exports[exportId].msg}`;
-            if (this.exports[exportId].status_collect && this.exports[exportId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_collect is ${this.exports[exportId].status_collect}`;
-            if (this.exports[exportId].status_computation && this.exports[exportId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_computation is ${this.exports[exportId].status_computation}`;
-            if (warning)
-                this.#logger.warn(LOGGINGTOPIC.SESSION, `\nExport(${exportId}):${warning}`);
-        }
-    }
-
     readonly #sceneTree: Tree = <Tree>container.resolve(Tree);
     readonly #sessionEngine: SessionEngine;
     readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
@@ -148,25 +81,25 @@ export class Session implements ISession {
     #primarySession: boolean = false;
     #useSessionSettings: boolean = true;
 
-    // #endregion Properties (28)
+    // #endregion Properties (29)
 
     // #region Constructors (1)
 
     /**
-     * @ignore
-     */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, excludeViewers?: string[] }, callbacks: any) {
+       * @ignore
+       */
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, excludeViewers?: string[] }) {
         try {
             this.#node = new TreeNode(properties.id);
-            this.#sessionEngine = new SessionEngine(Object.assign({ 
-                buildDate: build_data.build_date, 
+            this.#sessionEngine = new SessionEngine(Object.assign({
+                buildDate: build_data.build_date,
                 buildVersion: build_data.build_version,
                 closeOnFailure: async () => {
                     // this function closes the Session if an error occurred that cannot be solved
                     // case 1: the bearer token is invalid and no new valid bearer token was supplied
                     // case 2: session init failed multiple times
                     this.bearerToken = '';
-                    try { await this.#api.closeSession(this.#id, true); } catch (e) {}
+                    try { await this.#api.closeSession(this.#id, true); } catch (e) { }
                 }
             }, properties));
 
@@ -190,56 +123,18 @@ export class Session implements ISession {
                         for (let s in this.#settingsEngine.session) {
                             const temp = this.#settingsEngine.session[s];
                             if (this.parameters[s]) {
-                                if(temp.displayname !== undefined) this.parameters[s]!.displayname = temp.displayname;
-                                if(temp.order !== undefined) this.parameters[s]!.order = temp.order;
-                                if(temp.hidden !== undefined) this.parameters[s]!.hidden = temp.hidden;
+                                if (temp.displayname !== undefined) this.parameters[s]!.displayname = temp.displayname;
+                                if (temp.order !== undefined) this.parameters[s]!.order = temp.order;
+                                if (temp.hidden !== undefined) this.parameters[s]!.hidden = temp.hidden;
                             }
                             if (this.exports[s]) {
-                                if(temp.displayname !== undefined) this.exports[s]!.displayname = temp.displayname;
-                                if(temp.order !== undefined) this.exports[s]!.order = temp.order;
-                                if(temp.hidden !== undefined) this.exports[s]!.hidden = temp.hidden;
+                                if (temp.displayname !== undefined) this.exports[s]!.displayname = temp.displayname;
+                                if (temp.order !== undefined) this.exports[s]!.order = temp.order;
+                                if (temp.hidden !== undefined) this.exports[s]!.hidden = temp.hidden;
                             }
                         }
                     }
                 })
-            }
-
-            callbacks.setAsPrimary = async () => {
-                try {
-                    if(this.#stateEngine.sessions[this.id].initialized.resolved === false)
-                        await this.#stateEngine.sessions[this.id].initialized;
-
-                    this.#primarySession = true;
-                    this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
-                    this.#stateEngine.sessions[this.id].primary = true;
-                    this.#settingsEngine.loadSettings(this.#sessionEngine.viewerSettings, this.id, this.primarySession);
-                    await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
-                    this.#api.update();
-                    this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
-                } catch (e) {
-                    if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-                    throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary`, e);
-                }
-            }
-
-            callbacks.close = async (): Promise<boolean> => {
-                try {
-                    const closeResult = await this.#sessionEngine.close();
-                    if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
-                    this.#api.update();
-
-                    if(this.primarySession)
-                        this.#httpClient.removeDataLoading()
-
-                    this.#settingsEngine.reset();
-                    this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: this.id });
-
-                    if (!closeResult) this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).close: Was not able to close session completely, please disregard this session.`);
-                    return closeResult;
-                } catch (e) {
-                    if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-                    throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).close`, e);
-                }
             }
 
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).constructor: Session api created.`);
@@ -379,7 +274,7 @@ export class Session implements ISession {
 
     // #endregion Public Accessors (21)
 
-    // #region Public Methods (18)
+    // #region Public Methods (21)
 
     public canGoBack(): boolean {
         // the first entry is always the one from the init call
@@ -389,6 +284,26 @@ export class Session implements ISession {
 
     public canGoForward(): boolean {
         return this.#parameterHistoryForward.length > 0;
+    }
+
+    public async close(): Promise<boolean> {
+        try {
+            const closeResult = await this.#sessionEngine.close();
+            if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
+            this.#api.update();
+
+            if (this.primarySession)
+                this.#httpClient.removeDataLoading()
+
+            this.#settingsEngine.reset();
+            this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: this.id });
+
+            if (!closeResult) this.#logger.warn(LOGGINGTOPIC.SESSION, `Session(${this.id}).close: Was not able to close session completely, please disregard this session.`);
+            return closeResult;
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).close`, e);
+        }
     }
 
     public async customize(): Promise<TreeNode> {
@@ -410,7 +325,6 @@ export class Session implements ISession {
                 if (this.#api.viewers[viewerId].blurSceneWhenBusy)
                     this.#api.viewers[viewerId].registerBusyMode(customizationID);
 
-
             const eventFileUpload: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
 
@@ -427,7 +341,7 @@ export class Session implements ISession {
                         for (let viewerId in this.#api.viewers)
                             this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
                         this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
-                                    
+
                         const eventCancel1a: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1a);
                         return new TreeNode();
@@ -488,7 +402,7 @@ export class Session implements ISession {
                 this.#performanceEvaluator.end();
                 for (let viewerId in this.#api.viewers)
                     this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
-                
+
                 const eventCancel2: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                 this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
@@ -496,7 +410,7 @@ export class Session implements ISession {
             }
 
             // if this is not a call by the goBack or goForward functions, add the parameter values to the history and delete the forward history
-            if(!this.#parameterHistoryCall) {
+            if (!this.#parameterHistoryCall) {
                 this.#parameterHistory.push(parameterSet);
                 this.#parameterHistoryForward = [];
             }
@@ -513,17 +427,17 @@ export class Session implements ISession {
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
 
             // set the output content to what has been updated
-            for (const outputId in this.outputs) 
+            for (const outputId in this.outputs)
                 this.outputs[outputId].updateOutput(
                     newNode.children.find(c => c.name === outputId)!,
                     oldNode.children.find(c => c.name === outputId)!
                 );
 
             // set the export definitions
-            for (const exportId in this.exports) 
+            for (const exportId in this.exports)
                 this.exports[exportId].updateExport();
-            
-            this.#warningCreator();
+
+            this._warningCreator();
 
             this.node.excludeViewers = this.#excludeViewers;
 
@@ -539,7 +453,7 @@ export class Session implements ISession {
 
             const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customized' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
-                
+
             return this.node;
         } catch (e) {
             const eventCancel: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
@@ -663,9 +577,9 @@ export class Session implements ISession {
         }
     }
 
-    public async goBack(): Promise<TreeNode> { 
+    public async goBack(): Promise<TreeNode> {
         try {
-            if(!this.canGoBack()) {
+            if (!this.canGoBack()) {
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).goBack: Cannot go further back.`);
                 return new TreeNode();
             }
@@ -676,7 +590,7 @@ export class Session implements ISession {
             const lastParameterSet = this.#parameterHistory[this.#parameterHistory.length - 1];
             for (const parameterId in lastParameterSet)
                 this.parameters[parameterId].value = lastParameterSet[parameterId].value;
-        
+
             // call the customization function with the parameterHistoryCall value set to true
             this.#parameterHistoryCall = true;
             const node = await this.customize();
@@ -693,7 +607,7 @@ export class Session implements ISession {
 
     public async goForward(): Promise<TreeNode> {
         try {
-            if(!this.canGoForward()) {
+            if (!this.canGoForward()) {
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).goForward: Cannot go further forward.`);
                 return new TreeNode();
             }
@@ -706,7 +620,7 @@ export class Session implements ISession {
             this.#parameterHistoryCall = true;
             const node = await this.customize();
             this.#parameterHistoryCall = false;
-            
+
             // add the current parameter set to the history
             this.#parameterHistory.push(lastParameterSet);
             return node;
@@ -730,21 +644,21 @@ export class Session implements ISession {
             this.#performanceEvaluator.startSection('customize');
 
             await this.#sessionEngine.init(initialParameters);
-            
+
             const eventLoading: ITaskEvent = { type: TASKTYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 0.5, status: 'Loading outputs' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventLoading);
 
-            if(this.primarySession)
+            if (this.primarySession)
                 this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
 
-            if(loadOutputs) {
-                if(waitForOutputs) {
+            if (loadOutputs) {
+                if (waitForOutputs) {
                     this.#node = await this.#sessionEngine.loadOutputs();
                     if (this.#api.automaticUpdate) this.#sceneTree.addNode(this.node);
                     this.node.excludeViewers = this.#excludeViewers;
                     this.#api.update();
                     this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: this.id });
-                    
+
                     const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
                     this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
                 } else {
@@ -754,7 +668,7 @@ export class Session implements ISession {
                         this.node.excludeViewers = this.#excludeViewers;
                         this.#api.update();
                         this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: this.id });
-                        
+
                         const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
                         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
                     })
@@ -792,7 +706,7 @@ export class Session implements ISession {
                         this.parameters[p] = new Parameter<string>(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                 }
-                
+
                 parameterSet[p] = {
                     value: this.parameters[p].value,
                     valueString: this.parameters[p].stringify()
@@ -814,7 +728,7 @@ export class Session implements ISession {
                 this.outputs[outputId] = new Output(this, this.#sessionEngine, this.#sessionEngine.outputs[outputId]);
             }
 
-            this.#warningCreator();
+            this._warningCreator();
 
             const viewerPromises = [];
             const viewerIds = Object.keys(this.#api.viewers);
@@ -859,7 +773,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saving session properties.`);
 
             // settings saving 
-            this.#saveSessionSettings();
+            this._saveSessionSettings();
 
             let properties: {
                 [key: string]: {
@@ -924,7 +838,7 @@ export class Session implements ISession {
             this.#settingsEngine.general.commitSettings = this.commitSettings;
 
             await this.saveSessionProperties(false);
-            
+
             this.#settingsEngine.settings.build_version = build_data.build_version;
             this.#settingsEngine.settings.build_date = build_data.build_date;
             this.#settingsEngine.settings.settings_version = '3.1';
@@ -957,6 +871,24 @@ export class Session implements ISession {
         }
     }
 
+    public async setAsPrimary() {
+        try {
+            if (this.#stateEngine.sessions[this.id].initialized.resolved === false)
+                await this.#stateEngine.sessions[this.id].initialized;
+
+            this.#primarySession = true;
+            this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
+            this.#stateEngine.sessions[this.id].primary = true;
+            this.#settingsEngine.loadSettings(this.#sessionEngine.viewerSettings, this.id, this.primarySession);
+            await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
+            this.#api.update();
+            this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary: This is now the primary session.`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).setAsPrimary`, e);
+        }
+    }
+
     public async updateOutputs(): Promise<TreeNode> {
         const eventId = this.#uuidGenerator.create();
         try {
@@ -978,12 +910,12 @@ export class Session implements ISession {
 
             const eventRequest: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Loading outputs' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
-        
+
             this.#performanceEvaluator.endSection('init');
             this.#performanceEvaluator.startSection('updateOutputs');
             const newNode = await this.#sessionEngine.loadOutputs(() => this.#customizationProcess !== customizationID);
             this.#performanceEvaluator.endSection('updateOutputs');
-            
+
             const eventSceneUpdate: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.75, data: { sessionId: this.id }, status: 'Updating scene' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventSceneUpdate);
 
@@ -1008,7 +940,7 @@ export class Session implements ISession {
             // set the output content to what has been updated
             for (const outputId in this.outputs) {
                 this.outputs[outputId].updateOutput(
-                    newNode.children.find(c => c.name === outputId)!, 
+                    newNode.children.find(c => c.name === outputId)!,
                     oldNode.children.find(c => c.name === outputId)!
                 );
             }
@@ -1017,7 +949,7 @@ export class Session implements ISession {
             for (const exportId in this.exports)
                 this.exports[exportId].updateExport();
 
-            this.#warningCreator();
+            this._warningCreator();
             this.node.excludeViewers = this.#excludeViewers;
 
             for (let viewerId in this.#api.viewers)
@@ -1027,7 +959,7 @@ export class Session implements ISession {
 
             this.#performanceEvaluator.endSection('finish');
             this.#performanceEvaluator.end();
-            
+
             const eventEnd: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Outputs updated' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
@@ -1039,7 +971,7 @@ export class Session implements ISession {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs`, e);
         }
-      }
+    }
 
     public async uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion, eventId: string) {
         try {
@@ -1055,5 +987,79 @@ export class Session implements ISession {
         }
     }
 
-    // #endregion Public Methods (18)
+    // #endregion Public Methods (21)
+
+    // #region Private Methods (2)
+
+    private _saveSessionSettings() {
+        const parameters = this.parameters;
+        const exports = this.exports;
+
+        const sessionProperties: {
+            [key: string]: {
+                order: number;
+                displayname: string;
+                hidden: boolean;
+            }
+        } = {};
+        for (let p in parameters) {
+            sessionProperties[p] = {
+                order: parameters[p].order || 0,
+                displayname: parameters[p].displayname || '',
+                hidden: parameters[p].hidden
+            }
+        }
+        for (let e in exports) {
+            sessionProperties[e] = {
+                order: exports[e].order || 0,
+                displayname: exports[e].displayname || '',
+                hidden: exports[e].hidden
+            }
+        }
+        this.#settingsEngine.session = sessionProperties;
+
+        let orderedOutputs: IOutput[] = [];
+        for (let o in this.outputs) orderedOutputs.push(this.outputs[o]);
+        orderedOutputs.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
+        let zerosOutputs = orderedOutputs.filter(x => x.order === 0);
+        orderedOutputs = orderedOutputs.filter((el) => { return !zerosOutputs.includes(el); });
+        orderedOutputs = zerosOutputs.concat(orderedOutputs);
+
+        const controlOrderOutputs = orderedOutputs.map((value) => { return value.id; });
+        for (let i = 0; i < controlOrderOutputs.length; i++) {
+            if (this.outputs[controlOrderOutputs[i]])
+                if (this.outputs[controlOrderOutputs[i]]!.order !== i)
+                    this.outputs[controlOrderOutputs[i]]!.order = i;
+        }
+    }
+
+    private _warningCreator() {
+        // set the output content to what has been updated
+        for (const outputId in this.outputs) {
+            let warning: string = '';
+            if (this.outputs[outputId].msg)
+                warning += `\n\t- ${this.outputs[outputId].msg}`;
+            if (this.outputs[outputId].status_collect && this.outputs[outputId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_collect is ${this.outputs[outputId].status_collect}`;
+            if (this.outputs[outputId].status_computation && this.outputs[outputId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_computation is ${this.outputs[outputId].status_computation}`;
+            if (warning)
+                this.#logger.warn(LOGGINGTOPIC.SESSION, `\nOutput(${outputId}):${warning}`);
+        }
+
+        // set the export definitions
+        for (const exportId in this.exports) {
+            let warning: string = '';
+            if (this.exports[exportId].msg)
+                warning += `\n\t- ${this.exports[exportId].msg}`;
+            if (this.exports[exportId].status_collect && this.exports[exportId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_collect is ${this.exports[exportId].status_collect}`;
+            if (this.exports[exportId].status_computation && this.exports[exportId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_computation is ${this.exports[exportId].status_computation}`;
+            if (warning)
+                this.#logger.warn(LOGGINGTOPIC.SESSION, `\nExport(${exportId}):${warning}`);
+        }
+    }
+
+    // #endregion Private Methods (2)
 }

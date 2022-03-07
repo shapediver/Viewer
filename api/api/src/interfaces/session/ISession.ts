@@ -28,7 +28,7 @@ export interface ISession {
 
     // #endregion Properties (16)
 
-    // #region Public Methods (18)
+    // #region Public Methods (21)
 
     /**
      * If the session history allows to go back to the last customization call.
@@ -42,6 +42,11 @@ export interface ISession {
      * @returns 
      */
     canGoForward(): boolean;
+    /**
+     * Closes the session.
+     * Please use api.closeSession instead.
+     */
+    close(): Promise<boolean>;
     /**
      * Customize the session.
      * All parameter changes will be sent to the server.
@@ -152,6 +157,10 @@ export interface ISession {
      */
     saveSettings(viewerId?: string): Promise<boolean>;
     /**
+     * Sets this session as the primary session.
+     */
+    setAsPrimary(): Promise<void>;
+    /**
      * Update the current available outputs.
      * Calling this function makes sense if you have updated the outputs manually
      * 
@@ -166,5 +175,5 @@ export interface ISession {
      */
     uploadGLTF(conversion: ShapeDiverRequestGltfUploadQueryConversion, eventId: string): Promise<string>;
 
-    // #endregion Public Methods (18)
+    // #endregion Public Methods (21)
 }

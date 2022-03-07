@@ -1,3 +1,5 @@
+import '@google/model-viewer/dist/model-viewer'
+
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
@@ -13,8 +15,8 @@ import {
   MAINEVENTTYPE,
   SettingsEngine,
   ShapeDiverBackendError,
-  ShapeDiverViewerError,
   ShapeDiverViewerArError,
+  ShapeDiverViewerError,
   ShapeDiverViewerSettingsError,
   StateEngine,
   StatePromise,
@@ -25,16 +27,15 @@ import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-en
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { convert, ISettingsV3, validate } from '@shapediver/viewer.settings'
 import { mat4, vec3 } from 'gl-matrix'
+import { ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
+import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
+import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 import { IApi } from '../interfaces/IApi'
 import { ISession } from '../interfaces/session/ISession'
 import { IViewer } from '../interfaces/viewer/IViewer'
 import { Session } from './session/Session'
-import { ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
 import { Viewer } from './viewer/Viewer'
-import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
-import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
-import '@google/model-viewer/dist/model-viewer';
 
 @singleton()
 export class Api implements IApi {
@@ -42,107 +43,18 @@ export class Api implements IApi {
 
   readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-  readonly #geometryEngine: GeometryEngine = <GeometryEngine>container.resolve(GeometryEngine);
   readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
-  readonly #sessionCallbacks: { [key: string]: { [key: string]: () => any } } = {};
   readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
   readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-  readonly #viewerCallbacks: { [key: string]: { [key: string]: () => any } } = {};
   readonly sceneTree: Tree = <Tree>container.resolve(Tree);
   readonly sessions: { [key: string]: ISession } = {};
   readonly viewers: { [key: string]: IViewer } = {};
 
   #automaticUpdate: boolean = true;
-
-  #closeViewer = async (id: string, force = false) => {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Closing viewer ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.closeViewer', id, 'string');
-      if (!this.viewers[id]) {
-        this.#logger.warn(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
-        return false;
-      }
-
-      if (force === false && this.#stateEngine.viewers[id].initialized.resolved === false)
-        await new Promise<void>(resolve => { this.#stateEngine.viewers[id].initialized.then(() => resolve()) })
-
-      this.#stateEngine.viewers[id].settingsLoaded.reset();
-      let result;
-      if (force === false) {
-        result = await this.#viewerCallbacks[id].close();
-      } else {
-        try { result = await this.#viewerCallbacks[id].close(); } catch { }
-      }
-      (<any>this.#viewerCallbacks[id]) = undefined;
-      delete this.#viewerCallbacks[id];
-      (<any>this.viewers[id]) = undefined;
-      delete this.viewers[id];
-
-      delete this.#stateEngine.viewers[id];
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
-      return result;
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeViewer', e);
-    }
-  }
-
-  #closeSession = async (id: string, force = false) => {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
-      if (!this.sessions[id]) {
-        this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.closeSession: Session with id ${id} was not registered.`);
-        return false;
-      }
-
-      if (force === false && this.#stateEngine.sessions[id].initialized.resolved === false)
-        await new Promise<void>(resolve => { this.#stateEngine.sessions[id].initialized.then(() => resolve()) })
-
-      let result;
-      if (force === false) {
-        result = await this.#sessionCallbacks[id].close();
-      } else {
-        try { result = await this.#sessionCallbacks[id].close(); } catch { }
-      }
-
-      this.#stateEngine.sessions[id].settingsRegistered.reset();
-
-      if (this.sessions[id].primarySession) {
-        this.#stateEngine.primarySessionAvailable.reset();
-        this.#stateEngine.boundingBoxCreated.reset();
-        for (let v in this.viewers)
-          this.viewers[v].reset();
-      }
-
-      (<any>this.#sessionCallbacks[id]) = undefined;
-      delete this.#sessionCallbacks[id];
-      (<any>this.sessions[id]) = undefined;
-      delete this.sessions[id];
-      delete this.#stateEngine.sessions[id];
-
-      this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
-
-      for (let s in this.sessions) {
-        const session = this.sessions[s];
-        if (session.primarySessionRequest) {
-          await this.#sessionCallbacks[s].setAsPrimary();
-          this.#stateEngine.primarySessionAvailable.resolve(true);
-          this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
-          break;
-        }
-      }
-
-      return result;
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeSession', e);
-    }
-  }
 
   // #endregion Properties (13)
 
@@ -169,7 +81,24 @@ export class Api implements IApi {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (14)
+  // #region Public Accessors (16)
+
+  public get autoScaling(): boolean {
+    return this.#settingsEngine.ar.autoScaling;
+  }
+
+  public set autoScaling(value: boolean) {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.autoScaling: Updating autoScaling to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', value, 'boolean');
+      this.#settingsEngine.ar.autoScaling = value;
+      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.autoScaling: autoScaling was set to: ${value}`);
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', e);
+    }
+  }
+
   public get automaticUpdate(): boolean {
     return this.#automaticUpdate;
   }
@@ -187,22 +116,6 @@ export class Api implements IApi {
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.automaticUpdate', e);
-    }
-  }
-
-  public get autoScaling(): boolean {
-    return this.#settingsEngine.ar.autoScaling;
-  }
-
-  public set autoScaling(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.autoScaling: Updating autoScaling to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', value, 'boolean');
-      this.#settingsEngine.ar.autoScaling = value;
-      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.autoScaling: autoScaling was set to: ${value}`);
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', e);
     }
   }
 
@@ -315,9 +228,9 @@ export class Api implements IApi {
     }
   }
 
-  // #endregion Public Accessors (14)
+  // #endregion Public Accessors (16)
 
-  // #region Public Methods (10)
+  // #region Public Methods (12)
 
   public addListener(type: string | MAINEVENTTYPE, cb: (event: IEvent) => void): string {
     try {
@@ -472,11 +385,11 @@ export class Api implements IApi {
   }
 
   public async closeSession(id: string, force = false): Promise<boolean> {
-    return this.#closeSession(id, force);
+    return this._closeSession(id, force);
   }
 
   public async closeViewer(id: string): Promise<boolean> {
-    return this.#closeViewer(id);
+    return this._closeViewer(id);
   }
 
   public async convertSceneToGLTF(convertForAR = false): Promise<Blob> {
@@ -511,6 +424,23 @@ export class Api implements IApi {
     }
   }
 
+  public createSDTFOverview(node: TreeNode = this.sceneTree.root): SDTFOverview {
+    try {
+      const out: SDTFAttributeOverview = new SDTFAttributeOverview({});
+      for (let i = 0, len = node.data.length; i < len; i++)
+        if (node.data[i] instanceof SDTFAttributeOverview)
+          out.merge(<SDTFAttributeOverview>node.data[i])
+
+      for (let i = 0, len = node.children.length; i < len; i++)
+        out.merge(new SDTFAttributeOverview(this.createSDTFOverview(node.children[i])));
+
+      return out.overview;
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSDTFOverview', e);
+    }
+  }
+
   public async createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, loadOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession> {
     let sessionId: string = '';
     const eventId = this.#uuidGenerator.create();
@@ -541,7 +471,7 @@ export class Api implements IApi {
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
 
         this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.createSession: Session with this id (${sessionId}) already exists. Closing initial instance.`);
-        await this.#closeSession(sessionId, true);
+        await this._closeSession(sessionId, true);
       }
 
       let noPrimarySession = true;
@@ -561,11 +491,10 @@ export class Api implements IApi {
 
       // create the actual session 
       let sessionCallbacks = {};
-      const session = new Session(Object.assign({}, properties, { id: sessionId }), sessionCallbacks);
+      const session = new Session(Object.assign({}, properties, { id: sessionId }));
 
       // save the session
       this.sessions[sessionId] = session;
-      this.#sessionCallbacks[sessionId] = sessionCallbacks;
 
       const eventInit: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventInit);
@@ -585,37 +514,20 @@ export class Api implements IApi {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) {
         if ((this.sessions[sessionId] && Object.values(this.sessions).length === 1) || (!this.sessions[sessionId] && Object.values(this.sessions).length === 0)) {
           for (let v in this.viewers)
-            (<(v: string) => void>this.#viewerCallbacks[v].displayErrorMessage)(e.message);
+            this.viewers[v].displayErrorMessage(e.message);
         }
       }
 
       const eventCancel1: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 0.9, status: 'Session created failed, closing session' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventCancel1);
 
-      await this.#closeSession(sessionId, true);
+      await this._closeSession(sessionId, true);
 
       const eventCancel2: ITaskEvent = { type: TASKTYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created failed' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
 
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSession', e);
-    }
-  }
-
-  public createSDTFOverview(node: TreeNode = this.sceneTree.root): SDTFOverview {
-    try {
-      const out: SDTFAttributeOverview = new SDTFAttributeOverview({});
-      for (let i = 0, len = node.data.length; i < len; i++)
-        if (node.data[i] instanceof SDTFAttributeOverview)
-          out.merge(<SDTFAttributeOverview>node.data[i])
-
-      for (let i = 0, len = node.children.length; i < len; i++)
-        out.merge(new SDTFAttributeOverview(this.createSDTFOverview(node.children[i])));
-
-      return out.overview;
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.createSDTFOverview', e);
     }
   }
 
@@ -643,7 +555,7 @@ export class Api implements IApi {
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
 
         this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.createViewer: Viewer with this id (${viewerId}) already exists. Closing initial instance.`);
-        await this.#closeViewer(viewerId, true);
+        await this._closeViewer(viewerId, true);
       }
 
       this.#stateEngine.viewers[viewerId] = {
@@ -654,7 +566,6 @@ export class Api implements IApi {
       }
 
       // create the actual viewer
-      let viewerCallbacks = {};
       let viewer: IViewer = new Viewer({
         id: viewerId,
         canvas: prop.canvas,
@@ -663,10 +574,9 @@ export class Api implements IApi {
           logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
           backgroundColor: branding.backgroundColor || '#030531FF'
         }
-      }, viewerCallbacks);
+      });
 
       if ((prop.visibility || VISIBILITYMODE.SESSION) === VISIBILITYMODE.SESSION && this.#stateEngine.primarySession && this.#stateEngine.primarySession.initialized.resolved === true) {
-
         const eventEnd: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 0.75, status: 'Waiting for primary session settings' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventEnd);
 
@@ -677,7 +587,6 @@ export class Api implements IApi {
 
       // save the viewer
       this.viewers[viewerId] = viewer;
-      this.#viewerCallbacks[viewerId] = viewerCallbacks;
 
       viewer.update();
 
@@ -691,11 +600,10 @@ export class Api implements IApi {
 
       return this.viewers[viewerId];
     } catch (e) {
-
       const eventCancel1: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 0.9, status: 'Viewer created failed, closing viewer' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventCancel1);
 
-      try { await this.#closeViewer(viewerId, true); } catch { }
+      try { await this._closeViewer(viewerId, true); } catch { }
 
       const eventCancel2: ITaskEvent = { type: TASKTYPE.VIEWER_CREATION, id: eventId, progress: 1, status: 'Viewer created failed, exiting' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
@@ -726,35 +634,14 @@ export class Api implements IApi {
     }
   }
 
-  public viewableInAR(): boolean {
-    try {
-      // has to be a mobile device (duh)
-      if (this.#systemInfo.isIOS === false && this.#systemInfo.isAndroid === false)
-        return false;
-
-      // no Firefox on Android
-      if(this.#systemInfo.isAndroid === true && this.#systemInfo.isFirefox === true)
-        return false;
-
-      // only Safari on iOS
-      if (this.#systemInfo.isIOS === true && (this.#systemInfo.isFirefox === true || this.#systemInfo.isChrome === true))
-        return false;
-
-      return true;
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewableInAR', e);
-    }
-  }
-
-  public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'fixed', arPlacement: 'floor', xrEnvironment: false}): Promise<void> {
+  public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'fixed', arPlacement: 'floor', xrEnvironment: false }): Promise<void> {
     const eventId = this.#uuidGenerator.create();
     try {
       const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
       // if this is not a supported device, throw an error
-      if(this.viewableInAR() === false) {
+      if (this.viewableInAR() === false) {
         const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
         const error = new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
@@ -786,10 +673,10 @@ export class Api implements IApi {
 
       let arEnvironment = '';
       for (let v in this.viewers) {
-        if(!arSession.node.excludeViewers.includes(this.viewers[v].id)) {
-          const envMapUrl = this.#viewerCallbacks[v].getEnvironmentMapImageUrl();
-          if(envMapUrl !== '') {
-            if(envMapUrl.endsWith('.hdr')) {
+        if (!arSession.node.excludeViewers.includes(this.viewers[v].id)) {
+          const envMapUrl = this.viewers[v].getEnvironmentMapImageUrl();
+          if (envMapUrl !== '') {
+            if (envMapUrl.endsWith('.hdr')) {
               arEnvironment = 'skybox-image=' + envMapUrl;
             } else {
               arEnvironment = 'environment-image=' + envMapUrl;
@@ -879,5 +766,112 @@ export class Api implements IApi {
     }
   }
 
-  // #endregion Public Methods (10)
+  public viewableInAR(): boolean {
+    try {
+      // has to be a mobile device (duh)
+      if (this.#systemInfo.isIOS === false && this.#systemInfo.isAndroid === false)
+        return false;
+
+      // no Firefox on Android
+      if (this.#systemInfo.isAndroid === true && this.#systemInfo.isFirefox === true)
+        return false;
+
+      // only Safari on iOS
+      if (this.#systemInfo.isIOS === true && (this.#systemInfo.isFirefox === true || this.#systemInfo.isChrome === true))
+        return false;
+
+      return true;
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewableInAR', e);
+    }
+  }
+
+  // #endregion Public Methods (12)
+
+  // #region Private Methods (2)
+
+  private async _closeSession(id: string, force = false): Promise<boolean> {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, 'Api.closeSession', id, 'string');
+      if (!this.sessions[id]) {
+        this.#logger.warn(LOGGINGTOPIC.SESSION, `Api.closeSession: Session with id ${id} was not registered.`);
+        return false;
+      }
+
+      if (force === false && this.#stateEngine.sessions[id].initialized.resolved === false)
+        await new Promise<void>(resolve => { this.#stateEngine.sessions[id].initialized.then(() => resolve()) })
+
+      let result = false;
+      if (force === false) {
+        result = await this.sessions[id].close();
+      } else {
+        try { result = await this.sessions[id].close(); } catch { }
+      }
+
+      this.#stateEngine.sessions[id].settingsRegistered.reset();
+
+      if (this.sessions[id].primarySession) {
+        this.#stateEngine.primarySessionAvailable.reset();
+        this.#stateEngine.boundingBoxCreated.reset();
+        for (let v in this.viewers)
+          this.viewers[v].reset();
+      }
+
+      (<any>this.sessions[id]) = undefined;
+      delete this.sessions[id];
+      delete this.#stateEngine.sessions[id];
+
+      this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${id}): Session closed.`);
+
+      for (let s in this.sessions) {
+        const session = this.sessions[s];
+        if (session.primarySessionRequest) {
+          await this.sessions[s].setAsPrimary();
+          this.#stateEngine.primarySessionAvailable.resolve(true);
+          this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${s}): Initializing settings.`);
+          break;
+        }
+      }
+
+      return result;
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeSession', e);
+    }
+  }
+
+  private async _closeViewer(id: string, force = false): Promise<boolean> {
+    try {
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Closing viewer ${id}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.closeViewer', id, 'string');
+      if (!this.viewers[id]) {
+        this.#logger.warn(LOGGINGTOPIC.VIEWER, `Api.closeViewer: Viewer with id ${id} was not registered`);
+        return false;
+      }
+
+      if (force === false && this.#stateEngine.viewers[id].initialized.resolved === false)
+        await new Promise<void>(resolve => { this.#stateEngine.viewers[id].initialized.then(() => resolve()) })
+
+      this.#stateEngine.viewers[id].settingsLoaded.reset();
+      let result = false;
+      if (force === false) {
+        result = await this.viewers[id].close();
+      } else {
+        try { result = await this.viewers[id].close(); } catch { }
+      }
+      (<any>this.viewers[id]) = undefined;
+      delete this.viewers[id];
+
+      delete this.#stateEngine.viewers[id];
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
+      return result;
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.closeViewer', e);
+    }
+  }
+
+  // #endregion Private Methods (2)
 }

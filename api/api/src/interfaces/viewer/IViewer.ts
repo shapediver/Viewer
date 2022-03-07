@@ -1,17 +1,22 @@
 import { vec3 } from 'gl-matrix'
 import { CAMERATYPE } from '@shapediver/viewer.rendering-engine.camera-engine'
+import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IDomEventListener } from '@shapediver/viewer.shared.services'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import {
+  AnimationData,
+  SDTFAttributeVisualizationData,
+  SDTFItemData,
+  SDTFOverview,
+} from '@shapediver/viewer.shared.types'
 
 import { ICamera } from './camera/ICamera'
 import { ILightScene } from './lights/ILightScene'
 import { IOrthographicCamera } from './camera/IOrthographicCamera'
 import { IPerspectiveCamera } from './camera/IPerspectiveCamera'
-import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { IDomEventListener } from '@shapediver/viewer.shared.services'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { AnimationData, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
 
 export interface IViewer extends IRenderingEngine {
-    // #region Properties (29)
+    // #region Properties (34)
 
     readonly camera: ICamera | null;
     readonly cameras: { [key: string]: ICamera };
@@ -38,24 +43,24 @@ export interface IViewer extends IRenderingEngine {
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;
-    gridColor: string | number | vec3; 
+    gridColor: string | number | vec3;
     gridVisibility: boolean;
-    groundPlaneColor: string | number | vec3; 
+    groundPlaneColor: string | number | vec3;
     groundPlaneVisibility: boolean;
     lightSceneId: string;
-    outputEncoding: TEXTURE_ENCODING; 
+    outputEncoding: TEXTURE_ENCODING;
     physicallyCorrectLights: boolean;
     pointSize: number;
     shadows: boolean;
     show: boolean;
     showStatistics: boolean;
-    textureEncoding: TEXTURE_ENCODING; 
-    toneMapping: TONE_MAPPING; 
+    textureEncoding: TEXTURE_ENCODING;
+    toneMapping: TONE_MAPPING;
     toneMappingExposure: number;
 
-    // #endregion Properties (29)
+    // #endregion Properties (34)
 
-    // #region Public Methods (25)
+    // #region Public Methods (27)
 
     /**
      * Add a flag to freeze the camera.
@@ -91,6 +96,11 @@ export interface IViewer extends IRenderingEngine {
      * @returns 
      */
     assignLightScene(id: string): boolean;
+    /**
+     * Closes the viewer.
+     * Please use api.closeViewer instead.
+     */
+    close(): Promise<boolean>;
     /**
      * Create a camera with the specified type.
      * An id can be provided. If not, a unique id will be created.
@@ -132,6 +142,16 @@ export interface IViewer extends IRenderingEngine {
      * @param value 
      */
     deregisterBusyMode(value: string): boolean;
+    /**
+     * Display an error message on the canvas.
+     * 
+     * @param message 
+     */
+    displayErrorMessage(message: string): void;
+    /**
+     * Get the complete URL of the current environment map, if it is a single file.
+     */
+    getEnvironmentMapImageUrl(): string;
     /**
      * Create a screenshot for the requested type and options.
      * 
@@ -208,5 +228,5 @@ export interface IViewer extends IRenderingEngine {
      */
     updateNode(node: TreeNode): void;
 
-    // #endregion Public Methods (25)
+    // #endregion Public Methods (27)
 }

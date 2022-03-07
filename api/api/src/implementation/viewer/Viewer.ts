@@ -4,7 +4,12 @@ import {
   OrthographicCamera as OrthographicCameraLogic,
   PerspectiveCamera as PerspectiveCameraLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { RENDERERTYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import {
+  RENDERERTYPE,
+  TEXTURE_ENCODING,
+  TONE_MAPPING,
+  VISIBILITYMODE,
+} from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   Converter,
   EventEngine,
@@ -22,7 +27,14 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container, injectable } from 'tsyringe'
-import { AnimationData, IEnvironmentEvent, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
+import {
+  AnimationData,
+  IEnvironmentEvent,
+  SDTFAttributeVisualizationData,
+  SDTFItemData,
+  SDTFOverview,
+} from '@shapediver/viewer.shared.types'
+import { ISDObject, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ICamera } from '../../interfaces/viewer/camera/ICamera'
 import { IOrthographicCamera } from '../../interfaces/viewer/camera/IOrthographicCamera'
@@ -31,12 +43,11 @@ import { ILightScene } from '../../interfaces/viewer/lights/ILightScene'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { LightScene } from './lights/LightScene'
-import { ISDObject, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { IViewer } from '../../interfaces/viewer/IViewer'
 
 @injectable()
 export class Viewer implements IViewer {
-  // #region Properties (14)
+  // #region Properties (15)
 
   readonly #cameras: { [key: string]: ICamera } = {};
   readonly #converter: Converter = <Converter>container.resolve(Converter);
@@ -55,7 +66,7 @@ export class Viewer implements IViewer {
   #flagsShadowMapUpdate: string[] = [];
   #renderingEngine!: RenderingEngineThreejs;
 
-  // #endregion Properties (14)
+  // #endregion Properties (15)
 
   // #region Constructors (1)
 
@@ -65,7 +76,7 @@ export class Viewer implements IViewer {
    * @param type 
    * @param canvas 
    */
-  constructor(properties: { id: string, canvas?: HTMLCanvasElement, visibility: VISIBILITYMODE, branding: { logo: string | null, backgroundColor: string } }, callbacks: any) {
+  constructor(properties: { id: string, canvas?: HTMLCanvasElement, visibility: VISIBILITYMODE, branding: { logo: string | null, backgroundColor: string } }) {
     try {
       this.#renderingEngine = new RenderingEngineThreejs(properties);
       container.registerInstance('renderingEngine', this.#renderingEngine);
@@ -74,23 +85,6 @@ export class Viewer implements IViewer {
         this.createCamera(CAMERATYPE.PERSPECTIVE);
 
       this.update();
-
-      callbacks.close = async (): Promise<boolean> => {
-        const closeResult = await this.#renderingEngine.close();
-        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, { viewerId: properties.id });
-
-        if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}): Was not able to close viewer completely, please disregard this viewer.`);
-        return closeResult;
-      }
-
-      callbacks.displayErrorMessage = (message: string) => {
-        if(this.show === false)
-          this.#renderingEngine.displayErrorMessage(message);
-      }
-
-      callbacks.getEnvironmentMapImageUrl = () => {
-        return this.#renderingEngine.getEnvironmentMapImageUrl();
-      }
 
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer created.`);
     } catch (e) {
@@ -101,7 +95,7 @@ export class Viewer implements IViewer {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (47)
+  // #region Public Accessors (63)
 
   public get ambientOcclusion(): boolean {
     return this.#renderingEngine.ambientOcclusion;
@@ -306,7 +300,7 @@ export class Viewer implements IViewer {
         this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
         this.update();
       })
-    
+
       this.#renderingEngine.environmentMap = value;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -417,7 +411,7 @@ export class Viewer implements IViewer {
   }
 
   public get id(): string {
-    if(!this.#renderingEngine) return '';
+    if (!this.#renderingEngine) return '';
     return this.#renderingEngine.id;
   }
 
@@ -636,9 +630,9 @@ export class Viewer implements IViewer {
     }
   }
 
-  // #endregion Public Accessors (47)
+  // #endregion Public Accessors (63)
 
-  // #region Public Methods (24)
+  // #region Public Methods (28)
 
   public addCameraFreezeFlag(): string {
     const token = this.#uuidGenerator.create();
@@ -669,6 +663,10 @@ export class Viewer implements IViewer {
     this.#flagsShadowMapUpdate.push(token);
     this.#renderingEngine.continuousShadowMapUpdate = true;
     return token;
+  }
+
+  public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
+    this.#renderingEngine.applySettings(sections);
   }
 
   public assignCamera(id: string): void {
@@ -704,6 +702,14 @@ export class Viewer implements IViewer {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).assignLightScene`, e);
     }
+  }
+
+  public async close(): Promise<boolean> {
+    const closeResult = await this.#renderingEngine.close();
+    this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, { viewerId: this.id });
+
+    if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}): Was not able to close viewer completely, please disregard this viewer.`);
+    return closeResult;
   }
 
   public createCamera(type: CAMERATYPE, id?: string): ICamera {
@@ -780,6 +786,15 @@ export class Viewer implements IViewer {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, e);
     }
+  }
+
+  public displayErrorMessage(message: string) {
+    if (this.show === false)
+      this.#renderingEngine.displayErrorMessage(message);
+  }
+
+  public getEnvironmentMapImageUrl() {
+    return this.#renderingEngine.getEnvironmentMapImageUrl();
   }
 
   public getScreenshot(type?: string, quality?: number): string {
@@ -886,7 +901,7 @@ export class Viewer implements IViewer {
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).render`, e);
-    }  
+    }
   }
 
   public reset(): void {
@@ -939,9 +954,5 @@ export class Viewer implements IViewer {
     }
   }
 
-  public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
-    this.#renderingEngine.applySettings(sections);
-  }
-
-  // #endregion Public Methods (24)
+  // #endregion Public Methods (28)
 }
