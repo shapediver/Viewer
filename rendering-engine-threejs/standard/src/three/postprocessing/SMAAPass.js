@@ -1,4 +1,5 @@
 import {
+	FloatType,
 	LinearFilter,
 	NearestFilter,
 	RGBAFormat,
@@ -25,7 +26,8 @@ class SMAAPass extends Pass {
 			depthBuffer: false,
 			generateMipmaps: false,
 			minFilter: LinearFilter,
-			format: RGBFormat
+			format: RGBFormat,
+			type: FloatType
 		} );
 		this.edgesRT.texture.name = 'SMAAPass.edges';
 
@@ -33,7 +35,8 @@ class SMAAPass extends Pass {
 			depthBuffer: false,
 			generateMipmaps: false,
 			minFilter: LinearFilter,
-			format: RGBAFormat
+			format: RGBAFormat,
+			type: FloatType
 		} );
 		this.weightsRT.texture.name = 'SMAAPass.weights';
 

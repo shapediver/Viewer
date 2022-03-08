@@ -6,6 +6,7 @@ import {
 	DoubleSide,
 	DstAlphaFactor,
 	DstColorFactor,
+	FloatType,
 	LinearFilter,
 	MeshDepthMaterial,
 	MeshNormalMaterial,
@@ -66,7 +67,8 @@ class SAOPass extends Pass {
 		this.saoRenderTarget = new WebGLRenderTarget( this.resolution.x, this.resolution.y, {
 			minFilter: NearestFilter,
 			magFilter: NearestFilter,
-			format: RGBAFormat
+			format: RGBAFormat,
+			type: FloatType
 		} );
 		this.blurIntermediateRenderTarget = this.saoRenderTarget.clone();
 		this.beautyRenderTarget = this.saoRenderTarget.clone();

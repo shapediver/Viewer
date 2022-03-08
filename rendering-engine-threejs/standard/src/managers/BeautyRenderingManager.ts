@@ -10,6 +10,7 @@ import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager.js'
 import { ShaderPass } from '../three/postprocessing/ShaderPass.js'
 import { GammaCorrectionShader } from '../three/shaders/GammaCorrectionShader.js'
+import { FloatType } from 'three'
 
 export class BeautyRenderingManager implements IManager {
     // #region Properties (12)
@@ -96,7 +97,19 @@ export class BeautyRenderingManager implements IManager {
 
     public init(): void {
         const tempCamera = new THREE.PerspectiveCamera();
-        this._effectComposer = new EffectComposer(this._renderingEngine.renderer);
+
+        var size = this._renderingEngine.renderer.getSize(new THREE.Vector2());
+        const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat,
+            stencilBuffer: false,
+            type: THREE.FloatType
+        });
+        renderTarget.texture.name = 'EffectComposer.rt1';
+
+        this._effectComposer = new EffectComposer(this._renderingEngine.renderer, renderTarget);
+
         this._renderPass = new RenderPass(this._renderingEngine.scene, tempCamera);
         //this._effectComposer.addPass(this._renderPass);
 
