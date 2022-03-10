@@ -697,7 +697,6 @@ export class Api implements IApi {
       if (this.#systemInfo.isIOS) {
         // create the link and click it
         const a = document.createElement('a');
-        document.body.appendChild(a);
         a.href = file + (arScale === 'fixed' ? '.usdz#allowsContentScaling=0' : '.usdz')
         a.rel = 'ar';
         const img = document.createElement('img');
@@ -705,50 +704,9 @@ export class Api implements IApi {
         a.appendChild(img);
         a.click();
       } else {
-        const modelViewerDiv = <HTMLDivElement>document.createElement('div');
-        document.body.appendChild(modelViewerDiv);
-
-        // creation of the model-viewer element, including some buttons and style sheets
-        modelViewerDiv.innerHTML = `
-        <model-viewer 
-        ${this.#systemInfo.isIOS ? `ios-src="${file}.usdz"` : `src="${file}.glb"`} 
-        ar ar-modes="scene-viewer webxr quick-look" 
-        ar-scale="${arScale}"
-        ar-placement="${arPlacement}"
-        ${xrEnvironment ? 'xr-environment' : ''}
-        ${arEnvironment}
-        style="width: 100%; height: 100%;" > 
-        <button slot="ar-button" id="ar-button"> View in your space </button>
-        <button id="ar-failure"> AR is not tracking! </button> </model-viewer> 
-        <style> /* This keeps child nodes hidden while the element loads */ :not(:defined)>* { display: none; } model-viewer { overflow-x: hidden; width: 100%; height: 100%; position: absolute; left: 0%; top: 0%; } #ar-button { background-image: url(https://modelviewer.dev/assets/ic_view_in_ar_new_googblue_48dp.png); background-repeat: no-repeat; background-size: 20px 20px; background-position: 12px 50%; background-color: #fff; position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; bottom: 132px; padding: 0px 16px 0px 40px; font-family: Roboto Regular, Helvetica Neue, sans-serif; font-size: 14px; color:#4285f4; height: 36px; line-height: 36px; border-radius: 18px; border: 1px solid #DADCE0; } #ar-button:active { background-color: #E8EAED; } #ar-button:focus { outline: none; } #ar-button:focus-visible { outline: 1px solid #4285f4; } @keyframes circle { from { transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg) translateX(50px) rotate(-360deg); } } @keyframes elongate { from { transform: translateX(100px); } to { transform: translateX(-100px); } } model-viewer>#ar-failure { position: absolute; left: 50%; transform: translateX(-50%); bottom: 175px; display: none; } model-viewer[ar-tracking="not-tracking"]>#ar-failure { display: block; } </style>`;
-
-        const modelViewer = <HTMLElement>document.querySelector("model-viewer")!;
-        const btnLaunch = <HTMLButtonElement>document.getElementById('ar-button');
-        modelViewer.style.visibility = 'hidden';
-
-        // cancel the process if the modelViewer has an issue
-        const eventListenerLoad = () => {
-          if (!(<any>modelViewer).canActivateAR) cancelAR();
-          btnLaunch.click();
-        };
-        modelViewer.addEventListener('load', eventListenerLoad);
-
-        // as we hide some things, like the actual model-viewer, for AR, we need to show it again
-        const eventListenerStatus = (e: any) => {
-          if (e.detail.status === "not-presenting") {
-            cancelAR();
-          } else if (e.detail.status === "session-started") {
-            modelViewer.style.visibility = '';
-          }
-        }
-        modelViewer.addEventListener('ar-status', eventListenerStatus);
-
-        // remove listeners and div
-        const cancelAR = () => {
-          modelViewer.removeEventListener('load', eventListenerLoad);
-          modelViewer.removeEventListener('ar-status', eventListenerStatus);
-          document.body.removeChild(modelViewerDiv);
-        };
+        const a = document.createElement('a');
+        a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${arScale === 'fixed' ? 'false' : 'true'}&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`
+        a.click();
       }
 
       for (let v in this.viewers)
@@ -776,8 +734,8 @@ export class Api implements IApi {
       if (this.#systemInfo.isAndroid === true && this.#systemInfo.isFirefox === true)
         return false;
 
-      // only Safari on iOS
-      if (this.#systemInfo.isIOS === true && (this.#systemInfo.isFirefox === true || this.#systemInfo.isChrome === true))
+      // no Firefox on iOS
+      if (this.#systemInfo.isIOS === true && this.#systemInfo.isFirefox === true)
         return false;
 
       return true;
