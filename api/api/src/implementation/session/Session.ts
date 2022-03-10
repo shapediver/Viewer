@@ -711,6 +711,8 @@ export class Session implements ISession {
                     value: this.parameters[p].value,
                     valueString: this.parameters[p].stringify()
                 }
+                
+                this.#sessionEngine.parameterValues[p] = parameterSet[p].valueString;
             }
 
             // store the initialization as the first parameter set in the history
