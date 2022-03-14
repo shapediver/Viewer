@@ -226,10 +226,7 @@ export interface IGLTF_v2_Primitive {
     material?: number,
     mode?: number,
     targets?: {
-        node: number,
-        path: string,
-        extensions?: { [id: string]: any },
-        extras?: any
+        [id: string]: number
     }[],
     extensions?: { [id: string]: any },
     extras?: any

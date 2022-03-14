@@ -244,6 +244,7 @@ export class RenderingManager implements IManager {
         if(runningAnimation !== this._runningAnimation) this.render();
         this._runningAnimation = runningAnimation;
         if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNodeTransformations();
+        if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateMorphWeights();
 
         // get the current size
         const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();

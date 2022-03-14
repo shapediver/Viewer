@@ -17,6 +17,7 @@ export enum PRIMITIVE_MODE {
 export class AttributeData {
   // #region Properties (13)
 
+  readonly #morphAttributeData: AttributeData[] = [];
   readonly #array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
   readonly #byteOffset: number;
   readonly #byteStride?: number;
@@ -59,7 +60,7 @@ export class AttributeData {
     sparse?: boolean,
     sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
     sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
-
+    morphAttributeData: AttributeData[] = []
   ) {
     this.#array = array;
     this.#itemSize = itemSize;
@@ -74,6 +75,7 @@ export class AttributeData {
     this.#sparse = sparse;
     this.#sparseIndices = sparseIndices;
     this.#sparseValues = sparseValues;
+    this.#morphAttributeData = morphAttributeData;
   }
 
   // #endregion Constructors (1)
@@ -116,6 +118,10 @@ export class AttributeData {
     return this.#min;
   }
 
+  public get morphAttributeData(): AttributeData[] {
+    return this.#morphAttributeData;
+  }
+
   public get normalized(): boolean {
     return this.#normalized;
   }
@@ -155,7 +161,8 @@ export class AttributeData {
       this.#byteStride,
       this.#sparse,
       this.#sparseIndices,
-      this.#sparseValues
+      this.#sparseValues,
+      this.#morphAttributeData
     );
   }
 
@@ -284,6 +291,7 @@ export class GeometryData extends AbstractTreeNodeData {
 
   #boundingBox: Box = new Box();
   #renderOrder: number = 0;
+  #morphWeights: number[] = [];
 
   // #endregion Properties (4)
 
@@ -299,12 +307,14 @@ export class GeometryData extends AbstractTreeNodeData {
   constructor(
     primitive: PrimitiveData,
     matrix: mat4 = mat4.create(),
-    id?: string
+    id?: string,
+    morphWeights: number[] = []
   ) {
     super(id);
     this.#primitive = primitive;
     this.#matrix = matrix;
     this.#boundingBox = this.primitive.boundingBox.clone();
+    this.#morphWeights = morphWeights;
   }
 
   // #endregion Constructors (1)
@@ -331,6 +341,14 @@ export class GeometryData extends AbstractTreeNodeData {
     this.#renderOrder = value;
   }
 
+  public get morphWeights(): number[] {
+    return this.#morphWeights;
+  }
+
+  public set morphWeights(value: number[]) {
+    this.#morphWeights = value
+  }
+
   // #endregion Public Accessors (5)
 
   // #region Public Methods (2)
@@ -339,7 +357,7 @@ export class GeometryData extends AbstractTreeNodeData {
    * Clones the scene graph data.
    */
   public clone(): ITreeNodeData {
-    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id);
+    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id, this.#morphWeights);
   }
 
   public intersect(origin: vec3, direction: vec3): number | null {

@@ -190,6 +190,34 @@ export class SceneTreeManager implements IManager {
             this.updateNodeTransformations(nodeChild, objChild);
         }
     }
+    
+    public updateMorphWeights(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
+        if(!node || !obj) return;
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
+        for (let i = 0, len = node.data.length; i < len; i++) {
+            if(node.data[i] instanceof GeometryData) {
+                const data: GeometryData = <GeometryData>node.data[i];
+                let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
+                dataChild.traverse(o => {
+                    if (o instanceof THREE.Points ||
+                        o instanceof THREE.LineSegments ||
+                        o instanceof THREE.LineLoop ||
+                        o instanceof THREE.Line ||
+                        o instanceof THREE.Mesh)
+                        o.morphTargetInfluences = data.morphWeights;
+                })
+            }
+        }
+
+
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            if(!nodeChild) continue;
+            const objChild = <SDNode>obj.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
+            this.updateMorphWeights(nodeChild, objChild);
+        }
+    }
 
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();

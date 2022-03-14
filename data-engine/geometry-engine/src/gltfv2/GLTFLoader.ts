@@ -1,26 +1,34 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Converter, HttpClient, PerformanceEvaluator, UuidGenerator, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import {
+  Converter,
+  HttpClient,
+  Logger,
+  LOGGINGTOPIC,
+  PerformanceEvaluator,
+  ShapeDiverViewerDataProcessingError,
+  UuidGenerator,
+} from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import {
-    ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
-    ACCESSORTYPE_V2 as ACCESSORTYPE,
-    IGLTF_v2,
-    IGLTF_v2_Material,
-    IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
-    IGLTF_v2_Primitive,
-    ISHAPEDIVER_materials_preset,
+  ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
+  ACCESSORTYPE_V2 as ACCESSORTYPE,
+  IGLTF_v2,
+  IGLTF_v2_Material,
+  IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
+  IGLTF_v2_Primitive,
+  ISHAPEDIVER_materials_preset,
 } from '@shapediver/viewer.data-engine.shared-types'
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import {
-    AttributeData,
-    GeometryData,
-    MapData,
-    MATERIAL_ALPHA,
-    MATERIAL_SIDE,
-    MaterialData,
-    PrimitiveData,
-    AnimationData,
-    AnimationTrack,
+  AnimationData,
+  AnimationTrack,
+  AttributeData,
+  GeometryData,
+  MapData,
+  MATERIAL_ALPHA,
+  MATERIAL_SIDE,
+  MaterialData,
+  PrimitiveData,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { AxiosResponse } from 'axios'
@@ -32,34 +40,33 @@ export enum GLTF_EXTENSIONS {
     SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
 }
 export class GLTFLoader {
-    // #region Properties (6)
+    // #region Properties (14)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
-    private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
-    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
+    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
+    private readonly _logger: Logger = <Logger>container.resolve(Logger);
+    private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+    private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _baseUri: string | undefined;
     private _body: ArrayBuffer | undefined;
     private _content!: IGLTF_v2;
+    private _loadData: (img: string) => Promise<AxiosResponse<any>> = this._httpClient.loadData.bind(this._httpClient);
     private _loaded: {
         [key: string]: {
             [key: string]: any
         }
     } = {};
-    private _loadData: (img: string) => Promise<AxiosResponse<any>> = this._httpClient.loadData.bind(this._httpClient);
     private _nodes: {
         [key: number]: TreeNode
     } = {};
 
-    // #endregion Properties (6)
+    // #endregion Properties (14)
 
-    // #region Public Methods (1)
+    // #region Public Methods (2)
 
     public async load(content: IGLTF_v2, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
         this._baseUri = baseUri;
@@ -70,8 +77,8 @@ export class GLTFLoader {
         try {
             this.validateVersionAndExtensions();
             const node = await this.loadScene();
-            if(this._content.animations)
-                for(let i = 0; i < this._content.animations?.length; i++)
+            if (this._content.animations)
+                for (let i = 0; i < this._content.animations?.length; i++)
                     node.data.push(await this.loadAnimation(i));
             return node;
         } catch (e) {
@@ -146,9 +153,9 @@ export class GLTFLoader {
         }
     }
 
-    // #endregion Public Methods (1)
+    // #endregion Public Methods (2)
 
-    // #region Private Methods (9)
+    // #region Private Methods (13)
 
     private async loadAccessor(accessorId: number): Promise<AttributeData | null> {
         if (!this._content.accessors) throw new Error('Accessors not available.')
@@ -211,6 +218,49 @@ export class GLTFLoader {
         return this._loaded['accessor'][accessorId];
     }
 
+    /**
+       * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#animations
+       * @param {number} animationIndex
+       * @return {Promise<AnimationClip>}
+       */
+    private async loadAnimation(animationId: number): Promise<AnimationData> {
+        if (!this._content.animations) throw new Error('Animations not available.')
+        if (!this._content.animations[animationId]) throw new Error('Animations not available.')
+        const animationDef = this._content.animations[animationId];
+        const animationTracks: AnimationTrack[] = [];
+        let min = Infinity, max = -Infinity;
+
+        for (let i = 0; i < animationDef.channels.length; i++) {
+            const channel = animationDef.channels[i];
+            const sampler = animationDef.samplers[channel.sampler];
+
+            const target = channel.target;
+            const path = target.path;
+            const node = this._nodes[target.node];
+            if (node === undefined) throw new Error('Animation node not available.');
+
+            const input = await this.loadAccessor(sampler.input);
+            min = Math.min(min, input!.min[0]);
+            max = Math.max(max, input!.max[0]);
+            const output = await this.loadAccessor(sampler.output);
+            let interpolation = sampler.interpolation;
+            if (interpolation === 'CUBICSPLINE') {
+                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
+                interpolation = 'linear';
+            }
+
+            animationTracks.push({
+                node,
+                times: input!.array,
+                values: output!.array,
+                path: <'scale' | 'translation' | 'rotation'>path,
+                interpolation: <'linear' | 'step'>interpolation?.toLowerCase()
+            });
+        }
+
+        return new AnimationData(animationDef.name || 'gltf_animation_' + animationId, animationTracks, min, max - min);
+    }
+
     private async loadBuffer(bufferId: number): Promise<ArrayBuffer> {
         if (!this._content.buffers) throw new Error('Buffers not available.')
         if (!this._content.buffers[bufferId]) throw new Error('Buffer not available.')
@@ -270,7 +320,15 @@ export class GLTFLoader {
 
         if (!this._loaded['bufferView']) this._loaded['bufferView'] = {};
         this._loaded['bufferView'][bufferViewId] = result;
+
+        // bufferView has a target property that we don't care about as this is JavaScript :)
         return this._loaded['bufferView'][bufferViewId];
+    }
+
+    private async loadCamera(cameraId: number): Promise<void> {
+        if (!this._content.cameras) throw new Error('Cameras not available.')
+        if (!this._content.cameras[cameraId]) throw new Error('Cameras not available.')
+        // TODO
     }
 
     private async loadMap(textureId: number): Promise<MapData> {
@@ -413,7 +471,6 @@ export class GLTFLoader {
             materialData.side = material.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
         }
 
-
         return materialData
     }
 
@@ -425,9 +482,8 @@ export class GLTFLoader {
 
         if (mesh.primitives)
             for (let i = 0, len = mesh.primitives.length; i < len; i++)
-                meshNode.addChild(await this.loadPrimitive(mesh.primitives, i));
+                meshNode.addChild(await this.loadPrimitive(mesh.primitives, i, mesh.weights));
 
-        // weights https://shapediver.atlassian.net/browse/SS-2944
         return meshNode;
     }
 
@@ -467,11 +523,11 @@ export class GLTFLoader {
             }
         }
 
-        // camera, skin, weights https://shapediver.atlassian.net/browse/SS-2944
+        // TODO camera, skin, weights https://shapediver.atlassian.net/browse/SS-2944
         return nodeDef;
     }
 
-    private async loadPrimitive(primitives: IGLTF_v2_Primitive[], index: number): Promise<TreeNode> {
+    private async loadPrimitive(primitives: IGLTF_v2_Primitive[], index: number, weights: number[] = []): Promise<TreeNode> {
         const primitive = primitives[index];
         const primitiveNode = new TreeNode('primitive_' + index);
 
@@ -479,18 +535,31 @@ export class GLTFLoader {
             [key: string]: AttributeData
         } = {};
 
+        const convertedNames: { [key: string]: string } = {}
         for (let attribute in primitive.attributes) {
-            // attribute name conversion to be consistent witg gltf
             let attributeName = attribute;
-            if(/\d/.test(attributeName) && !attributeName.includes('_')) {
+            // attribute name conversion to be consistent with gltf
+            if (/\d/.test(attributeName) && !attributeName.includes('_')) {
                 const index = attributeName.search(/\d/)
                 attributeName = attributeName.substring(0, index) + '_' + attributeName.substring(index, attributeName.length);
-            } else if(attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
+            } else if (attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
                 attributeName += '_0';
             } else if (attributeName === 'UV') {
                 attributeName = 'TEXCOORD_0';
             }
+
+            convertedNames[attribute] = attributeName;
             attributes[attributeName] = (await this.loadAccessor(primitive.attributes[attribute]))!;
+        }
+
+        // reading and assigning morph targets
+        if (primitive.targets) {
+            for (let i = 0; i < primitive.targets.length; i++) {
+                for (let target in primitive.targets[i]) {
+                    if (!attributes[target]) continue;
+                    attributes[convertedNames[target]].morphAttributeData.push((await this.loadAccessor(primitive.targets[i][target]))!);
+                }
+            }
         }
 
         let indices = null;
@@ -501,9 +570,46 @@ export class GLTFLoader {
         if (primitive.material || primitive.material === 0)
             material = await this.loadMaterial(primitive.material);
 
-        primitiveNode.data.push(new GeometryData(new PrimitiveData(attributes, primitive.mode, indices, material)));
-        // targets https://shapediver.atlassian.net/browse/SS-2944
+        const geometryData = new GeometryData(new PrimitiveData(attributes, primitive.mode, indices, material));
+        geometryData.morphWeights = weights;
+        primitiveNode.data.push(geometryData);
         return primitiveNode;
+    }
+
+    private async loadScene(): Promise<TreeNode> {
+        if (!this._content.scenes) throw new Error('Scenes not available.')
+        const sceneID = this._content.scene || 0;
+        if (!this._content.scenes[sceneID]) throw new Error('Scene not available.')
+        const scene = this._content.scenes[sceneID];
+        const sceneDef = new TreeNode(scene.name || 'scene_' + sceneID + '');
+        sceneDef.transformations.push({
+            id: this._uuidGenerator.create(),
+            matrix: this._globalTransformation
+        })
+        if (scene.nodes)
+            for (let i = 0, len = scene.nodes.length; i < len; i++)
+                sceneDef.addChild(await this.loadNode(scene.nodes[i]));
+        return sceneDef;
+    }
+
+    private async loadSkin(index: number): Promise<any> {
+        // TODO
+        const skinDef = this._content.skins![index];
+
+        const skinEntry: {
+            joints: number[],
+            inverseBindMatrices: AttributeData | null
+        } = {
+            joints: skinDef.joints,
+            inverseBindMatrices: null
+        };
+
+        if (skinDef.inverseBindMatrices === undefined) {
+            return skinEntry;
+        }
+
+        skinEntry.inverseBindMatrices = await this.loadAccessor(skinDef.inverseBindMatrices)
+        return skinEntry;
     }
 
     private validateVersionAndExtensions(): void {
@@ -546,70 +652,5 @@ export class GLTFLoader {
         }
     }
 
-    private async loadScene(): Promise<TreeNode> {
-        if (!this._content.scenes) throw new Error('Scenes not available.')
-        const sceneID = this._content.scene || 0;
-        if (!this._content.scenes[sceneID]) throw new Error('Scene not available.')
-        const scene = this._content.scenes[sceneID];
-        const sceneDef = new TreeNode(scene.name || 'scene_' + sceneID + '');
-        sceneDef.transformations.push({
-            id: this._uuidGenerator.create(),
-            matrix: this._globalTransformation
-        })
-        if (scene.nodes)
-            for (let i = 0, len = scene.nodes.length; i < len; i++)
-                sceneDef.addChild(await this.loadNode(scene.nodes[i]));
-        return sceneDef;
-    }
-
-
-    /**
-     * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#animations
-     * @param {number} animationIndex
-     * @return {Promise<AnimationClip>}
-     */
-    private async loadAnimation(animationId: number): Promise<AnimationData> {
-        if (!this._content.animations) throw new Error('Animations not available.')
-        if (!this._content.animations[animationId]) throw new Error('Animations not available.')
-        const animationDef = this._content.animations[animationId];
-        const animationTracks: AnimationTrack[] = [];
-        let min = Infinity, max = -Infinity;
-
-        for(let i = 0; i < animationDef.channels.length; i++) {
-            const channel = animationDef.channels[i];
-            const sampler = animationDef.samplers[channel.sampler];
-
-            const target = channel.target;
-            const path = target.path;
-            const node = this._nodes[target.node];
-            if (node === undefined) throw new Error('Animation node not available.');
-
-            const input = await this.loadAccessor(sampler.input);
-            min = Math.min(min, input!.min[0]);
-            max = Math.max(max, input!.max[0]);
-            const output = await this.loadAccessor(sampler.output);
-            let interpolation = sampler.interpolation;
-            if(interpolation === 'CUBICSPLINE') {
-                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
-                interpolation = 'linear';
-            }
-
-            if(target.path === 'weights') {
-                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'Animation with weights is currently not supported.')
-                break;
-            }
-
-            animationTracks.push({
-                node,
-                times: input!.array,
-                values: output!.array,
-                path: <'scale' | 'translation' | 'rotation'>path,
-                interpolation: <'linear' | 'step'>interpolation?.toLowerCase()
-            });
-        }
-
-        return new AnimationData(animationDef.name || 'gltf_animation_' + animationId, animationTracks, min, max-min);
-    }
-
-    // #endregion Private Methods (9)
+    // #endregion Private Methods (13)
 }
