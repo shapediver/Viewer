@@ -474,7 +474,7 @@ export class GLTFLoader {
         return materialData
     }
 
-    private async loadMesh(meshId: number): Promise<TreeNode> {
+    private async loadMesh(meshId: number, weights?: number[]): Promise<TreeNode> {
         if (!this._content.meshes) throw new Error('Meshes not available.')
         if (!this._content.meshes[meshId]) throw new Error('Mesh not available.')
         const mesh = this._content.meshes[meshId];
@@ -482,7 +482,7 @@ export class GLTFLoader {
 
         if (mesh.primitives)
             for (let i = 0, len = mesh.primitives.length; i < len; i++)
-                meshNode.addChild(await this.loadPrimitive(mesh.primitives, i, mesh.weights));
+                meshNode.addChild(await this.loadPrimitive(mesh.primitives, i, mesh.weights || weights));
 
         return meshNode;
     }
@@ -514,7 +514,7 @@ export class GLTFLoader {
         }
 
         if (node.mesh !== undefined)
-            nodeDef.addChild(await this.loadMesh(node.mesh));
+            nodeDef.addChild(await this.loadMesh(node.mesh, node.weights));
 
         if (node.children) {
             for (let i = 0, len = node.children.length; i < len; i++) {
