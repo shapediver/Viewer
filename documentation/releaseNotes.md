@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.13.0
-* __Build date:__ 2022-03-02T18:04:11.018Z
+* __Version:__ 1.13.1
+* __Build date:__ 2022-03-14T04:56:54.943Z
 * __Branch:__ development
-* __Commit:__ da1a4bf2b2ea6cff6f27e772106191cda67c6cd1
+* __Commit:__ f6835099c01008f6b4b814abbd6ddecc5d58ba08
 <!--- VERSION_END -->
 
 ## Version 1.13.1 - `Memento`
