@@ -8,6 +8,11 @@
 * __Commit:__ da1a4bf2b2ea6cff6f27e772106191cda67c6cd1
 <!--- VERSION_END -->
 
+## Version 1.13.1 - `Memento`
+- improved AR capabilities
+- bugfix: environment artefacts
+- bugfix: export request parameter values
+
 ## Version 1.13.0 - `Memento`
 - improved AR capabilities
 - gltf converter fixes
