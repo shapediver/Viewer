@@ -1,18 +1,41 @@
 import * as THREE from 'three'
-import { AnimationData, ATTRIBUTEVISUALIZATION, GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeOverview, SDTFAttributeVisualization, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
+import {
+  AnimationData,
+  ATTRIBUTEVISUALIZATION,
+  GeometryData,
+  HTMLElementAnchorData,
+  MaterialData,
+  PRIMITIVETYPEHINT,
+  SDTFAttributeOverview,
+  SDTFAttributeVisualization,
+  SDTFAttributeVisualizationData,
+  SDTFItemData,
+  SDTFOverview,
+} from '@shapediver/viewer.shared.types'
 import { ISDObject, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
-import { Converter, EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, StateEngine } from '@shapediver/viewer.shared.services'
+import {
+  Converter,
+  EventEngine,
+  EVENTTYPE,
+  InputValidator,
+  Logger,
+  LOGGINGTOPIC,
+  ShapeDiverBackendError,
+  ShapeDiverViewerError,
+  StateEngine,
+} from '@shapediver/viewer.shared.services'
 import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, quat, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { SDNode } from '../types/SDNode'
 import { ThreejsData } from '../types/ThreejsData'
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager'
-import { SDData, SD_DATA_TYPE } from '../types/SDData'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { SD_DATA_TYPE, SDData } from '../types/SDData'
+import { Bone } from 'three'
 
 export class SceneTreeManager implements IManager {
     // #region Properties (10)
@@ -60,6 +83,35 @@ export class SceneTreeManager implements IManager {
             this._boundingBox.max[0] === 0 && this._boundingBox.max[1] === 0 && this._boundingBox.max[2] === 0) || this._boundingBox.isEmpty());
     }
 
+    private getBone(node: TreeNode): THREE.Bone {
+        let objChild: SDNode | undefined;
+        this._mainNode.traverse((o) => {
+            if((<SDNode>o).SDid === node.id)
+                objChild = (<SDNode>o);
+        });
+
+        if (!objChild) {
+            objChild = new SDNode(node.id, node.version);
+            node.transformedNodes[this._renderingEngine.id] = objChild;
+        } else if (objChild.SDversion !== node.version) {
+            // if the version is different, update the child
+            objChild.SDversion = node.version;
+        }
+
+        let bone: THREE.Bone | undefined;
+        objChild.traverse(o => {
+            if(o instanceof THREE.Bone)
+                bone = o;
+        })
+
+        if(!bone) {
+            bone = new THREE.Bone();
+            objChild.add(bone);
+        }
+
+        return bone;
+    }
+
     /**
      * Convert the data of the scene graph node into the format of the implementation.
      * 
@@ -80,7 +132,22 @@ export class SceneTreeManager implements IManager {
         switch (true) {
             case data instanceof GeometryData:
                 dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
-                const bb = this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild);
+                const geometryData = <GeometryData>data;
+
+                let skeleton;
+                if(geometryData.bones.length > 0) {
+                    const bones: THREE.Bone[] = [];
+                    for(let i = 0; i < geometryData.bones.length; i++)
+                        bones.push(this.getBone(geometryData.bones[i]));
+
+                    const boneInverses: THREE.Matrix4[] = [];
+                    for(let i = 0; i < geometryData.boneInverses.length; i++)
+                        boneInverses.push(new THREE.Matrix4().fromArray(geometryData.boneInverses[i]));
+
+                    skeleton = new THREE.Skeleton(bones, boneInverses)
+                }
+
+                const bb = this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, skeleton);
                 node.boundingBox.union(bb);
                 break;
             case data instanceof ThreejsData:

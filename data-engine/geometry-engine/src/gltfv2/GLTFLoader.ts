@@ -77,6 +77,47 @@ export class GLTFLoader {
         try {
             this.validateVersionAndExtensions();
             const node = await this.loadScene();
+            if (this._content.skins !== undefined && this._content.nodes !== undefined) {
+                for (let i = 0; i < this._content.nodes?.length; i++) {
+                    if(this._content.nodes[i].skin !== undefined) {
+                        const skinDef = await this.loadSkin(this._content.nodes[i].skin!);
+
+                        const skinNode = this._nodes[i];
+                        
+                        const bones: TreeNode[] = [];
+                        const boneInverses: mat4[] = [];
+
+                        for(let j = 0; j < skinDef.joints.length; j++) {
+                            this._nodes[skinDef.joints[j]].bone = true;
+                            bones.push(this._nodes[skinDef.joints[j]]);
+
+                            let mat = mat4.create();
+                            if ( skinDef.inverseBindMatrices !== undefined ) {
+                                const matricesArray = skinDef.inverseBindMatrices!.array;
+                                mat = mat4.fromValues(matricesArray[j * 16 + 0], matricesArray[j * 16 + 1], matricesArray[j * 16 + 2], matricesArray[j * 16 + 3],
+                                    matricesArray[j * 16 + 4], matricesArray[j * 16 + 5], matricesArray[j * 16 + 6], matricesArray[j * 16 + 7],
+                                    matricesArray[j * 16 + 8], matricesArray[j * 16 + 9], matricesArray[j * 16 + 10], matricesArray[j * 16 + 11],
+                                    matricesArray[j * 16 + 12], matricesArray[j * 16 + 13], matricesArray[j * 16 + 14], matricesArray[j * 16 + 15]);
+                            }
+                            boneInverses.push(mat);
+                        }
+
+                        const addBones = (node: TreeNode) => {
+                            for(let j = 0; j < node.data.length; j++)
+                                if(node.data[j] instanceof GeometryData) {
+                                    console.log(bones, boneInverses);
+                                    (<GeometryData>node.data[j]).bones = bones;
+                                    (<GeometryData>node.data[j]).boneInverses = boneInverses;
+                                }
+
+                            for (let l = 0; l < node.children.length; l++)
+                                addBones(node.children[l])
+                        }
+                        addBones(skinNode);
+                    }
+                }
+            }
+
             if (this._content.animations)
                 for (let i = 0; i < this._content.animations?.length; i++)
                     node.data.push(await this.loadAnimation(i));
@@ -523,7 +564,7 @@ export class GLTFLoader {
             }
         }
 
-        // TODO camera, skin, weights https://shapediver.atlassian.net/browse/SS-2944
+        // TODO camera
         return nodeDef;
     }
 
@@ -592,9 +633,13 @@ export class GLTFLoader {
         return sceneDef;
     }
 
-    private async loadSkin(index: number): Promise<any> {
-        // TODO
-        const skinDef = this._content.skins![index];
+    private async loadSkin(skinId: number): Promise<{
+        joints: number[],
+        inverseBindMatrices: AttributeData | null
+    }> {
+        if (!this._content.skins) throw new Error('Skins not available.')
+        if (!this._content.skins[skinId]) throw new Error('Skin not available.')
+        const skinDef = this._content.skins![skinId];
 
         const skinEntry: {
             joints: number[],

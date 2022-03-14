@@ -1,5 +1,5 @@
 import { mat4, vec3 } from 'gl-matrix'
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { AbstractTreeNodeData, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box, Triangle } from '@shapediver/viewer.shared.math'
 
 import { MaterialData } from './MaterialData'
@@ -292,6 +292,8 @@ export class GeometryData extends AbstractTreeNodeData {
   #boundingBox: Box = new Box();
   #renderOrder: number = 0;
   #morphWeights: number[] = [];
+  #bones: TreeNode[] = [];
+  #boneInverses: mat4[] = [];
 
   // #endregion Properties (4)
 
@@ -308,13 +310,17 @@ export class GeometryData extends AbstractTreeNodeData {
     primitive: PrimitiveData,
     matrix: mat4 = mat4.create(),
     id?: string,
-    morphWeights: number[] = []
+    morphWeights: number[] = [],
+    bones: TreeNode[] = [],
+    boneInverses: mat4[] = []
   ) {
     super(id);
     this.#primitive = primitive;
     this.#matrix = matrix;
     this.#boundingBox = this.primitive.boundingBox.clone();
     this.#morphWeights = morphWeights;
+    this.#bones = bones;
+    this.#boneInverses = boneInverses;
   }
 
   // #endregion Constructors (1)
@@ -349,6 +355,22 @@ export class GeometryData extends AbstractTreeNodeData {
     this.#morphWeights = value
   }
 
+  public get bones(): TreeNode[] {
+    return this.#bones;
+  }
+
+  public set bones(value: TreeNode[]) {
+    this.#bones = value
+  }
+
+  public get boneInverses(): mat4[] {
+    return this.#boneInverses;
+  }
+
+  public set boneInverses(value: mat4[]) {
+    this.#boneInverses = value
+  }
+
   // #endregion Public Accessors (5)
 
   // #region Public Methods (2)
@@ -357,7 +379,7 @@ export class GeometryData extends AbstractTreeNodeData {
    * Clones the scene graph data.
    */
   public clone(): ITreeNodeData {
-    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id, this.#morphWeights);
+    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id, this.#morphWeights, this.#bones, this.#boneInverses);
   }
 
   public intersect(origin: vec3, direction: vec3): number | null {

@@ -1,6 +1,6 @@
 import { mat4 } from 'gl-matrix'
 import { container } from 'tsyringe'
-import { UuidGenerator, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { Box } from '@shapediver/viewer.shared.math'
 
 import { ITreeNodeData } from './interfaces/ITreeNodeData'
@@ -34,6 +34,7 @@ export class TreeNode {
   #excludeViewers: string[] = [];
   #version: string;
   #visible: boolean = true;
+  #bone: boolean = false;
 
   // #endregion Properties (10)
 
@@ -66,6 +67,14 @@ export class TreeNode {
   // #endregion Constructors (1)
 
   // #region Public Accessors (14)
+
+  public get bone(): boolean {
+    return this.#bone;
+  }
+  
+  public set bone(value: boolean) {
+    this.#bone = value;
+  }
 
   public get boundingBox(): Box {
     return this.#boundingBox;

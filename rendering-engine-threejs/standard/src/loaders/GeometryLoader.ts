@@ -1,16 +1,17 @@
 import * as THREE from 'three'
 import {
-    GeometryData,
-    MATERIAL_ALPHA,
-    PRIMITIVE_MODE,
-    PrimitiveData,
-    MATERIAL_SIDE,
-    MaterialData,
-    AttributeData,
+  AttributeData,
+  GeometryData,
+  MATERIAL_ALPHA,
+  MATERIAL_SIDE,
+  MaterialData,
+  PRIMITIVE_MODE,
+  PrimitiveData,
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
 import { Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
@@ -18,7 +19,6 @@ import { ILoader } from '../interfaces/ILoader'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
 import { SDData } from '../types/SDData'
 import { MaterialSettings } from './MaterialLoader'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (3)
@@ -62,7 +62,7 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDNode): Box {
+    public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): Box {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
             let materialData: MaterialData | null;
             if (this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
@@ -120,7 +120,7 @@ export class GeometryLoader implements ILoader {
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
             const obj = new SDData(geometry.id, geometry.version);
-            this.createMesh(obj, geometry, threeGeometry, material, materialSettings);
+            this.createMesh(obj, geometry, threeGeometry, material, materialSettings, skeleton);
             parent.add(obj);
         }
 
@@ -252,7 +252,7 @@ export class GeometryLoader implements ILoader {
         return newGeometry;
     }
 
-    private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings) {
+    private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings, skeleton?: THREE.Skeleton) {
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
             obj.add(new THREE.Points(threeGeometry, material));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {
@@ -266,20 +266,31 @@ export class GeometryLoader implements ILoader {
             if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
                 bufferGeometry = this.convertToTriangleMode(bufferGeometry, geometry.primitive.mode);
 
-            if (material.opacity < 1 || (<THREE.MeshStandardMaterial | SpecularGlossinessMaterial>material).alphaMap) {
-                const side = material.side;
-                if (side === THREE.DoubleSide) {
-                    const materialBack = material.clone();
-                    materialBack.side = THREE.BackSide;
-                    obj.add(new THREE.Mesh(bufferGeometry, materialBack));
-                    const materialFront = material.clone();
-                    materialFront.side = THREE.FrontSide;
-                    obj.add(new THREE.Mesh(bufferGeometry, materialFront));
+            if(skeleton) {
+                const skinnedMesh = new THREE.SkinnedMesh(bufferGeometry, material);
+                skinnedMesh.bind(skeleton, skinnedMesh.matrixWorld);
+
+                if (bufferGeometry.attributes.skinWeight.normalized)
+                    skinnedMesh.normalizeSkinWeights();
+
+                obj.add(skinnedMesh);
+            } else {
+
+                if (material.opacity < 1 || (<THREE.MeshStandardMaterial | SpecularGlossinessMaterial>material).alphaMap) {
+                    const side = material.side;
+                    if (side === THREE.DoubleSide) {
+                        const materialBack = material.clone();
+                        materialBack.side = THREE.BackSide;
+                        obj.add(new THREE.Mesh(bufferGeometry, materialBack));
+                        const materialFront = material.clone();
+                        materialFront.side = THREE.FrontSide;
+                        obj.add(new THREE.Mesh(bufferGeometry, materialFront));
+                    } else {
+                        obj.add(new THREE.Mesh(bufferGeometry, material));
+                    }
                 } else {
                     obj.add(new THREE.Mesh(bufferGeometry, material));
                 }
-            } else {
-                obj.add(new THREE.Mesh(bufferGeometry, material));
             }
             obj.children.forEach(m => m.castShadow = true);
             obj.children.forEach(m => m.receiveShadow = true);
@@ -321,8 +332,10 @@ export class GeometryLoader implements ILoader {
             case 'COLOR':
                 return 'color';
             case 'WEIGHT':
+            case 'WEIGHTS_0':
                 return 'skinWeight';
             case 'JOINT':
+            case 'JOINTS_0':
                 return 'skinIndex';
             case 'TANGENT':
                 return 'tangent';
