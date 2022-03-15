@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.13.1
-* __Build date:__ 2022-03-14T04:56:54.943Z
+* __Version:__ 1.13.2
+* __Build date:__ 2022-03-15T15:48:28.698Z
 * __Branch:__ development
-* __Commit:__ f6835099c01008f6b4b814abbd6ddecc5d58ba08
+* __Commit:__ b0aae335544e80fb280632f78bfca2934091be5c
 <!--- VERSION_END -->
 
 ## Version 1.13.2 - `Mad Max 2: The Road Warrior`
