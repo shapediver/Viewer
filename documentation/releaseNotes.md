@@ -8,7 +8,10 @@
 * __Commit:__ f6835099c01008f6b4b814abbd6ddecc5d58ba08
 <!--- VERSION_END -->
 
-## Version 1.13.1 - `Memento`
+## Version 1.13.2 - `Mad Max 2: The Road Warrior`
+- bugfix: dataURI pass through
+
+## Version 1.13.1 - `Mad Max`
 - improved AR capabilities
 - bugfix: environment artefacts
 - bugfix: export request parameter values
