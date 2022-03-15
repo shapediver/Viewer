@@ -488,7 +488,7 @@ export class Session implements ISession {
             const dataKey = btoa(href);
             if(this._dataCache[dataKey]) return await this._dataCache[dataKey];
 
-            if(href.startsWith('blob:')) {
+            if(href.startsWith('blob:') || href.startsWith('data:')) {
                 this._dataCache[dataKey] = this._httpClient.get(href, config);
             } else {
                 this._dataCache[dataKey] = this._httpClient.get(
