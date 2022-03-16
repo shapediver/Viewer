@@ -83,22 +83,6 @@ export class Api implements IApi {
 
   // #region Public Accessors (16)
 
-  public get autoScaling(): boolean {
-    return this.#settingsEngine.ar.autoScaling;
-  }
-
-  public set autoScaling(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.GENERAL, `Api.autoScaling: Updating autoScaling to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', value, 'boolean');
-      this.#settingsEngine.ar.autoScaling = value;
-      this.#logger.debug(LOGGINGTOPIC.GENERAL, `Api.autoScaling: autoScaling was set to: ${value}`);
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.autoScaling', e);
-    }
-  }
-
   public get automaticUpdate(): boolean {
     return this.#automaticUpdate;
   }
@@ -394,16 +378,7 @@ export class Api implements IApi {
 
   public async convertSceneToGLTF(convertForAR = false): Promise<Blob> {
     try {
-      let scalingMatrix: mat4;
-      if (this.autoScaling) {
-        const min = vec3.clone(this.sceneTree.root.boundingBox.min);
-        const max = vec3.clone(this.sceneTree.root.boundingBox.max);
-        const size = vec3.fromValues(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
-        const maxDimension = Math.max(size[0], Math.max(size[1], size[2]));
-        scalingMatrix = mat4.fromScaling(mat4.create(), vec3.fromValues(1.0 / maxDimension, 1.0 / maxDimension, 1.0 / maxDimension));
-      } else {
-        scalingMatrix = mat4.fromScaling(mat4.create(), this.globalScale);
-      }
+      let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.globalScale);
 
       // add scaling matrix to scene tree node
       const scalingMatrixID = this.#uuidGenerator.create();

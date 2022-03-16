@@ -16,7 +16,6 @@ export interface IApi {
   readonly sessions: { [key: string]: ISession };
   readonly viewers: { [key: string]: IViewer };
 
-  autoScaling: boolean;
   automaticUpdate: boolean;
   enableAR: boolean;
   globalRotation: vec3;
@@ -138,8 +137,6 @@ export interface IApi {
    * Please check first if the device supports the viewing of models in AR, see {@link viewableInAR}.
    * 
    * As some models might have a different scale then the AR apps (meters), the scaling can be chosen freely.
-   * By default the {@link autoScaling} option is enabled to scale the model so that the largest bounding boy side is 1 meter.
-   * If you disable that option, you can chose your own scaling factor via {@link globalScale}.
    * 
    * @param androidOptions 
    */

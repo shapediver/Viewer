@@ -21,7 +21,6 @@ const tickets = [
         id: 'mySession',
         excludeViewers: ['myViewer2']
     });
-    api.autoScaling = false;
 
     // convert GLTF
     const blob = await api.convertSceneToGLTF(true);
