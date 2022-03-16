@@ -1,5 +1,3 @@
-import '@google/model-viewer/dist/model-viewer'
-
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
@@ -380,6 +378,14 @@ export class Api implements IApi {
     try {
       let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.globalScale);
 
+      const translationMatrixID = this.#uuidGenerator.create();
+      if(convertForAR) {
+        // add translation matrix to scene tree node
+        const bb = this.sceneTree.root.boundingBox.clone().applyMatrix(scalingMatrix);
+        let translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), vec3.fromValues(-(bb.max[0] + bb.min[0]) / 2.0, -(bb.max[1] + bb.min[1]) / 2.0, -(bb.max[2] + bb.min[2]) / 2.0));
+        this.sceneTree.root.transformations.push({ id: translationMatrixID, matrix: translationMatrix })
+      }
+      
       // add scaling matrix to scene tree node
       const scalingMatrixID = this.#uuidGenerator.create();
       this.sceneTree.root.transformations.push({ id: scalingMatrixID, matrix: scalingMatrix })
@@ -387,10 +393,17 @@ export class Api implements IApi {
       // create the gltf
       const result = await this.#gltfConverter.convert(this.sceneTree.root, convertForAR);
 
-      // remove the matrix
+      // remove scaling the matrix
       for (let i = 0; i < this.sceneTree.root.transformations.length; i++)
         if (this.sceneTree.root.transformations[i].id === scalingMatrixID)
           this.sceneTree.root.transformations.splice(i, 1);
+
+      if (convertForAR) {
+        // remove translation the matrix
+        for (let i = 0; i < this.sceneTree.root.transformations.length; i++)
+          if (this.sceneTree.root.transformations[i].id === translationMatrixID)
+            this.sceneTree.root.transformations.splice(i, 1);
+      }
 
       return new Blob([result], { type: 'application/octet-stream' });
     } catch (e) {
