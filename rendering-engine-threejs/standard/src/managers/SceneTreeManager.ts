@@ -36,6 +36,7 @@ import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager'
 import { SD_DATA_TYPE, SDData } from '../types/SDData'
 import { Bone } from 'three'
+import { SDBone } from '../types/SDBone'
 
 export class SceneTreeManager implements IManager {
     // #region Properties (10)
@@ -83,33 +84,13 @@ export class SceneTreeManager implements IManager {
             this._boundingBox.max[0] === 0 && this._boundingBox.max[1] === 0 && this._boundingBox.max[2] === 0) || this._boundingBox.isEmpty());
     }
 
-    private getBone(node: TreeNode): THREE.Bone {
-        let objChild: SDNode | undefined;
+    private getBone(node: TreeNode): SDBone {
+        let bone: SDBone;
         this._mainNode.traverse((o) => {
             if((<SDNode>o).SDid === node.id)
-                objChild = (<SDNode>o);
+                bone = (<SDBone>o);
         });
-
-        if (!objChild) {
-            objChild = new SDNode(node.id, node.version);
-            node.transformedNodes[this._renderingEngine.id] = objChild;
-        } else if (objChild.SDversion !== node.version) {
-            // if the version is different, update the child
-            objChild.SDversion = node.version;
-        }
-
-        let bone: THREE.Bone | undefined;
-        objChild.traverse(o => {
-            if(o instanceof THREE.Bone)
-                bone = o;
-        })
-
-        if(!bone) {
-            bone = new THREE.Bone();
-            objChild.add(bone);
-        }
-
-        return bone;
+        return bone!;
     }
 
     /**
@@ -174,78 +155,10 @@ export class SceneTreeManager implements IManager {
         }
     }
 
-    /**
-     * Update the current node via the scene graph node.
-     * Convert the data if needed.
-     * 
-     * @param node the scene graph node
-     * @param obj the current type object
-     */
-    public updateNode(node: TreeNode, obj: ISDObject) {
-        const convertedObject = <SDNode>obj;
-
-        // if this node specifically excludes the current viewer, skip it and all descendants
-        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-
-        // reset the bounding box of the current node
-        // it will be recomputed in the following steps
-        node.boundingBox = new Box();
-
-        // remove all data items that do not exist anymore
-        const dataIds = node.data.map(d => d.id);
-        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
-        dataToRemove.forEach(dTR => {
-            this.removeData(<SDData>dTR)
-            convertedObject.remove(dTR);
-        })
-
-        // remove all child nodes in the transformed object that do not exist anymore
-        // the filter goes also through the data items as they were already added
-        const nodeIds = node.children.map(d => d.id);
-        const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDNode ? !nodeIds.includes(oc.SDid) : false);
-        childrenToRemove.forEach(cTR => {
-            cTR.traverse((o) => {
-                if (o instanceof SDData)
-                    this.removeData(o);
-            })
-            convertedObject.remove(cTR);
-        });
-
-        // convert all data items of the current node
-        // old versions will be replaced by new ones
-        for (let i = 0, len = node.data.length; i < len; i++)
-            this.updateData(node, convertedObject, node.data[i]);
-
-        // add new children and update the ones that have a different version
-        for (let i = 0, len = node.children.length; i < len; i++) {
-            const nodeChild = node.children[i];
-            const objChild = <SDNode>convertedObject.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
-
-            if (!objChild) {
-                const newChild = new SDNode(nodeChild.id, nodeChild.version);
-                nodeChild.transformedNodes[this._renderingEngine.id] = newChild;
-                convertedObject.add(newChild);
-                this.updateNode(nodeChild, newChild);
-            } else if (objChild.SDversion !== nodeChild.version) {
-                // if the version is different, update the child
-                this.updateNode(nodeChild, objChild);
-                objChild.SDversion = nodeChild.version;
-            }
-
-            if(!nodeChild.boundingBox.isEmpty())
-                node.boundingBox.union(nodeChild.boundingBox);
-        }
-
-        convertedObject.visible = node.visible;
-        convertedObject.applyTransformation(node.nodeMatrix);
-
-        if(!node.boundingBox.isEmpty())
-            node.boundingBox.applyMatrix(node.nodeMatrix);
-    }
-
     public updateNodeTransformations(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
         if(!node || !obj) return;
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
         obj.visible = node.visible;
         obj.applyTransformation(node.nodeMatrix);
 
@@ -285,6 +198,82 @@ export class SceneTreeManager implements IManager {
             this.updateMorphWeights(nodeChild, objChild);
         }
     }
+    
+    public updateNodeData(node: TreeNode, obj: ISDObject) {
+        const convertedObject = <SDNode>obj;
+
+        // if this node specifically excludes the current viewer, skip it and all descendants
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
+        // reset the bounding box of the current node
+        // it will be recomputed in the following steps
+        node.boundingBox = new Box();
+
+        // remove all data items that do not exist anymore
+        const dataIds = node.data.map(d => d.id);
+        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
+        dataToRemove.forEach(dTR => {
+            this.removeData(<SDData>dTR)
+            convertedObject.remove(dTR);
+        })
+
+        // remove all child nodes in the transformed object that do not exist anymore
+        // the filter goes also through the data items as they were already added
+        const nodeIds = node.children.map(d => d.id);
+        const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDNode ? !nodeIds.includes(oc.SDid) : false);
+        childrenToRemove.forEach(cTR => {
+            cTR.traverse((o) => {
+                if (o instanceof SDData)
+                    this.removeData(o);
+            })
+            convertedObject.remove(cTR);
+        });
+
+        // convert all data items of the current node
+        // old versions will be replaced by new ones
+        for (let i = 0, len = node.data.length; i < len; i++)
+            this.updateData(node, convertedObject, node.data[i]);
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            const objChild = <SDNode>convertedObject.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
+            this.updateNodeData(nodeChild, objChild);
+
+            if(!nodeChild.boundingBox.isEmpty())
+                node.boundingBox.union(nodeChild.boundingBox);
+        }
+
+        if(!node.boundingBox.isEmpty())
+            node.boundingBox.applyMatrix(node.nodeMatrix);
+    }
+
+    public updateNodeHierarchy(node: TreeNode = this._tree.root, obj: ISDObject = this._mainNode) {
+        const convertedObject = <SDNode>obj;
+
+        // if this node specifically excludes the current viewer, skip it and all descendants
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            const objChild = <SDNode>convertedObject.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
+
+            if (!objChild) {
+                const newChild = node.bone ? new SDBone(nodeChild.id, nodeChild.version) : new SDNode(nodeChild.id, nodeChild.version);
+                nodeChild.transformedNodes[this._renderingEngine.id] = newChild;
+                convertedObject.add(newChild);
+                this.updateNodeHierarchy(nodeChild, newChild);
+            } else if (objChild.SDversion !== nodeChild.version) {
+                // if the version is different, update the child
+                this.updateNodeHierarchy(nodeChild, objChild);
+                objChild.SDversion = nodeChild.version;
+            }
+        }
+
+        convertedObject.visible = node.visible;
+        convertedObject.applyTransformation(node.nodeMatrix);
+    }
 
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
@@ -297,22 +286,20 @@ export class SceneTreeManager implements IManager {
             this._scene.add(this._mainNode);
         }
 
-        this._currentSDTFOverview = this.createSDTFOverview();
-
-        this.updateNode(root, this._mainNode);
-        this._boundingBox = root.boundingBox.clone();
-
         const lightScene = lightEngine.lightScene;
         if(lightScene) {
             const lightSceneChildren = <SDNode[]>this._mainNode.children.filter(oc => lightScene.node.id === (<SDNode>oc).SDid);
-            if (lightSceneChildren.length > 1) {
-                this.updateNode(lightScene.node, lightSceneChildren[0]);
-            } else {
+            if (lightSceneChildren.length === 0) {
                 const lightSceneChild = new SDNode(lightScene.node.id, lightScene.node.version);
                 this._mainNode.add(lightSceneChild)
-                this.updateNode(lightScene.node, lightSceneChild);
             }
         }
+
+        this._currentSDTFOverview = this.createSDTFOverview();
+
+        this.updateNodeHierarchy(root, this._mainNode);
+        this.updateNodeData(root, this._mainNode);
+        this._boundingBox = root.boundingBox.clone();
 
         if(!this._boundingBox.isEmpty())
             this._boundingBox.applyMatrix(root.nodeMatrix);
