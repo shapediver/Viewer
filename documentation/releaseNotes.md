@@ -8,6 +8,10 @@
 * __Commit:__ b0aae335544e80fb280632f78bfca2934091be5c
 <!--- VERSION_END -->
 
+## Version 1.13.3 - `Mad Max Beyond Thunderdome`
+- removed autoScaling
+- ar centering
+
 ## Version 1.13.2 - `Mad Max 2: The Road Warrior`
 - bugfix: dataURI pass through
 
