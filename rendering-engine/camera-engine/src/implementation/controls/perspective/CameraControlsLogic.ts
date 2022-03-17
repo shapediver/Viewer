@@ -264,6 +264,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
             vec2.subtract(this._rotateDelta, this._rotateEnd, this._rotateStart)
             vec2.copy(this._rotateStart, this._rotateEnd)
 
+            if (!this._controls.canvas) return;
             if (this._controls.canvas.clientWidth == 0 || this._controls.canvas.clientHeight == 0) return;
 
             const spherical = new Spherical();

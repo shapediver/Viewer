@@ -29,6 +29,8 @@ import {
   MATERIAL_SIDE,
   MaterialData,
   PrimitiveData,
+  PerspectiveCameraData,
+  OrthographicCameraData,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { AxiosResponse } from 'axios'
@@ -365,10 +367,32 @@ export class GLTFLoader {
         return this._loaded['bufferView'][bufferViewId];
     }
 
-    private async loadCamera(cameraId: number): Promise<void> {
+    private loadCamera(cameraId: number): TreeNode {
         if (!this._content.cameras) throw new Error('Cameras not available.')
         if (!this._content.cameras[cameraId]) throw new Error('Cameras not available.')
-        // TODO
+        const cameraDef = this._content.cameras[cameraId];
+        const cameraNode = new TreeNode(cameraDef.name || 'camera_' + cameraId);
+
+        if ( cameraDef.type === 'perspective' ) {
+            const perspectiveCameraDef = cameraDef.perspective!;
+            const cameraData = new PerspectiveCameraData(cameraNode, cameraNode.id);
+            cameraNode.data.push(cameraData);
+            cameraData.fov = perspectiveCameraDef.yfov * (180 / Math.PI);
+            cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
+            cameraData.near = perspectiveCameraDef.znear || 1;
+            cameraData.far = perspectiveCameraDef.zfar || 2e6;
+		} else if ( cameraDef.type === 'orthographic' ) {
+            const orthographicCameraDef = cameraDef.orthographic!;
+            const cameraData = new OrthographicCameraData(cameraNode, cameraNode.id);
+            cameraNode.data.push(cameraData);
+            cameraData.left = -orthographicCameraDef.xmag;
+            cameraData.right = orthographicCameraDef.xmag;
+            cameraData.top = -orthographicCameraDef.ymag;
+            cameraData.bottom = orthographicCameraDef.ymag;
+            cameraData.near = orthographicCameraDef.znear || 1;
+            cameraData.far = orthographicCameraDef.zfar || 2e6;
+		}
+        return cameraNode;
     }
 
     private async loadMap(textureId: number): Promise<MapData> {
@@ -564,6 +588,9 @@ export class GLTFLoader {
         if (node.mesh !== undefined)
             nodeDef.addChild(await this.loadMesh(node.mesh, node.weights));
 
+        if (node.camera !== undefined)
+            nodeDef.addChild(this.loadCamera(node.camera));
+
         if (node.children) {
             for (let i = 0, len = node.children.length; i < len; i++) {
                 // got through all children
@@ -571,7 +598,6 @@ export class GLTFLoader {
             }
         }
 
-        // TODO camera
         return nodeDef;
     }
 

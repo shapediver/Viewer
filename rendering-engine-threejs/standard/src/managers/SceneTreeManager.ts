@@ -37,6 +37,7 @@ import { IManager } from '../interfaces/IManager'
 import { SD_DATA_TYPE, SDData } from '../types/SDData'
 import { Bone } from 'three'
 import { SDBone } from '../types/SDBone'
+import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 
 export class SceneTreeManager implements IManager {
     // #region Properties (10)
@@ -50,6 +51,11 @@ export class SceneTreeManager implements IManager {
     private readonly _tree: Tree = <Tree>container.resolve(Tree);
 
     private _boundingBox: Box = new Box();
+    private _boundingBoxSensitiveData: {
+        data: AbstractLight,
+        dataChild: SDData
+    }[] = [];
+
     private _currentSDTFOverview!: SDTFOverview;
     private _mainNode!: SDNode;
 
@@ -140,7 +146,11 @@ export class SceneTreeManager implements IManager {
                 break;
             case data instanceof AbstractLight:
                 dataChild.SDtype = SD_DATA_TYPE.LIGHT;
-                this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild, this._scene, this._boundingBox);
+                this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild);
+                this._boundingBoxSensitiveData.push({data: <AbstractLight>data, dataChild})
+                break;
+            case data instanceof AbstractCamera:
+                dataChild.SDtype = SD_DATA_TYPE.CAMERA;
                 break;
             case data instanceof HTMLElementAnchorData:
                 dataChild.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
@@ -275,6 +285,75 @@ export class SceneTreeManager implements IManager {
         convertedObject.applyTransformation(node.nodeMatrix);
     }
 
+    /**
+     * Update the current node via the scene graph node.
+     * Convert the data if needed.
+     * 
+     * @param node the scene graph node
+     * @param obj the current type object
+     */
+     public updateNode(node: TreeNode, obj: ISDObject) {
+        const convertedObject = <SDNode>obj;
+
+        // if this node specifically excludes the current viewer, skip it and all descendants
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
+        // reset the bounding box of the current node
+        // it will be recomputed in the following steps
+        node.boundingBox = new Box();
+
+        // remove all data items that do not exist anymore
+        const dataIds = node.data.map(d => d.id);
+        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
+        dataToRemove.forEach(dTR => {
+            this.removeData(<SDData>dTR)
+            convertedObject.remove(dTR);
+        })
+
+        // remove all child nodes in the transformed object that do not exist anymore
+        // the filter goes also through the data items as they were already added
+        const nodeIds = node.children.map(d => d.id);
+        const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDNode ? !nodeIds.includes(oc.SDid) : false);
+        childrenToRemove.forEach(cTR => {
+            cTR.traverse((o) => {
+                if (o instanceof SDData)
+                    this.removeData(o);
+            })
+            convertedObject.remove(cTR);
+        });
+
+        // convert all data items of the current node
+        // old versions will be replaced by new ones
+        for (let i = 0, len = node.data.length; i < len; i++)
+            this.updateData(node, convertedObject, node.data[i]);
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            const objChild = <SDNode>convertedObject.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
+
+            if (!objChild) {
+                const newChild = new SDNode(nodeChild.id, nodeChild.version);
+                nodeChild.transformedNodes[this._renderingEngine.id] = newChild;
+                convertedObject.add(newChild);
+                this.updateNode(nodeChild, newChild);
+            } else if (objChild.SDversion !== nodeChild.version) {
+                // if the version is different, update the child
+                this.updateNode(nodeChild, objChild);
+                objChild.SDversion = nodeChild.version;
+            }
+
+            if(!nodeChild.boundingBox.isEmpty())
+                node.boundingBox.union(nodeChild.boundingBox);
+        }
+
+        convertedObject.visible = node.visible;
+        convertedObject.applyTransformation(node.nodeMatrix);
+
+        if(!node.boundingBox.isEmpty())
+            node.boundingBox.applyMatrix(node.nodeMatrix);
+    }
+
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
@@ -286,20 +365,15 @@ export class SceneTreeManager implements IManager {
             this._scene.add(this._mainNode);
         }
 
-        const lightScene = lightEngine.lightScene;
-        if(lightScene) {
-            const lightSceneChildren = <SDNode[]>this._mainNode.children.filter(oc => lightScene.node.id === (<SDNode>oc).SDid);
-            if (lightSceneChildren.length === 0) {
-                const lightSceneChild = new SDNode(lightScene.node.id, lightScene.node.version);
-                this._mainNode.add(lightSceneChild)
-            }
-        }
+        this._boundingBoxSensitiveData = [];
 
         this._currentSDTFOverview = this.createSDTFOverview();
-
         this.updateNodeHierarchy(root, this._mainNode);
         this.updateNodeData(root, this._mainNode);
         this._boundingBox = root.boundingBox.clone();
+
+        for(let i = 0; i < this._boundingBoxSensitiveData.length;  i++)
+            this._renderingEngine.lightLoader.adjustToBoundingBox(this._boundingBoxSensitiveData[i].data, this._boundingBoxSensitiveData[i].dataChild, this._boundingBox)
 
         if(!this._boundingBox.isEmpty())
             this._boundingBox.applyMatrix(root.nodeMatrix);

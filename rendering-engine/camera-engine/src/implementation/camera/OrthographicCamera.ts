@@ -8,45 +8,56 @@ import { AbstractCamera } from './AbstractCamera'
 import { OrthographicCameraControls } from '../controls/OrthographicCameraControls'
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera'
 import { IOrthographicCameraSettingsV3 } from '@shapediver/viewer.settings'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { OrthographicCameraData } from '@shapediver/viewer.shared.types'
 
 export class OrthographicCamera extends AbstractCamera {
-   // #region Properties (5)
+  // #region Properties (7)
 
-   private readonly _converter: Converter = <Converter>container.resolve(Converter);
+  private readonly _converter: Converter = <Converter>container.resolve(Converter);
 
-   private _bottom: number = 100;
-   private _left: number = 100;
-   private _right: number = 100;
-   private _top: number = 100;
-   private _up: vec3 = vec3.fromValues(0, 1, 0);
-   private _direction: ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
+  private _bottom: number = 100;
+  private _direction: ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
+  private _left: number = 100;
+  private _right: number = 100;
+  private _top: number = 100;
+  private _up: vec3 = vec3.fromValues(0, 1, 0);
 
-   // #endregion Properties (5)
+  // #endregion Properties (7)
 
-   // #region Constructors (1)
+  // #region Constructors (1)
 
-   constructor(viewerId: string, id: string, canvas: HTMLCanvasElement) {
-      super(viewerId, id, canvas, CAMERATYPE.ORTHOGRAPHIC);
-      this._controls = new OrthographicCameraControls(viewerId, this, canvas, true);
+  constructor(id: string, cameraData?: OrthographicCameraData) {
+      super(id, CAMERATYPE.ORTHOGRAPHIC, cameraData?.parent);
+      this._controls = new OrthographicCameraControls(this, true);
+
+      if(cameraData) {
+         if(cameraData.bottom) this._bottom = cameraData.bottom;
+         if(cameraData.top) this._top = cameraData.top;
+         if(cameraData.left) this._left = cameraData.left;
+         if(cameraData.right) this._right = cameraData.right;
+         if(cameraData.near) this.near = cameraData.near;
+         if(cameraData.far) this.far = cameraData.far;
+      }
    }
 
-   // #endregion Constructors (1)
+  // #endregion Constructors (1)
 
-   // #region Public Accessors (8)
+  // #region Public Accessors (12)
 
-   public get bottom(): number {
+  public get bottom(): number {
       return this._bottom;
    }
 
-   public set bottom(value: number) {
+  public set bottom(value: number) {
       this._bottom = value;
    }
 
-   public get direction(): ORTHOGRAPHIC_CAMERA_DIRECTION {
+  public get direction(): ORTHOGRAPHIC_CAMERA_DIRECTION {
       return this._direction;
    }
 
-   public set direction(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
+  public set direction(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
       const changedDirection = this._direction !== value;
 
       this._direction = value;
@@ -78,43 +89,43 @@ export class OrthographicCamera extends AbstractCamera {
       }
    }
 
-   public get left(): number {
+  public get left(): number {
       return this._left;
    }
 
-   public set left(value: number) {
+  public set left(value: number) {
       this._left = value;
    }
 
-   public get right(): number {
+  public get right(): number {
       return this._right;
    }
 
-   public set right(value: number) {
+  public set right(value: number) {
       this._right = value;
    }
 
-   public get top(): number {
+  public get top(): number {
       return this._top;
    }
 
-   public set top(value: number) {
+  public set top(value: number) {
       this._top = value;
    }
 
-   public get up(): vec3 {
+  public get up(): vec3 {
       return this._up;
    }
 
-   public set up(value: vec3) {
+  public set up(value: vec3) {
       this._up = value;
    }
 
-   // #endregion Public Accessors (8)
+  // #endregion Public Accessors (12)
 
-   // #region Public Methods (3)
+  // #region Public Methods (6)
 
-   public applySettings() {
+  public applySettings() {
       const cameraSetting = <IOrthographicCameraSettingsV3>this._settingsEngine.camera.cameras[this.id];
       if(cameraSetting) {
          this.autoAdjust = cameraSetting.autoAdjust;
@@ -143,7 +154,16 @@ export class OrthographicCamera extends AbstractCamera {
       (<OrthographicCameraControls>this._controls).applySettings();
    }
 
-   public getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; } {
+  public assignViewer(viewerId: string, canvas: HTMLCanvasElement): void {
+     this.assignViewerInternal(viewerId, canvas);
+     this._controls.assignViewer(viewerId, canvas);
+  }
+
+  public clone(): OrthographicCamera {
+      return new OrthographicCamera(this.id);
+   }
+
+  public getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; } {
       let box: Box;
 
       // Part 1 - calculate the bounding box that we should zoom to
@@ -197,7 +217,7 @@ export class OrthographicCamera extends AbstractCamera {
       }
    }
 
-   public project(pos: vec3): vec2 {
+  public project(pos: vec3): vec2 {
       const m = mat4.targetTo(mat4.create(), this.position, this.target, this.up);
       const p = mat4.ortho(mat4.create(), this.left, this.right, this.bottom, this.top, this.near, this.far);
       vec3.transformMat4(pos, pos, mat4.invert(m, m))
@@ -205,7 +225,7 @@ export class OrthographicCamera extends AbstractCamera {
       return vec2.fromValues(pos[0], pos[1])
    }
 
-   public unproject(pos: vec3, position = this.position, target = this.target): vec3 {
+  public unproject(pos: vec3, position = this.position, target = this.target): vec3 {
       const m = mat4.targetTo(mat4.create(), this.position, this.target, this.up);
       const p = mat4.ortho(mat4.create(), this.left, this.right, this.bottom, this.top, this.near, this.far);
       vec3.transformMat4(pos, pos, mat4.invert(p,p))
@@ -213,5 +233,5 @@ export class OrthographicCamera extends AbstractCamera {
       return vec3.clone(pos);
    }
 
-   // #endregion Public Methods (3)
+  // #endregion Public Methods (6)
 }

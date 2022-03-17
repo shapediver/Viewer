@@ -5,6 +5,7 @@ export enum SD_DATA_TYPE {
     MATERIAL = 'material',
     THREEJS = 'threejs',
     LIGHT = 'light',
+    CAMERA = 'camera',
     ANIMATION = 'animation',
     INTERACTION = 'interaction',
     HTML_ELEMENT_ANCHOR = 'html_element_anchor',

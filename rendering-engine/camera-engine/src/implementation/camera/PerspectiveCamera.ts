@@ -8,6 +8,8 @@ import { AbstractCamera } from './AbstractCamera'
 import { PerspectiveCameraControls } from '../controls/PerspectiveCameraControls'
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera'
 import { IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { PerspectiveCameraData } from '@shapediver/viewer.shared.types'
 
 export class PerspectiveCamera extends AbstractCamera {
   // #region Properties (3)
@@ -21,9 +23,16 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #region Constructors (1)
 
-  constructor(viewerId: string, id: string, canvas: HTMLCanvasElement) {
-    super(viewerId, id, canvas, CAMERATYPE.PERSPECTIVE);
-    this._controls = new PerspectiveCameraControls(viewerId, this, canvas, true);
+  constructor(id: string, cameraData?: PerspectiveCameraData) {
+    super(id, CAMERATYPE.PERSPECTIVE, cameraData?.parent);
+    this._controls = new PerspectiveCameraControls(this, true);
+
+    if(cameraData) {
+       if(cameraData.aspect) this._aspect = cameraData.aspect;
+       if(cameraData.fov) this._fov = cameraData.fov;
+       if(cameraData.near) this.near = cameraData.near;
+       if(cameraData.far) this.far = cameraData.far;
+    }
   }
 
   // #endregion Constructors (1)
@@ -48,7 +57,7 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #endregion Public Accessors (4)
 
-  // #region Public Methods (3)
+  // #region Public Methods (5)
 
   public applySettings() {
     const cameraSetting = <IPerspectiveCameraSettingsV3>this._settingsEngine.camera.cameras[this.id];
@@ -78,6 +87,15 @@ export class PerspectiveCamera extends AbstractCamera {
       })
     }
     (<PerspectiveCameraControls>this._controls).applySettings();
+  }
+
+  public assignViewer(viewerId: string, canvas: HTMLCanvasElement): void {
+    this.assignViewerInternal(viewerId, canvas);
+    this._controls.assignViewer(viewerId, canvas);
+  }
+
+  public clone(): PerspectiveCamera {
+    return new PerspectiveCamera(this.id);
   }
 
   public getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3, target: vec3 } {
@@ -189,5 +207,5 @@ export class PerspectiveCamera extends AbstractCamera {
     return vec3.clone(pos);
   }
 
-  // #endregion Public Methods (3)
+  // #endregion Public Methods (5)
 }

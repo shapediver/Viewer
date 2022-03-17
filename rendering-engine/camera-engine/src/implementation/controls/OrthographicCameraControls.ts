@@ -30,8 +30,8 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
 
     // #region Constructors (1)
 
-    constructor(viewerId: string, camera: ICamera, canvas: HTMLCanvasElement, enabled: boolean) {
-        super(viewerId, camera, canvas, enabled, CAMERATYPE.ORTHOGRAPHIC);
+    constructor(camera: ICamera, enabled: boolean) {
+        super(camera, enabled, CAMERATYPE.ORTHOGRAPHIC);
         this._cameraLogic = new OrthographicCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrthographicCameraControlsEventDistribution(this, <OrthographicCameraControlsLogic>this._cameraLogic);
     }

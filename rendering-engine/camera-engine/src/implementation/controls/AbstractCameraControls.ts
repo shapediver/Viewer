@@ -15,6 +15,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     private readonly _cameraInterpolationManager: CameraInterpolationManager;
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
+    private _canvas?: HTMLCanvasElement;
     private _manualInteraction: boolean = false;
     private _manualInteractionTransformations: {
         position: {
@@ -41,6 +42,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     };
     private _position: vec3 = vec3.create();
     private _target: vec3 = vec3.create();
+    private _viewerId?: string;
 
     protected _cameraControlsEventDistribution!: ICameraControlsEventDistribution;
     protected _cameraLogic!: ICameraControlsLogic;
@@ -50,9 +52,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     // #region Constructors (1)
 
     constructor(
-        private readonly _viewerId: string, 
         private _camera: ICamera,
-        private _canvas: HTMLCanvasElement,
         private _enabled: boolean,
         type: CAMERATYPE
     ) {
@@ -65,15 +65,20 @@ export class AbstractCameraControls implements ICameraControlsUsage {
 
     // #region Public Accessors (9)
 
+    public assignViewer(viewerId: string, canvas: HTMLCanvasElement) {
+        this._canvas = canvas;
+        this._viewerId = viewerId;
+    }
+
     public get cameraControlsEventDistribution(): ICameraControlsEventDistribution {
         return this._cameraControlsEventDistribution;
     }
 
-    public get canvas(): HTMLCanvasElement {
+    public get canvas(): HTMLCanvasElement | undefined {
         return this._canvas;
     }
 
-    public set canvas(value: HTMLCanvasElement) {
+    public set canvas(value: HTMLCanvasElement | undefined) {
         this._canvas = value;
     }
 
