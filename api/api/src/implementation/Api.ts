@@ -607,7 +607,7 @@ export class Api implements IApi {
     }
   }
 
-  public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'fixed', arPlacement: 'floor', xrEnvironment: false }): Promise<void> {
+  public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'auto', arPlacement: 'floor', xrEnvironment: false }): Promise<void> {
     const eventId = this.#uuidGenerator.create();
     try {
       const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };
