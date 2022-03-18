@@ -19,7 +19,7 @@ import {
     IGLTF_v2_Image,
     IGLTF_v2_Animation,
 } from '@shapediver/viewer.data-engine.shared-types'
-import { mat4 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 import {
     AttributeData,
     GeometryData,
@@ -184,11 +184,29 @@ export class GLTFConverter {
             id: globalTransformationInverseID,
             matrix: this._globalTransformationInverse,
         })
+
+        const translationMatrixID = this._uuidGenerator.create();
+        if(convertForAR) {
+          // add translation matrix to scene tree node
+          const bb = node.boundingBox.clone();
+          const translationVector = vec3.fromValues(-(bb.max[0] + bb.min[0]) / 2.0, -(bb.max[1] + bb.min[1]) / 2.0, -(bb.max[2] + bb.min[2]) / 2.0);
+          let translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), translationVector);
+          node.transformations.push({ id: translationMatrixID, matrix: translationMatrix })
+        }
+
         sceneDef.nodes?.push(this.convertNode(node));
 
         for (let i = 0; i < node.transformations.length; i++)
             if (node.transformations[i].id === globalTransformationInverseID)
                 node.transformations.splice(i, 1);
+
+
+        if (convertForAR) {
+            // remove translation the matrix
+            for (let i = 0; i < node.transformations.length; i++)
+                if (node.transformations[i].id === translationMatrixID)
+                    node.transformations.splice(i, 1);
+        }
 
         this._content.scenes = [];
         this._content.scenes.push(sceneDef);
