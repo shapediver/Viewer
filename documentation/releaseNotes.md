@@ -8,6 +8,11 @@
 * __Commit:__ 590cae8e7ebde12b48c62827351d1d3bdf51d78e
 <!--- VERSION_END -->
 
+## Version 1.13.3 - `Mad Max: Fury Road`
+- bugfix: AR centering moved to gltf converter
+- strict versioning for viewer settings
+- AR in-app scaling on per default
+
 ## Version 1.13.3 - `Mad Max Beyond Thunderdome`
 - removed autoScaling
 - ar centering
