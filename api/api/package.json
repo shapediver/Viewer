@@ -58,7 +58,7 @@
     "@shapediver/viewer.rendering-engine.light-engine": "1.13.3",
     "@shapediver/viewer.rendering-engine.rendering-engine": "1.13.3",
     "@shapediver/viewer.session-engine.session-engine": "1.13.3",
-    "@shapediver/viewer.settings": "*",
+    "@shapediver/viewer.settings": "0.1.36",
     "@shapediver/viewer.shared.build-data": "1.13.3",
     "@shapediver/viewer.shared.math": "1.13.3",
     "@shapediver/viewer.shared.node-tree": "1.13.3",
