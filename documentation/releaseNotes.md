@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.13.3
-* __Build date:__ 2022-03-16T16:16:27.169Z
+* __Version:__ 1.13.4
+* __Build date:__ 2022-03-18T09:34:32.097Z
 * __Branch:__ development
-* __Commit:__ 590cae8e7ebde12b48c62827351d1d3bdf51d78e
+* __Commit:__ b7a2478b4e04c8675634d0a460170fa5d1ef65b8
 <!--- VERSION_END -->
 
 ## Version 1.13.3 - `Mad Max: Fury Road`
