@@ -1,15 +1,30 @@
 
 
-import { api, CAMERATYPE, ENVIRONMENT_MAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
+import { api, CAMERATYPE, DataEngine, ENVIRONMENT_MAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
+import { container } from 'tsyringe';
 
 (<any>window).SDV = SDV;
+const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
 (async () => {
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    let session = await api.createSession({ 
-        ticket: '5dbb5117b630fb83a8056f06ee719f570a904be69ac45152822c327f33d21483a8dae9e3122ae17c992ea6b3e2b65af09ac9871dd83a263ef488e58b2c2260a07899418548bd4a8dcf1cff3ca33954c9e4c0fe60118f730d03c56b7e598eab908b34e16ba8625d-b5ac96869614191d8ada6725aba8fba6', 
-        modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
-        id: 'mySession',
-    });
+    viewer.environmentMap = 'neutral';
+    viewer.ambientOcclusion = false;
+    viewer.shadows = false;
+    viewer.groundPlaneVisibility = false;
+    viewer.gridVisibility = false;
+
+
+
+    const node = await dataEngine.loadContent({
+        format: 'gltf',
+        href: 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/BrainStem/glTF-Draco/BrainStem.gltf'
+    })
+
+    api.sceneTree.root.addChild(node);
+    api.update()
+    await viewer.camera!.zoomTo(undefined, { duration: 0 });
+    viewer.show = true;
+
 })();

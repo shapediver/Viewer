@@ -1,42 +1,45 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
-  Converter,
-  HttpClient,
-  Logger,
-  LOGGINGTOPIC,
-  PerformanceEvaluator,
-  ShapeDiverViewerDataProcessingError,
-  UuidGenerator,
+    Converter,
+    HttpClient,
+    Logger,
+    LOGGINGTOPIC,
+    PerformanceEvaluator,
+    ShapeDiverViewerDataProcessingError,
+    UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import {
-  ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
-  ACCESSORTYPE_V2 as ACCESSORTYPE,
-  IGLTF_v2,
-  IGLTF_v2_Material,
-  IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
-  IGLTF_v2_Primitive,
-  ISHAPEDIVER_materials_preset,
+    ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
+    ACCESSORTYPE_V2 as ACCESSORTYPE,
+    IGLTF_v2,
+    IGLTF_v2_Material,
+    IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
+    IGLTF_v2_Primitive,
+    ISHAPEDIVER_materials_preset,
 } from '@shapediver/viewer.data-engine.shared-types'
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import {
-  AnimationData,
-  AnimationTrack,
-  AttributeData,
-  GeometryData,
-  MapData,
-  MATERIAL_ALPHA,
-  MATERIAL_SIDE,
-  MaterialData,
-  PrimitiveData,
-  PerspectiveCameraData,
-  OrthographicCameraData,
+    AnimationData,
+    AnimationTrack,
+    AttributeData,
+    GeometryData,
+    MapData,
+    MATERIAL_ALPHA,
+    MATERIAL_SIDE,
+    MaterialData,
+    PrimitiveData,
+    PerspectiveCameraData,
+    OrthographicCameraData,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { AxiosResponse } from 'axios'
 
+const DRACO = require('./draco/draco_decoder.js');
+
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
+    KHR_DRACO_MESH_COMPRESSION = 'KHR_draco_mesh_compression',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
     SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
@@ -81,20 +84,20 @@ export class GLTFLoader {
             const node = await this.loadScene();
             if (this._content.skins !== undefined && this._content.nodes !== undefined) {
                 for (let i = 0; i < this._content.nodes?.length; i++) {
-                    if(this._content.nodes[i].skin !== undefined) {
+                    if (this._content.nodes[i].skin !== undefined) {
                         const skinDef = await this.loadSkin(this._content.nodes[i].skin!);
 
                         const skinNode = this._nodes[i];
-                        
+
                         const bones: TreeNode[] = [];
                         const boneInverses: mat4[] = [];
 
-                        for(let j = 0; j < skinDef.joints.length; j++) {
+                        for (let j = 0; j < skinDef.joints.length; j++) {
                             this._nodes[skinDef.joints[j]].bone = true;
                             bones.push(this._nodes[skinDef.joints[j]]);
 
                             let mat = mat4.create();
-                            if ( skinDef.inverseBindMatrices !== undefined ) {
+                            if (skinDef.inverseBindMatrices !== undefined) {
                                 const matricesArray = skinDef.inverseBindMatrices!.array;
                                 mat = mat4.fromValues(matricesArray[j * 16 + 0], matricesArray[j * 16 + 1], matricesArray[j * 16 + 2], matricesArray[j * 16 + 3],
                                     matricesArray[j * 16 + 4], matricesArray[j * 16 + 5], matricesArray[j * 16 + 6], matricesArray[j * 16 + 7],
@@ -105,8 +108,8 @@ export class GLTFLoader {
                         }
 
                         const addBones = (node: TreeNode) => {
-                            for(let j = 0; j < node.data.length; j++)
-                                if(node.data[j] instanceof GeometryData) {
+                            for (let j = 0; j < node.data.length; j++)
+                                if (node.data[j] instanceof GeometryData) {
                                     (<GeometryData>node.data[j]).bones = bones;
                                     (<GeometryData>node.data[j]).boneInverses = boneInverses;
                                 }
@@ -373,7 +376,7 @@ export class GLTFLoader {
         const cameraDef = this._content.cameras[cameraId];
         const cameraNode = new TreeNode(cameraDef.name || 'camera_' + cameraId);
 
-        if ( cameraDef.type === 'perspective' ) {
+        if (cameraDef.type === 'perspective') {
             const perspectiveCameraDef = cameraDef.perspective!;
             const cameraData = new PerspectiveCameraData(cameraNode, cameraNode.id);
             cameraNode.data.push(cameraData);
@@ -381,7 +384,7 @@ export class GLTFLoader {
             cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
             cameraData.near = perspectiveCameraDef.znear || 1;
             cameraData.far = perspectiveCameraDef.zfar || 2e6;
-		} else if ( cameraDef.type === 'orthographic' ) {
+        } else if (cameraDef.type === 'orthographic') {
             const orthographicCameraDef = cameraDef.orthographic!;
             const cameraData = new OrthographicCameraData(cameraNode, cameraNode.id);
             cameraNode.data.push(cameraData);
@@ -391,7 +394,7 @@ export class GLTFLoader {
             cameraData.bottom = orthographicCameraDef.ymag;
             cameraData.near = orthographicCameraDef.znear || 1;
             cameraData.far = orthographicCameraDef.zfar || 2e6;
-		}
+        }
         return cameraNode;
     }
 
@@ -570,7 +573,7 @@ export class GLTFLoader {
             const matT = node.translation ? mat4.fromTranslation(mat4.create(), vec3.fromValues(node.translation[0], node.translation[1], node.translation[2])) : mat4.create();
             const matS = node.scale ? mat4.fromScaling(mat4.create(), vec3.fromValues(node.scale[0], node.scale[1], node.scale[2])) : mat4.create();
             const matR = node.rotation ? mat4.fromQuat(mat4.create(), vec4.fromValues(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3])) : mat4.create();
-            
+
             nodeDef.transformations.push({
                 id: 'gltf_matrix_translation',
                 matrix: matT
@@ -609,8 +612,103 @@ export class GLTFLoader {
             [key: string]: AttributeData
         } = {};
 
+        let indices = null;
         const convertedNames: { [key: string]: string } = {}
+
+        if (primitive.extensions && primitive.extensions[GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION]) {
+            const dracoDef = primitive.extensions[GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION];
+            const arrayBuffer = await this.loadBufferView(dracoDef.bufferView!);
+
+            const DracoModule = await new DRACO();
+            const decoder = new DracoModule.Decoder();
+            const buffer = new DracoModule.DecoderBuffer();
+            buffer.Init(new Int8Array(arrayBuffer), arrayBuffer.byteLength);
+            const geometryType = decoder.GetEncodedGeometryType(buffer);
+
+            let dracoGeometry;
+            if (geometryType === DracoModule.TRIANGULAR_MESH) {
+                dracoGeometry = new DracoModule.Mesh();
+                decoder.DecodeBufferToMesh(buffer, dracoGeometry);
+            } else if (geometryType === DracoModule.POINT_CLOUD) {
+                dracoGeometry = new DracoModule.PointCloud();
+                decoder.DecodeBufferToPointCloud(buffer, dracoGeometry);
+            }
+            DracoModule.destroy(buffer);
+
+            if (dracoDef.attributes['POSITION'] === undefined) {
+                const errorMsg = "No position attribute found in the mesh.";
+                DracoModule.destroy(decoder);
+                DracoModule.destroy(dracoGeometry);
+                throw new Error(errorMsg);
+            }
+
+            for (let a in dracoDef.attributes) {
+                const attribute = decoder.GetAttributeByUniqueId(dracoGeometry, dracoDef.attributes[a])
+                const attributeData = new DracoModule.DracoFloat32Array();
+                decoder.GetAttributeFloatForAllPoints(dracoGeometry, attribute, attributeData);
+
+                const byteOffset = attribute.byte_offset();
+                const normalized = attribute.normalized();
+                const num_components = attribute.num_components();
+                const count = attributeData.size();
+
+                const array = new Float32Array(count);
+        
+                for (let i = 0; i < count; i++) {
+                    for (let a = 0; a < num_components; a++) {
+                        const temp = i * num_components;
+                        const value = attributeData.GetValue(temp + a);
+                        array[temp + a] = value;
+                    }
+                }
+                DracoModule.destroy(attributeData);
+
+                attributes[a] = new AttributeData(
+                    array,
+                    num_components, // itemSize
+                    array.BYTES_PER_ELEMENT * num_components, // itemBytes = elementBytes * itemSize
+                    byteOffset, // byteOffset
+                    array.BYTES_PER_ELEMENT, // elementBytes
+                    normalized, // normalized
+                    array.length / num_components
+                );
+            }
+
+            const numFaces = geometryType == DracoModule.TRIANGULAR_MESH ? dracoGeometry.num_faces() : 0;
+            const numIndices = numFaces * 3; 
+            const indexArray = new Uint32Array(numIndices);
+
+            // For mesh, we need to generate the faces.
+            if (geometryType == DracoModule.TRIANGULAR_MESH) {
+                const ia = new DracoModule.DracoInt32Array();
+                for (let i = 0; i < numFaces; ++i) {
+                    decoder.GetFaceFromMesh(dracoGeometry, i, ia);
+                    const index = i * 3;
+                    indexArray[index] = ia.GetValue(0);
+                    indexArray[index + 1] = ia.GetValue(1);
+                    indexArray[index + 2] = ia.GetValue(2);
+                }
+                DracoModule.destroy(ia);
+            }
+            DracoModule.destroy(decoder);
+            DracoModule.destroy(dracoGeometry);
+
+            if (geometryType == DracoModule.TRIANGULAR_MESH)
+                indices = new AttributeData(
+                    indexArray,
+                    1, // itemSize
+                    indexArray.BYTES_PER_ELEMENT * 1, // itemBytes = elementBytes * itemSize
+                    0, // byteOffset
+                    indexArray.BYTES_PER_ELEMENT, // elementBytes
+                    false, // normalized
+                    indexArray.length // count
+                );
+        }
+
         for (let attribute in primitive.attributes) {
+            if (attributes[attribute])
+                continue;
+
             let attributeName = attribute;
             // attribute name conversion to be consistent with gltf
             if (/\d/.test(attributeName) && !attributeName.includes('_')) {
@@ -626,6 +724,9 @@ export class GLTFLoader {
             attributes[attributeName] = (await this.loadAccessor(primitive.attributes[attribute]))!;
         }
 
+        if ((primitive.indices || primitive.indices === 0) && !indices)
+            indices = await this.loadAccessor(primitive.indices);
+
         // reading and assigning morph targets
         if (primitive.targets) {
             for (let i = 0; i < primitive.targets.length; i++) {
@@ -635,10 +736,6 @@ export class GLTFLoader {
                 }
             }
         }
-
-        let indices = null;
-        if (primitive.indices || primitive.indices === 0)
-            indices = await this.loadAccessor(primitive.indices);
 
         let material = null;
         if (primitive.material || primitive.material === 0)

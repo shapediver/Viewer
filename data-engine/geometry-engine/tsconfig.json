@@ -1,11 +1,14 @@
 {
     "extends": "../../tsconfig.json",
     "include": [
-        "./**/*.ts"
+        "./**/*.ts",
+        "./**/*.ts",
+        "./**/*.wasm"
     ],
     "compilerOptions": {
         "rootDir": "src",
-        "outDir": "dist"
+        "outDir": "dist",
+        "allowJs": true
     },
     "exclude": [
         "__tests__",
