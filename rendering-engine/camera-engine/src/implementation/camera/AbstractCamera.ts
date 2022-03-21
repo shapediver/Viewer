@@ -11,7 +11,7 @@ import { CAMERATYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCameraControls } from '../controls/AbstractCameraControls'
 
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
-    // #region Properties (18)
+    // #region Properties (17)
 
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
@@ -25,8 +25,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     private _revertAtMouseUpDuration: number = 800;
     private _zoomExtentsFactor: number = 1;
 
-    private readonly _parent?: TreeNode;
-
     protected readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     protected readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -36,18 +34,17 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
 
-    // #endregion Properties (18)
+    // #endregion Properties (17)
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, private readonly _type: CAMERATYPE, node?: TreeNode) {
+    constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {
         super(_id);
-        this._parent = node;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (30)
+    // #region Public Accessors (27)
 
     public get autoAdjust(): boolean {
         return this._autoAdjust;
@@ -117,10 +114,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this._near = value;
     }
 
-    public get parent(): TreeNode | undefined {
-        return this._parent;
-    }
-
     public get order(): number | undefined {
         return this._order;
     }
@@ -175,9 +168,9 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this._zoomExtentsFactor = value;
     }
 
-    // #endregion Public Accessors (30)
+    // #endregion Public Accessors (27)
 
-    // #region Public Methods (6)
+    // #region Public Methods (5)
 
     public async animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
         if (path.length === 0) return Promise.resolve(false);
@@ -258,9 +251,9 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         return this.set(position, target, options);
     }
 
-    // #endregion Public Methods (6)
+    // #endregion Public Methods (5)
 
-    // #region Public Abstract Methods (4)
+    // #region Public Abstract Methods (2)
 
     abstract applySettings(): void;
     abstract getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; };
@@ -268,5 +261,5 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     abstract unproject(p: vec3): vec3;
     abstract assignViewer(viewerId: string, canvas: HTMLCanvasElement): void;
 
-    // #endregion Public Abstract Methods (4)
+    // #endregion Public Abstract Methods (2)
 }

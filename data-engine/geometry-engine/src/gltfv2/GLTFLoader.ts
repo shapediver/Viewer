@@ -20,17 +20,15 @@ import {
 } from '@shapediver/viewer.data-engine.shared-types'
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import {
-    AnimationData,
-    AnimationTrack,
-    AttributeData,
-    GeometryData,
-    MapData,
-    MATERIAL_ALPHA,
-    MATERIAL_SIDE,
-    MaterialData,
-    PrimitiveData,
-    PerspectiveCameraData,
-    OrthographicCameraData,
+  AnimationData,
+  AnimationTrack,
+  AttributeData,
+  GeometryData,
+  MapData,
+  MATERIAL_ALPHA,
+  MATERIAL_SIDE,
+  MaterialData,
+  PrimitiveData,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { AxiosResponse } from 'axios'
@@ -376,25 +374,25 @@ export class GLTFLoader {
         const cameraDef = this._content.cameras[cameraId];
         const cameraNode = new TreeNode(cameraDef.name || 'camera_' + cameraId);
 
-        if (cameraDef.type === 'perspective') {
-            const perspectiveCameraDef = cameraDef.perspective!;
-            const cameraData = new PerspectiveCameraData(cameraNode, cameraNode.id);
-            cameraNode.data.push(cameraData);
-            cameraData.fov = perspectiveCameraDef.yfov * (180 / Math.PI);
-            cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
-            cameraData.near = perspectiveCameraDef.znear || 1;
-            cameraData.far = perspectiveCameraDef.zfar || 2e6;
-        } else if (cameraDef.type === 'orthographic') {
-            const orthographicCameraDef = cameraDef.orthographic!;
-            const cameraData = new OrthographicCameraData(cameraNode, cameraNode.id);
-            cameraNode.data.push(cameraData);
-            cameraData.left = -orthographicCameraDef.xmag;
-            cameraData.right = orthographicCameraDef.xmag;
-            cameraData.top = -orthographicCameraDef.ymag;
-            cameraData.bottom = orthographicCameraDef.ymag;
-            cameraData.near = orthographicCameraDef.znear || 1;
-            cameraData.far = orthographicCameraDef.zfar || 2e6;
-        }
+        // if (cameraDef.type === 'perspective') {
+        //     const perspectiveCameraDef = cameraDef.perspective!;
+        //     const cameraData = new PerspectiveCameraData(cameraNode, cameraNode.id);
+        //     cameraNode.data.push(cameraData);
+        //     cameraData.fov = perspectiveCameraDef.yfov * (180 / Math.PI);
+        //     cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
+        //     cameraData.near = perspectiveCameraDef.znear || 1;
+        //     cameraData.far = perspectiveCameraDef.zfar || 2e6;
+        // } else if (cameraDef.type === 'orthographic') {
+        //     const orthographicCameraDef = cameraDef.orthographic!;
+        //     const cameraData = new OrthographicCameraData(cameraNode, cameraNode.id);
+        //     cameraNode.data.push(cameraData);
+        //     cameraData.left = -orthographicCameraDef.xmag;
+        //     cameraData.right = orthographicCameraDef.xmag;
+        //     cameraData.top = -orthographicCameraDef.ymag;
+        //     cameraData.bottom = orthographicCameraDef.ymag;
+        //     cameraData.near = orthographicCameraDef.znear || 1;
+        //     cameraData.far = orthographicCameraDef.zfar || 2e6;
+        // }
         return cameraNode;
     }
 

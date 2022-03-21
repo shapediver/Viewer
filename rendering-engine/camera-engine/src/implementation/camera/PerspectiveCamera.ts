@@ -8,8 +8,6 @@ import { AbstractCamera } from './AbstractCamera'
 import { PerspectiveCameraControls } from '../controls/PerspectiveCameraControls'
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera'
 import { IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { PerspectiveCameraData } from '@shapediver/viewer.shared.types'
 
 export class PerspectiveCamera extends AbstractCamera {
   // #region Properties (3)
@@ -23,16 +21,9 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #region Constructors (1)
 
-  constructor(id: string, cameraData?: PerspectiveCameraData) {
-    super(id, CAMERATYPE.PERSPECTIVE, cameraData?.parent);
+  constructor(id: string) {
+    super(id, CAMERATYPE.PERSPECTIVE);
     this._controls = new PerspectiveCameraControls(this, true);
-
-    if(cameraData) {
-       if(cameraData.aspect) this._aspect = cameraData.aspect;
-       if(cameraData.fov) this._fov = cameraData.fov;
-       if(cameraData.near) this.near = cameraData.near;
-       if(cameraData.far) this.far = cameraData.far;
-    }
   }
 
   // #endregion Constructors (1)
@@ -57,7 +48,7 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #endregion Public Accessors (4)
 
-  // #region Public Methods (5)
+  // #region Public Methods (6)
 
   public applySettings() {
     const cameraSetting = <IPerspectiveCameraSettingsV3>this._settingsEngine.camera.cameras[this.id];
@@ -207,5 +198,5 @@ export class PerspectiveCamera extends AbstractCamera {
     return vec3.clone(pos);
   }
 
-  // #endregion Public Methods (5)
+  // #endregion Public Methods (6)
 }

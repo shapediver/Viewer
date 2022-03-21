@@ -22,8 +22,6 @@ import { IEnvironmentEvent } from './events/IEnvironmentEvent'
 import { ISceneEvent } from './events/ISceneEvent'
 import { ISettingsEvent } from './events/ISettingsEvent'
 import { ITaskEvent, TASKTYPE } from './events/ITaskEvent'
-import { OrthographicCameraData } from './data/camera/OrthographicCameraData'
-import { PerspectiveCameraData } from './data/camera/PerspectiveCameraData'
 
 export {
   MaterialData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
@@ -47,8 +45,4 @@ export {
 
 export {
   SDTFAttributeOverview, SDTFOverview, SDTFAttributesData, SDTFAttributeVisualizationData, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, SDTFAttributeData, SDTFItemData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT
-}
-
-export {
-  PerspectiveCameraData, OrthographicCameraData
 }

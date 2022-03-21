@@ -8,8 +8,6 @@ import { AbstractCamera } from './AbstractCamera'
 import { OrthographicCameraControls } from '../controls/OrthographicCameraControls'
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera'
 import { IOrthographicCameraSettingsV3 } from '@shapediver/viewer.settings'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { OrthographicCameraData } from '@shapediver/viewer.shared.types'
 
 export class OrthographicCamera extends AbstractCamera {
   // #region Properties (7)
@@ -27,18 +25,9 @@ export class OrthographicCamera extends AbstractCamera {
 
   // #region Constructors (1)
 
-  constructor(id: string, cameraData?: OrthographicCameraData) {
-      super(id, CAMERATYPE.ORTHOGRAPHIC, cameraData?.parent);
+  constructor(id: string) {
+      super(id, CAMERATYPE.ORTHOGRAPHIC);
       this._controls = new OrthographicCameraControls(this, true);
-
-      if(cameraData) {
-         if(cameraData.bottom) this._bottom = cameraData.bottom;
-         if(cameraData.top) this._top = cameraData.top;
-         if(cameraData.left) this._left = cameraData.left;
-         if(cameraData.right) this._right = cameraData.right;
-         if(cameraData.near) this.near = cameraData.near;
-         if(cameraData.far) this.far = cameraData.far;
-      }
    }
 
   // #endregion Constructors (1)
@@ -155,13 +144,13 @@ export class OrthographicCamera extends AbstractCamera {
    }
 
   public assignViewer(viewerId: string, canvas: HTMLCanvasElement): void {
-     this.assignViewerInternal(viewerId, canvas);
-     this._controls.assignViewer(viewerId, canvas);
-  }
+      this.assignViewerInternal(viewerId, canvas);
+      this._controls.assignViewer(viewerId, canvas);
+   }
 
   public clone(): OrthographicCamera {
-      return new OrthographicCamera(this.id);
-   }
+       return new OrthographicCamera(this.id);
+    }
 
   public getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; } {
       let box: Box;
