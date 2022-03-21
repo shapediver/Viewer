@@ -27,9 +27,9 @@ export class SceneTracingManager implements IManager {
     public convert3Dto2D(p: vec3): {
         container: vec2, client: vec2, page: vec2, hidden: boolean
     } {
-        const canvasPageCoordinates = this._renderingEngine.canvas.canvasElement.getBoundingClientRect(),
-            width = this._renderingEngine.canvas.canvasElement.width,
-            height = this._renderingEngine.canvas.canvasElement.height;
+        const canvasPageCoordinates = this._renderingEngine.canvas.getBoundingClientRect(),
+            width = this._renderingEngine.canvas.width,
+            height = this._renderingEngine.canvas.height;
 
         const camera = this._renderingEngine.cameraEngine.camera;
         if (!camera){

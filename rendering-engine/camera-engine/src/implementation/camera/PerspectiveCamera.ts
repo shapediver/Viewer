@@ -1,18 +1,33 @@
-import { SettingsEngine, StateEngine, Converter } from '@shapediver/viewer.shared.services'
+import {
+  Converter,
+  DomEventEngine,
+  Logger,
+  LOGGINGTOPIC,
+  SettingsEngine,
+  ShapeDiverViewerCameraError,
+  StateEngine,
+} from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { mat4, quat, vec2, vec3 } from 'gl-matrix'
 import { Box, Plane } from '@shapediver/viewer.shared.math'
+import { IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { Tree } from '@shapediver/viewer.shared.node-tree'
 
 import { CAMERATYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCamera } from './AbstractCamera'
 import { PerspectiveCameraControls } from '../controls/PerspectiveCameraControls'
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera'
-import { IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
 
 export class PerspectiveCamera extends AbstractCamera {
   // #region Properties (3)
 
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
+  private readonly _logger: Logger = <Logger>container.resolve(Logger);
+  private readonly _tree: Tree = <Tree>container.resolve(Tree);
+
+  private _domEventListenerToken?: string;
+  private _domEventEngine?: DomEventEngine;
 
   private _aspect: number | undefined;
   private _fov: number = 60;
@@ -30,7 +45,7 @@ export class PerspectiveCamera extends AbstractCamera {
 
   // #region Public Accessors (4)
 
-  public get aspect(): number| undefined {
+  public get aspect(): number | undefined {
     return this._aspect;
   }
 
@@ -52,19 +67,19 @@ export class PerspectiveCamera extends AbstractCamera {
 
   public applySettings() {
     const cameraSetting = <IPerspectiveCameraSettingsV3>this._settingsEngine.camera.cameras[this.id];
-    if(cameraSetting) {
+    if (cameraSetting) {
       this.autoAdjust = cameraSetting.autoAdjust;
       this.cameraMovementDuration = cameraSetting.cameraMovementDuration;
       this.enableCameraControls = cameraSetting.enableCameraControls;
       this.revertAtMouseUp = cameraSetting.revertAtMouseUp;
       this.revertAtMouseUpDuration = cameraSetting.revertAtMouseUpDuration;
       this.zoomExtentsFactor = cameraSetting.zoomExtentsFactor;
-  
+
       let position = this._converter.toVec3(cameraSetting.position);
       let target = this._converter.toVec3(cameraSetting.target);
       this.defaultPosition = vec3.clone(position);
       this.defaultTarget = vec3.clone(target);
-        
+
       this.position = position;
       this.target = target;
       this.fov = cameraSetting.fov;
@@ -80,9 +95,24 @@ export class PerspectiveCamera extends AbstractCamera {
     (<PerspectiveCameraControls>this._controls).applySettings();
   }
 
-  public assignViewer(viewerId: string, canvas: HTMLCanvasElement): void {
-    this.assignViewerInternal(viewerId, canvas);
-    this._controls.assignViewer(viewerId, canvas);
+  public assignViewer(viewerId: string): void {
+    const renderingEngines = (<IRenderingEngine[]>container.resolveAll('renderingEngine'));
+    let renderingEngine: IRenderingEngine | undefined = renderingEngines.find(r => r.id === viewerId);
+    if(!renderingEngine) {
+      const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with ID ${viewerId} not found.`);
+      throw this._logger.handleError(LOGGINGTOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);
+    }
+
+    this.assignViewerInternal(viewerId, renderingEngine.canvas);
+    this._controls.assignViewer(viewerId, renderingEngine.canvas);
+
+    if (this._domEventListenerToken && this._domEventEngine)
+      this._domEventEngine.removeDomEventListener(this._domEventListenerToken);
+
+    this._domEventEngine = renderingEngine.domEventEngine;
+    this._domEventListenerToken = this._domEventEngine.addDomEventListener((<PerspectiveCameraControls>this._controls).cameraControlsEventDistribution);
+
+    this.boundingBox = this._tree.root.boundingBox.clone();
   }
 
   public clone(): PerspectiveCamera {
@@ -101,14 +131,14 @@ export class PerspectiveCamera extends AbstractCamera {
       box = zoomTarget.clone();
     }
 
-    if(box.isEmpty()) return { position: vec3.create(), target: vec3.create() }
+    if (box.isEmpty()) return { position: vec3.create(), target: vec3.create() }
 
     const samePosition = this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2];
     let target = vec3.fromValues((box.max[0] + box.min[0]) / 2, (box.max[1] + box.min[1]) / 2, (box.max[2] + box.min[2]) / 2);
 
     // if the camera position and the target are the same, we set a corner position
     if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])
-      this.position = vec3.fromValues(target[0], target[1]-7.5, target[2]+5);
+      this.position = vec3.fromValues(target[0], target[1] - 7.5, target[2] + 5);
 
     // extend box by the factor
     const boxDir = vec3.subtract(vec3.create(), box.max, target)
@@ -174,7 +204,7 @@ export class PerspectiveCamera extends AbstractCamera {
     }
 
     position = vec3.add(vec3.create(), target, vec3.multiply(vec3.create(), direction, vec3.fromValues(-distanceCamera, -distanceCamera, -distanceCamera)));
-  
+
     return {
       position, target
     }
@@ -193,7 +223,7 @@ export class PerspectiveCamera extends AbstractCamera {
     const m = mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
     const aspect = this.aspect || 1.5;
     const p = mat4.perspective(mat4.create(), this.fov / (180 / Math.PI), aspect, this.near, this.far);
-    vec3.transformMat4(pos, pos, mat4.invert(p,p))
+    vec3.transformMat4(pos, pos, mat4.invert(p, p))
     vec3.transformMat4(pos, pos, m)
     return vec3.clone(pos);
   }

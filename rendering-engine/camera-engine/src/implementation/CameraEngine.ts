@@ -1,19 +1,30 @@
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, UuidGenerator, Logger, LOGGINGTOPIC, ShapeDiverViewerCameraError } from '@shapediver/viewer.shared.services'
+import {
+  DomEventEngine,
+  EventEngine,
+  EVENTTYPE,
+  IEvent,
+  Logger,
+  LOGGINGTOPIC,
+  SettingsEngine,
+  ShapeDiverViewerCameraError,
+  StateEngine,
+  UuidGenerator,
+} from '@shapediver/viewer.shared.services'
 import { container, singleton } from 'tsyringe'
 import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { Box } from '@shapediver/viewer.shared.math'
+import { vec3 } from 'gl-matrix'
+import { IOrthographicCameraSettingsV3, IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
+import { ISceneEvent } from '@shapediver/viewer.shared.types'
+import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { CAMERATYPE, ICameraEngine } from '../interfaces/ICameraEngine'
-import { AbstractCamera as Camera } from './camera/AbstractCamera'
+import { AbstractCamera, AbstractCamera as Camera } from './camera/AbstractCamera'
 import { OrthographicCameraControls } from './controls/OrthographicCameraControls'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCameraControls } from './controls/PerspectiveCameraControls'
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../interfaces/camera/IOrthographicCamera'
-import { vec3 } from 'gl-matrix'
-import { IOrthographicCameraSettingsV3, IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
-import { ISceneEvent } from '@shapediver/viewer.shared.types'
-import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (10)
@@ -40,14 +51,15 @@ export class CameraEngine implements ICameraEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _viewerId: string, private readonly _canvas: ICanvas, private readonly _domEventEngine: DomEventEngine) {
+    constructor(private readonly _viewerId: string, private readonly _canvas: HTMLCanvasElement, private readonly _domEventEngine: DomEventEngine) {
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
             const viewerEvent = <ISceneEvent>e;
             if (viewerEvent.viewerId === this._viewerId) {
                 this._boundingBox = new Box(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max);
 
-                for (let c in this.cameras)
-                    this.cameras[c].boundingBox = this._boundingBox.clone();
+                const cameras = this.cameras;
+                for (let c in cameras)
+                    cameras[c].boundingBox = this._boundingBox.clone();
             }
         });
 
@@ -70,6 +82,7 @@ export class CameraEngine implements ICameraEngine {
     public get cameras(): {
         [key: string]: Camera
     } {
+        this.searchForNewCameras();
         return this._cameras;
     }
 
@@ -78,12 +91,14 @@ export class CameraEngine implements ICameraEngine {
     // #region Public Methods (7)
 
     public activateCameraEvents(): void {
-        for(let c in this.cameras)
-            (<PerspectiveCameraControls | OrthographicCameraControls>this.cameras[c].controls).cameraControlsEventDistribution.activateCameraEvents();
+        const cameras = this.cameras;
+        for(let c in cameras)
+            (<PerspectiveCameraControls | OrthographicCameraControls>cameras[c].controls).cameraControlsEventDistribution.activateCameraEvents();
     }
 
     public applySettings() {
-        for (let c in this.cameras)
+        const cameras = this.cameras;
+        for (let c in cameras)
             this.removeCamera(c);
 
         for(let id in this._settingsEngine.settings.camera.cameras) {
@@ -97,8 +112,8 @@ export class CameraEngine implements ICameraEngine {
         }
 
         if(!this._settingsApplied)
-            for (let c in this.cameras)
-                this.cameras[c].applySettings();
+            for (let c in cameras)
+                cameras[c].applySettings();
 
         const cameraKeys = Object.keys(this._settingsEngine.settings.camera.cameras);
 
@@ -124,52 +139,41 @@ export class CameraEngine implements ICameraEngine {
     }
 
     public createCamera(type: CAMERATYPE, id?: string): Camera {
+        const cameras = this.cameras;
         const cameraId = id || this._uuidGenerator.create();
-        if (this.cameras[cameraId]) {
+        if (cameras[cameraId]) {
             const error = new ShapeDiverViewerCameraError(`CameraEngine.createCamera: Camera (${type}) with this id (${cameraId}) already exists.`);
             throw this._logger.handleError(LOGGINGTOPIC.CAMERA, `CameraEngine.createCamera`, error);
         }
         
-        if (CAMERATYPE.ORTHOGRAPHIC === type) {
-            const camera = new OrthographicCamera(cameraId);
-            camera.assignViewer(this._viewerId, this._canvas.canvasElement);
-            this._camerasDomEventListenerToken[cameraId] = this._domEventEngine.addDomEventListener((<OrthographicCameraControls>camera.controls).cameraControlsEventDistribution);
-            this.cameras[cameraId] = camera;
-            camera.boundingBox = this._boundingBox.clone();
-            if(this._settingsApplied) {
-                camera.applySettings();
-            } else {
-                camera.zoomTo(undefined, { duration: 0 });
-            }
-            return camera;
+        const camera = CAMERATYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId) : new OrthographicCamera(cameraId);
+        camera.assignViewer(this._viewerId);
+
+        cameras[cameraId] = camera;
+        if (this._settingsApplied) {
+            camera.applySettings();
         } else {
-            const camera = new PerspectiveCamera(cameraId);
-            camera.assignViewer(this._viewerId, this._canvas.canvasElement);
-            this._camerasDomEventListenerToken[cameraId] = this._domEventEngine.addDomEventListener((<PerspectiveCameraControls>camera.controls).cameraControlsEventDistribution);
-            this.cameras[cameraId] = camera;
-            camera.boundingBox = this._boundingBox.clone();
-            if(this._settingsApplied) {
-                camera.applySettings();
-            } else {
-                camera.zoomTo(undefined, { duration: 0 });
-            }
-            return camera;
+            camera.zoomTo(undefined, { duration: 0 });
         }
+
+        return camera;
     }
 
     public deactivateCameraEvents(): void {
-        for (let c in this.cameras)
-            (<PerspectiveCameraControls | OrthographicCameraControls>this.cameras[c].controls).cameraControlsEventDistribution.deactivateCameraEvents();
+        const cameras = this.cameras;
+        for (let c in cameras)
+            (<PerspectiveCameraControls | OrthographicCameraControls>cameras[c].controls).cameraControlsEventDistribution.deactivateCameraEvents();
     }
 
     public removeCamera(id: string): boolean {
-        const camera = this.cameras[id];
+        const cameras = this.cameras;
+        const camera = cameras[id];
         if (!camera) return false;
         this._domEventEngine.removeDomEventListener(this._camerasDomEventListenerToken[id])
         if (this._camera && this._camera.id === id)
             this._camera = null;
 
-        delete this.cameras[id];
+        delete cameras[id];
         delete this._camerasDomEventListenerToken[id];
         return true;
     }
@@ -288,24 +292,19 @@ export class CameraEngine implements ICameraEngine {
     // #region Private Methods (1)
 
     private searchForNewCameras() {
-        // const newCameras: (PerspectiveCameraData | OrthographicCameraData)[] = [];
-        // const getCameraData = (node: TreeNode) => {
-        //     for(let i = 0; i < node.data.length; i++)
-        //         if((node.data[i] instanceof PerspectiveCameraData || node.data[i] instanceof OrthographicCameraData) && !this.cameras[node.data[i].id])
-        //             newCameras.push(<PerspectiveCameraData | OrthographicCameraData>node.data[i])
+        const getCameraData = (node: TreeNode) => {
+            for(let i = 0; i < node.data.length; i++)
+                if((node.data[i] instanceof AbstractCamera) && !this._cameras[node.data[i].id]) {
+                    const camera = <AbstractCamera>node.data[i];
+                    console.log(camera.viewerId, this._viewerId)
+                    if(camera.viewerId === this._viewerId)
+                        this._cameras[camera.id] = camera;
+                }
 
-        //     for(let i = 0; i < node.children.length; i++)
-        //         getCameraData(node.children[i]);
-        // };
-        // getCameraData(this._tree.root);
-
-        // for(let i = 0; i < newCameras.length; i++) {
-        //     if(newCameras[i] instanceof PerspectiveCamera) {
-        //         this.createCamera(CAMERATYPE.PERSPECTIVE, newCameras[i].id, newCameras[i])
-        //     } else {
-        //         this.createCamera(CAMERATYPE.ORTHOGRAPHIC, newCameras[i].id, newCameras[i])
-        //     }
-        // }
+            for(let i = 0; i < node.children.length; i++)
+                getCameraData(node.children[i]);
+        };
+        getCameraData(this._tree.root);
     }
 
     // #endregion Private Methods (1)

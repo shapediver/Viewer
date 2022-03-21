@@ -2,19 +2,28 @@ import * as TWEEN from '@tweenjs/tween.js'
 import * as Stats from 'stats.js'
 import * as THREE from 'three'
 import {
-    CAMERATYPE,
-    PerspectiveCamera,
-    PerspectiveCameraControls
+  CAMERATYPE,
+  PerspectiveCamera,
+  PerspectiveCameraControls,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { EventEngine, EVENTTYPE, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerWebGLError, Converter } from '@shapediver/viewer.shared.services'
+import {
+  Converter,
+  EventEngine,
+  EVENTTYPE,
+  Logger,
+  LOGGINGTOPIC,
+  ShapeDiverViewerWebGLError,
+  StateEngine,
+  SystemInfo,
+} from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
+import { ICameraEvent } from '@shapediver/viewer.shared.types'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
 import { IManager } from '../interfaces/IManager'
-import { ICameraEvent } from '@shapediver/viewer.shared.types'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class RenderingManager implements IManager {
     // #region Properties (20)
@@ -172,23 +181,23 @@ export class RenderingManager implements IManager {
             })
 
             window.onresize = () => { this.render(); };
-            this._renderingEngine.canvas.canvasElement.onresize = () => { this.render(); };
-            this._renderingEngine.canvas.canvasElement.parentElement!.onresize = () => { this.render(); };
+            this._renderingEngine.canvas.onresize = () => { this.render(); };
+            this._renderingEngine.canvas.parentElement!.onresize = () => { this.render(); };
 
             const stats1 = new Stats.default();
             stats1.showPanel(0); // Panel 0 = fps
             stats1.dom.style.cssText = 'position:absolute;top:0px;left:0px;display:none;';
-            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats1.dom);
+            this._renderingEngine.canvas.parentElement!.appendChild(stats1.dom);
 
             const stats2 = new Stats.default();
             stats2.showPanel(1); // Panel 1 = ms
             stats2.dom.style.cssText = 'position:absolute;top:0px;left:80px;display:none;';
-            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats2.dom);
+            this._renderingEngine.canvas.parentElement!.appendChild(stats2.dom);
 
             const stats3 = new Stats.default();
             stats3.showPanel(2); // Panel 2 = ms
             stats3.dom.style.cssText = 'position:absolute;top:0px;left:160px;display:none;';
-            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats3.dom);
+            this._renderingEngine.canvas.parentElement!.appendChild(stats3.dom);
 
             this._stats = {
                 stats: [stats1, stats2, stats3],
@@ -338,8 +347,8 @@ export class RenderingManager implements IManager {
     private calculateSize(): { adjustedWidth: number, adjustedHeight: number, width: number, height: number } {
         let width = this._width, height = this._height;
         if (this._renderingEngine.automaticResizing) {
-            width = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientWidth;
-            height = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientHeight;
+            width = (<HTMLDivElement>this._renderingEngine.canvas.parentNode).clientWidth;
+            height = (<HTMLDivElement>this._renderingEngine.canvas.parentNode).clientHeight;
         }
 
         const aspect = width / height;
@@ -505,8 +514,8 @@ export class RenderingManager implements IManager {
     private toggleLogo(toggle: boolean) {
         if (this._renderingEngine.logoDivElement)
             this._renderingEngine.logoDivElement.style.display = toggle ? 'inherit' : 'none';
-        if (this._renderingEngine.canvas.canvasElement)
-            this._renderingEngine.canvas.canvasElement.style.display = !toggle ? 'inherit' : 'none';
+        if (this._renderingEngine.canvas)
+            this._renderingEngine.canvas.style.display = !toggle ? 'inherit' : 'none';
     }
 
     // #endregion Private Methods (10)

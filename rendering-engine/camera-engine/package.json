@@ -36,7 +36,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.rendering-engine.canvas-engine": "1.13.0",
+    "@shapediver/viewer.rendering-engine.rendering-engine": "1.13.0",
     "@shapediver/viewer.settings": "*",
     "@shapediver/viewer.shared.math": "1.13.0",
     "@shapediver/viewer.shared.node-tree": "1.13.0",

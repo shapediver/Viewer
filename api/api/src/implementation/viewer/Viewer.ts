@@ -12,6 +12,7 @@ import {
 } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   Converter,
+  DomEventEngine,
   EventEngine,
   EVENTTYPE,
   IDomEventListener,
@@ -227,6 +228,9 @@ export class Viewer implements IViewer {
   }
 
   public get cameras(): { [key: string]: ICamera } {
+
+    console.log('here')
+
     // add new cameras
     for (let c in this.#renderingEngine.cameraEngine.cameras) {
       if (!this.#cameras[c])
@@ -242,7 +246,7 @@ export class Viewer implements IViewer {
   }
 
   public get canvas(): HTMLCanvasElement {
-    return this.#renderingEngine.canvas.canvasElement;
+    return this.#renderingEngine.canvas;
   }
 
   public get clearAlpha(): number {
@@ -285,6 +289,10 @@ export class Viewer implements IViewer {
 
   public set convertSDTFItemToVisualizationData(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
     this.#renderingEngine.convertSDTFItemToVisualizationData = value;
+  }
+  
+  public get domEventEngine(): DomEventEngine {
+    return this.#renderingEngine.domEventEngine;
   }
 
   public get environmentMap(): string | string[] {

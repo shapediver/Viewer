@@ -54,7 +54,7 @@ export class HTMLElementAnchorLoader implements ILoader {
     }
 
     public init(): void {
-        this._renderingEngine.canvas.canvasElement.parentNode?.appendChild(this._parentDiv);
+        this._renderingEngine.canvas.parentNode?.appendChild(this._parentDiv);
     }
 
     public load(anchor: HTMLElementAnchorData): void {

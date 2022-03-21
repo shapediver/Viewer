@@ -1,9 +1,8 @@
 {
     "extends": "../../tsconfig.json",
     "include": [
-        "./**/*.ts",
-        "./**/*.ts",
-        "./**/*.wasm"
+        "./**/*.js",
+        "./**/*.ts"
     ],
     "compilerOptions": {
         "rootDir": "src",

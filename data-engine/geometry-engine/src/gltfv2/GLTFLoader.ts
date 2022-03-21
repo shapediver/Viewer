@@ -1,22 +1,22 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
-    Converter,
-    HttpClient,
-    Logger,
-    LOGGINGTOPIC,
-    PerformanceEvaluator,
-    ShapeDiverViewerDataProcessingError,
-    UuidGenerator,
+  Converter,
+  HttpClient,
+  Logger,
+  LOGGINGTOPIC,
+  PerformanceEvaluator,
+  ShapeDiverViewerDataProcessingError,
+  UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import {
-    ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
-    ACCESSORTYPE_V2 as ACCESSORTYPE,
-    IGLTF_v2,
-    IGLTF_v2_Material,
-    IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
-    IGLTF_v2_Primitive,
-    ISHAPEDIVER_materials_preset,
+  ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
+  ACCESSORTYPE_V2 as ACCESSORTYPE,
+  IGLTF_v2,
+  IGLTF_v2_Material,
+  IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
+  IGLTF_v2_Primitive,
+  ISHAPEDIVER_materials_preset,
 } from '@shapediver/viewer.data-engine.shared-types'
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import {
@@ -32,6 +32,7 @@ import {
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { AxiosResponse } from 'axios'
+import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 
 const DRACO = require('./draco/draco_decoder.js');
 
@@ -374,25 +375,31 @@ export class GLTFLoader {
         const cameraDef = this._content.cameras[cameraId];
         const cameraNode = new TreeNode(cameraDef.name || 'camera_' + cameraId);
 
-        // if (cameraDef.type === 'perspective') {
-        //     const perspectiveCameraDef = cameraDef.perspective!;
-        //     const cameraData = new PerspectiveCameraData(cameraNode, cameraNode.id);
-        //     cameraNode.data.push(cameraData);
-        //     cameraData.fov = perspectiveCameraDef.yfov * (180 / Math.PI);
-        //     cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
-        //     cameraData.near = perspectiveCameraDef.znear || 1;
-        //     cameraData.far = perspectiveCameraDef.zfar || 2e6;
-        // } else if (cameraDef.type === 'orthographic') {
-        //     const orthographicCameraDef = cameraDef.orthographic!;
-        //     const cameraData = new OrthographicCameraData(cameraNode, cameraNode.id);
-        //     cameraNode.data.push(cameraData);
-        //     cameraData.left = -orthographicCameraDef.xmag;
-        //     cameraData.right = orthographicCameraDef.xmag;
-        //     cameraData.top = -orthographicCameraDef.ymag;
-        //     cameraData.bottom = orthographicCameraDef.ymag;
-        //     cameraData.near = orthographicCameraDef.znear || 1;
-        //     cameraData.far = orthographicCameraDef.zfar || 2e6;
-        // }
+        if (cameraDef.type === 'perspective') {
+            const perspectiveCameraDef = cameraDef.perspective!;
+            const cameraData = new PerspectiveCamera(cameraNode.id);
+            cameraNode.data.push(cameraData);
+            cameraData.fov = perspectiveCameraDef.yfov * (180 / Math.PI);
+            cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
+            cameraData.near = perspectiveCameraDef.znear || 1;
+            cameraData.far = perspectiveCameraDef.zfar || 2e6;
+
+
+            // TODO position target
+            // TODO near far aspect adjustments
+
+
+        } else if (cameraDef.type === 'orthographic') {
+            const orthographicCameraDef = cameraDef.orthographic!;
+            const cameraData = new OrthographicCamera(cameraNode.id);
+            cameraNode.data.push(cameraData);
+            cameraData.left = -orthographicCameraDef.xmag;
+            cameraData.right = orthographicCameraDef.xmag;
+            cameraData.top = -orthographicCameraDef.ymag;
+            cameraData.bottom = orthographicCameraDef.ymag;
+            cameraData.near = orthographicCameraDef.znear || 1;
+            cameraData.far = orthographicCameraDef.zfar || 2e6;
+        }
         return cameraNode;
     }
 

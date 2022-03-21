@@ -36,10 +36,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.rendering-engine.camera-engine": "1.13.0",
-    "@shapediver/viewer.rendering-engine.canvas-engine": "1.13.0",
-    "@shapediver/viewer.rendering-engine.light-engine": "1.13.0",
-    "@shapediver/viewer.shared.node-tree": "1.13.0",
+    "@shapediver/viewer.shared.math": "1.13.0",
     "@shapediver/viewer.shared.services": "1.13.0",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"

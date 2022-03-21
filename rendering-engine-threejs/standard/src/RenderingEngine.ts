@@ -15,9 +15,36 @@ import {
 import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { IRenderingEngine, RENDERERTYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, Converter, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
-import { MATERIAL_SIDE, MaterialData, AnimationData, ISettingsEvent, IEnvironmentEvent, SDTFItemData, SDTFAttributeOverview, SDTFAttributeVisualizationData, SDTFOverview } from '@shapediver/viewer.shared.types'
+import {
+  IRenderingEngine,
+  RENDERERTYPE,
+  TEXTURE_ENCODING,
+  TONE_MAPPING,
+  VISIBILITYMODE,
+} from '@shapediver/viewer.rendering-engine.rendering-engine'
+import {
+  Converter,
+  DomEventEngine,
+  EventEngine,
+  EVENTTYPE,
+  IEvent,
+  Logger,
+  LOGGINGTOPIC,
+  SettingsEngine,
+  StateEngine,
+} from '@shapediver/viewer.shared.services'
+import {
+  AnimationData,
+  IEnvironmentEvent,
+  ISceneEvent,
+  ISettingsEvent,
+  MATERIAL_SIDE,
+  MaterialData,
+  SDTFAttributeOverview,
+  SDTFAttributeVisualizationData,
+  SDTFItemData,
+  SDTFOverview,
+} from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -119,8 +146,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(properties.canvas));
 
     // creation of the engines (all singleton engines were created already)
-    this._domEventEngine = new DomEventEngine(this._id, this.canvas.canvasElement);
-    this._cameraEngine = new CameraEngine(this._id, this.canvas, this._domEventEngine);
+    this._domEventEngine = new DomEventEngine(this._id, this._canvas.canvasElement);
+    this._cameraEngine = new CameraEngine(this._id, this._canvas.canvasElement, this._domEventEngine);
     this._lightEngine = new LightEngine(this._id);
 
     // creation of the managers (all singleton engines were created already)
@@ -270,8 +297,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._cameraManager;
   }
 
-  public get canvas(): ICanvas {
-    return this._canvas;
+  public get canvas(): HTMLCanvasElement {
+    return this._canvas.canvasElement;
   }
 
   public get canvasEngine(): CanvasEngine {

@@ -1,6 +1,13 @@
 import * as detectIt from 'detect-it'
 import { mat4, quat, vec2, vec3 } from 'gl-matrix'
-import { EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import {
+  DomEventEngine,
+  EventEngine,
+  EVENTTYPE,
+  IEvent,
+  SettingsEngine,
+  StateEngine,
+} from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { Box } from '@shapediver/viewer.shared.math'
 import { AbstractTreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -33,6 +40,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     protected _controls!: AbstractCameraControls;
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
+    protected _viewerId?: string;
 
     // #endregion Properties (17)
 
@@ -160,6 +168,10 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         return this._type;
     }
 
+    public get viewerId(): string | undefined {
+        return this._viewerId;
+    }
+
     public get zoomExtentsFactor(): number {
         return this._zoomExtentsFactor;
     }
@@ -190,6 +202,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     }
 
     protected assignViewerInternal(viewerId: string, canvas: HTMLCanvasElement) {
+        this._viewerId = viewerId;
         this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e: IEvent) => {
             if (this._autoAdjust === true)
                 this.zoomTo();
@@ -259,7 +272,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     abstract getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
     abstract unproject(p: vec3): vec3;
-    abstract assignViewer(viewerId: string, canvas: HTMLCanvasElement): void;
+    abstract assignViewer(viewerId: string): void;
 
     // #endregion Public Abstract Methods (2)
 }

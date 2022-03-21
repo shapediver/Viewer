@@ -1,8 +1,20 @@
-
-
-import { api, CAMERATYPE, DataEngine, ENVIRONMENT_MAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
-import { container } from 'tsyringe';
+import {
+  api,
+  CAMERATYPE,
+  DataEngine,
+  ENVIRONMENT_MAP,
+  EVENTTYPE,
+  EXPORTTYPE,
+  LIGHTTYPE,
+  LOGGINGLEVEL,
+  ORTHOGRAPHIC_CAMERA_DIRECTION,
+  PARAMETERTYPE,
+  PARAMETERVISUALIZATION,
+  RENDERERTYPE,
+  VISIBILITYMODE,
+} from '@shapediver/viewer'
+import { container } from 'tsyringe'
 
 (<any>window).SDV = SDV;
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
@@ -19,7 +31,7 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
     const node = await dataEngine.loadContent({
         format: 'gltf',
-        href: 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/BrainStem/glTF-Draco/BrainStem.gltf'
+        href: 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/Cameras/glTF/Cameras.gltf'
     })
 
     api.sceneTree.root.addChild(node);
