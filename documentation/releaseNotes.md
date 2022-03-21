@@ -8,7 +8,10 @@
 * __Commit:__ b7a2478b4e04c8675634d0a460170fa5d1ef65b8
 <!--- VERSION_END -->
 
-## Version 1.13.3 - `Mad Max: Fury Road`
+## Version 1.13.5 - `The Matrix`
+- bugfix: material assignment
+
+## Version 1.13.4 - `Mad Max: Fury Road`
 - bugfix: AR centering moved to gltf converter
 - strict versioning for viewer settings
 - AR in-app scaling on per default
