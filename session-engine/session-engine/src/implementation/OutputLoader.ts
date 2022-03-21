@@ -126,7 +126,9 @@ export class OutputLoader {
         const addMaterialToGeometry = (node: TreeNode, material: MaterialData) => {
             for (let i = 0; i < node.data.length; i++)
                 if (node.data[i] instanceof GeometryData) 
-                    (<GeometryData>node.data[i]).primitive.material = material;
+                    if((<GeometryData>node.data[i]).primitive.material === null)
+                        (<GeometryData>node.data[i]).primitive.material = material;
+
             for (let i = 0; i < node.children.length; i++) {
                 const child = node.children[i];
                 if (child) addMaterialToGeometry(child, material);
