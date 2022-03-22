@@ -228,9 +228,6 @@ export class Viewer implements IViewer {
   }
 
   public get cameras(): { [key: string]: ICamera } {
-
-    console.log('here')
-
     // add new cameras
     for (let c in this.#renderingEngine.cameraEngine.cameras) {
       if (!this.#cameras[c])

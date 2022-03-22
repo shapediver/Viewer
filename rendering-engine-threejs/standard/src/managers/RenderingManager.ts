@@ -16,7 +16,7 @@ import {
   StateEngine,
   SystemInfo,
 } from '@shapediver/viewer.shared.services'
-import { vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import { ICameraEvent } from '@shapediver/viewer.shared.types'
 import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
@@ -39,13 +39,7 @@ export class RenderingManager implements IManager {
     private _continuousRendering: boolean = false;
     private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
-    private _lastCamera: {
-        position: vec3,
-        target: vec3
-    } = {
-            position: vec3.create(),
-            target: vec3.create()
-        };
+    private _lastCameraMatrix: mat4 = mat4.create();
     private _lastSize: {
         adjustedWidth: number,
         adjustedHeight: number,
@@ -262,14 +256,14 @@ export class RenderingManager implements IManager {
         this._lastSize = { width, height, adjustedWidth, adjustedHeight };
 
         // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
-        const { position, target } = this._renderingEngine.cameraEngine.camera ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : { position: vec3.create(), target: vec3.create() };
+        const cameraMatrix = this._renderingEngine.cameraEngine.camera ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : mat4.create();
 
         // evaluate if the camera changed
         this._cameraChanged = true;
-        if (position[0] === this._lastCamera.position[0] && position[1] === this._lastCamera.position[1] && position[2] === this._lastCamera.position[2] &&
-            target[0] === this._lastCamera.target[0] && target[1] === this._lastCamera.target[1] && target[2] === this._lastCamera.target[2])
+        
+        if (mat4.equals(this._lastCameraMatrix, cameraMatrix))
             this._cameraChanged = false;
-        this._lastCamera = { position, target };
+        this._lastCameraMatrix = mat4.clone(cameraMatrix);
 
         // animation loop - part 4: evaluating state
         const states = this.evaluateRenderingState();
@@ -300,8 +294,8 @@ export class RenderingManager implements IManager {
         this._renderingEngine.renderer.domElement.style.height = height + 'px';
         this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
 
-        // animation loop - part 9: adjust the camera
-        const camera = this._renderingEngine.cameraManager.adjustCamera(position, target, aspect);
+        // animation loop - part 9: adjust the camera (the rendering state would be false if we didn't have a camera)
+        const camera = this._renderingEngine.cameraManager.adjustCamera(cameraMatrix, aspect);
 
         // animation loop - part 10: adjust the anchor elements
         this._renderingEngine.htmlElementAnchorLoader.adjustPositions(adjustedWidth / width, adjustedHeight / height);
@@ -458,6 +452,8 @@ export class RenderingManager implements IManager {
                 if (controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
                     return { showScene, rendering: true, updateShadowMap, blurScene: false, beautyRendering: false };
             }
+        } else {
+            rendering = false;
         }
 
         // If the scene should be blurred

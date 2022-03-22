@@ -1,12 +1,12 @@
 import * as detectIt from 'detect-it'
 import { mat4, quat, vec2, vec3 } from 'gl-matrix'
 import {
-  DomEventEngine,
-  EventEngine,
-  EVENTTYPE,
-  IEvent,
-  SettingsEngine,
-  StateEngine,
+    DomEventEngine,
+    EventEngine,
+    EVENTTYPE,
+    IEvent,
+    SettingsEngine,
+    StateEngine,
 } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -18,15 +18,19 @@ import { CAMERATYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCameraControls } from '../controls/AbstractCameraControls'
 
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
-    // #region Properties (17)
+    // #region Properties (23)
 
+    private _aspectOverride: boolean = true;
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
+    private _clippingPlanesOverride: boolean = true;
     private _defaultPosition: vec3 = vec3.create();
     private _defaultTarget: vec3 = vec3.create();
     private _enableCameraControls: boolean = true;
     private _far: number = 1000;
     private _near: number = 1;
+    private _node?: TreeNode;
+    private _nodePositioning: boolean = false;
     private _order?: number;
     private _revertAtMouseUp: boolean = false;
     private _revertAtMouseUpDuration: number = 800;
@@ -42,7 +46,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     protected _target: vec3 = vec3.create();
     protected _viewerId?: string;
 
-    // #endregion Properties (17)
+    // #endregion Properties (23)
 
     // #region Constructors (1)
 
@@ -52,7 +56,15 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (27)
+    // #region Public Accessors (39)
+
+    public get aspectOverride(): boolean {
+        return this._aspectOverride;
+    }
+
+    public set aspectOverride(value: boolean) {
+        this._aspectOverride = value;
+    }
 
     public get autoAdjust(): boolean {
         return this._autoAdjust;
@@ -72,6 +84,14 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     public set cameraMovementDuration(value: number) {
         this._cameraMovementDuration = value;
+    }
+
+    public get clippingPlanesOverride(): boolean {
+        return this._clippingPlanesOverride;
+    }
+
+    public set clippingPlanesOverride(value: boolean) {
+        this._clippingPlanesOverride = value;
     }
 
     public get controls(): ICameraControls {
@@ -120,6 +140,22 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     public set near(value: number) {
         this._near = value;
+    }
+
+    public get node(): TreeNode | undefined {
+        return this._node;
+    }
+
+    public set node(value: TreeNode | undefined) {
+        this._node = value;
+    }
+
+    public get nodePositioning(): boolean {
+        return this._nodePositioning;
+    }
+
+    public set nodePositioning(value: boolean) {
+        this._nodePositioning = value;
     }
 
     public get order(): number | undefined {
@@ -180,7 +216,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this._zoomExtentsFactor = value;
     }
 
-    // #endregion Public Accessors (27)
+    // #endregion Public Accessors (39)
 
     // #region Public Methods (5)
 
@@ -199,29 +235,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
             this._target = this._controls.target;
         }
         return res;
-    }
-
-    protected assignViewerInternal(viewerId: string, canvas: HTMLCanvasElement) {
-        this._viewerId = viewerId;
-        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e: IEvent) => {
-            if (this._autoAdjust === true)
-                this.zoomTo();
-        });
-        const revert = () => {
-            if (this._revertAtMouseUp === true)
-                this.reset({ duration: this._revertAtMouseUpDuration });
-        };
-        canvas.addEventListener("mouseup", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
-        canvas.addEventListener("mouseout", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
-        canvas.addEventListener("touchend", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
-
-        let zoomResizeTimeout: NodeJS.Timeout;
-        let mouseWheelEvent = /Firefox/i.test(navigator.userAgent) ? "DOMMouseScroll" : "mousewheel"; //FF doesn't recognize mousewheel as of FF3.x
-        canvas.addEventListener(mouseWheelEvent,
-            () => {
-                clearTimeout(zoomResizeTimeout);
-                zoomResizeTimeout = setTimeout(revert, 300);
-            }, detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
     }
 
     public reset(options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
@@ -249,14 +262,16 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         return res;
     }
 
-    public update(time: number): {
-        position: vec3,
-        target: vec3
-    } {
-        const { position, target } = this._controls.update(time);
-        this.position = vec3.clone(position);
-        this.target = vec3.clone(target);
-        return { position, target };
+    public update(time: number): mat4 {
+        if(this.nodePositioning && this.node) {
+            // TODO
+            return mat4.clone(this.node.worldMatrix);
+        } else {
+            const { position, target } = this._controls.update(time);
+            this.position = vec3.clone(position);
+            this.target = vec3.clone(target);
+            return mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
+        }
     }
 
     public zoomTo(zoomTarget?: Box, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
@@ -266,13 +281,40 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #endregion Public Methods (5)
 
-    // #region Public Abstract Methods (2)
+    // #region Public Abstract Methods (5)
 
     abstract applySettings(): void;
+    abstract assignViewer(viewerId: string): void;
     abstract getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
     abstract unproject(p: vec3): vec3;
-    abstract assignViewer(viewerId: string): void;
 
-    // #endregion Public Abstract Methods (2)
+    // #endregion Public Abstract Methods (5)
+
+    // #region Protected Methods (1)
+
+    protected assignViewerInternal(viewerId: string, canvas: HTMLCanvasElement) {
+        this._viewerId = viewerId;
+        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e: IEvent) => {
+            if (this._autoAdjust === true)
+                this.zoomTo();
+        });
+        const revert = () => {
+            if (this._revertAtMouseUp === true)
+                this.reset({ duration: this._revertAtMouseUpDuration });
+        };
+        canvas.addEventListener("mouseup", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+        canvas.addEventListener("mouseout", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+        canvas.addEventListener("touchend", () => revert(), detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+
+        let zoomResizeTimeout: NodeJS.Timeout;
+        let mouseWheelEvent = /Firefox/i.test(navigator.userAgent) ? "DOMMouseScroll" : "mousewheel"; //FF doesn't recognize mousewheel as of FF3.x
+        canvas.addEventListener(mouseWheelEvent,
+            () => {
+                clearTimeout(zoomResizeTimeout);
+                zoomResizeTimeout = setTimeout(revert, 300);
+            }, detectIt.supportsPassiveEvents ? { capture: false, passive: true } : false);
+    }
+
+    // #endregion Protected Methods (1)
 }

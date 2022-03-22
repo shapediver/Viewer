@@ -83,7 +83,6 @@ export class SystemInfo {
      */
     public get isFirefox(): boolean {
         const browserName = this._parser.getBrowser().name;
-        console.log(browserName)
         return !!(browserName && browserName.includes('Firefox'));
     };
 

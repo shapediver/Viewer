@@ -375,23 +375,18 @@ export class GLTFLoader {
         const cameraDef = this._content.cameras[cameraId];
         const cameraNode = new TreeNode(cameraDef.name || 'camera_' + cameraId);
 
+        let cameraData: PerspectiveCamera | OrthographicCamera;
         if (cameraDef.type === 'perspective') {
             const perspectiveCameraDef = cameraDef.perspective!;
-            const cameraData = new PerspectiveCamera(cameraNode.id);
+            cameraData = new PerspectiveCamera(cameraNode.id);
             cameraNode.data.push(cameraData);
             cameraData.fov = perspectiveCameraDef.yfov * (180 / Math.PI);
             cameraData.aspect = perspectiveCameraDef.aspectRatio || 1;
             cameraData.near = perspectiveCameraDef.znear || 1;
             cameraData.far = perspectiveCameraDef.zfar || 2e6;
-
-
-            // TODO position target
-            // TODO near far aspect adjustments
-
-
-        } else if (cameraDef.type === 'orthographic') {
+        } else {
             const orthographicCameraDef = cameraDef.orthographic!;
-            const cameraData = new OrthographicCamera(cameraNode.id);
+            cameraData = new OrthographicCamera(cameraNode.id);
             cameraNode.data.push(cameraData);
             cameraData.left = -orthographicCameraDef.xmag;
             cameraData.right = orthographicCameraDef.xmag;
@@ -400,6 +395,12 @@ export class GLTFLoader {
             cameraData.near = orthographicCameraDef.znear || 1;
             cameraData.far = orthographicCameraDef.zfar || 2e6;
         }
+        
+        cameraData.nodePositioning = true;
+        cameraData.clippingPlanesOverride = false;
+        cameraData.aspectOverride = false;
+        cameraData.node = cameraNode;
+
         return cameraNode;
     }
 

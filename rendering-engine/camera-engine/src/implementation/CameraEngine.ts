@@ -11,7 +11,6 @@ import {
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import { container, singleton } from 'tsyringe'
-import { ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { Box } from '@shapediver/viewer.shared.math'
 import { vec3 } from 'gl-matrix'
 import { IOrthographicCameraSettingsV3, IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
@@ -296,7 +295,6 @@ export class CameraEngine implements ICameraEngine {
             for(let i = 0; i < node.data.length; i++)
                 if((node.data[i] instanceof AbstractCamera) && !this._cameras[node.data[i].id]) {
                     const camera = <AbstractCamera>node.data[i];
-                    console.log(camera.viewerId, this._viewerId)
                     if(camera.viewerId === this._viewerId)
                         this._cameras[camera.id] = camera;
                 }
