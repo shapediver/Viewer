@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.13.5
-* __Build date:__ 2022-03-21T14:52:23.725Z
+* __Version:__ 1.13.6
+* __Build date:__ 2022-03-23T13:19:11.508Z
 * __Branch:__ development
-* __Commit:__ 766219eeb3451a5e8cc540b4c9f2f39147c688ac
+* __Commit:__ 51a99b33fc0dc39b86e93d567cf1644e38643fe7
 <!--- VERSION_END -->
 
 ## Version 1.13.6 - `The Matrix`
