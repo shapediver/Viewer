@@ -8,6 +8,9 @@
 * __Commit:__ 766219eeb3451a5e8cc540b4c9f2f39147c688ac
 <!--- VERSION_END -->
 
+## Version 1.13.6 - `The Matrix`
+- deselectOnEmpty option for SelectManager
+
 ## Version 1.13.5 - `The Matrix`
 - bugfix: material assignment
 
