@@ -9,10 +9,11 @@ import { ISelectEvent } from "../../interfaces/events/ISelectEvent";
 import { container } from "tsyringe";
 
 export class SelectManager extends AbstractInteractionManager {
-    // #region Properties (5)
+    // #region Properties (6)
 
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
+    #deselectOnEmpty: boolean = true;
     #effectMaterialToken!: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.DOWN) {
@@ -33,15 +34,23 @@ export class SelectManager extends AbstractInteractionManager {
     #intersection: IIntersection | null = null;
     #node: TreeNode | null = null;
 
-    // #endregion Properties (5)
+    // #endregion Properties (6)
 
-    // #region Public Accessors (1)
+    // #region Public Accessors (3)
+
+    public get deselectOnEmpty(): boolean {
+        return this.#deselectOnEmpty;
+    }
+
+    public set deselectOnEmpty(value: boolean) {
+        this.#deselectOnEmpty = value;
+    }
 
     public get filter(): IInteractionFilterOptions {
         return this.#filter;
     }
 
-    // #endregion Public Accessors (1)
+    // #endregion Public Accessors (3)
 
     // #region Public Methods (3)
 
@@ -53,8 +62,11 @@ export class SelectManager extends AbstractInteractionManager {
                 // case other node was clicked, deselect then select
                 this.deactivateNode();
                 this.activateNode(intersections[0]);
-            } else {
+            } else if(intersections.length > 0 && intersection[0].node === this.#node) {
                 // case same node was clicked, only deselect
+                this.deactivateNode();
+            } else if(intersections.length === 0 && this.#deselectOnEmpty) {
+                // case no node was clicked, only deselect when option is on
                 this.deactivateNode();
             }
         } else if(intersections.length > 0) {
