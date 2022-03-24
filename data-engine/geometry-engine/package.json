@@ -40,6 +40,7 @@
     "@shapediver/viewer.data-engine.material-engine": "1.13.0",
     "@shapediver/viewer.data-engine.shared-types": "1.13.0",
     "@shapediver/viewer.rendering-engine.camera-engine": "1.13.0",
+    "@shapediver/viewer.rendering-engine.light-engine": "1.13.0",
     "@shapediver/viewer.shared.build-data": "1.13.0",
     "@shapediver/viewer.shared.node-tree": "1.13.0",
     "@shapediver/viewer.shared.services": "1.13.0",

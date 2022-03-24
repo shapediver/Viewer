@@ -14,6 +14,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     private _intensity: number;
     private _name?: string;
     private _order?: number;
+    private _useNodeData: boolean = false;
 
     protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
@@ -79,6 +80,14 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     public get type(): LIGHTTYPE {
         return this._type;
+    }
+
+    public set useNodeData(value: boolean) {
+        this._useNodeData = value;
+    }
+
+    public get useNodeData(): boolean {
+        return this._useNodeData;
     }
 
     // #endregion Public Accessors (9)

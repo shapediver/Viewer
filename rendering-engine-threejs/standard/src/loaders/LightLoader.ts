@@ -52,12 +52,17 @@ export class LightLoader implements ILoader {
             if(!threeLight) {
                 threeLight = new THREE.DirectionalLight();
                 dataChild.add(threeLight);
-                this._renderingEngine.sceneTreeManager.scene.add((<THREE.DirectionalLight>threeLight).target);
+                threeLight.add((<THREE.DirectionalLight>threeLight).target);
             }
             const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
 
             threeDirectionalLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
             threeDirectionalLight.intensity = light.intensity;
+
+            if(light.useNodeData) {
+                threeDirectionalLight.position.set(0,0,0);
+                threeDirectionalLight.target.position.set(0,0,-1);
+            }
         }
         
         if (light instanceof HemisphereLight) {
@@ -88,11 +93,25 @@ export class LightLoader implements ILoader {
         
         if (light instanceof SpotLight) {
             if(!threeLight) {
-                threeLight = new THREE.SpotLight(new THREE.Color(this._converter.toThreeJsColorInput(light.color)), light.intensity, vec3.distance(light.position, light.target), light.angle, light.penumbra, light.decay);
+                threeLight = new THREE.SpotLight(
+                    new THREE.Color(this._converter.toThreeJsColorInput(light.color)), 
+                    light.intensity, 
+                    light.distance, 
+                    light.angle, 
+                    light.penumbra, 
+                    light.decay
+                );
                 dataChild.add(threeLight);
-                this._renderingEngine.sceneTreeManager.scene.add((<THREE.SpotLight>threeLight).target);
+                threeLight.add((<THREE.SpotLight>threeLight).target);
             }
             const threeSpotLight = <THREE.SpotLight>threeLight;
+
+            threeSpotLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeSpotLight.intensity = light.intensity;
+            threeSpotLight.distance = light.distance;
+            threeSpotLight.angle = light.angle;
+            threeSpotLight.penumbra = light.penumbra;
+            threeSpotLight.decay = light.decay;
 
             threeSpotLight.position.set(light.position[0], light.position[1], light.position[2]);
             threeSpotLight.target.position.set(light.target[0], light.target[1], light.target[2]);
@@ -106,7 +125,6 @@ export class LightLoader implements ILoader {
             const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
 
             const bs: Sphere = boundingBox.boundingSphere;
-
             threeDirectionalLight.position.set(bs.center[0] + light.direction[0] * bs.radius * 2.35, bs.center[1] + light.direction[1] * bs.radius * 2.35, bs.center[2] + light.direction[2] * bs.radius * 2.35);
             threeDirectionalLight.target.position.set(bs.center[0], bs.center[1], bs.center[2]);
 
@@ -123,9 +141,9 @@ export class LightLoader implements ILoader {
                 threeDirectionalLight.shadow.bias = light.shadowMapBias;
                 threeDirectionalLight.shadow.camera.updateProjectionMatrix();
                 this._shadowMapCount++;
-              } else {
+            } else {
                 threeDirectionalLight.castShadow = false;
-              }
+            }
         }
     }
 

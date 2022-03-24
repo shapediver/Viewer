@@ -33,12 +33,14 @@ import {
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { AxiosResponse } from 'axios'
 import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
+import { AbstractLight, DirectionalLight, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine'
 
 const DRACO = require('./draco/draco_decoder.js');
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
     KHR_DRACO_MESH_COMPRESSION = 'KHR_draco_mesh_compression',
+    KHR_LIGHTS_PUNCTUAL = 'KHR_lights_punctual',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
     SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
@@ -396,9 +398,7 @@ export class GLTFLoader {
             cameraData.far = orthographicCameraDef.zfar || 2e6;
         }
         
-        cameraData.nodePositioning = true;
-        cameraData.clippingPlanesOverride = false;
-        cameraData.aspectOverride = false;
+        cameraData.useNodeData = true;
         cameraData.node = cameraNode;
 
         return cameraNode;
@@ -560,6 +560,62 @@ export class GLTFLoader {
         return meshNode;
     }
 
+    private loadLights(lightId: number): TreeNode {
+        if (!this._content.extensions || !this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL] || !this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights) throw new Error(`Extension ${GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL} not available.`);
+        if (!this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights[lightId]) throw new Error('Light not available.')
+        const lightDef = this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights[lightId];
+        const lightNode = new TreeNode(lightDef.name || 'light_' + lightId);
+
+		let color = '#ffffffff';
+		if ( lightDef.color !== undefined )
+            color = this._converter.toColor([lightDef.color[0] * 255, lightDef.color[1] * 255, lightDef.color[2] * 255]);
+
+		const range = lightDef.range !== undefined ? lightDef.range : 0;
+
+        let lightData: AbstractLight;
+        if(lightDef.type === 'directional') {
+            lightData = new DirectionalLight({ color });
+            lightNode.data.push(lightData);
+
+            const directionalLightData = <DirectionalLight>lightData;
+            
+            if (lightDef.intensity !== undefined) directionalLightData.intensity = lightDef.intensity;
+        } else if (lightDef.type === 'point') {
+            lightData = new PointLight({ color });
+            lightNode.data.push(lightData);
+
+            const pointLightData = <PointLight>lightData;
+
+            pointLightData.distance = range;
+            pointLightData.decay = 2;
+            if (lightDef.intensity !== undefined) lightData.intensity = lightDef.intensity;
+
+            pointLightData.position = [0,0,0];
+        } else if (lightDef.type === 'spot') {
+            lightData = new SpotLight({ color });
+            lightNode.data.push(lightData);
+
+            lightDef.spot = lightDef.spot || {};
+            lightDef.spot.innerConeAngle = lightDef.spot.innerConeAngle !== undefined ? lightDef.spot.innerConeAngle : 0;
+            lightDef.spot.outerConeAngle = lightDef.spot.outerConeAngle !== undefined ? lightDef.spot.outerConeAngle : Math.PI / 4.0;
+
+            const spotLightData = <SpotLight>lightData;
+            spotLightData.distance = range;
+            spotLightData.angle = lightDef.spot.outerConeAngle;
+            spotLightData.penumbra = 1.0 - lightDef.spot.innerConeAngle / lightDef.spot.outerConeAngle;
+            spotLightData.decay = 2;
+            if (lightDef.intensity !== undefined) lightData.intensity = lightDef.intensity;
+            
+            spotLightData.position = [ 0, 0, 0 ];
+            spotLightData.target = [ 0, 0, -1 ];
+        } else {
+            throw new Error('Unexpected light type: ' + lightDef.type);
+        }
+
+        lightData.useNodeData = true;
+        return lightNode;
+    }
+
     private async loadNode(nodeId: number): Promise<TreeNode> {
         if (!this._content.nodes) throw new Error('Nodes not available.')
         if (!this._content.nodes[nodeId]) throw new Error('Node not available.')
@@ -599,6 +655,9 @@ export class GLTFLoader {
 
         if (node.camera !== undefined)
             nodeDef.addChild(this.loadCamera(node.camera));
+
+        if (node.extensions && node.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL]) 
+            nodeDef.addChild(this.loadLights(node.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].light));
 
         if (node.children) {
             for (let i = 0, len = node.children.length; i < len; i++) {

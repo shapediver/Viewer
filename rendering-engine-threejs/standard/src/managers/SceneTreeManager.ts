@@ -25,7 +25,7 @@ import {
   ShapeDiverViewerError,
   StateEngine,
 } from '@shapediver/viewer.shared.services'
-import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
+import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, quat, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
@@ -147,7 +147,8 @@ export class SceneTreeManager implements IManager {
             case data instanceof AbstractLight:
                 dataChild.SDtype = SD_DATA_TYPE.LIGHT;
                 this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild);
-                this._boundingBoxSensitiveData.push({data: <AbstractLight>data, dataChild})
+                if(data instanceof DirectionalLight && (<DirectionalLight>data).useNodeData === false)
+                    this._boundingBoxSensitiveData.push({data: <AbstractLight>data, dataChild})
                 break;
             case data instanceof AbstractCamera:
                 dataChild.SDtype = SD_DATA_TYPE.CAMERA;
