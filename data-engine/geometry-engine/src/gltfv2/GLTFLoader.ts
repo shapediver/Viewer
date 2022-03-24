@@ -43,6 +43,7 @@ export enum GLTF_EXTENSIONS {
     KHR_LIGHTS_PUNCTUAL = 'KHR_lights_punctual',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
+    KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
     SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
 }
 export class GLTFLoader {
@@ -404,10 +405,9 @@ export class GLTFLoader {
         return cameraNode;
     }
 
-    private async loadMap(textureId: number): Promise<MapData> {
+    private async loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number }): Promise<MapData> {
         if (!this._content.textures) throw new Error('Textures not available.')
         const texture = this._content.textures[textureId];
-        if (this._loaded['texture'] && this._loaded['texture'][textureId]) return this._loaded['texture'][textureId].clone();
         if (!this._content.images) throw new Error('Images not available.')
         const image = this._content.images[texture.source];
         const sampler = this._content.samplers && texture.sampler && this._content.samplers[texture.sampler] ? this._content.samplers[texture.sampler] : {};
@@ -425,15 +425,51 @@ export class GLTFLoader {
 
             const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
             const dataUri = window.URL.createObjectURL(blob);
-            mapData = new MapData(await this._converter.responseToImage(await this._loadData!(dataUri)), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
+
+            if (!this._loaded['texture']) this._loaded['texture'] = {};
+
+            if (!this._loaded['texture'][dataUri])
+                this._loaded['texture'][dataUri] = this._converter.responseToImage(await this._loadData!(dataUri));
+            
+            const htmlImage: HTMLImageElement = await (<Promise<HTMLImageElement>>this._loaded['texture'][dataUri])
+            mapData = new MapData(
+                htmlImage, 
+                sampler.wrapS, 
+                sampler.wrapT, 
+                sampler.minFilter, 
+                sampler.magFilter, 
+                undefined, 
+                undefined, 
+                properties && properties.offset ? vec2.fromValues(properties.offset[0], properties.offset[1]) : undefined, 
+                properties && properties.scale ? vec2.fromValues(properties.scale[0], properties.scale[1]) : undefined, 
+                properties && properties.rotation !== undefined ? properties.rotation : 0, 
+                false
+            );
         } else {
             const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
-            mapData = new MapData(await this._converter.responseToImage(await this._loadData!(url!)), sampler.wrapS, sampler.wrapT, sampler.minFilter, sampler.magFilter, undefined, undefined, undefined, undefined, undefined, false);
+            
+            if (!this._loaded['texture']) this._loaded['texture'] = {};
+
+            if (!this._loaded['texture'][url!])
+                this._loaded['texture'][url!] = this._converter.responseToImage(await this._loadData!(url!));
+            
+            const htmlImage: HTMLImageElement = await (<Promise<HTMLImageElement>>this._loaded['texture'][url!]);
+            mapData = new MapData(
+                htmlImage, 
+                sampler.wrapS, 
+                sampler.wrapT, 
+                sampler.minFilter, 
+                sampler.magFilter, 
+                undefined, 
+                undefined, 
+                properties && properties.offset ? vec2.fromValues(properties.offset[0], properties.offset[1]) : undefined, 
+                properties && properties.scale ? vec2.fromValues(properties.scale[0], properties.scale[1]) : undefined, 
+                properties && properties.rotation !== undefined ? properties.rotation : 0, 
+                false
+            );
         }
 
-        if (!this._loaded['texture']) this._loaded['texture'] = {};
-        this._loaded['texture'][textureId] = mapData;
-        return this._loaded['texture'][textureId].clone();
+        return mapData;
     }
 
     private async loadMaterial(materialId: number): Promise<MaterialData> {
@@ -461,9 +497,10 @@ export class GLTFLoader {
                 materialData.opacity = pbrSpecularGlossiness.diffuseFactor[3];
             }
 
-            if (pbrSpecularGlossiness.diffuseTexture !== undefined)
-                materialData.map = await this.loadMap(pbrSpecularGlossiness.diffuseTexture.index);
-
+            if (pbrSpecularGlossiness.diffuseTexture !== undefined){
+                const diffuseTextureOptions = pbrSpecularGlossiness.diffuseTexture.extensions && pbrSpecularGlossiness.diffuseTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.diffuseTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.map = await this.loadMap(pbrSpecularGlossiness.diffuseTexture.index, diffuseTextureOptions);
+            }
             materialData.emissiveness = '#000000';
             materialData.glossiness = pbrSpecularGlossiness.glossinessFactor !== undefined ? pbrSpecularGlossiness.glossinessFactor : 1.0;
             materialData.specular = '#ffffff';
@@ -473,7 +510,8 @@ export class GLTFLoader {
             }
 
             if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
-                materialData.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index);
+                const specularGlossinessTextureOptions = pbrSpecularGlossiness.specularGlossinessTexture.extensions && pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index, specularGlossinessTextureOptions);
             }
         } else if (material.extensions && material.extensions.KHR_materials_unlit) {
             materialData.KHR_materials_unlit = true;
@@ -486,7 +524,8 @@ export class GLTFLoader {
                     materialData.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
                 }
                 if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
-                    materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index);
+                    const baseColorTextureOptions = material.pbrMetallicRoughness.baseColorTexture.extensions && material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index, baseColorTextureOptions);
                 }
             }
         } else {
@@ -497,7 +536,8 @@ export class GLTFLoader {
                     materialData.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
                 }
                 if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
-                    materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index);
+                    const baseColorTextureOptions = material.pbrMetallicRoughness.baseColorTexture.extensions && material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    materialData.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index, baseColorTextureOptions);
                 }
                 if (material.pbrMetallicRoughness.metallicFactor !== undefined) {
                     materialData.metalness = material.pbrMetallicRoughness.metallicFactor;
@@ -506,20 +546,23 @@ export class GLTFLoader {
                     materialData.roughness = material.pbrMetallicRoughness.roughnessFactor;
                 }
                 if (material.pbrMetallicRoughness.metallicRoughnessTexture !== undefined) {
-                    materialData.metalnessRoughnessMap = await this.loadMap(material.pbrMetallicRoughness.metallicRoughnessTexture.index);
+                    const metallicRoughnessTextureOptions = material.pbrMetallicRoughness.metallicRoughnessTexture.extensions && material.pbrMetallicRoughness.metallicRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.metallicRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                    materialData.metalnessRoughnessMap = await this.loadMap(material.pbrMetallicRoughness.metallicRoughnessTexture.index, metallicRoughnessTextureOptions);
                 }
             }
         }
 
         if (material.normalTexture !== undefined) {
-            materialData.normalMap = await this.loadMap(material.normalTexture.index);
+            const normalTextureOptions = material.normalTexture.extensions && material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+            materialData.normalMap = await this.loadMap(material.normalTexture.index, normalTextureOptions);
             materialData.normalScale = 1;
             if (material.normalTexture.scale !== undefined) {
                 materialData.normalScale = material.normalTexture.scale;
             }
         }
         if (material.occlusionTexture !== undefined) {
-            materialData.aoMap = await this.loadMap(material.occlusionTexture.index);
+            const occlusionTextureOptions = material.occlusionTexture.extensions && material.occlusionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.occlusionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+            materialData.aoMap = await this.loadMap(material.occlusionTexture.index, occlusionTextureOptions);
             if (material.occlusionTexture.strength !== undefined) {
                 materialData.aoMapIntensity = material.occlusionTexture.strength;
             }
