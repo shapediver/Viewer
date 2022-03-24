@@ -367,6 +367,17 @@ export class MaterialLoader implements ILoader {
 
         standardProperties.ior = materialData.ior;
 
+        standardProperties.transmission = materialData.transmission;
+        if(standardProperties.transmission > 0) {
+            standardProperties.opacity = 1;
+        }
+
+        if (materialData.transmissionMap !== undefined) {
+            standardProperties.transmissionMap  = this.createTexture(materialData.transmissionMap);
+            mapCount++;
+        }
+
+
         /**
          * Separation between the two for metalness/roughness and specular/glossiness workflow
          */

@@ -198,6 +198,8 @@ export class MaterialData extends AbstractTreeNodeData {
   #specular: string = '#ffffff';
   #specularGlossinessMap?: MapData;
   #specularMap?: MapData;
+  #transmission = 0.0;
+  #transmissionMap?: MapData;
 
   // #endregion Properties (34)
 
@@ -246,6 +248,8 @@ export class MaterialData extends AbstractTreeNodeData {
       clearcoatRoughness?: number;
       clearcoatRoughnessMap?: MapData;
       ior?: number;
+      transmission?: number;
+      transmissionMap?: MapData;
     },
     id?: string
   ) {
@@ -286,6 +290,8 @@ export class MaterialData extends AbstractTreeNodeData {
     if (properties.clearcoatRoughness !== undefined) this.clearcoatRoughness = properties.clearcoatRoughness;
     if (properties.clearcoatRoughnessMap !== undefined) this.clearcoatRoughnessMap = properties.clearcoatRoughnessMap;
     if (properties.ior !== undefined) this.ior = properties.ior;
+    if (properties.transmission !== undefined) this.transmission = properties.transmission;
+    if (properties.transmissionMap !== undefined) this.transmissionMap = properties.transmissionMap;
   }
 
   // #endregion Constructors (1)
@@ -572,6 +578,22 @@ export class MaterialData extends AbstractTreeNodeData {
     this.#specularMap = value;
   }
 
+  public get transmission(): number {
+    return this.#transmission;
+  }
+
+  public set transmission(value: number) {
+    this.#transmission = value;
+  }
+
+  public get transmissionMap(): MapData | undefined {
+    return this.#transmissionMap;
+  }
+
+  public set transmissionMap(value: MapData | undefined) {
+    this.#transmissionMap = value;
+  }
+
   // #endregion Public Accessors (68)
 
   // #region Public Methods (1)
@@ -616,6 +638,8 @@ export class MaterialData extends AbstractTreeNodeData {
       clearcoatRoughness: this.clearcoatRoughness,
       clearcoatRoughnessMap: this.clearcoatRoughnessMap,
       ior: this.ior,
+      transmission: this.transmission,
+      transmissionMap: this.transmissionMap
     }, this.id);
   }
 

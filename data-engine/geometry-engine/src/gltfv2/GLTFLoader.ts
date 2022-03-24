@@ -44,6 +44,7 @@ export enum GLTF_EXTENSIONS {
     KHR_MATERIALS_CLEARCOAT = 'KHR_materials_clearcoat',
     KHR_MATERIALS_IOR = 'KHR_materials_ior',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
+    KHR_MATERIALS_TRANSMISSION = 'KHR_materials_transmission',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
     KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
     SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
@@ -584,6 +585,19 @@ export class GLTFLoader {
             const iorExtension = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_IOR];
             if (iorExtension.ior !== undefined) {
                 materialData.ior = iorExtension.ior;
+            }
+        }
+
+        
+        if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_TRANSMISSION]) {
+            const transmissionExtension = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_TRANSMISSION];
+            if (transmissionExtension.transmissionFactor !== undefined) {
+                materialData.transmission = transmissionExtension.transmissionFactor;
+            }
+
+            if (transmissionExtension.transmissionTexture !== undefined) {
+                const transmissionTextureOptions = transmissionExtension.transmissionTexture.extensions && transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.transmissionMap = await this.loadMap(transmissionExtension.transmissionTexture.index, transmissionTextureOptions);
             }
         }
 
