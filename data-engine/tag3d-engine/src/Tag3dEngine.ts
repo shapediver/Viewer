@@ -5,6 +5,8 @@ import { HttpClient, Logger, LOGGINGTOPIC, Converter, StateEngine, ShapeDiverVie
 import { AttributeData, GeometryData, MaterialData, PrimitiveData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types'
+import { TextGeometry } from './three/TextGeometry'
+import { Font } from './three/FontLoader'
 
 @singleton()
 export class Tag3dEngine {
@@ -15,7 +17,7 @@ export class Tag3dEngine {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
-    private _font!: THREE.Font;
+    private _font!: Font;
 
     // #endregion Properties (5)
 
@@ -37,7 +39,7 @@ export class Tag3dEngine {
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         if(!this._font) {
             const json = await this._httpClient.loadData('https://viewer.shapediver.com/graphik_regular.typeface.json', { responseType: 'json' });
-            this._font = new THREE.Font(json.data);
+            this._font = new Font(json.data);
             this._stateEngine.fontLoaded.resolve(true);
         }
 
@@ -64,7 +66,7 @@ export class Tag3dEngine {
                 for (let lineIndex = 0; lineIndex < tagLines.length; ++lineIndex) {
                     if(tagLines[lineIndex] === '') continue;
                     // create tag mesh object
-                    let tag = new THREE.TextBufferGeometry(tagLines[lineIndex], { size: tag3dInfo.size, height: tag3dInfo.size / 10, font: this._font });
+                    let tag = new TextGeometry(tagLines[lineIndex], { size: tag3dInfo.size, height: tag3dInfo.size / 10, font: this._font });
                     lineArray.push(tag);
                 }
 

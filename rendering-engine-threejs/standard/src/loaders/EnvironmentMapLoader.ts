@@ -283,7 +283,7 @@ export class EnvironmentMapLoader implements ILoader {
                 new THREE.CubeTextureLoader().load(url,
                     (map: THREE.CubeTexture) => {
                         map.encoding = THREE.sRGBEncoding;
-                        map.format = THREE.RGBFormat;
+                        map.format = THREE.RGBAFormat ;
                         map.mapping = THREE.CubeReflectionMapping;
                         this._environmentMaps[name] = map;
                         this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.LDR, eventId);

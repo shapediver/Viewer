@@ -3,7 +3,7 @@ import {
 	LinearFilter,
 	NearestFilter,
 	RGBAFormat,
-	RGBFormat,
+	RGBAFormat ,
 	ShaderMaterial,
 	Texture,
 	UniformsUtils,
@@ -26,7 +26,7 @@ class SMAAPass extends Pass {
 			depthBuffer: false,
 			generateMipmaps: false,
 			minFilter: LinearFilter,
-			format: RGBFormat,
+			format: RGBAFormat ,
 			type: FloatType
 		} );
 		this.edgesRT.texture.name = 'SMAAPass.edges';
@@ -55,7 +55,7 @@ class SMAAPass extends Pass {
 		this.areaTexture = new Texture();
 		this.areaTexture.name = 'SMAAPass.area';
 		this.areaTexture.image = areaTextureImage;
-		this.areaTexture.format = RGBFormat;
+		this.areaTexture.format = RGBAFormat ;
 		this.areaTexture.minFilter = LinearFilter;
 		this.areaTexture.generateMipmaps = false;
 		this.areaTexture.flipY = false;

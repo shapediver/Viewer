@@ -8,7 +8,7 @@ import {
 	NearestFilter,
 	RGBEEncoding,
 	RGBEFormat,
-	RGBFormat,
+	RGBAFormat ,
 	UnsignedByteType
 } from 'three';
 
@@ -396,7 +396,7 @@ class RGBELoader extends DataTextureLoader {
 						}
 
 						data = floatArray;
-						format = RGBFormat;
+						format = RGBAFormat ;
 						type = FloatType;
 						break;
 
@@ -412,7 +412,7 @@ class RGBELoader extends DataTextureLoader {
 						}
 
 						data = halfArray;
-						format = RGBFormat;
+						format = RGBAFormat ;
 						type = HalfFloatType;
 						break;
 

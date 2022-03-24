@@ -465,16 +465,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     switch (this._renderer.outputEncoding) {
       case (THREE.sRGBEncoding):
         return TEXTURE_ENCODING.SRGB;
-      case (THREE.RGBEEncoding):
-        return TEXTURE_ENCODING.RGBE;
-      case (THREE.RGBM7Encoding):
-        return TEXTURE_ENCODING.RGBM7;
-      case (THREE.RGBM16Encoding):
-        return TEXTURE_ENCODING.RGBM16;
-      case (THREE.RGBDEncoding):
-        return TEXTURE_ENCODING.RGBD;
-      case (THREE.GammaEncoding):
-        return TEXTURE_ENCODING.GAMMA;  
       case (THREE.LinearEncoding):
       default:
         return TEXTURE_ENCODING.LINEAR;
@@ -485,26 +475,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     switch (value) {
       case (TEXTURE_ENCODING.SRGB):
         this._renderer.outputEncoding = THREE.sRGBEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.RGBE):
-        this._renderer.outputEncoding = THREE.RGBEEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.RGBM7):
-        this._renderer.outputEncoding = THREE.RGBM7Encoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.RGBM16):
-        this._renderer.outputEncoding = THREE.RGBM16Encoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.RGBD):
-        this._renderer.outputEncoding = THREE.RGBDEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.GAMMA):
-        this._renderer.outputEncoding = THREE.GammaEncoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
         break;
       case (TEXTURE_ENCODING.LINEAR):
@@ -587,17 +557,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public get textureEncoding(): TEXTURE_ENCODING {
     switch (this.materialLoader.textureEncoding) {
       case (THREE.sRGBEncoding):
-        return TEXTURE_ENCODING.SRGB;
-      case (THREE.RGBEEncoding):
-        return TEXTURE_ENCODING.RGBE;
-      case (THREE.RGBM7Encoding):
-        return TEXTURE_ENCODING.RGBM7;
-      case (THREE.RGBM16Encoding):
-        return TEXTURE_ENCODING.RGBM16;
-      case (THREE.RGBDEncoding):
-        return TEXTURE_ENCODING.RGBD;
-      case (THREE.GammaEncoding):
-        return TEXTURE_ENCODING.GAMMA;  
+        return TEXTURE_ENCODING.SRGB; 
       case (THREE.LinearEncoding):
       default:
         return TEXTURE_ENCODING.LINEAR;
@@ -609,26 +569,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       case (TEXTURE_ENCODING.SRGB):
         this.environmentMapLoader.textureEncoding = THREE.sRGBEncoding;
         this.materialLoader.textureEncoding = THREE.sRGBEncoding;
-        break;
-      case (TEXTURE_ENCODING.RGBE):
-        this.environmentMapLoader.textureEncoding = THREE.sRGBEncoding;
-        this.materialLoader.textureEncoding = THREE.sRGBEncoding;
-        break;
-      case (TEXTURE_ENCODING.RGBM7):
-        this.environmentMapLoader.textureEncoding = THREE.RGBM7Encoding;
-        this.materialLoader.textureEncoding = THREE.RGBM7Encoding;
-        break;
-      case (TEXTURE_ENCODING.RGBM16):
-        this.environmentMapLoader.textureEncoding = THREE.RGBM16Encoding;
-        this.materialLoader.textureEncoding = THREE.RGBM16Encoding;
-        break;
-      case (TEXTURE_ENCODING.RGBD):
-        this.environmentMapLoader.textureEncoding = THREE.RGBDEncoding;
-        this.materialLoader.textureEncoding = THREE.RGBDEncoding;
-        break;
-      case (TEXTURE_ENCODING.GAMMA):
-        this.environmentMapLoader.textureEncoding = THREE.GammaEncoding;
-        this.materialLoader.textureEncoding = THREE.GammaEncoding;
         break;
       case (TEXTURE_ENCODING.LINEAR):
       default:

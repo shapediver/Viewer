@@ -172,11 +172,7 @@ export class BeautyRenderingManager implements IManager {
         const percentage = this.setShaderProperties();
 
         if(((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !(this._systemInfo.isIOS || this._systemInfo.isMobile || this._systemInfo.isSafari))) {
-            if(this._effectComposer.passes.includes(this._gammaCorrectionPass)) {
-                this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color()).convertGammaToLinear(2.2);
-            } else {
-                this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
-            }
+            this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
             this._ssaaPass.clearAlpha = this._renderingEngine.renderer.getClearAlpha();
     
             this._saoPass.params.saoIntensity = this._renderingEngine.ambientOcclusionIntensity;
