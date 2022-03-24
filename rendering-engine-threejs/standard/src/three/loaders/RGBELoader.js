@@ -6,7 +6,6 @@ import {
 	LinearEncoding,
 	LinearFilter,
 	NearestFilter,
-	RGBEEncoding,
 	RGBEFormat,
 	RGBAFormat ,
 	UnsignedByteType
@@ -456,7 +455,7 @@ class RGBELoader extends DataTextureLoader {
 
 				case UnsignedByteType:
 
-					texture.encoding = RGBEEncoding;
+					texture.encoding = LinearEncoding;
 					texture.minFilter = NearestFilter;
 					texture.magFilter = NearestFilter;
 					texture.generateMipmaps = false;

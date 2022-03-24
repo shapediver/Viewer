@@ -182,6 +182,7 @@ export class MaterialData extends AbstractTreeNodeData {
   #emissiveness?: string;
   #glossiness: number = 1;
   #glossinessMap?: MapData;
+  #ior: number = 1.5;
   #map?: MapData;
   #metalness = 1.0;
   #metalnessMap?: MapData;
@@ -244,6 +245,7 @@ export class MaterialData extends AbstractTreeNodeData {
       clearcoatNormalMap?: MapData;
       clearcoatRoughness?: number;
       clearcoatRoughnessMap?: MapData;
+      ior?: number;
     },
     id?: string
   ) {
@@ -283,6 +285,7 @@ export class MaterialData extends AbstractTreeNodeData {
     if (properties.clearcoatNormalMap !== undefined) this.clearcoatNormalMap = properties.clearcoatNormalMap;
     if (properties.clearcoatRoughness !== undefined) this.clearcoatRoughness = properties.clearcoatRoughness;
     if (properties.clearcoatRoughnessMap !== undefined) this.clearcoatRoughnessMap = properties.clearcoatRoughnessMap;
+    if (properties.ior !== undefined) this.ior = properties.ior;
   }
 
   // #endregion Constructors (1)
@@ -439,6 +442,14 @@ export class MaterialData extends AbstractTreeNodeData {
 
   public set glossinessMap(value: MapData | undefined) {
     this.#glossinessMap = value;
+  }
+
+  public get ior(): number {
+    return this.#ior;
+  }
+
+  public set ior(value: number) {
+    this.#ior = value;
   }
 
   public get map(): MapData | undefined {
@@ -604,6 +615,7 @@ export class MaterialData extends AbstractTreeNodeData {
       clearcoatNormalMap: this.clearcoatNormalMap,
       clearcoatRoughness: this.clearcoatRoughness,
       clearcoatRoughnessMap: this.clearcoatRoughnessMap,
+      ior: this.ior,
     }, this.id);
   }
 

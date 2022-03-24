@@ -42,6 +42,7 @@ export enum GLTF_EXTENSIONS {
     KHR_DRACO_MESH_COMPRESSION = 'KHR_draco_mesh_compression',
     KHR_LIGHTS_PUNCTUAL = 'KHR_lights_punctual',
     KHR_MATERIALS_CLEARCOAT = 'KHR_materials_clearcoat',
+    KHR_MATERIALS_IOR = 'KHR_materials_ior',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
     KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
@@ -576,6 +577,13 @@ export class GLTFLoader {
             if (clearcoatExtension.clearcoatNormalTexture !== undefined) {
                 const clearcoatNormalTextureOptions = clearcoatExtension.clearcoatNormalTexture.extensions && clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
                 materialData.clearcoatNormalMap = await this.loadMap(clearcoatExtension.clearcoatNormalTexture.index, clearcoatNormalTextureOptions);
+            }
+        }
+
+        if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_IOR]) {
+            const iorExtension = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_IOR];
+            if (iorExtension.ior !== undefined) {
+                materialData.ior = iorExtension.ior;
             }
         }
 

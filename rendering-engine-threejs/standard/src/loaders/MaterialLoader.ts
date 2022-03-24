@@ -240,11 +240,9 @@ export class MaterialLoader implements ILoader {
         }
             
         if(materialData.alphaMode === MATERIAL_ALPHA.BLEND) {
-            generalProperties.format = THREE.RGBAFormat;
             generalProperties.transparent = true;
             generalProperties.depthWrite = false;
         } else if(!generalProperties.transparent) {
-            generalProperties.format = THREE.RGBAFormat ;
             generalProperties.transparent = false;
         }
 
@@ -281,7 +279,6 @@ export class MaterialLoader implements ILoader {
         const basicProperties: MeshUnlitMaterialParameters | THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters = generalProperties;
 
         if (materialData.alphaMap !== undefined) {
-            basicProperties.format = THREE.RGBAFormat;
             basicProperties.alphaMap = this.createTexture(materialData.alphaMap);
             basicProperties.transparent = true;
             basicProperties.depthWrite = false;
@@ -367,6 +364,8 @@ export class MaterialLoader implements ILoader {
             standardProperties.clearcoatRoughnessMap = this.createTexture(materialData.clearcoatRoughnessMap);
             mapCount++;
         }
+
+        standardProperties.ior = materialData.ior;
 
         /**
          * Separation between the two for metalness/roughness and specular/glossiness workflow
