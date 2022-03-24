@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export interface SpecularGlossinessMaterialParameters extends THREE.MeshStandardMaterialParameters {
+export interface SpecularGlossinessMaterialParameters extends THREE.MeshPhysicalMaterialParameters {
     KHR_materials_pbrSpecularGlossiness?: boolean | undefined,
     specular?: THREE.ColorRepresentation | undefined;
     glossiness?: number | undefined;
@@ -8,7 +8,7 @@ export interface SpecularGlossinessMaterialParameters extends THREE.MeshStandard
     glossinessMap?: THREE.Texture | null | undefined;
 }
 
-export class SpecularGlossinessMaterial extends THREE.MeshStandardMaterial {
+export class SpecularGlossinessMaterial extends THREE.MeshPhysicalMaterial {
     isGLTFSpecularGlossinessMaterial: boolean;
 
     constructor(params: SpecularGlossinessMaterialParameters) {

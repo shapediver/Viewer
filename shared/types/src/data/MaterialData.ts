@@ -161,7 +161,7 @@ export class MapData {
 }
 
 export class MaterialData extends AbstractTreeNodeData {
-  // #region Properties (29)
+  // #region Properties (34)
 
   #KHR_materials_pbrSpecularGlossiness: boolean = false;
   #KHR_materials_unlit: boolean = false;
@@ -172,6 +172,11 @@ export class MaterialData extends AbstractTreeNodeData {
   #aoMapIntensity: number = 1.0;
   #bumpMap?: MapData;
   #bumpScale: number = 1.0;
+  #clearcoat: number = 0;
+  #clearcoatMap?: MapData;
+  #clearcoatNormalMap?: MapData;
+  #clearcoatRoughness: number = 0;
+  #clearcoatRoughnessMap?: MapData;
   #color: string = '#00fff7';
   #emissiveMap?: MapData;
   #emissiveness?: string;
@@ -193,7 +198,7 @@ export class MaterialData extends AbstractTreeNodeData {
   #specularGlossinessMap?: MapData;
   #specularMap?: MapData;
 
-  // #endregion Properties (29)
+  // #endregion Properties (34)
 
   // #region Constructors (1)
 
@@ -234,6 +239,11 @@ export class MaterialData extends AbstractTreeNodeData {
       specularGlossinessMap?: MapData,
       specularMap?: MapData,
       glossinessMap?: MapData,
+      clearcoat?: number;
+      clearcoatMap?: MapData;
+      clearcoatNormalMap?: MapData;
+      clearcoatRoughness?: number;
+      clearcoatRoughnessMap?: MapData;
     },
     id?: string
   ) {
@@ -268,11 +278,16 @@ export class MaterialData extends AbstractTreeNodeData {
     if (properties.specularGlossinessMap !== undefined) this.specularGlossinessMap = properties.specularGlossinessMap;
     if (properties.specularMap !== undefined) this.specularMap = properties.specularMap;
     if (properties.glossinessMap !== undefined) this.glossinessMap = properties.glossinessMap;
+    if (properties.clearcoat !== undefined) this.clearcoat = properties.clearcoat;
+    if (properties.clearcoatMap !== undefined) this.clearcoatMap = properties.clearcoatMap;
+    if (properties.clearcoatNormalMap !== undefined) this.clearcoatNormalMap = properties.clearcoatNormalMap;
+    if (properties.clearcoatRoughness !== undefined) this.clearcoatRoughness = properties.clearcoatRoughness;
+    if (properties.clearcoatRoughnessMap !== undefined) this.clearcoatRoughnessMap = properties.clearcoatRoughnessMap;
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (58)
+  // #region Accessors (68)
 
   public get KHR_materials_pbrSpecularGlossiness(): boolean {
     return this.#KHR_materials_pbrSpecularGlossiness;
@@ -344,6 +359,46 @@ export class MaterialData extends AbstractTreeNodeData {
 
   public set bumpScale(value: number) {
     this.#bumpScale = value;
+  }
+
+  public get clearcoat(): number {
+    return this.#clearcoat;
+  }
+
+  public set clearcoat(value: number) {
+    this.#clearcoat = value;
+  }
+
+  public get clearcoatMap(): MapData | undefined {
+    return this.#clearcoatMap;
+  }
+
+  public set clearcoatMap(value: MapData | undefined) {
+    this.#clearcoatMap = value;
+  }
+
+  public get clearcoatNormalMap(): MapData | undefined {
+    return this.#clearcoatNormalMap;
+  }
+
+  public set clearcoatNormalMap(value: MapData | undefined) {
+    this.#clearcoatNormalMap = value;
+  }
+
+  public get clearcoatRoughness(): number {
+    return this.#clearcoatRoughness;
+  }
+
+  public set clearcoatRoughness(value: number) {
+    this.#clearcoatRoughness = value;
+  }
+
+  public get clearcoatRoughnessMap(): MapData | undefined {
+    return this.#clearcoatRoughnessMap;
+  }
+
+  public set clearcoatRoughnessMap(value: MapData | undefined) {
+    this.#clearcoatRoughnessMap = value;
   }
 
   public get color(): string {
@@ -506,7 +561,7 @@ export class MaterialData extends AbstractTreeNodeData {
     this.#specularMap = value;
   }
 
-  // #endregion Public Accessors (58)
+  // #endregion Public Accessors (68)
 
   // #region Public Methods (1)
 
@@ -544,6 +599,11 @@ export class MaterialData extends AbstractTreeNodeData {
       specularGlossinessMap: this.specularGlossinessMap,
       glossiness: this.glossiness,
       glossinessMap: this.glossinessMap,
+      clearcoat: this.clearcoat,
+      clearcoatMap: this.clearcoatMap,
+      clearcoatNormalMap: this.clearcoatNormalMap,
+      clearcoatRoughness: this.clearcoatRoughness,
+      clearcoatRoughnessMap: this.clearcoatRoughnessMap,
     }, this.id);
   }
 

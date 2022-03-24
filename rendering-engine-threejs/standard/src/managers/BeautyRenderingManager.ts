@@ -127,7 +127,7 @@ export class BeautyRenderingManager implements IManager {
             this._renderingEngine.scene.traverse(function (object) {
                 if (object.visible === true) {
                     if (object instanceof THREE.Mesh && object.material) {
-                        if (object.material instanceof THREE.MeshStandardMaterial && object.material.transparent) {
+                        if (object.material instanceof THREE.MeshPhysicalMaterial && object.material.transparent) {
                             materialsNotRenderer.push(object);
                             object.visible = false;
                         }

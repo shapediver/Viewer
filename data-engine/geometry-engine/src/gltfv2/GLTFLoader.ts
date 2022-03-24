@@ -41,6 +41,7 @@ export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
     KHR_DRACO_MESH_COMPRESSION = 'KHR_draco_mesh_compression',
     KHR_LIGHTS_PUNCTUAL = 'KHR_lights_punctual',
+    KHR_MATERIALS_CLEARCOAT = 'KHR_materials_clearcoat',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
     KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
@@ -479,15 +480,15 @@ export class GLTFLoader {
         const materialData = new MaterialData();
         if (material.name !== undefined) materialData.name = material.name;
 
-        if (material.extensions && material.extensions.SHAPEDIVER_materials_preset) {
-            const materialPreset: ISHAPEDIVER_materials_preset = material.extensions.SHAPEDIVER_materials_preset;
+        if (material.extensions && material.extensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET]) {
+            const materialPreset: ISHAPEDIVER_materials_preset = material.extensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET];
             await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset, materialData);
             materialData.color = this._converter.toColor(materialPreset.color);
             return materialData;
         }
 
-        if (material.extensions && material.extensions.KHR_materials_pbrSpecularGlossiness) {
-            const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions.KHR_materials_pbrSpecularGlossiness;
+        if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS]) {
+            const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS];
             materialData.KHR_materials_pbrSpecularGlossiness = true;
             materialData.color = '#ffffff';
             materialData.opacity = 1.0;
@@ -513,7 +514,7 @@ export class GLTFLoader {
                 const specularGlossinessTextureOptions = pbrSpecularGlossiness.specularGlossinessTexture.extensions && pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
                 materialData.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index, specularGlossinessTextureOptions);
             }
-        } else if (material.extensions && material.extensions.KHR_materials_unlit) {
+        } else if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_UNLIT]) {
             materialData.KHR_materials_unlit = true;
             materialData.color = '#ffffff';
             materialData.opacity = 1.0;
@@ -552,6 +553,32 @@ export class GLTFLoader {
             }
         }
 
+        if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_CLEARCOAT]) {
+            const clearcoatExtension = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_CLEARCOAT];
+            if (clearcoatExtension.clearcoatFactor !== undefined) {
+                materialData.clearcoat = clearcoatExtension.clearcoatFactor;
+            }
+            
+            if (clearcoatExtension.clearcoatTexture !== undefined) {
+                const clearcoatTextureOptions = clearcoatExtension.clearcoatTexture.extensions && clearcoatExtension.clearcoatTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.clearcoatMap = await this.loadMap(clearcoatExtension.clearcoatTexture.index, clearcoatTextureOptions);
+            }
+
+            if (clearcoatExtension.clearcoatRoughnessFactor !== undefined) {
+                materialData.clearcoatRoughness = clearcoatExtension.clearcoatRoughnessFactor;
+            }
+            
+            if (clearcoatExtension.clearcoatRoughnessTexture !== undefined) {
+                const clearcoatRoughnessTextureOptions = clearcoatExtension.clearcoatRoughnessTexture.extensions && clearcoatExtension.clearcoatRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.clearcoatRoughnessMap = await this.loadMap(clearcoatExtension.clearcoatRoughnessTexture.index, clearcoatRoughnessTextureOptions);
+            }
+            
+            if (clearcoatExtension.clearcoatNormalTexture !== undefined) {
+                const clearcoatNormalTextureOptions = clearcoatExtension.clearcoatNormalTexture.extensions && clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.clearcoatNormalMap = await this.loadMap(clearcoatExtension.clearcoatNormalTexture.index, clearcoatNormalTextureOptions);
+            }
+        }
+
         if (material.normalTexture !== undefined) {
             const normalTextureOptions = material.normalTexture.extensions && material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
             materialData.normalMap = await this.loadMap(material.normalTexture.index, normalTextureOptions);
@@ -568,7 +595,8 @@ export class GLTFLoader {
             }
         }
         if (material.emissiveTexture !== undefined) {
-            materialData.emissiveMap = await this.loadMap(material.emissiveTexture.index);
+            const emissiveTextureOptions = material.emissiveTexture.extensions && material.emissiveTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.emissiveTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+            materialData.emissiveMap = await this.loadMap(material.emissiveTexture.index, emissiveTextureOptions);
         }
 
         if (material.emissiveFactor !== undefined) {

@@ -461,14 +461,14 @@ export class SceneTreeManager implements IManager {
                                 o.geometry.deleteAttribute(key);
                             o.geometry.setIndex(null);
                             o.geometry.dispose();
-                            if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).alphaMap) (<THREE.MeshPhysicalMaterial>o.material).alphaMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).aoMap) (<THREE.MeshPhysicalMaterial>o.material).aoMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).bumpMap) (<THREE.MeshPhysicalMaterial>o.material).bumpMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).map) (<THREE.MeshPhysicalMaterial>o.material).map?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).emissiveMap) (<THREE.MeshPhysicalMaterial>o.material).emissiveMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).metalnessMap) (<THREE.MeshPhysicalMaterial>o.material).metalnessMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).roughnessMap) (<THREE.MeshPhysicalMaterial>o.material).roughnessMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).normalMap) (<THREE.MeshPhysicalMaterial>o.material).normalMap?.dispose()
                             if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
                             if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
                             o.material.dispose();

@@ -276,7 +276,7 @@ export class GeometryLoader implements ILoader {
                 obj.add(skinnedMesh);
             } else {
 
-                if (material.opacity < 1 || (<THREE.MeshStandardMaterial | SpecularGlossinessMaterial>material).alphaMap) {
+                if (material.opacity < 1 || (<THREE.MeshPhysicalMaterial | SpecularGlossinessMaterial>material).alphaMap) {
                     const side = material.side;
                     if (side === THREE.DoubleSide) {
                         const materialBack = material.clone();
