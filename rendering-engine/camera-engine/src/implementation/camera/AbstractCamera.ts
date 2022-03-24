@@ -20,17 +20,15 @@ import { AbstractCameraControls } from '../controls/AbstractCameraControls'
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
     // #region Properties (23)
 
-    private _aspectOverride: boolean = true;
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
-    private _clippingPlanesOverride: boolean = true;
     private _defaultPosition: vec3 = vec3.create();
     private _defaultTarget: vec3 = vec3.create();
     private _enableCameraControls: boolean = true;
     private _far: number = 1000;
     private _near: number = 1;
     private _node?: TreeNode;
-    private _nodePositioning: boolean = false;
+    private _useNodeData: boolean = false;
     private _order?: number;
     private _revertAtMouseUp: boolean = false;
     private _revertAtMouseUpDuration: number = 800;
@@ -58,14 +56,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Public Accessors (39)
 
-    public get aspectOverride(): boolean {
-        return this._aspectOverride;
-    }
-
-    public set aspectOverride(value: boolean) {
-        this._aspectOverride = value;
-    }
-
     public get autoAdjust(): boolean {
         return this._autoAdjust;
     }
@@ -84,14 +74,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     public set cameraMovementDuration(value: number) {
         this._cameraMovementDuration = value;
-    }
-
-    public get clippingPlanesOverride(): boolean {
-        return this._clippingPlanesOverride;
-    }
-
-    public set clippingPlanesOverride(value: boolean) {
-        this._clippingPlanesOverride = value;
     }
 
     public get controls(): ICameraControls {
@@ -150,12 +132,12 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this._node = value;
     }
 
-    public get nodePositioning(): boolean {
-        return this._nodePositioning;
+    public get useNodeData(): boolean {
+        return this._useNodeData;
     }
 
-    public set nodePositioning(value: boolean) {
-        this._nodePositioning = value;
+    public set useNodeData(value: boolean) {
+        this._useNodeData = value;
     }
 
     public get order(): number | undefined {
@@ -263,9 +245,9 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     }
 
     public update(time: number): mat4 {
-        if(this.nodePositioning && this.node) {
-            // TODO
-            return mat4.clone(this.node.worldMatrix);
+        if(this.useNodeData && this.node && this._viewerId) {
+            // done in the CameraManager
+            return mat4.create();
         } else {
             const { position, target } = this._controls.update(time);
             this.position = vec3.clone(position);

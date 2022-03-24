@@ -9,6 +9,8 @@ import {
 
 import { IManager } from '../interfaces/IManager'
 import { RenderingEngine } from '../RenderingEngine'
+import { SDNode } from '../types/SDNode'
+import { SDData } from '../types/SDData'
 
 export class CameraManager implements IManager {
     // #region Properties (2)
@@ -33,43 +35,92 @@ export class CameraManager implements IManager {
 
     }
 
+    public load(camera: AbstractCamera, dataChild: SDData) {
+        let threeCamera: THREE.Camera | null = dataChild.children[0] instanceof THREE.Camera ? <THREE.Camera>dataChild.children[0] : null;
+
+        if(camera instanceof PerspectiveCamera) {
+            if(!threeCamera) {
+                threeCamera = new THREE.PerspectiveCamera();
+                dataChild.add(threeCamera);
+            }
+            const perspectiveCamera = <PerspectiveCamera>camera;
+            const threePerspectiveCamera = <THREE.PerspectiveCamera>threeCamera;
+
+            threePerspectiveCamera.up.set(0, 0, 1);
+            if(perspectiveCamera.useNodeData) {
+                threePerspectiveCamera.fov = perspectiveCamera.fov;
+                threePerspectiveCamera.aspect = perspectiveCamera.aspect!;
+                threePerspectiveCamera.far = perspectiveCamera.far;
+                threePerspectiveCamera.near = perspectiveCamera.near;
+                threePerspectiveCamera.updateProjectionMatrix();
+            }
+
+        } else {
+            if(!threeCamera) {
+                threeCamera = new THREE.OrthographicCamera(0, 0, 0, 0);
+                dataChild.add(threeCamera);
+            }
+            const orthographicCamera = <OrthographicCamera>camera;
+            const threeOrthographicCamera = <THREE.OrthographicCamera>threeCamera;
+
+            threeOrthographicCamera.up.set(orthographicCamera.up[0], orthographicCamera.up[1], orthographicCamera.up[2]);
+            if(orthographicCamera.useNodeData) {
+                threeOrthographicCamera.left = orthographicCamera.left;
+                threeOrthographicCamera.bottom = orthographicCamera.bottom;
+                threeOrthographicCamera.right = orthographicCamera.right;
+                threeOrthographicCamera.top = orthographicCamera.top;
+                threeOrthographicCamera.near = orthographicCamera.near;
+                threeOrthographicCamera.far = orthographicCamera.far;
+                threeOrthographicCamera.updateProjectionMatrix();
+            }
+        }
+    }
+
     public adjustCamera(cameraMatrix: mat4, aspect: number): THREE.Camera {
         let cameraThree: THREE.Camera;
-        const threeMatrix = new THREE.Matrix4().fromArray(cameraMatrix);
+        let threeMatrix = new THREE.Matrix4().fromArray(cameraMatrix);
 
-        if (this._renderingEngine.cameraEngine.camera!.type === CAMERATYPE.ORTHOGRAPHIC) {
-            const camera = <OrthographicCamera>this._renderingEngine.cameraEngine.camera!;
-            const distance = vec3.distance(camera.position, camera.target) / 2;
-            this._orthographicCameraThree.up.set(camera.up[0], camera.up[1], camera.up[2]);
-            this._orthographicCameraThree.left = camera.left = camera.aspectOverride ? -distance * aspect : camera.left;
-            this._orthographicCameraThree.bottom = camera.bottom = camera.aspectOverride ? -distance : camera.bottom;
-            this._orthographicCameraThree.right = camera.right = camera.aspectOverride ? distance * aspect : camera.right;
-            this._orthographicCameraThree.top = camera.top = camera.aspectOverride ? distance : camera.top;
-            this._orthographicCameraThree.near = camera.near = camera.clippingPlanesOverride ? 0.01 : camera.near;
-            this._orthographicCameraThree.far = camera.far = camera.clippingPlanesOverride ? 100 * distance : camera.far;
-            this._perspectiveCameraThree.position.set(0,0,0);
-            this._perspectiveCameraThree.quaternion.set(0,0,0,1);
-            this._perspectiveCameraThree.scale.set(1,1,1);
-            this._perspectiveCameraThree.applyMatrix4(threeMatrix);
-            this._orthographicCameraThree.updateProjectionMatrix();
-            cameraThree = this._orthographicCameraThree;
+        const camera = this._renderingEngine.cameraEngine.camera!;
+        if(camera.useNodeData) {
+            const sdCameraNode = <SDNode>camera.node!.transformedNodes[this._renderingEngine.id];
+            const sdCameraData = <SDData>sdCameraNode.children[0];
+            cameraThree = <THREE.Camera>sdCameraData.children[0];
         } else {
-            const camera = <PerspectiveCamera>this._renderingEngine.cameraEngine.camera!;
-            this._perspectiveCameraThree.up.set(0, 0, 1);
-            const fov = (<PerspectiveCamera>this._renderingEngine.cameraEngine.camera).fov;
-            const bs = this._renderingEngine.sceneTreeManager.boundingBox.boundingSphere;
-            const radius = bs.radius > 0 ? bs.radius : 2;
-            this._perspectiveCameraThree.fov = camera.fov = fov;
-            this._perspectiveCameraThree.aspect = camera.aspect = camera.aspectOverride || camera.aspect === undefined ? aspect : camera.aspect;
-            this._perspectiveCameraThree.far = camera.far = camera.clippingPlanesOverride ? (fov < 10 ? fov * 100.0 * 100 * radius : 100 * radius) : camera.far;
-            this._perspectiveCameraThree.near = camera.near = camera.clippingPlanesOverride ? (fov < 10 ? fov * 100.0 * 0.01 * radius : 0.01 * radius) : camera.near;
-            this._perspectiveCameraThree.position.set(0,0,0);
-            this._perspectiveCameraThree.quaternion.set(0,0,0,1);
-            this._perspectiveCameraThree.scale.set(1,1,1);
-            this._perspectiveCameraThree.applyMatrix4(threeMatrix);
-            this._perspectiveCameraThree.updateProjectionMatrix();
-            cameraThree = this._perspectiveCameraThree;
+            if (this._renderingEngine.cameraEngine.camera!.type === CAMERATYPE.ORTHOGRAPHIC) {
+                const camera = <OrthographicCamera>this._renderingEngine.cameraEngine.camera!;
+                const distance = vec3.distance(camera.position, camera.target) / 2;
+                this._orthographicCameraThree.up.set(camera.up[0], camera.up[1], camera.up[2]);
+                this._orthographicCameraThree.left = camera.left = -distance * aspect;
+                this._orthographicCameraThree.bottom = camera.bottom = -distance;
+                this._orthographicCameraThree.right = camera.right = distance * aspect;
+                this._orthographicCameraThree.top = camera.top = distance;
+                this._orthographicCameraThree.near = camera.near = 0.01;
+                this._orthographicCameraThree.far = camera.far = 100 * distance;
+                this._perspectiveCameraThree.position.set(0,0,0);
+                this._perspectiveCameraThree.quaternion.set(0,0,0,1);
+                this._perspectiveCameraThree.scale.set(1,1,1);
+                this._perspectiveCameraThree.applyMatrix4(threeMatrix);
+                this._orthographicCameraThree.updateProjectionMatrix();
+                cameraThree = this._orthographicCameraThree;
+            } else {
+                const camera = <PerspectiveCamera>this._renderingEngine.cameraEngine.camera!;
+                this._perspectiveCameraThree.up.set(0, 0, 1);
+                const fov = (<PerspectiveCamera>this._renderingEngine.cameraEngine.camera).fov;
+                const bs = this._renderingEngine.sceneTreeManager.boundingBox.boundingSphere;
+                const radius = bs.radius > 0 ? bs.radius : 2;
+                this._perspectiveCameraThree.fov = camera.fov = fov;
+                this._perspectiveCameraThree.aspect = camera.aspect = aspect;
+                this._perspectiveCameraThree.far = camera.far = (fov < 10 ? fov * 100.0 * 100 * radius : 100 * radius);
+                this._perspectiveCameraThree.near = camera.near = (fov < 10 ? fov * 100.0 * 0.01 * radius : 0.01 * radius);
+                this._perspectiveCameraThree.position.set(0,0,0);
+                this._perspectiveCameraThree.quaternion.set(0,0,0,1);
+                this._perspectiveCameraThree.scale.set(1,1,1);
+                this._perspectiveCameraThree.applyMatrix4(threeMatrix);
+                this._perspectiveCameraThree.updateProjectionMatrix();
+                cameraThree = this._perspectiveCameraThree;
+            }
         }
+        
         return cameraThree;
     }
 

@@ -151,6 +151,7 @@ export class SceneTreeManager implements IManager {
                 break;
             case data instanceof AbstractCamera:
                 dataChild.SDtype = SD_DATA_TYPE.CAMERA;
+                this._renderingEngine.cameraManager.load(<AbstractCamera>data, dataChild);
                 break;
             case data instanceof HTMLElementAnchorData:
                 dataChild.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
