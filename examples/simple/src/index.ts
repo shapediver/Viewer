@@ -21,17 +21,21 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
 (async () => {
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    viewer.environmentMap = 'neutral';
+    viewer.environmentMap = ENVIRONMENT_MAP.VENICE_SUNSET;
     viewer.ambientOcclusion = false;
     viewer.shadows = false;
     viewer.groundPlaneVisibility = false;
     viewer.gridVisibility = false;
+    viewer.physicallyCorrectLights = true;
+    viewer.textureEncoding = SDV.TEXTURE_ENCODING.SRGB;
+    viewer.outputEncoding = SDV.TEXTURE_ENCODING.SRGB;
 
 
+    //href: 'https://cx20.github.io/gltf-test/tutorialModels/MosquitoInAmber/glTF/MosquitoInAmber.gltf'
 
     const node = await dataEngine.loadContent({
         format: 'gltf',
-        href: './project_polly.glb'
+        href: 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/TransmissionRoughnessTest/glTF/TransmissionRoughnessTest.gltf'
     })
 
     api.sceneTree.root.addChild(node);
