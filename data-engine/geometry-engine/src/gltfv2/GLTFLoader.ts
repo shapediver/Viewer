@@ -46,6 +46,7 @@ export enum GLTF_EXTENSIONS {
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
     KHR_MATERIALS_TRANSMISSION = 'KHR_materials_transmission',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
+    KHR_MATERIALS_VOLUME = 'KHR_materials_volume',
     KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
     SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
 }
@@ -588,7 +589,6 @@ export class GLTFLoader {
             }
         }
 
-        
         if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_TRANSMISSION]) {
             const transmissionExtension = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_TRANSMISSION];
             if (transmissionExtension.transmissionFactor !== undefined) {
@@ -598,6 +598,26 @@ export class GLTFLoader {
             if (transmissionExtension.transmissionTexture !== undefined) {
                 const transmissionTextureOptions = transmissionExtension.transmissionTexture.extensions && transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
                 materialData.transmissionMap = await this.loadMap(transmissionExtension.transmissionTexture.index, transmissionTextureOptions);
+            }
+        }
+        
+        if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VOLUME]) {
+            const volumeExtension = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VOLUME];
+            if (volumeExtension.thicknessFactor !== undefined) {
+                materialData.thickness = volumeExtension.thicknessFactor;
+            }
+
+            if (volumeExtension.thicknessTexture !== undefined) {
+                const thicknessTextureOptions = volumeExtension.thicknessTexture.extensions && volumeExtension.thicknessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? volumeExtension.thicknessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.thicknessMap = await this.loadMap(volumeExtension.thicknessTexture.index, thicknessTextureOptions);
+            }
+
+            if (volumeExtension.attenuationDistance !== undefined) {
+                materialData.attenuationDistance = volumeExtension.attenuationDistance;
+            }
+            
+            if (volumeExtension.attenuationColor !== undefined) {
+                materialData.attenuationColor = this._converter.toColor([volumeExtension.attenuationColor[0] * 255, volumeExtension.attenuationColor[1] * 255, volumeExtension.attenuationColor[2] * 255]);
             }
         }
 

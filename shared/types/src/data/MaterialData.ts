@@ -200,6 +200,11 @@ export class MaterialData extends AbstractTreeNodeData {
   #specularMap?: MapData;
   #transmission = 0.0;
   #transmissionMap?: MapData;
+  #thickness = 0.0;
+  #thicknessMap?: MapData;
+  #attenuationDistance = 0.0;
+  #attenuationColor: string = '#ffffff';
+
 
   // #endregion Properties (34)
 
@@ -250,6 +255,10 @@ export class MaterialData extends AbstractTreeNodeData {
       ior?: number;
       transmission?: number;
       transmissionMap?: MapData;
+      thickness?: number;
+      thicknessMap?: MapData;
+      attenuationDistance?: number;
+      attenuationColor?: string,
     },
     id?: string
   ) {
@@ -292,6 +301,10 @@ export class MaterialData extends AbstractTreeNodeData {
     if (properties.ior !== undefined) this.ior = properties.ior;
     if (properties.transmission !== undefined) this.transmission = properties.transmission;
     if (properties.transmissionMap !== undefined) this.transmissionMap = properties.transmissionMap;
+    if (properties.thickness !== undefined) this.thickness = properties.thickness;
+    if (properties.thicknessMap !== undefined) this.thicknessMap = properties.thicknessMap;
+    if (properties.attenuationDistance !== undefined) this.attenuationDistance = properties.attenuationDistance;
+    if (properties.attenuationColor !== undefined) this.attenuationColor = properties.attenuationColor;
   }
 
   // #endregion Constructors (1)
@@ -594,6 +607,38 @@ export class MaterialData extends AbstractTreeNodeData {
     this.#transmissionMap = value;
   }
 
+  public get thickness(): number {
+    return this.#thickness;
+  }
+
+  public set thickness(value: number) {
+    this.#thickness = value;
+  }
+
+  public get thicknessMap(): MapData | undefined {
+    return this.#thicknessMap;
+  }
+
+  public set thicknessMap(value: MapData | undefined) {
+    this.#thicknessMap = value;
+  }
+
+  public get attenuationDistance(): number {
+    return this.#attenuationDistance;
+  }
+
+  public set attenuationDistance(value: number) {
+    this.#attenuationDistance = value;
+  }
+
+  public get attenuationColor(): string {
+    return this.#attenuationColor;
+  }
+
+  public set attenuationColor(value: string) {
+    this.#attenuationColor = value;
+  }
+
   // #endregion Public Accessors (68)
 
   // #region Public Methods (1)
@@ -639,7 +684,11 @@ export class MaterialData extends AbstractTreeNodeData {
       clearcoatRoughnessMap: this.clearcoatRoughnessMap,
       ior: this.ior,
       transmission: this.transmission,
-      transmissionMap: this.transmissionMap
+      transmissionMap: this.transmissionMap,
+      thickness: this.thickness,
+      thicknessMap: this.thicknessMap,
+      attenuationDistance: this.attenuationDistance,
+      attenuationColor: this.attenuationColor
     }, this.id);
   }
 

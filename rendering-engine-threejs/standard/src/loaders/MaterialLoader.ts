@@ -377,6 +377,15 @@ export class MaterialLoader implements ILoader {
             mapCount++;
         }
 
+        (<THREE.MeshPhysicalMaterial>standardProperties).thickness  = materialData.thickness;
+
+        if (materialData.thicknessMap !== undefined) {
+            (<THREE.MeshPhysicalMaterial>standardProperties).thicknessMap  = this.createTexture(materialData.thicknessMap);
+            mapCount++;
+        }
+
+        (<THREE.MeshPhysicalMaterial>standardProperties).attenuationDistance = materialData.attenuationDistance;
+        (<THREE.MeshPhysicalMaterial>standardProperties).attenuationColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.attenuationColor));
 
         /**
          * Separation between the two for metalness/roughness and specular/glossiness workflow
