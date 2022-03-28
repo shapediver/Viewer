@@ -22,13 +22,14 @@ import { IEnvironmentEvent } from './events/IEnvironmentEvent'
 import { ISceneEvent } from './events/ISceneEvent'
 import { ISettingsEvent } from './events/ISettingsEvent'
 import { ITaskEvent, TASKTYPE } from './events/ITaskEvent'
+import { MaterialVariantsData } from './data/MaterialVariantsData'
 
 export {
   MaterialData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
 }
 
 export {
-  AnimationData, AnimationTrack, GeometryData, AttributeData, PrimitiveData, PRIMITIVE_MODE
+  AnimationData, AnimationTrack, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData, PRIMITIVE_MODE
 }
 
 export {

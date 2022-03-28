@@ -29,6 +29,7 @@ import {
   MATERIAL_SIDE,
   MaterialData,
   PrimitiveData,
+  MaterialVariantsData,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { AxiosResponse } from 'axios'
@@ -48,6 +49,7 @@ export enum GLTF_EXTENSIONS {
     KHR_MATERIALS_SPECULAR = 'KHR_materials_specular',
     KHR_MATERIALS_TRANSMISSION = 'KHR_materials_transmission',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
+    KHR_MATERIALS_VARIANTS = 'KHR_materials_variants',
     KHR_MATERIALS_VOLUME = 'KHR_materials_volume',
     KHR_MESH_QUANTIZATION = 'KHR_mesh_quantization',
     KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
@@ -77,6 +79,7 @@ export class GLTFLoader {
     private _nodes: {
         [key: number]: TreeNode
     } = {};
+    private _materialVariantsData = new MaterialVariantsData();
 
     // #endregion Properties (14)
 
@@ -87,10 +90,19 @@ export class GLTFLoader {
         if (gltfBinary && gltfHeader)
             this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength + 8, gltfHeader.length);
         this._content = content;
-
+        
         try {
             this.validateVersionAndExtensions();
             const node = await this.loadScene();
+
+            if(this._content.extensions && this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+                const variants = this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS].variants;
+                for(let i = 0; i < variants.length; i++)
+                    this._materialVariantsData.variants.push(variants[i].name);
+                this._materialVariantsData.variantIndex = 0;
+                node.data.push(this._materialVariantsData)
+            }
+
             if (this._content.skins !== undefined && this._content.nodes !== undefined) {
                 for (let i = 0; i < this._content.nodes?.length; i++) {
                     if (this._content.nodes[i].skin !== undefined) {
@@ -1000,7 +1012,22 @@ export class GLTFLoader {
         if (primitive.material || primitive.material === 0)
             material = await this.loadMaterial(primitive.material);
 
-        const geometryData = new GeometryData(new PrimitiveData(attributes, primitive.mode, indices, material));
+
+        const primitiveData = new PrimitiveData(attributes, primitive.mode, indices, material);
+        
+        if (primitive.extensions && primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+            this._materialVariantsData.primitiveData.push(primitiveData);
+            const variantsExtension = primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS];
+
+            for(let i = 0; i < variantsExtension.mappings.length; i++) {
+                const mapping = variantsExtension.mappings[i];
+                const material = await this.loadMaterial(mapping.material);
+                for(let j = 0; j < mapping.variants.length; j++)
+                    primitiveData.materialVariants.push({variant: mapping.variants[j], material});
+            }
+        }
+
+        const geometryData = new GeometryData(primitiveData);
         geometryData.morphWeights = weights;
         primitiveNode.data.push(geometryData);
         return primitiveNode;

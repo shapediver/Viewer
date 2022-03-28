@@ -180,7 +180,9 @@ export class PrimitiveData {
   #boundingBox: Box = new Box();
   #indices: AttributeData | null = null;
   #material: MaterialData | null = null;
+  #standardMaterial: MaterialData | null = null;
   #effectMaterials: { material: MaterialData, token: string }[] = [];
+  #materialVariants: { material: MaterialData, variant: number }[] = [];
   #attributeMaterial: MaterialData | null = null;
 
   // #endregion Properties (5)
@@ -207,6 +209,7 @@ export class PrimitiveData {
 
     this.#indices = indices;
     this.#material = material;
+    this.#standardMaterial = material;
     this.#attributeMaterial = attributeMaterial;
 
     if (this.#attributes['POSITION']) {
@@ -240,6 +243,14 @@ export class PrimitiveData {
     this.#indices = value
   }
 
+  public get standardMaterial(): MaterialData | null {
+    return this.#standardMaterial;
+  }
+
+  public set standardMaterial(value: MaterialData | null) {
+    this.#standardMaterial = value;
+  }
+
   public get material(): MaterialData | null {
     return this.#material;
   }
@@ -250,6 +261,10 @@ export class PrimitiveData {
 
   public get effectMaterials(): { material: MaterialData, token: string }[] {
     return this.#effectMaterials;
+  }
+
+  public get materialVariants(): { material: MaterialData, variant: number }[] {
+    return this.#materialVariants;
   }
 
   public get attributeMaterial(): MaterialData | null {
