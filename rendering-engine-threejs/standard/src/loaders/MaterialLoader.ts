@@ -391,13 +391,27 @@ export class MaterialLoader implements ILoader {
         standardProperties.sheenColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.sheenColor));
         standardProperties.sheenRoughness = materialData.sheenRoughness;
         
-        if (materialData.sheenMap !== undefined) {
-            (<THREE.MeshPhysicalMaterial>standardProperties).sheenColorMap  = this.createTexture(materialData.sheenMap);
+        if (materialData.sheenColorMap !== undefined) {
+            (<THREE.MeshPhysicalMaterial>standardProperties).sheenColorMap  = this.createTexture(materialData.sheenColorMap);
             mapCount++;
         }
 
         if (materialData.sheenRoughnessMap !== undefined) {
             (<THREE.MeshPhysicalMaterial>standardProperties).sheenRoughnessMap  = this.createTexture(materialData.sheenRoughnessMap);
+            mapCount++;
+        }
+
+        standardProperties.specularIntensity = materialData.specularIntensity;
+
+        if (materialData.specularIntensityMap !== undefined) {
+            (<THREE.MeshPhysicalMaterial>standardProperties).specularIntensityMap  = this.createTexture(materialData.specularIntensityMap);
+            mapCount++;
+        }
+
+        standardProperties.specularColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.specularColor));
+
+        if (materialData.specularColorMap !== undefined) {
+            (<THREE.MeshPhysicalMaterial>standardProperties).specularColorMap  = this.createTexture(materialData.specularColorMap);
             mapCount++;
         }
 

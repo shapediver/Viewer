@@ -207,8 +207,12 @@ export class MaterialData extends AbstractTreeNodeData {
   #sheen = 0.0;
   #sheenColor: string = '#ffffff';
   #sheenRoughness = 1.0;
-  #sheenMap?: MapData;
+  #sheenColorMap?: MapData;
   #sheenRoughnessMap?: MapData;
+  #specularColor: string = '#ffffff';
+  #specularColorMap?: MapData;
+  #specularIntensity = 1.0;
+  #specularIntensityMap?: MapData;
 
 
   // #endregion Properties (34)
@@ -267,8 +271,12 @@ export class MaterialData extends AbstractTreeNodeData {
       sheen?: number,
       sheenColor?: string,
       sheenRoughness?: number,
-      sheenMap?: MapData,
+      sheenColorMap?: MapData,
       sheenRoughnessMap?: MapData,
+      specularColor?: string,
+      specularColorMap?: MapData,
+      specularIntensity?: number,
+      specularIntensityMap?: MapData,
     },
     id?: string
   ) {
@@ -318,8 +326,12 @@ export class MaterialData extends AbstractTreeNodeData {
     if (properties.sheen !== undefined) this.sheen = properties.sheen;
     if (properties.sheenColor !== undefined) this.sheenColor = properties.sheenColor;
     if (properties.sheenRoughness !== undefined) this.sheenRoughness = properties.sheenRoughness;
-    if (properties.sheenMap !== undefined) this.sheenMap = properties.sheenMap;
+    if (properties.sheenColorMap !== undefined) this.sheenColorMap = properties.sheenColorMap;
     if (properties.sheenRoughnessMap !== undefined) this.sheenRoughnessMap = properties.sheenRoughnessMap;
+    if (properties.specularColor !== undefined) this.specularColor = properties.specularColor;
+    if (properties.specularColorMap !== undefined) this.specularColorMap = properties.specularColorMap;
+    if (properties.specularIntensity !== undefined) this.specularIntensity = properties.specularIntensity;
+    if (properties.specularIntensityMap !== undefined) this.specularIntensityMap = properties.specularIntensityMap;
   }
 
   // #endregion Constructors (1)
@@ -678,12 +690,12 @@ export class MaterialData extends AbstractTreeNodeData {
     this.#sheenColor = value;
   }
 
-  public get sheenMap(): MapData | undefined {
-    return this.#sheenMap;
+  public get sheenColorMap(): MapData | undefined {
+    return this.#sheenColorMap;
   }
 
-  public set sheenMap(value: MapData | undefined) {
-    this.#sheenMap = value;
+  public set sheenColorMap(value: MapData | undefined) {
+    this.#sheenColorMap = value;
   }
 
   public get sheenRoughnessMap(): MapData | undefined {
@@ -692,6 +704,38 @@ export class MaterialData extends AbstractTreeNodeData {
 
   public set sheenRoughnessMap(value: MapData | undefined) {
     this.#sheenRoughnessMap = value;
+  }
+
+  public get specularColor(): string {
+    return this.#specularColor;
+  }
+
+  public set specularColor(value: string) {
+    this.#specularColor = value;
+  }
+
+  public get specularColorMap(): MapData | undefined {
+    return this.#specularColorMap;
+  }
+
+  public set specularColorMap(value: MapData | undefined) {
+    this.#specularColorMap = value;
+  }
+
+  public get specularIntensity(): number {
+    return this.#specularIntensity;
+  }
+
+  public set specularIntensity(value: number) {
+    this.#specularIntensity = value;
+  }
+
+  public get specularIntensityMap(): MapData | undefined {
+    return this.#specularIntensityMap;
+  }
+
+  public set specularIntensityMap(value: MapData | undefined) {
+    this.#specularIntensityMap = value;
   }
 
   // #endregion Public Accessors (68)
@@ -746,9 +790,13 @@ export class MaterialData extends AbstractTreeNodeData {
       attenuationColor: this.attenuationColor,
       sheen: this.sheen,
       sheenColor: this.sheenColor,
-      sheenMap: this.sheenMap,
+      sheenColorMap: this.sheenColorMap,
       sheenRoughness: this.sheenRoughness,
       sheenRoughnessMap: this.sheenRoughnessMap,
+      specularColor: this.specularColor,
+      specularColorMap: this.specularColorMap,
+      specularIntensity: this.specularIntensity,
+      specularIntensityMap: this.specularIntensityMap,
     }, this.id);
   }
 
