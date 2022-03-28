@@ -177,6 +177,7 @@ export class MaterialData extends AbstractTreeNodeData {
   #emissiveness?: string;
   #glossiness: number = 1;
   #glossinessMap?: MapData;
+  #materialOutput: boolean = false;
   #map?: MapData;
   #metalness = 1.0;
   #metalnessMap?: MapData;
@@ -392,6 +393,14 @@ export class MaterialData extends AbstractTreeNodeData {
 
   public set map(value: MapData | undefined) {
     this.#map = value;
+  }
+
+  public get materialOutput(): boolean {
+    return this.#materialOutput;
+  }
+
+  public set materialOutput(value: boolean) {
+    this.#materialOutput = value;
   }
 
   public get metalness(): number {

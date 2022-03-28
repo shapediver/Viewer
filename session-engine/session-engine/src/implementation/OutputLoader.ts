@@ -124,10 +124,15 @@ export class OutputLoader {
 
     private assignMaterials(node: TreeNode) {
         const addMaterialToGeometry = (node: TreeNode, material: MaterialData) => {
-            for (let i = 0; i < node.data.length; i++)
-                if (node.data[i] instanceof GeometryData) 
-                    if((<GeometryData>node.data[i]).primitive.material === null)
-                        (<GeometryData>node.data[i]).primitive.material = material;
+            for (let i = 0; i < node.data.length; i++) {
+                if (node.data[i] instanceof GeometryData) {
+                    const geometry = <GeometryData>node.data[i];
+                    const currentMaterial = geometry.primitive.material;
+                    if(currentMaterial === null || currentMaterial.materialOutput === true) {
+                        geometry.primitive.material = material;
+                    }
+                }
+            }
 
             for (let i = 0; i < node.children.length; i++) {
                 const child = node.children[i];
@@ -136,9 +141,13 @@ export class OutputLoader {
         };
 
         const getMaterialData = (node: TreeNode, materials: MaterialData[] = []): MaterialData[] => {
-            for (let k = 0; k < node.data.length; k++)
-                if (node.data[k] instanceof MaterialData)
-                    materials.push(<MaterialData>node.data[k]);
+            for (let k = 0; k < node.data.length; k++) {
+                if (node.data[k] instanceof MaterialData) {
+                    const material = <MaterialData>node.data[k];
+                    material.materialOutput = true;
+                    materials.push(material);
+                }
+            }
             
             for (let k = 0; k < node.children.length; k++) {
                 const child = node.children[k];
