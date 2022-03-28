@@ -204,6 +204,11 @@ export class MaterialData extends AbstractTreeNodeData {
   #thicknessMap?: MapData;
   #attenuationDistance = 0.0;
   #attenuationColor: string = '#ffffff';
+  #sheen = 0.0;
+  #sheenColor: string = '#ffffff';
+  #sheenRoughness = 1.0;
+  #sheenMap?: MapData;
+  #sheenRoughnessMap?: MapData;
 
 
   // #endregion Properties (34)
@@ -259,6 +264,11 @@ export class MaterialData extends AbstractTreeNodeData {
       thicknessMap?: MapData;
       attenuationDistance?: number;
       attenuationColor?: string,
+      sheen?: number,
+      sheenColor?: string,
+      sheenRoughness?: number,
+      sheenMap?: MapData,
+      sheenRoughnessMap?: MapData,
     },
     id?: string
   ) {
@@ -305,6 +315,11 @@ export class MaterialData extends AbstractTreeNodeData {
     if (properties.thicknessMap !== undefined) this.thicknessMap = properties.thicknessMap;
     if (properties.attenuationDistance !== undefined) this.attenuationDistance = properties.attenuationDistance;
     if (properties.attenuationColor !== undefined) this.attenuationColor = properties.attenuationColor;
+    if (properties.sheen !== undefined) this.sheen = properties.sheen;
+    if (properties.sheenColor !== undefined) this.sheenColor = properties.sheenColor;
+    if (properties.sheenRoughness !== undefined) this.sheenRoughness = properties.sheenRoughness;
+    if (properties.sheenMap !== undefined) this.sheenMap = properties.sheenMap;
+    if (properties.sheenRoughnessMap !== undefined) this.sheenRoughnessMap = properties.sheenRoughnessMap;
   }
 
   // #endregion Constructors (1)
@@ -639,6 +654,46 @@ export class MaterialData extends AbstractTreeNodeData {
     this.#attenuationColor = value;
   }
 
+  public get sheen(): number {
+    return this.#sheen;
+  }
+
+  public set sheen(value: number) {
+    this.#sheen = value;
+  }
+
+  public get sheenRoughness(): number {
+    return this.#sheenRoughness;
+  }
+
+  public set sheenRoughness(value: number) {
+    this.#sheenRoughness = value;
+  }
+
+  public get sheenColor(): string {
+    return this.#sheenColor;
+  }
+
+  public set sheenColor(value: string) {
+    this.#sheenColor = value;
+  }
+
+  public get sheenMap(): MapData | undefined {
+    return this.#sheenMap;
+  }
+
+  public set sheenMap(value: MapData | undefined) {
+    this.#sheenMap = value;
+  }
+
+  public get sheenRoughnessMap(): MapData | undefined {
+    return this.#sheenRoughnessMap;
+  }
+
+  public set sheenRoughnessMap(value: MapData | undefined) {
+    this.#sheenRoughnessMap = value;
+  }
+
   // #endregion Public Accessors (68)
 
   // #region Public Methods (1)
@@ -688,7 +743,12 @@ export class MaterialData extends AbstractTreeNodeData {
       thickness: this.thickness,
       thicknessMap: this.thicknessMap,
       attenuationDistance: this.attenuationDistance,
-      attenuationColor: this.attenuationColor
+      attenuationColor: this.attenuationColor,
+      sheen: this.sheen,
+      sheenColor: this.sheenColor,
+      sheenMap: this.sheenMap,
+      sheenRoughness: this.sheenRoughness,
+      sheenRoughnessMap: this.sheenRoughnessMap,
     }, this.id);
   }
 

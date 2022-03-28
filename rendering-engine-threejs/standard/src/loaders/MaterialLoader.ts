@@ -387,6 +387,20 @@ export class MaterialLoader implements ILoader {
         (<THREE.MeshPhysicalMaterial>standardProperties).attenuationDistance = materialData.attenuationDistance;
         (<THREE.MeshPhysicalMaterial>standardProperties).attenuationColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.attenuationColor));
 
+        standardProperties.sheen = materialData.sheen;
+        standardProperties.sheenColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.sheenColor));
+        standardProperties.sheenRoughness = materialData.sheenRoughness;
+        
+        if (materialData.sheenMap !== undefined) {
+            (<THREE.MeshPhysicalMaterial>standardProperties).sheenColorMap  = this.createTexture(materialData.sheenMap);
+            mapCount++;
+        }
+
+        if (materialData.sheenRoughnessMap !== undefined) {
+            (<THREE.MeshPhysicalMaterial>standardProperties).sheenRoughnessMap  = this.createTexture(materialData.sheenRoughnessMap);
+            mapCount++;
+        }
+
         /**
          * Separation between the two for metalness/roughness and specular/glossiness workflow
          */

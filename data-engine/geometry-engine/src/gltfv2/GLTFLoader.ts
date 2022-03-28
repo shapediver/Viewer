@@ -44,6 +44,7 @@ export enum GLTF_EXTENSIONS {
     KHR_MATERIALS_CLEARCOAT = 'KHR_materials_clearcoat',
     KHR_MATERIALS_IOR = 'KHR_materials_ior',
     KHR_MATERIALS_PBRSPECULARGLOSSINESS = 'KHR_materials_pbrSpecularGlossiness',
+    KHR_MATERIALS_SHEEN = 'KHR_materials_sheen',
     KHR_MATERIALS_TRANSMISSION = 'KHR_materials_transmission',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
     KHR_MATERIALS_VOLUME = 'KHR_materials_volume',
@@ -618,6 +619,28 @@ export class GLTFLoader {
             
             if (volumeExtension.attenuationColor !== undefined) {
                 materialData.attenuationColor = this._converter.toColor([volumeExtension.attenuationColor[0] * 255, volumeExtension.attenuationColor[1] * 255, volumeExtension.attenuationColor[2] * 255]);
+            }
+        }
+        
+        if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_SHEEN]) {
+            const sheenExtension = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_SHEEN];
+            materialData.sheen = 1.0;
+            if (sheenExtension.sheenColorFactor !== undefined) {
+                materialData.sheenColor = this._converter.toColor([sheenExtension.sheenColorFactor[0] * 255, sheenExtension.sheenColorFactor[1] * 255, sheenExtension.sheenColorFactor[2] * 255]);
+            }
+
+            if (sheenExtension.sheenRoughnessFactor !== undefined) {
+                materialData.sheenRoughness = sheenExtension.sheenRoughnessFactor;
+            }
+
+            if (sheenExtension.sheenColorTexture !== undefined) {
+                const sheenColorTextureOptions = sheenExtension.sheenColorTexture.extensions && sheenExtension.sheenColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? sheenExtension.sheenColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.sheenMap = await this.loadMap(sheenExtension.sheenColorTexture.index, sheenColorTextureOptions);
+            }
+
+            if (sheenExtension.sheenRoughnessTexture !== undefined) {
+                const sheenRoughnessTextureOptions = sheenExtension.sheenRoughnessTexture.extensions && sheenExtension.sheenRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? sheenExtension.sheenRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
+                materialData.sheenRoughnessMap = await this.loadMap(sheenExtension.sheenRoughnessTexture.index, sheenRoughnessTextureOptions);
             }
         }
 
