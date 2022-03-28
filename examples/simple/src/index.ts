@@ -35,7 +35,7 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
     const node = await dataEngine.loadContent({
         format: 'gltf',
-        href: 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/TransmissionRoughnessTest/glTF/TransmissionRoughnessTest.gltf'
+        href: 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/Lantern/glTF-Quantized/Lantern.gltf'
     })
 
     api.sceneTree.root.addChild(node);

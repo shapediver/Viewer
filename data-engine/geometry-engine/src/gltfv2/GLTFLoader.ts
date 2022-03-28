@@ -49,6 +49,7 @@ export enum GLTF_EXTENSIONS {
     KHR_MATERIALS_TRANSMISSION = 'KHR_materials_transmission',
     KHR_MATERIALS_UNLIT = 'KHR_materials_unlit',
     KHR_MATERIALS_VOLUME = 'KHR_materials_volume',
+    KHR_MESH_QUANTIZATION = 'KHR_mesh_quantization',
     KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
     SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
 }
@@ -209,6 +210,31 @@ export class GLTFLoader {
     // #endregion Public Methods (2)
 
     // #region Private Methods (13)
+    private getNormalizedComponentScale( constructor: Uint8ArrayConstructor | Int8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor ) {
+
+        // Reference:
+        // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization#encoding-quantized-data
+    
+        switch ( constructor ) {
+    
+            case Int8Array:
+                return 1 / 127;
+    
+            case Uint8Array:
+                return 1 / 255;
+    
+            case Int16Array:
+                return 1 / 32767;
+    
+            case Uint16Array:
+                return 1 / 65535;
+    
+            default:
+                throw new Error( 'THREE.GLTFLoader: Unsupported normalized accessor component type.' );
+    
+        }
+    
+    }
 
     private async loadAccessor(accessorId: number): Promise<AttributeData | null> {
         if (!this._content.accessors) throw new Error('Accessors not available.')
@@ -247,6 +273,14 @@ export class GLTFLoader {
             } else {
                 array = new ArrayType(arrayBuffer, byteOffset, accessor.count * itemSize);
             }
+        }
+
+        if (normalized) {
+            const scale = this.getNormalizedComponentScale(ArrayType);
+            const scaled = new Float32Array(array.length);
+            for (let j = 0, jl = array.length; j < jl; j++)
+                scaled[j] = array[j] * scale;
+            array = scaled;
         }
 
         if (accessor.sparse !== undefined) {
