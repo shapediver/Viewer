@@ -23,7 +23,7 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
-import { convert, ISettingsV3, validate } from '@shapediver/viewer.settings'
+import { convert, ISettingsV3, ISettingsV3_1, validate } from '@shapediver/viewer.settings'
 import { mat4, vec3 } from 'gl-matrix'
 import { ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
@@ -273,7 +273,7 @@ export class Api implements IApi {
         throw this.#logger.handleError(LOGGINGTOPIC.SETTINGS, 'Api.applySettings', error);
       }
 
-      const settings = <ISettingsV3>convert(config, '3.0');
+      const settings = <ISettingsV3_1>convert(config, '3.1');
 
       const exportMappingUid: { [key: string]: string | undefined } = {};
       if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
@@ -334,7 +334,14 @@ export class Api implements IApi {
         currentSettings.rendering.shadows = settings.rendering.shadows;
         currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
         currentSettings.rendering.ambientOcclusionIntensity = settings.rendering.ambientOcclusionIntensity;
+        currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
+        currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;
+        currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
+        currentSettings.rendering.toneMapping = settings.rendering.toneMapping;
+        currentSettings.rendering.toneMappingExposure = settings.rendering.toneMappingExposure;
+        currentSettings.environmentGeometry.gridColor = settings.environmentGeometry.gridColor;
         currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
+        currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
         currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
         currentSettings.general.commitParameters = settings.general.commitParameters;
         currentSettings.general.pointSize = settings.general.pointSize;
