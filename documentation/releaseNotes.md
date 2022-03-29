@@ -8,10 +8,14 @@
 * __Commit:__ 51a99b33fc0dc39b86e93d567cf1644e38643fe7
 <!--- VERSION_END -->
 
-## Version 1.13.6 - `The Matrix`
+## Version 1.13.7 - `Matrix Revolutions`
+- bugfix: material assignment
+- bugfix: scene settings import
+
+## Version 1.13.6 - `Matrix Reloaded`
 - deselectOnEmpty option for SelectManager
 
-## Version 1.13.5 - `The Matrix`
+## Version 1.13.5 - `Matrix`
 - bugfix: material assignment
 
 ## Version 1.13.4 - `Mad Max: Fury Road`
