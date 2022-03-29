@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.13.6
-* __Build date:__ 2022-03-23T13:19:11.508Z
-* __Branch:__ development
-* __Commit:__ 51a99b33fc0dc39b86e93d567cf1644e38643fe7
+* __Version:__ 1.13.7
+* __Build date:__ 2022-03-29T07:24:50.149Z
+* __Branch:__ temp
+* __Commit:__ 91b755d57afe442cf632be9b382ef4c226c86ed8
 <!--- VERSION_END -->
 
 ## Version 1.13.7 - `Matrix Revolutions`
