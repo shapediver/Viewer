@@ -837,6 +837,19 @@ export class GLTFLoader {
                     node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
                     node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15])
             });
+            
+            nodeDef.transformations.push({
+                id: 'gltf_matrix_translation',
+                matrix: mat4.create()
+            });
+            nodeDef.transformations.push({
+                id: 'gltf_matrix_rotation',
+                matrix: mat4.create()
+            });
+            nodeDef.transformations.push({
+                id: 'gltf_matrix_scale',
+                matrix: mat4.create()
+            });
         } else if (node.translation || node.scale || node.rotation) {
             const matT = node.translation ? mat4.fromTranslation(mat4.create(), vec3.fromValues(node.translation[0], node.translation[1], node.translation[2])) : mat4.create();
             const matS = node.scale ? mat4.fromScaling(mat4.create(), vec3.fromValues(node.scale[0], node.scale[1], node.scale[2])) : mat4.create();

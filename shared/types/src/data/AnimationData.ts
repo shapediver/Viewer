@@ -121,47 +121,48 @@ export class AnimationData extends AbstractTreeNodeData {
 
         for (let i = 0; i < this.#tracks.length; i++) {
             const track = this.#tracks[i];
-            const idleTransformation = track.node.transformations.filter(t => t.id === 'gltf_matrix');
-            if (idleTransformation.length > 0) {
-                track.previousMatrix = idleTransformation[0];
-                track.node.transformations = track.node.transformations.filter((el) => {
-                    return !idleTransformation.includes(el);
-                });
+            const idleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix');
+            if (idleTransformation) {
+                track.previousMatrix = {
+                    id: idleTransformation.id,
+                    matrix: mat4.clone(idleTransformation.matrix)
+                }
+                idleTransformation.matrix = mat4.create();
                 continue;
             } 
 
             switch(track.path) {
                 case 'scale':
-                    const idleTransformationScale = track.node.transformations.filter(t => t.id === 'gltf_matrix_scale');
-                    if (idleTransformationScale.length > 0) {
-                        track.previousMatrix = idleTransformationScale[0];
-                        track.node.transformations = track.node.transformations.filter((el) => {
-                            return !idleTransformationScale.includes(el);
-                        });
+                    const idleTransformationScale = track.node.transformations.find(t => t.id === 'gltf_matrix_scale');
+                    if (idleTransformationScale) {
+                        track.previousMatrix = {
+                            id: idleTransformationScale.id,
+                            matrix: mat4.clone(idleTransformationScale.matrix)
+                        }
                         continue;
                     } 
 
                     break;
                     
                 case 'rotation':
-                    const idleTransformationRotation = track.node.transformations.filter(t => t.id === 'gltf_matrix_rotation');
-                    if (idleTransformationRotation.length > 0) {
-                        track.previousMatrix = idleTransformationRotation[0];
-                        track.node.transformations = track.node.transformations.filter((el) => {
-                            return !idleTransformationRotation.includes(el);
-                        });
+                    const idleTransformationRotation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation');
+                    if (idleTransformationRotation) {
+                        track.previousMatrix = {
+                            id: idleTransformationRotation.id,
+                            matrix: mat4.clone(idleTransformationRotation.matrix)
+                        }
                         continue;
                     } 
 
                     break;
                     
                 case 'translation':
-                    const idleTransformationTranslation = track.node.transformations.filter(t => t.id === 'gltf_matrix_translation');
-                    if (idleTransformationTranslation.length > 0) {
-                        track.previousMatrix = idleTransformationTranslation[0];
-                        track.node.transformations = track.node.transformations.filter((el) => {
-                            return !idleTransformationTranslation.includes(el);
-                        });
+                    const idleTransformationTranslation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation');
+                    if (idleTransformationTranslation) {
+                        track.previousMatrix = {
+                            id: idleTransformationTranslation.id,
+                            matrix: mat4.clone(idleTransformationTranslation.matrix)
+                        }
                         continue;
                     } 
                     break;
@@ -178,7 +179,34 @@ export class AnimationData extends AbstractTreeNodeData {
                 track.node.transformations = track.node.transformations.filter((el) => {
                     return !prevAnimation.includes(el);
                 });
-                if (track.previousMatrix) track.node.transformations.push(track.previousMatrix);
+                if (track.previousMatrix) {
+                    if(track.previousMatrix.id === 'gltf_matrix') {
+                        const transformation = track.node.transformations.find(t => t.id === 'gltf_matrix')!;
+                        transformation.matrix = track.previousMatrix.matrix;
+                        const translationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation')!;
+                        translationTransformation.matrix = mat4.create();
+                        const rotationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation')!;
+                        rotationTransformation.matrix = mat4.create();
+                        const scaleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_scale')!;
+                        scaleTransformation.matrix = mat4.create();
+                        continue;
+                    } else {
+                        switch(track.path) {
+                            case 'scale':
+                                const idleTransformationScale = track.node.transformations.find(t => t.id === 'gltf_matrix_scale')!;
+                                idleTransformationScale.matrix = track.previousMatrix.matrix;
+                                continue;
+                            case 'rotation':
+                                const idleTransformationRotation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation')!;
+                                idleTransformationRotation.matrix = track.previousMatrix.matrix;
+                                continue;
+                            case 'translation':
+                                const idleTransformationTranslation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation')!;
+                                idleTransformationTranslation.matrix = track.previousMatrix.matrix;
+                                continue;
+                        }
+                    }
+                } 
             }
         } else {
             for (let i = 0; i < this.#tracks.length; i++) {

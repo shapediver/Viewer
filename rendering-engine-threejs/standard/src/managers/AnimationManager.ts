@@ -64,7 +64,35 @@ export class AnimationManager implements IManager {
 
                         const factor = (currentAnimationDeltaTime - track.times[k - 1]) / (track.times[k] - track.times[k - 1]);
 
+                        let translationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation');
+                        if(!translationTransformation) {
+                            translationTransformation = {
+                                id: 'gltf_matrix_translation',
+                                matrix: mat4.create()
+                            }
+                            track.node.transformations.push(translationTransformation)
+                        }
+                        
+                        let rotationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation');
+                        if(!rotationTransformation) {
+                            rotationTransformation = {
+                                id: 'gltf_matrix_rotation',
+                                matrix: mat4.create()
+                            }
+                            track.node.transformations.push(rotationTransformation)
+                        }
+
+                        let scaleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_scale');
+                        if(!scaleTransformation) {
+                            scaleTransformation = {
+                                id: 'gltf_matrix_scale',
+                                matrix: mat4.create()
+                            }
+                            track.node.transformations.push(scaleTransformation)
+                        }
+
                         if (track.path === 'rotation') {
+                            
                             let quaternion: quat;
                             if(track.interpolation === 'step') {
                                 quaternion = quat.fromValues(track.values[(k - 1) * 4 + 0], track.values[(k - 1) * 4 + 1], track.values[(k - 1) * 4 + 2], track.values[(k - 1) * 4 + 3]);
@@ -75,10 +103,7 @@ export class AnimationManager implements IManager {
                                     vec4.fromValues(track.values[(k) * 4 + 0], track.values[(k) * 4 + 1], track.values[(k) * 4 + 2], track.values[(k) * 4 + 3]),
                                     factor)
                             }
-                            track.node.transformations.push({
-                                id,
-                                matrix: mat4.fromQuat(mat4.create(), quaternion)
-                            })
+                            rotationTransformation.matrix = mat4.fromQuat(mat4.create(), quaternion);
                         } else if (track.path === 'translation') {
                             let vector: vec3;
                             if(track.interpolation === 'step') {
@@ -90,10 +115,7 @@ export class AnimationManager implements IManager {
                                     vec3.fromValues(track.values[(k) * 3 + 0], track.values[(k) * 3 + 1], track.values[(k) * 3 + 2]),
                                     factor)
                             }
-                            track.node.transformations.push({
-                                id,
-                                matrix: mat4.fromTranslation(mat4.create(), vector)
-                            })
+                            translationTransformation.matrix = mat4.fromTranslation(mat4.create(), vector);
                         } else if (track.path === 'scale') {
                             let vector: vec3;
                             if(track.interpolation === 'step') {
@@ -105,10 +127,7 @@ export class AnimationManager implements IManager {
                                     vec3.fromValues(track.values[(k) * 3 + 0], track.values[(k) * 3 + 1], track.values[(k) * 3 + 2]),
                                     factor)
                             }
-                            track.node.transformations.push({
-                                id,
-                                matrix: mat4.fromScaling(mat4.create(), vector)
-                            })
+                            scaleTransformation.matrix = mat4.fromScaling(mat4.create(), vector);
                         } else if (track.path === 'weights') {
                             let weights: number[] = [];
                             const weightCount = track.values.length / track.times.length;
