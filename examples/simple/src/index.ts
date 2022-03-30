@@ -21,7 +21,7 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 
 (async () => {
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    viewer.environmentMap = ENVIRONMENT_MAP.VENICE_SUNSET;
+    viewer.environmentMap = ENVIRONMENT_MAP.NEUTRAL;
     viewer.ambientOcclusion = false;
     viewer.shadows = false;
     viewer.groundPlaneVisibility = false;
@@ -31,11 +31,12 @@ const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
     viewer.outputEncoding = SDV.TEXTURE_ENCODING.SRGB;
 
 
-    //href: 'https://cx20.github.io/gltf-test/tutorialModels/MosquitoInAmber/glTF/MosquitoInAmber.gltf'
+    // href: 'https://cx20.github.io/gltf-test/tutorialModels/MosquitoInAmber/glTF/MosquitoInAmber.gltf'
+    // href: 'http://localhost:8080/bee_animation_rigged/scene.gltf'
 
     const node = await dataEngine.loadContent({
         format: 'gltf',
-        href: 'https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/Lantern/glTF-Quantized/Lantern.gltf'
+        href: 'http://localhost:8080/bee (1)/source/Bee.glb'
     })
 
     api.sceneTree.root.addChild(node);

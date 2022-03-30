@@ -847,12 +847,12 @@ export class GLTFLoader {
                 matrix: matT
             });
             nodeDef.transformations.push({
-                id: 'gltf_matrix_scale',
-                matrix: matS
-            });
-            nodeDef.transformations.push({
                 id: 'gltf_matrix_rotation',
                 matrix: matR
+            });
+            nodeDef.transformations.push({
+                id: 'gltf_matrix_scale',
+                matrix: matS
             });
         }
 
