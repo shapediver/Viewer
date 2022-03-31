@@ -317,7 +317,7 @@ const updateAttributeMenu = () => {
 (async () => {
     let viewer = await SDV.api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
     let session = await SDV.api.createSession({ 
-        ticket: '4e87845052d876e1e8fb70fc43b7112aafe762545f20148b26e06d3636f4aa7af86e0fed0539be8107d2313c6fe5624a8a682d4c47a46d1d257f11be4ba558eb619e49f79bbf0a885984ea33795a2fdddd879374d5dce52f765cfdbadc45fc80bd3ba00ec1d57d-e796f62331f0a78069ed73a2a0c0f2b0', 
+        ticket: '594f48034cd52248c11eea0fa3ee20bb91474bda78eaf0280beda726c0690ac63803feba8d83f8f9305ea9d975b7dec65164726774dcf115df200515fca99ef5fadd831bb3183763c25a9e0a1938c76fa1c1ce1bfa7f292a2a3f049860f29d1fdb932bfff1ee3a-ec76bd6c6d241641e17321c37f9435ff', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
     });
