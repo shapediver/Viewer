@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.13.7
-* __Build date:__ 2022-03-29T07:31:37.955Z
+* __Version:__ 1.13.8
+* __Build date:__ 2022-03-31T17:58:44.482Z
 * __Branch:__ development
-* __Commit:__ 2ff79d48366783b467e1afeaf9f22c9188a9dbc3
+* __Commit:__ 4e8b7c5a7f4d77c8bf594c2457f717a2f88d414d
 <!--- VERSION_END -->
 
 ## Version 1.13.8 - `Matrix Resurrections`
