@@ -1,16 +1,17 @@
-import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { MaterialData, MATERIAL_ALPHA, MATERIAL_SIDE } from "@shapediver/viewer.shared.types";
-import { mat4, vec3 } from "gl-matrix";
-import { EventEngine, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
-import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
-import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
-import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
-import { AbstractInteractionManager } from "../AbstractInteractionManager";
-import { InteractionData } from "../InteractionData";
-import { container } from "tsyringe";
-import { IDragEvent } from "../../interfaces/events/IDragEvent";
-import { IViewer } from "@shapediver/viewer";
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { MATERIAL_ALPHA, MATERIAL_SIDE, MaterialData } from '@shapediver/viewer.shared.types'
+import { mat4, vec3 } from 'gl-matrix'
+import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
+import { IViewer } from '@shapediver/viewer'
+
+import { IDragConstraint } from '../../interfaces/utils/IDragConstraint'
+import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
+import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager'
+import { AbstractInteractionManager } from '../AbstractInteractionManager'
+import { InteractionData } from '../InteractionData'
+import { IDragEvent } from '../../interfaces/events/IDragEvent'
 
 export class DragManager extends AbstractInteractionManager {
     // #region Properties (11)
@@ -19,7 +20,7 @@ export class DragManager extends AbstractInteractionManager {
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     #dragConstraints: { [key: string]: IDragConstraint } = {};
-    #effectMaterialToken!: string;
+    #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.DOWN) {
             return (node: TreeNode) => {
@@ -151,7 +152,11 @@ export class DragManager extends AbstractInteractionManager {
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
         if(data) data.interactionStates['drag'] = true;
-        this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
+        if(this.effectMaterial) {
+            this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
+        } else {
+            this.#effectMaterialToken = undefined;
+        }
         this.viewer.updateNode(this.#node);
         this.viewer.render();
     }
@@ -178,7 +183,10 @@ export class DragManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private deactivateNode() {
-        this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+        if(this.#effectMaterialToken) {
+            this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+            this.#effectMaterialToken = undefined;
+        }
         this.viewer.updateNode(this.#node!);
         this.viewer.render();
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);

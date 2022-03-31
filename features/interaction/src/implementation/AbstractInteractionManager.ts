@@ -1,17 +1,18 @@
-import { container } from "tsyringe";
-import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { IInteractionFilterOptions, IInteractionManager } from "../interfaces/IInteractionManager";
-import { IViewer, MaterialData } from "@shapediver/viewer";
-import { DragConstraintUtils } from "./utils/DragConstraintUtils";
-import { InteractionEffectUtils } from "./utils/InteractionEffectUtils";
-import { IDragConstraintUtils } from "../interfaces/utils/IDragConstraintUtils";
-import { IInteractionEffectUtils } from "../interfaces/utils/IInteractionEffectUtils";
+import { container } from 'tsyringe'
+import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
+import { IViewer, MaterialData } from '@shapediver/viewer'
+
+import { IInteractionFilterOptions, IInteractionManager } from '../interfaces/IInteractionManager'
+import { DragConstraintUtils } from './utils/DragConstraintUtils'
+import { InteractionEffectUtils } from './utils/InteractionEffectUtils'
+import { IDragConstraintUtils } from '../interfaces/utils/IDragConstraintUtils'
+import { IInteractionEffectUtils } from '../interfaces/utils/IInteractionEffectUtils'
 
 export abstract class AbstractInteractionManager implements IInteractionManager {
     // #region Properties (5)
 
     #dragConstraintUtils: IDragConstraintUtils = <DragConstraintUtils>container.resolve(DragConstraintUtils);
-    #effectMaterial: MaterialData = new MaterialData({ color: '#00fff7' });
+    #effectMaterial?: MaterialData;
     #interactionEffectUtils: IInteractionEffectUtils = <InteractionEffectUtils>container.resolve(InteractionEffectUtils);
     #viewer!: IViewer;
     abstract filter: IInteractionFilterOptions;
@@ -28,11 +29,11 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#dragConstraintUtils = value;
     }
 
-    public get effectMaterial(): MaterialData {
+    public get effectMaterial(): MaterialData | undefined {
         return this.#effectMaterial;
     }
 
-    public set effectMaterial(value: MaterialData) {
+    public set effectMaterial(value: MaterialData | undefined) {
         this.#effectMaterial = value;
     }
 

@@ -1,20 +1,20 @@
-import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
-import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
-import { AbstractInteractionManager } from "../AbstractInteractionManager";
-import { InteractionData } from "../InteractionData";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
-import { ISelectEvent } from "../../interfaces/events/ISelectEvent";
-import { container } from "tsyringe";
+import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
+import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { container } from 'tsyringe'
+
+import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
+import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager'
+import { AbstractInteractionManager } from '../AbstractInteractionManager'
+import { InteractionData } from '../InteractionData'
+import { ISelectEvent } from '../../interfaces/events/ISelectEvent'
 
 export class SelectManager extends AbstractInteractionManager {
-    // #region Properties (6)
+    // #region Properties (5)
 
     readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
-    #deselectOnEmpty: boolean = true;
-    #effectMaterialToken!: string;
+    #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.DOWN) {
             return (node: TreeNode) => {
@@ -34,23 +34,15 @@ export class SelectManager extends AbstractInteractionManager {
     #intersection: IIntersection | null = null;
     #node: TreeNode | null = null;
 
-    // #endregion Properties (6)
+    // #endregion Properties (5)
 
-    // #region Public Accessors (3)
-
-    public get deselectOnEmpty(): boolean {
-        return this.#deselectOnEmpty;
-    }
-
-    public set deselectOnEmpty(value: boolean) {
-        this.#deselectOnEmpty = value;
-    }
+    // #region Public Accessors (1)
 
     public get filter(): IInteractionFilterOptions {
         return this.#filter;
     }
 
-    // #endregion Public Accessors (3)
+    // #endregion Public Accessors (1)
 
     // #region Public Methods (3)
 
@@ -62,11 +54,8 @@ export class SelectManager extends AbstractInteractionManager {
                 // case other node was clicked, deselect then select
                 this.deactivateNode();
                 this.activateNode(intersections[0]);
-            } else if(intersections.length > 0 && intersection[0].node === this.#node) {
+            } else {
                 // case same node was clicked, only deselect
-                this.deactivateNode();
-            } else if(intersections.length === 0 && this.#deselectOnEmpty) {
-                // case no node was clicked, only deselect when option is on
                 this.deactivateNode();
             }
         } else if(intersections.length > 0) {
@@ -94,7 +83,11 @@ export class SelectManager extends AbstractInteractionManager {
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
         if(data) data.interactionStates['select'] = true;
-        this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
+        if(this.effectMaterial) {
+            this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
+        } else {
+            this.#effectMaterialToken = undefined;
+        }
         
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { node: this.#node } as ISelectEvent);
 
@@ -109,7 +102,10 @@ export class SelectManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private deactivateNode() {
-        this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+        if(this.#effectMaterialToken) {
+            this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
+            this.#effectMaterialToken = undefined;
+        }
         this.viewer.updateNode(this.#node!);
         this.viewer.render();
         const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
