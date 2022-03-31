@@ -8,6 +8,9 @@
 * __Commit:__ 2ff79d48366783b467e1afeaf9f22c9188a9dbc3
 <!--- VERSION_END -->
 
+## Version 1.13.8 - `Matrix Resurrections`
+- possibility for no effectMaterial
+
 ## Version 1.13.7 - `Matrix Revolutions`
 - bugfix: material assignment
 - bugfix: scene settings import
