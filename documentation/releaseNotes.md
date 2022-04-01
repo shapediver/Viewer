@@ -8,6 +8,9 @@
 * __Commit:__ 4e8b7c5a7f4d77c8bf594c2457f717a2f88d414d
 <!--- VERSION_END -->
 
+## Version 1.13.9 - `Madagascar`
+- bugfix: deselectOnEmpty re-implementation
+
 ## Version 1.13.8 - `Matrix Resurrections`
 - possibility for no effectMaterial
 
