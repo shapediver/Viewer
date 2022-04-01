@@ -7,10 +7,10 @@ import {
   MATERIAL_ALPHA,
   PRIMITIVE_MODE,
   AbstractMaterialData,
-  UnlitMaterialData,
-  SpecularGlossinessMaterialData,
-  UnlitMaterialDataProperties,
-  MaterialData,
+  MaterialUnlitData,
+  MaterialSpecularGlossinessData,
+  MaterialUnlitDataProperties,
+  MaterialStandardData,
 } from '@shapediver/viewer.shared.types'
 import { vec4 } from 'gl-matrix'
 
@@ -208,7 +208,7 @@ export class MaterialLoader implements ILoader {
     public init(): void {}
 
     public getMaterialProperties(
-        materialData: AbstractMaterialData | UnlitMaterialData | SpecularGlossinessMaterialData | MaterialData | null,
+        materialData: AbstractMaterialData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
         type: MATERIAL_TYPE,
         materialSettings?: MaterialSettings
     ): {
@@ -220,7 +220,7 @@ export class MaterialLoader implements ILoader {
         let mapCount = 0;
 
 
-        // if no MaterialData is provided, we return our default
+        // if no MaterialStandardData is provided, we return our default
         if(!materialData) {
             generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(this._defaultColor));
             if(materialSettings !== undefined && materialSettings.useVertexColors)
@@ -310,7 +310,7 @@ export class MaterialLoader implements ILoader {
          * 
          */
 
-        if(materialData instanceof UnlitMaterialData) 
+        if(materialData instanceof MaterialUnlitData) 
             return { properties: basicProperties, mapCount };
 
         /**
@@ -355,7 +355,7 @@ export class MaterialLoader implements ILoader {
          * 
          */
 
-        if (materialData instanceof SpecularGlossinessMaterialData) {
+        if (materialData instanceof MaterialSpecularGlossinessData) {
             const specularGlossinessProperties: SpecularGlossinessMaterialParameters = standardProperties;
 
             if (specularGlossinessProperties.KHR_materials_pbrSpecularGlossiness === true) {
@@ -384,7 +384,7 @@ export class MaterialLoader implements ILoader {
          * the final exit, the MeshPhysicalMaterial
          * 
          */
-        if (materialData instanceof MaterialData) {
+        if (materialData instanceof MaterialStandardData) {
             const meshPhysicalProperties: THREE.MeshPhysicalMaterialParameters = standardProperties;
             
             meshPhysicalProperties.clearcoat = materialData.clearcoat;
@@ -488,7 +488,7 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        materialData: AbstractMaterialData | UnlitMaterialData | SpecularGlossinessMaterialData | MaterialData | null,
+        materialData: AbstractMaterialData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
         materialSettings?: MaterialSettings
     ): THREE.Material {
 
@@ -514,10 +514,10 @@ export class MaterialLoader implements ILoader {
         } else if(type === MATERIAL_TYPE.LINE) {
             material = new THREE.LineBasicMaterial(properties);
         } else {
-            if (materialData instanceof UnlitMaterialData) {
+            if (materialData instanceof MaterialUnlitData) {
                 material = new THREE.MeshBasicMaterial(properties);
             } else {
-                if (materialData instanceof SpecularGlossinessMaterialData) {
+                if (materialData instanceof MaterialSpecularGlossinessData) {
                     material = new SpecularGlossinessMaterial(properties);
                 } else {
                     material = new THREE.MeshPhysicalMaterial(properties);

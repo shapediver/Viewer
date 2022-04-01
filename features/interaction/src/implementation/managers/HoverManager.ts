@@ -1,6 +1,6 @@
 import { IRay, IIntersection, IIntersectionFilter } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { MaterialData } from "@shapediver/viewer.shared.types";
+import { MaterialStandardData } from "@shapediver/viewer.shared.types";
 import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
 import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
 import { AbstractInteractionManager } from "../AbstractInteractionManager";

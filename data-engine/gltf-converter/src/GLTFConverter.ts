@@ -26,12 +26,12 @@ import {
     MapData,
     MATERIAL_ALPHA,
     MATERIAL_SIDE,
-    MaterialData,
+    MaterialStandardData,
     PrimitiveData,
     AnimationData,
     PRIMITIVE_MODE,
-    SpecularGlossinessMaterialData,
-    UnlitMaterialData,
+    MaterialSpecularGlossinessData,
+    MaterialUnlitData,
     AbstractMaterialData,
 } from '@shapediver/viewer.shared.types'
 import * as THREE from 'three'
@@ -605,7 +605,7 @@ export class GLTFConverter {
             pbrMetallicRoughness: {}
         };
 
-        if (data instanceof SpecularGlossinessMaterialData) {
+        if (data instanceof MaterialSpecularGlossinessData) {
             if (!this._extensionsUsed.includes('KHR_materials_pbrSpecularGlossiness'))
                 this._extensionsUsed.push('KHR_materials_pbrSpecularGlossiness')
             if (!this._extensionsRequired.includes('KHR_materials_pbrSpecularGlossiness'))
@@ -624,7 +624,7 @@ export class GLTFConverter {
             materialDef.extensions = {
                 KHR_materials_pbrSpecularGlossiness: ext
             }
-        } else if (data instanceof UnlitMaterialData) {
+        } else if (data instanceof MaterialUnlitData) {
             if (!this._extensionsUsed.includes('KHR_materials_unlit'))
                 this._extensionsUsed.push('KHR_materials_unlit')
             if (!this._extensionsRequired.includes('KHR_materials_unlit'))
@@ -637,7 +637,7 @@ export class GLTFConverter {
                 KHR_materials_unlit: {}
             };
         } else {
-            const standardMaterialData = data as MaterialData;
+            const standardMaterialData = data as MaterialStandardData;
             materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(standardMaterialData.color);
             materialDef.pbrMetallicRoughness!.baseColorFactor[3] = standardMaterialData.opacity;
             if (standardMaterialData.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(standardMaterialData.map) }

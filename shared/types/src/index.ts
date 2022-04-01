@@ -1,8 +1,8 @@
 import { CustomData } from './data/CustomData'
 import { AttributeData, GeometryData, PRIMITIVE_MODE, PrimitiveData } from './data/GeometryData'
 import {
-  MaterialData, MaterialDataProperties,
-} from './data/material/MaterialData'
+  MaterialStandardData, MaterialStandardDataProperties,
+} from './data/material/MaterialStandardData'
 import { AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData } from './data/HTMLElementAnchorData'
 import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributesData } from './data/sdtf/SDTFAttributesData'
 import { SDTFItemData } from './data/sdtf/SDTFItemData'
@@ -19,14 +19,14 @@ import { ITaskEvent, TASKTYPE } from './events/ITaskEvent'
 import { MaterialVariantsData } from './data/material/MaterialVariantsData'
 import { MapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './data/material/MapData'
 import { MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, AbstractMaterialData, AbstractMaterialDataProperties } from './data/material/AbstractMaterialData'
-import { SpecularGlossinessMaterialData, SpecularGlossinessMaterialDataProperties } from './data/material/SpecularGlossinessMaterialData'
-import { UnlitMaterialData, UnlitMaterialDataProperties } from './data/material/UnlitMaterialData'
+import { MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties } from './data/material/MaterialSpecularGlossinessData'
+import { MaterialUnlitData, MaterialUnlitDataProperties } from './data/material/MaterialUnlitData'
 
 export {
-  MaterialData, MaterialDataProperties, 
+  MaterialStandardData, MaterialStandardDataProperties, 
   AbstractMaterialData, AbstractMaterialDataProperties, 
-  UnlitMaterialData, UnlitMaterialDataProperties, 
-  SpecularGlossinessMaterialData, SpecularGlossinessMaterialDataProperties, 
+  MaterialUnlitData, MaterialUnlitDataProperties, 
+  MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, 
   MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
 }
 

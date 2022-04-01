@@ -39,7 +39,7 @@ import {
   ISceneEvent,
   ISettingsEvent,
   MATERIAL_SIDE,
-  MaterialData,
+  MaterialStandardData,
   SDTFAttributeOverview,
   SDTFAttributeVisualizationData,
   SDTFItemData,

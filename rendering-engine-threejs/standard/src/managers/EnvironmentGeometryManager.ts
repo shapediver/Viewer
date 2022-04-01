@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { MATERIAL_SIDE, MaterialData, ISceneEvent } from '@shapediver/viewer.shared.types'
+import { MATERIAL_SIDE, MaterialStandardData, ISceneEvent } from '@shapediver/viewer.shared.types'
 import { vec3 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
@@ -165,7 +165,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._environmentGeometryObject.add(this._gridObject);
 
         this._groundPlaneObject = new SDData('grid', '');
-        let mat = new MaterialData();
+        let mat = new MaterialStandardData();
         mat.color = this._groundPlaneColor;
         mat.side = MATERIAL_SIDE.FRONT;
         mat.opacity = this._converter.toAlpha(this._groundPlaneColor);        

@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGINGTOPIC, Converter, StateEngine, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
-import { AttributeData, GeometryData, MaterialData, PrimitiveData } from '@shapediver/viewer.shared.types'
+import { AttributeData, GeometryData, MaterialStandardData, PrimitiveData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
@@ -163,7 +163,7 @@ export class Tag3dEngine {
                         attributes[attributeName] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false, line.attributes[attribute].array.length / line.attributes[attribute].itemSize)
                     }
                     const child = new TreeNode('tag3d_'+line)
-                    child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialData({color: tag3dInfo.color, metalness: 0, roughness: 1}))));
+                    child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialStandardData({color: tag3dInfo.color, metalness: 0, roughness: 1}))));
                     node.children.push(child);
                 }   
             }

@@ -1,6 +1,6 @@
 import { mat4 } from "gl-matrix"
 import { AbstractMaterialData } from "../material/AbstractMaterialData";
-import { UnlitMaterialData } from "../material/UnlitMaterialData";
+import { MaterialUnlitData } from "../material/MaterialUnlitData";
 
 export type SDTFAttributeVisualizationData = {
     material: AbstractMaterialData,
@@ -22,14 +22,14 @@ export enum ATTRIBUTEVISUALIZATION {
 const grayscaleVisualization = (factor: number): SDTFAttributeVisualizationData => {
     const color = Math.floor(factor * 255.0);
     return {
-        material: new UnlitMaterialData({color: 'rgb(' + color + ', '  + color + ', ' + color + ')', opacity: 1}),
+        material: new MaterialUnlitData({color: 'rgb(' + color + ', '  + color + ', ' + color + ')', opacity: 1}),
         matrix: mat4.create()
     }
 }
 
 const opacityVisualization = (factor: number, defaultMaterial?: AbstractMaterialData): SDTFAttributeVisualizationData => {
     return {
-        material: new UnlitMaterialData({color: defaultMaterial?.color || '#00fff7', opacity: factor}),
+        material: new MaterialUnlitData({color: defaultMaterial?.color || '#00fff7', opacity: factor}),
         matrix: mat4.create()
     }
 }
@@ -38,7 +38,7 @@ const blueRedVisualization = (factor: number): SDTFAttributeVisualizationData =>
     const red = factor * 255.0;
     const blue = (1 - factor) * 255.0;
     return {
-        material: new UnlitMaterialData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(0) + ', ' + Math.floor(blue) + ')', opacity: 1}),
+        material: new MaterialUnlitData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(0) + ', ' + Math.floor(blue) + ')', opacity: 1}),
         matrix: mat4.create()
     }
 }
@@ -58,7 +58,7 @@ const blueWhiteRedVisualization = (factor: number): SDTFAttributeVisualizationDa
         blue = 255.0 * (1 - remappedFactor);
     } 
     return {
-        material: new UnlitMaterialData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(blue) + ')', opacity: 1}),
+        material: new MaterialUnlitData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(blue) + ')', opacity: 1}),
         matrix: mat4.create()
     }
 }
@@ -67,7 +67,7 @@ const greenRedVisualization = (factor: number): SDTFAttributeVisualizationData =
     const red = factor * 255.0;
     const green = (1 - factor) * 255.0;
     return {
-        material: new UnlitMaterialData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(0) + ')', opacity: 1}),
+        material: new MaterialUnlitData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(0) + ')', opacity: 1}),
         matrix: mat4.create()
     }
 }
@@ -87,7 +87,7 @@ const greenWhiteRedVisualization = (factor: number): SDTFAttributeVisualizationD
         blue = 255.0 * (1 - remappedFactor);
     } 
     return {
-        material: new UnlitMaterialData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(blue) + ')', opacity: 1}),
+        material: new MaterialUnlitData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(blue) + ')', opacity: 1}),
         matrix: mat4.create()
     }
 }
@@ -107,7 +107,7 @@ const blueGreenRedVisualization = (factor: number): SDTFAttributeVisualizationDa
         blue = 0;
     } 
     return {
-        material: new UnlitMaterialData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(blue) + ')', opacity: 1}),
+        material: new MaterialUnlitData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(blue) + ')', opacity: 1}),
         matrix: mat4.create()
     }
 }
@@ -142,7 +142,7 @@ const blueGreenYellowRedPurpleWhiteVisualization = (factor: number): SDTFAttribu
         blue = 255.0;
     } 
     return {
-        material: new UnlitMaterialData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(blue) + ')', opacity: 1}),
+        material: new MaterialUnlitData({color: 'rgb(' + Math.floor(red) + ', '  + Math.floor(green) + ', ' + Math.floor(blue) + ')', opacity: 1}),
         matrix: mat4.create()
     }
 }
@@ -150,7 +150,7 @@ const blueGreenYellowRedPurpleWhiteVisualization = (factor: number): SDTFAttribu
 const hslVisualization = (factor: number): SDTFAttributeVisualizationData => {
     const hue = factor * 359.99;
     return {
-        material: new UnlitMaterialData({color: 'hsl(' + Math.floor(hue) + ', 100%, 50%)', opacity: 1}),
+        material: new MaterialUnlitData({color: 'hsl(' + Math.floor(hue) + ', 100%, 50%)', opacity: 1}),
         matrix: mat4.create()
     }
 }

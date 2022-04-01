@@ -1,7 +1,7 @@
 import { MapData } from './MapData';
 import { AbstractMaterialData, AbstractMaterialDataProperties } from './AbstractMaterialData';
 
-export interface SpecularGlossinessMaterialDataProperties extends AbstractMaterialDataProperties {
+export interface MaterialSpecularGlossinessDataProperties extends AbstractMaterialDataProperties {
     // #region Properties (5)
 
     glossiness?: number,
@@ -13,7 +13,7 @@ export interface SpecularGlossinessMaterialDataProperties extends AbstractMateri
     // #endregion Properties (5)
 }
 
-export class SpecularGlossinessMaterialData extends AbstractMaterialData {
+export class MaterialSpecularGlossinessData extends AbstractMaterialData {
     // #region Properties (5)
 
     #glossiness: number = 1;
@@ -33,7 +33,7 @@ export class SpecularGlossinessMaterialData extends AbstractMaterialData {
      * @param id the id
      */
     constructor(
-        properties?: SpecularGlossinessMaterialDataProperties,
+        properties?: MaterialSpecularGlossinessDataProperties,
         id?: string
     ) {
         super(properties, id);
@@ -96,8 +96,8 @@ export class SpecularGlossinessMaterialData extends AbstractMaterialData {
     /**
    * Clones the scene graph data.
    */
-    public clone(): SpecularGlossinessMaterialData {
-        return new SpecularGlossinessMaterialData({
+    public clone(): MaterialSpecularGlossinessData {
+        return new MaterialSpecularGlossinessData({
             alphaMap: this.alphaMap,
             alphaCutoff: this.alphaCutoff,
             alphaMode: this.alphaMode,

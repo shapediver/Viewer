@@ -27,16 +27,16 @@ import {
   MapData,
   MATERIAL_ALPHA,
   MATERIAL_SIDE,
-  MaterialData,
+  MaterialStandardData,
   PrimitiveData,
   MaterialVariantsData,
   AbstractMaterialDataProperties,
-  SpecularGlossinessMaterialData,
+  MaterialSpecularGlossinessData,
   AbstractMaterialData,
-  SpecularGlossinessMaterialDataProperties,
-  UnlitMaterialDataProperties,
-  UnlitMaterialData,
-  MaterialDataProperties,
+  MaterialSpecularGlossinessDataProperties,
+  MaterialUnlitDataProperties,
+  MaterialUnlitData,
+  MaterialStandardDataProperties,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { AxiosResponse } from 'axios'
@@ -540,7 +540,7 @@ export class GLTFLoader {
 
         if (material.extensions && material.extensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET]) {
             const materialPreset: ISHAPEDIVER_materials_preset = material.extensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET];
-            const materialData = new MaterialData(materialDataProperties);
+            const materialData = new MaterialStandardData(materialDataProperties);
             await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset, materialData);
             materialData.color = this._converter.toColor(materialPreset.color);
             return materialData;
@@ -594,7 +594,7 @@ export class GLTFLoader {
 
         if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS]) {
             const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS];
-            const specularGlossinessMaterialDataProperties: SpecularGlossinessMaterialDataProperties = materialDataProperties;
+            const specularGlossinessMaterialDataProperties: MaterialSpecularGlossinessDataProperties = materialDataProperties;
 
             specularGlossinessMaterialDataProperties.color = '#ffffff';
             specularGlossinessMaterialDataProperties.opacity = 1.0;
@@ -620,7 +620,7 @@ export class GLTFLoader {
                 const specularGlossinessTextureOptions = pbrSpecularGlossiness.specularGlossinessTexture.extensions && pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
                 specularGlossinessMaterialDataProperties.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index, specularGlossinessTextureOptions);
             }
-            return new SpecularGlossinessMaterialData(specularGlossinessMaterialDataProperties);
+            return new MaterialSpecularGlossinessData(specularGlossinessMaterialDataProperties);
         }
 
         /**
@@ -630,7 +630,7 @@ export class GLTFLoader {
          */
 
         if (material.extensions && material.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_UNLIT]) {
-            const unlitMaterialDataProperties: UnlitMaterialDataProperties = materialDataProperties;
+            const unlitMaterialDataProperties: MaterialUnlitDataProperties = materialDataProperties;
             unlitMaterialDataProperties.color = '#ffffff';
             unlitMaterialDataProperties.opacity = 1.0;
 
@@ -644,7 +644,7 @@ export class GLTFLoader {
                     unlitMaterialDataProperties.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index, baseColorTextureOptions);
                 }
             }
-            return new UnlitMaterialData(unlitMaterialDataProperties);
+            return new MaterialUnlitData(unlitMaterialDataProperties);
         }
 
         /**
@@ -653,7 +653,7 @@ export class GLTFLoader {
          * 
          */
 
-        const standardMaterialDataProperties: MaterialDataProperties = materialDataProperties;
+        const standardMaterialDataProperties: MaterialStandardDataProperties = materialDataProperties;
         
         if (material.pbrMetallicRoughness !== undefined) {
             standardMaterialDataProperties.color = '#ffffff';
@@ -787,7 +787,7 @@ export class GLTFLoader {
         }
 
 
-        return new MaterialData(standardMaterialDataProperties);
+        return new MaterialStandardData(standardMaterialDataProperties);
     }
 
     private async loadMesh(meshId: number, weights?: number[]): Promise<TreeNode> {

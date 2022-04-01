@@ -1,7 +1,7 @@
 import { MapData } from './MapData';
 import { AbstractMaterialData, AbstractMaterialDataProperties } from './AbstractMaterialData';
 
-export interface MaterialDataProperties extends AbstractMaterialDataProperties {
+export interface MaterialStandardDataProperties extends AbstractMaterialDataProperties {
   // #region Properties (26)
 
   attenuationColor?: string,
@@ -34,7 +34,7 @@ export interface MaterialDataProperties extends AbstractMaterialDataProperties {
   // #endregion Properties (26)
 }
 
-export class MaterialData extends AbstractMaterialData {
+export class MaterialStandardData extends AbstractMaterialData {
   // #region Properties (26)
 
   #attenuationColor: string = '#ffffff';
@@ -75,7 +75,7 @@ export class MaterialData extends AbstractMaterialData {
    * @param id the id
    */
   constructor(
-    properties?: MaterialDataProperties,
+    properties?: MaterialStandardDataProperties,
     id?: string
   ) {
     super(properties, id);
@@ -327,8 +327,8 @@ export class MaterialData extends AbstractMaterialData {
   /**
    * Clones the scene graph data.
    */
-  public clone(): MaterialData {
-    return new MaterialData({
+  public clone(): MaterialStandardData {
+    return new MaterialStandardData({
       alphaMap: this.alphaMap,
       alphaCutoff: this.alphaCutoff,
       alphaMode: this.alphaMode,

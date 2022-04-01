@@ -15,7 +15,7 @@ import {
   ENVIRONMENT_MAP_CUBE,
   ThreejsData,
 } from '@shapediver/viewer.rendering-engine-threejs.standard'
-import { CustomData, GeometryData, MaterialData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, HTMLElementAnchorData, AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, ITaskEvent, TASKTYPE, AbstractMaterialData, AbstractMaterialDataProperties, MapData, MaterialDataProperties, MATERIAL_SHADING, MATERIAL_SIDE, SpecularGlossinessMaterialData, SpecularGlossinessMaterialDataProperties, TEXTURE_FILTERING, TEXTURE_WRAPPING, UnlitMaterialData, UnlitMaterialDataProperties } from '@shapediver/viewer.shared.types'
+import { CustomData, GeometryData, MaterialStandardData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, HTMLElementAnchorData, AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, ITaskEvent, TASKTYPE, AbstractMaterialData, AbstractMaterialDataProperties, MapData, MaterialStandardDataProperties, MATERIAL_SHADING, MATERIAL_SIDE, MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, TEXTURE_FILTERING, TEXTURE_WRAPPING, MaterialUnlitData, MaterialUnlitDataProperties } from '@shapediver/viewer.shared.types'
 import { EVENTTYPE, LOGGINGLEVEL, MAINEVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/sdk.geometry-api-sdk-v2'
@@ -83,10 +83,10 @@ export {
 }
 
 export {
-    MaterialData, MaterialDataProperties, 
+    MaterialStandardData, MaterialStandardDataProperties, 
     AbstractMaterialData, AbstractMaterialDataProperties, 
-    UnlitMaterialData, UnlitMaterialDataProperties, 
-    SpecularGlossinessMaterialData, SpecularGlossinessMaterialDataProperties, 
+    MaterialUnlitData, MaterialUnlitDataProperties, 
+    MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, 
     MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
   }
 

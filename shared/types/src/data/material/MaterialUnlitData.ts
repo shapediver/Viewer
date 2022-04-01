@@ -1,9 +1,9 @@
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { AbstractMaterialData, AbstractMaterialDataProperties } from "./AbstractMaterialData";
 
-export interface UnlitMaterialDataProperties extends AbstractMaterialDataProperties {};
+export interface MaterialUnlitDataProperties extends AbstractMaterialDataProperties {};
 
-export class UnlitMaterialData extends AbstractMaterialData {
+export class MaterialUnlitData extends AbstractMaterialData {
     // #region Constructors (1)
 
     /**
@@ -13,7 +13,7 @@ export class UnlitMaterialData extends AbstractMaterialData {
      * @param id the id
      */
     constructor(
-        properties?: UnlitMaterialDataProperties,
+        properties?: MaterialUnlitDataProperties,
         id?: string
     ) {
         super(properties, id);
@@ -24,8 +24,8 @@ export class UnlitMaterialData extends AbstractMaterialData {
 
     // #region Public Methods (1)
 
-    public clone(): UnlitMaterialData {
-        return new UnlitMaterialData({
+    public clone(): MaterialUnlitData {
+        return new MaterialUnlitData({
             alphaMap: this.alphaMap,
             alphaCutoff: this.alphaCutoff,
             alphaMode: this.alphaMode,

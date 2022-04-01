@@ -5,7 +5,7 @@ import {
   ATTRIBUTEVISUALIZATION,
   GeometryData,
   HTMLElementAnchorData,
-  MaterialData,
+  MaterialStandardData,
   PRIMITIVETYPEHINT,
   SDTFAttributeOverview,
   SDTFAttributeVisualization,
@@ -426,7 +426,7 @@ export class SceneTreeManager implements IManager {
             material: AbstractMaterialData,
             matrix: mat4
         } = {
-            material: new MaterialData({ color: '#00fff7', opacity: 1 }),
+            material: new MaterialStandardData({ color: '#00fff7', opacity: 1 }),
             matrix: mat4.create()
         };
 
