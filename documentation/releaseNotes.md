@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.13.8
-* __Build date:__ 2022-03-31T17:58:44.482Z
+* __Version:__ 1.13.9
+* __Build date:__ 2022-04-01T07:05:49.664Z
 * __Branch:__ development
-* __Commit:__ 4e8b7c5a7f4d77c8bf594c2457f717a2f88d414d
+* __Commit:__ 7488bb76813c7bf7adcabd2c9b35c376e83db286
 <!--- VERSION_END -->
 
 ## Version 1.13.9 - `Madagascar`
