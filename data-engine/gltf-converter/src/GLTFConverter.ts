@@ -30,6 +30,9 @@ import {
     PrimitiveData,
     AnimationData,
     PRIMITIVE_MODE,
+    SpecularGlossinessMaterialData,
+    UnlitMaterialData,
+    AbstractMaterialData,
 } from '@shapediver/viewer.shared.types'
 import * as THREE from 'three'
 
@@ -595,14 +598,14 @@ export class GLTFConverter {
         return this._content.images.length - 1;
     }
 
-    private convertMaterial(data: MaterialData, includeMaps = true): number {
+    private convertMaterial(data: AbstractMaterialData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
             pbrMetallicRoughness: {}
         };
 
-        if (data.KHR_materials_pbrSpecularGlossiness) {
+        if (data instanceof SpecularGlossinessMaterialData) {
             if (!this._extensionsUsed.includes('KHR_materials_pbrSpecularGlossiness'))
                 this._extensionsUsed.push('KHR_materials_pbrSpecularGlossiness')
             if (!this._extensionsRequired.includes('KHR_materials_pbrSpecularGlossiness'))
@@ -621,7 +624,7 @@ export class GLTFConverter {
             materialDef.extensions = {
                 KHR_materials_pbrSpecularGlossiness: ext
             }
-        } else if (data.KHR_materials_unlit) {
+        } else if (data instanceof UnlitMaterialData) {
             if (!this._extensionsUsed.includes('KHR_materials_unlit'))
                 this._extensionsUsed.push('KHR_materials_unlit')
             if (!this._extensionsRequired.includes('KHR_materials_unlit'))
@@ -634,16 +637,17 @@ export class GLTFConverter {
                 KHR_materials_unlit: {}
             };
         } else {
-            materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(data.color);
-            materialDef.pbrMetallicRoughness!.baseColorFactor[3] = data.opacity;
-            if (data.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(data.map) }
-            materialDef.pbrMetallicRoughness!.metallicFactor = data.metalnessMap ? 1 : data.metalness;
-            materialDef.pbrMetallicRoughness!.roughnessFactor = data.roughnessMap ? 1 : data.roughness;
-            if (data.metalnessRoughnessMap && includeMaps) {
-                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(data.metalnessRoughnessMap) };
-            } else if ((data.metalnessMap || data.roughnessMap) && includeMaps) {
+            const standardMaterialData = data as MaterialData;
+            materialDef.pbrMetallicRoughness!.baseColorFactor = this._converter.toColorArray(standardMaterialData.color);
+            materialDef.pbrMetallicRoughness!.baseColorFactor[3] = standardMaterialData.opacity;
+            if (standardMaterialData.map && includeMaps) materialDef.pbrMetallicRoughness!.baseColorTexture = { index: this.convertTexture(standardMaterialData.map) }
+            materialDef.pbrMetallicRoughness!.metallicFactor = standardMaterialData.metalnessMap ? 1 : standardMaterialData.metalness;
+            materialDef.pbrMetallicRoughness!.roughnessFactor = standardMaterialData.roughnessMap ? 1 : standardMaterialData.roughness;
+            if (standardMaterialData.metalnessRoughnessMap && includeMaps) {
+                materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessRoughnessMap) };
+            } else if ((standardMaterialData.metalnessMap || standardMaterialData.roughnessMap) && includeMaps) {
                 this._promises.push(new Promise<void>(async resolve => {
-                    const mapData = await this.combineTextures(undefined, data.roughnessMap, data.metalnessMap);
+                    const mapData = await this.combineTextures(undefined, standardMaterialData.roughnessMap, standardMaterialData.metalnessMap);
                     materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(mapData) }
                     resolve();
                 }))

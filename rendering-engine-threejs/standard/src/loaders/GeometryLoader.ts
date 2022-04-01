@@ -4,7 +4,7 @@ import {
   GeometryData,
   MATERIAL_ALPHA,
   MATERIAL_SIDE,
-  MaterialData,
+  AbstractMaterialData,
   PRIMITIVE_MODE,
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'
@@ -64,7 +64,7 @@ export class GeometryLoader implements ILoader {
      */
     public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): Box {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
-            let materialData: MaterialData | null;
+            let materialData: AbstractMaterialData | null;
             if (this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
             } else if (geometry.primitive.effectMaterials.length > 0) {
@@ -99,7 +99,7 @@ export class GeometryLoader implements ILoader {
         } else {
             const threeGeometry = this.loadGeometry(geometry.primitive);
 
-            let materialData: MaterialData | null;
+            let materialData: AbstractMaterialData | null;
             if (this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
             } else if (geometry.primitive.effectMaterials.length > 0) {

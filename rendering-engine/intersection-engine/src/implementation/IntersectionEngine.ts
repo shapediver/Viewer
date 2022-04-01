@@ -1,4 +1,4 @@
-import { GeometryData, MaterialData, MATERIAL_SIDE, PRIMITIVE_MODE } from "@shapediver/viewer.shared.types";
+import { GeometryData, AbstractMaterialData, MATERIAL_SIDE, PRIMITIVE_MODE } from "@shapediver/viewer.shared.types";
 import { mat4, vec3 } from "gl-matrix";
 import { Triangle } from "@shapediver/viewer.shared.math";
 import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
@@ -37,7 +37,7 @@ export class IntersectionEngine implements IIntersectionEngine {
     }
 
 
-    private checkIntersection(node: TreeNode, material: MaterialData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: TreeNode } | undefined {
+    private checkIntersection(node: TreeNode, material: AbstractMaterialData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: TreeNode } | undefined {
         let point: vec3 | null;
 
         if (material && material.side === MATERIAL_SIDE.BACK) {

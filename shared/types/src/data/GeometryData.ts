@@ -1,8 +1,8 @@
 import { mat4, vec3 } from 'gl-matrix'
 import { AbstractTreeNodeData, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box, Triangle } from '@shapediver/viewer.shared.math'
+import { AbstractMaterialData } from './material/AbstractMaterialData';
 
-import { MaterialData } from './MaterialData'
 
 export enum PRIMITIVE_MODE {
   POINTS = 0,
@@ -179,11 +179,11 @@ export class PrimitiveData {
 
   #boundingBox: Box = new Box();
   #indices: AttributeData | null = null;
-  #material: MaterialData | null = null;
-  #standardMaterial: MaterialData | null = null;
-  #effectMaterials: { material: MaterialData, token: string }[] = [];
-  #materialVariants: { material: MaterialData, variant: number }[] = [];
-  #attributeMaterial: MaterialData | null = null;
+  #material: AbstractMaterialData | null = null;
+  #standardMaterial: AbstractMaterialData | null = null;
+  #effectMaterials: { material: AbstractMaterialData, token: string }[] = [];
+  #materialVariants: { material: AbstractMaterialData, variant: number }[] = [];
+  #attributeMaterial: AbstractMaterialData | null = null;
 
   // #endregion Properties (5)
 
@@ -201,8 +201,8 @@ export class PrimitiveData {
     } = {},
     mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
     indices: AttributeData | null = null,
-    material: MaterialData | null = null,
-    attributeMaterial: MaterialData | null = null,
+    material: AbstractMaterialData | null = null,
+    attributeMaterial: AbstractMaterialData | null = null,
   ) {
     this.#attributes = attributes;
     this.#mode = mode;
@@ -243,35 +243,35 @@ export class PrimitiveData {
     this.#indices = value
   }
 
-  public get standardMaterial(): MaterialData | null {
+  public get standardMaterial(): AbstractMaterialData | null {
     return this.#standardMaterial;
   }
 
-  public set standardMaterial(value: MaterialData | null) {
+  public set standardMaterial(value: AbstractMaterialData | null) {
     this.#standardMaterial = value;
   }
 
-  public get material(): MaterialData | null {
+  public get material(): AbstractMaterialData | null {
     return this.#material;
   }
 
-  public set material(value: MaterialData | null) {
+  public set material(value: AbstractMaterialData | null) {
     this.#material = value;
   }
 
-  public get effectMaterials(): { material: MaterialData, token: string }[] {
+  public get effectMaterials(): { material: AbstractMaterialData, token: string }[] {
     return this.#effectMaterials;
   }
 
-  public get materialVariants(): { material: MaterialData, variant: number }[] {
+  public get materialVariants(): { material: AbstractMaterialData, variant: number }[] {
     return this.#materialVariants;
   }
 
-  public get attributeMaterial(): MaterialData | null {
+  public get attributeMaterial(): AbstractMaterialData | null {
     return this.#attributeMaterial;
   }
 
-  public set attributeMaterial(value: MaterialData | null) {
+  public set attributeMaterial(value: AbstractMaterialData | null) {
     this.#attributeMaterial = value;
   }
 
@@ -292,7 +292,7 @@ export class PrimitiveData {
     } = {};
     for (let attribute in this.#attributes)
       attributes[attribute] = this.#attributes[attribute].clone();
-    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <MaterialData>this.#material?.clone(), <MaterialData>this.#attributeMaterial?.clone());
+    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <AbstractMaterialData>this.#material?.clone(), <AbstractMaterialData>this.#attributeMaterial?.clone());
   }
 
   // #endregion Public Methods (1)

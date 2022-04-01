@@ -1,14 +1,8 @@
 import { CustomData } from './data/CustomData'
 import { AttributeData, GeometryData, PRIMITIVE_MODE, PrimitiveData } from './data/GeometryData'
 import {
-  MapData,
-  MATERIAL_ALPHA,
-  MATERIAL_SHADING,
-  MATERIAL_SIDE,
-  MaterialData,
-  TEXTURE_FILTERING,
-  TEXTURE_WRAPPING,
-} from './data/MaterialData'
+  MaterialData, MaterialDataProperties,
+} from './data/material/MaterialData'
 import { AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData } from './data/HTMLElementAnchorData'
 import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributesData } from './data/sdtf/SDTFAttributesData'
 import { SDTFItemData } from './data/sdtf/SDTFItemData'
@@ -22,10 +16,18 @@ import { IEnvironmentEvent } from './events/IEnvironmentEvent'
 import { ISceneEvent } from './events/ISceneEvent'
 import { ISettingsEvent } from './events/ISettingsEvent'
 import { ITaskEvent, TASKTYPE } from './events/ITaskEvent'
-import { MaterialVariantsData } from './data/MaterialVariantsData'
+import { MaterialVariantsData } from './data/material/MaterialVariantsData'
+import { MapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './data/material/MapData'
+import { MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, AbstractMaterialData, AbstractMaterialDataProperties } from './data/material/AbstractMaterialData'
+import { SpecularGlossinessMaterialData, SpecularGlossinessMaterialDataProperties } from './data/material/SpecularGlossinessMaterialData'
+import { UnlitMaterialData, UnlitMaterialDataProperties } from './data/material/UnlitMaterialData'
 
 export {
-  MaterialData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
+  MaterialData, MaterialDataProperties, 
+  AbstractMaterialData, AbstractMaterialDataProperties, 
+  UnlitMaterialData, UnlitMaterialDataProperties, 
+  SpecularGlossinessMaterialData, SpecularGlossinessMaterialDataProperties, 
+  MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
 }
 
 export {

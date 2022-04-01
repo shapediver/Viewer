@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import {
+    AbstractMaterialData,
   AnimationData,
   ATTRIBUTEVISUALIZATION,
   GeometryData,
@@ -141,7 +142,7 @@ export class SceneTreeManager implements IManager {
                 dataChild.SDtype = SD_DATA_TYPE.THREEJS;
                 dataChild.add(<SDData>(<ThreejsData>data).obj);
                 break;
-            case data instanceof MaterialData:
+            case data instanceof AbstractMaterialData:
                 dataChild.SDtype = SD_DATA_TYPE.MATERIAL;
                 break;
             case data instanceof AbstractLight:
@@ -421,7 +422,10 @@ export class SceneTreeManager implements IManager {
 
     private injectAttributeData(node: TreeNode, data: ITreeNodeData) {
         const itemData = this.collectSDTFItemData(node);       
-        let visData = {
+        let visData: {
+            material: AbstractMaterialData,
+            matrix: mat4
+        } = {
             material: new MaterialData({ color: '#00fff7', opacity: 1 }),
             matrix: mat4.create()
         };

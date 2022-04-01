@@ -2,11 +2,15 @@ import * as THREE from 'three'
 import {
   MapData,
   MATERIAL_SIDE,
-  MaterialData,
   TEXTURE_FILTERING,
   TEXTURE_WRAPPING,
   MATERIAL_ALPHA,
   PRIMITIVE_MODE,
+  AbstractMaterialData,
+  UnlitMaterialData,
+  SpecularGlossinessMaterialData,
+  UnlitMaterialDataProperties,
+  MaterialData,
 } from '@shapediver/viewer.shared.types'
 import { vec4 } from 'gl-matrix'
 
@@ -23,9 +27,7 @@ import { ENVIRONMENT_MAP_TYPE } from './EnvironmentMapLoader'
 export enum MATERIAL_TYPE {
     POINT = 'point',
     LINE = 'line',
-    UNLIT = 'unlit',
-    SPECULAR_GLOSSINESS = 'specular_glossiness',
-    METALNESS_ROUGHNESS = 'metalness_roughness'
+    MESH = 'mesh',
 }
 
 export type MaterialSettings = {
@@ -206,7 +208,7 @@ export class MaterialLoader implements ILoader {
     public init(): void {}
 
     public getMaterialProperties(
-        materialData: MaterialData | null,
+        materialData: AbstractMaterialData | UnlitMaterialData | SpecularGlossinessMaterialData | MaterialData | null,
         type: MATERIAL_TYPE,
         materialSettings?: MaterialSettings
     ): {
@@ -262,7 +264,9 @@ export class MaterialLoader implements ILoader {
             generalProperties.side = materialData.side === MATERIAL_SIDE.BACK ? THREE.BackSide : materialData.side === MATERIAL_SIDE.FRONT ? THREE.FrontSide : THREE.DoubleSide;
 
         /**
+         * 
          * First exit, lines ans points
+         * 
          */
 
         if(type === MATERIAL_TYPE.POINT) {
@@ -301,18 +305,16 @@ export class MaterialLoader implements ILoader {
         }
 
         /**
+         * 
          * Second exit, the unlit material
+         * 
          */
 
-        if(type === MATERIAL_TYPE.UNLIT) {
-            if(materialData.KHR_materials_unlit !== undefined)
-                (<MeshUnlitMaterialParameters>basicProperties).KHR_materials_unlit = materialData.KHR_materials_unlit;
-
+        if(materialData instanceof UnlitMaterialData) 
             return { properties: basicProperties, mapCount };
-        }
 
         /**
-         * We know evaluate properties that can be applied to MeshStandardMaterials and SpecularGlossinessMaterials
+         * We know evaluate properties that can be applied to MeshPhysicalMaterials and SpecularGlossinessMaterials
          */
 
         const standardProperties: THREE.MeshPhysicalMaterialParameters | SpecularGlossinessMaterialParameters = basicProperties;
@@ -346,106 +348,15 @@ export class MaterialLoader implements ILoader {
         if(materialData.normalScale !== undefined)
             standardProperties.normalScale = new THREE.Vector2(materialData.normalScale, -materialData.normalScale);
 
-        standardProperties.clearcoat = materialData.clearcoat;
-        
-        if (materialData.clearcoatMap !== undefined) {
-            standardProperties.clearcoatMap = this.createTexture(materialData.clearcoatMap);
-            mapCount++;
-        }
-
-        if (materialData.clearcoatNormalMap !== undefined) {
-            standardProperties.clearcoatNormalMap = this.createTexture(materialData.clearcoatNormalMap);
-            mapCount++;
-        }
-
-        standardProperties.clearcoatRoughness = materialData.clearcoatRoughness;
-
-        if (materialData.clearcoatRoughnessMap !== undefined) {
-            standardProperties.clearcoatRoughnessMap = this.createTexture(materialData.clearcoatRoughnessMap);
-            mapCount++;
-        }
-
-        standardProperties.ior = materialData.ior;
-
-        standardProperties.transmission = materialData.transmission;
-        if(standardProperties.transmission > 0) {
-            standardProperties.opacity = 1;
-        }
-
-        if (materialData.transmissionMap !== undefined) {
-            standardProperties.transmissionMap  = this.createTexture(materialData.transmissionMap);
-            mapCount++;
-        }
-
-        (<THREE.MeshPhysicalMaterial>standardProperties).thickness  = materialData.thickness;
-
-        if (materialData.thicknessMap !== undefined) {
-            (<THREE.MeshPhysicalMaterial>standardProperties).thicknessMap  = this.createTexture(materialData.thicknessMap);
-            mapCount++;
-        }
-
-        (<THREE.MeshPhysicalMaterial>standardProperties).attenuationDistance = materialData.attenuationDistance;
-        (<THREE.MeshPhysicalMaterial>standardProperties).attenuationColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.attenuationColor));
-
-        standardProperties.sheen = materialData.sheen;
-        standardProperties.sheenColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.sheenColor));
-        standardProperties.sheenRoughness = materialData.sheenRoughness;
-        
-        if (materialData.sheenColorMap !== undefined) {
-            (<THREE.MeshPhysicalMaterial>standardProperties).sheenColorMap  = this.createTexture(materialData.sheenColorMap);
-            mapCount++;
-        }
-
-        if (materialData.sheenRoughnessMap !== undefined) {
-            (<THREE.MeshPhysicalMaterial>standardProperties).sheenRoughnessMap  = this.createTexture(materialData.sheenRoughnessMap);
-            mapCount++;
-        }
-
-        standardProperties.specularIntensity = materialData.specularIntensity;
-
-        if (materialData.specularIntensityMap !== undefined) {
-            (<THREE.MeshPhysicalMaterial>standardProperties).specularIntensityMap  = this.createTexture(materialData.specularIntensityMap);
-            mapCount++;
-        }
-
-        standardProperties.specularColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.specularColor));
-
-        if (materialData.specularColorMap !== undefined) {
-            (<THREE.MeshPhysicalMaterial>standardProperties).specularColorMap  = this.createTexture(materialData.specularColorMap);
-            mapCount++;
-        }
 
         /**
-         * Separation between the two for metalness/roughness and specular/glossiness workflow
+         * 
+         * Third exit, the specular-glossiness material
+         * 
          */
 
-        if (type === MATERIAL_TYPE.METALNESS_ROUGHNESS) {
-            const meshStandardProperties: THREE.MeshPhysicalMaterialParameters = standardProperties;
-
-            meshStandardProperties.metalness = materialData.metalness;
-            meshStandardProperties.roughness = materialData.roughness;
-
-            if (materialData.metalnessRoughnessMap !== undefined) {
-                meshStandardProperties.metalnessMap = this.createTexture(materialData.metalnessRoughnessMap);
-                meshStandardProperties.roughnessMap = meshStandardProperties.metalnessMap;
-                mapCount++;
-            } else {
-                if (materialData.metalnessMap !== undefined) {
-                    meshStandardProperties.metalnessMap = this.createTexture(materialData.metalnessMap);
-                    mapCount++;
-                }
-                if (materialData.roughnessMap !== undefined) {
-                    meshStandardProperties.roughnessMap = this.createTexture(materialData.roughnessMap);
-                    mapCount++;
-                }
-            }
-            return { properties: meshStandardProperties, mapCount };
-
-        } else if (type === MATERIAL_TYPE.SPECULAR_GLOSSINESS) {
+        if (materialData instanceof SpecularGlossinessMaterialData) {
             const specularGlossinessProperties: SpecularGlossinessMaterialParameters = standardProperties;
-
-            if (materialData.KHR_materials_pbrSpecularGlossiness !== undefined)
-                specularGlossinessProperties.KHR_materials_pbrSpecularGlossiness = materialData.KHR_materials_pbrSpecularGlossiness;
 
             if (specularGlossinessProperties.KHR_materials_pbrSpecularGlossiness === true) {
                 specularGlossinessProperties.specular = materialData.specular;
@@ -466,8 +377,103 @@ export class MaterialLoader implements ILoader {
                     }
                 }
             }
+        }
 
-            return { properties: specularGlossinessProperties, mapCount };
+        /**
+         * 
+         * the final exit, the MeshPhysicalMaterial
+         * 
+         */
+        if (materialData instanceof MaterialData) {
+            const meshPhysicalProperties: THREE.MeshPhysicalMaterialParameters = standardProperties;
+            
+            meshPhysicalProperties.clearcoat = materialData.clearcoat;
+
+            if (materialData.clearcoatMap !== undefined) {
+                meshPhysicalProperties.clearcoatMap = this.createTexture(materialData.clearcoatMap);
+                mapCount++;
+            }
+
+            if (materialData.clearcoatNormalMap !== undefined) {
+                meshPhysicalProperties.clearcoatNormalMap = this.createTexture(materialData.clearcoatNormalMap);
+                mapCount++;
+            }
+
+            meshPhysicalProperties.clearcoatRoughness = materialData.clearcoatRoughness;
+
+            if (materialData.clearcoatRoughnessMap !== undefined) {
+                meshPhysicalProperties.clearcoatRoughnessMap = this.createTexture(materialData.clearcoatRoughnessMap);
+                mapCount++;
+            }
+
+            meshPhysicalProperties.ior = materialData.ior;
+
+            meshPhysicalProperties.transmission = materialData.transmission;
+            if (meshPhysicalProperties.transmission > 0) {
+                meshPhysicalProperties.opacity = 1;
+            }
+
+            if (materialData.transmissionMap !== undefined) {
+                meshPhysicalProperties.transmissionMap = this.createTexture(materialData.transmissionMap);
+                mapCount++;
+            }
+
+            (<THREE.MeshPhysicalMaterial>meshPhysicalProperties).thickness = materialData.thickness;
+
+            if (materialData.thicknessMap !== undefined) {
+                (<THREE.MeshPhysicalMaterial>meshPhysicalProperties).thicknessMap = this.createTexture(materialData.thicknessMap);
+                mapCount++;
+            }
+
+            meshPhysicalProperties.attenuationDistance = materialData.attenuationDistance;
+            meshPhysicalProperties.attenuationColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.attenuationColor));
+
+            meshPhysicalProperties.sheen = materialData.sheen;
+            meshPhysicalProperties.sheenColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.sheenColor));
+            meshPhysicalProperties.sheenRoughness = materialData.sheenRoughness;
+
+            if (materialData.sheenColorMap !== undefined) {
+                (<THREE.MeshPhysicalMaterial>meshPhysicalProperties).sheenColorMap = this.createTexture(materialData.sheenColorMap);
+                mapCount++;
+            }
+
+            if (materialData.sheenRoughnessMap !== undefined) {
+                (<THREE.MeshPhysicalMaterial>meshPhysicalProperties).sheenRoughnessMap = this.createTexture(materialData.sheenRoughnessMap);
+                mapCount++;
+            }
+
+            meshPhysicalProperties.specularIntensity = materialData.specularIntensity;
+
+            if (materialData.specularIntensityMap !== undefined) {
+                meshPhysicalProperties.specularIntensityMap = this.createTexture(materialData.specularIntensityMap);
+                mapCount++;
+            }
+
+            meshPhysicalProperties.specularColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.specularColor));
+
+            if (materialData.specularColorMap !== undefined) {
+                meshPhysicalProperties.specularColorMap = this.createTexture(materialData.specularColorMap);
+                mapCount++;
+            }
+
+            meshPhysicalProperties.metalness = materialData.metalness;
+            meshPhysicalProperties.roughness = materialData.roughness;
+
+            if (materialData.metalnessRoughnessMap !== undefined) {
+                meshPhysicalProperties.metalnessMap = this.createTexture(materialData.metalnessRoughnessMap);
+                meshPhysicalProperties.roughnessMap = meshPhysicalProperties.metalnessMap;
+                mapCount++;
+            } else {
+                if (materialData.metalnessMap !== undefined) {
+                    meshPhysicalProperties.metalnessMap = this.createTexture(materialData.metalnessMap);
+                    mapCount++;
+                }
+                if (materialData.roughnessMap !== undefined) {
+                    meshPhysicalProperties.roughnessMap = this.createTexture(materialData.roughnessMap);
+                    mapCount++;
+                }
+            }
+            return { properties: meshPhysicalProperties, mapCount };
         }
 
         // we should never get here
@@ -482,7 +488,7 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        materialData: MaterialData | null, 
+        materialData: AbstractMaterialData | UnlitMaterialData | SpecularGlossinessMaterialData | MaterialData | null,
         materialSettings?: MaterialSettings
     ): THREE.Material {
 
@@ -493,13 +499,7 @@ export class MaterialLoader implements ILoader {
         } else if(materialSettings && (materialSettings.mode === 1 || materialSettings.mode === 2 || materialSettings.mode === 3)) {
             type = MATERIAL_TYPE.LINE;
         } else {
-            if(materialData && materialData.KHR_materials_unlit) {
-                type = MATERIAL_TYPE.UNLIT;
-            } else if(materialData && materialData.KHR_materials_pbrSpecularGlossiness) {
-                type = MATERIAL_TYPE.SPECULAR_GLOSSINESS;
-            } else {
-                type = MATERIAL_TYPE.METALNESS_ROUGHNESS;
-            }
+            type = MATERIAL_TYPE.MESH;
         }
 
         if(materialData && this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) 
@@ -513,25 +513,27 @@ export class MaterialLoader implements ILoader {
             material = new THREE.PointsMaterial(properties);
         } else if(type === MATERIAL_TYPE.LINE) {
             material = new THREE.LineBasicMaterial(properties);
-        } else if(type === MATERIAL_TYPE.UNLIT) {
-            material = new THREE.MeshBasicMaterial(properties);
         } else {
-            if(type === MATERIAL_TYPE.SPECULAR_GLOSSINESS) {
-                material = new SpecularGlossinessMaterial(properties);
+            if (materialData instanceof UnlitMaterialData) {
+                material = new THREE.MeshBasicMaterial(properties);
             } else {
-                material = new THREE.MeshPhysicalMaterial(properties);
-            }
-            const before = material.onBeforeCompile;
-            material.onBeforeCompile = (shader: THREE.Shader, renderer: THREE.WebGLRenderer) => {
-                before(shader, renderer);
-                shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
-                shader.uniforms.blending = { value: this._blending };
-                material.userData.shader = shader;
-            };
-            material.defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
+                if (materialData instanceof SpecularGlossinessMaterialData) {
+                    material = new SpecularGlossinessMaterial(properties);
+                } else {
+                    material = new THREE.MeshPhysicalMaterial(properties);
+                }
+                const before = material.onBeforeCompile;
+                material.onBeforeCompile = (shader: THREE.Shader, renderer: THREE.WebGLRenderer) => {
+                    before(shader, renderer);
+                    shader.uniforms.lightSizeUV = { value: this._lightSizeUV };
+                    shader.uniforms.blending = { value: this._blending };
+                    material.userData.shader = shader;
+                };
+                material.defines['ENVMAP_TYPE_' + this._envMapType.toUpperCase()] = '';
 
-            if (materialSettings && materialSettings.useVertexTangents && material.normalScale ) material.normalScale.y *= - 1;
-            if (materialSettings && materialSettings.useFlatShading) material.flatShading = true;
+                if (materialSettings && materialSettings.useVertexTangents && material.normalScale) material.normalScale.y *= - 1;
+                if (materialSettings && materialSettings.useFlatShading) material.flatShading = true;
+            }
         }
             
         if (materialSettings && materialSettings.useVertexColors) material.vertexColors = true;

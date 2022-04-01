@@ -1,5 +1,5 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { PrimitiveData } from './GeometryData';
+import { PrimitiveData } from '../GeometryData';
 
 export class MaterialVariantsData extends AbstractTreeNodeData {
     // #region Properties (1)

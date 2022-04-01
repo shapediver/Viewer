@@ -1,5 +1,5 @@
 import { ILayer } from "../interfaces/ILayer";
-import { EVENTTYPE, IApi, IViewer, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeVisualization, SDTFItemData, SDTFOverview } from "@shapediver/viewer"
+import { EVENTTYPE, IApi, IViewer, AbstractMaterialData, UnlitMaterialData, PRIMITIVETYPEHINT, SDTFAttributeVisualization, SDTFItemData, SDTFOverview } from "@shapediver/viewer"
 import { IAttribute, IColorAttribute, IDefaultAttribute, INumberAttribute, IStringAttribute } from "../interfaces/IAttribute";
 import { mat4 } from "gl-matrix";
 import { container } from "tsyringe";
@@ -15,7 +15,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     readonly #viewer: IViewer;
 
     #attributes: IAttribute[] = [];
-    #defaultMaterial: MaterialData = new MaterialData({ color: '#000000', opacity: 1, KHR_materials_unlit: true });
+    #defaultMaterial: AbstractMaterialData = new UnlitMaterialData({ color: '#000000', opacity: 1 });
     #defaultLayer: ILayer = {
         color: '#000000',
         opacity: 1,
@@ -54,7 +54,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     // #region Public Accessors (3)
 
-    public get defaultMaterial(): MaterialData {
+    public get defaultMaterial(): AbstractMaterialData {
         return this.#defaultMaterial;
     }
 
@@ -84,7 +84,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         this.constructAttributeVisualization();
     }
 
-    public updateDefaultMaterial(material: MaterialData) {
+    public updateDefaultMaterial(material: AbstractMaterialData) {
         this.#defaultMaterial = material;
         this.constructAttributeVisualization();
     }
@@ -116,8 +116,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
             if (!itemData || !itemData.attributes) {
                 if (this.#attributes.length === 0) {
                     // return default layer material
-                    const material = new MaterialData({
-                        KHR_materials_unlit: true,
+                    const material = new UnlitMaterialData({
                         opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity : 0,
                         color: this.#converter.toColor(this.#defaultLayer.color)
                     });
@@ -127,8 +126,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                     }
                 } else {
                     // return default layer material
-                    const material = new MaterialData({
-                        KHR_materials_unlit: true,
+                    const material = new UnlitMaterialData({
                         opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity * this.#defaultMaterial.opacity : 0,
                         color: this.#converter.toColor(this.#defaultMaterial.color)
                     });
@@ -148,7 +146,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
             // early out, layer is not enabled
             if (layer.enabled === false) {
-                const mat = <MaterialData>this.#defaultMaterial.clone();
+                const mat = <AbstractMaterialData>this.#defaultMaterial.clone();
                 mat.opacity = 0;
                 return {
                     matrix: mat4.create(),
@@ -158,8 +156,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
             if (this.#attributes.length === 0) {
                 // no attributes are specified, we go into layer visualization mode
-                const material = new MaterialData({
-                    KHR_materials_unlit: true,
+                const material = new UnlitMaterialData({
                     opacity: layer.opacity,
                     color: this.#converter.toColor(layer.color)
                 });
@@ -169,7 +166,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 }
             } else {
                 // attributes are specified, we go into attribute visualization mode
-                const material = new MaterialData({KHR_materials_unlit: true});
+                const material = new UnlitMaterialData();
                 for (let i = 0; i < this.#attributes.length; i++) {
                     const a = this.#attributes[i];
                     if (itemData.attributes[a.key] && itemData.attributes[a.key].typeHint === a.type) {
@@ -218,7 +215,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 }
 
                 // no attributes were found, return the default material adjusted by the layer opacity
-                const mat = <MaterialData>this.#defaultMaterial.clone();
+                const mat = <AbstractMaterialData>this.#defaultMaterial.clone();
                 mat.opacity *= layer.opacity;
                 return {
                     matrix: mat4.create(),
