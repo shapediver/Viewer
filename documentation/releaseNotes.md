@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.13.9
-* __Build date:__ 2022-04-01T07:05:49.664Z
+* __Version:__ 1.13.10
+* __Build date:__ 2022-04-04T08:26:57.800Z
 * __Branch:__ development
-* __Commit:__ 7488bb76813c7bf7adcabd2c9b35c376e83db286
+* __Commit:__ 3cd070b17d60bba5c88f5617016e7254424449e6
 <!--- VERSION_END -->
 ## Version 1.13.10 - `Madagascar 2`
 - bugfix: box clamping
