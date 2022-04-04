@@ -7,6 +7,8 @@
 * __Branch:__ development
 * __Commit:__ 7488bb76813c7bf7adcabd2c9b35c376e83db286
 <!--- VERSION_END -->
+## Version 1.13.10 - `Madagascar 2`
+- bugfix: box clamping
 
 ## Version 1.13.9 - `Madagascar`
 - bugfix: deselectOnEmpty re-implementation
