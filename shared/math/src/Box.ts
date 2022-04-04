@@ -123,6 +123,9 @@ export class Box implements IGeometry {
     }
 
     public clampPoint(point: vec3): vec3 {
+        point[0] = Math.max(this.min[0], Math.min(this.max[0], point[0]));
+        point[1] = Math.max(this.min[1], Math.min(this.max[1], point[1]));
+        point[2] = Math.max(this.min[2], Math.min(this.max[2], point[2]));
         return point;
     }
 
