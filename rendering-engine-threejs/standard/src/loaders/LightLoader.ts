@@ -8,9 +8,7 @@ import {
   PointLight,
   SpotLight,
 } from '@shapediver/viewer.rendering-engine.light-engine'
-import { vec3 } from 'gl-matrix'
 
-import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { Converter } from '@shapediver/viewer.shared.services'
@@ -52,7 +50,7 @@ export class LightLoader implements ILoader {
             if(!threeLight) {
                 threeLight = new THREE.DirectionalLight();
                 dataChild.add(threeLight);
-                threeLight.add((<THREE.DirectionalLight>threeLight).target);
+                dataChild.add((<THREE.DirectionalLight>threeLight).target);
             }
             const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
 
@@ -102,7 +100,7 @@ export class LightLoader implements ILoader {
                     light.decay
                 );
                 dataChild.add(threeLight);
-                threeLight.add((<THREE.SpotLight>threeLight).target);
+                dataChild.add((<THREE.SpotLight>threeLight).target);
             }
             const threeSpotLight = <THREE.SpotLight>threeLight;
 

@@ -220,24 +220,46 @@ export class AnimationData extends AbstractTreeNodeData {
 
                 const j = track.times.length-1;
 
-                if (track.path === 'rotation') {
-                    let quaternion: quat = quat.fromValues(track.values[j * 4 + 0], track.values[j * 4 + 1], track.values[j * 4 + 2], track.values[j * 4 + 3]);
-                    track.node.transformations.push({
-                        id,
-                        matrix: mat4.fromQuat(mat4.create(), quaternion)
-                    })
-                } else if (track.path === 'translation') {
-                    let vector: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
-                    track.node.transformations.push({
-                        id,
-                        matrix: mat4.fromTranslation(mat4.create(), vector)
-                    })
-                } else if (track.path === 'scale') {
-                    let vector: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
-                    track.node.transformations.push({
-                        id,
-                        matrix: mat4.fromScaling(mat4.create(), vector)
-                    })
+                let translationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation');
+                if(!translationTransformation) {
+                    translationTransformation = {
+                        id: 'gltf_matrix_translation',
+                        matrix: mat4.create()
+                    }
+                    track.node.transformations.push(translationTransformation)
+                }
+                
+                let rotationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation');
+                if(!rotationTransformation) {
+                    rotationTransformation = {
+                        id: 'gltf_matrix_rotation',
+                        matrix: mat4.create()
+                    }
+                    track.node.transformations.push(rotationTransformation)
+                }
+
+                let scaleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_scale');
+                if(!scaleTransformation) {
+                    scaleTransformation = {
+                        id: 'gltf_matrix_scale',
+                        matrix: mat4.create()
+                    }
+                    track.node.transformations.push(scaleTransformation)
+                }
+                
+                switch(track.path) {
+                    case 'scale':
+                        let vectorScale: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
+                        scaleTransformation.matrix = mat4.fromScaling(mat4.create(), vectorScale);
+                        continue;
+                    case 'rotation':
+                        let quaternion: quat = quat.fromValues(track.values[j * 4 + 0], track.values[j * 4 + 1], track.values[j * 4 + 2], track.values[j * 4 + 3]);
+                        rotationTransformation.matrix = mat4.fromQuat(mat4.create(), quaternion);
+                        continue;
+                    case 'translation':
+                        let vectorTranslation: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
+                        translationTransformation.matrix = mat4.fromTranslation(mat4.create(), vectorTranslation);
+                        continue;
                 }
             }
 

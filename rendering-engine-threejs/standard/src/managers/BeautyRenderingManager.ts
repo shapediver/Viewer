@@ -6,10 +6,10 @@ import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass.js';
 import { SSAARenderPass } from 'three/examples/jsm/postprocessing/SSAARenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import { SAOPass } from '../three/postprocessing/SAOPass.js'
 
 
 export class BeautyRenderingManager implements IManager {
@@ -118,7 +118,7 @@ export class BeautyRenderingManager implements IManager {
         
         this._effectComposer.addPass(this._ssaaPass);
 
-        this._saoPass = new SAOPass(this._renderingEngine.scene, tempCamera, false, true);
+        this._saoPass = new SAOPass(this._renderingEngine.scene, tempCamera, true, true);
 
         const saoRenderFunction = this._saoPass.render.bind(this._saoPass);
 
@@ -149,14 +149,16 @@ export class BeautyRenderingManager implements IManager {
 
         this._effectComposer.addPass(this._saoPass);
         this._saoPass.params.output = 0;
-        this._saoPass.params.saoIntensity = this._renderingEngine.ambientOcclusionIntensity;
-        this._saoPass.params.saoScale = .1;
-        this._saoPass.params.saoKernelRadius = 8;
+        this._saoPass.params.saoBias = 0.5;
+        this._saoPass.params.saoIntensity = this._renderingEngine.ambientOcclusionIntensity * 0.01;
+        this._saoPass.params.saoScale = 1;
+        this._saoPass.params.saoKernelRadius = 100;
+        this._saoPass.params.saoMinResolution = 0;
 
         this._saoPass.params.saoBlur = true;
-        this._saoPass.params.saoBlurRadius = 10;
+        this._saoPass.params.saoBlurRadius = 8;
         this._saoPass.params.saoBlurStdDev = 4;
-        this._saoPass.params.saoBlurDepthCutoff = 1;
+        this._saoPass.params.saoBlurDepthCutoff = 0.001;
 
         this._gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
         this._effectComposer.addPass(this._gammaCorrectionPass);
@@ -172,11 +174,11 @@ export class BeautyRenderingManager implements IManager {
         const percentage = this.setShaderProperties();
 
         if(((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !(this._systemInfo.isIOS || this._systemInfo.isMobile || this._systemInfo.isSafari))) {
-            this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());
+            this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());      
             this._ssaaPass.clearAlpha = this._renderingEngine.renderer.getClearAlpha();
     
             this._saoPass.params.saoIntensity = this._renderingEngine.ambientOcclusionIntensity;
-            const saoIntensity = this._saoPass.params.saoIntensity;
+            const saoIntensity = this._saoPass.params.saoIntensity * 0.0025;
             this._saoPass.params.saoIntensity = percentage * saoIntensity;
 
             // if passes changed, adapt https://shapediver.atlassian.net/browse/SS-2954
