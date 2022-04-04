@@ -256,14 +256,7 @@ export class RenderingManager implements IManager {
         this._lastSize = { width, height, adjustedWidth, adjustedHeight };
 
         // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
-        const cameraMatrix = this._renderingEngine.cameraEngine.camera ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : mat4.create();
-
-        // evaluate if the camera changed
-        this._cameraChanged = true;
-        
-        if (mat4.equals(this._lastCameraMatrix, cameraMatrix))
-            this._cameraChanged = false;
-        this._lastCameraMatrix = mat4.clone(cameraMatrix);
+        this._cameraChanged = this._renderingEngine.cameraEngine.camera ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : false;
 
         // animation loop - part 4: evaluating state
         const states = this.evaluateRenderingState();
@@ -295,7 +288,7 @@ export class RenderingManager implements IManager {
         this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
 
         // animation loop - part 9: adjust the camera (the rendering state would be false if we didn't have a camera)
-        const camera = this._renderingEngine.cameraManager.adjustCamera(cameraMatrix, aspect);
+        const camera = this._renderingEngine.cameraManager.adjustCamera(aspect);
 
         // animation loop - part 10: adjust the anchor elements
         this._renderingEngine.htmlElementAnchorLoader.adjustPositions(adjustedWidth / width, adjustedHeight / height);

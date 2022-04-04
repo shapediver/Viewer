@@ -244,15 +244,18 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         return res;
     }
 
-    public update(time: number): mat4 {
+    public update(time: number): boolean {
         if(this.useNodeData && this.node && this._viewerId) {
-            // done in the CameraManager
-            return mat4.create();
+            return true;
         } else {
             const { position, target } = this._controls.update(time);
+            let changed = true;
+            if (vec3.equals(position, this.position) && vec3.equals(target, this.target)) 
+                changed = false;
+            
             this.position = vec3.clone(position);
             this.target = vec3.clone(target);
-            return mat4.targetTo(mat4.create(), position, target, vec3.fromValues(0, 0, 1));
+            return changed;
         }
     }
 

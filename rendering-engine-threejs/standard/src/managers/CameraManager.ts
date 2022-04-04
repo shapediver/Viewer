@@ -28,7 +28,7 @@ export class CameraManager implements IManager {
 
     // #region Public Methods (2)
 
-    public updateCamera(time: number, aspect: number): mat4 {
+    public updateCamera(time: number, aspect: number): boolean {
         if(this._renderingEngine.cameraEngine.camera?.type === 'perspective') 
             (<PerspectiveCamera>this._renderingEngine.cameraEngine.camera).aspect = aspect;
         return (<AbstractCamera>this._renderingEngine.cameraEngine.camera)!.update(time);
@@ -76,9 +76,8 @@ export class CameraManager implements IManager {
         }
     }
 
-    public adjustCamera(cameraMatrix: mat4, aspect: number): THREE.Camera {
+    public adjustCamera(aspect: number): THREE.Camera {
         let cameraThree: THREE.Camera;
-        let threeMatrix = new THREE.Matrix4().fromArray(cameraMatrix);
 
         const camera = this._renderingEngine.cameraEngine.camera!;
         if(camera.useNodeData) {
@@ -96,10 +95,8 @@ export class CameraManager implements IManager {
                 this._orthographicCameraThree.top = camera.top = distance;
                 this._orthographicCameraThree.near = camera.near = 0.01;
                 this._orthographicCameraThree.far = camera.far = 100 * distance;
-                this._perspectiveCameraThree.position.set(0,0,0);
-                this._perspectiveCameraThree.quaternion.set(0,0,0,1);
-                this._perspectiveCameraThree.scale.set(1,1,1);
-                this._perspectiveCameraThree.applyMatrix4(threeMatrix);
+                this._orthographicCameraThree.position.set(camera.position[0], camera.position[1], camera.position[2]);
+                this._orthographicCameraThree.lookAt(camera.target[0], camera.target[1], camera.target[2]);
                 this._orthographicCameraThree.updateProjectionMatrix();
                 cameraThree = this._orthographicCameraThree;
             } else {
@@ -112,10 +109,8 @@ export class CameraManager implements IManager {
                 this._perspectiveCameraThree.aspect = camera.aspect = aspect;
                 this._perspectiveCameraThree.far = camera.far = (fov < 10 ? fov * 100.0 * 100 * radius : 100 * radius);
                 this._perspectiveCameraThree.near = camera.near = (fov < 10 ? fov * 100.0 * 0.01 * radius : 0.01 * radius);
-                this._perspectiveCameraThree.position.set(0,0,0);
-                this._perspectiveCameraThree.quaternion.set(0,0,0,1);
-                this._perspectiveCameraThree.scale.set(1,1,1);
-                this._perspectiveCameraThree.applyMatrix4(threeMatrix);
+                this._perspectiveCameraThree.position.set(camera.position[0], camera.position[1], camera.position[2]);
+                this._perspectiveCameraThree.lookAt(camera.target[0], camera.target[1], camera.target[2]);
                 this._perspectiveCameraThree.updateProjectionMatrix();
                 cameraThree = this._perspectiveCameraThree;
             }
