@@ -4,7 +4,7 @@ import { Converter, HttpClient, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProces
 import {
     MapData,
     MATERIAL_SIDE,
-    MaterialData,
+    MaterialStandardData,
     TEXTURE_FILTERING,
     TEXTURE_WRAPPING,
 } from '@shapediver/viewer.shared.types'
@@ -47,7 +47,7 @@ export class MaterialEngine {
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
         }
 
-        const material = new MaterialData();
+        const material = new MaterialStandardData();
         node.data.push(material);
 
         if (content.data) {
@@ -82,7 +82,7 @@ export class MaterialEngine {
 
     // #region Private Methods (9)
 
-    private async assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, material: MaterialData) {
+    private async assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, material: MaterialStandardData) {
         if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture) {
             const map = await this.loadMap(generalDefinition.transparencytexture, id.class);
             if (map) material.alphaMap = map;
@@ -116,7 +116,7 @@ export class MaterialEngine {
         if (generalDefinition.side && !specificDefinition.side) material.side = generalDefinition.side === 'front' ? MATERIAL_SIDE.FRONT : generalDefinition.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
     }
 
-    private async assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, material: MaterialData) {
+    private async assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, material: MaterialStandardData) {
         if (specificDefinition.transparencytexture) {
             const map = await this.loadMap(specificDefinition.transparencytexture, id.class + '/' + id.specific);
             if (map) material.alphaMap = map;
@@ -200,7 +200,7 @@ export class MaterialEngine {
         return new MapData(image, wrapS, wrapT, TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, TEXTURE_FILTERING.LINEAR, center, this._converter.toColor(color), offset, repeat, texture.rotation || 0);
     }
 
-    public async loadMaterialV1(data: IMaterialContentDataV1, material: MaterialData) {
+    public async loadMaterialV1(data: IMaterialContentDataV1, material: MaterialStandardData) {
         // ambient is ignored
 
         if (data.color) {
@@ -238,7 +238,7 @@ export class MaterialEngine {
         }
     }
 
-    public async loadMaterialV2(data: IMaterialContentDataV2, material: MaterialData) {
+    public async loadMaterialV2(data: IMaterialContentDataV2, material: MaterialStandardData) {
         // ambient is ignored
 
         if (data.color)
@@ -291,7 +291,7 @@ export class MaterialEngine {
         // line material https://shapediver.atlassian.net/browse/SS-2272
     }
 
-    public async loadMaterialV3(data: IMaterialContentDataV3, material: MaterialData) {
+    public async loadMaterialV3(data: IMaterialContentDataV3, material: MaterialStandardData) {
         // ambient is ignored
 
         if (data.color)
@@ -347,7 +347,7 @@ export class MaterialEngine {
         // line material https://shapediver.atlassian.net/browse/SS-2272
     }
 
-    public async loadPresetMaterial(preset: number, material: MaterialData) {
+    public async loadPresetMaterial(preset: number, material: MaterialStandardData) {
         const idStrings = this.getClassAndSpecificID(preset);
         if (materialDatabase[idStrings.class as any] && materialDatabase[idStrings.class][idStrings.specific]) {
             await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class][idStrings.specific], material);

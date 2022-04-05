@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { MATERIAL_SIDE, MaterialData, ISceneEvent } from '@shapediver/viewer.shared.types'
+import { MATERIAL_SIDE, MaterialStandardData, ISceneEvent } from '@shapediver/viewer.shared.types'
 import { vec3 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
@@ -84,16 +84,16 @@ export class EnvironmentGeometryManager implements IManager {
     // #region Public Methods (2)
 
     public assignGroundPlaneColor(color: string) {
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).opacity = this._converter.toAlpha(color);
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).transparent = (<THREE.MeshStandardMaterial>this._groundPlane.material).opacity !== 1;
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).depthWrite = !(<THREE.MeshStandardMaterial>this._groundPlane.material).transparent;
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).color = new THREE.Color(this._converter.toThreeJsColorInput(color));
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).needsUpdate = true;
+        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).opacity = this._converter.toAlpha(color);
+        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).transparent = (<THREE.MeshPhysicalMaterial>this._groundPlane.material).opacity !== 1;
+        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).depthWrite = !(<THREE.MeshPhysicalMaterial>this._groundPlane.material).transparent;
+        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).color = new THREE.Color(this._converter.toThreeJsColorInput(color));
+        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).needsUpdate = true;
     }    
     
     public assignGroundPlaneEnvironmentIntensity(intensity: number) {
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).envMapIntensity = intensity;
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).needsUpdate = true;
+        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).envMapIntensity = intensity;
+        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).needsUpdate = true;
     }
 
     public changeSceneExtents(bb: Box) {
@@ -165,14 +165,13 @@ export class EnvironmentGeometryManager implements IManager {
         this._environmentGeometryObject.add(this._gridObject);
 
         this._groundPlaneObject = new SDData('grid', '');
-        let mat = new MaterialData();
+        let mat = new MaterialStandardData();
         mat.color = this._groundPlaneColor;
         mat.side = MATERIAL_SIDE.FRONT;
         mat.opacity = this._converter.toAlpha(this._groundPlaneColor);        
         mat.roughness = 1;
         mat.metalness = 0;
         this._groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(), this._renderingEngine.materialLoader.load(mat));
-        (<THREE.MeshStandardMaterial>this._groundPlane.material).format = THREE.RGBAFormat;
         this._groundPlane.receiveShadow = true;
         this._groundPlane.visible = this._renderingEngine.groundPlaneVisibility;
         this._groundPlaneObject.add(this._groundPlane);

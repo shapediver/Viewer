@@ -1,6 +1,6 @@
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { MATERIAL_ALPHA, MATERIAL_SIDE, MaterialData } from '@shapediver/viewer.shared.types'
+import { MATERIAL_ALPHA, MATERIAL_SIDE, MaterialStandardData } from '@shapediver/viewer.shared.types'
 import { mat4, vec3 } from 'gl-matrix'
 import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'

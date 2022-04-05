@@ -15,9 +15,36 @@ import {
 import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { IRenderingEngine, RENDERERTYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { DomEventEngine, EventEngine, EVENTTYPE, IEvent, SettingsEngine, StateEngine, Converter, Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
-import { MATERIAL_SIDE, MaterialData, AnimationData, ISettingsEvent, IEnvironmentEvent, SDTFItemData, SDTFAttributeOverview, SDTFAttributeVisualizationData, SDTFOverview } from '@shapediver/viewer.shared.types'
+import {
+  IRenderingEngine,
+  RENDERERTYPE,
+  TEXTURE_ENCODING,
+  TONE_MAPPING,
+  VISIBILITYMODE,
+} from '@shapediver/viewer.rendering-engine.rendering-engine'
+import {
+  Converter,
+  DomEventEngine,
+  EventEngine,
+  EVENTTYPE,
+  IEvent,
+  Logger,
+  LOGGINGTOPIC,
+  SettingsEngine,
+  StateEngine,
+} from '@shapediver/viewer.shared.services'
+import {
+  AnimationData,
+  IEnvironmentEvent,
+  ISceneEvent,
+  ISettingsEvent,
+  MATERIAL_SIDE,
+  MaterialStandardData,
+  SDTFAttributeOverview,
+  SDTFAttributeVisualizationData,
+  SDTFItemData,
+  SDTFOverview,
+} from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -119,8 +146,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(properties.canvas));
 
     // creation of the engines (all singleton engines were created already)
-    this._domEventEngine = new DomEventEngine(this._id, this.canvas.canvasElement);
-    this._cameraEngine = new CameraEngine(this._id, this.canvas, this._domEventEngine);
+    this._domEventEngine = new DomEventEngine(this._id, this._canvas.canvasElement);
+    this._cameraEngine = new CameraEngine(this._id, this._canvas.canvasElement, this._domEventEngine);
     this._lightEngine = new LightEngine(this._id);
 
     // creation of the managers (all singleton engines were created already)
@@ -270,8 +297,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._cameraManager;
   }
 
-  public get canvas(): ICanvas {
-    return this._canvas;
+  public get canvas(): HTMLCanvasElement {
+    return this._canvas.canvasElement;
   }
 
   public get canvasEngine(): CanvasEngine {
@@ -438,16 +465,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     switch (this._renderer.outputEncoding) {
       case (THREE.sRGBEncoding):
         return TEXTURE_ENCODING.SRGB;
-      case (THREE.RGBEEncoding):
-        return TEXTURE_ENCODING.RGBE;
-      case (THREE.RGBM7Encoding):
-        return TEXTURE_ENCODING.RGBM7;
-      case (THREE.RGBM16Encoding):
-        return TEXTURE_ENCODING.RGBM16;
-      case (THREE.RGBDEncoding):
-        return TEXTURE_ENCODING.RGBD;
-      case (THREE.GammaEncoding):
-        return TEXTURE_ENCODING.GAMMA;  
       case (THREE.LinearEncoding):
       default:
         return TEXTURE_ENCODING.LINEAR;
@@ -458,26 +475,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     switch (value) {
       case (TEXTURE_ENCODING.SRGB):
         this._renderer.outputEncoding = THREE.sRGBEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.RGBE):
-        this._renderer.outputEncoding = THREE.RGBEEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.RGBM7):
-        this._renderer.outputEncoding = THREE.RGBM7Encoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.RGBM16):
-        this._renderer.outputEncoding = THREE.RGBM16Encoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.RGBD):
-        this._renderer.outputEncoding = THREE.RGBDEncoding;
-        this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
-        break;
-      case (TEXTURE_ENCODING.GAMMA):
-        this._renderer.outputEncoding = THREE.GammaEncoding;
         this._beautyRenderingManager.assignOutputEncoding(THREE.sRGBEncoding);
         break;
       case (TEXTURE_ENCODING.LINEAR):
@@ -560,17 +557,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public get textureEncoding(): TEXTURE_ENCODING {
     switch (this.materialLoader.textureEncoding) {
       case (THREE.sRGBEncoding):
-        return TEXTURE_ENCODING.SRGB;
-      case (THREE.RGBEEncoding):
-        return TEXTURE_ENCODING.RGBE;
-      case (THREE.RGBM7Encoding):
-        return TEXTURE_ENCODING.RGBM7;
-      case (THREE.RGBM16Encoding):
-        return TEXTURE_ENCODING.RGBM16;
-      case (THREE.RGBDEncoding):
-        return TEXTURE_ENCODING.RGBD;
-      case (THREE.GammaEncoding):
-        return TEXTURE_ENCODING.GAMMA;  
+        return TEXTURE_ENCODING.SRGB; 
       case (THREE.LinearEncoding):
       default:
         return TEXTURE_ENCODING.LINEAR;
@@ -582,26 +569,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       case (TEXTURE_ENCODING.SRGB):
         this.environmentMapLoader.textureEncoding = THREE.sRGBEncoding;
         this.materialLoader.textureEncoding = THREE.sRGBEncoding;
-        break;
-      case (TEXTURE_ENCODING.RGBE):
-        this.environmentMapLoader.textureEncoding = THREE.sRGBEncoding;
-        this.materialLoader.textureEncoding = THREE.sRGBEncoding;
-        break;
-      case (TEXTURE_ENCODING.RGBM7):
-        this.environmentMapLoader.textureEncoding = THREE.RGBM7Encoding;
-        this.materialLoader.textureEncoding = THREE.RGBM7Encoding;
-        break;
-      case (TEXTURE_ENCODING.RGBM16):
-        this.environmentMapLoader.textureEncoding = THREE.RGBM16Encoding;
-        this.materialLoader.textureEncoding = THREE.RGBM16Encoding;
-        break;
-      case (TEXTURE_ENCODING.RGBD):
-        this.environmentMapLoader.textureEncoding = THREE.RGBDEncoding;
-        this.materialLoader.textureEncoding = THREE.RGBDEncoding;
-        break;
-      case (TEXTURE_ENCODING.GAMMA):
-        this.environmentMapLoader.textureEncoding = THREE.GammaEncoding;
-        this.materialLoader.textureEncoding = THREE.GammaEncoding;
         break;
       case (TEXTURE_ENCODING.LINEAR):
       default:
@@ -673,6 +640,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public async close(): Promise<boolean> {
     this._closed = true;
+    this._lightEngine.close();
     this._renderer.clear(true, true, true);
     this._renderer.dispose();
     this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);

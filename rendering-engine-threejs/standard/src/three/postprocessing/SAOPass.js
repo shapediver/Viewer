@@ -21,12 +21,12 @@ import {
 	WebGLRenderTarget,
 	ZeroFactor
 } from 'three';
-import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
+import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { SAOShader } from '../shaders/SAOShader.js';
-import { DepthLimitedBlurShader } from '../shaders/DepthLimitedBlurShader.js';
-import { BlurShaderUtils } from '../shaders/DepthLimitedBlurShader.js';
-import { CopyShader } from '../shaders/CopyShader.js';
-import { UnpackDepthRGBAShader } from '../shaders/UnpackDepthRGBAShader.js';
+import { DepthLimitedBlurShader } from 'three/examples/jsm/shaders/DepthLimitedBlurShader.js';
+import { BlurShaderUtils } from 'three/examples/jsm/shaders/DepthLimitedBlurShader.js';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import { UnpackDepthRGBAShader } from 'three/examples/jsm/shaders/UnpackDepthRGBAShader.js';
 
 /**
  * SAO implementation inspired from bhouston previous SAO work
@@ -34,7 +34,7 @@ import { UnpackDepthRGBAShader } from '../shaders/UnpackDepthRGBAShader.js';
 
 class SAOPass extends Pass {
 
-	constructor( scene, camera, depthTexture, useNormals, resolution ) {
+	constructor( scene, camera, useDepthTexture, useNormals, resolution ) {
 
 		super();
 
@@ -44,7 +44,7 @@ class SAOPass extends Pass {
 		this.clear = true;
 		this.needsSwap = false;
 
-		this.supportsDepthTextureExtension = ( depthTexture !== undefined ) ? depthTexture : false;
+		this.supportsDepthTextureExtension = ( useDepthTexture !== undefined ) ? useDepthTexture : false;
 		this.supportsNormalTexture = ( useNormals !== undefined ) ? useNormals : false;
 
 		this.originalClearColor = new Color();
@@ -80,9 +80,10 @@ class SAOPass extends Pass {
 		} );
 		this.depthRenderTarget = this.normalRenderTarget.clone();
 
+        let depthTexture;
 		if ( this.supportsDepthTextureExtension ) {
 
-			const depthTexture = new DepthTexture();
+			depthTexture = new DepthTexture();
 			depthTexture.type = UnsignedShortType;
 
 			this.beautyRenderTarget.depthTexture = depthTexture;

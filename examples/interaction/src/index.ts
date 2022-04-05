@@ -338,7 +338,7 @@ const addShelf = async (def: ShelfDefinition) => {
     // create the interaction engine and the managers
     const interactionEngine = new InteractionEngine(viewer);
     hoverManager = new HoverManager();
-    hoverManager.effectMaterial = new SDV.MaterialData({ color: '#dddddd', opacity: 0.25, alphaMode: SDV.MATERIAL_ALPHA.BLEND })
+    hoverManager.effectMaterial = new SDV.MaterialStandardData({ color: '#dddddd', opacity: 0.25, alphaMode: SDV.MATERIAL_ALPHA.BLEND })
     interactionEngine.addInteractionManager(hoverManager);
     dragManager = new DragManager();
     interactionEngine.addInteractionManager(dragManager);

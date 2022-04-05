@@ -226,10 +226,7 @@ export interface IGLTF_v2_Primitive {
     material?: number,
     mode?: number,
     targets?: {
-        node: number,
-        path: string,
-        extensions?: { [id: string]: any },
-        extras?: any
+        [id: string]: number
     }[],
     extensions?: { [id: string]: any },
     extras?: any
@@ -258,15 +255,6 @@ export interface IGLTF_v2_Node {
     extras?: any
 }
 
-// interface IGLTF_v2_Program {
-//     attributes?: string[],
-//     fragmentShader: string,
-//     vertexShader: string,
-//     name?: string,
-//     extensions?: { [id: string]: any },
-//     extras?: any
-// }
-
 export interface IGLTF_v2_Sampler {
     magFilter?: number,
     minFilter?: number,
@@ -284,14 +272,6 @@ export interface IGLTF_v2_Scene {
     extras?: any
 }
 
-// interface IGLTF_v2_Shader {
-//     type: number,
-//     uri: string,
-//     name?: string,
-//     extensions?: { [id: string]: any },
-//     extras?: any
-// }
-
 export interface IGLTF_v2_Skin {
     inverseBindMatrices?: number,
     skeleton?: number,
@@ -300,37 +280,6 @@ export interface IGLTF_v2_Skin {
     extensions?: { [id: string]: any },
     extras?: any
 }
-
-// interface IGLTF_v2_Technique {
-//     parameters?: {
-//         count?: number,
-//         node?: string,
-//         type: number,
-//         semantic?: string,
-//         value?: any,
-//         extensions?: { [id: string]: any },
-//         extras?: any
-//     },
-//     attributes?: {
-//         [key: string]: string
-//     },
-//     program: string,
-//     uniforms?: {
-//         [key: string]: string
-//     },
-//     states?: {
-//         enable?: number[],
-//         functions?: {
-//             [key: string]: any
-//         },
-//         extensions?: { [id: string]: any },
-//         extras?: any
-//     },
-//     name?: string,
-//     extensions?: { [id: string]: any },
-//     extras?: any
-// }
-
 export interface IGLTF_v2_Texture {
     sampler?: number,
     source: number,

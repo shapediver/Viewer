@@ -15,7 +15,7 @@ import {
   ENVIRONMENT_MAP_CUBE,
   ThreejsData,
 } from '@shapediver/viewer.rendering-engine-threejs.standard'
-import { CustomData, GeometryData, MaterialData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, HTMLElementAnchorData, AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
+import { CustomData, GeometryData, MaterialStandardData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, HTMLElementAnchorData, AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, ITaskEvent, TASKTYPE, AbstractMaterialData, AbstractMaterialDataProperties, MapData, MaterialStandardDataProperties, MATERIAL_SHADING, MATERIAL_SIDE, MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, TEXTURE_FILTERING, TEXTURE_WRAPPING, MaterialUnlitData, MaterialUnlitDataProperties } from '@shapediver/viewer.shared.types'
 import { EVENTTYPE, LOGGINGLEVEL, MAINEVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/sdk.geometry-api-sdk-v2'
@@ -67,7 +67,7 @@ export const api: Api = <Api>container.resolve(Api);
 export const settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
 export {
-    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, MATERIAL_ALPHA, EVENTTYPE, MAINEVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, TEXTURE_ENCODING, TONE_MAPPING
+    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, MAINEVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, TEXTURE_ENCODING, TONE_MAPPING
 }
 
 export {
@@ -79,8 +79,16 @@ export {
 }
 
 export {
-    Tree, TreeNode, ITransformation, ITreeNodeData, AbstractTreeNodeData, ThreejsData, CustomData, GeometryData, AnimationData, AnimationTrack, MaterialData, SessionData, SessionOutputData
+    Tree, TreeNode, ITransformation, ITreeNodeData, AbstractTreeNodeData, ThreejsData, CustomData, GeometryData, AnimationData, AnimationTrack, SessionData, SessionOutputData
 }
+
+export {
+    MaterialStandardData, MaterialStandardDataProperties, 
+    AbstractMaterialData, AbstractMaterialDataProperties, 
+    MaterialUnlitData, MaterialUnlitDataProperties, 
+    MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, 
+    MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
+  }
 
 export {
     AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData

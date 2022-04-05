@@ -13,12 +13,15 @@ import { ILightEngine } from '../interface/ILightEngine'
 import { ILight, LIGHTTYPE } from '../interface/ILight'
 import { ILightScene } from '../interface/ILightScene'
 import { IAmbientLightPropertiesV3, IDirectionalLightPropertiesV3, IHemisphereLightPropertiesV3, ILightSceneSettingsV3, IPointLightPropertiesV3, ISpotLightPropertiesV3 } from '@shapediver/viewer.settings'
+import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _lightNode: TreeNode = new TreeNode('lights');
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+    private readonly _tree: Tree = <Tree>container.resolve(Tree);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _lightScene!: LightScene;
@@ -28,7 +31,9 @@ export class LightEngine implements ILightEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _viewerId: string) {}
+    constructor(private readonly _viewerId: string) {
+        this._tree.root.addChild(this._lightNode);
+    }
 
     // #endregion Constructors (1)
 
@@ -164,8 +169,16 @@ export class LightEngine implements ILightEngine {
             return false;
         }
         this._lightScene = this._lightScenes[id];
+        while(this._lightNode.children.length > 0)
+            this._lightNode.removeChild(this._lightNode.children[0]);
+        this._lightNode.addChild(this._lightScene!.node);
+        this._lightNode.updateVersion();
         
         return true;
+    }
+
+    public close(): void {
+        this._tree.root.removeChild(this._lightNode);
     }
 
     public createLightScene(properties: {name?: string, standard?: boolean}): ILightScene {
@@ -177,7 +190,11 @@ export class LightEngine implements ILightEngine {
         }
         this._lightScenes[lightSceneId] = lightScene;
         this._lightScene = lightScene;
-        
+        while(this._lightNode.children.length > 0)
+            this._lightNode.removeChild(this._lightNode.children[0]);
+        this._lightNode.addChild(this._lightScene!.node)
+        this._lightNode.updateVersion();
+
         return lightScene;
     }
 
@@ -197,6 +214,10 @@ export class LightEngine implements ILightEngine {
         if(this._lightScene && this._lightScene.id === id)
             (<any>this._lightScene) = undefined;
         delete this._lightScenes[id];
+
+        while(this._lightNode.children.length > 0)
+            this._lightNode.removeChild(this._lightNode.children[0]);
+        this._lightNode.updateVersion();
 
         return true;
     }

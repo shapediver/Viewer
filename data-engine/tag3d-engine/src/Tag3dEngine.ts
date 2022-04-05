@@ -2,9 +2,11 @@ import * as THREE from 'three'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGINGTOPIC, Converter, StateEngine, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
-import { AttributeData, GeometryData, MaterialData, PrimitiveData } from '@shapediver/viewer.shared.types'
+import { AttributeData, GeometryData, MaterialStandardData, PrimitiveData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 
 @singleton()
 export class Tag3dEngine {
@@ -15,7 +17,7 @@ export class Tag3dEngine {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
-    private _font!: THREE.Font;
+    private _font!: Font;
 
     // #endregion Properties (5)
 
@@ -37,7 +39,7 @@ export class Tag3dEngine {
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         if(!this._font) {
             const json = await this._httpClient.loadData('https://viewer.shapediver.com/graphik_regular.typeface.json', { responseType: 'json' });
-            this._font = new THREE.Font(json.data);
+            this._font = new Font(json.data);
             this._stateEngine.fontLoaded.resolve(true);
         }
 
@@ -64,7 +66,7 @@ export class Tag3dEngine {
                 for (let lineIndex = 0; lineIndex < tagLines.length; ++lineIndex) {
                     if(tagLines[lineIndex] === '') continue;
                     // create tag mesh object
-                    let tag = new THREE.TextBufferGeometry(tagLines[lineIndex], { size: tag3dInfo.size, height: tag3dInfo.size / 10, font: this._font });
+                    let tag = new TextGeometry(tagLines[lineIndex], { size: tag3dInfo.size, height: tag3dInfo.size / 10, font: this._font });
                     lineArray.push(tag);
                 }
 
@@ -161,7 +163,7 @@ export class Tag3dEngine {
                         attributes[attributeName] = new AttributeData(<Float32Array>line.attributes[attribute].array, line.attributes[attribute].itemSize, 0, 0, 0, false, line.attributes[attribute].array.length / line.attributes[attribute].itemSize)
                     }
                     const child = new TreeNode('tag3d_'+line)
-                    child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialData({color: tag3dInfo.color, metalness: 0, roughness: 1}))));
+                    child.data.push(new GeometryData(new PrimitiveData(attributes, 4, null, new MaterialStandardData({color: tag3dInfo.color, metalness: 0, roughness: 1}))));
                     node.children.push(child);
                 }   
             }

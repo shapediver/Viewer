@@ -11,7 +11,7 @@ import {
   AttributeData,
   GeometryData,
   MATERIAL_SIDE,
-  MaterialData,
+  MaterialStandardData,
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'
 import { container } from 'tsyringe'
@@ -178,10 +178,10 @@ export class GLTFLoader {
     }
 
 
-    private async loadMaterial(materialName: string): Promise<MaterialData> {
+    private async loadMaterial(materialName: string): Promise<MaterialStandardData> {
         if(!this._content.materials![materialName]) throw new Error('Material not available.')
         const material: IGLTF_v1_Material = this._content.materials![materialName];
-        const materialData = new MaterialData();
+        const materialData = new MaterialStandardData();
         if(material.name !== undefined) materialData.name = material.name;
 
         if(material.extensions && material.extensions.KHR_materials_common) {
@@ -264,7 +264,7 @@ export class GLTFLoader {
                     attributes[attributeName] = new AttributeData(attributes[attributeName].array, attributes[attributeName].itemSize, attributes[attributeName].itemBytes, attributes[attributeName].byteOffset, attributes[attributeName].elementBytes, true, attributes[attributeName].count, [], [], attributes[attributeName].byteStride)
             }
 
-            let material: MaterialData | undefined;
+            let material: MaterialStandardData | undefined;
             if(primitive.material) 
                 material = await this.loadMaterial(primitive.material);
 

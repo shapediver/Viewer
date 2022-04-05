@@ -6,7 +6,7 @@ import { ICameraControls } from './ICameraControls'
 export interface ICameraControlsUsage extends ICameraControls {
     // #region Properties (4)
 
-    readonly canvas: HTMLCanvasElement;
+    readonly canvas?: HTMLCanvasElement;
     readonly cameraControlsEventDistribution: IDomEventListener;
 
     // #endregion Properties (4)

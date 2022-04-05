@@ -1,6 +1,6 @@
 import { container } from 'tsyringe'
 import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
-import { IViewer, MaterialData } from '@shapediver/viewer'
+import { IViewer, AbstractMaterialData } from '@shapediver/viewer'
 
 import { IInteractionFilterOptions, IInteractionManager } from '../interfaces/IInteractionManager'
 import { DragConstraintUtils } from './utils/DragConstraintUtils'
@@ -12,7 +12,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
     // #region Properties (5)
 
     #dragConstraintUtils: IDragConstraintUtils = <DragConstraintUtils>container.resolve(DragConstraintUtils);
-    #effectMaterial?: MaterialData;
+    #effectMaterial?: AbstractMaterialData;
     #interactionEffectUtils: IInteractionEffectUtils = <InteractionEffectUtils>container.resolve(InteractionEffectUtils);
     #viewer!: IViewer;
     abstract filter: IInteractionFilterOptions;
@@ -29,11 +29,11 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#dragConstraintUtils = value;
     }
 
-    public get effectMaterial(): MaterialData | undefined {
+    public get effectMaterial(): AbstractMaterialData | undefined {
         return this.#effectMaterial;
     }
 
-    public set effectMaterial(value: MaterialData | undefined) {
+    public set effectMaterial(value: AbstractMaterialData | undefined) {
         this.#effectMaterial = value;
     }
 

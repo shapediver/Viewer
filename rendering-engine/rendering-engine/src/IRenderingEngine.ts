@@ -1,3 +1,6 @@
+import { DomEventEngine } from '@shapediver/viewer.shared.services'
+import { Box } from '@shapediver/viewer.shared.math'
+
 export enum RENDERERTYPE {
   /** The standard rendering engine */
   STANDARD = 'standard',
@@ -39,6 +42,8 @@ export interface IRenderingEngine {
   automaticResizing: boolean;
   blur: boolean;
   blurSceneWhenBusy: boolean;
+  canvas: HTMLCanvasElement;
+  domEventEngine: DomEventEngine;
   id: string;
   pointSize: number;
   type: RENDERERTYPE;

@@ -3,7 +3,7 @@ import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
-import { RGBELoader } from '../three/loaders/RGBELoader'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { ILoader } from '../interfaces/ILoader'
 import { ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
 
@@ -267,7 +267,7 @@ export class EnvironmentMapLoader implements ILoader {
         return new Promise<void>(async (resolve, reject) => {
             if(name.endsWith('.hdr')) {
                 const blob = (await this._httpClient.loadData(name)).data;
-                new RGBELoader().setDataType(THREE.UnsignedByteType).load(URL.createObjectURL(blob), (texture) => {
+                new RGBELoader().setDataType(THREE.FloatType).load(URL.createObjectURL(blob), (texture) => {
                     const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                     this._pmremGenerator.dispose();
                     this._environmentMaps[name] = map;
@@ -283,7 +283,7 @@ export class EnvironmentMapLoader implements ILoader {
                 new THREE.CubeTextureLoader().load(url,
                     (map: THREE.CubeTexture) => {
                         map.encoding = THREE.sRGBEncoding;
-                        map.format = THREE.RGBFormat;
+                        map.format = THREE.RGBAFormat;
                         map.mapping = THREE.CubeReflectionMapping;
                         this._environmentMaps[name] = map;
                         this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.LDR, eventId);

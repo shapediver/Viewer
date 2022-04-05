@@ -8,13 +8,12 @@ import {
   PointLight,
   SpotLight,
 } from '@shapediver/viewer.rendering-engine.light-engine'
-import { vec3 } from 'gl-matrix'
 
-import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { Converter } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
+import { SDData } from '../types/SDData'
 
 export class LightLoader implements ILoader {
 
@@ -34,75 +33,116 @@ export class LightLoader implements ILoader {
 
     public init(): void {}
 
-    public load(light: AbstractLight, parent: SDNode, scene: THREE.Scene, boundingBox: Box) {
-        let converted = new SDNode(light.id, light.version);
-
+    public load(light: AbstractLight, dataChild: SDData) {
+        let threeLight: THREE.Light | null = dataChild.children[0] instanceof THREE.Light ? <THREE.Light>dataChild.children[0] : null;
         if (light instanceof AmbientLight) {
-            const threeLight: THREE.AmbientLight = converted.children[0] instanceof THREE.AmbientLight ? (<THREE.AmbientLight>converted.children[0]) : new THREE.AmbientLight();
-            if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
-            threeLight.intensity = light.intensity;
+            if(!threeLight) {
+                threeLight = new THREE.AmbientLight();
+                dataChild.add(threeLight);
+            }
+            const threeAmbientLight = <THREE.AmbientLight>threeLight;
+
+            threeAmbientLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeAmbientLight.intensity = light.intensity;
         }
         
         if (light instanceof DirectionalLight) {
-            const threeLight: THREE.DirectionalLight = converted.children[0] instanceof THREE.DirectionalLight ? (<THREE.DirectionalLight>converted.children[0]) : new THREE.DirectionalLight();
-            if (converted.children.length === 0) converted.add(threeLight);
-            scene.add(threeLight.target);
+            if(!threeLight) {
+                threeLight = new THREE.DirectionalLight();
+                dataChild.add(threeLight);
+                dataChild.add((<THREE.DirectionalLight>threeLight).target);
+            }
+            const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
 
-            threeLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
-            threeLight.intensity = light.intensity;
+            threeDirectionalLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeDirectionalLight.intensity = light.intensity;
 
-            const bs: Sphere = boundingBox.boundingSphere;
-
-            threeLight.position.set(bs.center[0] + light.direction[0] * bs.radius * 2.35, bs.center[1] + light.direction[1] * bs.radius * 2.35, bs.center[2] + light.direction[2] * bs.radius * 2.35);
-            threeLight.target.position.set(bs.center[0], bs.center[1], bs.center[2]);
-
-            if (light.castShadow === true && this.forceDisabledShadows === false) {
-                threeLight.castShadow = true;
-                threeLight.shadow.camera.up.set(0, 0, 1);
-                threeLight.shadow.camera.far = 8 * bs.radius;
-                threeLight.shadow.camera.right = 1.5 * bs.radius;
-                threeLight.shadow.camera.left = -1.5 * bs.radius;
-                threeLight.shadow.camera.top = 1.5 * bs.radius;
-                threeLight.shadow.camera.bottom = -1.5 * bs.radius;
-                threeLight.shadow.mapSize.width = light.shadowMapResolution;
-                threeLight.shadow.mapSize.height = light.shadowMapResolution;
-                threeLight.shadow.bias = light.shadowMapBias;
-                threeLight.shadow.camera.updateProjectionMatrix();
-                this._shadowMapCount++;
-              } else {
-                threeLight.castShadow = false;
-              }
+            if(light.useNodeData) {
+                threeDirectionalLight.position.set(0,0,0);
+                threeDirectionalLight.target.position.set(0,0,-1);
+            }
         }
         
         if (light instanceof HemisphereLight) {
-            const threeLight: THREE.HemisphereLight = converted.children[0] instanceof THREE.HemisphereLight ? (<THREE.HemisphereLight>converted.children[0]) : new THREE.HemisphereLight();
-            if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
-            threeLight.intensity = light.intensity;
-            threeLight.groundColor = new THREE.Color(this._converter.toThreeJsColorInput(light.groundColor));
+            if(!threeLight) {
+                threeLight = new THREE.HemisphereLight();
+                dataChild.add(threeLight);
+            }
+            const threeHemisphereLight = <THREE.HemisphereLight>threeLight;
+
+            threeHemisphereLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeHemisphereLight.intensity = light.intensity;
+            threeHemisphereLight.groundColor = new THREE.Color(this._converter.toThreeJsColorInput(light.groundColor));
         }
         
         if (light instanceof PointLight) {
-            const threeLight: THREE.PointLight = converted.children[0] instanceof THREE.PointLight ? (<THREE.PointLight>converted.children[0]) : new THREE.PointLight();
-            if (converted.children.length === 0) converted.add(threeLight);
-            threeLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
-            threeLight.intensity = light.intensity;
-            threeLight.distance = light.distance;
-            threeLight.decay = light.decay;
-            threeLight.position.set(light.position[0], light.position[1], light.position[2]);
+            if(!threeLight) {
+                threeLight = new THREE.PointLight();
+                dataChild.add(threeLight);
+            }
+            const threePointLight = <THREE.PointLight>threeLight;
+
+            threePointLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threePointLight.intensity = light.intensity;
+            threePointLight.distance = light.distance;
+            threePointLight.decay = light.decay;
+            threePointLight.position.set(light.position[0], light.position[1], light.position[2]);
         }
         
         if (light instanceof SpotLight) {
-            const threeLight: THREE.SpotLight = converted.children[0] instanceof THREE.SpotLight ? (<THREE.SpotLight>converted.children[0]) : 
-            new THREE.SpotLight(new THREE.Color(this._converter.toThreeJsColorInput(light.color)), light.intensity, vec3.distance(light.position, light.target), light.angle, light.penumbra, light.decay)
-            if (converted.children.length === 0) converted.add(threeLight);
-            scene.add(threeLight.target);
-            threeLight.position.set(light.position[0], light.position[1], light.position[2]);
-            threeLight.target.position.set(light.target[0], light.target[1], light.target[2]);
-        }
+            if(!threeLight) {
+                threeLight = new THREE.SpotLight(
+                    new THREE.Color(this._converter.toThreeJsColorInput(light.color)), 
+                    light.intensity, 
+                    light.distance, 
+                    light.angle, 
+                    light.penumbra, 
+                    light.decay
+                );
+                dataChild.add(threeLight);
+                dataChild.add((<THREE.SpotLight>threeLight).target);
+            }
+            const threeSpotLight = <THREE.SpotLight>threeLight;
 
-        parent.add(converted);
+            threeSpotLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeSpotLight.intensity = light.intensity;
+            threeSpotLight.distance = light.distance;
+            threeSpotLight.angle = light.angle;
+            threeSpotLight.penumbra = light.penumbra;
+            threeSpotLight.decay = light.decay;
+
+            threeSpotLight.position.set(light.position[0], light.position[1], light.position[2]);
+            threeSpotLight.target.position.set(light.target[0], light.target[1], light.target[2]);
+        }
+    }
+
+    public adjustToBoundingBox(light: AbstractLight, dataChild: SDData, boundingBox: Box) {
+        let threeLight: THREE.Light = <THREE.Light>dataChild.children[0];
+
+        if (light instanceof DirectionalLight) {
+            const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
+
+            const bs: Sphere = boundingBox.boundingSphere;
+            threeDirectionalLight.position.set(bs.center[0] + light.direction[0] * bs.radius * 2.35, bs.center[1] + light.direction[1] * bs.radius * 2.35, bs.center[2] + light.direction[2] * bs.radius * 2.35);
+            threeDirectionalLight.target.position.set(bs.center[0], bs.center[1], bs.center[2]);
+
+            if (light.castShadow === true && this.forceDisabledShadows === false) {
+                threeDirectionalLight.castShadow = true;
+                threeDirectionalLight.shadow.camera.up.set(0, 0, 1);
+                threeDirectionalLight.shadow.camera.far = 8 * bs.radius;
+                threeDirectionalLight.shadow.camera.right = 1.5 * bs.radius;
+                threeDirectionalLight.shadow.camera.left = -1.5 * bs.radius;
+                threeDirectionalLight.shadow.camera.top = 1.5 * bs.radius;
+                threeDirectionalLight.shadow.camera.bottom = -1.5 * bs.radius;
+                threeDirectionalLight.shadow.mapSize.width = light.shadowMapResolution;
+                threeDirectionalLight.shadow.mapSize.height = light.shadowMapResolution;
+                threeDirectionalLight.shadow.bias = light.shadowMapBias;
+                threeDirectionalLight.shadow.camera.updateProjectionMatrix();
+                this._shadowMapCount++;
+            } else {
+                threeDirectionalLight.castShadow = false;
+            }
+        }
     }
 
     public get shadowMapCount(): number {

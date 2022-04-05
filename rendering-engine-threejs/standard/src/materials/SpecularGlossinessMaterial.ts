@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export interface SpecularGlossinessMaterialParameters extends THREE.MeshStandardMaterialParameters {
+export interface SpecularGlossinessMaterialParameters extends THREE.MeshPhysicalMaterialParameters {
     KHR_materials_pbrSpecularGlossiness?: boolean | undefined,
     specular?: THREE.ColorRepresentation | undefined;
     glossiness?: number | undefined;
@@ -8,7 +8,7 @@ export interface SpecularGlossinessMaterialParameters extends THREE.MeshStandard
     glossinessMap?: THREE.Texture | null | undefined;
 }
 
-export class SpecularGlossinessMaterial extends THREE.MeshStandardMaterial {
+export class SpecularGlossinessMaterial extends THREE.MeshPhysicalMaterial {
     isGLTFSpecularGlossinessMaterial: boolean;
 
     constructor(params: SpecularGlossinessMaterialParameters) {
@@ -16,7 +16,8 @@ export class SpecularGlossinessMaterial extends THREE.MeshStandardMaterial {
         this.isGLTFSpecularGlossinessMaterial = true;
 
         //various chunks that need replacing
-        const specularMapParsFragmentChunk = [
+        //various chunks that need replacing
+		const specularMapParsFragmentChunk = [
 			'#ifdef USE_SPECULARMAP',
 			'	uniform sampler2D specularMap;',
 			'#endif'
@@ -32,23 +33,22 @@ export class SpecularGlossinessMaterial extends THREE.MeshStandardMaterial {
 			'vec3 specularFactor = specular;',
 			'#ifdef USE_SPECULARMAP',
 			'	vec4 texelSpecular = texture2D( specularMap, vUv );',
-			'	texelSpecular = sRGBToLinear( texelSpecular );',
 			'	// reads channel RGB, compatible with a glTF Specular-Glossiness (RGBA) texture',
 			'	specularFactor *= texelSpecular.rgb;',
 			'#endif'
 		].join( '\n' );
 
-        const glossinessMapFragmentChunk = [
+		const glossinessMapFragmentChunk = [
 			'float glossinessFactor = glossiness;',
 			'#ifdef USE_GLOSSINESSMAP',
 			'	vec4 texelGlossiness = texture2D( glossinessMap, vUv );',
 			'	// reads channel A, compatible with a glTF Specular-Glossiness (RGBA) texture',
 			'	glossinessFactor *= texelGlossiness.a;',
 			'#endif'
-        ].join('\n');
+		].join( '\n' );
 
-        const lightPhysicalFragmentChunk = [
-            'PhysicalMaterial material;',
+		const lightPhysicalFragmentChunk = [
+			'PhysicalMaterial material;',
 			'material.diffuseColor = diffuseColor.rgb * ( 1. - max( specularFactor.r, max( specularFactor.g, specularFactor.b ) ) );',
 			'vec3 dxy = max( abs( dFdx( geometryNormal ) ), abs( dFdy( geometryNormal ) ) );',
 			'float geometryRoughness = max( max( dxy.x, dxy.y ), dxy.z );',
@@ -56,13 +56,13 @@ export class SpecularGlossinessMaterial extends THREE.MeshStandardMaterial {
 			'material.roughness += geometryRoughness;',
 			'material.roughness = min( material.roughness, 1.0 );',
 			'material.specularColor = specularFactor;',
-        ].join('\n');
+		].join( '\n' );
 
         const uniforms: { [key: string]: { value: any } } = {
-            specular: { value: new THREE.Color().setHex(0xffffff) },
-            glossiness: { value: 1 },
-            specularMap: { value: null },
-            glossinessMap: { value: null }
+			specular: { value: new THREE.Color().setHex( 0xffffff ) },
+			glossiness: { value: 1 },
+			specularMap: { value: null },
+			glossinessMap: { value: null }
         };
 
         (<any>this)._extraUniforms = uniforms;
@@ -72,14 +72,14 @@ export class SpecularGlossinessMaterial extends THREE.MeshStandardMaterial {
                 shader.uniforms[uniformName] = uniforms[uniformName];
             }
 
-            shader.fragmentShader = shader.fragmentShader
-                .replace('uniform float roughness;', 'uniform vec3 specular;')
-                .replace('uniform float metalness;', 'uniform float glossiness;')
-                .replace('#include <roughnessmap_pars_fragment>', specularMapParsFragmentChunk)
-                .replace('#include <metalnessmap_pars_fragment>', glossinessMapParsFragmentChunk)
-                .replace('#include <roughnessmap_fragment>', specularMapFragmentChunk)
-                .replace('#include <metalnessmap_fragment>', glossinessMapFragmentChunk)
-                .replace('#include <lights_physical_fragment>', lightPhysicalFragmentChunk);
+        shader.fragmentShader = shader.fragmentShader
+            .replace( 'uniform float roughness;', 'uniform vec3 specular;' )
+            .replace( 'uniform float metalness;', 'uniform float glossiness;' )
+            .replace( '#include <roughnessmap_pars_fragment>', specularMapParsFragmentChunk )
+            .replace( '#include <metalnessmap_pars_fragment>', glossinessMapParsFragmentChunk )
+            .replace( '#include <roughnessmap_fragment>', specularMapFragmentChunk )
+            .replace( '#include <metalnessmap_fragment>', glossinessMapFragmentChunk )
+            .replace( '#include <lights_physical_fragment>', lightPhysicalFragmentChunk );
 
         };
 

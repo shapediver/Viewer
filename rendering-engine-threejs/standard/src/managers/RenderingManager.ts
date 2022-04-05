@@ -2,19 +2,28 @@ import * as TWEEN from '@tweenjs/tween.js'
 import * as Stats from 'stats.js'
 import * as THREE from 'three'
 import {
-    CAMERATYPE,
-    PerspectiveCamera,
-    PerspectiveCameraControls
+  CAMERATYPE,
+  PerspectiveCamera,
+  PerspectiveCameraControls,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { EventEngine, EVENTTYPE, StateEngine, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerWebGLError, Converter } from '@shapediver/viewer.shared.services'
-import { vec3 } from 'gl-matrix'
+import {
+  Converter,
+  EventEngine,
+  EVENTTYPE,
+  Logger,
+  LOGGINGTOPIC,
+  ShapeDiverViewerWebGLError,
+  StateEngine,
+  SystemInfo,
+} from '@shapediver/viewer.shared.services'
+import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
+import { ICameraEvent } from '@shapediver/viewer.shared.types'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
 import { IManager } from '../interfaces/IManager'
-import { ICameraEvent } from '@shapediver/viewer.shared.types'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class RenderingManager implements IManager {
     // #region Properties (20)
@@ -30,13 +39,7 @@ export class RenderingManager implements IManager {
     private _continuousRendering: boolean = false;
     private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
-    private _lastCamera: {
-        position: vec3,
-        target: vec3
-    } = {
-            position: vec3.create(),
-            target: vec3.create()
-        };
+    private _lastCameraMatrix: mat4 = mat4.create();
     private _lastSize: {
         adjustedWidth: number,
         adjustedHeight: number,
@@ -172,23 +175,23 @@ export class RenderingManager implements IManager {
             })
 
             window.onresize = () => { this.render(); };
-            this._renderingEngine.canvas.canvasElement.onresize = () => { this.render(); };
-            this._renderingEngine.canvas.canvasElement.parentElement!.onresize = () => { this.render(); };
+            this._renderingEngine.canvas.onresize = () => { this.render(); };
+            this._renderingEngine.canvas.parentElement!.onresize = () => { this.render(); };
 
             const stats1 = new Stats.default();
             stats1.showPanel(0); // Panel 0 = fps
             stats1.dom.style.cssText = 'position:absolute;top:0px;left:0px;display:none;';
-            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats1.dom);
+            this._renderingEngine.canvas.parentElement!.appendChild(stats1.dom);
 
             const stats2 = new Stats.default();
             stats2.showPanel(1); // Panel 1 = ms
             stats2.dom.style.cssText = 'position:absolute;top:0px;left:80px;display:none;';
-            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats2.dom);
+            this._renderingEngine.canvas.parentElement!.appendChild(stats2.dom);
 
             const stats3 = new Stats.default();
             stats3.showPanel(2); // Panel 2 = ms
             stats3.dom.style.cssText = 'position:absolute;top:0px;left:160px;display:none;';
-            this._renderingEngine.canvas.canvasElement.parentElement!.appendChild(stats3.dom);
+            this._renderingEngine.canvas.parentElement!.appendChild(stats3.dom);
 
             this._stats = {
                 stats: [stats1, stats2, stats3],
@@ -244,6 +247,7 @@ export class RenderingManager implements IManager {
         if(runningAnimation !== this._runningAnimation) this.render();
         this._runningAnimation = runningAnimation;
         if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNodeTransformations();
+        if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateMorphWeights();
 
         // get the current size
         const { width, height, adjustedWidth, adjustedHeight } = this.calculateSize();
@@ -252,14 +256,7 @@ export class RenderingManager implements IManager {
         this._lastSize = { width, height, adjustedWidth, adjustedHeight };
 
         // animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
-        const { position, target } = this._renderingEngine.cameraEngine.camera ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : { position: vec3.create(), target: vec3.create() };
-
-        // evaluate if the camera changed
-        this._cameraChanged = true;
-        if (position[0] === this._lastCamera.position[0] && position[1] === this._lastCamera.position[1] && position[2] === this._lastCamera.position[2] &&
-            target[0] === this._lastCamera.target[0] && target[1] === this._lastCamera.target[1] && target[2] === this._lastCamera.target[2])
-            this._cameraChanged = false;
-        this._lastCamera = { position, target };
+        this._cameraChanged = this._renderingEngine.cameraEngine.camera ? this._renderingEngine.cameraManager.updateCamera(deltaTime, aspect) : false;
 
         // animation loop - part 4: evaluating state
         const states = this.evaluateRenderingState();
@@ -290,8 +287,8 @@ export class RenderingManager implements IManager {
         this._renderingEngine.renderer.domElement.style.height = height + 'px';
         this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
 
-        // animation loop - part 9: adjust the camera
-        const camera = this._renderingEngine.cameraManager.adjustCamera(position, target, aspect);
+        // animation loop - part 9: adjust the camera (the rendering state would be false if we didn't have a camera)
+        const camera = this._renderingEngine.cameraManager.adjustCamera(aspect);
 
         // animation loop - part 10: adjust the anchor elements
         this._renderingEngine.htmlElementAnchorLoader.adjustPositions(adjustedWidth / width, adjustedHeight / height);
@@ -337,8 +334,8 @@ export class RenderingManager implements IManager {
     private calculateSize(): { adjustedWidth: number, adjustedHeight: number, width: number, height: number } {
         let width = this._width, height = this._height;
         if (this._renderingEngine.automaticResizing) {
-            width = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientWidth;
-            height = (<HTMLDivElement>this._renderingEngine.canvas.canvasElement.parentNode).clientHeight;
+            width = (<HTMLDivElement>this._renderingEngine.canvas.parentNode).clientWidth;
+            height = (<HTMLDivElement>this._renderingEngine.canvas.parentNode).clientHeight;
         }
 
         const aspect = width / height;
@@ -448,6 +445,8 @@ export class RenderingManager implements IManager {
                 if (controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
                     return { showScene, rendering: true, updateShadowMap, blurScene: false, beautyRendering: false };
             }
+        } else {
+            rendering = false;
         }
 
         // If the scene should be blurred
@@ -504,8 +503,8 @@ export class RenderingManager implements IManager {
     private toggleLogo(toggle: boolean) {
         if (this._renderingEngine.logoDivElement)
             this._renderingEngine.logoDivElement.style.display = toggle ? 'inherit' : 'none';
-        if (this._renderingEngine.canvas.canvasElement)
-            this._renderingEngine.canvas.canvasElement.style.display = !toggle ? 'inherit' : 'none';
+        if (this._renderingEngine.canvas)
+            this._renderingEngine.canvas.style.display = !toggle ? 'inherit' : 'none';
     }
 
     // #endregion Private Methods (10)

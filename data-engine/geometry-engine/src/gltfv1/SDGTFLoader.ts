@@ -8,7 +8,7 @@ import {
 import {
   AttributeData,
   GeometryData,
-  MaterialData,
+  MaterialStandardData,
   PRIMITIVE_MODE,
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'

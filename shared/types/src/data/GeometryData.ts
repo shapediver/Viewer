@@ -1,8 +1,8 @@
 import { mat4, vec3 } from 'gl-matrix'
-import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { AbstractTreeNodeData, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box, Triangle } from '@shapediver/viewer.shared.math'
+import { AbstractMaterialData } from './material/AbstractMaterialData';
 
-import { MaterialData } from './MaterialData'
 
 export enum PRIMITIVE_MODE {
   POINTS = 0,
@@ -17,6 +17,7 @@ export enum PRIMITIVE_MODE {
 export class AttributeData {
   // #region Properties (13)
 
+  readonly #morphAttributeData: AttributeData[] = [];
   readonly #array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array;
   readonly #byteOffset: number;
   readonly #byteStride?: number;
@@ -59,7 +60,7 @@ export class AttributeData {
     sparse?: boolean,
     sparseIndices?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
     sparseValues?: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array,
-
+    morphAttributeData: AttributeData[] = []
   ) {
     this.#array = array;
     this.#itemSize = itemSize;
@@ -74,6 +75,7 @@ export class AttributeData {
     this.#sparse = sparse;
     this.#sparseIndices = sparseIndices;
     this.#sparseValues = sparseValues;
+    this.#morphAttributeData = morphAttributeData;
   }
 
   // #endregion Constructors (1)
@@ -116,6 +118,10 @@ export class AttributeData {
     return this.#min;
   }
 
+  public get morphAttributeData(): AttributeData[] {
+    return this.#morphAttributeData;
+  }
+
   public get normalized(): boolean {
     return this.#normalized;
   }
@@ -155,7 +161,8 @@ export class AttributeData {
       this.#byteStride,
       this.#sparse,
       this.#sparseIndices,
-      this.#sparseValues
+      this.#sparseValues,
+      this.#morphAttributeData
     );
   }
 
@@ -172,9 +179,11 @@ export class PrimitiveData {
 
   #boundingBox: Box = new Box();
   #indices: AttributeData | null = null;
-  #material: MaterialData | null = null;
-  #effectMaterials: { material: MaterialData, token: string }[] = [];
-  #attributeMaterial: MaterialData | null = null;
+  #material: AbstractMaterialData | null = null;
+  #standardMaterial: AbstractMaterialData | null = null;
+  #effectMaterials: { material: AbstractMaterialData, token: string }[] = [];
+  #materialVariants: { material: AbstractMaterialData, variant: number }[] = [];
+  #attributeMaterial: AbstractMaterialData | null = null;
 
   // #endregion Properties (5)
 
@@ -192,14 +201,15 @@ export class PrimitiveData {
     } = {},
     mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
     indices: AttributeData | null = null,
-    material: MaterialData | null = null,
-    attributeMaterial: MaterialData | null = null,
+    material: AbstractMaterialData | null = null,
+    attributeMaterial: AbstractMaterialData | null = null,
   ) {
     this.#attributes = attributes;
     this.#mode = mode;
 
     this.#indices = indices;
     this.#material = material;
+    this.#standardMaterial = material;
     this.#attributeMaterial = attributeMaterial;
 
     if (this.#attributes['POSITION']) {
@@ -233,23 +243,35 @@ export class PrimitiveData {
     this.#indices = value
   }
 
-  public get material(): MaterialData | null {
+  public get standardMaterial(): AbstractMaterialData | null {
+    return this.#standardMaterial;
+  }
+
+  public set standardMaterial(value: AbstractMaterialData | null) {
+    this.#standardMaterial = value;
+  }
+
+  public get material(): AbstractMaterialData | null {
     return this.#material;
   }
 
-  public set material(value: MaterialData | null) {
+  public set material(value: AbstractMaterialData | null) {
     this.#material = value;
   }
 
-  public get effectMaterials(): { material: MaterialData, token: string }[] {
+  public get effectMaterials(): { material: AbstractMaterialData, token: string }[] {
     return this.#effectMaterials;
   }
 
-  public get attributeMaterial(): MaterialData | null {
+  public get materialVariants(): { material: AbstractMaterialData, variant: number }[] {
+    return this.#materialVariants;
+  }
+
+  public get attributeMaterial(): AbstractMaterialData | null {
     return this.#attributeMaterial;
   }
 
-  public set attributeMaterial(value: MaterialData | null) {
+  public set attributeMaterial(value: AbstractMaterialData | null) {
     this.#attributeMaterial = value;
   }
 
@@ -270,7 +292,7 @@ export class PrimitiveData {
     } = {};
     for (let attribute in this.#attributes)
       attributes[attribute] = this.#attributes[attribute].clone();
-    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <MaterialData>this.#material?.clone(), <MaterialData>this.#attributeMaterial?.clone());
+    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <AbstractMaterialData>this.#material?.clone(), <AbstractMaterialData>this.#attributeMaterial?.clone());
   }
 
   // #endregion Public Methods (1)
@@ -284,6 +306,9 @@ export class GeometryData extends AbstractTreeNodeData {
 
   #boundingBox: Box = new Box();
   #renderOrder: number = 0;
+  #morphWeights: number[] = [];
+  #bones: TreeNode[] = [];
+  #boneInverses: mat4[] = [];
 
   // #endregion Properties (4)
 
@@ -299,12 +324,18 @@ export class GeometryData extends AbstractTreeNodeData {
   constructor(
     primitive: PrimitiveData,
     matrix: mat4 = mat4.create(),
-    id?: string
+    id?: string,
+    morphWeights: number[] = [],
+    bones: TreeNode[] = [],
+    boneInverses: mat4[] = []
   ) {
     super(id);
     this.#primitive = primitive;
     this.#matrix = matrix;
     this.#boundingBox = this.primitive.boundingBox.clone();
+    this.#morphWeights = morphWeights;
+    this.#bones = bones;
+    this.#boneInverses = boneInverses;
   }
 
   // #endregion Constructors (1)
@@ -331,6 +362,30 @@ export class GeometryData extends AbstractTreeNodeData {
     this.#renderOrder = value;
   }
 
+  public get morphWeights(): number[] {
+    return this.#morphWeights;
+  }
+
+  public set morphWeights(value: number[]) {
+    this.#morphWeights = value
+  }
+
+  public get bones(): TreeNode[] {
+    return this.#bones;
+  }
+
+  public set bones(value: TreeNode[]) {
+    this.#bones = value
+  }
+
+  public get boneInverses(): mat4[] {
+    return this.#boneInverses;
+  }
+
+  public set boneInverses(value: mat4[]) {
+    this.#boneInverses = value
+  }
+
   // #endregion Public Accessors (5)
 
   // #region Public Methods (2)
@@ -339,7 +394,7 @@ export class GeometryData extends AbstractTreeNodeData {
    * Clones the scene graph data.
    */
   public clone(): ITreeNodeData {
-    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id);
+    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id, this.#morphWeights, this.#bones, this.#boneInverses);
   }
 
   public intersect(origin: vec3, direction: vec3): number | null {

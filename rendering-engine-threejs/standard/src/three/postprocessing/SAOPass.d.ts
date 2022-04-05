@@ -11,7 +11,7 @@ import {
     WebGLRenderTarget,
 } from 'three';
 
-import { Pass } from './Pass';
+import { Pass } from 'three/examples/jsm/postprocessing/Pass';
 
 export enum OUTPUT {
     Beauty,

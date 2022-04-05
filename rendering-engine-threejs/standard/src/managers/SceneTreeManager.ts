@@ -1,18 +1,44 @@
 import * as THREE from 'three'
-import { AnimationData, ATTRIBUTEVISUALIZATION, GeometryData, HTMLElementAnchorData, MaterialData, PRIMITIVETYPEHINT, SDTFAttributeOverview, SDTFAttributeVisualization, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from '@shapediver/viewer.shared.types'
+import {
+    AbstractMaterialData,
+  AnimationData,
+  ATTRIBUTEVISUALIZATION,
+  GeometryData,
+  HTMLElementAnchorData,
+  MaterialStandardData,
+  PRIMITIVETYPEHINT,
+  SDTFAttributeOverview,
+  SDTFAttributeVisualization,
+  SDTFAttributeVisualizationData,
+  SDTFItemData,
+  SDTFOverview,
+} from '@shapediver/viewer.shared.types'
 import { ISDObject, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box } from '@shapediver/viewer.shared.math'
-import { Converter, EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, StateEngine } from '@shapediver/viewer.shared.services'
-import { AbstractLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
+import {
+  Converter,
+  EventEngine,
+  EVENTTYPE,
+  InputValidator,
+  Logger,
+  LOGGINGTOPIC,
+  ShapeDiverBackendError,
+  ShapeDiverViewerError,
+  StateEngine,
+} from '@shapediver/viewer.shared.services'
+import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, quat, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
+import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { SDNode } from '../types/SDNode'
 import { ThreejsData } from '../types/ThreejsData'
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager'
-import { SDData, SD_DATA_TYPE } from '../types/SDData'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { SD_DATA_TYPE, SDData } from '../types/SDData'
+import { Bone } from 'three'
+import { SDBone } from '../types/SDBone'
+import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 
 export class SceneTreeManager implements IManager {
     // #region Properties (10)
@@ -26,6 +52,11 @@ export class SceneTreeManager implements IManager {
     private readonly _tree: Tree = <Tree>container.resolve(Tree);
 
     private _boundingBox: Box = new Box();
+    private _boundingBoxSensitiveData: {
+        data: AbstractLight,
+        dataChild: SDData
+    }[] = [];
+
     private _currentSDTFOverview!: SDTFOverview;
     private _mainNode!: SDNode;
 
@@ -60,6 +91,15 @@ export class SceneTreeManager implements IManager {
             this._boundingBox.max[0] === 0 && this._boundingBox.max[1] === 0 && this._boundingBox.max[2] === 0) || this._boundingBox.isEmpty());
     }
 
+    private getBone(node: TreeNode): SDBone {
+        let bone: SDBone;
+        this._mainNode.traverse((o) => {
+            if((<SDNode>o).SDid === node.id)
+                bone = (<SDBone>o);
+        });
+        return bone!;
+    }
+
     /**
      * Convert the data of the scene graph node into the format of the implementation.
      * 
@@ -80,19 +120,40 @@ export class SceneTreeManager implements IManager {
         switch (true) {
             case data instanceof GeometryData:
                 dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
-                const bb = this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild);
+                const geometryData = <GeometryData>data;
+
+                let skeleton;
+                if(geometryData.bones.length > 0) {
+                    const bones: THREE.Bone[] = [];
+                    for(let i = 0; i < geometryData.bones.length; i++)
+                        bones.push(this.getBone(geometryData.bones[i]));
+
+                    const boneInverses: THREE.Matrix4[] = [];
+                    for(let i = 0; i < geometryData.boneInverses.length; i++)
+                        boneInverses.push(new THREE.Matrix4().fromArray(geometryData.boneInverses[i]));
+
+                    skeleton = new THREE.Skeleton(bones, boneInverses)
+                }
+
+                const bb = this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, skeleton);
                 node.boundingBox.union(bb);
                 break;
             case data instanceof ThreejsData:
                 dataChild.SDtype = SD_DATA_TYPE.THREEJS;
                 dataChild.add(<SDData>(<ThreejsData>data).obj);
                 break;
-            case data instanceof MaterialData:
+            case data instanceof AbstractMaterialData:
                 dataChild.SDtype = SD_DATA_TYPE.MATERIAL;
                 break;
             case data instanceof AbstractLight:
                 dataChild.SDtype = SD_DATA_TYPE.LIGHT;
-                this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild, this._scene, this._boundingBox);
+                this._renderingEngine.lightLoader.load(<AbstractLight>data, dataChild);
+                if(data instanceof DirectionalLight && (<DirectionalLight>data).useNodeData === false)
+                    this._boundingBoxSensitiveData.push({data: <AbstractLight>data, dataChild})
+                break;
+            case data instanceof AbstractCamera:
+                dataChild.SDtype = SD_DATA_TYPE.CAMERA;
+                this._renderingEngine.cameraManager.load(<AbstractCamera>data, dataChild);
                 break;
             case data instanceof HTMLElementAnchorData:
                 dataChild.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
@@ -107,6 +168,126 @@ export class SceneTreeManager implements IManager {
         }
     }
 
+    public updateNodeTransformations(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
+        if(!node || !obj) return;
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
+        obj.visible = node.visible;
+        obj.applyTransformation(node.nodeMatrix);
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            if(!nodeChild) continue;
+            const objChild = <SDNode>obj.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
+            this.updateNodeTransformations(nodeChild, objChild);
+        }
+    }
+    
+    public updateMorphWeights(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
+        if(!node || !obj) return;
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
+        for (let i = 0, len = node.data.length; i < len; i++) {
+            if(node.data[i] instanceof GeometryData) {
+                const data: GeometryData = <GeometryData>node.data[i];
+                let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
+                dataChild.traverse(o => {
+                    if (o instanceof THREE.Points ||
+                        o instanceof THREE.LineSegments ||
+                        o instanceof THREE.LineLoop ||
+                        o instanceof THREE.Line ||
+                        o instanceof THREE.Mesh)
+                        o.morphTargetInfluences = data.morphWeights;
+                })
+            }
+        }
+
+
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            if(!nodeChild) continue;
+            const objChild = <SDNode>obj.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
+            this.updateMorphWeights(nodeChild, objChild);
+        }
+    }
+    
+    public updateNodeData(node: TreeNode, obj: ISDObject) {
+        const convertedObject = <SDNode>obj;
+
+        // if this node specifically excludes the current viewer, skip it and all descendants
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
+        // reset the bounding box of the current node
+        // it will be recomputed in the following steps
+        node.boundingBox = new Box();
+
+        // remove all data items that do not exist anymore
+        const dataIds = node.data.map(d => d.id);
+        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
+        dataToRemove.forEach(dTR => {
+            this.removeData(<SDData>dTR)
+            convertedObject.remove(dTR);
+        })
+
+        // remove all child nodes in the transformed object that do not exist anymore
+        // the filter goes also through the data items as they were already added
+        const nodeIds = node.children.map(d => d.id);
+        const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDNode ? !nodeIds.includes(oc.SDid) : false);
+        childrenToRemove.forEach(cTR => {
+            cTR.traverse((o) => {
+                if (o instanceof SDData)
+                    this.removeData(o);
+            })
+            convertedObject.remove(cTR);
+        });
+
+        // convert all data items of the current node
+        // old versions will be replaced by new ones
+        for (let i = 0, len = node.data.length; i < len; i++)
+            this.updateData(node, convertedObject, node.data[i]);
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            const objChild = <SDNode>convertedObject.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
+            this.updateNodeData(nodeChild, objChild);
+
+            if(!nodeChild.boundingBox.isEmpty())
+                node.boundingBox.union(nodeChild.boundingBox);
+        }
+
+        if(!node.boundingBox.isEmpty())
+            node.boundingBox.applyMatrix(node.nodeMatrix);
+    }
+
+    public updateNodeHierarchy(node: TreeNode = this._tree.root, obj: ISDObject = this._mainNode) {
+        const convertedObject = <SDNode>obj;
+
+        // if this node specifically excludes the current viewer, skip it and all descendants
+        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            const objChild = <SDNode>convertedObject.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
+
+            if (!objChild) {
+                const newChild = node.bone ? new SDBone(nodeChild.id, nodeChild.version) : new SDNode(nodeChild.id, nodeChild.version);
+                nodeChild.transformedNodes[this._renderingEngine.id] = newChild;
+                convertedObject.add(newChild);
+                this.updateNodeHierarchy(nodeChild, newChild);
+            } else if (objChild.SDversion !== nodeChild.version) {
+                // if the version is different, update the child
+                this.updateNodeHierarchy(nodeChild, objChild);
+                objChild.SDversion = nodeChild.version;
+            }
+        }
+
+        convertedObject.visible = node.visible;
+        convertedObject.applyTransformation(node.nodeMatrix);
+    }
+
     /**
      * Update the current node via the scene graph node.
      * Convert the data if needed.
@@ -114,7 +295,7 @@ export class SceneTreeManager implements IManager {
      * @param node the scene graph node
      * @param obj the current type object
      */
-    public updateNode(node: TreeNode, obj: ISDObject) {
+     public updateNode(node: TreeNode, obj: ISDObject) {
         const convertedObject = <SDNode>obj;
 
         // if this node specifically excludes the current viewer, skip it and all descendants
@@ -176,21 +357,6 @@ export class SceneTreeManager implements IManager {
             node.boundingBox.applyMatrix(node.nodeMatrix);
     }
 
-    public updateNodeTransformations(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
-        if(!node || !obj) return;
-        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-        obj.visible = node.visible;
-        obj.applyTransformation(node.nodeMatrix);
-
-        // add new children and update the ones that have a different version
-        for (let i = 0, len = node.children.length; i < len; i++) {
-            const nodeChild = node.children[i];
-            if(!nodeChild) continue;
-            const objChild = <SDNode>obj.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
-            this.updateNodeTransformations(nodeChild, objChild);
-        }
-    }
-
     public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
@@ -202,22 +368,15 @@ export class SceneTreeManager implements IManager {
             this._scene.add(this._mainNode);
         }
 
-        this._currentSDTFOverview = this.createSDTFOverview();
+        this._boundingBoxSensitiveData = [];
 
-        this.updateNode(root, this._mainNode);
+        this._currentSDTFOverview = this.createSDTFOverview();
+        this.updateNodeHierarchy(root, this._mainNode);
+        this.updateNodeData(root, this._mainNode);
         this._boundingBox = root.boundingBox.clone();
 
-        const lightScene = lightEngine.lightScene;
-        if(lightScene) {
-            const lightSceneChildren = <SDNode[]>this._mainNode.children.filter(oc => lightScene.node.id === (<SDNode>oc).SDid);
-            if (lightSceneChildren.length > 1) {
-                this.updateNode(lightScene.node, lightSceneChildren[0]);
-            } else {
-                const lightSceneChild = new SDNode(lightScene.node.id, lightScene.node.version);
-                this._mainNode.add(lightSceneChild)
-                this.updateNode(lightScene.node, lightSceneChild);
-            }
-        }
+        for(let i = 0; i < this._boundingBoxSensitiveData.length;  i++)
+            this._renderingEngine.lightLoader.adjustToBoundingBox(this._boundingBoxSensitiveData[i].data, this._boundingBoxSensitiveData[i].dataChild, this._boundingBox)
 
         if(!this._boundingBox.isEmpty())
             this._boundingBox.applyMatrix(root.nodeMatrix);
@@ -263,8 +422,11 @@ export class SceneTreeManager implements IManager {
 
     private injectAttributeData(node: TreeNode, data: ITreeNodeData) {
         const itemData = this.collectSDTFItemData(node);       
-        let visData = {
-            material: new MaterialData({ color: '#00fff7', opacity: 1 }),
+        let visData: {
+            material: AbstractMaterialData,
+            matrix: mat4
+        } = {
+            material: new MaterialStandardData({ color: '#00fff7', opacity: 1 }),
             matrix: mat4.create()
         };
 
@@ -303,14 +465,14 @@ export class SceneTreeManager implements IManager {
                                 o.geometry.deleteAttribute(key);
                             o.geometry.setIndex(null);
                             o.geometry.dispose();
-                            if ((<THREE.MeshStandardMaterial>o.material).alphaMap) (<THREE.MeshStandardMaterial>o.material).alphaMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).aoMap) (<THREE.MeshStandardMaterial>o.material).aoMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).bumpMap) (<THREE.MeshStandardMaterial>o.material).bumpMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).map) (<THREE.MeshStandardMaterial>o.material).map?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).emissiveMap) (<THREE.MeshStandardMaterial>o.material).emissiveMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).metalnessMap) (<THREE.MeshStandardMaterial>o.material).metalnessMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).roughnessMap) (<THREE.MeshStandardMaterial>o.material).roughnessMap?.dispose()
-                            if ((<THREE.MeshStandardMaterial>o.material).normalMap) (<THREE.MeshStandardMaterial>o.material).normalMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).alphaMap) (<THREE.MeshPhysicalMaterial>o.material).alphaMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).aoMap) (<THREE.MeshPhysicalMaterial>o.material).aoMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).bumpMap) (<THREE.MeshPhysicalMaterial>o.material).bumpMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).map) (<THREE.MeshPhysicalMaterial>o.material).map?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).emissiveMap) (<THREE.MeshPhysicalMaterial>o.material).emissiveMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).metalnessMap) (<THREE.MeshPhysicalMaterial>o.material).metalnessMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).roughnessMap) (<THREE.MeshPhysicalMaterial>o.material).roughnessMap?.dispose()
+                            if ((<THREE.MeshPhysicalMaterial>o.material).normalMap) (<THREE.MeshPhysicalMaterial>o.material).normalMap?.dispose()
                             if ((<any>o.material).specularMap) (<any>o.material).specularMap?.dispose()
                             if ((<any>o.material).glossinessMap) (<any>o.material).glossinessMap?.dispose()
                             o.material.dispose();
