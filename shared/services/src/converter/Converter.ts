@@ -277,29 +277,24 @@ export class Converter {
     }
 
     public async responseToImage(response: AxiosResponse<any>): Promise<HTMLImageElement> {
-        const bitmapContentTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/svg+xml'];
-        if (response.headers && response.headers['content-type'] && bitmapContentTypes.includes(response.headers['content-type'])) {
-            if (response.headers['content-type'] === 'image/svg+xml') {
-                const img = await this.processSVG(response.data);
-                return img;
-            } else {
-                const img = new Image();
-                const promise = new Promise<void>(resolve => {
-                    img.onload = () => resolve();
-                })
-                img.crossOrigin = "anonymous";
-
-                let data = <string>await new Promise((resolve, _) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(<string>reader.result);
-                    reader.readAsDataURL(response.data);
-                });
-                img.src = data;
-                await promise;
-                return img;
-            }
+        if (response.headers['content-type'] === 'image/svg+xml') {
+            const img = await this.processSVG(response.data);
+            return img;
         } else {
-            throw new Error();
+            const img = new Image();
+            const promise = new Promise<void>(resolve => {
+                img.onload = () => resolve();
+            })
+            img.crossOrigin = "anonymous";
+
+            let data = <string>await new Promise((resolve, _) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(<string>reader.result);
+                reader.readAsDataURL(response.data);
+            });
+            img.src = data;
+            await promise;
+            return img;
         }
     }
 }

@@ -153,17 +153,14 @@ export class MaterialLoader implements ILoader {
         this._envMap = e;
         this._envMapType = type;
         for(let m in this._materialCache) {
-            if((this._materialCache[m] instanceof THREE.MeshPhysicalMaterial || this._materialCache[m] instanceof THREE.MeshBasicMaterial)
-                && !(<any>this._materialCache[m]).KHR_materials_unlit) {
-                (<THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial>this._materialCache[m]).envMap = e;
-                (<THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial>this._materialCache[m]).needsUpdate = true;
-                if(this._materialCache[m] instanceof THREE.MeshPhysicalMaterial) {
-                    for(let d in (<THREE.MeshPhysicalMaterial>this._materialCache[m]).defines) {
-                        if(d.startsWith('ENVMAP_TYPE_'))
-                            delete (<THREE.MeshPhysicalMaterial>this._materialCache[m]).defines[d];
-                    }
-                    (<THREE.MeshPhysicalMaterial>this._materialCache[m]).defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
+            if((this._materialCache[m] instanceof THREE.MeshPhysicalMaterial || this._materialCache[m] instanceof THREE.MeshStandardMaterial)) {
+                (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).envMap = e;
+                (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
+                for(let d in (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).defines) {
+                    if(d.startsWith('ENVMAP_TYPE_'))
+                        delete (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).defines[d];
                 }
+                (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
             }
         }
     }
@@ -183,12 +180,12 @@ export class MaterialLoader implements ILoader {
 
     private assignTextureEncoding() {
         for(let m in this._materialCache) {
-            if(this._materialCache[m] instanceof THREE.MeshPhysicalMaterial) {
-                if((<THREE.MeshPhysicalMaterial>this._materialCache[m]).emissiveMap)
-                    (<THREE.MeshPhysicalMaterial>this._materialCache[m]).emissiveMap!.encoding = this._textureEncoding;
-                if((<THREE.MeshPhysicalMaterial>this._materialCache[m]).map)
-                    (<THREE.MeshPhysicalMaterial>this._materialCache[m]).map!.encoding = this._textureEncoding;
-                (<THREE.MeshPhysicalMaterial>this._materialCache[m]).needsUpdate = true;
+            if(this._materialCache[m] instanceof THREE.MeshPhysicalMaterial || this._materialCache[m] instanceof THREE.MeshStandardMaterial) {
+                if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap)
+                    (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap!.encoding = this._textureEncoding;
+                if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map)
+                    (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map!.encoding = this._textureEncoding;
+                (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
             }
         }
     }
@@ -338,7 +335,7 @@ export class MaterialLoader implements ILoader {
             mapCount++;
         }
 
-        standardProperties.envMap = this._envMap;
+       standardProperties.envMap = this._envMap;
 
         if (materialData.normalMap !== undefined) {
             standardProperties.normalMap = this.createTexture(materialData.normalMap);
@@ -354,29 +351,30 @@ export class MaterialLoader implements ILoader {
          * Third exit, the specular-glossiness material
          * 
          */
-
         if (materialData instanceof MaterialSpecularGlossinessData) {
             const specularGlossinessProperties: SpecularGlossinessMaterialParameters = standardProperties;
 
-            if (specularGlossinessProperties.KHR_materials_pbrSpecularGlossiness === true) {
-                specularGlossinessProperties.specular = materialData.specular;
-                specularGlossinessProperties.glossiness = materialData.glossiness;
+            specularGlossinessProperties.specular = new THREE.Color(this._converter.toThreeJsColorInput(materialData.specular));
+            specularGlossinessProperties.glossiness = materialData.glossiness;
 
-                if (materialData.specularGlossinessMap !== undefined) {
-                    specularGlossinessProperties.specularMap = this.createTexture(materialData.specularGlossinessMap);
-                    specularGlossinessProperties.glossinessMap = specularGlossinessProperties.specularMap;
+            if (materialData.specularGlossinessMap !== undefined) {
+                specularGlossinessProperties.specularMap = this.createTexture(materialData.specularGlossinessMap);
+                specularGlossinessProperties.specularMap.encoding = THREE.sRGBEncoding;
+                specularGlossinessProperties.glossinessMap = specularGlossinessProperties.specularMap;
+                mapCount++;
+            } else {
+                if (materialData.specularMap !== undefined) {
+                    specularGlossinessProperties.specularMap = this.createTexture(materialData.specularMap);
+                    specularGlossinessProperties.specularMap.encoding = THREE.sRGBEncoding;
                     mapCount++;
-                } else {
-                    if (materialData.specularMap !== undefined) {
-                        specularGlossinessProperties.specularMap = this.createTexture(materialData.specularMap);
-                        mapCount++;
-                    }
-                    if (materialData.glossinessMap !== undefined) {
-                        specularGlossinessProperties.glossinessMap = this.createTexture(materialData.glossinessMap);
-                        mapCount++;
-                    }
+                }
+                if (materialData.glossinessMap !== undefined) {
+                    specularGlossinessProperties.glossinessMap = this.createTexture(materialData.glossinessMap);
+                    mapCount++;
                 }
             }
+
+            return { properties: specularGlossinessProperties, mapCount };
         }
 
         /**

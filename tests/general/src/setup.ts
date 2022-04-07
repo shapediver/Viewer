@@ -15,8 +15,26 @@ export const screenshotCompare = async (image: any, name: string) => {
 }
 
 export const createDriver = async (): Promise<webdriver.WebDriver> => {
+
+    const tempDriver1 = await new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build();
+    const dpr: number = await tempDriver1.executeAsyncScript(async (cb: any) => {
+        cb((<any>window).devicePixelRatio);
+    });
+    await tempDriver1.close();
+    await tempDriver1.quit();
+
     const opt = new Options();
-    opt.windowSize({width: 800, height: 600});
+    opt.excludeSwitches('enable-automation');
+    const dprSize = {width: 1920/dpr, height: 1080/dpr};
+    opt.windowSize(dprSize);
+    const tempDriver2 = await new webdriver.Builder().setChromeOptions(opt).withCapabilities(webdriver.Capabilities.chrome()).build();
+    const size: {width: number, height: number} = await tempDriver2.executeAsyncScript(async (cb: any) => {
+        cb({width: (<any>window).innerWidth, height: (<any>window).innerHeight});
+    });
+    await tempDriver2.close();
+    await tempDriver2.quit();
+
+    opt.windowSize({width: dprSize.width + (dprSize.width - size.width), height: dprSize.height + (dprSize.height - size.height)});
     const driver = await new webdriver.Builder().setChromeOptions(opt).withCapabilities(webdriver.Capabilities.chrome()).build();
     await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
     const TIMEOUT = 300000000

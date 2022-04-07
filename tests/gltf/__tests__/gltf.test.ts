@@ -8,10 +8,14 @@ require('chromedriver');
 
 let driver: webdriver.WebDriver;
 let name = 'geometry_tests';
+let modelsJson: any;
 
 describe('device testing', () => {
     beforeAll(async () => {
         driver = await createDriver();
+        modelsJson = await driver.executeAsyncScript(async (cb: any) => {
+            cb(await (await fetch('https://raw.githubusercontent.com/shapediver/glTF-Sample-Models/master/2.0/model-index.json')).json());
+        });
     });
 
     beforeEach(async () => {
@@ -23,49 +27,34 @@ describe('device testing', () => {
         await driver.quit();
     })
 
-    const namesV2 = ['AlphaBlendModeTest', 'AntiqueCamera', 'Avocado', 'BarramundiFish', 'BoomBox', 'Corset', 'DamagedHelmet', 'FlightHelmet', 'Lantern', 'SciFiHelmet', 'Suzanne', 'WaterBottle'];
+    test(name, async () => {
+        for(let i = 0; i < modelsJson.length; i++) {
+            const modelJson: any = modelsJson[i];
+            if(modelJson.name.startsWith('Unicode')) {
+                console.log('Unicode tests not supported. Webdriver cannot handle them.');
+                continue;
+            }
 
-    for (let i = 0; i < namesV2.length; i++) {
-        test(name, async () => {
-            // DO SOMETHING WITH THE API
-            await driver.executeAsyncScript(async (gltfName: string, cb: any) => {
-                if (gltfName === 'FlightHelmet' || gltfName === 'SciFiHelmet' || gltfName === 'Suzanne') {
-                    await ((<any>window).addGLTF('https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/' + gltfName + '/glTF/' + gltfName + '.gltf'));
-                } else {
-                    await ((<any>window).addGLTF('https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/2.0/' + gltfName + '/glTF-Binary/' + gltfName + '.glb'))
+            for(let variant in modelJson.variants) {
+                if(!['glTF', "glTF-Binary", "glTF-Embedded", "glTF-Draco", "glTF-Quantized"].includes(variant)) {
+                    console.log('Variant ' + variant + ' not supported.');
+                    continue;
                 }
-                const api: typeof API = (<any>window).SDV.api;
 
-                await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-                })
-                cb();
-            }, namesV2[i]);
+                const modelName = variant + "_" + modelJson.name;
 
-            // TAKE A SCREENSHOT
-            await screenshotCompare(await driver.takeScreenshot(), name + '/gltf_2.0_' + namesV2[i]);
-        });
-    }
-
-    // const namesV1 = ['Duck', 'Avocado', 'BarramundiFish', 'Gearbox Assy'];
-
-    // for (let i = 0; i < namesV1.length; i++) {
-
-    //     test(name, async () => {
-    //         // DO SOMETHING WITH THE API
-    //         await driver.executeAsyncScript(async (gltfName: string, cb: any) => {
-    //             (<any>window).gltfVersion = '1.0';
-    //             await ((<any>window).addGLTF('https://shapediverviewer.s3.amazonaws.com/v3/examples/gltf/1.0/' + gltfName + '/glTF-Binary/' + gltfName + '.glb'))
-    //             const api: typeof API = (<any>window).SDV.api;
-
-    //             await new Promise<void>((resolve) => {
-    //                 api.addListener((<any>window).EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
-    //             })
-    //             cb();
-    //         }, namesV1[i]);
-
-    //         // TAKE A SCREENSHOT
-    //         await screenshotCompare(await driver.takeScreenshot(), name + '/gltf_1.0_' + namesV1[i]);
-    //     });
-    // }
+                await driver.executeAsyncScript(async (name: string, variant: string, cb: any) => {
+                    await ((<any>window).addGLTF(`https://raw.githubusercontent.com/shapediver/glTF-Sample-Models/master/2.0/${name}/${variant}/${name}.${variant === 'glTF-Binary' ? 'glb' : 'gltf'}`));
+                    const api: typeof API = (<any>window).SDV.api;
+                    await new Promise<void>((resolve) => {
+                        api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    })
+                    cb();
+                }, modelJson.name, variant);
+    
+                // TAKE A SCREENSHOT
+                await screenshotCompare(await driver.takeScreenshot(), name + '/gltf_2.0/' + modelName);
+            }
+        }
+    });
 });

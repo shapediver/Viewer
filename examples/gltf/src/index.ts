@@ -2,27 +2,11 @@
 
 import {
   api,
-  CAMERATYPE,
   ENVIRONMENT_MAP,
-  EVENTTYPE,
-  Export,
-  EXPORTTYPE,
-  LIGHTTYPE,
-  LOGGINGLEVEL,
-  ORTHOGRAPHIC_CAMERA_DIRECTION,
-  Output,
-  Parameter,
-  PARAMETERTYPE,
-  PARAMETERVISUALIZATION,
-  PerspectiveCamera,
-  RENDERERTYPE,
-  Session,
   TreeNode,
-  VISIBILITYMODE,
 } from '@shapediver/viewer'
 import { container } from 'tsyringe'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
-import { vec3 } from 'gl-matrix'
 
 import * as SDV from '@shapediver/viewer'
 
@@ -32,17 +16,29 @@ import * as SDV from '@shapediver/viewer'
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 let currentNode: TreeNode;
 
+let promise: Promise<void>;
+
 (async () => {
     let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', branding: { logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png', backgroundColor: 'rgb(3, 5, 49)' } });
     viewer.ambientOcclusion = false;
+    viewer.shadows = false;
+    viewer.physicallyCorrectLights = true;
     viewer.groundPlaneVisibility = false;
-    viewer.environmentMap = ENVIRONMENT_MAP.CANNON_EXTERIOR;
     viewer.gridVisibility = false;
-    viewer.clearColor = 'rgb(3, 5, 49)'
+    viewer.environmentMap = ENVIRONMENT_MAP.NEUTRAL;
+    promise = new Promise<void>(resolve => {
+        api.addListener(SDV.EVENTTYPE.TASK.TASK_END, (e) => {
+            const taskEvent = e as SDV.ITaskEvent;
+            if(taskEvent.type === SDV.TASKTYPE.ENVIRONMENT_MAP_LOADING)
+            resolve();
+        });
+    })
+    await promise;
 })();
 
 
 (<any>window).addGLTF = async (uri: string) => {
+    await promise;
     let viewer = api.viewers['myViewer'];
 
     const node = await dataEngine.loadContent({
@@ -53,6 +49,7 @@ let currentNode: TreeNode;
     currentNode = node;
     api.sceneTree.addNode(currentNode);
     api.update()
+    await viewer.camera!.set([0,0,0], [0,0,0], { duration: 0 });
     await viewer.camera!.zoomTo(undefined, { duration: 0 });
     viewer.show = true;
 }
