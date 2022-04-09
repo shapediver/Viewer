@@ -48,6 +48,8 @@
     "doc": "ts-node ./scripts/doc.ts",
     "add-dependency": "bash ./scripts/add-dependency.sh",
     "add-devDependency": "bash ./scripts/add-devDependency.sh",
+    "clean-init": "npm run clean && npm run init",
+    "clean-build": "npm run clean && npm run init && npm run build-current",
     "init": "bash ./scripts/init.sh",
     "test": "lerna run test --stream --no-bail",
     "test-all": "ler0.138.3test --stream --no-bail && npm run test-no-concurrency && npm run test-browserstack",

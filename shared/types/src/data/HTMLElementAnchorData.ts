@@ -83,6 +83,7 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData {
         this.internalHtmlElement.style.position = 'absolute';
         this.internalHtmlElement.style.whiteSpace = 'nowrap';
         this.internalHtmlElement.style.textOverflow = 'clip';
+        this.internalHtmlElement.style.fontFamily = '"Helvetica Neue", Helvetica, Arial, sans-serif';
     }
 
     // #endregion Constructors (1)
