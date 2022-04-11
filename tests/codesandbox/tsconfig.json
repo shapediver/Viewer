@@ -1,0 +1,18 @@
+{
+    "extends": "../../tsconfig.json",
+    "include": [
+        "./**/*.ts"
+    ],
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "dist",
+        "target": "ES2017"
+    },
+    "exclude": [
+        "__tests__",
+        "node_modules",
+        "dist",
+        "dist-dev",
+        "dist-prod"
+    ]
+}

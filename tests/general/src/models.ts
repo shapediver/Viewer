@@ -13,6 +13,22 @@ export const sdeuc1: IModelDescription = {
     name: 'sdeuc1',
     backend: 'https://sdeuc1.eu-central-1.shapediver.com',
     models: {
+        'Engel': {
+            ticket: '77be6c68a8f17bdaccf05ff6ed8872b920fe43d91b5208f2ec8ac2c0763ea7ef6d16802e70b8ff541287d5ee059447c58d3a05032c30f2860011fbd0e8fa2724b90c0aa69dc9a5265d05ed06147aeabc60adeb4c154fcd5d26aa843f728e396606f570396f0e10-e0173fca6f9dcb204eb236f909e0d220',
+            slug: 'engel-2017-12-15-1-1'
+        },
+        'testsurfacebug': {
+            ticket: 'c1dd2f4b1d154eefe57d2f3d7a0bfff491a246f07d80d683810b57a1705f83caa1a1843bb8e68ddd8d53c631a0d9083ec6da52fead3c94d01e0f5d54f68c50df43daeb9a8b6e7958009f46da7bea132b5a8496458f260c1f3562f37f033da4448316826fa1406f-52394483d31f6813095d75315bd603f7',
+            slug: '220125-testsurfacebug-2'
+        },
+        'attachtransformationstest': {
+            ticket: '5e018ae30fe496500d27ba3ecb9bf1ba3ca79c5cdcef29c631d323616ee6d46be995370b4356b2b897a1933f7b98d9bf9378b9a4886b5d51cfa5d53459c6216c3d4fe527948849c1a7abae50687a3fd4c34f35849ea0745c62c0dcdb92aca6b7853d20117ff1c5-27508bdf1244759aa0d1d7606b82b491',
+            slug: 'attachtransformationstest-1'
+        },
+        'transparencytest': {
+            ticket: 'fe79df4b257844f5342ba5915bbab1ab2140cce13971678e2b5d77f8aa7590d0ed88e6ce6c73ce54072d566e980cc3bc39f3b706ae5c813693a468c068340732e54f58e0fe35af7da2dd0e80f9f316b16023c6902b37cf6ecbfaf1727e8eb46c6df50ff8392c5e-5c467b2b29fe5cc9dd01cf619bf962a3',
+            slug: '220202-transparencytest-9'
+        },
         'Shelf': {
             ticket: '7d6061acf274727aff4710230595ff9e58fbd019a1e173ccd5f2342ecc697fd2397ab08cadc3014b2760f858d18b4aade0aade39fd73a5c1b44fef4d5a457739c1fe28ec6b44ef593a41f6c0cccc78fb3f62234080db167d60c23886b32c759068cdff6af5a8e3-853d465964df80e5db72abe9655cedee',
             slug: 'shelf-47'
