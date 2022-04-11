@@ -1,49 +1,38 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
-    Converter,
-    HttpClient,
-    Logger,
-    LOGGINGTOPIC,
-    PerformanceEvaluator,
-    ShapeDiverViewerDataProcessingError,
-    UuidGenerator,
+  Converter,
+  HttpClient,
+  Logger,
+  LOGGINGTOPIC,
+  PerformanceEvaluator,
+  ShapeDiverViewerDataProcessingError,
+  UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
+import { IGLTF_v2, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types'
+import { mat4, vec3, vec4 } from 'gl-matrix'
 import {
-    ACCESSORCOMPONENTTYPE_V2 as ACCESSOR_COMPONENTTYPE,
-    ACCESSORTYPE_V2 as ACCESSORTYPE,
-    IGLTF_v2,
-    IGLTF_v2_Material,
-    IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness,
-    IGLTF_v2_Primitive,
-    ISHAPEDIVER_materials_preset,
-} from '@shapediver/viewer.data-engine.shared-types'
-import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
-import {
-    AnimationData,
-    AnimationTrack,
-    AttributeData,
-    GeometryData,
-    MapData,
-    MATERIAL_ALPHA,
-    MATERIAL_SIDE,
-    MaterialStandardData,
-    PrimitiveData,
-    MaterialVariantsData,
-    AbstractMaterialDataProperties,
-    MaterialSpecularGlossinessData,
-    AbstractMaterialData,
-    MaterialSpecularGlossinessDataProperties,
-    MaterialUnlitDataProperties,
-    MaterialUnlitData,
-    MaterialStandardDataProperties,
+  AnimationData,
+  AnimationTrack,
+  AttributeData,
+  GeometryData,
+  MaterialVariantsData,
+  PrimitiveData,
 } from '@shapediver/viewer.shared.types'
-import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
-import { AxiosResponse } from 'axios'
 import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { AbstractLight, DirectionalLight, PointLight, SpotLight } from '@shapediver/viewer.rendering-engine.light-engine'
+import {
+  AbstractLight,
+  DirectionalLight,
+  PointLight,
+  SpotLight,
+} from '@shapediver/viewer.rendering-engine.light-engine'
 
-const DRACO = require('./draco/draco_decoder.js');
+import { BufferLoader } from './loaders/BufferLoader'
+import { BufferViewLoader } from './loaders/BufferViewLoader'
+import { AccessorLoader } from './loaders/AccessorLoader'
+import { TextureLoader } from './loaders/TextureLoader'
+import { MaterialLoader } from './loaders/MaterialLoader'
+import { GeometryLoader } from './loaders/GeometryLoader'
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
@@ -62,33 +51,34 @@ export enum GLTF_EXTENSIONS {
     KHR_TEXTURE_TRANSFORM = 'KHR_texture_transform',
     SHAPEDIVER_MATERIALS_PRESET = 'SHAPEDIVER_materials_preset'
 }
+
+const DRACO = require('./draco/draco_decoder.js');
+
 export class GLTFLoader {
-    // #region Properties (15)
+    // #region Properties (17)
 
     private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _globalTransformation = mat4.fromValues(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
     private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
+    private _accessorLoader!: AccessorLoader;
     private _baseUri: string | undefined;
     private _body: ArrayBuffer | undefined;
+    private _bufferLoader!: BufferLoader;
+    private _bufferViewLoader!: BufferViewLoader;
     private _content!: IGLTF_v2;
-    private _loadData: (img: string) => Promise<AxiosResponse<any>> = this._httpClient.loadData.bind(this._httpClient);
-    private _loaded: {
-        [key: string]: {
-            [key: string]: any
-        }
-    } = {};
-    private _materialVariantsData = new MaterialVariantsData();
+    private _geometryLoader!: GeometryLoader;
+    private _materialLoader!: MaterialLoader;
     private _nodes: {
         [key: number]: TreeNode
     } = {};
+    private _textureLoader!: TextureLoader;
 
-    // #endregion Properties (15)
+    // #endregion Properties (17)
 
     // #region Public Methods (2)
 
@@ -100,20 +90,35 @@ export class GLTFLoader {
 
         try {
             this.validateVersionAndExtensions();
-            const node = await this.loadScene();
+
+            const dracoModule = await new DRACO();
+
+            this._bufferLoader = new BufferLoader(this._content, this._body, this._baseUri);
+            await this._bufferLoader.load();
+            this._bufferViewLoader = new BufferViewLoader(this._content, this._bufferLoader);
+            this._bufferViewLoader.load();
+            this._accessorLoader = new AccessorLoader(this._content, this._bufferViewLoader);
+            this._accessorLoader.load();
+            this._textureLoader = new TextureLoader(this._content, this._bufferViewLoader, this._baseUri);
+            await this._textureLoader.load();
+            this._materialLoader = new MaterialLoader(this._content, this._textureLoader);
+            await this._materialLoader.load();
+            this._geometryLoader = new GeometryLoader(this._content, this._accessorLoader, this._bufferViewLoader, this._materialLoader, dracoModule);
+
+            const node = this.loadScene();
 
             if (this._content.extensions && this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
                 const variants = this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS].variants;
                 for (let i = 0; i < variants.length; i++)
-                    this._materialVariantsData.variants.push(variants[i].name);
-                this._materialVariantsData.variantIndex = 0;
-                node.data.push(this._materialVariantsData)
+                    this._geometryLoader.materialVariantsData.variants.push(variants[i].name);
+                this._geometryLoader.materialVariantsData.variantIndex = 0;
+                node.data.push(this._geometryLoader.materialVariantsData)
             }
 
             if (this._content.skins !== undefined && this._content.nodes !== undefined) {
                 for (let i = 0; i < this._content.nodes?.length; i++) {
                     if (this._content.nodes[i].skin !== undefined) {
-                        const skinDef = await this.loadSkin(this._content.nodes[i].skin!);
+                        const skinDef = this.loadSkin(this._content.nodes[i].skin!);
 
                         const skinNode = this._nodes[i];
 
@@ -152,7 +157,7 @@ export class GLTFLoader {
 
             if (this._content.animations)
                 for (let i = 0; i < this._content.animations?.length; i++)
-                    node.data.push(await this.loadAnimation(i));
+                    node.data.push(this.loadAnimation(i));
             return node;
         } catch (e) {
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
@@ -173,6 +178,8 @@ export class GLTFLoader {
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
 
+        let gltfContent, gltfBinary, gltfBaseUrl, gltfHeader;
+
         const magic = new TextDecoder().decode(new Uint8Array(axiosResponse.data, 0, 4));
         const isBinary = magic === 'glTF' || (axiosResponse.headers['content-type'] &&
             (axiosResponse.headers['content-type'] === 'model/gltf-binary' ||
@@ -180,29 +187,29 @@ export class GLTFLoader {
                 axiosResponse.headers['content-type'] === 'model/gltf.binary'));
 
         if (isBinary) {
-            const binaryGeometry: ArrayBuffer = axiosResponse.data;
+            gltfBinary = axiosResponse.data;
             // create header data
-            const headerDataView = new DataView(binaryGeometry, 0, this.BINARY_EXTENSION_HEADER_LENGTH);
-            const header = {
+            const headerDataView = new DataView(gltfBinary, 0, this.BINARY_EXTENSION_HEADER_LENGTH);
+            gltfHeader = {
                 magic: magic,
                 version: headerDataView.getUint32(4, true),
                 length: headerDataView.getUint32(8, true),
                 contentLength: headerDataView.getUint32(12, true),
                 contentFormat: headerDataView.getUint32(16, true)
             }
-            if (header.magic != 'glTF') {
+            if (gltfHeader.magic != 'glTF') {
                 const error = new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: sdgTF magic wrong.');
                 throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, error);
             }
             // create content
-            const contentDataView = new DataView(binaryGeometry, this.BINARY_EXTENSION_HEADER_LENGTH, header.contentLength);
+            const contentDataView = new DataView(gltfBinary, this.BINARY_EXTENSION_HEADER_LENGTH, gltfHeader.contentLength);
             const contentDecoded = new TextDecoder().decode(contentDataView);
-            this._content = JSON.parse(contentDecoded);
+            gltfContent = JSON.parse(contentDecoded);
 
             // create body
-            this._body = binaryGeometry.slice(this.BINARY_EXTENSION_HEADER_LENGTH + header.contentLength + 8, header.length);
+            this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength + 8, gltfHeader.length);
         } else {
-            this._content = JSON.parse(new TextDecoder().decode(axiosResponse.data));
+            gltfContent = JSON.parse(new TextDecoder().decode(axiosResponse.data));
 
             const removeLastDirectoryPartOf = (the_url: string): string => {
                 const dir_char = the_url.includes("/") ? "/" : "\\";
@@ -211,122 +218,24 @@ export class GLTFLoader {
                 return the_arr.join(dir_char);
             }
 
-            this._baseUri = removeLastDirectoryPartOf(url!);
-            if (!this._baseUri && window && window.location && window.location.href)
-                this._baseUri = removeLastDirectoryPartOf(window.location.href);
+            gltfBaseUrl = removeLastDirectoryPartOf(url!);
+            if (!gltfBaseUrl && window && window.location && window.location.href)
+                gltfBaseUrl = removeLastDirectoryPartOf(window.location.href);
         }
 
-        try {
-            this.validateVersionAndExtensions();
-            const node = await this.loadScene();
-            this._performanceEvaluator.endSection('gltfProcessing.' + url);
-            return node;
-        } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
-        }
+        return await this.load(gltfContent, gltfBinary, gltfHeader, gltfBaseUrl);
     }
 
     // #endregion Public Methods (2)
 
-    // #region Private Methods (15)
-
-    private getNormalizedComponentScale(constructor: Uint8ArrayConstructor | Int8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor) {
-        // Reference:
-        // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization#encoding-quantized-data
-
-        switch (constructor) {
-            case Int8Array:
-                return 1 / 127;
-
-            case Uint8Array:
-                return 1 / 255;
-
-            case Int16Array:
-                return 1 / 32767;
-
-            case Uint16Array:
-                return 1 / 65535;
-
-            default:
-                throw new Error('THREE.GLTFLoader: Unsupported normalized accessor component type.');
-        }
-    }
-
-    private async loadAccessor(accessorId: number): Promise<AttributeData | null> {
-        if (!this._content.accessors) throw new Error('Accessors not available.')
-        if (!this._content.accessors[accessorId]) throw new Error('Accessor not available.')
-        const accessor = this._content.accessors[accessorId];
-        if (this._loaded['accessor'] && this._loaded['accessor'][accessorId]) return this._loaded['accessor'][accessorId];
-
-        if (accessor.bufferView === undefined) {
-            // Ignore empty accessors, which may be used to declare runtime
-            // information about attributes coming from another source (e.g. Draco
-            // compression extension).
-            return Promise.resolve(null);
-        }
-
-        const arrayBuffer = await this.loadBufferView(accessor.bufferView!);
-
-        const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
-        if (accessor.componentType === 5124) this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
-        const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
-
-        const elementBytes = ArrayType.BYTES_PER_ELEMENT;
-        const itemBytes = elementBytes * itemSize;
-        const byteOffset = accessor.byteOffset || 0;
-        const byteStride = accessor.bufferView !== undefined ? this._content.bufferViews ? this._content.bufferViews[accessor.bufferView].byteStride : undefined : undefined;
-        const normalized = accessor.normalized === true;
-        let array;
-
-        if (byteStride && byteStride !== itemBytes) {
-            // Each "slice" of the buffer, as defined by 'count' elements of 'byteStride' bytes, gets its own InterleavedBuffer
-            // This makes sure that IBA.count reflects accessor.count properly
-            const ibSlice = Math.floor(byteOffset / byteStride);
-            array = new ArrayType(arrayBuffer, ibSlice * byteStride, accessor.count * byteStride / elementBytes);
-        } else {
-            if (arrayBuffer === null) {
-                array = new ArrayType(accessor.count * itemSize);
-            } else {
-                array = new ArrayType(arrayBuffer, byteOffset, accessor.count * itemSize);
-            }
-        }
-
-        if (normalized) {
-            const scale = this.getNormalizedComponentScale(ArrayType);
-            const scaled = new Float32Array(array.length);
-            for (let j = 0, jl = array.length; j < jl; j++)
-                scaled[j] = array[j] * scale;
-            array = scaled;
-        }
-
-        if (accessor.sparse !== undefined) {
-            const itemSizeIndices = ACCESSORTYPE.SCALAR;
-            const IndicesArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.sparse.indices.componentType];
-
-            const byteOffsetIndices = accessor.sparse.indices.byteOffset || 0;
-            const byteOffsetValues = accessor.sparse.values.byteOffset || 0;
-
-            if (!accessor.sparse.indices.bufferView || !accessor.sparse.values.bufferView) throw new Error('Sparse Mesh not properly defined.')
-
-            const sparseIndices = new IndicesArrayType(await this.loadBufferView(accessor.sparse.indices.bufferView!), byteOffsetIndices, accessor.sparse.count * itemSizeIndices);
-            const sparseValues = new ArrayType(await this.loadBufferView(accessor.sparse.values.bufferView!), byteOffsetValues, accessor.sparse.count * itemSize);
-
-            if (!this._loaded['accessor']) this._loaded['accessor'] = {};
-            this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride, true, sparseIndices, sparseValues);
-            return this._loaded['accessor'][accessorId];
-        }
-
-        if (!this._loaded['accessor']) this._loaded['accessor'] = {};
-        this._loaded['accessor'][accessorId] = new AttributeData(array, itemSize, itemBytes, byteOffset, elementBytes, normalized, accessor.count, accessor.min, accessor.max, byteStride);
-        return this._loaded['accessor'][accessorId];
-    }
+    // #region Private Methods (7)
 
     /**
-       * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#animations
-       * @param {number} animationIndex
-       * @return {Promise<AnimationClip>}
-       */
-    private async loadAnimation(animationId: number): Promise<AnimationData> {
+         * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#animations
+         * @param {number} animationIndex
+         * @return {Promise<AnimationClip>}
+         */
+    private loadAnimation(animationId: number): AnimationData {
         if (!this._content.animations) throw new Error('Animations not available.')
         if (!this._content.animations[animationId]) throw new Error('Animations not available.')
         const animationDef = this._content.animations[animationId];
@@ -342,10 +251,10 @@ export class GLTFLoader {
             const node = this._nodes[target.node];
             if (node === undefined) throw new Error('Animation node not available.');
 
-            const input = await this.loadAccessor(sampler.input);
+            const input = this._accessorLoader.getAccessor(sampler.input);
             min = Math.min(min, input!.min[0]);
             max = Math.max(max, input!.max[0]);
-            const output = await this.loadAccessor(sampler.output);
+            const output = this._accessorLoader.getAccessor(sampler.output);
             let interpolation = sampler.interpolation;
             if (interpolation === 'CUBICSPLINE') {
                 this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
@@ -362,70 +271,6 @@ export class GLTFLoader {
         }
 
         return new AnimationData(animationDef.name || 'gltf_animation_' + animationId, animationTracks, min, max - min);
-    }
-
-    private async loadBuffer(bufferId: number): Promise<ArrayBuffer> {
-        if (!this._content.buffers) throw new Error('Buffers not available.')
-        if (!this._content.buffers[bufferId]) throw new Error('Buffer not available.')
-        const buffer = this._content.buffers[bufferId];
-        if (this._loaded['buffer'] && this._loaded['buffer'][bufferId]) return this._loaded['buffer'][bufferId];
-
-        if (buffer.type && buffer.type !== 'arraybuffer') {
-            throw new Error(`GLTFLoader.loadBuffer: ${buffer.type} is not supported.`);
-        }
-
-        // If present, GLB container is required to be the first buffer.
-        if (buffer.uri === undefined && bufferId === 0) {
-            if (!this._body) throw new Error(`GLTFLoader.loadBuffer: Buffer not available.`);
-            return Promise.resolve(this._body);
-        }
-
-        const dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
-        const dataUriRegexResult = buffer.uri!.match(dataUriRegex);
-
-        let result: ArrayBuffer;
-        // Safari can not handle Data URIs through XMLHttpRequest so process manually
-        if (dataUriRegexResult) {
-            const isBase64 = !!dataUriRegexResult[2];
-            let data = dataUriRegexResult[3];
-            data = decodeURIComponent(data);
-            if (isBase64) data = atob(data);
-
-            const view = new Uint8Array(data.length);
-            for (let i = 0; i < data.length; i++) {
-                view[i] = data.charCodeAt(i);
-            }
-            result = view.buffer;
-        } else {
-            let httpResult = await this._httpClient.get(this._baseUri + '/' + buffer.uri!, {
-                responseType: 'arraybuffer'
-            })
-            result = <ArrayBuffer>(httpResult.data);
-        }
-
-        if (!this._loaded['buffer']) this._loaded['buffer'] = {};
-        this._loaded['buffer'][bufferId] = result;
-        return this._loaded['buffer'][bufferId];
-    }
-
-    private async loadBufferView(bufferViewId: number): Promise<ArrayBuffer> {
-        if (!this._content.bufferViews) throw new Error('BufferViews not available.')
-        if (!this._content.bufferViews[bufferViewId]) throw new Error('BufferView not available.')
-        const bufferView = this._content.bufferViews[bufferViewId];
-        if (this._loaded['bufferView'] && this._loaded['bufferView'][bufferViewId]) return this._loaded['bufferView'][bufferViewId];
-
-        const byteLength = bufferView.byteLength || 0;
-        const byteOffset = bufferView.byteOffset || 0;
-
-        if (bufferView.buffer === undefined) throw new Error('BufferView has no buffer defined.')
-        const buffer = await this.loadBuffer(bufferView.buffer!);
-        const result = buffer.slice(byteOffset, byteOffset + byteLength);
-
-        if (!this._loaded['bufferView']) this._loaded['bufferView'] = {};
-        this._loaded['bufferView'][bufferViewId] = result;
-
-        // bufferView has a target property that we don't care about as this is JavaScript :)
-        return this._loaded['bufferView'][bufferViewId];
     }
 
     private loadCamera(cameraId: number): TreeNode {
@@ -517,336 +362,7 @@ export class GLTFLoader {
         return lightNode;
     }
 
-    private async loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number }): Promise<MapData> {
-        if (!this._content.textures) throw new Error('Textures not available.')
-        const texture = this._content.textures[textureId];
-        if (!this._content.images) throw new Error('Images not available.')
-        const image = this._content.images[texture.source];
-        const sampler = this._content.samplers && texture.sampler && this._content.samplers[texture.sampler] ? this._content.samplers[texture.sampler] : {};
-
-        const DATA_URI_REGEX = /^data:(.*?)(;base64)?,(.*)$/;
-        const HTTPS_URI_REGEX = /^https:\/\//;
-
-        let mapData: MapData;
-        if (image.bufferView !== undefined) {
-            const bufferView = await this.loadBufferView(image.bufferView);
-            const dataView = new DataView(bufferView);
-            const array: Array<number> = [];
-            for (let i = 0; i < dataView.byteLength; i += 1)
-                array[i] = dataView.getUint8(i);
-
-            const blob = new Blob([new Uint8Array(array)], { type: image.mimeType });
-            const dataUri = window.URL.createObjectURL(blob);
-
-            if (!this._loaded['texture']) this._loaded['texture'] = {};
-
-            if (!this._loaded['texture'][dataUri])
-                this._loaded['texture'][dataUri] = this._converter.responseToImage(await this._loadData!(dataUri));
-
-            const htmlImage: HTMLImageElement = await (<Promise<HTMLImageElement>>this._loaded['texture'][dataUri])
-            mapData = new MapData(
-                htmlImage,
-                sampler.wrapS,
-                sampler.wrapT,
-                sampler.minFilter,
-                sampler.magFilter,
-                undefined,
-                undefined,
-                properties && properties.offset ? vec2.fromValues(properties.offset[0], properties.offset[1]) : undefined,
-                properties && properties.scale ? vec2.fromValues(properties.scale[0], properties.scale[1]) : undefined,
-                properties && properties.rotation !== undefined ? properties.rotation : 0,
-                false
-            );
-        } else {
-            const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
-
-            if (!this._loaded['texture']) this._loaded['texture'] = {};
-
-            if (!this._loaded['texture'][url!])
-                this._loaded['texture'][url!] = this._converter.responseToImage(await this._loadData!(url!));
-
-            const htmlImage: HTMLImageElement = await (<Promise<HTMLImageElement>>this._loaded['texture'][url!]);
-            mapData = new MapData(
-                htmlImage,
-                sampler.wrapS,
-                sampler.wrapT,
-                sampler.minFilter,
-                sampler.magFilter,
-                undefined,
-                undefined,
-                properties && properties.offset ? vec2.fromValues(properties.offset[0], properties.offset[1]) : undefined,
-                properties && properties.scale ? vec2.fromValues(properties.scale[0], properties.scale[1]) : undefined,
-                properties && properties.rotation !== undefined ? properties.rotation : 0,
-                false
-            );
-        }
-
-        return mapData;
-    }
-
-    private async loadMaterial(materialId: number): Promise<AbstractMaterialData> {
-        if (!this._content.materials) throw new Error('Materials not available.')
-        const material: IGLTF_v2_Material = this._content.materials[materialId];
-        const materialExtensions = material.extensions || {};
-
-        const materialDataProperties: AbstractMaterialDataProperties = {};
-        if (material.name !== undefined) materialDataProperties.name = material.name;
-
-        if (materialExtensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET]) {
-            const materialPreset: ISHAPEDIVER_materials_preset = materialExtensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET];
-            const materialData = new MaterialStandardData(materialDataProperties);
-            await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset, materialData);
-            materialData.color = this._converter.toColor(materialPreset.color);
-            return materialData;
-        }
-
-        if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS]) {
-            const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS];
-            const specularGlossinessMaterialDataProperties: MaterialSpecularGlossinessDataProperties = materialDataProperties;
-
-            specularGlossinessMaterialDataProperties.color = '#ffffff';
-            specularGlossinessMaterialDataProperties.opacity = 1.0;
-
-            if (pbrSpecularGlossiness.diffuseFactor !== undefined) {
-                specularGlossinessMaterialDataProperties.color = this._converter.toColor([pbrSpecularGlossiness.diffuseFactor[0] * 255, pbrSpecularGlossiness.diffuseFactor[1] * 255, pbrSpecularGlossiness.diffuseFactor[2] * 255]);
-                specularGlossinessMaterialDataProperties.opacity = pbrSpecularGlossiness.diffuseFactor[3];
-            }
-
-            if (pbrSpecularGlossiness.diffuseTexture !== undefined) {
-                const diffuseTextureOptions = pbrSpecularGlossiness.diffuseTexture.extensions && pbrSpecularGlossiness.diffuseTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.diffuseTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                specularGlossinessMaterialDataProperties.map = await this.loadMap(pbrSpecularGlossiness.diffuseTexture.index, diffuseTextureOptions);
-            }
-            specularGlossinessMaterialDataProperties.emissiveness = '#000000';
-            specularGlossinessMaterialDataProperties.glossiness = pbrSpecularGlossiness.glossinessFactor !== undefined ? pbrSpecularGlossiness.glossinessFactor : 1.0;
-            specularGlossinessMaterialDataProperties.specular = '#ffffff';
-
-            if (pbrSpecularGlossiness.specularFactor !== undefined) {
-                specularGlossinessMaterialDataProperties.specular = this._converter.toColor([pbrSpecularGlossiness.specularFactor[0] * 255, pbrSpecularGlossiness.specularFactor[1] * 255, pbrSpecularGlossiness.specularFactor[2] * 255]);
-            }
-
-            if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
-                const specularGlossinessTextureOptions = pbrSpecularGlossiness.specularGlossinessTexture.extensions && pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? pbrSpecularGlossiness.specularGlossinessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                specularGlossinessMaterialDataProperties.specularGlossinessMap = await this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index, specularGlossinessTextureOptions);
-            }
-        } else if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_UNLIT]) {
-            const unlitMaterialDataProperties: MaterialUnlitDataProperties = materialDataProperties;
-            unlitMaterialDataProperties.color = '#ffffff';
-            unlitMaterialDataProperties.opacity = 1.0;
-
-            if (material.pbrMetallicRoughness !== undefined) {
-                if (material.pbrMetallicRoughness.baseColorFactor !== undefined) {
-                    unlitMaterialDataProperties.color = this._converter.toColor([material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255]);
-                    unlitMaterialDataProperties.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
-                }
-                if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
-                    const baseColorTextureOptions = material.pbrMetallicRoughness.baseColorTexture.extensions && material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                    unlitMaterialDataProperties.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index, baseColorTextureOptions);
-                }
-            }
-        } else {
-            const standardMaterialDataProperties: MaterialStandardDataProperties = materialDataProperties;
-            if (material.pbrMetallicRoughness !== undefined) {
-                standardMaterialDataProperties.color = '#ffffff';
-                if (material.pbrMetallicRoughness.baseColorFactor !== undefined) {
-                    standardMaterialDataProperties.color = this._converter.toColor([material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255]);
-                    standardMaterialDataProperties.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
-                }
-                if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
-                    const baseColorTextureOptions = material.pbrMetallicRoughness.baseColorTexture.extensions && material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.baseColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                    standardMaterialDataProperties.map = await this.loadMap(material.pbrMetallicRoughness.baseColorTexture.index, baseColorTextureOptions);
-                }
-                if (material.pbrMetallicRoughness.metallicFactor !== undefined) {
-                    standardMaterialDataProperties.metalness = material.pbrMetallicRoughness.metallicFactor;
-                }
-                if (material.pbrMetallicRoughness.roughnessFactor !== undefined) {
-                    standardMaterialDataProperties.roughness = material.pbrMetallicRoughness.roughnessFactor;
-                }
-                if (material.pbrMetallicRoughness.metallicRoughnessTexture !== undefined) {
-                    const metallicRoughnessTextureOptions = material.pbrMetallicRoughness.metallicRoughnessTexture.extensions && material.pbrMetallicRoughness.metallicRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.pbrMetallicRoughness.metallicRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                    standardMaterialDataProperties.metalnessRoughnessMap = await this.loadMap(material.pbrMetallicRoughness.metallicRoughnessTexture.index, metallicRoughnessTextureOptions);
-                }
-            }
-        }
-
-        /**
-         * Loading of the general properties
-         */
-
-        if (material.normalTexture !== undefined) {
-            const normalTextureOptions = material.normalTexture.extensions && material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.normalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-            materialDataProperties.normalMap = await this.loadMap(material.normalTexture.index, normalTextureOptions);
-            materialDataProperties.normalScale = 1;
-            if (material.normalTexture.scale !== undefined) {
-                materialDataProperties.normalScale = material.normalTexture.scale;
-            }
-        }
-        if (material.occlusionTexture !== undefined) {
-            const occlusionTextureOptions = material.occlusionTexture.extensions && material.occlusionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.occlusionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-            materialDataProperties.aoMap = await this.loadMap(material.occlusionTexture.index, occlusionTextureOptions);
-            if (material.occlusionTexture.strength !== undefined) {
-                materialDataProperties.aoMapIntensity = material.occlusionTexture.strength;
-            }
-        }
-        if (material.emissiveTexture !== undefined) {
-            const emissiveTextureOptions = material.emissiveTexture.extensions && material.emissiveTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? material.emissiveTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-            materialDataProperties.emissiveMap = await this.loadMap(material.emissiveTexture.index, emissiveTextureOptions);
-        }
-
-        if (material.emissiveFactor !== undefined) {
-            materialDataProperties.emissiveness = this._converter.toColor([material.emissiveFactor[0] * 255, material.emissiveFactor[1] * 255, material.emissiveFactor[2] * 255]);
-        }
-        if (material.alphaMode !== undefined) {
-            materialDataProperties.alphaMode = material.alphaMode.toLowerCase() === MATERIAL_ALPHA.MASK ? MATERIAL_ALPHA.MASK : material.alphaMode.toLowerCase() === MATERIAL_ALPHA.BLEND ? MATERIAL_ALPHA.BLEND : MATERIAL_ALPHA.OPAQUE;
-            if (materialDataProperties.alphaMode === MATERIAL_ALPHA.MASK) {
-                materialDataProperties.alphaCutoff = material.alphaCutoff !== undefined ? material.alphaCutoff : 0.5;
-            }
-        }
-        if (material.alphaCutoff !== undefined) {
-            materialDataProperties.alphaCutoff = material.alphaCutoff;
-        }
-        if (material.doubleSided !== undefined) {
-            materialDataProperties.side = material.doubleSided ? MATERIAL_SIDE.DOUBLE : MATERIAL_SIDE.FRONT;
-        }
-
-        /**
-         * Early exit for specular glossiness and unlit materials
-         */
-        if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS]) {
-            const specularGlossinessMaterialDataProperties: MaterialSpecularGlossinessDataProperties = materialDataProperties;
-            return new MaterialSpecularGlossinessData(specularGlossinessMaterialDataProperties);
-        } else if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_UNLIT]) {
-            const unlitMaterialDataProperties: MaterialUnlitDataProperties = materialDataProperties;
-            return new MaterialUnlitData(unlitMaterialDataProperties);
-        }
-
-        const standardMaterialDataProperties: MaterialStandardDataProperties = materialDataProperties;
-
-        if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_CLEARCOAT]) {
-            const clearcoatExtension = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_CLEARCOAT];
-            if (clearcoatExtension.clearcoatFactor !== undefined) {
-                standardMaterialDataProperties.clearcoat = clearcoatExtension.clearcoatFactor;
-            }
-
-            if (clearcoatExtension.clearcoatTexture !== undefined) {
-                const clearcoatTextureOptions = clearcoatExtension.clearcoatTexture.extensions && clearcoatExtension.clearcoatTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.clearcoatMap = await this.loadMap(clearcoatExtension.clearcoatTexture.index, clearcoatTextureOptions);
-            }
-
-            if (clearcoatExtension.clearcoatRoughnessFactor !== undefined) {
-                standardMaterialDataProperties.clearcoatRoughness = clearcoatExtension.clearcoatRoughnessFactor;
-            }
-
-            if (clearcoatExtension.clearcoatRoughnessTexture !== undefined) {
-                const clearcoatRoughnessTextureOptions = clearcoatExtension.clearcoatRoughnessTexture.extensions && clearcoatExtension.clearcoatRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.clearcoatRoughnessMap = await this.loadMap(clearcoatExtension.clearcoatRoughnessTexture.index, clearcoatRoughnessTextureOptions);
-            }
-
-            if (clearcoatExtension.clearcoatNormalTexture !== undefined) {
-                const clearcoatNormalTextureOptions = clearcoatExtension.clearcoatNormalTexture.extensions && clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? clearcoatExtension.clearcoatNormalTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.clearcoatNormalMap = await this.loadMap(clearcoatExtension.clearcoatNormalTexture.index, clearcoatNormalTextureOptions);
-            }
-        }
-
-        if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_IOR]) {
-            const iorExtension = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_IOR];
-            if (iorExtension.ior !== undefined) {
-                standardMaterialDataProperties.ior = iorExtension.ior;
-            }
-        }
-
-        if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_TRANSMISSION]) {
-            const transmissionExtension = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_TRANSMISSION];
-            if (transmissionExtension.transmissionFactor !== undefined) {
-                standardMaterialDataProperties.transmission = transmissionExtension.transmissionFactor;
-            }
-
-            if (transmissionExtension.transmissionTexture !== undefined) {
-                const transmissionTextureOptions = transmissionExtension.transmissionTexture.extensions && transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? transmissionExtension.transmissionTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.transmissionMap = await this.loadMap(transmissionExtension.transmissionTexture.index, transmissionTextureOptions);
-            }
-        }
-
-        if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_VOLUME]) {
-            const volumeExtension = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_VOLUME];
-            if (volumeExtension.thicknessFactor !== undefined) {
-                standardMaterialDataProperties.thickness = volumeExtension.thicknessFactor;
-            }
-
-            if (volumeExtension.thicknessTexture !== undefined) {
-                const thicknessTextureOptions = volumeExtension.thicknessTexture.extensions && volumeExtension.thicknessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? volumeExtension.thicknessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.thicknessMap = await this.loadMap(volumeExtension.thicknessTexture.index, thicknessTextureOptions);
-            }
-
-            if (volumeExtension.attenuationDistance !== undefined) {
-                standardMaterialDataProperties.attenuationDistance = volumeExtension.attenuationDistance;
-            }
-
-            if (volumeExtension.attenuationColor !== undefined) {
-                standardMaterialDataProperties.attenuationColor = this._converter.toColor([volumeExtension.attenuationColor[0] * 255, volumeExtension.attenuationColor[1] * 255, volumeExtension.attenuationColor[2] * 255]);
-            }
-        }
-
-        if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_SHEEN]) {
-            const sheenExtension = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_SHEEN];
-            standardMaterialDataProperties.sheen = 1.0;
-            if (sheenExtension.sheenColorFactor !== undefined) {
-                standardMaterialDataProperties.sheenColor = this._converter.toColor([sheenExtension.sheenColorFactor[0] * 255, sheenExtension.sheenColorFactor[1] * 255, sheenExtension.sheenColorFactor[2] * 255]);
-            }
-
-            if (sheenExtension.sheenRoughnessFactor !== undefined) {
-                standardMaterialDataProperties.sheenRoughness = sheenExtension.sheenRoughnessFactor;
-            }
-
-            if (sheenExtension.sheenColorTexture !== undefined) {
-                const sheenColorTextureOptions = sheenExtension.sheenColorTexture.extensions && sheenExtension.sheenColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? sheenExtension.sheenColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.sheenColorMap = await this.loadMap(sheenExtension.sheenColorTexture.index, sheenColorTextureOptions);
-            }
-
-            if (sheenExtension.sheenRoughnessTexture !== undefined) {
-                const sheenRoughnessTextureOptions = sheenExtension.sheenRoughnessTexture.extensions && sheenExtension.sheenRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? sheenExtension.sheenRoughnessTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.sheenRoughnessMap = await this.loadMap(sheenExtension.sheenRoughnessTexture.index, sheenRoughnessTextureOptions);
-            }
-        }
-
-        if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_SPECULAR]) {
-            const specularExtension = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_SPECULAR];
-
-            if (specularExtension.specularFactor !== undefined) {
-                standardMaterialDataProperties.specularIntensity = specularExtension.specularFactor;
-            }
-
-            if (specularExtension.specularColorFactor !== undefined) {
-                standardMaterialDataProperties.specularColor = this._converter.toColor([specularExtension.specularColorFactor[0] * 255, specularExtension.specularColorFactor[1] * 255, specularExtension.specularColorFactor[2] * 255]);
-            }
-
-            if (specularExtension.specularColorTexture !== undefined) {
-                const specularColorTextureOptions = specularExtension.specularColorTexture.extensions && specularExtension.specularColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? specularExtension.specularColorTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.specularColorMap = await this.loadMap(specularExtension.specularColorTexture.index, specularColorTextureOptions);
-            }
-
-            if (specularExtension.specularTexture !== undefined) {
-                const specularTextureOptions = specularExtension.specularTexture.extensions && specularExtension.specularTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] ? specularExtension.specularTexture.extensions[GLTF_EXTENSIONS.KHR_TEXTURE_TRANSFORM] : undefined;
-                standardMaterialDataProperties.specularIntensityMap = await this.loadMap(specularExtension.specularTexture.index, specularTextureOptions);
-            }
-        }
-
-        return new MaterialStandardData(standardMaterialDataProperties);
-    }
-
-    private async loadMesh(meshId: number, weights?: number[]): Promise<TreeNode> {
-        if (!this._content.meshes) throw new Error('Meshes not available.')
-        if (!this._content.meshes[meshId]) throw new Error('Mesh not available.')
-        const mesh = this._content.meshes[meshId];
-        const meshNode = new TreeNode(mesh.name || 'mesh_' + meshId);
-
-        if (mesh.primitives)
-            for (let i = 0, len = mesh.primitives.length; i < len; i++)
-                meshNode.addChild(await this.loadPrimitive(mesh.primitives, i, mesh.weights || weights));
-
-        return meshNode;
-    }
-
-    private async loadNode(nodeId: number): Promise<TreeNode> {
+    private loadNode(nodeId: number): TreeNode {
         if (!this._content.nodes) throw new Error('Nodes not available.')
         if (!this._content.nodes[nodeId]) throw new Error('Node not available.')
         const node = this._content.nodes[nodeId];
@@ -894,7 +410,7 @@ export class GLTFLoader {
         }
 
         if (node.mesh !== undefined)
-            nodeDef.addChild(await this.loadMesh(node.mesh, node.weights));
+            nodeDef.addChild(this._geometryLoader.loadMesh(node.mesh, node.weights));
 
         if (node.camera !== undefined)
             nodeDef.addChild(this.loadCamera(node.camera));
@@ -905,173 +421,14 @@ export class GLTFLoader {
         if (node.children) {
             for (let i = 0, len = node.children.length; i < len; i++) {
                 // got through all children
-                nodeDef.addChild(await this.loadNode(node.children[i]));
+                nodeDef.addChild(this.loadNode(node.children[i]));
             }
         }
 
         return nodeDef;
     }
 
-    private async loadPrimitive(primitives: IGLTF_v2_Primitive[], index: number, weights: number[] = []): Promise<TreeNode> {
-        const primitive = primitives[index];
-        const primitiveNode = new TreeNode('primitive_' + index);
-
-        const attributes: {
-            [key: string]: AttributeData
-        } = {};
-
-        let indices = null;
-        const convertedNames: { [key: string]: string } = {}
-
-        if (primitive.extensions && primitive.extensions[GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION]) {
-            const dracoDef = primitive.extensions[GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION];
-            const arrayBuffer = await this.loadBufferView(dracoDef.bufferView!);
-
-            const DracoModule = await new DRACO();
-            const decoder = new DracoModule.Decoder();
-            const buffer = new DracoModule.DecoderBuffer();
-            buffer.Init(new Int8Array(arrayBuffer), arrayBuffer.byteLength);
-            const geometryType = decoder.GetEncodedGeometryType(buffer);
-
-            let dracoGeometry;
-            if (geometryType === DracoModule.TRIANGULAR_MESH) {
-                dracoGeometry = new DracoModule.Mesh();
-                decoder.DecodeBufferToMesh(buffer, dracoGeometry);
-            } else if (geometryType === DracoModule.POINT_CLOUD) {
-                dracoGeometry = new DracoModule.PointCloud();
-                decoder.DecodeBufferToPointCloud(buffer, dracoGeometry);
-            }
-            DracoModule.destroy(buffer);
-
-            if (dracoDef.attributes['POSITION'] === undefined) {
-                const errorMsg = "No position attribute found in the mesh.";
-                DracoModule.destroy(decoder);
-                DracoModule.destroy(dracoGeometry);
-                throw new Error(errorMsg);
-            }
-
-            for (let a in dracoDef.attributes) {
-                const attribute = decoder.GetAttributeByUniqueId(dracoGeometry, dracoDef.attributes[a])
-                const attributeData = new DracoModule.DracoFloat32Array();
-                decoder.GetAttributeFloatForAllPoints(dracoGeometry, attribute, attributeData);
-
-                const byteOffset = attribute.byte_offset();
-                const normalized = attribute.normalized();
-                const num_components = attribute.num_components();
-                const count = attributeData.size();
-
-                const array = new Float32Array(count);
-
-                for (let i = 0; i < count; i++) {
-                    for (let a = 0; a < num_components; a++) {
-                        const temp = i * num_components;
-                        const value = attributeData.GetValue(temp + a);
-                        array[temp + a] = value;
-                    }
-                }
-                DracoModule.destroy(attributeData);
-
-                attributes[a] = new AttributeData(
-                    array,
-                    num_components, // itemSize
-                    array.BYTES_PER_ELEMENT * num_components, // itemBytes = elementBytes * itemSize
-                    byteOffset, // byteOffset
-                    array.BYTES_PER_ELEMENT, // elementBytes
-                    normalized, // normalized
-                    array.length / num_components
-                );
-            }
-
-            const numFaces = geometryType == DracoModule.TRIANGULAR_MESH ? dracoGeometry.num_faces() : 0;
-            const numIndices = numFaces * 3;
-            const indexArray = new Uint32Array(numIndices);
-
-            // For mesh, we need to generate the faces.
-            if (geometryType == DracoModule.TRIANGULAR_MESH) {
-                const ia = new DracoModule.DracoInt32Array();
-                for (let i = 0; i < numFaces; ++i) {
-                    decoder.GetFaceFromMesh(dracoGeometry, i, ia);
-                    const index = i * 3;
-                    indexArray[index] = ia.GetValue(0);
-                    indexArray[index + 1] = ia.GetValue(1);
-                    indexArray[index + 2] = ia.GetValue(2);
-                }
-                DracoModule.destroy(ia);
-            }
-            DracoModule.destroy(decoder);
-            DracoModule.destroy(dracoGeometry);
-
-            if (geometryType == DracoModule.TRIANGULAR_MESH)
-                indices = new AttributeData(
-                    indexArray,
-                    1, // itemSize
-                    indexArray.BYTES_PER_ELEMENT * 1, // itemBytes = elementBytes * itemSize
-                    0, // byteOffset
-                    indexArray.BYTES_PER_ELEMENT, // elementBytes
-                    false, // normalized
-                    indexArray.length // count
-                );
-        }
-
-        for (let attribute in primitive.attributes) {
-            if (attributes[attribute]) {
-                convertedNames[attribute] = attribute;
-                continue;
-            }
-
-            let attributeName = attribute;
-            // attribute name conversion to be consistent with gltf
-            if (/\d/.test(attributeName) && !attributeName.includes('_')) {
-                const index = attributeName.search(/\d/)
-                attributeName = attributeName.substring(0, index) + '_' + attributeName.substring(index, attributeName.length);
-            } else if (attributeName === 'TEXCOORD' || attributeName === 'COLOR' || attributeName === 'JOINTS' || attributeName === 'WEIGHTS') {
-                attributeName += '_0';
-            } else if (attributeName === 'UV') {
-                attributeName = 'TEXCOORD_0';
-            }
-
-            convertedNames[attribute] = attributeName;
-            attributes[attributeName] = (await this.loadAccessor(primitive.attributes[attribute]))!;
-        }
-
-        if ((primitive.indices || primitive.indices === 0) && !indices)
-            indices = await this.loadAccessor(primitive.indices);
-
-        // reading and assigning morph targets
-        if (primitive.targets) {
-            for (let i = 0; i < primitive.targets.length; i++) {
-                for (let target in primitive.targets[i]) {
-                    if (!attributes[target]) continue;
-                    attributes[convertedNames[target]].morphAttributeData.push((await this.loadAccessor(primitive.targets[i][target]))!);
-                }
-            }
-        }
-
-        let material = null;
-        if (primitive.material || primitive.material === 0)
-            material = await this.loadMaterial(primitive.material);
-
-        const primitiveData = new PrimitiveData(attributes, primitive.mode, indices, material);
-
-        if (primitive.extensions && primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
-            this._materialVariantsData.primitiveData.push(primitiveData);
-            const variantsExtension = primitive.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS];
-
-            for (let i = 0; i < variantsExtension.mappings.length; i++) {
-                const mapping = variantsExtension.mappings[i];
-                const material = await this.loadMaterial(mapping.material);
-                for (let j = 0; j < mapping.variants.length; j++)
-                    primitiveData.materialVariants.push({ variant: mapping.variants[j], material });
-            }
-        }
-
-        const geometryData = new GeometryData(primitiveData);
-        geometryData.morphWeights = weights;
-        primitiveNode.data.push(geometryData);
-        return primitiveNode;
-    }
-
-    private async loadScene(): Promise<TreeNode> {
+    private loadScene(): TreeNode {
         if (!this._content.scenes) throw new Error('Scenes not available.')
         const sceneID = this._content.scene || 0;
         if (!this._content.scenes[sceneID]) throw new Error('Scene not available.')
@@ -1083,14 +440,14 @@ export class GLTFLoader {
         })
         if (scene.nodes)
             for (let i = 0, len = scene.nodes.length; i < len; i++)
-                sceneDef.addChild(await this.loadNode(scene.nodes[i]));
+                sceneDef.addChild(this.loadNode(scene.nodes[i]));
         return sceneDef;
     }
 
-    private async loadSkin(skinId: number): Promise<{
+    private loadSkin(skinId: number): {
         joints: number[],
         inverseBindMatrices: AttributeData | null
-    }> {
+    } {
         if (!this._content.skins) throw new Error('Skins not available.')
         if (!this._content.skins[skinId]) throw new Error('Skin not available.')
         const skinDef = this._content.skins![skinId];
@@ -1107,7 +464,7 @@ export class GLTFLoader {
             return skinEntry;
         }
 
-        skinEntry.inverseBindMatrices = await this.loadAccessor(skinDef.inverseBindMatrices)
+        skinEntry.inverseBindMatrices = this._accessorLoader.getAccessor(skinDef.inverseBindMatrices)
         return skinEntry;
     }
 
@@ -1151,5 +508,5 @@ export class GLTFLoader {
         }
     }
 
-    // #endregion Private Methods (15)
+    // #endregion Private Methods (7)
 }

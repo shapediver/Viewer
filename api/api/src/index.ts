@@ -84,6 +84,7 @@ export {
 
 export {
     MaterialStandardData, MaterialStandardDataProperties, 
+    MaterialStandardData as MaterialData, MaterialStandardDataProperties as MaterialDataProperties, 
     AbstractMaterialData, AbstractMaterialDataProperties, 
     MaterialUnlitData, MaterialUnlitDataProperties, 
     MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, 
