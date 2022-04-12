@@ -7,6 +7,13 @@
 * __Branch:__ development
 * __Commit:__ 3cd070b17d60bba5c88f5617016e7254424449e6
 <!--- VERSION_END -->
+
+## Version 1.14.0 - `The Naked Gun`
+- new gltf material extensions
+- gltf animations
+- gltf performance improvements
+- group property for exports
+
 ## Version 1.13.10 - `Madagascar 2`
 - bugfix: box clamping
 
