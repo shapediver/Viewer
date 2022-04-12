@@ -375,18 +375,12 @@ export class RenderingManager implements IManager {
             }, properties);
 
 
-            let _gl: WebGLRenderingContext | null = 
-                this._systemInfo.isMobile ?
-                <WebGLRenderingContext>canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props) 
-                : <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
+            let _gl: WebGLRenderingContext | null = <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
 
             // creation failed
             if (_gl === null) {
                 // create without the attributes
-                _gl = 
-                this._systemInfo.isMobile ?
-                <WebGLRenderingContext>canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props) 
-                : <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
+                _gl = <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
 
                 if (_gl !== null) {
                     this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');

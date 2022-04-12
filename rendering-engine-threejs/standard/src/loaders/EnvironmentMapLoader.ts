@@ -267,7 +267,7 @@ export class EnvironmentMapLoader implements ILoader {
         return new Promise<void>(async (resolve, reject) => {
             if(name.endsWith('.hdr')) {
                 const blob = (await this._httpClient.loadData(name)).data;
-                new RGBELoader().setDataType(THREE.FloatType).load(URL.createObjectURL(blob), (texture) => {
+                new RGBELoader().load(URL.createObjectURL(blob), (texture) => {
                     const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                     this._pmremGenerator.dispose();
                     this._environmentMaps[name] = map;
