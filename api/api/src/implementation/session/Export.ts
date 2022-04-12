@@ -1,4 +1,4 @@
-import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseParameterGroup } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
 import { EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
@@ -25,6 +25,7 @@ export class Export implements IExport {
   #dependency!: string[];
   #displayname?: string;
   #filename?: string;
+  #group?: ShapeDiverResponseParameterGroup;
   #hidden: boolean = false;
   #maxWaitTime: number = 300000;
   #msg?: string
@@ -44,7 +45,6 @@ export class Export implements IExport {
     try {
       this.#session = session;
       this.#sessionEngine = sessionEngine;
-
       this.#id = exportDef.id;
       this.#name = exportDef.name;
       this.#type = exportDef.type;
@@ -92,6 +92,10 @@ export class Export implements IExport {
 
   public get filename(): string | undefined {
     return this.#filename;
+  }
+
+  public get group(): ShapeDiverResponseParameterGroup | undefined {
+    return this.#group;
   }
 
   public get hidden(): boolean {
@@ -245,6 +249,7 @@ export class Export implements IExport {
     this.#result = exportDef.result;
     this.#status_computation = exportDef.status_computation;
     this.#status_collect = exportDef.status_collect;
+    this.#group = exportDef.group;
   }
 
   // #endregion Public Methods (2)
@@ -266,6 +271,7 @@ export class Export implements IExport {
     this.#result = exportDef.result;
     this.#status_computation = exportDef.status_computation;
     this.#status_collect = exportDef.status_collect;
+    this.#group = exportDef.group;
   }
 
   // #endregion Private Methods (1)

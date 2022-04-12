@@ -36,7 +36,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.18",
+    "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.19",
     "@shapediver/viewer.data-engine.geometry-engine": "1.13.10",
     "@shapediver/viewer.data-engine.html-element-anchor-engine": "1.13.10",
     "@shapediver/viewer.data-engine.material-engine": "1.13.10",
