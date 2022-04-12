@@ -52,7 +52,7 @@ const extToMimeTypeMapping: {
     csv: ['text/csv', 'application/vnd.ms-excel'],
     xls: ['application/vnd.ms-excel'],
     xlsx: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-    xml: ['application/xml'],
+    xml: ['application/xml', 'text/xml'],
     json: ['application/json'],
     ifc: ['application/x-step'],
     ifcxml: ['application/xml'],
