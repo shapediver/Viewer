@@ -613,6 +613,7 @@ export class Api implements IApi {
 
   public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'auto', arPlacement: 'floor', xrEnvironment: false }): Promise<void> {
     const eventId = this.#uuidGenerator.create();
+    const busyModeID = this.#uuidGenerator.create();
     try {
       const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
@@ -664,7 +665,6 @@ export class Api implements IApi {
       }
 
       // register the busy mode to blur the scene and create a visual feedback
-      const busyModeID = this.#uuidGenerator.create();
       for (let v in this.viewers)
         this.viewers[v].registerBusyMode(busyModeID)
 
@@ -695,6 +695,9 @@ export class Api implements IApi {
     } catch (e) {
       const event: ITaskEvent = { type: TASKTYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
+
+      for (let v in this.viewers)
+        this.viewers[v].deregisterBusyMode(busyModeID)
 
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGINGTOPIC.GENERAL, 'Api.viewInAR', e);

@@ -308,12 +308,12 @@ export class Session implements ISession {
 
     public async customize(): Promise<TreeNode> {
         const eventId = this.#uuidGenerator.create();
+        const customizationID = this.#uuidGenerator.create();
         try {
             const eventStart: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
 
             const oldNode = this.#node.cloneInstance();
-            const customizationID = this.#uuidGenerator.create();
             this.#customizationProcess = customizationID;
 
             this.#performanceEvaluator.start();
@@ -458,6 +458,9 @@ export class Session implements ISession {
         } catch (e) {
             const eventCancel: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
+
+            for (let viewerId in this.#api.viewers)
+                this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
 
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize`, e);
@@ -893,12 +896,12 @@ export class Session implements ISession {
 
     public async updateOutputs(): Promise<TreeNode> {
         const eventId = this.#uuidGenerator.create();
+        const customizationID = this.#uuidGenerator.create();
         try {
             const eventStart: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Updating outputs' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
 
             const oldNode = this.#node.cloneInstance();
-            const customizationID = this.#uuidGenerator.create();
             this.#customizationProcess = customizationID;
 
             this.#performanceEvaluator.start();
@@ -969,6 +972,9 @@ export class Session implements ISession {
         } catch (e) {
             const eventCancel: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Output updating failed' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
+
+            for (let viewerId in this.#api.viewers)
+                this.#api.viewers[viewerId].deregisterBusyMode(customizationID);
 
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs`, e);

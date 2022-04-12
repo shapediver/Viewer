@@ -13,6 +13,10 @@ export const sdeuc1: IModelDescription = {
     name: 'sdeuc1',
     backend: 'https://sdeuc1.eu-central-1.shapediver.com',
     models: {
+        'MaterialPresetError': {
+            ticket: '888f496993cc102a4ac2b7fbb9d0bb6a1690106857776ea44c7077362d53d7823200e478d8d049af60c0eb1e241fcd0242f9c1e7d326f7b231832aedaca20d1baa20682d8d35d657bc404fcd34bfb0e69543b102616f4618812f5c7a149e9cfc11dcc0b2651657-70ad6758d90a9703b96383caeab9343f',
+            slug: 'wsk-konfigurator-1'
+        },
         'Engel': {
             ticket: '77be6c68a8f17bdaccf05ff6ed8872b920fe43d91b5208f2ec8ac2c0763ea7ef6d16802e70b8ff541287d5ee059447c58d3a05032c30f2860011fbd0e8fa2724b90c0aa69dc9a5265d05ed06147aeabc60adeb4c154fcd5d26aa843f728e396606f570396f0e10-e0173fca6f9dcb204eb236f909e0d220',
             slug: 'engel-2017-12-15-1-1'

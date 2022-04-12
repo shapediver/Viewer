@@ -29,7 +29,7 @@ describe('device testing', () => {
     // https://codesandbox.io/s/12w4yt
 
     test('csb_screenshot', async () => {
-        const csb = ['542nh', 'vnoy7', 'ri4i6j', 'f1tzg', 'xi26s3', 'gzekxl', 'c42f6t', '8yloh2', '2n1ewj', 'ld917', '3sik8', '0y4g50', 'ps1h2m', '1p5iqr', 'mvrwsw', '7bifbr', 'u1is14', '3uzl3f', 'n5fz0i', 'nthqrt', 'fulxod', 'p067cn', 's4brw7', 'nolu01', '8hjyjl', 'vm7v5r', 'sxxbz0', '5k1r0f', '9ojnfz', 'emi7lk', 'gmv34s', 'k652x0']
+        const csb = ['0l2ry7', '542nh', 'vnoy7', 'ri4i6j', 'f1tzg', 'xi26s3', 'gzekxl', 'c42f6t', '8yloh2', '2n1ewj', 'ld917', '3sik8', '0y4g50', 'ps1h2m', '1p5iqr', 'mvrwsw', '7bifbr', 'u1is14', '3uzl3f', 'n5fz0i', 'nthqrt', 'fulxod', 'p067cn', 's4brw7', 'nolu01', '8hjyjl', 'vm7v5r', 'sxxbz0', '5k1r0f', '9ojnfz', 'emi7lk', 'gmv34s', 'k652x0']
         for (let i = 0; i < csb.length; i++) {
             const model = csb[i];
             await driver.navigate().to('https://' + model + '.csb.app/');

@@ -349,10 +349,10 @@ export class MaterialEngine {
 
     public async loadPresetMaterial(preset: number, material: MaterialStandardData) {
         const idStrings = this.getClassAndSpecificID(preset);
-        if (materialDatabase[idStrings.class as any] && materialDatabase[idStrings.class][idStrings.specific]) {
+        if (materialDatabase[idStrings.class] && materialDatabase[idStrings.class][idStrings.specific]) {
             await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class][idStrings.specific], material);
             await this.assignGeneralDefinition(idStrings, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class][idStrings.specific], material);
-        } else if (materialDatabase[idStrings.class]['00']) {
+        } else if (materialDatabase[idStrings.class] && materialDatabase[idStrings.class]['00']) {
             await this.assignSpecificDefinition({ class: idStrings.class, specific: '00' }, materialDatabase[idStrings.class]['00'], material);
             await this.assignGeneralDefinition({ class: idStrings.class, specific: '00' }, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class]['00'], material);
         } else {
