@@ -33,7 +33,7 @@ describe('device testing', () => {
         for (let i = 0; i < csb.length; i++) {
             const model = csb[i];
             await driver.navigate().to('https://' + model + '.csb.app/');
-            await new Promise<void>(resolve => setTimeout(resolve, 10000));
+            await new Promise<void>(resolve => setTimeout(resolve, 15000));
             await screenshotCompare(await driver.takeScreenshot(), name + '/csb_screenshot/' + model);
         }
     });
@@ -43,7 +43,7 @@ describe('device testing', () => {
         for (let i = 0; i < csb.length; i++) {
             const model = csb[i];
             await driver.navigate().to('https://' + model + '.csb.app/');
-            await new Promise<void>(resolve => setTimeout(resolve, 10000));
+            await new Promise<void>(resolve => setTimeout(resolve, 15000));
             actions = driver.actions({ async: true, bridge: true });
 
             let canvas = driver.findElement(By.id('canvas'));
@@ -63,7 +63,7 @@ describe('device testing', () => {
         for (let i = 0; i < csb.length; i++) {
             const model = csb[i];
             await driver.navigate().to('https://' + model + '.csb.app/');
-            await new Promise<void>(resolve => setTimeout(resolve, 10000));
+            await new Promise<void>(resolve => setTimeout(resolve, 15000));
             actions = driver.actions({ async: true, bridge: true });
 
             let canvas = driver.findElement(By.id('canvas'));
