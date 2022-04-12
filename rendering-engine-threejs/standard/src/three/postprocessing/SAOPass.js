@@ -21,12 +21,12 @@ import {
 	WebGLRenderTarget,
 	ZeroFactor
 } from 'three';
-import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
-import { SAOShader } from '../shaders/SAOShader.js';
-import { DepthLimitedBlurShader } from 'three/examples/jsm/shaders/DepthLimitedBlurShader.js';
-import { BlurShaderUtils } from 'three/examples/jsm/shaders/DepthLimitedBlurShader.js';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
-import { UnpackDepthRGBAShader } from 'three/examples/jsm/shaders/UnpackDepthRGBAShader.js';
+import { Pass, FullScreenQuad } from './Pass';
+import { SAOShader } from '../shaders/SAOShader';
+import { DepthLimitedBlurShader } from '../shaders/DepthLimitedBlurShader';
+import { BlurShaderUtils } from '../shaders/DepthLimitedBlurShader';
+import { CopyShader } from '../shaders/CopyShader';
+import { UnpackDepthRGBAShader } from '../shaders/UnpackDepthRGBAShader';
 
 /**
  * SAO implementation inspired from bhouston previous SAO work

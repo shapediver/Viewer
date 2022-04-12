@@ -3,7 +3,7 @@ import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { RGBELoader } from '../three/loaders/RGBELoader';
 import { ILoader } from '../interfaces/ILoader'
 import { ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
 

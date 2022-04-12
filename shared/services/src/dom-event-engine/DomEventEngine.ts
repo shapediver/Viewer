@@ -92,12 +92,12 @@ export class DomEventEngine {
     }): void {
         if (allowedListeners.mousewheel !== undefined && this._allowListeners.mousewheel !== allowedListeners.mousewheel) {
             if (allowedListeners.mousewheel) {
-                this._canvas.addEventListener("mousewheel", this._onMouseWheel);
-                this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
+                this._canvas.addEventListener("mousewheel", this._onMouseWheel, { passive: false });
+                this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel, { passive: false }); // firefox
             } else {
                 console.log('remove')
-                console.log(this._canvas.removeEventListener("mousewheel", this._onMouseWheel));
-                this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
+                console.log(this._canvas.removeEventListener("mousewheel", this._onMouseWheel, false));
+                this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel, false); // firefox
             }
             this._allowListeners.mousewheel = allowedListeners.mousewheel;
         }
@@ -217,8 +217,8 @@ export class DomEventEngine {
     // #region Private Methods (12)
 
     private addEventListeners() {
-        this._canvas.addEventListener("mousewheel", this._onMouseWheel);
-        this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
+        this._canvas.addEventListener("mousewheel", this._onMouseWheel, { passive: false });
+        this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel, { passive: false }); // firefox
 
         this._canvas.addEventListener("mousedown", this._onMouseDown, { passive: false });
         this._canvas.addEventListener("mousemove", this._onMouseMove, { passive: false });
