@@ -23,10 +23,9 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
-import { convert, ISettingsV3, ISettingsV3_1, validate } from '@shapediver/viewer.settings'
+import { convert, ISettingsV3_1, validate } from '@shapediver/viewer.settings'
 import { mat4, vec3 } from 'gl-matrix'
 import { ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASKTYPE } from '@shapediver/viewer.shared.types'
-import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 import { IApi } from '../interfaces/IApi'
@@ -226,7 +225,7 @@ export class Api implements IApi {
   }
 
   public async applySettings(
-    response: ShapeDiverResponseBase | ShapeDiverResponseDto,
+    response: ShapeDiverResponseDto,
     sections: {
       session?: {
         parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean },
@@ -257,9 +256,7 @@ export class Api implements IApi {
         sections.viewer = { scene: false, camera: false, light: false, environment: false };
 
       let config: object;
-      if ((<ShapeDiverResponseBase>response).config !== undefined) {
-        config = (<ShapeDiverResponseBase>response).config!;
-      } else if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
+      if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
         config = (<ShapeDiverResponseDto>response).viewer!.config;
       } else {
         const error = new ShapeDiverViewerSettingsError('Api.applySettings: No config object available.');

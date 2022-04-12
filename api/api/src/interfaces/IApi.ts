@@ -6,7 +6,6 @@ import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ISession } from './session/ISession'
 import { IViewer } from './viewer/IViewer'
 import { SDTFOverview } from '@shapediver/viewer.shared.types'
-import { ShapeDiverResponseBase } from '@shapediver/api.geometry-api-dto-v1'
 import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export interface IApi {
@@ -42,7 +41,7 @@ export interface IApi {
    * @param response 
    * @param sections 
    */
-  applySettings( response: ShapeDiverResponseBase | ShapeDiverResponseDto, sections?: { 
+  applySettings( response: ShapeDiverResponseDto, sections?: { 
     session?: { 
       parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean },
       export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
