@@ -7,6 +7,8 @@
 * __Branch:__ development
 * __Commit:__ 034fb947e52fab5765d6a11d0ebac89e44d0fc6b
 <!--- VERSION_END -->
+## Version 1.14.1 - `Narnia`
+- bugfix: light assignment
 
 ## Version 1.14.0 - `The Naked Gun`
 - new gltf material extensions
