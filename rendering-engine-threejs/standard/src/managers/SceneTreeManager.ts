@@ -171,6 +171,7 @@ export class SceneTreeManager implements IManager {
     public updateNodeTransformations(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
         if(!node || !obj) return;
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
 
         obj.visible = node.visible;
         obj.applyTransformation(node.nodeMatrix);
@@ -187,6 +188,7 @@ export class SceneTreeManager implements IManager {
     public updateMorphWeights(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
         if(!node || !obj) return;
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
 
         for (let i = 0, len = node.data.length; i < len; i++) {
             if(node.data[i] instanceof GeometryData) {
@@ -217,6 +219,7 @@ export class SceneTreeManager implements IManager {
 
         // if this node specifically excludes the current viewer, skip it and all descendants
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
 
         // reset the bounding box of the current node
         // it will be recomputed in the following steps
@@ -266,6 +269,7 @@ export class SceneTreeManager implements IManager {
 
         // if this node specifically excludes the current viewer, skip it and all descendants
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.children.length; i < len; i++) {
@@ -300,6 +304,7 @@ export class SceneTreeManager implements IManager {
 
         // if this node specifically excludes the current viewer, skip it and all descendants
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
+        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
 
         // reset the bounding box of the current node
         // it will be recomputed in the following steps

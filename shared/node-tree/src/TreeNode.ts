@@ -32,6 +32,7 @@ export class TreeNode {
     [key: string]: ISDObject
   } = {};
   #excludeViewers: string[] = [];
+  #includeViewers: string[] = [];
   #version: string;
   #visible: boolean = true;
   #bone: boolean = false;
@@ -106,6 +107,14 @@ export class TreeNode {
 
   public set id(value: string) {
     this.#id = value;
+  }
+  
+  public get includeViewers(): string[] {
+    return this.#includeViewers;
+  }
+
+  public set includeViewers(value: string[]) {
+    this.#includeViewers = value;
   }
 
   public get name(): string {

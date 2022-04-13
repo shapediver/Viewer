@@ -33,6 +33,7 @@ export class LightEngine implements ILightEngine {
 
     constructor(private readonly _viewerId: string) {
         this._tree.root.addChild(this._lightNode);
+        this._lightNode.includeViewers = [this._viewerId];
     }
 
     // #endregion Constructors (1)
