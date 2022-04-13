@@ -70,6 +70,7 @@ describe('device testing', () => {
             await screenshotCompare(await driver.takeScreenshot(), name + '/csb_dragging/' + model + "_before");
             await actions.move({ origin: canvas }).press().move({x: 0, y: 600, duration: 1}).release().perform()
             await actions.clear()
+            await new Promise<void>(resolve => setTimeout(resolve, 1000));
             await screenshotCompare(await driver.takeScreenshot(), name + '/csb_dragging/' + model + "_after");
 
         }
