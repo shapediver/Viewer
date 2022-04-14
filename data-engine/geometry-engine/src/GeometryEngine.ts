@@ -56,10 +56,7 @@ export class GeometryEngine {
             }
 
             const magic = new TextDecoder().decode(new Uint8Array(axiosResponse.data, 0, 4));
-            const isBinary = magic === 'glTF' || (axiosResponse.headers['content-type'] &&
-                (axiosResponse.headers['content-type'] === 'model/gltf-binary' ||
-                    axiosResponse.headers['content-type'] === 'application/octet-stream' ||
-                    axiosResponse.headers['content-type'] === 'model/gltf.binary'));
+            const isBinary = magic === 'glTF';
 
             if (isBinary) {
                 gltfBinary = axiosResponse.data;
