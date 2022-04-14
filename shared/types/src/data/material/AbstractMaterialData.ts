@@ -46,7 +46,7 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData {
   #aoMapIntensity: number = 1.0;
   #bumpMap?: MapData;
   #bumpScale: number = 1.0;
-  #color: string = '#00fff7';
+  #color: string = '#ffffff';
   #emissiveMap?: MapData;
   #emissiveness?: string;
   #materialOutput: boolean = false;
