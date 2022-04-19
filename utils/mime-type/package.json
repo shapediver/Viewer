@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.utils.mime-type",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -35,6 +35,5 @@
     "preset": "ts-jest",
     "testEnvironment": "node"
   },
-  "devDependencies": {},
   "gitHead": "25b1bd5dade0720d4e40aa8f4db33c58ffcc8aae"
 }
