@@ -129,9 +129,9 @@ export class Parameter<T> implements IParameter<T> {
             if (paramDef.order !== undefined) this.#order = paramDef.order;
             if (paramDef.hidden !== undefined) this.#hidden = paramDef.hidden;
 
-            if (this.#type === PARAMETERTYPE.BOOL || this.#type === PARAMETERTYPE.SBOOL) {
+            if (this.#type === PARAMETERTYPE.BOOL) {
                 this.#defaultValue = <T><unknown>(this.#defval === 'true');
-            } else if (this.#type === PARAMETERTYPE.EVEN || this.#type === PARAMETERTYPE.FLOAT || this.#type === PARAMETERTYPE.INT || this.#type === PARAMETERTYPE.ODD || this.#type === PARAMETERTYPE.SINTEGER || this.#type === PARAMETERTYPE.SNUMBER) {
+            } else if (this.#type === PARAMETERTYPE.EVEN || this.#type === PARAMETERTYPE.FLOAT || this.#type === PARAMETERTYPE.INT || this.#type === PARAMETERTYPE.ODD) {
                 this.#defaultValue = <T><unknown>+this.#defval;
             } else {
                 this.#defaultValue = this.#defval;
@@ -328,7 +328,7 @@ export class Parameter<T> implements IParameter<T> {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid: Checking value ${value}.`);
             try {
                 switch (true) {
-                    case this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL:
+                    case this.type === PARAMETERTYPE.BOOL:
                         if (typeof value === 'string') {
                             if (!(value === 'true' || value === 'false')) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is a string that is neither true or false.`);
@@ -338,13 +338,13 @@ export class Parameter<T> implements IParameter<T> {
                             this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'boolean');
                         }
                         break;
-                    case this.type === PARAMETERTYPE.COLOR || this.type === PARAMETERTYPE.SCOLOR:
+                    case this.type === PARAMETERTYPE.COLOR:
                         this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'color');
                         break;
                     case this.type === PARAMETERTYPE.FILE:
                         this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'file');
                         break;
-                    case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD || this.type === PARAMETERTYPE.SINTEGER || this.type === PARAMETERTYPE.SNUMBER:
+                    case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD:
                         let temp: number = value;
                         if (typeof value === 'string')
                             temp = +value;
@@ -359,7 +359,7 @@ export class Parameter<T> implements IParameter<T> {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not odd.`);
                                 throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
-                        } else if (this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.SINTEGER) {
+                        } else if (this.type === PARAMETERTYPE.INT) {
                             if (!Number.isInteger(temp)) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not an integer.`);
                                 throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
@@ -472,9 +472,9 @@ export class Parameter<T> implements IParameter<T> {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).stringify: Stringifying value.`);
             switch (true) {
-                case this.type === PARAMETERTYPE.BOOL || this.type === PARAMETERTYPE.SBOOL:
+                case this.type === PARAMETERTYPE.BOOL:
                     return typeof this.value === 'string' ? this.value : (<boolean><unknown>this.value) + '';
-                case this.type === PARAMETERTYPE.COLOR || this.type === PARAMETERTYPE.SCOLOR:
+                case this.type === PARAMETERTYPE.COLOR:
                     return this.#converter.toHex8Color(this.value);
                 case this.type === PARAMETERTYPE.FILE:
                     if (typeof this.value !== 'string') {
@@ -482,7 +482,7 @@ export class Parameter<T> implements IParameter<T> {
                         throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
                     }
                     return <string>this.value;
-                case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD || this.type === PARAMETERTYPE.SINTEGER || this.type === PARAMETERTYPE.SNUMBER:
+                case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD:
                     return typeof this.value === 'string' ? this.value : (<number><unknown>this.value) + '';
                 default:
                     return <string>this.value;

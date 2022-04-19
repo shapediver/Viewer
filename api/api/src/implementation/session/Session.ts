@@ -693,16 +693,16 @@ export class Session implements ISession {
                 if (param.displayname !== undefined || param.order !== undefined)
                     this.#useSessionSettings = false;
                 switch (true) {
-                    case param.type === PARAMETERTYPE.BOOL || param.type === PARAMETERTYPE.SBOOL:
+                    case param.type === PARAMETERTYPE.BOOL:
                         this.parameters[p] = new Parameter<boolean>(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
-                    case param.type === PARAMETERTYPE.COLOR || param.type === PARAMETERTYPE.SCOLOR:
+                    case param.type === PARAMETERTYPE.COLOR:
                         this.parameters[p] = new Parameter<number | vec3>(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                     case param.type === PARAMETERTYPE.FILE:
                         this.parameters[p] = new FileParameter(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
-                    case param.type === PARAMETERTYPE.EVEN || param.type === PARAMETERTYPE.FLOAT || param.type === PARAMETERTYPE.INT || param.type === PARAMETERTYPE.ODD || param.type === PARAMETERTYPE.SINTEGER || param.type === PARAMETERTYPE.SNUMBER:
+                    case param.type === PARAMETERTYPE.EVEN || param.type === PARAMETERTYPE.FLOAT || param.type === PARAMETERTYPE.INT || param.type === PARAMETERTYPE.ODD:
                         this.parameters[p] = new Parameter<number>(this, this.#sessionEngine, this.#sessionEngine.parameters[p]);
                         break;
                     default:
