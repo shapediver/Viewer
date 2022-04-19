@@ -13,7 +13,6 @@ import { TypeChecker } from './type-check/TypeChecker'
 import { UuidGenerator } from './uuid-generator/UuidGenerator'
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator'
 import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from './logger/Logger'
-import { MimeTypeUtils } from './mime-type-utils/MimeTypeUtils'
 import { StatePromise } from './state-engine/StatePromise'
 import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerGeneralError, ShapeDiverViewerWebGLError } from './logger/ShapeDiverViewerErrors'
 import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geometry-api-sdk-v2'
@@ -78,8 +77,4 @@ export {
 
 export {
     PerformanceEvaluator
-}
-
-export {
-    MimeTypeUtils
 }

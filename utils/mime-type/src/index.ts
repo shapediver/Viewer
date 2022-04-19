@@ -1,6 +1,4 @@
-import { singleton } from "tsyringe";
-
-const extToMimeTypeMapping: {
+export const extensionToMimeTypeMapping: {
     [key: string]: string[]
 } = {
     svg: ['image/svg+xml'],
@@ -61,41 +59,56 @@ const extToMimeTypeMapping: {
     sddtf: ['model/vnd.sdtf'],
 };
 
-@singleton()
-export class MimeTypeUtils {
-    // #region Public Methods (2)
+/**
+ * Try to guess mime types from a file name
+ * @param {string} filename
+ * @return {string[]} guessed mime type, empty array in case none could be guessed
+ */
+export const guessMimeTypeFromFilename = (filename: string): string[] => {
+    const parts = filename.split('.');
 
-    /**
-     * Try to guess mime types from a file name
-     * @param {string} filename
-     * @return {string[]} guessed mime type, empty array in case none could be guessed
-     */
-    public guessMimeTypeFromFilename(filename: string): string[] {
-        const parts = filename.split('.');
+    if (!(parts.length > 0)) return [];
 
-        if (!(parts.length > 0)) return [];
+    const extension = parts[parts.length - 1];
+    const supportedExtensions = Object.keys(extensionToMimeTypeMapping);
 
-        const extension = parts[parts.length - 1];
-        const supportedExtensions = Object.keys(extToMimeTypeMapping);
+    if (!supportedExtensions.includes(extension)) return [];
 
-        if (!supportedExtensions.includes(extension)) return [];
+    return extensionToMimeTypeMapping[(extension as keyof typeof extensionToMimeTypeMapping)];
+}
 
-        return extToMimeTypeMapping[(extension as keyof typeof extToMimeTypeMapping)];
+/**
+ * Returns the corresponding file endings for each mime type.
+ * @param {string[]} mimeTypes
+ * @return {string[]}
+ */
+export const mapMimeTypeToFileEndings = (mimeTypes: string[]): string[] => {
+    const fileEndings = [];
+    for (let i = 0; i < mimeTypes.length; i++) {
+        const fileEnding = Object.keys(extensionToMimeTypeMapping).find(key => extensionToMimeTypeMapping[key].includes(mimeTypes[i]));
+        if (fileEnding) fileEndings.push('.' + fileEnding)
     }
+    return fileEndings;
+}
 
-    /**
-     * Returns the corresponding file endings for each mime type.
-     * @param {string[]} mimeTypes
-     * @return {string[]}
-     */
-    public mapMimeTypeToFileEndings(mimeTypes: string[]): string[] {
-        const fileEndings = [];
-        for (let i = 0; i < mimeTypes.length; i++) {
-            const fileEnding = Object.keys(extToMimeTypeMapping).find(key => extToMimeTypeMapping[key].includes(mimeTypes[i]));
-            if (fileEnding) fileEndings.push('.' + fileEnding)
-        }
-        return fileEndings;
-    }
 
-    // #endregion Public Methods (2)
+/**
+ * Returns an extended array of mime types.
+ * The provided mime types are are mapped to file endings and the corresponding mime types are added.
+ * The types are filtered to only contain unique values.
+ * 
+ * @param {string[]} mimeTypes
+ * @return {string[]}
+ */
+export const extendMimeTypes = (mimeTypes: string[]): string[] => {
+    let types = mimeTypes;
+    // get all endings that are possible for this type
+    const endings = mapMimeTypeToFileEndings(types);
+    // get all mimeTypes that are possible for these endings
+    endings.forEach((e: string) => types = types.concat(guessMimeTypeFromFilename(e)));
+
+    types = types.filter(function (item, pos) {
+        return types.indexOf(item) == pos;
+    })
+    return types;
 }

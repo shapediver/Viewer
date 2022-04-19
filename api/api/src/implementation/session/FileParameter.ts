@@ -1,7 +1,8 @@
 import { ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { Logger, LOGGINGTOPIC, MimeTypeUtils, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
+import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
 
 import { IFileParameter } from '../../interfaces/session/IFileParameter'
 import { ISession } from '../../interfaces/session/ISession'
@@ -11,7 +12,6 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
     // #region Properties (5)
 
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #mimeTypeUtils: MimeTypeUtils = <MimeTypeUtils>container.resolve(MimeTypeUtils);
     readonly #session: ISession;
     readonly #sessionEngine: Session;
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
@@ -58,9 +58,9 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
             let types = [data.type];
             // get all endings that are possible for this type
-            const endings = this.#mimeTypeUtils.mapMimeTypeToFileEndings(types);
+            const endings = MimeTypeUtils.mapMimeTypeToFileEndings(types);
             // get all mimeTypes that are possible for these endings
-            endings.forEach((e: string) => types = types.concat(this.#mimeTypeUtils.guessMimeTypeFromFilename(e)));
+            endings.forEach((e: string) => types = types.concat(MimeTypeUtils.guessMimeTypeFromFilename(e)));
 
             let type: string;
             // check if one of the mime types is allowed

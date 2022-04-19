@@ -1,8 +1,9 @@
 
 import { ShapeDiverResponseParameter, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameterStructure } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { Converter, InputValidator, Logger, LOGGINGTOPIC, MimeTypeUtils, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services'
+import { Converter, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
+import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
 
 import { IParameter } from '../../interfaces/session/IParameter'
 import { ISession } from '../../interfaces/session/ISession'
@@ -71,7 +72,6 @@ export class Parameter<T> implements IParameter<T> {
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #max?: number;
-    readonly #mimeTypeUtils: MimeTypeUtils = <MimeTypeUtils>container.resolve(MimeTypeUtils);
     readonly #min?: number;
     readonly #name: string;
     readonly #session: ISession;
@@ -105,18 +105,8 @@ export class Parameter<T> implements IParameter<T> {
             if (paramDef.decimalplaces !== undefined) this.#decimalplaces = +paramDef.decimalplaces;
             if (paramDef.expression !== undefined) this.#expression = paramDef.expression;
 
-            if (paramDef.format !== undefined) {
-                let types = paramDef.format;
-                // get all endings that are possible for this type
-                const endings = this.#mimeTypeUtils.mapMimeTypeToFileEndings(types);
-                // get all mimeTypes that are possible for these endings
-                endings.forEach((e: string) => types = types.concat(this.#mimeTypeUtils.guessMimeTypeFromFilename(e)));
-                
-                types = types.filter(function(item, pos) {
-                    return types.indexOf(item) == pos;
-                })
-                this.#format = types;
-            }
+            if (paramDef.format !== undefined) 
+                this.#format = MimeTypeUtils.extendMimeTypes(paramDef.format);
 
             if (paramDef.min !== undefined) this.#min = +paramDef.min;
             if (paramDef.max !== undefined) this.#max = +paramDef.max;
