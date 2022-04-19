@@ -7,7 +7,15 @@
 * __Branch:__ development
 * __Commit:__ 0a6c97cd832d428337bc04b806b6d3f95b279a9b
 <!--- VERSION_END -->
-## Version 1.14.1 - `Narnia`
+## Version 1.14.2 - `Night at the Museum`
+- bugfix: loading of non-binary glTF
+- bugfix: s-parameters as string
+- changed default color
+- disable AO on Chrome / MacOS
+- separate mime-type package
+- output messages as warnings
+
+## Version 1.14.1 - `National Treasure`
 - bugfix: light assignment
 
 ## Version 1.14.0 - `The Naked Gun`
