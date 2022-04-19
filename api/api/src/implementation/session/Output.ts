@@ -244,6 +244,8 @@ export class Output implements IOutput {
     this.#material = outputDef.material;
     this.#chunks = outputDef.chunks;
     this.#msg = outputDef.msg;
+    if(this.#msg !== undefined)
+      this.#logger.warn(LOGGINGTOPIC.OUTPUT, `Output(${this.id}): ${this.#msg}`);
     this.#bbmin = outputDef.bbmin;
     this.#bbmax = outputDef.bbmax;
     this.#status_computation = outputDef.status_computation;
