@@ -173,7 +173,7 @@ export class BeautyRenderingManager implements IManager {
     public render(time: number, camera: THREE.Camera, width: number, height: number) {
         const percentage = this.setShaderProperties();
 
-        if(((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !(this._systemInfo.isIOS || this._systemInfo.isMobile || this._systemInfo.isSafari))) {
+        if(((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !((this._systemInfo.isMacOS && this._systemInfo.isChrome) || this._systemInfo.isIOS || this._systemInfo.isMobile || this._systemInfo.isSafari))) {
             this._ssaaPass.clearColor = this._renderingEngine.renderer.getClearColor(new THREE.Color());      
             this._ssaaPass.clearAlpha = this._renderingEngine.renderer.getClearAlpha();
     

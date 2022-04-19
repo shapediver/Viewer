@@ -11,6 +11,7 @@ export class SystemInfo {
 
     constructor() {
         this._parser = new UAParser();
+        console.log(this._parser.getOS())
         const isInternetExplorer = typeof window !== 'undefined' && window.navigator && window.navigator.userAgent.indexOf('Trident') > -1;
         this._isBrowser = isInternetExplorer ||
             (typeof document !== 'undefined'
@@ -28,6 +29,14 @@ export class SystemInfo {
             this._origin = 'direct';
         }
     }
+
+    /**
+     * Check if we are on a Mac OS device
+     */
+    public get isMacOS(): boolean {
+        const osName = this._parser.getOS().name;
+        return osName === 'Mac OS';
+    };
 
     /**
      * Check if we are on an IOS device
