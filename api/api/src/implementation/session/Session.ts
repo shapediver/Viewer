@@ -322,8 +322,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).customize: Customizing session.`);
 
             for (let viewerId in this.#api.viewers)
-                if (this.#api.viewers[viewerId].blurSceneWhenBusy)
-                    this.#api.viewers[viewerId].registerBusyMode(customizationID);
+                this.#api.viewers[viewerId].registerBusyMode(customizationID);
 
             const eventFileUpload: ITaskEvent = { type: TASKTYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
@@ -910,8 +909,7 @@ export class Session implements ISession {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating Outputs.`);
 
             for (let viewerId in this.#api.viewers)
-                if (this.#api.viewers[viewerId].blurSceneWhenBusy)
-                    this.#api.viewers[viewerId].registerBusyMode(customizationID);
+                this.#api.viewers[viewerId].registerBusyMode(customizationID);
 
             const eventRequest: ITaskEvent = { type: TASKTYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Loading outputs' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);

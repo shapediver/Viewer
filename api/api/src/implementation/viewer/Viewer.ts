@@ -470,7 +470,7 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: Updating outputEncoding to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
       this.#renderingEngine.outputEncoding = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: outputEncoding was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: outputEncoding was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
@@ -573,7 +573,7 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: Updating textureEncoding to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
       this.#renderingEngine.textureEncoding = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: textureEncoding was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: textureEncoding was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
@@ -591,7 +591,7 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping: Updating toneMapping to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping`, value, 'enum', true, Object.values(TONE_MAPPING));
       this.#renderingEngine.toneMapping = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: toneMapping was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping: toneMapping was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
@@ -626,12 +626,12 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type: Updating Type to ${value}.`);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type`, value, 'enum', true, Object.values(RENDERERTYPE));
       this.#renderingEngine.type = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: type was set to: ${value}`);
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type: type was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, e);
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type`, e);
     }
   }
 
@@ -825,10 +825,9 @@ export class Viewer implements IViewer {
       if (this.#busyModeIDs.includes(value)) return false;
       this.#busyModeIDs.push(value);
 
-      if (this.blurSceneWhenBusy === true) {
-        this.#renderingEngine.busy = true;
-        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.BLUR_ON, { viewerId: this.id });
-      }
+      this.#renderingEngine.busy = true;
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.BLUR_ON, { viewerId: this.id });
+
       this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Busy mode was registered for id: ${value}`);
       this.update();
       return true;
