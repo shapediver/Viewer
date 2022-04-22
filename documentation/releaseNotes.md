@@ -7,6 +7,12 @@
 * __Branch:__ development
 * __Commit:__ f678deb0a52a2441d44f75ef6ba87eeef4a82105
 <!--- VERSION_END -->
+
+## Version 1.14.3 - `Night at the Museum - 2`
+- bugfix: animation reset
+- utils/mime-type readme
+- busy mode events
+
 ## Version 1.14.2 - `Night at the Museum`
 - bugfix: loading of non-binary glTF
 - bugfix: s-parameters as string
