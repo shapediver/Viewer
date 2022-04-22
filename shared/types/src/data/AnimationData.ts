@@ -129,9 +129,9 @@ export class AnimationData extends AbstractTreeNodeData {
                 }
                 idleTransformation.matrix = mat4.create();
                 continue;
-            } 
+            }
 
-            switch(track.path) {
+            switch (track.path) {
                 case 'scale':
                     const idleTransformationScale = track.node.transformations.find(t => t.id === 'gltf_matrix_scale');
                     if (idleTransformationScale) {
@@ -140,10 +140,10 @@ export class AnimationData extends AbstractTreeNodeData {
                             matrix: mat4.clone(idleTransformationScale.matrix)
                         }
                         continue;
-                    } 
+                    }
 
                     break;
-                    
+
                 case 'rotation':
                     const idleTransformationRotation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation');
                     if (idleTransformationRotation) {
@@ -152,10 +152,10 @@ export class AnimationData extends AbstractTreeNodeData {
                             matrix: mat4.clone(idleTransformationRotation.matrix)
                         }
                         continue;
-                    } 
+                    }
 
                     break;
-                    
+
                 case 'translation':
                     const idleTransformationTranslation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation');
                     if (idleTransformationTranslation) {
@@ -164,7 +164,7 @@ export class AnimationData extends AbstractTreeNodeData {
                             matrix: mat4.clone(idleTransformationTranslation.matrix)
                         }
                         continue;
-                    } 
+                    }
                     break;
             }
         }
@@ -179,8 +179,9 @@ export class AnimationData extends AbstractTreeNodeData {
                 track.node.transformations = track.node.transformations.filter((el) => {
                     return !prevAnimation.includes(el);
                 });
+
                 if (track.previousMatrix) {
-                    if(track.previousMatrix.id === 'gltf_matrix') {
+                    if (track.previousMatrix.id === 'gltf_matrix') {
                         const transformation = track.node.transformations.find(t => t.id === 'gltf_matrix')!;
                         transformation.matrix = track.previousMatrix.matrix;
                         const translationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation')!;
@@ -191,7 +192,7 @@ export class AnimationData extends AbstractTreeNodeData {
                         scaleTransformation.matrix = mat4.create();
                         continue;
                     } else {
-                        switch(track.path) {
+                        switch (track.path) {
                             case 'scale':
                                 const idleTransformationScale = track.node.transformations.find(t => t.id === 'gltf_matrix_scale')!;
                                 idleTransformationScale.matrix = track.previousMatrix.matrix;
@@ -206,7 +207,21 @@ export class AnimationData extends AbstractTreeNodeData {
                                 continue;
                         }
                     }
-                } 
+                } else {
+                    const idleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix');
+                    if (idleTransformation) {
+                        idleTransformation.matrix = mat4.create();
+                    } else {
+                        const idleTransformationScale = track.node.transformations.find(t => t.id === 'gltf_matrix_scale');
+                        if (idleTransformationScale) idleTransformationScale.matrix = mat4.create();
+
+                        const idleTransformationRotation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation');
+                        if (idleTransformationRotation) idleTransformationRotation.matrix = mat4.create();
+
+                        const idleTransformationTranslation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation');
+                        if (idleTransformationTranslation) idleTransformationTranslation.matrix = mat4.create();
+                    }
+                }
             }
         } else {
             for (let i = 0; i < this.#tracks.length; i++) {
@@ -218,19 +233,19 @@ export class AnimationData extends AbstractTreeNodeData {
                     return !prevAnimation.includes(el);
                 });
 
-                const j = track.times.length-1;
+                const j = track.times.length - 1;
 
                 let translationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation');
-                if(!translationTransformation) {
+                if (!translationTransformation) {
                     translationTransformation = {
                         id: 'gltf_matrix_translation',
                         matrix: mat4.create()
                     }
                     track.node.transformations.push(translationTransformation)
                 }
-                
+
                 let rotationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation');
-                if(!rotationTransformation) {
+                if (!rotationTransformation) {
                     rotationTransformation = {
                         id: 'gltf_matrix_rotation',
                         matrix: mat4.create()
@@ -239,15 +254,15 @@ export class AnimationData extends AbstractTreeNodeData {
                 }
 
                 let scaleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_scale');
-                if(!scaleTransformation) {
+                if (!scaleTransformation) {
                     scaleTransformation = {
                         id: 'gltf_matrix_scale',
                         matrix: mat4.create()
                     }
                     track.node.transformations.push(scaleTransformation)
                 }
-                
-                switch(track.path) {
+
+                switch (track.path) {
                     case 'scale':
                         let vectorScale: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
                         scaleTransformation.matrix = mat4.fromScaling(mat4.create(), vectorScale);
@@ -263,7 +278,7 @@ export class AnimationData extends AbstractTreeNodeData {
                 }
             }
 
-            
+
         }
         this.#animationTime = -1;
         this.#started = false;
