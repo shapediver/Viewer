@@ -782,8 +782,10 @@ export class Viewer implements IViewer {
       if (!this.#busyModeIDs.includes(value)) return false;
       this.#busyModeIDs.splice(this.#busyModeIDs.indexOf(value), 1);
 
-      if (this.#busyModeIDs.length === 0)
+      if (this.#busyModeIDs.length === 0) {
         this.#renderingEngine.busy = false;
+        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.BLUR_OFF, { viewerId: this.id });
+      }
       this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Busy mode was deregistered for id: ${value}`);
       this.update();
       return true;
@@ -823,8 +825,10 @@ export class Viewer implements IViewer {
       if (this.#busyModeIDs.includes(value)) return false;
       this.#busyModeIDs.push(value);
 
-      if (this.blurSceneWhenBusy === true)
+      if (this.blurSceneWhenBusy === true) {
         this.#renderingEngine.busy = true;
+        this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.BLUR_ON, { viewerId: this.id });
+      }
       this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Busy mode was registered for id: ${value}`);
       this.update();
       return true;
