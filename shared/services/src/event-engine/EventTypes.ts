@@ -13,8 +13,8 @@ export enum SCENE {
 }
 
 export enum VIEWER {
-    BLUR_ON = "viewer.blur.on",
-    BLUR_OFF = "viewer.blur.off",
+    BUSY_MODE_ON = "viewer.busy.on",
+    BUSY_MODE_OFF = "viewer.busy.off",
     VIEWER_CREATED = "viewer.created",
     VIEWER_UPDATED = "viewer.updated",
     VIEWER_CLOSED = "viewer.closed"
