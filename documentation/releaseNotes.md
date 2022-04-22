@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.14.3
-* __Build date:__ 2022-04-22T14:44:49.464Z
+* __Version:__ 1.14.4
+* __Build date:__ 2022-04-22T16:11:44.405Z
 * __Branch:__ development
-* __Commit:__ 9e18cd91dc21e47bbeabb91546d0ec402e8cc738
+* __Commit:__ 3ad0d6b1d338d4025f43bc6abb7eb4df70124401
 <!--- VERSION_END -->
 
 ## Version 1.14.3 - `Night at the Museum - 2`
