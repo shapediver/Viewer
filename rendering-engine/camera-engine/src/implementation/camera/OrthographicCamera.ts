@@ -87,7 +87,7 @@ export class OrthographicCamera extends AbstractCamera {
     }
 
     if (changedDirection) {
-      const { position, target } = this.getZoomPositionAndTarget(undefined);
+      const { position, target } = this.calculateZoomTo(undefined);
       this.defaultPosition = vec3.clone(position);
       this.defaultTarget = vec3.clone(target);
     }
@@ -182,7 +182,7 @@ export class OrthographicCamera extends AbstractCamera {
     return new OrthographicCamera(this.id);
   }
 
-  public getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; } {
+  public calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; } {
     let box: Box;
 
     // Part 1 - calculate the bounding box that we should zoom to

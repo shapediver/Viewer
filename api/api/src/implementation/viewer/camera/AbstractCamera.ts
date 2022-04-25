@@ -268,6 +268,45 @@ export abstract class AbstractCamera implements ICamera {
         }
     }
 
+    /**
+     * Calculate the position for our {@link zoomTo} method.
+     * A specific target can be provided, as well as a specific camera startingPosition and startingTarget.
+     * If no target is provided, the current bounding box is used.
+     * If not startingPosition and startingTarget are provided, the current camera position and target are used.
+     * 
+     * @param zoomTarget 
+     * @param startingPosition 
+     * @param startingTarget 
+     * @returns 
+     */
+    public calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; } {
+        try {
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, startingTarget, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, startingPosition, 'vec3', false);
+            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget: Getting position and target for zoomTarget ${zoomTarget}.`);
+            let target: Box | undefined;
+            if (zoomTarget) {
+                if (Array.isArray(zoomTarget)) {
+                    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, zoomTarget, 'stringArray');
+                    target = new Box();
+                    for(let i = 0; i < zoomTarget.length; i++) {
+                        const node = this.#tree.getNodeAtPath(zoomTarget[i]);
+                        if(node) target.union(node.boundingBox);
+                    }
+                } else if (zoomTarget instanceof Box) {
+                    target = zoomTarget.clone();
+                } else {
+                    const error = new ShapeDiverViewerCameraError(`Camera(${this.id}).getZoomPositionAndTarget: No valid zoom target supplied.`);
+                    throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, error);
+                }
+            }
+            return this.#camera.calculateZoomTo(target, startingPosition, startingTarget);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, e);
+        }
+    }
+
     public project(p: vec3): vec2 {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).project: Projecting point ${p}.`);

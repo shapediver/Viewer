@@ -260,7 +260,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     }
 
     public zoomTo(zoomTarget?: Box, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
-        const { position, target } = this.getZoomPositionAndTarget(zoomTarget)
+        const { position, target } = this.calculateZoomTo(zoomTarget)
         return this.set(position, target, options);
     }
 
@@ -270,7 +270,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     abstract applySettings(): void;
     abstract assignViewer(viewerId: string): void;
-    abstract getZoomPositionAndTarget(zoomTarget?: Box): { position: vec3; target: vec3; };
+    abstract calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
     abstract unproject(p: vec3): vec3;
 
