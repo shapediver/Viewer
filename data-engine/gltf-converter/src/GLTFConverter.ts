@@ -727,8 +727,10 @@ export class GLTFConverter {
         }
 
         if (node.children.length > 0) nodeDef.children = [];
-        for (let i = 0; i < node.children.length; i++)
-            nodeDef.children?.push(this.convertNode(node.children[i]));
+        for (let i = 0; i < node.children.length; i++) {
+            if(node.children[i].visible === true)
+                nodeDef.children?.push(this.convertNode(node.children[i]));
+        }
 
         this._content.nodes.push(nodeDef);
         this._nodes.push({
