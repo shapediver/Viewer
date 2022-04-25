@@ -7,8 +7,16 @@
 * __Branch:__ development
 * __Commit:__ 3ad0d6b1d338d4025f43bc6abb7eb4df70124401
 <!--- VERSION_END -->
+## Version 1.14.5 - `Nosferatu: a Symphony of Terror`
+- bugfix: session cancellation
+- bugfix: GLTFConverter visibility check
+- exposed calculateZoomTo
 
-## Version 1.14.3 - `Night at the Museum - 2`
+## Version 1.14.4 - `Night of the Living Dead`
+- bugfix: blur events
+- renamed blur events to busy events
+
+## Version 1.14.3 - `A Nightmare on Elm Street`
 - bugfix: animation reset
 - utils/mime-type readme
 - busy mode events
