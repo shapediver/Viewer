@@ -264,7 +264,7 @@ export class Session implements ISession {
         const o = Object.assign({}, this._outputs);
         const of = Object.assign({}, this._outputsFreeze);
         try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of);
+            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of, cancelRequest);
             node.data.push(new SessionData(this._responseDto!));
             return node;
         }
@@ -273,6 +273,7 @@ export class Session implements ISession {
                 await this.timeout(e.delay);
             } else {
                 await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e, retry);
+                if(cancelRequest()) return new SessionTreeNode();
                 return await this.loadOutputs(cancelRequest, true);
             }
 
@@ -288,6 +289,7 @@ export class Session implements ISession {
                 return await this.loadOutputs(cancelRequest);
             } catch(e) {
                 await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadOutputs', e, retry);
+                if(cancelRequest()) return new SessionTreeNode();
                 return await this.loadOutputs(cancelRequest, true);
             }
         }
@@ -478,6 +480,7 @@ export class Session implements ISession {
             return this.loadOutputs(cancelRequest);
         } catch (e) {
             await this.handleError(LOGGINGTOPIC.SESSION, 'Session.customizeSession', e, retry);
+            if(cancelRequest()) return new SessionTreeNode();
             return await this.customizeSession(parameters, cancelRequest, true);
         }
     }
