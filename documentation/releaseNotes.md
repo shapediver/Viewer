@@ -8,6 +8,9 @@
 * __Commit:__ 16a3e3cfd939db61d2c0a065c20d35de0183af48
 <!--- VERSION_END -->
 
+## Version 1.14.7 - `No Country For Old Men`
+- bugfix: intersectionEngine viewer exclusion
+
 ## Version 1.14.6 - `Napoleon`
 - bugfix: scene tracing with multiple viewers
 
