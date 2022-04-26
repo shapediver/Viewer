@@ -12,9 +12,14 @@ import { container, singleton } from "tsyringe";
 export class IntersectionEngine implements IIntersectionEngine {
     private readonly _tree: Tree = <Tree>container.resolve(Tree);
 
-    intersect(ray: IRay, filterCriteria: IIntersectionFilter[] = [], root: TreeNode = this._tree.root): IIntersection[] {
+    intersect(ray: IRay, filterCriteria: IIntersectionFilter[] = [], root: TreeNode = this._tree.root, viewerID?: string): IIntersection[] {
         let intersections: IIntersection[] = [];
         const intersectNode = (node: TreeNode) => {
+            if(viewerID !== undefined) {
+                if(node.excludeViewers.includes(viewerID)) return;
+                if(node.includeViewers.length > 0 && !node.includeViewers.includes(viewerID)) return;
+            }
+
             for (let i = 0; i < filterCriteria.length; i++) {
                 if (filterCriteria[i](node)) {
                     const intersection = this.intersectNode(node, ray)
@@ -29,7 +34,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             for (let i = 0; i < node.children.length; i++)
                 intersectNode(node.children[i])
         }
-        intersectNode(this._tree.root);
+        intersectNode(root);
 
 
         intersections.sort((a, b) => a.distance - b.distance);

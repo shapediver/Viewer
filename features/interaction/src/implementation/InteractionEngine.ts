@@ -1,4 +1,4 @@
-import { IViewer } from "@shapediver/viewer";
+import { api, IViewer } from "@shapediver/viewer";
 import { vec3 } from "gl-matrix";
 import { Logger, LOGGINGTOPIC, UuidGenerator, ShapeDiverViewerGeneralError } from "@shapediver/viewer.shared.services";
 import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractionEngine";
@@ -125,7 +125,7 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.DOWN));
 
-        const intersection = this.#intersectionEngine.intersect(ray, filters) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters, api.sceneTree.root, this.#viewer.id) || [];
 
         for(let m in this.#managers)
             this.#managers[m].onDown(ray, intersection);
@@ -142,7 +142,7 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
 
-        const intersection = this.#intersectionEngine.intersect(ray, filters) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters, api.sceneTree.root, this.#viewer.id) || [];
 
         for(let m in this.#managers)
             this.#managers[m].onEnd(ray, intersection);
@@ -159,7 +159,7 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.MOVE));
 
-        const intersection = this.#intersectionEngine.intersect(ray, filters) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters, api.sceneTree.root, this.#viewer.id) || [];
 
         for(let m in this.#managers)
             this.#managers[m].onMove(ray, intersection);
