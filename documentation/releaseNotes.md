@@ -7,6 +7,10 @@
 * __Branch:__ development
 * __Commit:__ c26b3cf5878b1e0b9f449dfea7883ba5214a3b0c
 <!--- VERSION_END -->
+
+## Version 1.14.6 - `Napoleon`
+- bugfix: scene tracing with multiple viewers
+
 ## Version 1.14.5 - `Nosferatu: a Symphony of Terror`
 - bugfix: session cancellation
 - bugfix: GLTFConverter visibility check
