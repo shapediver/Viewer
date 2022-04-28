@@ -5,7 +5,7 @@ import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geome
 
 import { UuidGenerator } from '../uuid-generator/UuidGenerator'
 import { BrowserClient, Hub } from '@sentry/browser'
-import { ShapeDiverViewerUnknownError } from './ShapeDiverViewerErrors'
+import { ShapeDiverViewerConnectionError, ShapeDiverViewerUnknownError } from './ShapeDiverViewerErrors'
 import { ShapeDiverRequestError, ShapeDiverResponseError, ShapeDiverResponseErrorType } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ShapeDiverViewerError } from './ShapeDiverError'
 
@@ -156,7 +156,11 @@ export class Logger {
             throw e;
         } else if (e instanceof ShapeDiverViewerError) {
             const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
-            if(logToSentry) this.sentryError(topic, e, messageProperty);
+            if(logToSentry) {
+                if(!(e instanceof ShapeDiverViewerConnectionError) || (e.status && e.status >= 500)) {
+                    this.sentryError(topic, e, messageProperty);
+                }
+            }
             throw e;
         } else if(e) {
             const messageProperty = e.message ? e.message : `An unknown issue occurred in ${scope}.`;

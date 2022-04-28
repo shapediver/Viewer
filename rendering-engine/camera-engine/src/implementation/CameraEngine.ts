@@ -142,7 +142,7 @@ export class CameraEngine implements ICameraEngine {
         const cameraId = id || this._uuidGenerator.create();
         if (cameras[cameraId]) {
             const error = new ShapeDiverViewerCameraError(`CameraEngine.createCamera: Camera (${type}) with this id (${cameraId}) already exists.`);
-            throw this._logger.handleError(LOGGINGTOPIC.CAMERA, `CameraEngine.createCamera`, error);
+            throw this._logger.handleError(LOGGINGTOPIC.CAMERA, `CameraEngine.createCamera`, error, false);
         }
         
         const camera = CAMERATYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId) : new OrthographicCamera(cameraId);

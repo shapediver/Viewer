@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { container, singleton } from 'tsyringe'
-import { Converter } from '../converter/Converter';
+import { singleton } from 'tsyringe'
+import { ShapeDiverViewerConnectionError } from '../logger/ShapeDiverViewerErrors';
 
 @singleton()
 export class HttpClient {
@@ -21,7 +21,14 @@ export class HttpClient {
                 return response;
             },
             error => {
-                throw error;
+                throw new ShapeDiverViewerConnectionError(error.message, error.response.status, error);
+            });
+        axios.interceptors.request.use(
+            response => {
+                return response;
+            },
+            error => {
+                throw new ShapeDiverViewerConnectionError(error.message, undefined, error);
             });
     }
 
@@ -39,17 +46,13 @@ export class HttpClient {
 
     public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }): Promise<AxiosResponse<any>> {
         const dataKey = btoa(href);
-        if(this._dataCache[dataKey]) return await this._dataCache[dataKey];
+        if (this._dataCache[dataKey]) return await this._dataCache[dataKey];
 
-        this._dataCache[dataKey] = new Promise<AxiosResponse<any>>(async resolve => {
-            if (this._loadData){
-                const response = await this._loadData(href, config);
-                resolve(response);
-            } else {
-                const response = await this.get(href, config);
-                resolve(response);
-            }
-        });
+        if (this._loadData) {
+            this._dataCache[dataKey] = this._loadData(href, config);
+        } else {
+            this._dataCache[dataKey] = this.get(href, config);
+        }
 
         return await this._dataCache[dataKey];
     }

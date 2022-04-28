@@ -103,3 +103,13 @@ export class ShapeDiverViewerValidationError extends ShapeDiverViewerError {
         super(ShapeDiverViewerErrorType.VALIDATION_ERROR, 'An error occurred while validating the value.', message);
     }
 }
+
+export class ShapeDiverViewerConnectionError extends ShapeDiverViewerError {
+    constructor(
+        public readonly message: string,
+        public readonly status?: number,
+        public readonly errorObject?: Error
+    ) {
+        super(ShapeDiverViewerErrorType.CONNECTION_ERROR, 'An error occurred while loading data.', message);
+    }
+}

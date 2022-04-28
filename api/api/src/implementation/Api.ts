@@ -467,7 +467,6 @@ export class Api implements IApi {
       if (!!(primarySessionRequest && noPrimarySession)) this.#stateEngine.primarySessionAvailable.resolve(true);
 
       // create the actual session 
-      let sessionCallbacks = {};
       const session = new Session(Object.assign({}, properties, { id: sessionId }));
 
       // save the session

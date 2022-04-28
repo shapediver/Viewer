@@ -1,6 +1,6 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { Converter, HttpClient, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import {
     MapData,
     MATERIAL_SIDE,
@@ -177,6 +177,7 @@ export class MaterialEngine {
                 image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
             }
         } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMap`, e);
         }
         return new MapData(image);
@@ -187,6 +188,7 @@ export class MaterialEngine {
         try {
             image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!(texture.href!));
         } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMapWithProperties`, e);
         }
 
