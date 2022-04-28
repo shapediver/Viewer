@@ -8,7 +8,10 @@
 * __Commit:__ 433cf4651182b0d4f6891f3484f738d18e4e3d61
 <!--- VERSION_END -->
 
-## Version 1.14.7 - `No Country For Old Men`
+## Version 1.14.8 - `National Treasure: Book of Secrets`
+- bugfix: error handling
+
+## Version 1.14.7 - `National Treasure`
 - bugfix: intersectionEngine viewer exclusion
 
 ## Version 1.14.6 - `Napoleon`
@@ -36,7 +39,7 @@
 - separate mime-type package
 - output messages as warnings
 
-## Version 1.14.1 - `National Treasure`
+## Version 1.14.1 - `No Country For Old Men`
 - bugfix: light assignment
 
 ## Version 1.14.0 - `The Naked Gun`
