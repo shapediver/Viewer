@@ -17,23 +17,23 @@ export enum MATERIAL_SHADING {
 }
 
 export interface AbstractMaterialDataProperties {
-    alphaMap?: MapData,
-    alphaCutoff?: number,
-    alphaMode?: MATERIAL_ALPHA,
-    aoMap?: MapData,
-    aoMapIntensity?: number,
-    bumpMap?: MapData,
-    bumpScale?: number,
-    color?: string,
-    emissiveMap?: MapData,
-    emissiveness?: string,
-    shading?: MATERIAL_SHADING,
-    map?: MapData,
-    name?: string,
-    normalMap?: MapData,
-    normalScale?: number,
-    opacity?: number,
-    side?: MATERIAL_SIDE
+  alphaMap?: MapData,
+  alphaCutoff?: number,
+  alphaMode?: MATERIAL_ALPHA,
+  aoMap?: MapData,
+  aoMapIntensity?: number,
+  bumpMap?: MapData,
+  bumpScale?: number,
+  color?: string,
+  emissiveMap?: MapData,
+  emissiveness?: string,
+  shading?: MATERIAL_SHADING,
+  map?: MapData,
+  name?: string,
+  normalMap?: MapData,
+  normalScale?: number,
+  opacity?: number,
+  side?: MATERIAL_SIDE
 }
 
 export abstract class AbstractMaterialData extends AbstractTreeNodeData {
@@ -246,9 +246,21 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData {
   // #region Public Abstract Methods (1)
 
   /**
+   * Reset the material data.
+   */
+  public abstract reset(): void;
+
+  /**
    * Clones the scene graph data.
    */
   public abstract clone(): ITreeNodeData;
+
+  /**
+   * Copy all properties of another material data object.
+   * 
+   * @param source 
+   */
+  public abstract copy(source: AbstractMaterialData): void;
 
   // #endregion Public Abstract Methods (1)
 }

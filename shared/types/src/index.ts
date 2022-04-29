@@ -21,6 +21,7 @@ import { MapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './data/material/Ma
 import { MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, AbstractMaterialData, AbstractMaterialDataProperties } from './data/material/AbstractMaterialData'
 import { MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties } from './data/material/MaterialSpecularGlossinessData'
 import { MaterialUnlitData, MaterialUnlitDataProperties } from './data/material/MaterialUnlitData'
+import { MaterialDataCollection } from './data/material/MaterialDataCollection'
 
 export {
   MaterialStandardData, MaterialStandardDataProperties, 
@@ -31,7 +32,7 @@ export {
 }
 
 export {
-  AnimationData, AnimationTrack, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData, PRIMITIVE_MODE
+  AnimationData, AnimationTrack, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData, MaterialDataCollection, PRIMITIVE_MODE
 }
 
 export {

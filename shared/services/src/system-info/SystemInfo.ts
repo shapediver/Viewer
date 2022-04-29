@@ -11,7 +11,6 @@ export class SystemInfo {
 
     constructor() {
         this._parser = new UAParser();
-        console.log(this._parser.getOS())
         const isInternetExplorer = typeof window !== 'undefined' && window.navigator && window.navigator.userAgent.indexOf('Trident') > -1;
         this._isBrowser = isInternetExplorer ||
             (typeof document !== 'undefined'

@@ -1,5 +1,5 @@
 import { MapData } from './MapData';
-import { AbstractMaterialData, AbstractMaterialDataProperties } from './AbstractMaterialData';
+import { AbstractMaterialData, AbstractMaterialDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from './AbstractMaterialData';
 
 export interface MaterialSpecularGlossinessDataProperties extends AbstractMaterialDataProperties {
     // #region Properties (5)
@@ -93,9 +93,32 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData {
 
     // #region Public Methods (1)
 
-    /**
-   * Clones the scene graph data.
-   */
+    public reset(): void {
+        this.alphaCutoff = 0;
+        this.alphaMap = undefined;
+        this.alphaMode = MATERIAL_ALPHA.OPAQUE;
+        this.aoMap = undefined;
+        this.aoMapIntensity = 1.0;
+        this.bumpMap = undefined;
+        this.bumpScale = 1.0;
+        this.color = '#ffffff';
+        this.emissiveMap = undefined;
+        this.emissiveness = undefined;
+        this.materialOutput = false;
+        this.map = undefined;
+        this.normalMap = undefined;
+        this.normalScale = 1.0;
+        this.opacity = 1.0;
+        this.shading = MATERIAL_SHADING.SMOOTH;
+        this.side = MATERIAL_SIDE.DOUBLE;
+        
+        this.glossiness = 1;
+        this.specular = '#ffffff';
+        this.specularGlossinessMap = undefined;
+        this.specularMap = undefined;
+        this.glossinessMap = undefined;
+    }
+
     public clone(): MaterialSpecularGlossinessData {
         return new MaterialSpecularGlossinessData({
             alphaMap: this.alphaMap,
@@ -121,6 +144,32 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData {
             glossiness: this.glossiness,
             glossinessMap: this.glossinessMap,
         }, this.id);
+    }
+
+    public copy(source: MaterialSpecularGlossinessData): void {
+        this.alphaCutoff = source.alphaCutoff;
+        this.alphaMap = source.alphaMap;
+        this.alphaMode = source.alphaMode;
+        this.aoMap = source.aoMap;
+        this.aoMapIntensity = source.aoMapIntensity;
+        this.bumpMap = source.bumpMap;
+        this.bumpScale = source.bumpScale;
+        this.color = source.color;
+        this.emissiveMap = source.emissiveMap;
+        this.emissiveness = source.emissiveness;
+        this.materialOutput = source.materialOutput;
+        this.map = source.map;
+        this.normalMap = source.normalMap;
+        this.normalScale = source.normalScale;
+        this.opacity = source.opacity;
+        this.shading = source.shading;
+        this.side = source.side;
+        
+        this.glossiness = source.glossiness;
+        this.specular = source.specular;
+        this.specularGlossinessMap = source.specularGlossinessMap;
+        this.specularMap = source.specularMap;
+        this.glossinessMap = source.glossinessMap;
     }
 
     // #endregion Public Methods (1)

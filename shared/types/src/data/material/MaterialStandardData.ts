@@ -1,5 +1,5 @@
 import { MapData } from './MapData';
-import { AbstractMaterialData, AbstractMaterialDataProperties } from './AbstractMaterialData';
+import { AbstractMaterialData, AbstractMaterialDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from './AbstractMaterialData';
 
 export interface MaterialStandardDataProperties extends AbstractMaterialDataProperties {
   // #region Properties (26)
@@ -324,9 +324,53 @@ export class MaterialStandardData extends AbstractMaterialData {
 
   // #region Public Methods (1)
 
-  /**
-   * Clones the scene graph data.
-   */
+  public reset(): void {
+    this.alphaCutoff = 0;
+    this.alphaMap = undefined;
+    this.alphaMode = MATERIAL_ALPHA.OPAQUE;
+    this.aoMap = undefined;
+    this.aoMapIntensity = 1.0;
+    this.bumpMap = undefined;
+    this.bumpScale = 1.0;
+    this.color = '#ffffff';
+    this.emissiveMap = undefined;
+    this.emissiveness = undefined;
+    this.materialOutput = false;
+    this.map = undefined;
+    this.normalMap = undefined;
+    this.normalScale = 1.0;
+    this.opacity = 1.0;
+    this.shading = MATERIAL_SHADING.SMOOTH;
+    this.side = MATERIAL_SIDE.DOUBLE;
+    
+    this.attenuationColor = '#ffffff';
+    this.attenuationDistance = 1;
+    this.clearcoat = 0;
+    this.clearcoatMap = undefined;
+    this.clearcoatNormalMap = undefined;
+    this.clearcoatRoughness = 0;
+    this.clearcoatRoughnessMap = undefined;
+    this.ior = 1;
+    this.metalness = 0;
+    this.metalnessMap = undefined;
+    this.metalnessRoughnessMap = undefined;
+    this.roughness = 0.5;
+    this.roughnessMap = undefined;
+    this.sheen = 0;
+    this.sheenColor = '#ffffff';
+    this.sheenColorMap = undefined;
+    this.sheenRoughness = 0;
+    this.sheenRoughnessMap = undefined;
+    this.specularColor = '#ffffff';
+    this.specularColorMap = undefined;
+    this.specularIntensity = 1;
+    this.specularIntensityMap = undefined;
+    this.thickness = 0.1;
+    this.thicknessMap = undefined;
+    this.transmission = 0;
+    this.transmissionMap = undefined;
+  }
+
   public clone(): MaterialStandardData {
     return new MaterialStandardData({
       alphaMap: this.alphaMap,
@@ -373,6 +417,53 @@ export class MaterialStandardData extends AbstractMaterialData {
       specularIntensity: this.specularIntensity,
       specularIntensityMap: this.specularIntensityMap,
     }, this.id);
+  }
+
+  public copy(source: MaterialStandardData): void {
+    this.alphaCutoff = source.alphaCutoff;
+    this.alphaMap = source.alphaMap;
+    this.alphaMode = source.alphaMode;
+    this.aoMap = source.aoMap;
+    this.aoMapIntensity = source.aoMapIntensity;
+    this.bumpMap = source.bumpMap;
+    this.bumpScale = source.bumpScale;
+    this.color = source.color;
+    this.emissiveMap = source.emissiveMap;
+    this.emissiveness = source.emissiveness;
+    this.materialOutput = source.materialOutput;
+    this.map = source.map;
+    this.normalMap = source.normalMap;
+    this.normalScale = source.normalScale;
+    this.opacity = source.opacity;
+    this.shading = source.shading;
+    this.side = source.side;
+    
+    this.attenuationColor = source.attenuationColor;
+    this.attenuationDistance = source.attenuationDistance;
+    this.clearcoat = source.clearcoat;
+    this.clearcoatMap = source.clearcoatMap;
+    this.clearcoatNormalMap = source.clearcoatNormalMap;
+    this.clearcoatRoughness = source.clearcoatRoughness;
+    this.clearcoatRoughnessMap = source.clearcoatRoughnessMap;
+    this.ior = source.ior;
+    this.metalness = source.metalness;
+    this.metalnessMap = source.metalnessMap;
+    this.metalnessRoughnessMap = source.metalnessRoughnessMap;
+    this.roughness = source.roughness;
+    this.roughnessMap = source.roughnessMap;
+    this.sheen = source.sheen;
+    this.sheenColor = source.sheenColor;
+    this.sheenColorMap = source.sheenColorMap;
+    this.sheenRoughness = source.sheenRoughness;
+    this.sheenRoughnessMap = source.sheenRoughnessMap;
+    this.specularColor = source.specularColor;
+    this.specularColorMap = source.specularColorMap;
+    this.specularIntensity = source.specularIntensity;
+    this.specularIntensityMap = source.specularIntensityMap;
+    this.thickness = source.thickness;
+    this.thicknessMap = source.thicknessMap;
+    this.transmission = source.transmission;
+    this.transmissionMap = source.transmissionMap;
   }
 
   // #endregion Public Methods (1)

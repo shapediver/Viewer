@@ -95,8 +95,7 @@ export class DomEventEngine {
                 this._canvas.addEventListener("mousewheel", this._onMouseWheel, { passive: false });
                 this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel, { passive: false }); // firefox
             } else {
-                console.log('remove')
-                console.log(this._canvas.removeEventListener("mousewheel", this._onMouseWheel, false));
+                this._canvas.removeEventListener("mousewheel", this._onMouseWheel, false);
                 this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel, false); // firefox
             }
             this._allowListeners.mousewheel = allowedListeners.mousewheel;
