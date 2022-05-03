@@ -97,7 +97,7 @@ export class PerspectiveCamera extends AbstractCamera {
 
   public assignViewer(viewerId: string): void {
     const renderingEngines = (<IRenderingEngine[]>container.resolveAll('renderingEngine'));
-    let renderingEngine: IRenderingEngine | undefined = renderingEngines.find(r => r.id === viewerId);
+    let renderingEngine: IRenderingEngine | undefined = renderingEngines.find(r => r.id === viewerId && r.closed === false);
     if(!renderingEngine) {
       const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with ID ${viewerId} not found.`);
       throw this._logger.handleError(LOGGINGTOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);

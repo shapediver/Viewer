@@ -43,6 +43,7 @@ export interface IRenderingEngine {
   blur: boolean;
   blurSceneWhenBusy: boolean;
   canvas: HTMLCanvasElement;
+  closed: boolean;
   domEventEngine: DomEventEngine;
   id: string;
   pointSize: number;

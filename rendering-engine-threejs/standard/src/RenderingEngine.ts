@@ -643,11 +643,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._lightEngine.close();
     this._renderer.clear(true, true, true);
     this._renderer.dispose();
+    this._domEventEngine.removeAllDomEventListener();
+    this._domEventEngine.dispose();
     this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);
     this._canvas.canvasElement.parentNode?.removeChild(this._htmlElementAnchorLoader.parentDiv);
     this._canvas.reset();
-    this._domEventEngine.removeAllDomEventListener();
-    this._domEventEngine.dispose();
     return true;
   }
 

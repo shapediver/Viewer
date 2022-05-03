@@ -280,6 +280,10 @@ export class Viewer implements IViewer {
     }
   }
 
+  public get closed(): boolean {
+    return this.#renderingEngine.closed;
+  }
+
   public get convertSDTFItemToVisualizationData(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
     return this.#renderingEngine.convertSDTFItemToVisualizationData;
   }

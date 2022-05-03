@@ -92,103 +92,103 @@ export class DomEventEngine {
     }): void {
         if (allowedListeners.mousewheel !== undefined && this._allowListeners.mousewheel !== allowedListeners.mousewheel) {
             if (allowedListeners.mousewheel) {
-                this._canvas.addEventListener("mousewheel", this._onMouseWheel, { passive: false });
-                this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel, { passive: false }); // firefox
+                this._canvas.addEventListener("mousewheel", this._onMouseWheel);
+                this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
             } else {
-                this._canvas.removeEventListener("mousewheel", this._onMouseWheel, false);
-                this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel, false); // firefox
+                this._canvas.removeEventListener("mousewheel", this._onMouseWheel);
+                this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
             }
             this._allowListeners.mousewheel = allowedListeners.mousewheel;
         }
 
         if (allowedListeners.mousedown !== undefined && this._allowListeners.mousedown !== allowedListeners.mousedown) {
             if (allowedListeners.mousedown) {
-                this._canvas.addEventListener("mousedown", this._onMouseDown, { passive: false });
+                this._canvas.addEventListener("mousedown", this._onMouseDown);
             } else {
-                this._canvas.removeEventListener("mousedown", this._onMouseDown, false);
+                this._canvas.removeEventListener("mousedown", this._onMouseDown);
             }
             this._allowListeners.mousedown = allowedListeners.mousedown;
         }
 
         if (allowedListeners.mousemove !== undefined && this._allowListeners.mousemove !== allowedListeners.mousemove) {
             if (allowedListeners.mousemove) {
-                this._canvas.addEventListener("mousemove", this._onMouseMove, { passive: false });
-                window.addEventListener("mousemove", this._onKeyDownMousePositionHelper, { passive: false });
+                this._canvas.addEventListener("mousemove", this._onMouseMove);
+                window.addEventListener("mousemove", this._onKeyDownMousePositionHelper);
             } else {
-                this._canvas.removeEventListener("mousemove", this._onMouseMove, false);
-                window.removeEventListener("mousemove", this._onKeyDownMousePositionHelper, false);
+                this._canvas.removeEventListener("mousemove", this._onMouseMove);
+                window.removeEventListener("mousemove", this._onKeyDownMousePositionHelper);
             }
             this._allowListeners.mousemove = allowedListeners.mousemove;
         }
 
         if (allowedListeners.mouseup !== undefined && this._allowListeners.mouseup !== allowedListeners.mouseup) {
             if (allowedListeners.mouseup) {
-                this._canvas.addEventListener("mouseup", this._onMouseUp, { passive: false });
+                this._canvas.addEventListener("mouseup", this._onMouseUp);
             } else {
-                this._canvas.removeEventListener("mouseup", this._onMouseUp, false);
+                this._canvas.removeEventListener("mouseup", this._onMouseUp);
             }
             this._allowListeners.mouseup = allowedListeners.mouseup;
         }
 
         if (allowedListeners.mouseout !== undefined && this._allowListeners.mouseout !== allowedListeners.mouseout) {
             if (allowedListeners.mouseout) {
-                this._canvas.addEventListener("mouseout", this._onMouseUp, { passive: false });
+                this._canvas.addEventListener("mouseout", this._onMouseUp);
             } else {
-                this._canvas.removeEventListener("mouseout", this._onMouseUp, false);
+                this._canvas.removeEventListener("mouseout", this._onMouseUp);
             }
             this._allowListeners.mouseout = allowedListeners.mouseout;
         }
 
         if (allowedListeners.touchstart !== undefined && this._allowListeners.touchstart !== allowedListeners.touchstart) {
             if (allowedListeners.touchstart) {
-                window.addEventListener("touchstart", this._onTouchStart, { passive: false });
+                window.addEventListener("touchstart", this._onTouchStart);
             } else {
-                window.removeEventListener("touchstart", this._onTouchStart, false);
+                window.removeEventListener("touchstart", this._onTouchStart);
             }
             this._allowListeners.touchstart = allowedListeners.touchstart;
         }
 
         if (allowedListeners.touchmove !== undefined && this._allowListeners.touchmove !== allowedListeners.touchmove) {
             if (allowedListeners.touchmove) {
-                window.addEventListener("touchmove", this._onTouchMove, { passive: false });
+                window.addEventListener("touchmove", this._onTouchMove);
             } else {
-                window.removeEventListener("touchmove", this._onTouchMove, false);
+                window.removeEventListener("touchmove", this._onTouchMove);
             }
             this._allowListeners.touchmove = allowedListeners.touchmove;
         }
 
         if (allowedListeners.touchend !== undefined && this._allowListeners.touchend !== allowedListeners.touchend) {
             if (allowedListeners.touchend) {
-                window.addEventListener("touchend", this._onTouchEnd, { passive: false });
+                window.addEventListener("touchend", this._onTouchEnd);
             } else {
-                window.removeEventListener("touchend", this._onTouchEnd, false);
+                window.removeEventListener("touchend", this._onTouchEnd);
             }
             this._allowListeners.touchend = allowedListeners.touchend;
         }
 
         if (allowedListeners.touchcancel !== undefined && this._allowListeners.touchcancel !== allowedListeners.touchcancel) {
             if (allowedListeners.touchcancel) {
-                window.addEventListener("touchcancel", this._onTouchEnd, { passive: false });
+                window.addEventListener("touchcancel", this._onTouchEnd);
             } else {
-                window.removeEventListener("touchcancel", this._onTouchEnd, false);
+                window.removeEventListener("touchcancel", this._onTouchEnd);
             }
             this._allowListeners.touchcancel = allowedListeners.touchcancel;
         }
 
         if (allowedListeners.keydown !== undefined && this._allowListeners.keydown !== allowedListeners.keydown) {
             if (allowedListeners.keydown) {
-                window.addEventListener("keydown", this._onKeyDown, { passive: false });
+                window.addEventListener("keydown", this._onKeyDown);
             } else {
-                window.removeEventListener("keydown", this._onKeyDown, false);
+                window.removeEventListener("keydown", this._onKeyDown);
             }
             this._allowListeners.keydown = allowedListeners.keydown;
         }
 
         if (allowedListeners.contextmenu !== undefined && this._allowListeners.contextmenu !== allowedListeners.contextmenu) {
             if (allowedListeners.contextmenu) {
-                this._canvas.addEventListener("contextmenu", this._onContextMenu, { passive: false });
+                this._canvas.addEventListener("contextmenu", this._onContextMenu);
             } else {
-                this._canvas.removeEventListener("contextmenu", this._onContextMenu, false);
+                this._canvas.removeEventListener("contextmenu", this._onContextMenu);
             }
             this._allowListeners.contextmenu = allowedListeners.contextmenu;
         }
@@ -216,24 +216,24 @@ export class DomEventEngine {
     // #region Private Methods (12)
 
     private addEventListeners() {
-        this._canvas.addEventListener("mousewheel", this._onMouseWheel, { passive: false });
-        this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel, { passive: false }); // firefox
+        this._canvas.addEventListener("mousewheel", this._onMouseWheel);
+        this._canvas.addEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
 
-        this._canvas.addEventListener("mousedown", this._onMouseDown, { passive: false });
-        this._canvas.addEventListener("mousemove", this._onMouseMove, { passive: false });
-        this._canvas.addEventListener("mouseup", this._onMouseUp, { passive: false });
-        this._canvas.addEventListener("mouseout", this._onMouseUp, { passive: false });
+        this._canvas.addEventListener("mousedown", this._onMouseDown);
+        this._canvas.addEventListener("mousemove", this._onMouseMove);
+        this._canvas.addEventListener("mouseup", this._onMouseUp);
+        this._canvas.addEventListener("mouseout", this._onMouseUp);
 
-        window.addEventListener("touchstart", this._onTouchStart, { passive: false });
-        window.addEventListener("touchmove", this._onTouchMove, { passive: false });
-        window.addEventListener("touchend", this._onTouchEnd, { passive: false });
-        window.addEventListener("touchcancel", this._onTouchEnd, { passive: false });
+        window.addEventListener("touchstart", this._onTouchStart);
+        window.addEventListener("touchmove", this._onTouchMove);
+        window.addEventListener("touchend", this._onTouchEnd);
+        window.addEventListener("touchcancel", this._onTouchEnd);
 
-        window.addEventListener("keydown", this._onKeyDown, { passive: false });
-        window.addEventListener("mousemove", this._onKeyDownMousePositionHelper, { passive: false });
+        window.addEventListener("keydown", this._onKeyDown);
+        window.addEventListener("mousemove", this._onKeyDownMousePositionHelper);
 
         // just prevent right click menu
-        this._canvas.addEventListener("contextmenu", this._onContextMenu, { passive: false });
+        this._canvas.addEventListener("contextmenu", this._onContextMenu);
     }
 
     private onContextMenu(event: MouseEvent): void {
@@ -295,19 +295,19 @@ export class DomEventEngine {
         this._canvas.removeEventListener("mousewheel", this._onMouseWheel);
         this._canvas.removeEventListener("MozMousePixelScroll", this._onMouseWheel); // firefox
 
-        this._canvas.removeEventListener("mousedown", this._onMouseDown, false);
-        this._canvas.removeEventListener("mousemove", this._onMouseMove, false);
-        this._canvas.removeEventListener("mouseup", this._onMouseUp, false);
-        this._canvas.removeEventListener("mouseout", this._onMouseUp, false);
+        this._canvas.removeEventListener("mousedown", this._onMouseDown);
+        this._canvas.removeEventListener("mousemove", this._onMouseMove);
+        this._canvas.removeEventListener("mouseup", this._onMouseUp);
+        this._canvas.removeEventListener("mouseout", this._onMouseUp);
 
-        window.removeEventListener("touchstart", this._onTouchStart, false);
-        window.removeEventListener("touchmove", this._onTouchMove, false);
-        window.removeEventListener("touchend", this._onTouchEnd, false);
-        window.removeEventListener("touchcancel", this._onTouchEnd, false);
+        window.removeEventListener("touchstart", this._onTouchStart);
+        window.removeEventListener("touchmove", this._onTouchMove);
+        window.removeEventListener("touchend", this._onTouchEnd);
+        window.removeEventListener("touchcancel", this._onTouchEnd);
 
-        window.removeEventListener("keydown", this._onKeyDown, false);
-        window.removeEventListener("mousemove", this._onKeyDownMousePositionHelper, false);
-        this._canvas.removeEventListener("contextmenu", this._onContextMenu, false);
+        window.removeEventListener("keydown", this._onKeyDown);
+        window.removeEventListener("mousemove", this._onKeyDownMousePositionHelper);
+        this._canvas.removeEventListener("contextmenu", this._onContextMenu);
     }
 
     // #endregion Private Methods (12)

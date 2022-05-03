@@ -855,7 +855,7 @@ export class Session implements ISession {
                 const renderingEngines = (<RenderingEngine[]>container.resolveAll('renderingEngine'));
                 let renderingEngine: RenderingEngine;
                 for (let i = 0; i < renderingEngines.length; i++)
-                    if (renderingEngines[i].id === viewer.id)
+                    if (renderingEngines[i].id === viewer.id && renderingEngines[i].closed === false)
                         renderingEngine = renderingEngines[i];
 
                 renderingEngine!.saveSettings();

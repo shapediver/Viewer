@@ -791,8 +791,10 @@ export class Api implements IApi {
       if (force === false && this.#stateEngine.viewers[id].initialized.resolved === false)
         await new Promise<void>(resolve => { this.#stateEngine.viewers[id].initialized.then(() => resolve()) })
 
-      this.#stateEngine.viewers[id].settingsLoaded.reset();
-      let result = false;
+        this.#stateEngine.viewers[id].settingsLoaded.reset();
+        this.#stateEngine.viewers[id].environmentMapLoaded.reset();
+        this.#stateEngine.viewers[id].initialized.reset();
+        let result = false;
       if (force === false) {
         result = await this.viewers[id].close();
       } else {
