@@ -8,6 +8,11 @@
 * __Commit:__ 0522dc5ed189624e322149910d10f16cb9965209
 <!--- VERSION_END -->
 
+## Version 1.14.10 - `The Nanny`
+- bugfix: light scene reassignment
+- materialDataCollection removal
+- added MaterialVariantsData to exports
+
 ## Version 1.14.9 - `Nashville`
 - material accessibility
 
