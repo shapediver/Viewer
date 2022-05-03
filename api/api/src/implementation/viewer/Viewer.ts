@@ -741,9 +741,7 @@ export class Viewer implements IViewer {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.standard, 'boolean', false);
       const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(props);
       this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: New light scene with id ${lightSceneLogic.id} created.`);
-      if (!this.lightScene) this.assignLightScene(lightSceneLogic.id);
-      if (this.lightScene && lightSceneLogic.id !== this.lightScene.id) this.assignLightScene(lightSceneLogic.id);
-      this.assignLightScene(lightSceneLogic.id)
+      if (!this.lightScene || (this.lightScene && lightSceneLogic.id !== this.lightScene.id)) this.assignLightScene(lightSceneLogic.id);
       this.update();
       return this.lightScenes[lightSceneLogic.id];
     } catch (e) {
