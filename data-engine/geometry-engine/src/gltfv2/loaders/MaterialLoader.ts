@@ -19,13 +19,10 @@ import {
   MaterialStandardDataProperties,
   MaterialUnlitData,
   MaterialUnlitDataProperties,
-  MaterialDataCollection,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
-import { AxiosResponse } from 'axios'
 
 import { GLTF_EXTENSIONS } from '../GLTFLoader'
-import { BufferViewLoader } from './BufferViewLoader'
 import { TextureLoader } from './TextureLoader'
 
 export class MaterialLoader {
@@ -34,7 +31,7 @@ export class MaterialLoader {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
 
-    private _materialDataCollection: MaterialDataCollection = new MaterialDataCollection();
+    private _loaded: { [key: string]: AbstractMaterialData } = {};
 
     // #endregion Properties (4)
 
@@ -49,13 +46,13 @@ export class MaterialLoader {
     public getMaterial(materialId: number): AbstractMaterialData {
         if (!this._content.materials) throw new Error('MaterialLoader.getMaterial: Materials not available.')
         if (!this._content.materials[materialId]) throw new Error('MaterialLoader.getMaterial: Material not available.')
-        if (!this._materialDataCollection.materials[materialId]) throw new Error('MaterialLoader.getMaterial: Material not loaded.')
-        return this._materialDataCollection.materials[materialId];
+        if (!this._loaded[materialId]) throw new Error('MaterialLoader.getMaterial: Material not loaded.')
+        return this._loaded[materialId];
     }
 
-    public async load(): Promise<MaterialDataCollection> {
-        this._materialDataCollection = new MaterialDataCollection();
-        if (!this._content.materials) return new MaterialDataCollection();
+    public async load(): Promise<void> {
+        this._loaded = {};
+        if (!this._content.materials) return;
 
         let promises: Promise<void>[] = [];
         for (let i = 0; i < this._content.materials.length; i++) {
@@ -73,7 +70,7 @@ export class MaterialLoader {
                     new Promise(async resolve => {
                         await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset, materialData);
                         materialData.color = this._converter.toColor(materialPreset.color);
-                        this._materialDataCollection.materials[materialId] = materialData;
+                        this._loaded[materialId] = materialData;
                         resolve();
                     })
                 )
@@ -194,12 +191,12 @@ export class MaterialLoader {
             if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS]) {
                 const specularGlossinessMaterialDataProperties: MaterialSpecularGlossinessDataProperties = materialDataProperties;
                 const materialData = new MaterialSpecularGlossinessData(specularGlossinessMaterialDataProperties);
-                this._materialDataCollection.materials[materialId] = materialData;
+                this._loaded[materialId] = materialData;
                 continue;
             } else if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_UNLIT]) {
                 const unlitMaterialDataProperties: MaterialUnlitDataProperties = materialDataProperties;
                 const materialData = new MaterialUnlitData(unlitMaterialDataProperties);
-                this._materialDataCollection.materials[materialId] = materialData;
+                this._loaded[materialId] = materialData;
                 continue;
             }
 
@@ -315,10 +312,9 @@ export class MaterialLoader {
             }
 
             const materialData = new MaterialStandardData(standardMaterialDataProperties);
-            this._materialDataCollection.materials[materialId] = materialData;
+            this._loaded[materialId] = materialData;
         }
         await Promise.all(promises);
-        return this._materialDataCollection;
     }
 
     // #endregion Public Methods (2)

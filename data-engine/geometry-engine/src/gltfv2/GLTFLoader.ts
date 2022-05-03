@@ -102,11 +102,10 @@ export class GLTFLoader {
             this._textureLoader = new TextureLoader(this._content, this._bufferViewLoader, this._baseUri);
             await this._textureLoader.load();
             this._materialLoader = new MaterialLoader(this._content, this._textureLoader);
-            const materialDataCollection = await this._materialLoader.load();
+            await this._materialLoader.load();
             this._geometryLoader = new GeometryLoader(this._content, this._accessorLoader, this._bufferViewLoader, this._materialLoader, dracoModule);
 
             const node = this.loadScene();
-            node.data.push(materialDataCollection)
 
             if (this._content.extensions && this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
                 const variants = this._content.extensions[GLTF_EXTENSIONS.KHR_MATERIALS_VARIANTS].variants;
