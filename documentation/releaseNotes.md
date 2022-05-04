@@ -8,6 +8,14 @@
 * __Commit:__ 003d65d6aacbe2dcc6c7b2d9e86bbffd320221e7
 <!--- VERSION_END -->
 
+## Version 1.14.12 - `Nightmare Alley`
+- changed default background logo color
+- added value support for applySettings
+- implemented displacement mapping
+
+## Version 1.14.11 - `A Night at the Opera`
+- bugfix: event listeners
+
 ## Version 1.14.10 - `The Nanny`
 - bugfix: light scene reassignment
 - materialDataCollection removal
