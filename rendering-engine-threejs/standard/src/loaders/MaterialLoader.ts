@@ -404,6 +404,15 @@ export class MaterialLoader implements ILoader {
                 mapCount++;
             }
 
+            if (materialData.displacementMap !== undefined) {
+                meshPhysicalProperties.displacementMap = this.createTexture(materialData.displacementMap);
+                mapCount++;
+            }
+
+            meshPhysicalProperties.displacementScale = materialData.displacementScale;
+
+            meshPhysicalProperties.displacementBias = materialData.displacementBias;
+
             meshPhysicalProperties.ior = materialData.ior;
 
             meshPhysicalProperties.transmission = materialData.transmission;

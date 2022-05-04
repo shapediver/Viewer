@@ -11,6 +11,9 @@ export interface MaterialStandardDataProperties extends AbstractMaterialDataProp
   clearcoatNormalMap?: MapData;
   clearcoatRoughness?: number;
   clearcoatRoughnessMap?: MapData;
+  displacementMap?: MapData;
+  displacementScale?: number;
+  displacementBias?: number;
   ior?: number;
   metalness?: number,
   metalnessMap?: MapData,
@@ -44,6 +47,9 @@ export class MaterialStandardData extends AbstractMaterialData {
   #clearcoatNormalMap?: MapData;
   #clearcoatRoughness: number = 0;
   #clearcoatRoughnessMap?: MapData;
+  #displacementMap?: MapData;
+  #displacementScale: number = 1;
+  #displacementBias: number = 0;
   #ior: number = 1.5;
   #metalness = 1.0;
   #metalnessMap?: MapData;
@@ -90,6 +96,9 @@ export class MaterialStandardData extends AbstractMaterialData {
     if (properties.clearcoatNormalMap !== undefined) this.clearcoatNormalMap = properties.clearcoatNormalMap;
     if (properties.clearcoatRoughness !== undefined) this.clearcoatRoughness = properties.clearcoatRoughness;
     if (properties.clearcoatRoughnessMap !== undefined) this.clearcoatRoughnessMap = properties.clearcoatRoughnessMap;
+    if (properties.displacementMap !== undefined) this.displacementMap = properties.displacementMap;
+    if (properties.displacementScale !== undefined) this.displacementScale = properties.displacementScale;
+    if (properties.displacementBias !== undefined) this.displacementBias = properties.displacementBias;
     if (properties.ior !== undefined) this.ior = properties.ior;
     if (properties.transmission !== undefined) this.transmission = properties.transmission;
     if (properties.transmissionMap !== undefined) this.transmissionMap = properties.transmissionMap;
@@ -166,6 +175,30 @@ export class MaterialStandardData extends AbstractMaterialData {
 
   public set clearcoatRoughnessMap(value: MapData | undefined) {
     this.#clearcoatRoughnessMap = value;
+  }
+
+  public get displacementMap(): MapData | undefined {
+    return this.#displacementMap;
+  }
+
+  public set displacementMap(value: MapData | undefined) {
+    this.#displacementMap = value;
+  }
+  
+  public get displacementScale(): number {
+    return this.#displacementScale;
+  }
+
+  public set displacementScale(value: number) {
+    this.#displacementScale = value;
+  }
+  
+  public get displacementBias(): number {
+    return this.#displacementBias;
+  }
+
+  public set displacementBias(value: number) {
+    this.#displacementBias = value;
   }
 
   public get ior(): number {
@@ -350,6 +383,9 @@ export class MaterialStandardData extends AbstractMaterialData {
     this.clearcoatNormalMap = undefined;
     this.clearcoatRoughness = 0;
     this.clearcoatRoughnessMap = undefined;
+    this.displacementMap = undefined;
+    this.displacementScale = 1;
+    this.displacementBias = 0;
     this.ior = 1;
     this.metalness = 0;
     this.metalnessMap = undefined;
@@ -400,6 +436,9 @@ export class MaterialStandardData extends AbstractMaterialData {
       clearcoatNormalMap: this.clearcoatNormalMap,
       clearcoatRoughness: this.clearcoatRoughness,
       clearcoatRoughnessMap: this.clearcoatRoughnessMap,
+      displacementMap: this.displacementMap,
+      displacementScale: this.displacementScale,
+      displacementBias: this.displacementBias,
       ior: this.ior,
       transmission: this.transmission,
       transmissionMap: this.transmissionMap,
@@ -445,6 +484,9 @@ export class MaterialStandardData extends AbstractMaterialData {
     this.clearcoatNormalMap = source.clearcoatNormalMap;
     this.clearcoatRoughness = source.clearcoatRoughness;
     this.clearcoatRoughnessMap = source.clearcoatRoughnessMap;
+    this.displacementMap = source.displacementMap;
+    this.displacementScale = source.displacementScale;
+    this.displacementBias = source.displacementBias;
     this.ior = source.ior;
     this.metalness = source.metalness;
     this.metalnessMap = source.metalnessMap;
