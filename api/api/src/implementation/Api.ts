@@ -548,7 +548,7 @@ export class Api implements IApi {
         visibility: prop.visibility || VISIBILITYMODE.SESSION,
         branding: {
           logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
-          backgroundColor: branding.backgroundColor || '#030531FF'
+          backgroundColor: branding.backgroundColor || '#393a45FF'
         }
       });
 
