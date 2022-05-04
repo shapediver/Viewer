@@ -228,14 +228,14 @@ export class Api implements IApi {
     response: ShapeDiverResponseDto,
     sections: {
       session?: {
-        parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean },
+        parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean, value?: boolean },
         export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
       },
       viewer?: { scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
     } =
       {
         session: {
-          parameter: { displayname: false, order: false, hidden: false },
+          parameter: { displayname: false, order: false, hidden: false, value: false },
           export: { displayname: false, order: false, hidden: false }
         },
         viewer: { scene: false, camera: false, light: false, environment: false }
@@ -249,7 +249,7 @@ export class Api implements IApi {
         };
       }
       if (sections.session.parameter === undefined)
-        sections.session.parameter = { displayname: false, order: false, hidden: false };
+        sections.session.parameter = { displayname: false, order: false, hidden: false, value: false };
       if (sections.session.export === undefined)
         sections.session.export = { displayname: false, order: false, hidden: false };
       if (sections.viewer === undefined)
@@ -288,12 +288,16 @@ export class Api implements IApi {
       const currentSettings = this.#settingsEngine.settings;
 
       // apply parameter settings
-      if (sections.session.parameter.displayname || sections.session.parameter.order || sections.session.parameter.hidden) {
+      if (sections.session.parameter.displayname || sections.session.parameter.order || sections.session.parameter.hidden || sections.session.parameter.value) {
         for (let p in session.parameters) {
           if (settings.session[p]) {
             if (sections.session.parameter.displayname) session.parameters[p].displayname = settings.session[p].displayname;
             if (sections.session.parameter.order) session.parameters[p].order = settings.session[p].order;
             if (sections.session.parameter.hidden) session.parameters[p].hidden = settings.session[p].hidden || false;
+          }
+
+          if(response.parameters && response.parameters[p]) {
+            if (sections.session.parameter.value) session.parameters[p].value = response.parameters[p].defval !== undefined ? response.parameters[p].defval : session.parameters[p].value;
           }
         }
       }
@@ -311,9 +315,9 @@ export class Api implements IApi {
             idForSettings = exportMappingUid[uid]!;
           }
           if (settings.session[idForSettings]) {
-            if (sections.session.parameter.displayname) session.exports[p].displayname = settings.session[idForSettings].displayname;
-            if (sections.session.parameter.order) session.exports[p].order = settings.session[idForSettings].order;
-            if (sections.session.parameter.hidden) session.exports[p].hidden = settings.session[idForSettings].hidden || false;
+            if (sections.session.export.displayname) session.exports[p].displayname = settings.session[idForSettings].displayname;
+            if (sections.session.export.order) session.exports[p].order = settings.session[idForSettings].order;
+            if (sections.session.export.hidden) session.exports[p].hidden = settings.session[idForSettings].hidden || false;
           }
         }
       }
@@ -352,7 +356,11 @@ export class Api implements IApi {
         currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
       }
 
-      const promises: Promise<void>[] = [];
+      const promises: Promise<any>[] = [];
+
+      if (sections.session.parameter.value) 
+        promises.push(session.customize());
+
       for (let v in this.viewers) {
         this.#stateEngine.viewers[v].settingsLoaded.reset();
         promises.push(new Promise<void>(resolve => {
