@@ -8,6 +8,9 @@
 * __Commit:__ a04ea8f506b336b415deaec0dc4534f0907b19ed
 <!--- VERSION_END -->
 
+## Version 1.14.13 - `Notorious`
+- implemented SelectOnUpManager
+
 ## Version 1.14.12 - `Nightmare Alley`
 - changed default background logo color
 - added value support for applySettings
