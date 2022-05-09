@@ -151,6 +151,22 @@ export class GeometryLoader implements ILoader {
                 geometry.morphAttributes[attributeName] = buffers;
 
             }
+
+            // we copy the uv coordinates into the second set of uv coordinates if there are none
+            // this allows for the usage of AO and light maps that share this coordinate set
+            const attributeIdUV2 = 'TEXCOORD_1', attributeNameUV2 = 'uv2';
+            if(attributeName === 'uv' && !primitive.attributes[attributeIdUV2]) {
+                geometry.setAttribute(attributeNameUV2, buffer)
+
+                const morphAttributeData = primitive.attributes[attributeId].morphAttributeData;
+                if(morphAttributeData.length > 0) {
+                    geometry.morphTargetsRelative = true;
+                    const buffers: (THREE.BufferAttribute | THREE.InterleavedBufferAttribute)[] = [];
+                    for(let i = 0; i < morphAttributeData.length; i++)
+                        buffers.push(this.loadAttribute(morphAttributeData[i], attributeId));
+                    geometry.morphAttributes[attributeNameUV2] = buffers;
+                }
+            }
         }
         return geometry;
     }
