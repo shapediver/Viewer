@@ -113,7 +113,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     this.onMove(event);
   }
 
-  public onMouseUp(event: MouseEvent): void {
+  public onMouseEnd(event: MouseEvent): void {
     if(!this._activeEvents) return;
     this.onUp(event);
   }
@@ -122,6 +122,9 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     if(!this._activeEvents) return;
     this.onWheel(event);
   }
+  
+  public onMouseUp(event: WheelEvent): void {}
+  public onMouseOut(event: WheelEvent): void {}
 
   public onMove(event: MouseEvent|TouchEvent): void {
     let {x,y} = this.convertInput(event);
@@ -156,6 +159,9 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     if(!this._activeEvents) return;
     this.onDown(event);
   }
+
+  public onTouchCancel(event: TouchEvent): void {}
+  public onTouchUp(event: TouchEvent): void {}
 
   public onUp(event: MouseEvent|TouchEvent): void {
     this._active.rotation = false;

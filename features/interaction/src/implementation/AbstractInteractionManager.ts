@@ -7,6 +7,7 @@ import { DragConstraintUtils } from './utils/DragConstraintUtils'
 import { InteractionEffectUtils } from './utils/InteractionEffectUtils'
 import { IDragConstraintUtils } from '../interfaces/utils/IDragConstraintUtils'
 import { IInteractionEffectUtils } from '../interfaces/utils/IInteractionEffectUtils'
+import { INTERACTION_STATE } from '../interfaces/IInteractionEngine'
 
 export abstract class AbstractInteractionManager implements IInteractionManager {
     // #region Properties (5)
@@ -58,7 +59,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
     // #region Public Abstract Methods (3)
 
     abstract onDown(ray: IRay, intersection: IIntersection[]): void;
-    abstract onEnd(ray: IRay, intersection: IIntersection[]): void;
+    abstract onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
     abstract onMove(ray: IRay, intersection: IIntersection[]): void;
 
     // #endregion Public Abstract Methods (3)

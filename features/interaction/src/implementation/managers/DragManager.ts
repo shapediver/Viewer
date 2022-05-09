@@ -74,7 +74,7 @@ export class DragManager extends AbstractInteractionManager {
             this.setNode(intersections[0].node, intersections[0].distance, intersections[0].point, ray);
     }
 
-    public onEnd(ray: IRay, intersection: IIntersection[]): void {
+    public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
        this.removeNode();
     }
 

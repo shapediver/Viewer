@@ -16,7 +16,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
     #deselectOnEmpty: boolean = true;
     #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
-        if(interactionState === INTERACTION_STATE.END) {
+        if(interactionState === INTERACTION_STATE.UP) {
             return (node: TreeNode) => {
                 for(let i = 0; i < node.data.length; i++) {
                     if(node.data[i] instanceof InteractionData) {
@@ -56,24 +56,26 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 
     public onDown(ray: IRay, intersection: IIntersection[]): void {}
 
-    public onEnd(ray: IRay, intersection: IIntersection[]): void {
-        const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.END)(i.node))
+    public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
+        if(endState === INTERACTION_STATE.UP) {
+            const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.UP)(i.node))
 
-        if(this.#node) {
-            if(intersections.length > 0 && intersection[0].node !== this.#node) {
-                // case other node was clicked, deselect then select
-                this.deactivateNode();
+            if(this.#node) {
+                if(intersections.length > 0 && intersection[0].node !== this.#node) {
+                    // case other node was clicked, deselect then select
+                    this.deactivateNode();
+                    this.activateNode(intersections[0]);
+                } else if(intersections.length > 0 && intersection[0].node === this.#node) {
+                    // case same node was clicked, only deselect
+                    this.deactivateNode();
+                } else if(intersections.length === 0 && this.#deselectOnEmpty) {
+                    // case no node was clicked, only deselect when option is on
+                    this.deactivateNode();
+                }
+            } else if(intersections.length > 0) {
+                // easy case, no node select, just select this one
                 this.activateNode(intersections[0]);
-            } else if(intersections.length > 0 && intersection[0].node === this.#node) {
-                // case same node was clicked, only deselect
-                this.deactivateNode();
-            } else if(intersections.length === 0 && this.#deselectOnEmpty) {
-                // case no node was clicked, only deselect when option is on
-                this.deactivateNode();
-            }
-        } else if(intersections.length > 0) {
-            // easy case, no node select, just select this one
-            this.activateNode(intersections[0]);
+            } 
         }
     }
 

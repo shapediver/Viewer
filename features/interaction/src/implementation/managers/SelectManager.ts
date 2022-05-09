@@ -75,7 +75,7 @@ export class SelectManager extends AbstractInteractionManager {
         }
     }
 
-    public onEnd(ray: IRay, intersection: IIntersection[]): void {}
+    public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {}
 
     public onMove(ray: IRay, intersection: IIntersection[]): void {}
 

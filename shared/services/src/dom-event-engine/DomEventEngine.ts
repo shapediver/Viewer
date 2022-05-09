@@ -31,9 +31,11 @@ export class DomEventEngine {
     private _onMouseMove: (event: MouseEvent) => void;
     private _onKeyDownMousePositionHelper: (event: MouseEvent) => void;
     private _onMouseUp: (event: MouseEvent) => void;
+    private _onMouseOut: (event: MouseEvent) => void;
     private _onTouchStart: (event: TouchEvent) => void;
     private _onTouchMove: (event: TouchEvent) => void;
-    private _onTouchEnd: (event: TouchEvent) => void;
+    private _onTouchUp: (event: TouchEvent) => void;
+    private _onTouchCancel: (event: TouchEvent) => void;
     private _onKeyDown: (event: KeyboardEvent) => void;
     private _onContextMenu: (event: MouseEvent) => void;
 
@@ -48,9 +50,11 @@ export class DomEventEngine {
         this._onMouseMove = this.onMouseMove.bind(this)
         this._onKeyDownMousePositionHelper = this.onKeyDownMousePositionHelper.bind(this)
         this._onMouseUp = this.onMouseUp.bind(this)
+        this._onMouseOut = this.onMouseOut.bind(this)
         this._onTouchStart = this.onTouchStart.bind(this)
         this._onTouchMove = this.onTouchMove.bind(this)
-        this._onTouchEnd = this.onTouchEnd.bind(this)
+        this._onTouchUp = this.onTouchUp.bind(this)
+        this._onTouchCancel = this.onTouchCancel.bind(this)
         this._onKeyDown = this.onKeyDown.bind(this)
         this._onContextMenu = this.onContextMenu.bind(this)
 
@@ -132,9 +136,9 @@ export class DomEventEngine {
 
         if (allowedListeners.mouseout !== undefined && this._allowListeners.mouseout !== allowedListeners.mouseout) {
             if (allowedListeners.mouseout) {
-                this._canvas.addEventListener("mouseout", this._onMouseUp);
+                this._canvas.addEventListener("mouseout", this._onMouseOut);
             } else {
-                this._canvas.removeEventListener("mouseout", this._onMouseUp);
+                this._canvas.removeEventListener("mouseout", this._onMouseOut);
             }
             this._allowListeners.mouseout = allowedListeners.mouseout;
         }
@@ -159,18 +163,18 @@ export class DomEventEngine {
 
         if (allowedListeners.touchend !== undefined && this._allowListeners.touchend !== allowedListeners.touchend) {
             if (allowedListeners.touchend) {
-                window.addEventListener("touchend", this._onTouchEnd);
+                window.addEventListener("touchend", this._onTouchUp);
             } else {
-                window.removeEventListener("touchend", this._onTouchEnd);
+                window.removeEventListener("touchend", this._onTouchUp);
             }
             this._allowListeners.touchend = allowedListeners.touchend;
         }
 
         if (allowedListeners.touchcancel !== undefined && this._allowListeners.touchcancel !== allowedListeners.touchcancel) {
             if (allowedListeners.touchcancel) {
-                window.addEventListener("touchcancel", this._onTouchEnd);
+                window.addEventListener("touchcancel", this._onTouchCancel);
             } else {
-                window.removeEventListener("touchcancel", this._onTouchEnd);
+                window.removeEventListener("touchcancel", this._onTouchCancel);
             }
             this._allowListeners.touchcancel = allowedListeners.touchcancel;
         }
@@ -222,12 +226,12 @@ export class DomEventEngine {
         this._canvas.addEventListener("mousedown", this._onMouseDown);
         this._canvas.addEventListener("mousemove", this._onMouseMove);
         this._canvas.addEventListener("mouseup", this._onMouseUp);
-        this._canvas.addEventListener("mouseout", this._onMouseUp);
+        this._canvas.addEventListener("mouseout", this._onMouseOut);
 
         window.addEventListener("touchstart", this._onTouchStart);
         window.addEventListener("touchmove", this._onTouchMove);
-        window.addEventListener("touchend", this._onTouchEnd);
-        window.addEventListener("touchcancel", this._onTouchEnd);
+        window.addEventListener("touchend", this._onTouchUp);
+        window.addEventListener("touchcancel", this._onTouchCancel);
 
         window.addEventListener("keydown", this._onKeyDown);
         window.addEventListener("mousemove", this._onKeyDownMousePositionHelper);
@@ -262,6 +266,13 @@ export class DomEventEngine {
     private onMouseUp(event: MouseEvent): void {
         event.preventDefault();
         Object.values(this._domEventListeners).forEach(e => e.onMouseUp(event));
+        Object.values(this._domEventListeners).forEach(e => e.onMouseEnd(event));
+    }
+
+    private onMouseOut(event: MouseEvent): void {
+        event.preventDefault();
+        Object.values(this._domEventListeners).forEach(e => e.onMouseOut(event));
+        Object.values(this._domEventListeners).forEach(e => e.onMouseEnd(event));
     }
 
     private onMouseWheel(event: Event): void {
@@ -270,9 +281,18 @@ export class DomEventEngine {
         Object.values(this._domEventListeners).forEach(e => e.onMouseWheel(<WheelEvent>event));
     }
 
-    private onTouchEnd(event: TouchEvent): void {
+    private onTouchUp(event: TouchEvent): void {
         if (event.composedPath().includes(this._canvas)) {
             event.preventDefault();
+            Object.values(this._domEventListeners).forEach(e => e.onTouchUp(event));
+            Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
+        }
+    }
+
+    private onTouchCancel(event: TouchEvent): void {
+        if (event.composedPath().includes(this._canvas)) {
+            event.preventDefault();
+            Object.values(this._domEventListeners).forEach(e => e.onTouchCancel(event));
             Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
         }
     }
@@ -298,12 +318,12 @@ export class DomEventEngine {
         this._canvas.removeEventListener("mousedown", this._onMouseDown);
         this._canvas.removeEventListener("mousemove", this._onMouseMove);
         this._canvas.removeEventListener("mouseup", this._onMouseUp);
-        this._canvas.removeEventListener("mouseout", this._onMouseUp);
+        this._canvas.removeEventListener("mouseout", this._onMouseOut);
 
         window.removeEventListener("touchstart", this._onTouchStart);
         window.removeEventListener("touchmove", this._onTouchMove);
-        window.removeEventListener("touchend", this._onTouchEnd);
-        window.removeEventListener("touchcancel", this._onTouchEnd);
+        window.removeEventListener("touchend", this._onTouchUp);
+        window.removeEventListener("touchcancel", this._onTouchCancel);
 
         window.removeEventListener("keydown", this._onKeyDown);
         window.removeEventListener("mousemove", this._onKeyDownMousePositionHelper);

@@ -4,7 +4,9 @@ import { IInteractionManager } from "./IInteractionManager";
 export enum INTERACTION_STATE {
     DOWN = 'down',
     MOVE = 'move',
-    END = 'end'
+    END = 'end',
+    OUT = 'out',
+    UP = 'up'
 }
 
 export interface IInteractionEngine extends IDomEventListener {

@@ -47,20 +47,21 @@ export class InteractionEngine implements IInteractionEngine {
         this.onMove(ray);
     }
 
-    public onMouseUp(event: MouseEvent): void {
+    public onMouseEnd(event: MouseEvent): void {}
+    
+    public onMouseUp(event: WheelEvent): void {
         const ray = this.mouseEventToRay(event);
-        this.onEnd(ray);
+        this.onEnd(ray, INTERACTION_STATE.UP);
+    }
+    
+    public onMouseOut(event: WheelEvent): void {
+        const ray = this.mouseEventToRay(event);
+        this.onEnd(ray, INTERACTION_STATE.OUT);
     }
 
     public onMouseWheel(event: WheelEvent): void {}
 
-    public onTouchEnd(event: TouchEvent): void {
-        if ( event.touches.length > 1 ) return;
-        const touch = event.changedTouches[ 0 ];
-
-        const ray = this.touchToRay(touch);
-        this.onEnd(ray);
-    }
+    public onTouchEnd(event: TouchEvent): void {}
 
     public onTouchMove(event: TouchEvent): void {
         if ( event.touches.length > 1 ) return;
@@ -76,6 +77,22 @@ export class InteractionEngine implements IInteractionEngine {
 
         const ray = this.touchToRay(touch);
         this.onDown(ray);
+    }
+
+    public onTouchCancel(event: TouchEvent): void {
+        if ( event.touches.length > 1 ) return;
+        const touch = event.changedTouches[ 0 ];
+
+        const ray = this.touchToRay(touch);
+        this.onEnd(ray, INTERACTION_STATE.OUT);
+    }
+
+    public onTouchUp(event: TouchEvent): void {
+        if ( event.touches.length > 1 ) return;
+        const touch = event.changedTouches[ 0 ];
+
+        const ray = this.touchToRay(touch);
+        this.onEnd(ray, INTERACTION_STATE.UP);
     }
 
     public removeInteractionManager(token: string): boolean {
@@ -137,15 +154,19 @@ export class InteractionEngine implements IInteractionEngine {
      * 
      * @param ray 
      */
-    private onEnd(ray: IRay): void {
+    private onEnd(ray: IRay, endState: INTERACTION_STATE): void {
+        console.log(endState)
         const filters: IIntersectionFilter[] = [];
         for(let m in this.#managers)
-            filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
+            filters.push(this.#managers[m].filter(endState));
 
+        for(let m in this.#managers)
+            filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
+            
         const intersection = this.#intersectionEngine.intersect(ray, filters, api.sceneTree.root, this.#viewer.id) || [];
 
         for(let m in this.#managers)
-            this.#managers[m].onEnd(ray, intersection);
+            this.#managers[m].onEnd(ray, intersection, endState);
     }
 
     /**

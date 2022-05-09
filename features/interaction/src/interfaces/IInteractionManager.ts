@@ -43,7 +43,7 @@ export interface IInteractionManager {
      * @param ray 
      * @param intersection 
      */
-    onEnd(ray: IRay, intersection: IIntersection[]): void;
+    onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
     /**
      * For onMove events (mouseMove and touchmove) this method is called.
      * The mouse event is already translated into a ray, therefore it can be used independently of mouse or touch events.
@@ -52,6 +52,7 @@ export interface IInteractionManager {
      * 
      * @param ray 
      * @param intersection 
+     * @param endState 
      */
     onMove(ray: IRay, intersection: IIntersection[]): void;
 

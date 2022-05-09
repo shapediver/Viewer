@@ -49,7 +49,7 @@ export class HoverManager extends AbstractInteractionManager {
 
     public onDown(ray: IRay, intersection: IIntersection[]): void { }
 
-    public onEnd(ray: IRay, intersection: IIntersection[]): void { }
+    public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void { }
 
     public onMove(ray: IRay, intersection: IIntersection[]): void {
         let intersections = intersection.filter(i => this.filter(INTERACTION_STATE.MOVE)(i.node))
