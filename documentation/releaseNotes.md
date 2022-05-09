@@ -8,6 +8,9 @@
 * __Commit:__ cd43206b168c40609bdd91606a0c0842353271de
 <!--- VERSION_END -->
 
+## Version 1.14.14 - `Nights Of Cabiria`
+- bugfixes: SelectOnUpManager
+
 ## Version 1.14.13 - `Notorious`
 - implemented SelectOnUpManager
 
