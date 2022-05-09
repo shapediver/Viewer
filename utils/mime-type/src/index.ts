@@ -57,6 +57,7 @@ export const extensionToMimeTypeMapping: {
     ifczip: ['application/zip'],
     sdtf: ['model/vnd.sdtf'],
     sddtf: ['model/vnd.sdtf'],
+    hdr: ['image/vnd.radiance']
 };
 
 /**
