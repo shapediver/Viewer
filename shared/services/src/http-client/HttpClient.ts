@@ -46,7 +46,7 @@ export class HttpClient {
 
     public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }): Promise<AxiosResponse<any>> {
         const dataKey = btoa(href);
-        if (this._dataCache[dataKey]) return await this._dataCache[dataKey];
+        if (dataKey in this._dataCache) return await this._dataCache[dataKey];
 
         if (this._loadData) {
             this._dataCache[dataKey] = this._loadData(href, config);
