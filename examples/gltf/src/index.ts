@@ -61,7 +61,7 @@ document.addEventListener('drop', (event) => {
     event.stopPropagation();
     event.preventDefault();
     const files = event.dataTransfer!.files;
-    let rootFile;
+    let rootFile: File | string = "";
     Array.from(files).forEach((file) => {
         if (file.name.match(/\.(gltf|glb)$/))
             rootFile = file;

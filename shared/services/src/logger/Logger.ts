@@ -141,7 +141,7 @@ export class Logger {
 
     // #region Public Methods (8)
     
-    public handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error, logToSentry = true) {
+    public handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, logToSentry = true) {
         if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true) 
             console.error('(ERROR) ', e);
         if(e instanceof ShapeDiverRequestError) {
@@ -163,10 +163,10 @@ export class Logger {
             }
             throw e;
         } else if(e) {
-            const messageProperty = e.message ? e.message : `An unknown issue occurred in ${scope}.`;
-            const viewerError = new ShapeDiverViewerUnknownError(messageProperty, e);
-            if(logToSentry) this.sentryError(topic, viewerError, messageProperty);
-            throw viewerError;
+            // const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
+            // const viewerError = new ShapeDiverViewerUnknownError(messageProperty, e);
+            if(logToSentry) this.sentryError(topic, new Error(), "messageProperty");
+            throw new Error();
         }
     }
 

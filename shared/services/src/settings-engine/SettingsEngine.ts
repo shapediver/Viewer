@@ -128,7 +128,7 @@ export class SettingsEngine {
                 this.cleanSettings(this._settings);
                 return;
             } catch (e) {
-                const error = new ShapeDiverViewerSettingsError('SettingsEngine.loadSettings: Settings could not be validated.', e);
+                const error = new ShapeDiverViewerSettingsError('SettingsEngine.loadSettings: Settings could not be validated.', <Error>e);
                 throw this._logger.handleError(LOGGINGTOPIC.SETTINGS, `SettingsEngine.loadSettings`, error);
             }
         } else {
