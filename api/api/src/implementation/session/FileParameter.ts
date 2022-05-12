@@ -51,11 +51,6 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
                 { type: (<Blob|File>this.value).type }
             );
 
-            if (data.size === 0) {
-                const error = new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, file size was 0.`);
-                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
-            }
-
             let types = [data.type];
             // get all endings that are possible for this type
             const endings = MimeTypeUtils.mapMimeTypeToFileEndings(types);
