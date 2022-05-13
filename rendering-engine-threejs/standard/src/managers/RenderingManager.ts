@@ -2,7 +2,7 @@ import * as TWEEN from '@tweenjs/tween.js'
 import * as Stats from 'stats.js'
 import * as THREE from 'three'
 import {
-  CAMERATYPE,
+  CAMERA_TYPE,
   PerspectiveCamera,
   PerspectiveCameraControls,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
@@ -11,7 +11,7 @@ import {
   EventEngine,
   EVENTTYPE,
   Logger,
-  LOGGINGTOPIC,
+  LOGGING_TOPIC,
   ShapeDiverViewerWebGLError,
   StateEngine,
   SystemInfo,
@@ -19,7 +19,7 @@ import {
 import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import { ICameraEvent } from '@shapediver/viewer.shared.types'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
@@ -149,7 +149,7 @@ export class RenderingManager implements IManager {
 
     public evaluateTextureUnitCount(value: number) {
         if(value > this._maxTextureUnits) {
-            this._logger.warn(LOGGINGTOPIC.VIEWER, `RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
+            this._logger.warn(LOGGING_TOPIC.VIEWER, `RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
             this._renderingEngine.lightLoader.forceDisabledShadows = true;
             this._renderingEngine.update();
         } else {
@@ -296,7 +296,7 @@ export class RenderingManager implements IManager {
         // animation loop - part 11: adjust some scene settings
         // enable / disable the shadow map
         const enabled = this._renderingEngine.renderer.shadowMap.enabled;
-        this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader || this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES ? false : this._renderingEngine.shadows;
+        this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader || this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES ? false : this._renderingEngine.shadows;
         if (enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials()
         
         // update shadowMap if need
@@ -383,10 +383,10 @@ export class RenderingManager implements IManager {
                 _gl = <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
 
                 if (_gl !== null) {
-                    this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
+                    this._logger.warn(LOGGING_TOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
                 } else {
                     const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.');
-                    throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error, false);
+                    throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error, false);
                 }
             }
 
@@ -403,7 +403,7 @@ export class RenderingManager implements IManager {
                 const renderer = _gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                 if (renderer === "Google SwiftShader") {
                     this._usingSwiftShader = true;
-                    this._logger.warn(LOGGINGTOPIC.VIEWER, 'RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
+                    this._logger.warn(LOGGING_TOPIC.VIEWER, 'RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
                 }
             }
 
@@ -413,7 +413,7 @@ export class RenderingManager implements IManager {
             return _gl;
         } catch (e) {
             const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', e);
-            throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error, false);
+            throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error, false);
         }
     }
 
@@ -441,7 +441,7 @@ export class RenderingManager implements IManager {
         // special case, autorotation
         if (this._renderingEngine.cameraEngine.camera) {
             const camera = this._renderingEngine.cameraEngine.camera!;
-            if (camera.type === CAMERATYPE.PERSPECTIVE) {
+            if (camera.type === CAMERA_TYPE.PERSPECTIVE) {
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
                 if (controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
                     return { showScene, rendering: true, updateShadowMap, blurScene: false, beautyRendering: false };
@@ -459,7 +459,7 @@ export class RenderingManager implements IManager {
         let beautyRendering = false;
         if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
             (this._renderingEngine.shadows || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
-            this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false && this._renderingEngine.type !== RENDERERTYPE.ATTRIBUTES)
+            this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES)
             beautyRendering = true;
 
         return { showScene, rendering, updateShadowMap, blurScene, beautyRendering };

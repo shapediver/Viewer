@@ -1,5 +1,5 @@
 import { EventEngine } from './event-engine/EventEngine'
-import { EVENTTYPE, MAINEVENTTYPE } from './event-engine/EventTypes'
+import { EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_SETTINGS, EVENTTYPE_TASK, EVENTTYPE_VIEWER, MAIN_EVENTTYPE } from './event-engine/EventTypes'
 import { SettingsEngine } from './settings-engine/SettingsEngine'
 import { StateEngine } from './state-engine/StateEngine'
 import { SystemInfo } from './system-info/SystemInfo'
@@ -12,14 +12,15 @@ import { InputValidator } from './input-validator/InputValidator'
 import { TypeChecker } from './type-check/TypeChecker'
 import { UuidGenerator } from './uuid-generator/UuidGenerator'
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator'
-import { Logger, LOGGINGLEVEL, LOGGINGTOPIC } from './logger/Logger'
+import { Logger, LOGGING_LEVEL, LOGGING_TOPIC } from './logger/Logger'
 import { StatePromise } from './state-engine/StatePromise'
 import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerGeneralError, ShapeDiverViewerWebGLError } from './logger/ShapeDiverViewerErrors'
 import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ShapeDiverViewerError } from './logger/ShapeDiverError'
 
 export {
-  EventEngine, EVENTTYPE, MAINEVENTTYPE, IEvent
+  EventEngine, EVENTTYPE, MAIN_EVENTTYPE, IEvent,
+  EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_SETTINGS, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK
 }
 
 export {
@@ -59,7 +60,7 @@ export {
 }
 
 export {
-    Logger, LOGGINGLEVEL, LOGGINGTOPIC, 
+    Logger, LOGGING_LEVEL, LOGGING_TOPIC, 
     ShapeDiverViewerError, 
     ShapeDiverViewerDataProcessingError, 
     ShapeDiverViewerEnvironmentMapError,

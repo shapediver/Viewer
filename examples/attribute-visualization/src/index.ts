@@ -12,7 +12,7 @@ import * as SDVAttributeVisualization from '@shapediver/viewer.features.attribut
         modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com', 
         id: 'mySession'
     });
-    viewer.type = SDV.RENDERERTYPE.ATTRIBUTES;
+    viewer.type = SDV.RENDERER_TYPE.ATTRIBUTES;
 
     const attributeVisualizationEngine = new SDVAttributeVisualization.AttributeVisualizationEngine(SDV.api, viewer);
     (<any>window).attributeVisualizationEngine = attributeVisualizationEngine;
@@ -31,8 +31,8 @@ import * as SDVAttributeVisualization from '@shapediver/viewer.features.attribut
     // attributeVisualizationEngine.updateAttributes([
     //     <SDVAttributeVisualization.IStringAttribute>{
     //         key: 'x+y, string',
-    //         type: SDV.PRIMITIVETYPEHINT.STRING,
-    //         visualization: SDV.ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED
+    //         type: SDV.PRIMITIVE_TYPEHINT.STRING,
+    //         visualization: SDV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
     //     }
     // ])
 
@@ -40,8 +40,8 @@ import * as SDVAttributeVisualization from '@shapediver/viewer.features.attribut
     // attributeVisualizationEngine.updateAttributes([
     //     <SDVAttributeVisualization.INumberAttribute>{
     //         key: 'x+y, number',
-    //         type: SDV.PRIMITIVETYPEHINT.DOUBLE,
-    //         visualization: SDV.ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED
+    //         type: SDV.PRIMITIVE_TYPEHINT.DOUBLE,
+    //         visualization: SDV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
     //     }
     // ])
 })();

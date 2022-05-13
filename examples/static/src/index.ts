@@ -2,7 +2,7 @@
 
 import {
   api,
-  CAMERATYPE,
+  CAMERA_TYPE,
   ENVIRONMENT_MAP,
   EVENTTYPE,
   Export,
@@ -11,15 +11,15 @@ import {
   IParameter,
   ISession,
   IViewer,
-  LIGHTTYPE,
-  LOGGINGLEVEL,
+  LIGHT_TYPE,
+  LOGGING_LEVEL,
   ORTHOGRAPHIC_CAMERA_DIRECTION,
   Parameter,
-  PARAMETERTYPE,
-  PARAMETERVISUALIZATION,
-  RENDERERTYPE,
+  PARAMETER_TYPE,
+  PARAMETER_VISUALIZATION,
+  RENDERER_TYPE,
   Session,
-  VISIBILITYMODE,
+  VISIBILITY_MODE,
 } from '@shapediver/viewer'
 
 let viewer: IViewer, session: ISession;

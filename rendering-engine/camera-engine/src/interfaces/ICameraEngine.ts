@@ -2,14 +2,14 @@ import { vec3 } from 'gl-matrix'
 
 import { ICamera } from './camera/ICamera'
 
-export enum CAMERATYPE {
+export enum CAMERA_TYPE {
     PERSPECTIVE = 'perspective',
     ORTHOGRAPHIC = 'orthographic'
 }
 
 export interface ICameraEngine {
     assignCamera(id: string): void;
-    createCamera(type: CAMERATYPE, id?: string): ICamera;
+    createCamera(type: CAMERA_TYPE, id?: string): ICamera;
     removeCamera(id: string): boolean;
 
     activateCameraEvents(): void;

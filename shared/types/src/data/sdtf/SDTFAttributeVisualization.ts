@@ -2,12 +2,12 @@ import { mat4 } from "gl-matrix"
 import { AbstractMaterialData } from "../material/AbstractMaterialData";
 import { MaterialUnlitData } from "../material/MaterialUnlitData";
 
-export type SDTFAttributeVisualizationData = {
+export interface SDTFAttributeVisualizationData {
     material: AbstractMaterialData,
     matrix: mat4
 }
 
-export enum ATTRIBUTEVISUALIZATION {
+export enum ATTRIBUTE_VISUALIZATION {
     GRAYSCALE = 'grayscale',
     OPACITY = 'opacity',
     BLUE_RED = 'blue_red',
@@ -155,53 +155,53 @@ const hslVisualization = (factor: number): SDTFAttributeVisualizationData => {
     }
 }
 
-const numberVisualization = (value: number, min: number, max: number, type: ATTRIBUTEVISUALIZATION, defaultMaterial?: AbstractMaterialData): SDTFAttributeVisualizationData => {
+const numberVisualization = (value: number, min: number, max: number, type: ATTRIBUTE_VISUALIZATION, defaultMaterial?: AbstractMaterialData): SDTFAttributeVisualizationData => {
     let factor = (value - min) / (max - min);
     factor = Math.min(1, Math.max(0, factor))
 
     switch(type) {
-        case ATTRIBUTEVISUALIZATION.GRAYSCALE:
+        case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
             return grayscaleVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.OPACITY:
+        case ATTRIBUTE_VISUALIZATION.OPACITY:
             return opacityVisualization(factor, defaultMaterial);
-        case ATTRIBUTEVISUALIZATION.BLUE_RED:
+        case ATTRIBUTE_VISUALIZATION.BLUE_RED:
             return blueRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.BLUE_WHITE_RED:
+        case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
             return blueWhiteRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.GREEN_RED:
+        case ATTRIBUTE_VISUALIZATION.GREEN_RED:
             return greenRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED:
+        case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
             return greenWhiteRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.BLUE_GREEN_RED:
+        case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
             return blueGreenRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
+        case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
             return blueGreenYellowRedPurpleWhiteVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.HSL:
+        case ATTRIBUTE_VISUALIZATION.HSL:
             return hslVisualization(factor);
     }
 }
 
-const stringVisualization = (value: string, values: string[], type: ATTRIBUTEVISUALIZATION, defaultMaterial?: AbstractMaterialData): SDTFAttributeVisualizationData => {
+const stringVisualization = (value: string, values: string[], type: ATTRIBUTE_VISUALIZATION, defaultMaterial?: AbstractMaterialData): SDTFAttributeVisualizationData => {
     let factor = values.indexOf(value) / (values.length - 1);
     factor = Math.min(1, Math.max(0, factor))
     switch(type) {
-        case ATTRIBUTEVISUALIZATION.GRAYSCALE:
+        case ATTRIBUTE_VISUALIZATION.GRAYSCALE:
             return grayscaleVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.OPACITY:
+        case ATTRIBUTE_VISUALIZATION.OPACITY:
             return opacityVisualization(factor, defaultMaterial);
-        case ATTRIBUTEVISUALIZATION.BLUE_RED:
+        case ATTRIBUTE_VISUALIZATION.BLUE_RED:
             return blueRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.BLUE_WHITE_RED:
+        case ATTRIBUTE_VISUALIZATION.BLUE_WHITE_RED:
             return blueWhiteRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.GREEN_RED:
+        case ATTRIBUTE_VISUALIZATION.GREEN_RED:
             return greenRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED:
+        case ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED:
             return greenWhiteRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.BLUE_GREEN_RED:
+        case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_RED:
             return blueGreenRedVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
+        case ATTRIBUTE_VISUALIZATION.BLUE_GREEN_YELLOW_RED_PURPLE_WHITE:
             return blueGreenYellowRedPurpleWhiteVisualization(factor);
-        case ATTRIBUTEVISUALIZATION.HSL:
+        case ATTRIBUTE_VISUALIZATION.HSL:
             return hslVisualization(factor);
     }
 }

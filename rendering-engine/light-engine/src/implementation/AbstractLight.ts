@@ -3,12 +3,12 @@ import { UuidGenerator } from '@shapediver/viewer.shared.services'
 import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { container } from 'tsyringe'
 
-import { ILight, LIGHTTYPE } from '../interface/ILight'
+import { ILight, LIGHT_TYPE } from '../interface/ILight'
 
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
     // #region Properties (6)
 
-    private readonly _type: LIGHTTYPE;
+    private readonly _type: LIGHT_TYPE;
 
     private _color: string;
     private _intensity: number;
@@ -25,7 +25,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     constructor(properties: {
         color: string,
         intensity: number,
-        type: LIGHTTYPE,
+        type: LIGHT_TYPE,
         name?: string,
         order?: number,
         id?: string
@@ -78,7 +78,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
         this.updateVersion();
     }
 
-    public get type(): LIGHTTYPE {
+    public get type(): LIGHT_TYPE {
         return this._type;
     }
 

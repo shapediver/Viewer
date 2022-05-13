@@ -1,15 +1,17 @@
-import { Tree } from './Tree'
-import { ITransformation, TreeNode } from './TreeNode'
 import { ITreeNodeData } from './interfaces/ITreeNodeData'
-import { AbstractTreeNodeData } from './AbstractTreeNodeData'
+import { AbstractTreeNodeData } from './implementation/AbstractTreeNodeData'
 import { ISDObject } from './interfaces/ISDObject'
+import { ITree } from './interfaces/ITree'
+import { Tree } from './implementation/Tree'
+import { ITransformation, ITreeNode } from './interfaces/ITreeNode'
+import { TreeNode } from './implementation/TreeNode'
 
 export {
-    Tree
+    ITree, Tree
 }
 
 export {
-    TreeNode, ITransformation
+    ITreeNode, TreeNode, ITransformation
 }
 
 export {

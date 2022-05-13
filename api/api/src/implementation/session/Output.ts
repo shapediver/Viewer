@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
 
 import { IOutput, ShapeDiverResponseOutput, ShapeDiverResponseOutputContent } from '../../interfaces/session/IOutput'
@@ -50,10 +50,10 @@ export class Output implements IOutput {
       this.#version = outputDef.version;
       this.updateOutputDefinition(outputDef);
 
-      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
+      this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).constructor: Initialized output ${JSON.stringify(outputDef)}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${outputDef.id}).constructor`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${outputDef.id}).constructor`, e);
     }
   }
 
@@ -91,13 +91,13 @@ export class Output implements IOutput {
 
   public set displayname(value: string | undefined) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname: Updating DisplayName to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname`, value, 'string', false);
+      this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).displayname: Updating DisplayName to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).displayname`, value, 'string', false);
       this.#displayname = value;
-      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
+      this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).displayname`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.id}).displayname`, e);
     }
   }
 
@@ -107,13 +107,13 @@ export class Output implements IOutput {
 
   public set freeze(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze: Updating Freeze to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).freeze: Updating Freeze to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).freeze`, value, 'boolean');
       this.#sessionEngine.outputsFreeze[this.#id] = value;
-      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).freeze: Freeze was updated to ${this.freeze}.`);
+      this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).freeze: Freeze was updated to ${this.freeze}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).freeze`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.id}).freeze`, e);
     }
   }
 
@@ -123,13 +123,13 @@ export class Output implements IOutput {
 
   public set hidden(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden: Updating Hidden to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).hidden: Updating Hidden to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).hidden`, value, 'boolean');
       this.#hidden = value;
-      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
+      this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).hidden`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.id}).hidden`, e);
     }
   }
 
@@ -159,13 +159,13 @@ export class Output implements IOutput {
 
   public set order(value: number | undefined) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order: Updating Order to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order`, value, 'number', false);
+      this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).order: Updating Order to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).order`, value, 'number', false);
       this.#order = value;
-      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).order: Order was updated to ${this.order}.`);
+      this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).order: Order was updated to ${this.order}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).order`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.id}).order`, e);
     }
   }
 
@@ -183,13 +183,13 @@ export class Output implements IOutput {
 
   public set tooltip(value: string | undefined) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip: Updating tooltip to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip`, value, 'string', false);
+      this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).tooltip: Updating tooltip to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).tooltip`, value, 'string', false);
       this.#tooltip = value;
-      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+      this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).tooltip`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.id}).tooltip`, e);
     }
   }
 
@@ -203,13 +203,13 @@ export class Output implements IOutput {
 
   public set updateCallback(value: ((newNode: TreeNode, oldNode: TreeNode) => void) | null) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).updateCallback: Updating updateCallback to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).updateCallback`, value, 'function', false);
+      this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).updateCallback: Updating updateCallback to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).updateCallback`, value, 'function', false);
       this.#updateCallback = value;
-      this.#logger.debug(LOGGINGTOPIC.OUTPUT, `Output(${this.#id}).updateCallback: updateCallback was updated to ${this.updateCallback}.`);
+      this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#id}).updateCallback: updateCallback was updated to ${this.updateCallback}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.OUTPUT, `Output(${this.id}).updateCallback`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.id}).updateCallback`, e);
     }
   }
 
@@ -245,7 +245,7 @@ export class Output implements IOutput {
     this.#chunks = outputDef.chunks;
     this.#msg = outputDef.msg;
     if(this.#msg !== undefined)
-      this.#logger.warn(LOGGINGTOPIC.OUTPUT, `Output(${this.id}): ${this.#msg}`);
+      this.#logger.warn(LOGGING_TOPIC.OUTPUT, `Output(${this.id}): ${this.#msg}`);
     this.#bbmin = outputDef.bbmin;
     this.#bbmax = outputDef.bbmax;
     this.#status_computation = outputDef.status_computation;

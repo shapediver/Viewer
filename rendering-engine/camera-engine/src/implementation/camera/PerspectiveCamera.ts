@@ -2,7 +2,7 @@ import {
   Converter,
   DomEventEngine,
   Logger,
-  LOGGINGTOPIC,
+  LOGGING_TOPIC,
   SettingsEngine,
   ShapeDiverViewerCameraError,
   StateEngine,
@@ -14,12 +14,12 @@ import { IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 
-import { CAMERATYPE } from '../../interfaces/ICameraEngine'
+import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCamera } from './AbstractCamera'
 import { PerspectiveCameraControls } from '../controls/PerspectiveCameraControls'
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera'
 
-export class PerspectiveCamera extends AbstractCamera {
+export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCamera {
   // #region Properties (3)
 
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
@@ -37,7 +37,7 @@ export class PerspectiveCamera extends AbstractCamera {
   // #region Constructors (1)
 
   constructor(id: string) {
-    super(id, CAMERATYPE.PERSPECTIVE);
+    super(id, CAMERA_TYPE.PERSPECTIVE);
     this._controls = new PerspectiveCameraControls(this, true);
   }
 
@@ -100,7 +100,7 @@ export class PerspectiveCamera extends AbstractCamera {
     let renderingEngine: IRenderingEngine | undefined = renderingEngines.find(r => r.id === viewerId && r.closed === false);
     if(!renderingEngine) {
       const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with ID ${viewerId} not found.`);
-      throw this._logger.handleError(LOGGINGTOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);
+      throw this._logger.handleError(LOGGING_TOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);
     }
 
     this.assignViewerInternal(viewerId, renderingEngine.canvas);

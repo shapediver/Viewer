@@ -2,13 +2,14 @@ import { Box } from '@shapediver/viewer.shared.math'
 import { mat4, vec2, vec3 } from 'gl-matrix'
 
 import { ICameraControls } from '../controls/ICameraControls'
-import { CAMERATYPE } from '../ICameraEngine'
+import { CAMERA_TYPE } from '../ICameraEngine'
 
 export interface ICamera {
     // #region Properties (13)
 
+    readonly controls: ICameraControls;
     readonly id: string;
-    readonly type: CAMERATYPE;
+    readonly type: CAMERA_TYPE;
 
     autoAdjust: boolean;
     cameraMovementDuration: number;

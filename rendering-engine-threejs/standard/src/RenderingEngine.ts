@@ -4,7 +4,7 @@ import { container } from 'tsyringe'
 import {
   AbstractCamera,
   CameraEngine,
-  CAMERATYPE,
+  CAMERA_TYPE,
   ICameraEngine,
   ORTHOGRAPHIC_CAMERA_DIRECTION,
   OrthographicCamera,
@@ -17,10 +17,10 @@ import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import {
   IRenderingEngine,
-  RENDERERTYPE,
+  RENDERER_TYPE,
   TEXTURE_ENCODING,
   TONE_MAPPING,
-  VISIBILITYMODE,
+  VISIBILITY_MODE,
 } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   Converter,
@@ -29,7 +29,7 @@ import {
   EVENTTYPE,
   IEvent,
   Logger,
-  LOGGINGTOPIC,
+  LOGGING_TOPIC,
   SettingsEngine,
   StateEngine,
 } from '@shapediver/viewer.shared.services'
@@ -99,7 +99,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   private readonly _tree: Tree = <Tree>container.resolve(Tree);
-  private readonly _visibility: VISIBILITYMODE;
+  private readonly _visibility: VISIBILITY_MODE;
 
   // settings
   private _ambientOcclusion: boolean = true;
@@ -114,7 +114,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _clearColor: string = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
-  private _convertSDTFItemToVisualizationData: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
+  private _visualizeAttributes: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
   private _environmentMap: string | string[] = 'none';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
@@ -125,7 +125,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showStatistics: boolean = false;
-  private _type: RENDERERTYPE = RENDERERTYPE.STANDARD;
+  private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
 
   #animations: AnimationData[] = [];
 
@@ -133,7 +133,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Constructors (1)
 
-  constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE, branding: { logo: string | null, backgroundColor: string } }) {
+  constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITY_MODE, branding: { logo: string | null, backgroundColor: string } }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -187,9 +187,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     this._renderingManager.start()
 
-    if (this._visibility === VISIBILITYMODE.INSTANT) this.show = true;
+    if (this._visibility === VISIBILITY_MODE.INSTANT) this.show = true;
 
-    if (this._visibility === VISIBILITYMODE.SESSION) {
+    if (this._visibility === VISIBILITY_MODE.SESSION) {
       this._stateEngine.boundingBoxCreated.then(() => {
         if (this._closed) return;
         // wait for settings to load before showing the scene
@@ -341,12 +341,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.continuousShadowMapUpdate = value;
   }
 
-  public get convertSDTFItemToVisualizationData(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
-    return this._convertSDTFItemToVisualizationData;
+  public get visualizeAttributes(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
+    return this._visualizeAttributes;
   }
 
-  public set convertSDTFItemToVisualizationData(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
-    this._convertSDTFItemToVisualizationData = value;
+  public set visualizeAttributes(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
+    this._visualizeAttributes = value;
   }
 
   public get domEventEngine(): DomEventEngine {
@@ -622,11 +622,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderer.toneMappingExposure = value;
   }
 
-  public get type(): RENDERERTYPE {
+  public get type(): RENDERER_TYPE {
     return this._type;
   }
 
-  public set type(value: RENDERERTYPE) {
+  public set type(value: RENDERER_TYPE) {
     this._type = value;
   }
 
@@ -694,7 +694,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public reset() {
     this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox)
-    if (this._visibility === VISIBILITYMODE.SESSION) this.show = false;
+    if (this._visibility === VISIBILITY_MODE.SESSION) this.show = false;
     this._stateEngine.viewers[this.id].settingsLoaded.reset();
   }
 

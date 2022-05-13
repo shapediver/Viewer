@@ -1,10 +1,11 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix'
 
-import { LIGHTTYPE } from '../../interface/ILight'
+import { LIGHT_TYPE } from '../../interface/ILight'
+import { IHemisphereLight } from '../../interface/types/IHemisphereLight';
 import { AbstractLight } from '../AbstractLight'
 
-export class HemisphereLight extends AbstractLight {
+export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     // #region Properties (1)
 
     private _groundColor: string = '#ffffff';
@@ -24,7 +25,7 @@ export class HemisphereLight extends AbstractLight {
         super({
             color: properties.color || '#ffffff',
             intensity: properties.intensity !== undefined ? properties.intensity : 0.5,
-            type: LIGHTTYPE.HEMISPHERE,
+            type: LIGHT_TYPE.HEMISPHERE,
             name: properties.name,
             order: properties.order,
             id: properties.id

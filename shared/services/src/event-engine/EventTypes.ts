@@ -1,18 +1,18 @@
-export enum CAMERA {
+export enum EVENTTYPE_CAMERA {
     CAMERA_START = "camera.start",
     CAMERA_MOVE = "camera.move",
     CAMERA_END = "camera.end",
 }
 
-export enum RENDERING {
+export enum EVENTTYPE_RENDERING {
     BEAUTY_RENDERING_FINISHED = "rendering.beautyRenderingFinished"
 }
 
-export enum SCENE {
+export enum EVENTTYPE_SCENE {
     SCENE_BOUNDING_BOX_CHANGE = "scene.boundingBoxChange"
 }
 
-export enum VIEWER {
+export enum EVENTTYPE_VIEWER {
     BUSY_MODE_ON = "viewer.busy.on",
     BUSY_MODE_OFF = "viewer.busy.off",
     VIEWER_CREATED = "viewer.created",
@@ -20,25 +20,25 @@ export enum VIEWER {
     VIEWER_CLOSED = "viewer.closed"
 }
 
-export enum SESSION {
+export enum EVENTTYPE_SESSION {
     SESSION_CREATED = "session.created",
     SESSION_CUSTOMIZED = "session.customized",
     SESSION_CLOSED = "session.closed",
     SESSION_INITIAL_OUTPUTS_LOADED = 'session.initialOutputsLoaded'
 }
 
-export enum SETTINGS {
+export enum EVENTTYPE_SETTINGS {
     SETTINGS_UPDATE = "settings.update",
 }
 
-export enum TASK {
+export enum EVENTTYPE_TASK {
     TASK_START = "task.start",
     TASK_PROCESS = "task.process",
     TASK_END = "task.end",
     TASK_CANCEL = "task.cancel",
 }
 
-export enum INTERACTION {
+export enum EVENTTYPE_INTERACTION {
     DRAG_START = "interaction.drag.start",
     DRAG_MOVE = "interaction.drag.move",
     DRAG_END = "interaction.drag.end",
@@ -87,14 +87,14 @@ export enum INTERACTION {
 //     SELECT_OFF
 
 export const EVENTTYPE = { 
-    CAMERA, 
-    RENDERING, 
-    SCENE, 
-    SESSION,
-    SETTINGS,
-    VIEWER,
-    INTERACTION,
-    TASK
+    CAMERA: EVENTTYPE_CAMERA, 
+    RENDERING: EVENTTYPE_RENDERING, 
+    SCENE: EVENTTYPE_SCENE, 
+    SESSION: EVENTTYPE_SESSION,
+    SETTING: EVENTTYPE_SETTINGS,
+    VIEWER: EVENTTYPE_VIEWER,
+    INTERACTION: EVENTTYPE_INTERACTION,
+    TASK: EVENTTYPE_TASK
 };
 
-export type MAINEVENTTYPE = typeof CAMERA | typeof RENDERING | typeof SCENE | typeof SESSION | typeof SETTINGS | typeof VIEWER | typeof INTERACTION | typeof TASK;
+export type MAIN_EVENTTYPE = typeof EVENTTYPE_CAMERA | typeof EVENTTYPE_RENDERING | typeof EVENTTYPE_SCENE | typeof EVENTTYPE_SESSION | typeof EVENTTYPE_SETTINGS | typeof EVENTTYPE_VIEWER | typeof EVENTTYPE_INTERACTION | typeof EVENTTYPE_TASK;

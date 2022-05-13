@@ -4,7 +4,7 @@ import {
   EVENTTYPE,
   IEvent,
   Logger,
-  LOGGINGTOPIC,
+  LOGGING_TOPIC,
   SettingsEngine,
   ShapeDiverViewerCameraError,
   StateEngine,
@@ -17,7 +17,7 @@ import { IOrthographicCameraSettingsV3, IPerspectiveCameraSettingsV3 } from '@sh
 import { ISceneEvent } from '@shapediver/viewer.shared.types'
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
-import { CAMERATYPE, ICameraEngine } from '../interfaces/ICameraEngine'
+import { CAMERA_TYPE, ICameraEngine } from '../interfaces/ICameraEngine'
 import { AbstractCamera, AbstractCamera as Camera } from './camera/AbstractCamera'
 import { OrthographicCameraControls } from './controls/OrthographicCameraControls'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
@@ -103,9 +103,9 @@ export class CameraEngine implements ICameraEngine {
         for(let id in this._settingsEngine.settings.camera.cameras) {
             const cameraSetting = this._settingsEngine.settings.camera.cameras[id];
             if(cameraSetting.type === 'perspective') {
-                this.createCamera(CAMERATYPE.PERSPECTIVE, id);
+                this.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
             } else {
-                const camera = this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
+                const camera = this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, id);
                 (<OrthographicCamera>camera).direction = <ORTHOGRAPHIC_CAMERA_DIRECTION>cameraSetting.type;
             }
         }
@@ -123,7 +123,7 @@ export class CameraEngine implements ICameraEngine {
                 this.assignCamera(this._settingsEngine.settings.camera.cameraId);
             }
         } else {
-            const camera = this.createCamera(CAMERATYPE.PERSPECTIVE, 'standard');
+            const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'standard');
             this.assignCamera(camera.id);
             camera.applySettings();
         }
@@ -137,15 +137,15 @@ export class CameraEngine implements ICameraEngine {
         this._camera = camera;
     }
 
-    public createCamera(type: CAMERATYPE, id?: string): Camera {
+    public createCamera(type: CAMERA_TYPE, id?: string): Camera {
         const cameras = this.cameras;
         const cameraId = id || this._uuidGenerator.create();
         if (cameras[cameraId]) {
             const error = new ShapeDiverViewerCameraError(`CameraEngine.createCamera: Camera (${type}) with this id (${cameraId}) already exists.`);
-            throw this._logger.handleError(LOGGINGTOPIC.CAMERA, `CameraEngine.createCamera`, error, false);
+            throw this._logger.handleError(LOGGING_TOPIC.CAMERA, `CameraEngine.createCamera`, error, false);
         }
         
-        const camera = CAMERATYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId) : new OrthographicCamera(cameraId);
+        const camera = CAMERA_TYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId) : new OrthographicCamera(cameraId);
         camera.assignViewer(this._viewerId);
 
         cameras[cameraId] = camera;
@@ -188,7 +188,7 @@ export class CameraEngine implements ICameraEngine {
 
         const camera = this._camera;
 
-        if (camera.type === CAMERATYPE.PERSPECTIVE) {
+        if (camera.type === CAMERA_TYPE.PERSPECTIVE) {
             const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
             this._settingsEngine.camera.cameras[camera.id] = {
                 autoAdjust: camera.autoAdjust,

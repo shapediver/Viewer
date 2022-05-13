@@ -1,12 +1,13 @@
 import { mat4, vec3 } from 'gl-matrix'
+import { Sphere } from '..';
+import { IBox } from '../interfaces/IBox';
+import { ISphere } from '../interfaces/ISphere';
 
-import { IGeometry } from './IGeometry'
-import { Sphere } from './Sphere'
 
-export class Box implements IGeometry {
+export class Box implements IBox {
     // #region Properties (2)
 
-    private _boundingSphere: Sphere = new Sphere();
+    private _boundingSphere: ISphere = new Sphere();
     private _boundingSphereState: { min: vec3, max: vec3 } = {
         min: vec3.create(), max: vec3.create()
     }
@@ -59,7 +60,7 @@ export class Box implements IGeometry {
     };
 
 
-    public get boundingSphere(): Sphere {
+    public get boundingSphere(): ISphere {
         if (!(this._boundingSphereState.min[0] === this.min[0] && this._boundingSphereState.min[1] === this.min[1] && this._boundingSphereState.min[2] === this.min[2] &&
             this._boundingSphereState.max[0] === this.max[0] && this._boundingSphereState.max[1] === this.max[1] && this._boundingSphereState.max[2] === this.max[2])) {
             this._boundingSphere.setFromBox(this);
@@ -112,7 +113,7 @@ export class Box implements IGeometry {
         return this;
     }
 
-    public clone(): Box {
+    public clone(): IBox {
         return new Box(vec3.clone(this.min), vec3.clone(this.max))
     }
 
@@ -129,7 +130,7 @@ export class Box implements IGeometry {
         return point;
     }
 
-    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array): Box {
+    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array): IBox {
         let minX = Infinity, minY = Infinity, minZ = Infinity;
         let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
@@ -152,7 +153,7 @@ export class Box implements IGeometry {
         return this;
     }
 
-    public union(box: Box): Box {
+    public union(box: IBox): IBox {
         if (box.min[0] < this.min[0]) this.min[0] = box.min[0];
         if (box.min[1] < this.min[1]) this.min[1] = box.min[1];
         if (box.min[2] < this.min[2]) this.min[2] = box.min[2];

@@ -1,6 +1,6 @@
 import { ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
 
@@ -27,7 +27,7 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
             this.#sessionEngine = sessionEngine;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).constructor`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).constructor`, e);
         }
     }
 
@@ -37,7 +37,7 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
     public async upload() {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter with value ${this.value}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter with value ${this.value}.`);
             if (!this.value) return this.defval;
             if (typeof this.value === 'string' && this.value.length === 36 && this.#uuidGenerator.validate(this.value)) return this.value;
             
@@ -53,7 +53,7 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
             if (data.size === 0) {
                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, file size was 0.`);
-                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
+                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
             }
 
             let types = [data.type];
@@ -75,15 +75,15 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
 
             if(!allowedType) {
                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.id}).upload: Error uploading FileParameter, type of data (${data.type}) is not a valid type. Has to be ${this.format}.`);
-                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
+                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).upload`, error);
             }
 
-            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).upload: Uploading FileParameter.`);
 
             return await this.#sessionEngine.uploadFile(this.id, data, type!)
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).upload`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).upload`, e);
         }
     }
 

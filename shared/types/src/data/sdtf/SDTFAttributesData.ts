@@ -1,6 +1,6 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
-export enum PRIMITIVETYPEHINT {
+export enum PRIMITIVE_TYPEHINT {
     DOUBLE = 'double',
     COLOR = 'color',
     STRING = 'string',
@@ -11,7 +11,7 @@ export enum PRIMITIVETYPEHINT {
     INT = 'int',
 }
 
-export enum GEOMETRYTYPEHINT {
+export enum GEOMETRY_TYPEHINT {
     COMPLEX = 'geometry.complex',
     INTERVAL2 = 'geometry.interval2',
     PATH = 'grasshopper.path',
@@ -59,7 +59,7 @@ export class SDTFAttributeData {
     // #region Constructors (1)
 
     constructor(
-        typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string,
+        typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string,
         value: any
     ) {
         this.#typeHint = typeHint;
@@ -70,7 +70,7 @@ export class SDTFAttributeData {
 
     // #region Public Accessors (2)
 
-    public get typeHint(): PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string {
+    public get typeHint(): PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string {
         return this.#typeHint;
     }
 

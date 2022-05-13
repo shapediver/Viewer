@@ -1,6 +1,6 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { Converter, HttpClient, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import {
     MapData,
     MATERIAL_SIDE,
@@ -44,7 +44,7 @@ export class MaterialEngine {
         const node = new TreeNode(content.name || 'material');
         if (!content) {
             const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
         }
 
         const material = new MaterialStandardData();
@@ -67,13 +67,13 @@ export class MaterialEngine {
                         await this.loadMaterialV3(data, material);
                     } else {
                         const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Material data version not supported.');
-                        throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
+                        throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
                     }
                 }
             }
         } else {
             const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: No material data was provided to material engine.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
         }
         return node;
     }
@@ -178,7 +178,7 @@ export class MaterialEngine {
             }
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMap`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadMap`, e);
         }
         return new MapData(image);
     }
@@ -189,7 +189,7 @@ export class MaterialEngine {
             image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!(texture.href!));
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `MaterialEngine.loadMapWithProperties`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadMapWithProperties`, e);
         }
 
         const wrapS = texture.wrapS === 1 ? TEXTURE_WRAPPING.CLAMP_TO_EDGE : texture.wrapS === 2 ? TEXTURE_WRAPPING.MIRRORED_REPEAT : TEXTURE_WRAPPING.REPEAT;

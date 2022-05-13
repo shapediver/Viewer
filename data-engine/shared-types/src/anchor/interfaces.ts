@@ -1,5 +1,5 @@
 
-export enum JUSTIFICATION {
+export enum TAG3D_JUSTIFICATION {
     TOP_LEFT = 'TL',
     TOP_CENTER = 'TC',
     TOP_RIGHT = 'TR',
@@ -15,7 +15,7 @@ export interface ITag3D {
     // #region Properties (6)
 
     color: string,
-    justification: JUSTIFICATION,
+    justification: TAG3D_JUSTIFICATION,
     location: {
         normal: { X: number, Y: number, Z: number },
         yAxis: { X: number, Y: number, Z: number },

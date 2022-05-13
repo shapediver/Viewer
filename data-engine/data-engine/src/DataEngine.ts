@@ -5,7 +5,7 @@ import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { SDTFEngine } from '@shapediver/viewer.data-engine.sdtf-engine'
 import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine'
 import { ITransformation, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { HttpClient, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { HttpClient, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine'
 
 import { mat4 } from 'gl-matrix'
@@ -29,7 +29,7 @@ export class DataEngine {
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         if(!content || (content && !content.format)) {
             const error = new ShapeDiverViewerDataProcessingError('DataEngine cannot load content.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `DataEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `DataEngine.loadContent`, error);
         }
 
         try {
@@ -72,7 +72,7 @@ export class DataEngine {
             return transformationNode;
 
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `DataEngine.loadContent`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `DataEngine.loadContent`, e);
         }
     }
 

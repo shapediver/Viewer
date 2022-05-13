@@ -1,8 +1,8 @@
-import { AbstractTreeNodeData, ITransformation, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { AbstractTreeNodeData, ITransformation, ITreeNode, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { mat4, quat, vec3, vec4 } from 'gl-matrix';
 
-export type AnimationTrack = {
-    node: TreeNode,
+export interface AnimationTrack {
+    node: ITreeNode,
     times: Float32Array | Uint8Array | Uint16Array | Int8Array | Int16Array | Uint32Array | number[];
     values: Float32Array | Uint8Array | Uint16Array | Int8Array | Int16Array | Uint32Array | number[];
     path: 'scale' | 'translation' | 'rotation';

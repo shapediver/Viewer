@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { mat4, vec3 } from 'gl-matrix'
 import {
   AbstractCamera,
-  CAMERATYPE,
+  CAMERA_TYPE,
   OrthographicCamera,
   PerspectiveCamera,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
@@ -85,7 +85,7 @@ export class CameraManager implements IManager {
             const sdCameraData = <SDData>sdCameraNode.children[0];
             cameraThree = <THREE.Camera>sdCameraData.children[0];
         } else {
-            if (this._renderingEngine.cameraEngine.camera!.type === CAMERATYPE.ORTHOGRAPHIC) {
+            if (this._renderingEngine.cameraEngine.camera!.type === CAMERA_TYPE.ORTHOGRAPHIC) {
                 const camera = <OrthographicCamera>this._renderingEngine.cameraEngine.camera!;
                 const distance = vec3.distance(camera.position, camera.target) / 2;
                 this._orthographicCameraThree.up.set(camera.up[0], camera.up[1], camera.up[2]);

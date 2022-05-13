@@ -4,7 +4,7 @@ import { container } from 'tsyringe'
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager.js'
 import { mat4, quat, vec3, vec4 } from 'gl-matrix'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 
 export class AnimationManager implements IManager {
@@ -140,7 +140,7 @@ export class AnimationManager implements IManager {
                                     weights.push(track.values[(k - 1) * weightCount + l] * (1.0 - factor) + (factor) * track.values[(k - 1) * weightCount + l]);
                             }
                             
-                            const applyWeights = (node: TreeNode) => {
+                            const applyWeights = (node: ITreeNode) => {
                                 for(let l = 0; l < node.data.length; l++)
                                     if(node.data[l] instanceof GeometryData && (<GeometryData>node.data[l]).morphWeights.length === weightCount)
                                         (<GeometryData>node.data[l]).morphWeights = weights;

@@ -1,5 +1,5 @@
 module.exports = {
-    entryPoints: ['./api/api/src/index.ts', './shared/node-tree/src/index.ts'],
+    entryPoints: ['./main/default/src/index.ts', './shared/node-tree/src/index.ts'],
     out: 'docs',
     exclude: [
         '**/node_modules/**/*',

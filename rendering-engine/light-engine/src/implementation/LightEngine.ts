@@ -10,7 +10,7 @@ import { SpotLight } from './types/SpotLight'
 import { LightScene } from './LightScene'
 import { AbstractLight } from './AbstractLight'
 import { ILightEngine } from '../interface/ILightEngine'
-import { ILight, LIGHTTYPE } from '../interface/ILight'
+import { ILight, LIGHT_TYPE } from '../interface/ILight'
 import { ILightScene } from '../interface/ILightScene'
 import { IAmbientLightPropertiesV3, IDirectionalLightPropertiesV3, IHemisphereLightPropertiesV3, ILightSceneSettingsV3, IPointLightPropertiesV3, ISpotLightPropertiesV3 } from '@shapediver/viewer.settings'
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -66,7 +66,7 @@ export class LightEngine implements ILightEngine {
                 const light = this._settingsEngine.light.lightScenes[lightSceneId].lights[lightId];
                 let l: AbstractLight;
                 switch (light.type) {
-                    case LIGHTTYPE.DIRECTIONAL:
+                    case LIGHT_TYPE.DIRECTIONAL:
                         l = new DirectionalLight({
                             color: this._converter.toColor((<IDirectionalLightPropertiesV3>light.properties).color), 
                             intensity: (<IDirectionalLightPropertiesV3>light.properties).intensity, 
@@ -77,7 +77,7 @@ export class LightEngine implements ILightEngine {
                             id: lightUUID
                         });
                         break;
-                    case LIGHTTYPE.HEMISPHERE:
+                    case LIGHT_TYPE.HEMISPHERE:
                         l = new HemisphereLight({
                             color: this._converter.toColor((<IHemisphereLightPropertiesV3>light.properties).skyColor), 
                             intensity: (<IHemisphereLightPropertiesV3>light.properties).intensity, 
@@ -87,7 +87,7 @@ export class LightEngine implements ILightEngine {
                             id: lightUUID
                         });
                         break;
-                    case LIGHTTYPE.POINT:
+                    case LIGHT_TYPE.POINT:
                         l = new PointLight({
                             color: this._converter.toColor((<IPointLightPropertiesV3>light.properties).color), 
                             intensity: (<IPointLightPropertiesV3>light.properties).intensity, 
@@ -99,7 +99,7 @@ export class LightEngine implements ILightEngine {
                             id: lightUUID
                         });
                         break;
-                    case LIGHTTYPE.SPOT:
+                    case LIGHT_TYPE.SPOT:
                         l = new SpotLight({
                             color: this._converter.toColor((<ISpotLightPropertiesV3>light.properties).color), 
                             intensity: (<ISpotLightPropertiesV3>light.properties).intensity, 
@@ -114,7 +114,7 @@ export class LightEngine implements ILightEngine {
                             id: lightUUID
                         });
                         break;
-                    case LIGHTTYPE.AMBIENT:
+                    case LIGHT_TYPE.AMBIENT:
                     default:
                         l = new AmbientLight({
                             color: this._converter.toColor((<IAmbientLightPropertiesV3>light.properties).color), 
@@ -239,7 +239,7 @@ export class LightEngine implements ILightEngine {
                 
                 let properties;
                 switch (light.type) {
-                    case LIGHTTYPE.DIRECTIONAL:
+                    case LIGHT_TYPE.DIRECTIONAL:
                         properties = {
                             color: light.color,
                             intensity: light.intensity,
@@ -249,14 +249,14 @@ export class LightEngine implements ILightEngine {
                             shadowMapBias: (<DirectionalLight>light).shadowMapBias
                         }
                         break;
-                    case LIGHTTYPE.HEMISPHERE:
+                    case LIGHT_TYPE.HEMISPHERE:
                         properties = {
                             skyColor: light.color,
                             intensity: light.intensity,
                             groundColor: (<HemisphereLight>light).groundColor
                         }
                         break;
-                    case LIGHTTYPE.POINT:
+                    case LIGHT_TYPE.POINT:
                         properties = {
                             color: light.color,
                             intensity: light.intensity,
@@ -265,7 +265,7 @@ export class LightEngine implements ILightEngine {
                             decay: (<PointLight>light).decay
                         }
                         break;
-                    case LIGHTTYPE.SPOT:
+                    case LIGHT_TYPE.SPOT:
                         properties = {
                             color: light.color,
                             intensity: light.intensity,
@@ -277,7 +277,7 @@ export class LightEngine implements ILightEngine {
                             penumbra: (<SpotLight>light).penumbra
                         }
                         break;
-                    case LIGHTTYPE.AMBIENT:
+                    case LIGHT_TYPE.AMBIENT:
                     default:
                         properties = {
                             color: light.color,

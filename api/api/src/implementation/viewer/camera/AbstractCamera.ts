@@ -1,7 +1,7 @@
-import { CAMERATYPE } from '@shapediver/viewer.rendering-engine.camera-engine'
+import { CAMERA_TYPE } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { container } from 'tsyringe'
 import { vec2, vec3 } from 'gl-matrix'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerCameraError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerCameraError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { Box } from '@shapediver/viewer.shared.math'
 
 import { ICamera } from '../../../interfaces/viewer/camera/ICamera'
@@ -29,10 +29,10 @@ export abstract class AbstractCamera implements ICamera {
         try {
             this.#camera = camera;
             this.#viewer = viewer;
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor: Camera api created.`);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).constructor: Camera api created.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).constructor`, e);
         }
     }
 
@@ -46,14 +46,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set autoAdjust(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust: Updating AutoAdjust to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust`, value, 'boolean');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).autoAdjust: Updating AutoAdjust to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).autoAdjust`, value, 'boolean');
             this.#camera.autoAdjust = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust: autoAdjust was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).autoAdjust: autoAdjust was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).autoAdjust`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).autoAdjust`, e);
         }
     }
 
@@ -63,14 +63,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set cameraMovementDuration(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).cameraMovementDuration: Updating CameraMovementDuration to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).cameraMovementDuration`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).cameraMovementDuration: Updating CameraMovementDuration to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).cameraMovementDuration`, value, 'positive');
             this.#camera.cameraMovementDuration = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).cameraMovementDuration: cameraMovementDuration was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).cameraMovementDuration: cameraMovementDuration was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).cameraMovementDuration`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).cameraMovementDuration`, e);
         }
     }
 
@@ -80,14 +80,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set defaultPosition(value: vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).defaultPosition: Updating DefaultPosition to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).defaultPosition`, value, 'vec3');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).defaultPosition: Updating DefaultPosition to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).defaultPosition`, value, 'vec3');
             this.#camera.defaultPosition = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).defaultPosition: defaultPosition was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).defaultPosition: defaultPosition was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).defaultPosition`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).defaultPosition`, e);
         }
     }
 
@@ -97,14 +97,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set defaultTarget(value: vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).defaultTarget: Updating DefaultTarget to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).defaultTarget`, value, 'vec3');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).defaultTarget: Updating DefaultTarget to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).defaultTarget`, value, 'vec3');
             this.#camera.defaultTarget = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).defaultTarget: defaultTarget was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).defaultTarget: defaultTarget was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).defaultTarget`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).defaultTarget`, e);
         }
     }
 
@@ -114,14 +114,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set enableCameraControls(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).enableCameraControls: Updating EnableCameraControls to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).enableCameraControls`, value, 'boolean');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).enableCameraControls: Updating EnableCameraControls to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).enableCameraControls`, value, 'boolean');
             this.#camera.enableCameraControls = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).enableCameraControls: enableCameraControls was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).enableCameraControls: enableCameraControls was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).enableCameraControls`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).enableCameraControls`, e);
         }
     }
 
@@ -135,14 +135,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set order(value: number | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).order: Updating Order to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).order`, value, 'number', false);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).order: Updating Order to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).order`, value, 'number', false);
             this.#camera.order = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).order: order was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).order: order was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).order`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).order`, e);
         }
     }
 
@@ -152,14 +152,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set position(value: vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).position: Updating Position to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).position`, value, 'vec3');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).position: Updating Position to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).position`, value, 'vec3');
             this.#camera.position = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).position: position was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).position: position was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).position`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).position`, e);
         }
     }
 
@@ -169,14 +169,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set revertAtMouseUp(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUp: Updating RevertAtMouseUp to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUp`, value, 'boolean');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUp: Updating RevertAtMouseUp to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUp`, value, 'boolean');
             this.#camera.revertAtMouseUp = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUp: revertAtMouseUp was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUp: revertAtMouseUp was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUp`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUp`, e);
         }
     }
 
@@ -186,14 +186,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set revertAtMouseUpDuration(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUpDuration: Updating RevertAtMouseUpDuration to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUpDuration`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUpDuration: Updating RevertAtMouseUpDuration to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUpDuration`, value, 'positive');
             this.#camera.revertAtMouseUpDuration = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUpDuration: revertAtMouseUpDuration was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUpDuration: revertAtMouseUpDuration was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUpDuration`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).revertAtMouseUpDuration`, e);
         }
     }
 
@@ -203,18 +203,18 @@ export abstract class AbstractCamera implements ICamera {
 
     public set target(value: vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).target: Updating Target to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).target`, value, 'vec3');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).target: Updating Target to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).target`, value, 'vec3');
             this.#camera.target = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).target: target was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).target: target was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).target`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).target`, e);
         }
     }
 
-    public get type(): CAMERATYPE {
+    public get type(): CAMERA_TYPE {
         return this.#camera.type;
     }
 
@@ -224,14 +224,14 @@ export abstract class AbstractCamera implements ICamera {
 
     public set zoomExtentsFactor(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomExtentsFactor: Updating ZoomExtentsFactor to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomExtentsFactor`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomExtentsFactor: Updating ZoomExtentsFactor to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomExtentsFactor`, value, 'positive');
             this.#camera.zoomExtentsFactor = value;
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomExtentsFactor: zoomExtentsFactor was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomExtentsFactor: zoomExtentsFactor was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomExtentsFactor`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomExtentsFactor`, e);
         }
     }
 
@@ -248,23 +248,23 @@ export abstract class AbstractCamera implements ICamera {
      */
     public animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string; duration?: number; default?: boolean; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate: Animating with path ${path} and options ${JSON.stringify(options)}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate: Animating with path ${path} and options ${JSON.stringify(options)}.`);
             for (let i = 0; i < path.length; i++) {
-                this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].position, 'vec3');
-                this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].target, 'vec3');
+                this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].position, 'vec3');
+                this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, path[i].target, 'vec3');
             }
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, options, 'object', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, options, 'object', false);
             const o = Object.assign({}, options);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.easing, 'string', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.duration, 'number', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.default, 'boolean', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.coordinates, 'string', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, o.interpolation, 'string', false);
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate: Starting camera path animation.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, o.easing, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, o.duration, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, o.default, 'boolean', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, o.coordinates, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, o.interpolation, 'string', false);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate: Starting camera path animation.`);
             return this.#camera.animate(path, o);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).animate`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).animate`, e);
         }
     }
 
@@ -281,13 +281,13 @@ export abstract class AbstractCamera implements ICamera {
      */
     public calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; } {
         try {
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, startingTarget, 'vec3', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, startingPosition, 'vec3', false);
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget: Getting position and target for zoomTarget ${zoomTarget}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, startingTarget, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, startingPosition, 'vec3', false);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget: Getting position and target for zoomTarget ${zoomTarget}.`);
             let target: Box | undefined;
             if (zoomTarget) {
                 if (Array.isArray(zoomTarget)) {
-                    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, zoomTarget, 'stringArray');
+                    this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, zoomTarget, 'stringArray');
                     target = new Box();
                     for(let i = 0; i < zoomTarget.length; i++) {
                         const node = this.#tree.getNodeAtPath(zoomTarget[i]);
@@ -297,23 +297,23 @@ export abstract class AbstractCamera implements ICamera {
                     target = zoomTarget.clone();
                 } else {
                     const error = new ShapeDiverViewerCameraError(`Camera(${this.id}).getZoomPositionAndTarget: No valid zoom target supplied.`);
-                    throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, error);
+                    throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, error);
                 }
             }
             return this.#camera.calculateZoomTo(target, startingPosition, startingTarget);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).getZoomPositionAndTarget`, e);
         }
     }
 
     public project(p: vec3): vec2 {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).project: Projecting point ${p}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).project: Projecting point ${p}.`);
             return this.#camera.project(p);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).project`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).project`, e);
         }
     }
 
@@ -325,18 +325,18 @@ export abstract class AbstractCamera implements ICamera {
      */
     public reset(options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting with options ${JSON.stringify(options)}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, options, 'object', false);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).reset: Resetting with options ${JSON.stringify(options)}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).reset`, options, 'object', false);
             const o = Object.assign({}, options);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.easing, 'string', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.duration, 'number', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.coordinates, 'string', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, o.interpolation, 'string', false);
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset: Resetting position and target.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).reset`, o.easing, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).reset`, o.duration, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).reset`, o.coordinates, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).reset`, o.interpolation, 'string', false);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).reset: Resetting position and target.`);
             return this.#camera.reset(o);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).reset`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).reset`, e);
         }
     }
 
@@ -348,30 +348,30 @@ export abstract class AbstractCamera implements ICamera {
      */
     public set(position: vec3, target: vec3, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting to position ${position} and target ${target} with options ${JSON.stringify(options)}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, position, 'vec3');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, target, 'vec3');
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, options, 'object', false);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set: Setting to position ${position} and target ${target} with options ${JSON.stringify(options)}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set`, position, 'vec3');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set`, target, 'vec3');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set`, options, 'object', false);
             const o = Object.assign({}, options);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.easing, 'string', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.duration, 'number', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.coordinates, 'string', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, o.interpolation, 'string', false);
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set: Setting position to ${position} and target to ${target}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set`, o.easing, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set`, o.duration, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set`, o.coordinates, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set`, o.interpolation, 'string', false);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set: Setting position to ${position} and target to ${target}.`);
             return this.#camera.set(vec3.fromValues(position[0], position[1], position[2]), vec3.fromValues(target[0], target[1], target[2]), o);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).set`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).set`, e);
         }
     }
 
     public unproject(p: vec3): vec3 {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).unproject: Unprojecting point ${p}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).unproject: Unprojecting point ${p}.`);
             return this.#camera.unproject(p);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).unproject`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).unproject`, e);
         }
     }
 
@@ -384,11 +384,11 @@ export abstract class AbstractCamera implements ICamera {
      */
     public zoomTo(zoomTarget?: string[] | Box, options?: { easing?: string; duration?: number; coordinates?: string; interpolation?: string; }): Promise<boolean> {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming to ${zoomTarget} with options ${JSON.stringify(options)}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming to ${zoomTarget} with options ${JSON.stringify(options)}.`);
             let target: Box | undefined;
             if (zoomTarget) {
                 if (Array.isArray(zoomTarget)) {
-                    this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, zoomTarget, 'stringArray');
+                    this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo`, zoomTarget, 'stringArray');
                     target = new Box();
                     for(let i = 0; i < zoomTarget.length; i++) {
                         const node = this.#tree.getNodeAtPath(zoomTarget[i]);
@@ -398,20 +398,20 @@ export abstract class AbstractCamera implements ICamera {
                     target = zoomTarget.clone();
                 } else {
                     const error = new ShapeDiverViewerCameraError(`Camera(${this.id}).zoomTo: No valid zoom target supplied.`);
-                    throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, error);
+                    throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo`, error);
                 }
             }
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, options, 'object', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo`, options, 'object', false);
             const o = Object.assign({}, options);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.easing, 'string', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.duration, 'number', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.coordinates, 'string', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.interpolation, 'string', false);
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming in.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.easing, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.duration, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.coordinates, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo`, o.interpolation, 'string', false);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo: Zooming in.`);
             return this.#camera.zoomTo(target, o);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).zoomTo`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).zoomTo`, e);
         }
     }
 

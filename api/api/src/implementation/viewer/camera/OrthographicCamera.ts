@@ -3,7 +3,7 @@ import {
   OrthographicCamera as OrthographicCameraLogic,
   OrthographicCameraControls as OrthographicCameraControlsLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
@@ -38,7 +38,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
             this.#controls = new OrthographicCameraControls(<OrthographicCameraControlsLogic>camera.controls, viewer);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).constructor`, e);
         }
     }
 
@@ -56,15 +56,15 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
     public set direction(value: ORTHOGRAPHIC_CAMERA_DIRECTION) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction: Updating Direction to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction`, value, 'enum', true, Object.values(ORTHOGRAPHIC_CAMERA_DIRECTION));
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).direction: Updating Direction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).direction`, value, 'enum', true, Object.values(ORTHOGRAPHIC_CAMERA_DIRECTION));
             this.#camera.direction = value;
             this.#camera.zoomTo(undefined, { duration: 0 });
             this.#viewer.update();
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction: direction was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).direction: direction was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).direction`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).direction`, e);
         }
     }
 

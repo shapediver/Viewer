@@ -1,10 +1,11 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix'
 
-import { LIGHTTYPE } from '../../interface/ILight'
+import { LIGHT_TYPE } from '../../interface/ILight'
+import { IPointLight } from '../../interface/types/IPointLight';
 import { AbstractLight } from '../AbstractLight'
 
-export class PointLight extends AbstractLight {
+export class PointLight extends AbstractLight implements IPointLight {
   // #region Properties (3)
 
   private _decay: number = 2;
@@ -28,7 +29,7 @@ export class PointLight extends AbstractLight {
     super({
       color: properties.color || '#ffffff',
       intensity: properties.intensity !== undefined ? properties.intensity : 0.5,
-      type: LIGHTTYPE.POINT,
+      type: LIGHT_TYPE.POINT,
       name: properties.name,
       order: properties.order,
       id: properties.id

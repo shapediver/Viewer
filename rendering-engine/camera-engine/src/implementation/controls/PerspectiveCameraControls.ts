@@ -3,7 +3,7 @@ import { SettingsEngine, StateEngine, Converter } from '@shapediver/viewer.share
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
-import { CAMERATYPE, ICamera } from '../..'
+import { CAMERA_TYPE, ICamera } from '../..'
 import { IPerspectiveCameraControls } from '../../interfaces/controls/IPerspectiveCameraControls'
 import { AbstractCameraControls } from './AbstractCameraControls'
 import {
@@ -42,7 +42,7 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
     // #region Constructors (1)
 
     constructor(camera: ICamera, enabled: boolean) {
-        super(camera, enabled, CAMERATYPE.PERSPECTIVE);
+        super(camera, enabled, CAMERA_TYPE.PERSPECTIVE);
         this._cameraLogic = new OrbitCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
     }

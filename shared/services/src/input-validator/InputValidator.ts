@@ -1,6 +1,6 @@
 import { container, singleton } from 'tsyringe'
 import DOMPurify from 'dompurify';
-import { Logger, LOGGINGTOPIC } from '../logger/Logger'
+import { Logger, LOGGING_TOPIC } from '../logger/Logger'
 import { ShapeDiverViewerValidationError } from '../logger/ShapeDiverViewerErrors';
 import { TypeChecker } from '../type-check/TypeChecker'
 
@@ -15,12 +15,12 @@ export class InputValidator {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _typeChecker: TypeChecker = <TypeChecker>container.resolve(TypeChecker);
 
-    public validateAndError(topic: LOGGINGTOPIC, scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
+    public validateAndError(topic: LOGGING_TOPIC, scope: string, value: any, type: Types, defined: boolean = true, enumValues: string[] = []) {
         const res = this.validate(value, type, defined, enumValues);
         if(res) return;
 
         const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${value} is not of type ${type}.${defined === false ? ' (Can also be undefined)' : ''}`, value, type);
-        throw this._logger.handleError(LOGGINGTOPIC.GENERAL, 'InputValidator.validateAndError', error, false);
+        throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'InputValidator.validateAndError', error, false);
     }
 
     private validate(value: any, stringLiteral: Types, defined: boolean = true, enumValues: string[] = []): boolean {

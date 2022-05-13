@@ -1,6 +1,6 @@
-import { IEvent, LOGGINGLEVEL, MAINEVENTTYPE } from '@shapediver/viewer.shared.services'
+import { IEvent, LOGGING_LEVEL, MAIN_EVENTTYPE } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
-import { RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERER_TYPE, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ISession } from './session/ISession'
@@ -20,7 +20,7 @@ export interface IApi {
   globalRotation: vec3;
   globalScale: vec3;
   globalTranslation: vec3;
-  loggingLevel: LOGGINGLEVEL;
+  loggingLevel: LOGGING_LEVEL;
   showMessages: boolean;
 
   // #endregion Properties (11)
@@ -34,7 +34,7 @@ export interface IApi {
    * @param cb the callback
    * @returns 
    */
-  addListener(type: string | MAINEVENTTYPE, cb: (event: IEvent) => void): string;
+  addListener(type: string | MAIN_EVENTTYPE, cb: (event: IEvent) => void): string;
   /**
    * Update all or some settings of the primary session and the viewers via a ShapeDiverResponseBase of another model.
    * 
@@ -117,7 +117,7 @@ export interface IApi {
    * @param properties.branding.backgroundColor optional background color while the viewer is hidden, can include alpha channel (our default will be used if none is provided)
    * @returns 
    */
-  createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string } }): Promise<IViewer>;
+  createViewer(properties?: { visibility?: VISIBILITY_MODE, canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string } }): Promise<IViewer>;
   /**
    * Removes an event listener.
    * 

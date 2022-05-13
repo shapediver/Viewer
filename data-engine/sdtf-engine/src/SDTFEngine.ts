@@ -1,8 +1,8 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { HttpClient, Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { HttpClient, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { ISDTF } from '@shapediver/viewer.data-engine.shared-types'
-import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributeOverview, SDTFAttributesData, SDTFItemData } from '@shapediver/viewer.shared.types'
+import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT, SDTFAttributeData, SDTFAttributeOverview, SDTFAttributesData, SDTFItemData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @singleton()
@@ -37,7 +37,7 @@ export class SDTFEngine {
 
         if (!content || (content && !content.href)) {
             const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid content was provided to geometry engine.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         let axiosResponse;
@@ -46,12 +46,12 @@ export class SDTFEngine {
                 responseType: 'arraybuffer'
             });
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, e);
         }
 
         if (!(axiosResponse.headers['content-type'] && axiosResponse.headers['content-type'] === 'model/vnd.sdtf')) {
             const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Non-binary SDTF encoding not implemented.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         let arrayBuffer: ArrayBuffer;
@@ -66,19 +66,19 @@ export class SDTFEngine {
         const magic = String.fromCharCode(headerDataView.getUint8(0)) + String.fromCharCode(headerDataView.getUint8(1)) + String.fromCharCode(headerDataView.getUint8(2)) + String.fromCharCode(headerDataView.getUint8(3));
         if (magic !== 'sdtf') {
             const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid data: sdtf magic wrong.');
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         } 
         const version = headerDataView.getUint32(4, true);
         if (version !== 1) {
             const error = new ShapeDiverViewerDataProcessingError(`SDTFEngine.loadContent: Invalid version: sdtf loader does not support version ${version}.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         } 
         const totalLength = headerDataView.getUint32(8, true);
         const contentLength = headerDataView.getUint32(12, true);
         const contentFormat = headerDataView.getUint32(16, true);
         if (contentFormat !== 0) {
             const error = new ShapeDiverViewerDataProcessingError(`SDTFEngine.loadContent: Content format is not Json (0), content invalid.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         }
 
         this._content = <ISDTF>JSON.parse(new TextDecoder().decode(new DataView(arrayBuffer, this.BINARY_EXTENSION_HEADER_LENGTH, contentLength)));
@@ -89,7 +89,7 @@ export class SDTFEngine {
         try {
             const overview: {
                 [key: string]: {
-                    typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
+                    typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string;
                     count: number;
                     values?: string[];
                     min?: number;
@@ -107,14 +107,14 @@ export class SDTFEngine {
                     if (overview[key] && existingEntries.length > 0) {
                         const entry = existingEntries[0];
                         entry.count++;
-                        if (dataTypehint === PRIMITIVETYPEHINT.STRING) {
+                        if (dataTypehint === PRIMITIVE_TYPEHINT.STRING) {
                             if (!entry.values?.includes(dataToCopy.value))
                                 entry.values?.push(dataToCopy.value)
                         }
-                        if (dataTypehint === PRIMITIVETYPEHINT.DOUBLE ||
-                            dataTypehint === PRIMITIVETYPEHINT.FLOAT ||
-                            dataTypehint === PRIMITIVETYPEHINT.DECIMAL ||
-                            dataTypehint === PRIMITIVETYPEHINT.INT) {
+                        if (dataTypehint === PRIMITIVE_TYPEHINT.DOUBLE ||
+                            dataTypehint === PRIMITIVE_TYPEHINT.FLOAT ||
+                            dataTypehint === PRIMITIVE_TYPEHINT.DECIMAL ||
+                            dataTypehint === PRIMITIVE_TYPEHINT.INT) {
                             entry.min = Math.min(<number>dataToCopy.value, entry.min!);
                             entry.max = Math.max(<number>dataToCopy.value, entry.max!);
                         }
@@ -130,13 +130,13 @@ export class SDTFEngine {
                                 count: 1,
                             }]
                         }
-                        if (dataTypehint === PRIMITIVETYPEHINT.STRING) {
+                        if (dataTypehint === PRIMITIVE_TYPEHINT.STRING) {
                             overview[key][overview[key].length - 1].values = [dataToCopy.value];
                         }
-                        if (dataTypehint === PRIMITIVETYPEHINT.DOUBLE ||
-                            dataTypehint === PRIMITIVETYPEHINT.FLOAT ||
-                            dataTypehint === PRIMITIVETYPEHINT.DECIMAL ||
-                            dataTypehint === PRIMITIVETYPEHINT.INT) {
+                        if (dataTypehint === PRIMITIVE_TYPEHINT.DOUBLE ||
+                            dataTypehint === PRIMITIVE_TYPEHINT.FLOAT ||
+                            dataTypehint === PRIMITIVE_TYPEHINT.DECIMAL ||
+                            dataTypehint === PRIMITIVE_TYPEHINT.INT) {
                             overview[key][overview[key].length - 1].min = <number>dataToCopy.value;
                             overview[key][overview[key].length - 1].max = <number>dataToCopy.value;
                         }
@@ -150,7 +150,7 @@ export class SDTFEngine {
             }
             return node;
         } catch (e) {            
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `SDTFEngine.load`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.load`, e);
         }
     }
 

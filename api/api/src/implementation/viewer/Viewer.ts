@@ -1,14 +1,14 @@
 import { RenderingEngine as RenderingEngineThreejs } from '@shapediver/viewer.rendering-engine-threejs.standard'
 import {
-  CAMERATYPE,
+  CAMERA_TYPE,
   OrthographicCamera as OrthographicCameraLogic,
   PerspectiveCamera as PerspectiveCameraLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
 import {
-  RENDERERTYPE,
+  RENDERER_TYPE,
   TEXTURE_ENCODING,
   TONE_MAPPING,
-  VISIBILITYMODE,
+  VISIBILITY_MODE,
 } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   Converter,
@@ -18,7 +18,7 @@ import {
   IDomEventListener,
   InputValidator,
   Logger,
-  LOGGINGTOPIC,
+  LOGGING_TOPIC,
   PerformanceEvaluator,
   ShapeDiverBackendError,
   ShapeDiverViewerError,
@@ -77,20 +77,20 @@ export class Viewer implements IViewer {
    * @param type 
    * @param canvas 
    */
-  constructor(properties: { id: string, canvas?: HTMLCanvasElement, visibility: VISIBILITYMODE, branding: { logo: string | null, backgroundColor: string } }) {
+  constructor(properties: { id: string, canvas?: HTMLCanvasElement, visibility: VISIBILITY_MODE, branding: { logo: string | null, backgroundColor: string } }) {
     try {
       this.#renderingEngine = new RenderingEngineThreejs(properties);
       container.registerInstance('renderingEngine', this.#renderingEngine);
 
       if (!this.camera)
-        this.createCamera(CAMERATYPE.PERSPECTIVE);
+        this.createCamera(CAMERA_TYPE.PERSPECTIVE);
 
       this.update();
 
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer created.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${properties.id}).constructor: Viewer created.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${properties.id}).constructor`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${properties.id}).constructor`, e);
     }
   }
 
@@ -104,14 +104,14 @@ export class Viewer implements IViewer {
 
   public set ambientOcclusion(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: Updating AmbientOcclusion to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: Updating AmbientOcclusion to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion`, value, 'boolean');
       this.#renderingEngine.ambientOcclusion = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: ambientOcclusion was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion: ambientOcclusion was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusion`, e);
     }
   }
 
@@ -121,14 +121,14 @@ export class Viewer implements IViewer {
 
   public set ambientOcclusionIntensity(value: number) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity: Updating ambientOcclusionIntensity to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity`, value, 'factor');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity: Updating ambientOcclusionIntensity to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity`, value, 'factor');
       this.#renderingEngine.ambientOcclusionIntensity = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity: ambientOcclusionIntensity was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity: ambientOcclusionIntensity was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).ambientOcclusionIntensity`, e);
     }
   }
 
@@ -142,14 +142,14 @@ export class Viewer implements IViewer {
 
   public set automaticResizing(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: Updating AutomaticResizing to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: Updating AutomaticResizing to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).automaticResizing`, value, 'boolean');
       this.#renderingEngine.automaticResizing = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: automaticResizing was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).automaticResizing: automaticResizing was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).automaticResizing`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).automaticResizing`, e);
     }
   }
 
@@ -159,14 +159,14 @@ export class Viewer implements IViewer {
 
   public set beautyRenderBlendingDuration(value: number) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: Updating RenderBlendingDuration to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration`, value, 'positive');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: Updating RenderBlendingDuration to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration`, value, 'positive');
       this.#renderingEngine.beautyRenderBlendingDuration = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration: beautyRenderBlendingDuration was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).beautyRenderBlendingDuration`, e);
     }
   }
 
@@ -176,14 +176,14 @@ export class Viewer implements IViewer {
 
   public set beautyRenderDelay(value: number) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: Updating BeautyRenderDelay to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay`, value, 'positive');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: Updating BeautyRenderDelay to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay`, value, 'positive');
       this.#renderingEngine.beautyRenderDelay = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: beautyRenderDelay was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay: beautyRenderDelay was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).beautyRenderDelay`, e);
     }
   }
 
@@ -193,14 +193,14 @@ export class Viewer implements IViewer {
 
   public set blur(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: Updating Blur to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).blur: Updating Blur to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).blur`, value, 'boolean');
       this.#renderingEngine.blur = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: blur was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).blur: blur was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).blur`, e);
     }
   }
 
@@ -210,14 +210,14 @@ export class Viewer implements IViewer {
 
   public set blurSceneWhenBusy(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, value, 'boolean');
       this.#renderingEngine.blurSceneWhenBusy = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, e);
     }
   }
 
@@ -231,7 +231,7 @@ export class Viewer implements IViewer {
     // add new cameras
     for (let c in this.#renderingEngine.cameraEngine.cameras) {
       if (!this.#cameras[c])
-        this.#cameras[c] = this.#renderingEngine.cameraEngine.cameras[c].type === CAMERATYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this) : new PerspectiveCamera(<PerspectiveCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this);
+        this.#cameras[c] = this.#renderingEngine.cameraEngine.cameras[c].type === CAMERA_TYPE.ORTHOGRAPHIC ? new OrthographicCamera(<OrthographicCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this) : new PerspectiveCamera(<PerspectiveCameraLogic>this.#renderingEngine.cameraEngine.cameras[c], this);
     }
 
     // delete cameras that don't exist
@@ -252,14 +252,14 @@ export class Viewer implements IViewer {
 
   public set clearAlpha(value: number) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: Updating ClearAlpha to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha`, value, 'factor');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: Updating ClearAlpha to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).clearAlpha`, value, 'factor');
       this.#renderingEngine.clearAlpha = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: clearAlpha was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).clearAlpha: clearAlpha was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearAlpha`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).clearAlpha`, e);
     }
   }
 
@@ -269,14 +269,14 @@ export class Viewer implements IViewer {
 
   public set clearColor(value: string | number | vec3) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor: Updating ClearColor to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor`, value, 'color');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).clearColor: Updating ClearColor to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).clearColor`, value, 'color');
       this.#renderingEngine.clearColor = this.#converter.toColor(value);
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor: clearColor was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).clearColor: clearColor was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).clearColor`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).clearColor`, e);
     }
   }
 
@@ -284,12 +284,12 @@ export class Viewer implements IViewer {
     return this.#renderingEngine.closed;
   }
 
-  public get convertSDTFItemToVisualizationData(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
-    return this.#renderingEngine.convertSDTFItemToVisualizationData;
+  public get visualizeAttributes(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
+    return this.#renderingEngine.visualizeAttributes;
   }
 
-  public set convertSDTFItemToVisualizationData(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
-    this.#renderingEngine.convertSDTFItemToVisualizationData = value;
+  public set visualizeAttributes(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
+    this.#renderingEngine.visualizeAttributes = value;
   }
   
   public get domEventEngine(): DomEventEngine {
@@ -302,18 +302,18 @@ export class Viewer implements IViewer {
 
   public set environmentMap(value: string | string[]) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: Updating EnvironmentMap to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, value, 'cubeMap');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMap: Updating EnvironmentMap to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, value, 'cubeMap');
 
       this.#stateEngine.viewers[this.id].environmentMapLoaded.then(() => {
-        this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
+        this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMap: environmentMap was set to: ${value}`);
         this.update();
       })
 
       this.#renderingEngine.environmentMap = value;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMap`, e);
     }
   }
 
@@ -323,14 +323,14 @@ export class Viewer implements IViewer {
 
   public set environmentMapAsBackground(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground: Updating EnvironmentMapAsBackground to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground: Updating EnvironmentMapAsBackground to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground`, value, 'boolean');
       this.#renderingEngine.environmentMapAsBackground = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground: environmentMapAsBackground was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground: environmentMapAsBackground was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMapAsBackground`, e);
     }
   }
 
@@ -340,14 +340,14 @@ export class Viewer implements IViewer {
 
   public set environmentMapResolution(value: string) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: Updating EnvironmentMapResolution to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution`, value, 'string');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: Updating EnvironmentMapResolution to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution`, value, 'string');
       this.#renderingEngine.environmentMapResolution = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: environmentMapResolution was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution: environmentMapResolution was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).environmentMapResolution`, e);
     }
   }
 
@@ -357,14 +357,14 @@ export class Viewer implements IViewer {
 
   public set gridColor(value: string | number | vec3) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridColor: Updating GridColor to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridColor`, value, 'color');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).gridColor: Updating GridColor to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).gridColor`, value, 'color');
       this.#renderingEngine.gridColor = this.#converter.toColor(value);
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridColor: gridColor was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).gridColor: gridColor was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridColor: Something unexpected happened.`, e)
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).gridColor: Something unexpected happened.`, e)
     }
   }
 
@@ -374,14 +374,14 @@ export class Viewer implements IViewer {
 
   public set gridVisibility(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: Updating GridVisibility to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: Updating GridVisibility to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).gridVisibility`, value, 'boolean');
       this.#renderingEngine.gridVisibility = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: gridVisibility was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).gridVisibility: gridVisibility was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).gridVisibility`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).gridVisibility`, e);
     }
   }
 
@@ -391,14 +391,14 @@ export class Viewer implements IViewer {
 
   public set groundPlaneColor(value: string | number | vec3) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: Updating groundPlaneColor to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor`, value, 'color');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: Updating groundPlaneColor to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor`, value, 'color');
       this.#renderingEngine.groundPlaneColor = this.#converter.toColor(value);
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: groundPlaneColor was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: groundPlaneColor was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: Something unexpected happened.`, e)
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).groundPlaneColor: Something unexpected happened.`, e)
     }
   }
 
@@ -408,14 +408,14 @@ export class Viewer implements IViewer {
 
   public set groundPlaneVisibility(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: Updating GroundPlaneVisibility to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: Updating GroundPlaneVisibility to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility`, value, 'boolean');
       this.#renderingEngine.groundPlaneVisibility = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility: groundPlaneVisibility was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).groundPlaneVisibility`, e);
     }
   }
 
@@ -438,15 +438,15 @@ export class Viewer implements IViewer {
 
   public set lightSceneId(value: string) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene: Updating LightScene to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene`, value, 'string');
+      this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).lightScene: Updating LightScene to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).lightScene`, value, 'string');
       if (this.assignLightScene(value)) {
-        this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).lightScene: lightScene was set to: ${value}`);
+        this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).lightScene: lightScene was set to: ${value}`);
       }
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).lightScene`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).lightScene`, e);
     }
   }
 
@@ -471,15 +471,15 @@ export class Viewer implements IViewer {
 
   public set outputEncoding(value: TEXTURE_ENCODING) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: Updating outputEncoding to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: Updating outputEncoding to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).outputEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
       this.#renderingEngine.outputEncoding = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: outputEncoding was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: outputEncoding was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: Something unexpected happened.`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).outputEncoding: Something unexpected happened.`, e);
     }
   }
 
@@ -489,14 +489,14 @@ export class Viewer implements IViewer {
 
   public set physicallyCorrectLights(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights: Updating physicallyCorrectLights to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights: Updating physicallyCorrectLights to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights`, value, 'boolean');
       this.#renderingEngine.physicallyCorrectLights = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights: physicallyCorrectLights was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights: physicallyCorrectLights was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).physicallyCorrectLights`, e);
     }
   }
 
@@ -506,14 +506,14 @@ export class Viewer implements IViewer {
 
   public set pointSize(value: number) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: Updating PointSize to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize`, value, 'positive');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).pointSize: Updating PointSize to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).pointSize`, value, 'positive');
       this.#renderingEngine.pointSize = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: pointSize was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).pointSize: pointSize was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).pointSize: Something unexpected happened.`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).pointSize: Something unexpected happened.`, e);
     }
   }
 
@@ -523,14 +523,14 @@ export class Viewer implements IViewer {
 
   public set shadows(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows: Updating Shadows to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).shadows: Updating Shadows to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).shadows`, value, 'boolean');
       this.#renderingEngine.shadows = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows: shadows was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).shadows: shadows was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).shadows`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).shadows`, e);
     }
   }
 
@@ -540,14 +540,14 @@ export class Viewer implements IViewer {
 
   public set show(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show: Updating Show to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).show: Updating Show to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).show`, value, 'boolean');
       this.#renderingEngine.show = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show: show was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).show: show was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).show`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).show`, e);
     }
   }
 
@@ -557,14 +557,14 @@ export class Viewer implements IViewer {
 
   public set showStatistics(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics: Updating ShowStatistics to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).showStatistics: Updating ShowStatistics to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).showStatistics`, value, 'boolean');
       this.#renderingEngine.showStatistics = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics: showStatistics was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).showStatistics: showStatistics was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).showStatistics`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).showStatistics`, e);
     }
   }
 
@@ -574,15 +574,15 @@ export class Viewer implements IViewer {
 
   public set textureEncoding(value: TEXTURE_ENCODING) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: Updating textureEncoding to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: Updating textureEncoding to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).textureEncoding`, value, 'enum', true, Object.values(TEXTURE_ENCODING));
       this.#renderingEngine.textureEncoding = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: textureEncoding was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: textureEncoding was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: Something unexpected happened.`, e)
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).textureEncoding: Something unexpected happened.`, e)
     }
   }
 
@@ -592,15 +592,15 @@ export class Viewer implements IViewer {
 
   public set toneMapping(value: TONE_MAPPING) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping: Updating toneMapping to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping`, value, 'enum', true, Object.values(TONE_MAPPING));
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).toneMapping: Updating toneMapping to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).toneMapping`, value, 'enum', true, Object.values(TONE_MAPPING));
       this.#renderingEngine.toneMapping = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping: toneMapping was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).toneMapping: toneMapping was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMapping: Something unexpected happened.`, e)
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).toneMapping: Something unexpected happened.`, e)
     }
   }
 
@@ -610,32 +610,32 @@ export class Viewer implements IViewer {
 
   public set toneMappingExposure(value: number) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: Updating toneMappingExposure to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure`, value, 'positive');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: Updating toneMappingExposure to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure`, value, 'positive');
       this.#renderingEngine.toneMappingExposure = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: toneMappingExposure was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: toneMappingExposure was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: Something unexpected happened.`, e)
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).toneMappingExposure: Something unexpected happened.`, e)
     }
   }
 
-  public get type(): RENDERERTYPE {
+  public get type(): RENDERER_TYPE {
     return this.#renderingEngine.type;
   }
 
-  public set type(value: RENDERERTYPE) {
+  public set type(value: RENDERER_TYPE) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type: Updating Type to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type`, value, 'enum', true, Object.values(RENDERERTYPE));
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).type: Updating Type to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).type`, value, 'enum', true, Object.values(RENDERER_TYPE));
       this.#renderingEngine.type = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type: type was set to: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).type: type was set to: ${value}`);
       this.#sceneTree.root.updateVersion();
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).type`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).type`, e);
     }
   }
 
@@ -652,11 +652,11 @@ export class Viewer implements IViewer {
 
   public addCanvasEventListener(listener: IDomEventListener): string {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener: Adding new canvas event listener.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener: Adding new canvas event listener.`);
       return this.#renderingEngine.domEventEngine.addDomEventListener(listener);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).addCanvasEventListener`, e);
     }
   }
 
@@ -680,36 +680,36 @@ export class Viewer implements IViewer {
 
   public assignCamera(id: string): void {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Assigning Camera with id ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera`, id, 'string');
+      this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Assigning Camera with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).assignCamera`, id, 'string');
       this.#renderingEngine.cameraEngine.assignCamera(id);
-      this.#logger.debug(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Camera with id ${id} assigned.`);
+      this.#logger.debug(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).assignCamera: Camera with id ${id} assigned.`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).assignCamera`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).assignCamera`, e);
     }
   }
 
   public assignLightScene(id: string): boolean {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigning LightScene with id ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene`, id, 'string');
+      this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigning LightScene with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).assignLightScene`, id, 'string');
       if (this.lightScene && this.lightScene.id === id) {
-        this.#logger.warn(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: The light scene with id ${id} was already assigned.`);
+        this.#logger.warn(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: The light scene with id ${id} was already assigned.`);
         return true;
       }
       const r = this.#renderingEngine.lightEngine.assignLightScene(id);
-      if (r) this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigned light scene with id ${id}.`);
+      if (r) this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).assignLightScene: Assigned light scene with id ${id}.`);
       if (!r) {
         const error = new ShapeDiverViewerLightError(`Viewer(${this.id}).assignLightScene: Could not assign light scene.`);
-        throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).assignLightScene`, error);
+        throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).assignLightScene`, error);
       }
       this.update();
       return r;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).assignLightScene`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).assignLightScene`, e);
     }
   }
 
@@ -717,71 +717,71 @@ export class Viewer implements IViewer {
     const closeResult = await this.#renderingEngine.close();
     this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, { viewerId: this.id });
 
-    if (!closeResult) this.#logger.warn(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}): Was not able to close viewer completely, please disregard this viewer.`);
+    if (!closeResult) this.#logger.warn(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}): Was not able to close viewer completely, please disregard this viewer.`);
     return closeResult;
   }
 
-  public createCamera(type: CAMERATYPE, id?: string): ICamera {
+  public createCamera(type: CAMERA_TYPE, id?: string): ICamera {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: Creating Camera with id ${id} and type ${type}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, type, 'enum', true, Object.values(CAMERATYPE));
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera`, id, 'string', false);
+      this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createCamera: Creating Camera with id ${id} and type ${type}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createCamera`, type, 'enum', true, Object.values(CAMERA_TYPE));
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createCamera`, id, 'string', false);
       const cameraLogic = this.#renderingEngine.cameraEngine.createCamera(type, id);
-      this.#logger.debug(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createCamera: ${cameraLogic.type === CAMERATYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
+      this.#logger.debug(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createCamera: ${cameraLogic.type === CAMERA_TYPE.ORTHOGRAPHIC ? 'Orthographic' : 'Perspective'} camera with id ${id} created.`);
       this.assignCamera(cameraLogic.id);
       return this.cameras[cameraLogic.id];
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).createCamera`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).createCamera`, e);
     }
   }
 
   public createLightScene(properties?: { name?: string, standard?: boolean }): ILightScene {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: Creating LightScene with properties ${properties}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, properties, 'object', false);
+      this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).createLightScene: Creating LightScene with properties ${properties}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, properties, 'object', false);
       const props = Object.assign({}, properties);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.name, 'string', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.standard, 'boolean', false);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.name, 'string', false);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).createLightScene`, props.standard, 'boolean', false);
       const lightSceneLogic = this.#renderingEngine.lightEngine.createLightScene(props);
-      this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).createLightScene: New light scene with id ${lightSceneLogic.id} created.`);
+      this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).createLightScene: New light scene with id ${lightSceneLogic.id} created.`);
       if (!this.lightScene || (this.lightScene && lightSceneLogic.id !== this.lightScene.id)) this.assignLightScene(lightSceneLogic.id);
       this.update();
       return this.lightScenes[lightSceneLogic.id];
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).createLightScene`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).createLightScene`, e);
     }
   }
 
   public createOrthographicCamera(id?: string): IOrthographicCamera {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Creating OrthographicCamera with id ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera`, id, 'string', false);
-      this.#logger.debug(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Orthographic camera with id ${id} created.`);
-      return <IOrthographicCamera>this.createCamera(CAMERATYPE.ORTHOGRAPHIC, id);
+      this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Creating OrthographicCamera with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera`, id, 'string', false);
+      this.#logger.debug(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createOrthographicCamera: Orthographic camera with id ${id} created.`);
+      return <IOrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, id);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).createOrthographicCamera`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).createOrthographicCamera`, e);
     }
   }
 
   public createPerspectiveCamera(id?: string): IPerspectiveCamera {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Creating PerspectiveCamera with id ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera`, id, 'string', false);
-      this.#logger.debug(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Perspective camera with id ${id} created.`);
-      return <IPerspectiveCamera>this.createCamera(CAMERATYPE.PERSPECTIVE, id);
+      this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Creating PerspectiveCamera with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera`, id, 'string', false);
+      this.#logger.debug(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).createPerspectiveCamera: Perspective camera with id ${id} created.`);
+      return <IPerspectiveCamera>this.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).createPerspectiveCamera`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).createPerspectiveCamera`, e);
     }
   }
 
   public deregisterBusyMode(value: string): boolean {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Deregistering busy mode for id ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, value, 'string');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Deregistering busy mode for id ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, value, 'string');
 
       if (!this.#busyModeIDs.includes(value)) return false;
       this.#busyModeIDs.splice(this.#busyModeIDs.indexOf(value), 1);
@@ -790,12 +790,12 @@ export class Viewer implements IViewer {
         this.#renderingEngine.busy = false;
         this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_OFF, { viewerId: this.id });
       }
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Busy mode was deregistered for id: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Busy mode was deregistered for id: ${value}`);
       this.update();
       return true;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, e);
     }
   }
 
@@ -810,21 +810,21 @@ export class Viewer implements IViewer {
 
   public getScreenshot(type?: string, quality?: number): string {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: Getting getScreenshot with type ${type} and quality ${quality}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, type, 'string', false);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, quality, 'factor', false);
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: screenshot was requested`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: Getting getScreenshot with type ${type} and quality ${quality}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, type, 'string', false);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, quality, 'factor', false);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).getScreenshot: screenshot was requested`);
       return this.#renderingEngine.getScreenshot(type, quality);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).getScreenshot`, e);
     }
   }
 
   public registerBusyMode(value: string): boolean {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Registering busy mode for id ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, value, 'string');
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Registering busy mode for id ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, value, 'string');
 
       if (this.#busyModeIDs.includes(value)) return false;
       this.#busyModeIDs.push(value);
@@ -832,27 +832,27 @@ export class Viewer implements IViewer {
       this.#renderingEngine.busy = true;
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_ON, { viewerId: this.id });
 
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Busy mode was registered for id: ${value}`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Busy mode was registered for id: ${value}`);
       this.update();
       return true;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, e);
     }
   }
 
   public removeCamera(id: string): boolean {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Removing Camera with id ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera`, id, 'string');
+      this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Removing Camera with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).removeCamera`, id, 'string');
       const r = this.#renderingEngine.cameraEngine.removeCamera(id);
-      if (r) this.#logger.debug(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Camera with id ${id} removed.`);
-      if (!r) this.#logger.debug(LOGGINGTOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Could not remove camera with id ${id}.`);
+      if (r) this.#logger.debug(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Camera with id ${id} removed.`);
+      if (!r) this.#logger.debug(LOGGING_TOPIC.CAMERA, `Viewer(${this.id}).removeCamera: Could not remove camera with id ${id}.`);
       this.update();
       return r;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCamera`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).removeCamera`, e);
     }
   }
 
@@ -866,11 +866,11 @@ export class Viewer implements IViewer {
 
   public removeCanvasEventListener(token: string): boolean {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener: Removing canvas event listener.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener: Removing canvas event listener.`);
       return this.#renderingEngine.domEventEngine.removeDomEventListener(token);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).removeCanvasEventListener`, e);
     }
   }
 
@@ -884,16 +884,16 @@ export class Viewer implements IViewer {
 
   public removeLightScene(id: string): boolean {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Removing LightScene with id ${id}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene`, id, 'string');
+      this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Removing LightScene with id ${id}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).removeLightScene`, id, 'string');
       const r = this.#renderingEngine.lightEngine.removeLightScene(id);
-      if (r) this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Light scene with id ${id} removed.`);
-      if (!r) this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Could not remove light scene with id ${id}.`);
+      if (r) this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Light scene with id ${id} removed.`);
+      if (!r) this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).removeLightScene: Could not remove light scene with id ${id}.`);
       this.update();
       return r;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).removeLightScene`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).removeLightScene`, e);
     }
   }
 
@@ -907,62 +907,62 @@ export class Viewer implements IViewer {
 
   public render(): void {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).render: Rendering Viewer.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).render: Rendering Viewer.`);
       this.#renderingEngine.renderingManager.render();
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).render`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).render`, e);
     }
   }
 
   public reset(): void {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).reset: Resetting Viewer.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).reset: Resetting Viewer.`);
       this.#renderingEngine.reset();
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).reset`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).reset`, e);
     }
   }
 
   public resize(width: number, height: number): void {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resizing Viewer to ${width} / ${height}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, width, 'number');
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, height, 'number');
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize: Resized Viewer to ${width} / ${height}.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).resize: Resizing Viewer to ${width} / ${height}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).resize`, width, 'number');
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).resize`, height, 'number');
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).resize: Resized Viewer to ${width} / ${height}.`);
       this.#renderingEngine.resize(width, height);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).resize`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).resize`, e);
     }
   }
 
   public update(): void {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updating Viewer.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).update: Updating Viewer.`);
       if (!this.#renderingEngine) return;
       this.#renderingEngine.update();
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update: Updated viewer.`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).update: Updated viewer.`);
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_UPDATED, { viewerId: this.id });
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).update`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).update`, e);
     }
   }
 
   public updateNode(node: TreeNode): void {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updating Node.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updating Node.`);
       if (!this.#renderingEngine) return;
       this.#renderingEngine.sceneTreeManager.updateNode(node, node.transformedNodes[this.id]);
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updated Node.`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).updateNode: Updated Node.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).updateNode`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).updateNode`, e);
     }
   }
 

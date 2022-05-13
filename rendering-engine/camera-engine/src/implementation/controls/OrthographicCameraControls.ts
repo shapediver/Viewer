@@ -2,7 +2,7 @@ import { IOrthographicControlsSettingsV3 } from '@shapediver/viewer.settings'
 import { SettingsEngine, StateEngine } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
-import { CAMERATYPE, ICamera } from '../..'
+import { CAMERA_TYPE, ICamera } from '../..'
 import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls'
 import { AbstractCameraControls } from './AbstractCameraControls'
 import {
@@ -31,7 +31,7 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     // #region Constructors (1)
 
     constructor(camera: ICamera, enabled: boolean) {
-        super(camera, enabled, CAMERATYPE.ORTHOGRAPHIC);
+        super(camera, enabled, CAMERA_TYPE.ORTHOGRAPHIC);
         this._cameraLogic = new OrthographicCameraControlsLogic(this);
         this._cameraControlsEventDistribution = new OrthographicCameraControlsEventDistribution(this, <OrthographicCameraControlsLogic>this._cameraLogic);
     }

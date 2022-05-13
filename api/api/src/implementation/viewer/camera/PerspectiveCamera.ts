@@ -2,7 +2,7 @@ import {
   PerspectiveCamera as PerspectiveCameraLogic,
   PerspectiveCameraControls as PerspectiveCameraControlsLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { IPerspectiveCameraControls } from '../../../interfaces/viewer/camera/controls/IPerspectiveCameraControls'
@@ -36,7 +36,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
             this.#controls = new PerspectiveCameraControls(<PerspectiveCameraControlsLogic>camera.controls, viewer);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).constructor`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).constructor`, e);
         }
     }
 
@@ -54,14 +54,14 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
     public set fov(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov: Updating Fov to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).fov: Updating Fov to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).fov`, value, 'positive');
             this.#camera.fov = value;
             this.#viewer.update();
-            this.#logger.debug(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov: fov was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).fov: fov was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.CAMERA, `Camera(${this.id}).fov`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `Camera(${this.id}).fov`, e);
         }
     }
 

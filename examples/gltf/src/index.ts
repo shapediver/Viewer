@@ -29,7 +29,7 @@ let promise: Promise<void>;
     promise = new Promise<void>(resolve => {
         api.addListener(SDV.EVENTTYPE.TASK.TASK_END, (e) => {
             const taskEvent = e as SDV.ITaskEvent;
-            if(taskEvent.type === SDV.TASKTYPE.ENVIRONMENT_MAP_LOADING)
+            if(taskEvent.type === SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING)
             resolve();
         });
     })

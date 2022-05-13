@@ -14,7 +14,7 @@ import { AbstractTreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-t
 
 import { ICameraControls } from '../../interfaces/controls/ICameraControls'
 import { ICamera } from '../../interfaces/camera/ICamera'
-import { CAMERATYPE } from '../../interfaces/ICameraEngine'
+import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCameraControls } from '../controls/AbstractCameraControls'
 
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
@@ -48,7 +48,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Constructors (1)
 
-    constructor(private readonly _id: string, private readonly _type: CAMERATYPE) {
+    constructor(private readonly _id: string, private readonly _type: CAMERA_TYPE) {
         super(_id);
     }
 
@@ -182,7 +182,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this._controls.target = value;
     }
 
-    public get type(): CAMERATYPE {
+    public get type(): CAMERA_TYPE {
         return this._type;
     }
 

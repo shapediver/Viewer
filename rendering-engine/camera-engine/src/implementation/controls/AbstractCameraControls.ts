@@ -2,7 +2,7 @@ import { mat4, vec3 } from 'gl-matrix'
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
-import { CAMERATYPE } from '../../interfaces/ICameraEngine'
+import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
 import { ICamera } from '../../interfaces/camera/ICamera'
 import { ICameraControlsUsage } from '../../interfaces/controls/ICameraControlsUsage'
 import { CameraInterpolationManager } from '../interpolation/CameraInterpolationManager'
@@ -54,7 +54,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     constructor(
         private _camera: ICamera,
         private _enabled: boolean,
-        type: CAMERATYPE
+        type: CAMERA_TYPE
     ) {
         this._cameraInterpolationManager = new CameraInterpolationManager(this._camera, this);
         this._manualInteractionTransformations = { position: [], target: [] };

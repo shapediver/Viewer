@@ -1,9 +1,8 @@
 import { mat4, vec3 } from 'gl-matrix'
+import { IBox } from '../interfaces/IBox';
+import { ISphere } from '../interfaces/ISphere';
 
-import { Box } from './Box'
-import { IGeometry } from './IGeometry'
-
-export class Sphere implements IGeometry {
+export class Sphere implements ISphere {
     // #region Constructors (1)
 
     constructor(
@@ -45,7 +44,7 @@ export class Sphere implements IGeometry {
         return this;
     }
 
-    public clone(): Sphere {
+    public clone(): ISphere {
         return new Sphere(vec3.clone(this._center), this._radius);
     }
 
@@ -57,7 +56,7 @@ export class Sphere implements IGeometry {
         return point;
     }
 
-    public setFromBox(box: Box): Sphere {
+    public setFromBox(box: IBox): ISphere {
         vec3.add(this.center, box.min, box.max);
         vec3.scale(this.center, this.center, 0.5);
         this.radius = vec3.dist(box.min, box.max) * 0.5;

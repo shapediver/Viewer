@@ -1,8 +1,5 @@
-import { IPerspectiveCameraControls } from '../controls/IPerspectiveCameraControls'
 import { ICamera } from './ICamera'
 
-export interface IPerspectiveCamera extends ICamera {
-    readonly controls: IPerspectiveCameraControls;
-    
+export interface IPerspectiveCamera extends ICamera {  
     fov: number;
 }

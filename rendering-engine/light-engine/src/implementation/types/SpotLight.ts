@@ -1,10 +1,11 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix'
 
-import { LIGHTTYPE } from '../../interface/ILight'
+import { LIGHT_TYPE } from '../../interface/ILight'
+import { ISpotLight } from '../../interface/types/ISpotLight';
 import { AbstractLight } from '../AbstractLight'
 
-export class SpotLight extends AbstractLight {
+export class SpotLight extends AbstractLight implements ISpotLight {
   // #region Properties (6)
 
   private _angle: number = Math.PI / 4.0;
@@ -34,7 +35,7 @@ export class SpotLight extends AbstractLight {
     super({
       color: properties.color || '#ffffff',
       intensity: properties.intensity !== undefined ? properties.intensity : 0.5,
-      type: LIGHTTYPE.SPOT,
+      type: LIGHT_TYPE.SPOT,
       name: properties.name,
       order: properties.order,
       id: properties.id

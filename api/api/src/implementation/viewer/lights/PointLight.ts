@@ -1,6 +1,6 @@
 import { PointLight as PointLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { AbstractLight } from './AbstractLight'
@@ -39,14 +39,14 @@ export class PointLight extends AbstractLight implements IPointLight {
 
     public set decay(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: Updating Decay to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).decay: Updating Decay to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).decay`, value, 'positive');
             this.#light.decay = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: decay was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).decay: decay was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).decay`, e);
         }
     }
 
@@ -56,14 +56,14 @@ export class PointLight extends AbstractLight implements IPointLight {
 
     public set distance(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: Updating Distance to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).distance: Updating Distance to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).distance`, value, 'positive');
             this.#light.distance = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: distance was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).distance: distance was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).distance`, e);
         }
     }
 
@@ -73,14 +73,14 @@ export class PointLight extends AbstractLight implements IPointLight {
 
     public set position(value: vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: Updating Position to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position`, value, 'vec3');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).position: Updating Position to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).position`, value, 'vec3');
             this.#light.position = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: position was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).position: position was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).position`, e);
         }
     }
 

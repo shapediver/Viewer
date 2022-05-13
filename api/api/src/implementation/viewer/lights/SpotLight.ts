@@ -1,6 +1,6 @@
 import { SpotLight as SpotLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { AbstractLight } from './AbstractLight'
@@ -39,13 +39,13 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
     public set angle(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle: Updating Angle to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).angle: Updating Angle to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).angle`, value, 'positive');
             this.#light.angle = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle: angle was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).angle: angle was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).angle`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).angle`, e);
         }
     }
 
@@ -55,14 +55,14 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
     public set decay(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: Updating Decay to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).decay: Updating Decay to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).decay`, value, 'positive');
             this.#light.decay = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay: decay was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).decay: decay was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).decay`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).decay`, e);
         }
     }
 
@@ -72,14 +72,14 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
     public set distance(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: Updating Distance to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).distance: Updating Distance to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).distance`, value, 'positive');
             this.#light.distance = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance: distance was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).distance: distance was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).distance`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).distance`, e);
         }
     }
 
@@ -89,14 +89,14 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
     public set penumbra(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra: Updating Penumbra to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).penumbra: Updating Penumbra to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).penumbra`, value, 'positive');
             this.#light.penumbra = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra: penumbra was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).penumbra: penumbra was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).penumbra`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).penumbra`, e);
         }
     }
 
@@ -106,14 +106,14 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
     public set position(value: vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: Updating Position to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position`, value, 'vec3');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).position: Updating Position to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).position`, value, 'vec3');
             this.#light.position = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position: position was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).position: position was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).position`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).position`, e);
         }
     }
 
@@ -123,14 +123,14 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
     public set target(value: vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target: Updating Target to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target`, value, 'vec3');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).target: Updating Target to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).target`, value, 'vec3');
             this.#light.target = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target: target was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).target: target was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).target`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).target`, e);
         }
     }
 

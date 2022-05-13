@@ -1,5 +1,5 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData } from './SDTFAttributesData';
+import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT, SDTFAttributeData } from './SDTFAttributesData';
 
 export class SDTFItemData extends AbstractTreeNodeData {
     // #region Properties (3)
@@ -16,7 +16,7 @@ export class SDTFItemData extends AbstractTreeNodeData {
     // #region Constructors (1)
 
     constructor(
-        typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string,
+        typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string,
         value: any,
         attributes: {
             [key: string]: SDTFAttributeData
@@ -39,7 +39,7 @@ export class SDTFItemData extends AbstractTreeNodeData {
         return this.#attributes;
     }
 
-    public get typeHint(): PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string {
+    public get typeHint(): PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string {
         return this.#typeHint;
     }
 

@@ -2,11 +2,11 @@ import * as THREE from 'three'
 import {
     AbstractMaterialData,
   AnimationData,
-  ATTRIBUTEVISUALIZATION,
+  ATTRIBUTE_VISUALIZATION,
   GeometryData,
   HTMLElementAnchorData,
   MaterialStandardData,
-  PRIMITIVETYPEHINT,
+  PRIMITIVE_TYPEHINT,
   SDTFAttributeOverview,
   SDTFAttributeVisualization,
   SDTFAttributeVisualizationData,
@@ -21,7 +21,7 @@ import {
   EVENTTYPE,
   InputValidator,
   Logger,
-  LOGGINGTOPIC,
+  LOGGING_TOPIC,
   ShapeDiverBackendError,
   ShapeDiverViewerError,
   StateEngine,
@@ -29,7 +29,7 @@ import {
 import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, quat, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { SDNode } from '../types/SDNode'
 import { ThreejsData } from '../types/ThreejsData'
@@ -114,7 +114,7 @@ export class SceneTreeManager implements IManager {
 
         obj.add(dataChild);
 
-        if(this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES)
+        if(this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES)
             this.injectAttributeData(node, data);
 
         switch (true) {
@@ -435,17 +435,17 @@ export class SceneTreeManager implements IManager {
             matrix: mat4.create()
         };
 
-        if(this._renderingEngine.convertSDTFItemToVisualizationData) {
-            const userVisData = this._renderingEngine.convertSDTFItemToVisualizationData(this._currentSDTFOverview, itemData);
+        if(this._renderingEngine.visualizeAttributes) {
+            const userVisData = this._renderingEngine.visualizeAttributes(this._currentSDTFOverview, itemData);
             try {
-                this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData, 'object', true);
-                this._inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData`, userVisData.matrix, 'mat4', true)
+                this._inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer.visualizeAttributes`, userVisData, 'object', true);
+                this._inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer.visualizeAttributes`, userVisData.matrix, 'mat4', true)
                 visData.material = userVisData.material;
                 visData.matrix = visData.matrix;
             } catch(e) {
                 if(e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError)
                     throw e;
-                throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer.convertSDTFItemToVisualizationData: Encountered an error while parsing the visualization data.`, e); 
+                throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer.visualizeAttributes: Encountered an error while parsing the visualization data.`, e); 
             }
         }
 

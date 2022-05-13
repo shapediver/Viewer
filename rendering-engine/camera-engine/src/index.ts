@@ -2,7 +2,7 @@ import { ICameraControls } from './interfaces/controls/ICameraControls'
 import { AbstractCamera } from './implementation/camera/AbstractCamera'
 import { CameraEngine } from './implementation/CameraEngine'
 import { ICamera } from './interfaces/camera/ICamera'
-import { CAMERATYPE, ICameraEngine } from './interfaces/ICameraEngine'
+import { CAMERA_TYPE, ICameraEngine } from './interfaces/ICameraEngine'
 import { OrthographicCamera } from './implementation/camera/OrthographicCamera'
 import { PerspectiveCamera } from './implementation/camera/PerspectiveCamera'
 import { OrthographicCameraControls } from './implementation/controls/OrthographicCameraControls'
@@ -17,7 +17,7 @@ export {
 }
 
 export {
-  CameraEngine, AbstractCamera, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION
+  CameraEngine, AbstractCamera, CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION
 }
 
 export { 

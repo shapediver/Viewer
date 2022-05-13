@@ -1,10 +1,10 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { vec3 } from 'gl-matrix'
 
-import { LIGHTTYPE } from '../../interface/ILight'
+import { LIGHT_TYPE } from '../../interface/ILight'
+import { IAmbientLight } from '../../interface/types/IAmbientLight';
 import { AbstractLight } from '../AbstractLight'
 
-export class AmbientLight extends AbstractLight {
+export class AmbientLight extends AbstractLight implements IAmbientLight {
     // #region Constructors (1)
 
     constructor(properties: {
@@ -17,7 +17,7 @@ export class AmbientLight extends AbstractLight {
         super({
             color: properties.color || '#ffffff', 
             intensity: properties.intensity !== undefined ? properties.intensity : 0.5, 
-            type: LIGHTTYPE.AMBIENT,
+            type: LIGHT_TYPE.AMBIENT,
             name: properties.name,
             order: properties.order,
             id: properties.id

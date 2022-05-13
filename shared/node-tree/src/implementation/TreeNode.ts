@@ -1,21 +1,13 @@
 import { mat4 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services'
-import { Box } from '@shapediver/viewer.shared.math'
+import { IBox, Box } from '@shapediver/viewer.shared.math'
 
-import { ITreeNodeData } from './interfaces/ITreeNodeData'
-import { ISDObject } from './interfaces/ISDObject'
+import { ITransformation, ITreeNode } from '../interfaces/ITreeNode'
+import { ITreeNodeData } from '../interfaces/ITreeNodeData'
+import { ISDObject } from '../interfaces/ISDObject'
 
-export interface ITransformation {
-  // #region Properties (3)
-
-  id: string,
-  matrix: mat4
-
-  // #endregion Properties (3)
-}
-
-export class TreeNode {
+export class TreeNode implements ITreeNode {
   // #region Properties (10)
 
   readonly #children: TreeNode[] = [];
@@ -24,7 +16,7 @@ export class TreeNode {
   readonly #name: string = '';
   readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
-  #boundingBox: Box = new Box();
+  #boundingBox: IBox = new Box();
   #id: string;
   #parent: TreeNode | null = null;
   #transformations: ITransformation[] = [];
@@ -77,11 +69,11 @@ export class TreeNode {
     this.#bone = value;
   }
 
-  public get boundingBox(): Box {
+  public get boundingBox(): IBox {
     return this.#boundingBox;
   }
 
-  public set boundingBox(value: Box) {
+  public set boundingBox(value: IBox) {
     this.#boundingBox = value;
   }
 

@@ -1,11 +1,11 @@
 import * as THREE from 'three'
-import { Logger, LOGGINGTOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGING_TOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
 import { RGBELoader } from '../three/loaders/RGBELoader';
 import { ILoader } from '../interfaces/ILoader'
-import { ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
+import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
 
 export enum ENVIRONMENT_MAP_CUBE {
     DEFAULT = 'default', 
@@ -122,10 +122,10 @@ export class EnvironmentMapLoader implements ILoader {
 
         let event: ITaskEvent;
         if(failed) {
-            event = { type: TASKTYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loading of EnvironmentMap failed` };
+            event = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loading of EnvironmentMap failed` };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
         } else {
-            event = { type: TASKTYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loaded EnvironmentMap` };
+            event = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loaded EnvironmentMap` };
             this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded.resolve(true);
             this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded = new StatePromise();
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event);
@@ -134,7 +134,7 @@ export class EnvironmentMapLoader implements ILoader {
 
     public async load(name: string | string[]): Promise<boolean> {
         const eventId = this._uuidGenerator.create();
-        const event: ITaskEvent = { type: TASKTYPE.ENVIRONMENT_MAP_LOADING, id: eventId, data: { input: name }, progress: 0, status: `Loading EnvironmentMap` };
+        const event: ITaskEvent = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, data: { input: name }, progress: 0, status: `Loading EnvironmentMap` };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
         
         const name_original = name;
@@ -151,7 +151,7 @@ export class EnvironmentMapLoader implements ILoader {
             try { name = JSON.parse(name); } catch (e) {
                 this.notify(eventId, true);
                 const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map.', name);
-                throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
+                throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
             }
 
         // deal with string or array, define names for loading and caching
@@ -162,7 +162,7 @@ export class EnvironmentMapLoader implements ILoader {
             if (name.length !== 6) {
                 this.notify(eventId, true);
                 const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.', name);
-                throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
+                throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
             }
             name_internal = JSON.stringify(name, null, 0);
             name_caching = name_internal;
@@ -209,7 +209,7 @@ export class EnvironmentMapLoader implements ILoader {
                 else {
                     this.notify(eventId, true);
                     const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.', name);
-                    throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
+                    throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
                 }
             } else {
                 url = name;
@@ -220,7 +220,7 @@ export class EnvironmentMapLoader implements ILoader {
         }
         catch (e) {
             this.notify(eventId, true);
-            throw this._logger.handleError(LOGGINGTOPIC.VIEWER, `EnvironmentMapLoader.load`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `EnvironmentMapLoader.load`, e);
         }
     }
 

@@ -3,14 +3,14 @@ import {
   LightScene as LightSceneLogicImplementation,
 } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
-import { Converter, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { Converter, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
   AmbientLight as AmbientLightLogic,
   DirectionalLight as DirectionalLightLogic,
   HemisphereLight as HemisphereLightLogic,
-  LIGHTTYPE,
+  LIGHT_TYPE,
   PointLight as PointLightLogic,
   SpotLight as SpotLightLogic,
 } from '@shapediver/viewer.rendering-engine.light-engine'
@@ -50,7 +50,7 @@ export class LightScene implements ILightScene {
     constructor(lightSceneLogic: LightSceneLogic, viewer: IViewer) {
         this.#lightSceneLogic = lightSceneLogic;
         this.#viewer = viewer;
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).constructor: LightScene api created.`);
+        this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `LightScene(${this.id}).constructor: LightScene api created.`);
     }
 
     // #endregion Constructors (1)
@@ -66,19 +66,19 @@ export class LightScene implements ILightScene {
         for (let l in lightLogics) {
             if (this.#lights[l]) continue;
             switch (lightLogics[l].type) {
-                case LIGHTTYPE.AMBIENT:
+                case LIGHT_TYPE.AMBIENT:
                     this.#lights[l] = new AmbientLight(<AmbientLightLogic>lightLogics[l], this.#viewer);
                     break;
-                case LIGHTTYPE.DIRECTIONAL:
+                case LIGHT_TYPE.DIRECTIONAL:
                     this.#lights[l] = new DirectionalLight(<DirectionalLightLogic>lightLogics[l], this.#viewer);
                     break;
-                case LIGHTTYPE.HEMISPHERE:
+                case LIGHT_TYPE.HEMISPHERE:
                     this.#lights[l] = new HemisphereLight(<HemisphereLightLogic>lightLogics[l], this.#viewer);
                     break;
-                case LIGHTTYPE.POINT:
+                case LIGHT_TYPE.POINT:
                     this.#lights[l] = new PointLight(<PointLightLogic>lightLogics[l], this.#viewer);
                     break;
-                case LIGHTTYPE.SPOT:
+                case LIGHT_TYPE.SPOT:
                     this.#lights[l] = new SpotLight(<SpotLightLogic>lightLogics[l], this.#viewer);
                     break;
             }
@@ -97,14 +97,14 @@ export class LightScene implements ILightScene {
 
     public set name(value: string | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name: Updating Name to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name`, value, 'string', false);
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `LightScene(${this.id}).name: Updating Name to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightScene(${this.id}).name`, value, 'string', false);
             this.#lightSceneLogic.name = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `LightScene(${this.id}).name: name was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `LightScene(${this.id}).name: name was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).name`, e);
         }
     }
 
@@ -126,21 +126,21 @@ export class LightScene implements ILightScene {
      */
     public addAmbientLight(properties: { color?: string | number | vec3, intensity?: number, name?: string }): IAmbientLight {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Adding light with properties ${properties}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, properties, 'object', false);
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Adding light with properties ${properties}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, properties, 'object', false);
             const props = Object.assign({}, properties);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.color, 'color', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.intensity, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.name, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.intensity, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight`, props.name, 'string', false);
             if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
             const lightLogic = this.#lightSceneLogic.addAmbientLight(<any>props);
             const light = this.lights[lightLogic.id];
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Ambient light with id ${light.id} created.`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addAmbientLight: Ambient light with id ${light.id} created.`);
             this.#viewer.update();
             return <IAmbientLight>light;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addAmbientLight`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).addAmbientLight`, e);
         }
     }
 
@@ -158,25 +158,25 @@ export class LightScene implements ILightScene {
      */
     public addDirectionalLight(properties: { color?: string | number | vec3, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, name?: string }): IDirectionalLight {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Adding light with properties ${properties}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, properties, 'object', false);
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Adding light with properties ${properties}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, properties, 'object', false);
             const props = Object.assign({}, properties);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.color, 'color', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.intensity, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.direction, 'vec3', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.castShadow, 'boolean', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapResolution, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapBias, 'number', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.name, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.intensity, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.direction, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.castShadow, 'boolean', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapResolution, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.shadowMapBias, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight`, props.name, 'string', false);
             if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
             const lightLogic = this.#lightSceneLogic.addDirectionalLight(<any>props);
             const light = this.lights[lightLogic.id];
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Directional light with id ${light.id} created.`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addDirectionalLight: Directional light with id ${light.id} created.`);
             this.#viewer.update();
             return <IDirectionalLight>light;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addDirectionalLight`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).addDirectionalLight`, e);
         }
     }
 
@@ -191,23 +191,23 @@ export class LightScene implements ILightScene {
      */
     public addHemisphereLight(properties: { color?: string | number | vec3, intensity?: number, groundColor?: string | number | vec3, name?: string }): IHemisphereLight {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Adding light with properties ${properties}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, properties, 'object', false);
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Adding light with properties ${properties}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, properties, 'object', false);
             const props = Object.assign({}, properties);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.color, 'color', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.groundColor, 'color', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.intensity, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.name, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.groundColor, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.intensity, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight`, props.name, 'string', false);
             if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
             if (props.groundColor !== undefined) props.groundColor = this.#converter.toColor(props.groundColor);
             const lightLogic = this.#lightSceneLogic.addHemisphereLight(<any>props);
             const light = this.lights[lightLogic.id];
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Hemisphere light with id ${light.id} created.`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addHemisphereLight: Hemisphere light with id ${light.id} created.`);
             this.#viewer.update();
             return <IHemisphereLight>light;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addHemisphereLight`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).addHemisphereLight`, e);
         }
     }
 
@@ -224,24 +224,24 @@ export class LightScene implements ILightScene {
      */
     public addPointLight(properties: { color?: string | number | vec3, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string }): IPointLight {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Adding light with properties ${properties}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, properties, 'object', false);
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Adding light with properties ${properties}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, properties, 'object', false);
             const props = Object.assign({}, properties);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.color, 'color', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.intensity, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.position, 'vec3', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.distance, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.decay, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.name, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.intensity, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.position, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.distance, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.decay, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight`, props.name, 'string', false);
             if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
             const lightLogic = this.#lightSceneLogic.addPointLight(<any>props);
             const light = this.lights[lightLogic.id];
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Point light with id ${light.id} created.`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addPointLight: Point light with id ${light.id} created.`);
             this.#viewer.update();
             return <IPointLight>light;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addPointLight`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).addPointLight`, e);
         }
     }
 
@@ -261,29 +261,29 @@ export class LightScene implements ILightScene {
      */
     public addSpotLight(properties?: { color?: string | number | vec3, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string }): ISpotLight {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Adding light with properties ${properties}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, properties, 'object', false);
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Adding light with properties ${properties}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, properties, 'object', false);
             const props = Object.assign({}, properties);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.color, 'color', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.intensity, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.position, 'vec3', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.target, 'vec3', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.distance, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.decay, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.angle, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.penumbra, 'positive', false);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.name, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.intensity, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.position, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.target, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.distance, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.decay, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.angle, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.penumbra, 'positive', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight`, props.name, 'string', false);
             if (props.color !== undefined) props.color = this.#converter.toColor(props.color);
 
             const lightLogic = this.#lightSceneLogic.addSpotLight(<any>props);
             const light = this.lights[lightLogic.id];
 
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Spot light with id ${light.id} created.`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).addSpotLight: Spot light with id ${light.id} created.`);
             this.#viewer.update();
             return <ISpotLight>light;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).addSpotLight`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).addSpotLight`, e);
         }
     }
 
@@ -295,16 +295,16 @@ export class LightScene implements ILightScene {
      */
     public removeLight(id: string): boolean {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Removing Light with id ${id}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight`, id, 'string');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).removeLight: Removing Light with id ${id}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).removeLight`, id, 'string');
             const r = this.#lightSceneLogic.removeLight(id);
-            if (r) this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Light with id ${id} removed.`);
-            if (!r) this.#logger.debug(LOGGINGTOPIC.LIGHT, `Viewer(${this.id}).removeLight: Could not remove light with id ${id}.`);
+            if (r) this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).removeLight: Light with id ${id} removed.`);
+            if (!r) this.#logger.debug(LOGGING_TOPIC.LIGHT, `Viewer(${this.id}).removeLight: Could not remove light with id ${id}.`);
             this.#viewer.update();
             return r;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).removeLight`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).removeLight`, e);
         }
     }
 

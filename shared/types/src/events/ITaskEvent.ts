@@ -1,6 +1,6 @@
 import { IEvent } from "@shapediver/viewer.shared.services";
 
-export enum TASKTYPE {
+export enum TASK_TYPE {
     AR_LOADING = 'ar_loading',
     ENVIRONMENT_MAP_LOADING = 'environment_map_loading',
     SESSION_CUSTOMIZATION = 'session_customization',
@@ -12,7 +12,7 @@ export enum TASKTYPE {
 }
 
 export interface ITaskEvent extends IEvent {
-    type: TASKTYPE,
+    type: TASK_TYPE,
     id: string,
     progress: number,
     data?: any,

@@ -1,8 +1,8 @@
 import { ShapeDiverResponseExport, ShapeDiverResponseExportContent, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseExportResult, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseParameterGroup } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { EventEngine, EVENTTYPE, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { ITaskEvent, TASKTYPE } from '@shapediver/viewer.shared.types'
+import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
 
 import { IExport } from '../../interfaces/session/IExport'
 import { ISession } from '../../interfaces/session/ISession'
@@ -51,10 +51,10 @@ export class Export implements IExport {
 
       this.updateExportDefinition(exportDef);
 
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
+      this.#logger.debugLow(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).constructor: Initialized export ${JSON.stringify(exportDef)}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${exportDef.id}).constructor`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `Export(${exportDef.id}).constructor`, e);
     }
   }
 
@@ -80,13 +80,13 @@ export class Export implements IExport {
 
   public set displayname(value: string | undefined) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname: Updating DisplayName to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname`, value, 'string', false);
+      this.#logger.debugLow(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).displayname: Updating DisplayName to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).displayname`, value, 'string', false);
       this.#displayname = value;
-      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
+      this.#logger.debug(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).displayname`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).displayname`, e);
     }
   }
 
@@ -104,13 +104,13 @@ export class Export implements IExport {
 
   public set hidden(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Updating Hidden to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden`, value, 'boolean');
+      this.#logger.debugLow(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).hidden: Updating Hidden to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).hidden`, value, 'boolean');
       this.#hidden = value;
-      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
+      this.#logger.debug(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).hidden`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).hidden`, e);
     }
   }
 
@@ -124,13 +124,13 @@ export class Export implements IExport {
 
   public set maxWaitTime(value: number) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).maxWaitTime: Updating maxWaitTime to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).maxWaitTime`, value, 'number');
+      this.#logger.debugLow(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).maxWaitTime: Updating maxWaitTime to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).maxWaitTime`, value, 'number');
       this.#maxWaitTime = value;
-      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).maxWaitTime: maxWaitTime was updated to ${this.maxWaitTime}.`);
+      this.#logger.debug(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).maxWaitTime: maxWaitTime was updated to ${this.maxWaitTime}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).maxWaitTime`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).maxWaitTime`, e);
     }
   }
 
@@ -148,13 +148,13 @@ export class Export implements IExport {
 
   public set order(value: number | undefined) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Updating Order to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order`, value, 'number', false);
+      this.#logger.debugLow(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).order: Updating Order to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).order`, value, 'number', false);
       this.#order = value;
-      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order: Order was updated to ${this.order}.`);
+      this.#logger.debug(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).order: Order was updated to ${this.order}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).order`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).order`, e);
     }
   }
 
@@ -176,13 +176,13 @@ export class Export implements IExport {
 
   public set tooltip(value: string | undefined) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip: Updating tooltip to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip`, value, 'string', false);
+      this.#logger.debugLow(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).tooltip: Updating tooltip to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).tooltip`, value, 'string', false);
       this.#tooltip = value;
-      this.#logger.debug(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+      this.#logger.debug(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).tooltip`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).tooltip`, e);
     }
   }
 
@@ -205,31 +205,31 @@ export class Export implements IExport {
   public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
     const eventId = this.#uuidGenerator.create();
     try {
-      const event: ITaskEvent = { type: TASKTYPE.EXPORT_REQUEST, id: eventId, progress: 0, status: 'Requesting export' };
+      const event: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 0, status: 'Requesting export' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
 
-      this.#logger.debugLow(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Sending export request.`);
+      this.#logger.debugLow(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).request: Sending export request.`);
       const currentParameters = this.#sessionEngine.parameterValues;
       const exportParameters: { [key: string]: string } = {}
 
       for (let parameter in currentParameters)
         exportParameters[parameter] = parameters[parameter] || parameters[parameter] === '' ? parameters[parameter] : currentParameters[parameter];
 
-      this.#logger.info(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
+      this.#logger.info(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).request: Sending export request with parameters ${JSON.stringify(exportParameters)}.`);
 
       const exportDef = await this.#sessionEngine.requestExport(this.id, exportParameters, this.#maxWaitTime);
       this.updateExportDefinition(exportDef);
 
-      const eventEnd: ITaskEvent = { type: TASKTYPE.EXPORT_REQUEST, id: eventId, progress: 1, status: 'Returning export' };
+      const eventEnd: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 1, status: 'Returning export' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
       return exportDef;
     } catch (e) {
-      const eventEnd: ITaskEvent = { type: TASKTYPE.EXPORT_REQUEST, id: eventId, progress: 1, status: 'Export request failed' };
+      const eventEnd: ITaskEvent = { type: TASK_TYPE.EXPORT_REQUEST, id: eventId, progress: 1, status: 'Export request failed' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventEnd);
 
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.EXPORT, `Export(${this.#id}).request`, e);
+      throw this.#logger.handleError(LOGGING_TOPIC.EXPORT, `Export(${this.#id}).request`, e);
     }
   }
 

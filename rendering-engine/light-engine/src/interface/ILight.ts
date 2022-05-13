@@ -1,7 +1,7 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix'
 
-export enum LIGHTTYPE {
+export enum LIGHT_TYPE {
   AMBIENT = 'ambient',
   DIRECTIONAL = 'directional',
   HEMISPHERE = 'hemisphere',
@@ -18,7 +18,7 @@ export interface ILight {
   intensity: number,
   name?: string
   order?: number
-  type: LIGHTTYPE,
+  type: LIGHT_TYPE,
 
   // #endregion Properties (5)
 }

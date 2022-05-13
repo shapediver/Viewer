@@ -1,14 +1,14 @@
 import { DomEventEngine } from '@shapediver/viewer.shared.services'
 import { Box } from '@shapediver/viewer.shared.math'
 
-export enum RENDERERTYPE {
+export enum RENDERER_TYPE {
   /** The standard rendering engine */
   STANDARD = 'standard',
   /** A basic version of the rendering engine */
   ATTRIBUTES = 'attributes'
 }
 
-export enum VISIBILITYMODE {
+export enum VISIBILITY_MODE {
   /** The viewer shows the scene instantly */
   INSTANT = 'instant',
   /** The viewer shows the scene after the first session loading */
@@ -47,7 +47,7 @@ export interface IRenderingEngine {
   domEventEngine: DomEventEngine;
   id: string;
   pointSize: number;
-  type: RENDERERTYPE;
+  type: RENDERER_TYPE;
   show: boolean;
   showStatistics: boolean;
 

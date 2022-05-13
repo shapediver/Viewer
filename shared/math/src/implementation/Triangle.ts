@@ -1,22 +1,22 @@
 import { mat4, vec3 } from 'gl-matrix'
+import { ITriangle } from '../interfaces/ITriangle';
 
-import { IGeometry } from './IGeometry'
 
-export class Triangle implements IGeometry {
+export class Triangle implements ITriangle {
     constructor(
         private _v0: vec3 = vec3.create(),
         private _v1: vec3 = vec3.create(),
         private _v2: vec3 = vec3.create(),
     ) { }
 
-    applyMatrix(matrix: mat4): IGeometry {
+    applyMatrix(matrix: mat4): ITriangle {
         vec3.transformMat4(this._v0, this._v0, matrix);
         vec3.transformMat4(this._v1, this._v1, matrix);
         vec3.transformMat4(this._v2, this._v2, matrix);
         return this;
     }
 
-    clone(): IGeometry {
+    clone(): ITriangle {
         return new Triangle(vec3.clone(this._v0), vec3.clone(this._v1), vec3.clone(this._v2));
     }
 

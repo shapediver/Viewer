@@ -8,7 +8,7 @@ import {
   IGLTF_v2_Primitive,
   ISHAPEDIVER_materials_preset,
 } from '@shapediver/viewer.data-engine.shared-types'
-import { Logger, LOGGINGTOPIC } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGING_TOPIC } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { BufferLoader } from './BufferLoader'
@@ -58,7 +58,7 @@ export class AccessorLoader {
             const arrayBuffer = this._bufferViewLoader.getBufferView(accessor.bufferView!);
 
             const itemSize = ACCESSORTYPE[<keyof typeof ACCESSORTYPE>accessor.type];
-            if (accessor.componentType === 5124) this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
+            if (accessor.componentType === 5124) this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.loadAccessor: The componentType for this accessor is 5124, which is not allowed. Trying to load it anyway.');
             const ArrayType = ACCESSOR_COMPONENTTYPE[<keyof typeof ACCESSOR_COMPONENTTYPE>accessor.componentType];
 
             const elementBytes = ArrayType.BYTES_PER_ELEMENT;

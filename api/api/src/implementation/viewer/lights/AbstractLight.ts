@@ -1,5 +1,5 @@
-import { LIGHTTYPE } from '@shapediver/viewer.rendering-engine.light-engine'
-import { Converter, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { LIGHT_TYPE } from '@shapediver/viewer.rendering-engine.light-engine'
+import { Converter, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 
@@ -26,7 +26,7 @@ export abstract class AbstractLight implements ILight {
     constructor(light: ILight, viewer: IViewer) {
         this.#light = light;
         this.#viewer = viewer;
-        this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).constructor: Light api created.`);
+        this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).constructor: Light api created.`);
     }
 
     // #endregion Constructors (1)
@@ -39,14 +39,14 @@ export abstract class AbstractLight implements ILight {
 
     public set color(value: string | number | vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: Updating Color to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color`, value, 'color');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).color: Updating Color to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).color`, value, 'color');
             this.#light.color = this.#converter.toColor(value);
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color: color was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).color: color was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).color`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).color`, e);
         }
     }
 
@@ -60,14 +60,14 @@ export abstract class AbstractLight implements ILight {
 
     public set intensity(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: Updating Intensity to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity`, value, 'positive');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).intensity: Updating Intensity to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).intensity`, value, 'positive');
             this.#light.intensity = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity: intensity was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).intensity: intensity was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).intensity`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).intensity`, e);
         }
     }
 
@@ -77,14 +77,14 @@ export abstract class AbstractLight implements ILight {
 
     public set name(value: string | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: Updating Name to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name`, value, 'string', false);
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).name: Updating Name to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).name`, value, 'string', false);
             this.#light.name = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name: name was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).name: name was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).name`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).name`, e);
         }
     }
 
@@ -94,18 +94,18 @@ export abstract class AbstractLight implements ILight {
 
     public set order(value: number | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: Updating Order to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order`, value, 'number', false);
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).order: Updating Order to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).order`, value, 'number', false);
             this.#light.order = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order: order was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).order: order was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).order`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).order`, e);
         }
     }
 
-    public get type(): LIGHTTYPE {
+    public get type(): LIGHT_TYPE {
         return this.#light.type;
     }
 

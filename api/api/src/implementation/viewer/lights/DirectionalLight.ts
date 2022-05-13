@@ -1,6 +1,6 @@
 import { DirectionalLight as DirectionalLightLogic } from '@shapediver/viewer.rendering-engine.light-engine'
 import { vec3 } from 'gl-matrix'
-import { InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { AbstractLight } from './AbstractLight'
@@ -39,14 +39,14 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
 
     public set castShadow(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).castShadow: Updating CastShadow to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).castShadow`, value, 'boolean');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).castShadow: Updating CastShadow to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).castShadow`, value, 'boolean');
             this.#light.castShadow = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).castShadow: castShadow was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).castShadow: castShadow was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).castShadow`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).castShadow`, e);
         }
     }
 
@@ -56,14 +56,14 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
 
     public set direction(value: vec3) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).direction: Updating Direction to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).direction`, value, 'vec3');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).direction: Updating Direction to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).direction`, value, 'vec3');
             this.#light.direction = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).direction: direction was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).direction: direction was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).direction`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).direction`, e);
         }
     }
 
@@ -73,14 +73,14 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
 
     public set shadowMapBias(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapBias: Updating ShadowMapBias to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapBias`, value, 'number');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).shadowMapBias: Updating ShadowMapBias to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).shadowMapBias`, value, 'number');
             this.#light.shadowMapBias = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapBias: shadowMapBias was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).shadowMapBias: shadowMapBias was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapBias`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).shadowMapBias`, e);
         }
     }
 
@@ -90,14 +90,14 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
 
     public set shadowMapResolution(value: number) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapResolution: Updating ShadowMapResolution to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapResolution`, value, 'number');
+            this.#logger.debugLow(LOGGING_TOPIC.LIGHT, `Light(${this.id}).shadowMapResolution: Updating ShadowMapResolution to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).shadowMapResolution`, value, 'number');
             this.#light.shadowMapResolution = value;
-            this.#logger.debug(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapResolution: shadowMapResolution was set to: ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `Light(${this.id}).shadowMapResolution: shadowMapResolution was set to: ${value}`);
             this.#viewer.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.LIGHT, `Light(${this.id}).shadowMapResolution`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `Light(${this.id}).shadowMapResolution`, e);
         }
     }
 

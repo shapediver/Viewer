@@ -1,7 +1,7 @@
 import { container } from 'tsyringe'
 import { UuidGenerator, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 
-import { ITreeNodeData } from './interfaces/ITreeNodeData'
+import { ITreeNodeData } from '../interfaces/ITreeNodeData'
 
 export abstract class AbstractTreeNodeData implements ITreeNodeData {
   // #region Properties (3)

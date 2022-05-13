@@ -7,7 +7,7 @@
         id: 'mySession'
     });
 
-    viewer.type = SDV.RENDERERTYPE.ATTRIBUTES;
+    viewer.type = SDV.RENDERER_TYPE.ATTRIBUTES;
     viewer.clearColor = '#000000'
 
     const attributeVisualizationEngine = new (<any>window).SDVAttributeVisualization.AttributeVisualizationEngine(SDV.api, viewer);
@@ -16,8 +16,8 @@
     attributeVisualizationEngine.updateAttributes([
         {
             key: 'x+y, number',
-            type: SDV.PRIMITIVETYPEHINT.DOUBLE,
-            visualization: SDV.ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED
+            type: SDV.PRIMITIVE_TYPEHINT.DOUBLE,
+            visualization: SDV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
         }
     ])
 })()

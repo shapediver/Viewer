@@ -3,7 +3,7 @@ import {
   Converter,
   HttpClient,
   Logger,
-  LOGGINGTOPIC,
+  LOGGING_TOPIC,
   PerformanceEvaluator,
   ShapeDiverViewerDataProcessingError,
   UuidGenerator,
@@ -160,7 +160,7 @@ export class GLTFLoader {
                     node.data.push(this.loadAnimation(i));
             return node;
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
     }
 
@@ -175,7 +175,7 @@ export class GLTFLoader {
             });
             this._performanceEvaluator.endSection('loadGltf.' + url);
         } catch (e) {
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, e);
         }
 
         let gltfContent, gltfBinary, gltfBaseUrl, gltfHeader;
@@ -199,7 +199,7 @@ export class GLTFLoader {
             }
             if (gltfHeader.magic != 'glTF') {
                 const error = new ShapeDiverViewerDataProcessingError('GLTFLoader.load: Invalid data: sdgTF magic wrong.');
-                throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GLTFLoader.load`, error);
+                throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GLTFLoader.load`, error);
             }
             // create content
             const contentDataView = new DataView(gltfBinary, this.BINARY_EXTENSION_HEADER_LENGTH, gltfHeader.contentLength);
@@ -257,7 +257,7 @@ export class GLTFLoader {
             const output = this._accessorLoader.getAccessor(sampler.output);
             let interpolation = sampler.interpolation;
             if (interpolation === 'CUBICSPLINE') {
-                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, 'Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
+                this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'Animation with CUBICSPLINE interpolation is currently not supported. Assigning linear interpolation instead.')
                 interpolation = 'linear';
             }
 
@@ -487,7 +487,7 @@ export class GLTFLoader {
                     message += '"' + element + '"' + (index === notSupported.length - 1 ? '' : index === notSupported.length - 2 ? ' and ' : ', ');
                 });
                 message += (notSupported.length === 1 ? ' is' : ' are') + ' not supported, but used. Loading glTF regardless.';
-                this._logger.info(LOGGINGTOPIC.DATA_PROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
+                this._logger.info(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.validateVersionAndExtensions: ' + message);
             }
         }
 

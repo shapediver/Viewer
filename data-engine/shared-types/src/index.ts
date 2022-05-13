@@ -1,4 +1,4 @@
-import { JUSTIFICATION, ITag3D, ITag2D, IAnchorDataImage, IAnchorDataText, IAnchor } from './anchor/interfaces'
+import { TAG3D_JUSTIFICATION, ITag3D, ITag2D, IAnchorDataImage, IAnchorDataText, IAnchor } from './anchor/interfaces'
 import {
   ACCESSORCOMPONENTSIZE as ACCESSORCOMPONENTSIZE_V1,
   ACCESSORCOMPONENTTYPE as ACCESSORCOMPONENTTYPE_V1,
@@ -67,5 +67,5 @@ export {
 }
 
 export {
-  JUSTIFICATION, ITag3D, ITag2D, IAnchorDataImage, IAnchorDataText, IAnchor
+  TAG3D_JUSTIFICATION, ITag3D, ITag2D, IAnchorDataImage, IAnchorDataText, IAnchor
 }

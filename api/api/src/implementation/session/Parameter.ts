@@ -1,14 +1,14 @@
 
 import { ShapeDiverResponseParameter, ShapeDiverResponseParameterGroup, ShapeDiverResponseParameterStructure } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { Session } from '@shapediver/viewer.session-engine.session-engine'
-import { Converter, InputValidator, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services'
+import { Converter, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import * as MimeTypeUtils from "@shapediver/viewer.utils.mime-type"
 
 import { IParameter } from '../../interfaces/session/IParameter'
 import { ISession } from '../../interfaces/session/ISession'
 
-export enum PARAMETERTYPE {
+export enum PARAMETER_TYPE {
     FLOAT = 'Float',
     INT = 'Int',
     EVEN = 'Even',
@@ -42,7 +42,7 @@ export enum PARAMETERTYPE {
     SSUBDIV = 'sSubdiv'
 }
 
-export enum PARAMETERVISUALIZATION {
+export enum PARAMETER_VISUALIZATION {
     SLIDER = 'slider',
     SEQUENCE = 'sequence',
     CYCLE = 'cycle',
@@ -77,8 +77,8 @@ export class Parameter<T> implements IParameter<T> {
     readonly #session: ISession;
     readonly #sessionEngine: Session;
     readonly #structure?: ShapeDiverResponseParameterStructure;
-    readonly #type: PARAMETERTYPE;
-    readonly #visualization?: PARAMETERVISUALIZATION;
+    readonly #type: PARAMETER_TYPE;
+    readonly #visualization?: PARAMETER_VISUALIZATION;
 
     #displayname?: string;
     #hidden: boolean = false;
@@ -100,7 +100,7 @@ export class Parameter<T> implements IParameter<T> {
             this.#id = paramDef.id;
             this.#defval = paramDef.defval;
             this.#name = paramDef.name;
-            this.#type = <PARAMETERTYPE>paramDef.type;
+            this.#type = <PARAMETER_TYPE>paramDef.type;
             if (paramDef.choices !== undefined) this.#choices = paramDef.choices;
             if (paramDef.decimalplaces !== undefined) this.#decimalplaces = +paramDef.decimalplaces;
             if (paramDef.expression !== undefined) this.#expression = paramDef.expression;
@@ -110,7 +110,7 @@ export class Parameter<T> implements IParameter<T> {
 
             if (paramDef.min !== undefined) this.#min = +paramDef.min;
             if (paramDef.max !== undefined) this.#max = +paramDef.max;
-            if (paramDef.visualization !== undefined) this.#visualization = <PARAMETERVISUALIZATION>paramDef.visualization;
+            if (paramDef.visualization !== undefined) this.#visualization = <PARAMETER_VISUALIZATION>paramDef.visualization;
             if (paramDef.structure !== undefined) this.#structure = paramDef.structure;
             if (paramDef.group !== undefined) this.#group = paramDef.group;
             if (paramDef.tooltip !== undefined) this.#tooltip = paramDef.tooltip;
@@ -119,15 +119,15 @@ export class Parameter<T> implements IParameter<T> {
             if (paramDef.order !== undefined) this.#order = paramDef.order;
             if (paramDef.hidden !== undefined) this.#hidden = paramDef.hidden;
 
-            if (this.#type === PARAMETERTYPE.BOOL) {
+            if (this.#type === PARAMETER_TYPE.BOOL) {
                 this.#defaultValue = <T><unknown>(this.#defval === 'true');
-            } else if (this.#type === PARAMETERTYPE.EVEN || this.#type === PARAMETERTYPE.FLOAT || this.#type === PARAMETERTYPE.INT || this.#type === PARAMETERTYPE.ODD) {
+            } else if (this.#type === PARAMETER_TYPE.EVEN || this.#type === PARAMETER_TYPE.FLOAT || this.#type === PARAMETER_TYPE.INT || this.#type === PARAMETER_TYPE.ODD) {
                 this.#defaultValue = <T><unknown>+this.#defval;
             } else {
                 this.#defaultValue = this.#defval;
             }
 
-            if (this.#type === PARAMETERTYPE.COLOR) {
+            if (this.#type === PARAMETER_TYPE.COLOR) {
                 (<any>this).convertColor = (color: any): string => {
                     return this.#converter.toColor(color);
                 }
@@ -136,10 +136,10 @@ export class Parameter<T> implements IParameter<T> {
             this.#value = this.#defaultValue;
             this.#sessionValue = this.#value;
             this.#lastValidatedValue = this.#value;
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).constructor: Initialized parameter ${JSON.stringify(paramDef)}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).constructor: Initialized parameter ${JSON.stringify(paramDef)}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${paramDef.id}).constructor`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${paramDef.id}).constructor`, e);
         }
     }
 
@@ -165,13 +165,13 @@ export class Parameter<T> implements IParameter<T> {
 
     public set displayname(value: string | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).displayname: Updating DisplayName to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).displayname`, value, 'string', false);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).displayname: Updating DisplayName to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).displayname`, value, 'string', false);
             this.#displayname = value;
-            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).displayname: DisplayName was updated to ${this.displayname}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).displayname`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).displayname`, e);
         }
     }
 
@@ -193,13 +193,13 @@ export class Parameter<T> implements IParameter<T> {
 
     public set hidden(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).hidden: Updating Hidden to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).hidden`, value, 'boolean');
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).hidden: Updating Hidden to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).hidden`, value, 'boolean');
             this.#hidden = value;
-            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).hidden: Hidden was updated to ${this.hidden}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).hidden`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).hidden`, e);
         }
     }
 
@@ -229,13 +229,13 @@ export class Parameter<T> implements IParameter<T> {
 
     public set order(value: number | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).order: Updating Order to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).order`, value, 'number', false);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).order: Updating Order to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).order`, value, 'number', false);
             this.#order = value;
-            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).order: Order was updated to ${this.order}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).order: Order was updated to ${this.order}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).order`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).order`, e);
         }
     }
 
@@ -245,17 +245,17 @@ export class Parameter<T> implements IParameter<T> {
 
     public set sessionValue(value: T | string) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).sessionValue: Updating SessionValue to ${value}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).sessionValue: Updating SessionValue to ${value}.`);
             if (this.isValid(value, true)) {
                 this.#sessionValue = value;
-                this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).sessionValue: SessionValue was updated to ${this.value}.`);
+                this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).sessionValue: SessionValue was updated to ${this.value}.`);
             } else {
                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).sessionValue: Could not validate value.`);
-                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).sessionValue`, error);
+                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).sessionValue`, error);
             }
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).sessionValue`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).sessionValue`, e);
         }
     }
 
@@ -269,17 +269,17 @@ export class Parameter<T> implements IParameter<T> {
 
     public set tooltip(value: string | undefined) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: Updating tooltip to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip`, value, 'string', false);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: Updating tooltip to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).tooltip`, value, 'string', false);
             this.#tooltip = value;
-            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).tooltip: tooltip was updated to ${this.tooltip}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).tooltip`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).tooltip`, e);
         }
     }
 
-    public get type(): PARAMETERTYPE {
+    public get type(): PARAMETER_TYPE {
         return this.#type;
     }
 
@@ -289,23 +289,23 @@ export class Parameter<T> implements IParameter<T> {
 
     public set value(value: T | string) {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).value: Updating Value to ${value}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).value: Updating Value to ${value}.`);
             if (this.isValid(value, true)) {
                 this.#value = value;
                 this.#lastValidatedValue = this.value;
-                this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).value: Value was updated to ${this.value}.`);
+                this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).value: Value was updated to ${this.value}.`);
                 if(this.#session.automaticUpdate) this.#session.customize();
             } else {
                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).value: Could not validate value.`);
-                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
             }
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, e);
         }
     }
 
-    public get visualization(): PARAMETERVISUALIZATION | undefined {
+    public get visualization(): PARAMETER_VISUALIZATION | undefined {
         return this.#visualization;
     }
 
@@ -315,56 +315,56 @@ export class Parameter<T> implements IParameter<T> {
 
     public isValid(value: any, throwError = false): boolean {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid: Checking value ${value}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid: Checking value ${value}.`);
             try {
                 switch (true) {
-                    case this.type === PARAMETERTYPE.BOOL:
+                    case this.type === PARAMETER_TYPE.BOOL:
                         if (typeof value === 'string') {
                             if (!(value === 'true' || value === 'false')) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is a string that is neither true or false.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         } else {
-                            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'boolean');
+                            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'boolean');
                         }
                         break;
-                    case this.type === PARAMETERTYPE.COLOR:
-                        this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'color');
+                    case this.type === PARAMETER_TYPE.COLOR:
+                        this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'color');
                         break;
-                    case this.type === PARAMETERTYPE.FILE:
-                        this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'file');
+                    case this.type === PARAMETER_TYPE.FILE:
+                        this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'file');
                         break;
-                    case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD:
+                    case this.type === PARAMETER_TYPE.EVEN || this.type === PARAMETER_TYPE.FLOAT || this.type === PARAMETER_TYPE.INT || this.type === PARAMETER_TYPE.ODD:
                         let temp: number = value;
                         if (typeof value === 'string')
                             temp = +value;
-                        this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
-                        if (this.type === PARAMETERTYPE.EVEN) {
+                        this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
+                        if (this.type === PARAMETER_TYPE.EVEN) {
                             if (temp % 2 !== 0) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not even.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
-                        } else if (this.type === PARAMETERTYPE.ODD) {
+                        } else if (this.type === PARAMETER_TYPE.ODD) {
                             if (temp % 2 === 0) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not odd.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
-                        } else if (this.type === PARAMETERTYPE.INT) {
+                        } else if (this.type === PARAMETER_TYPE.INT) {
                             if (!Number.isInteger(temp)) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is not an integer.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         }
                         if (this.min || this.min === 0)
                             if (temp < this.min) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is smaller than the minimum ${this.min}.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
 
                         if (this.max || this.max === 0)
                             if (temp > this.max) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} is larger than the maximum ${this.max}.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
 
                         if (this.decimalplaces || this.decimalplaces === 0) {
@@ -374,33 +374,33 @@ export class Parameter<T> implements IParameter<T> {
                                 decimalplaces = numStr.split('.')[1].length;
                             if (this.decimalplaces < decimalplaces) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${value} has not the correct number of decimalplaces (${this.decimalplaces}).`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         }
 
                         break;
-                    case this.type === PARAMETERTYPE.STRINGLIST:
-                        this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'string');
+                    case this.type === PARAMETER_TYPE.STRINGLIST:
+                        this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'string');
                         const choicesChecker = (v: string) => {
                             // has to be a single value that is
                             // 1. convertible to number
                             // 2. between 0 and choices.length -1
                             const temp = +v;
-                            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
+                            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
                             if (temp < 0 || temp > this.choices!.length - 1) {
                                 const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${v} is not within the range of the defined number choices.`);
-                                throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                             }
                         }
 
-                        if (this.visualization === PARAMETERVISUALIZATION.CHECKLIST) {
+                        if (this.visualization === PARAMETER_VISUALIZATION.CHECKLIST) {
                             // comma separated numbers
                             if (value.includes(',')) {
                                 const values: string[] = value.split(',');
                                 for (let i = 0; i < values.length; i++) {
                                     if (values.filter(item => item === values[i]).length !== 1) {
                                         const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).isValid: The value ${values[i]} exists multiple times, but should only exist once.`);
-                                        throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
+                                        throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error, false);
                                     }
                                     choicesChecker(values[i]);
                                 }
@@ -409,7 +409,7 @@ export class Parameter<T> implements IParameter<T> {
                                 let temp: number = value;
                                 if (typeof value === 'string')
                                     temp = +value;
-                                this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
+                                this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
                                 choicesChecker(value);
                             }
                         } else {
@@ -417,12 +417,12 @@ export class Parameter<T> implements IParameter<T> {
                             let temp: number = value;
                             if (typeof value === 'string')
                                 temp = +value;
-                            this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
+                            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, temp, 'number');
                             choicesChecker(value);
                         }
                         break;
                     default:
-                        this.#inputValidator.validateAndError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'string');
+                        this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).isValid`, value, 'string');
                         break;
                 }
             } catch (e) {
@@ -432,54 +432,54 @@ export class Parameter<T> implements IParameter<T> {
             return true;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).isValid`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).isValid`, e);
         }
     }
 
     public resetToDefaultValue() {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToDefaultValue: Resetting value ${this.value} to default value ${this.#defaultValue}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).resetToDefaultValue: Resetting value ${this.value} to default value ${this.#defaultValue}.`);
             this.#value = this.#defaultValue;
-            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToDefaultValue: value was set to default value ${this.#defaultValue}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).resetToDefaultValue: value was set to default value ${this.#defaultValue}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).resetToDefaultValue`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).resetToDefaultValue`, e);
         }
     }
 
     public resetToSessionValue() {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToSessionValue: Resetting value ${this.value} to last session value ${this.sessionValue}.`);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).resetToSessionValue: Resetting value ${this.value} to last session value ${this.sessionValue}.`);
             this.#value = this.sessionValue;
-            this.#logger.debug(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).resetToSessionValue: value was set to last session value ${this.sessionValue}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).resetToSessionValue: value was set to last session value ${this.sessionValue}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).resetToSessionValue`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).resetToSessionValue`, e);
         }
     }
 
     public stringify(): string {
         try {
-            this.#logger.debugLow(LOGGINGTOPIC.PARAMETER, `Parameter(${this.#id}).stringify: Stringifying value.`);
+            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#id}).stringify: Stringifying value.`);
             switch (true) {
-                case this.type === PARAMETERTYPE.BOOL:
+                case this.type === PARAMETER_TYPE.BOOL:
                     return typeof this.value === 'string' ? this.value : (<boolean><unknown>this.value) + '';
-                case this.type === PARAMETERTYPE.COLOR:
+                case this.type === PARAMETER_TYPE.COLOR:
                     return this.#converter.toHex8Color(this.value);
-                case this.type === PARAMETERTYPE.FILE:
+                case this.type === PARAMETER_TYPE.FILE:
                     if (typeof this.value !== 'string') {
                         const error = new ShapeDiverViewerSessionError(`Parameter(${this.#id}).stringify: Error in stringify. Cannot stringify FileParameter that has not been uploaded yet.`);
-                        throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
+                        throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).value`, error);
                     }
                     return <string>this.value;
-                case this.type === PARAMETERTYPE.EVEN || this.type === PARAMETERTYPE.FLOAT || this.type === PARAMETERTYPE.INT || this.type === PARAMETERTYPE.ODD:
+                case this.type === PARAMETER_TYPE.EVEN || this.type === PARAMETER_TYPE.FLOAT || this.type === PARAMETER_TYPE.INT || this.type === PARAMETER_TYPE.ODD:
                     return typeof this.value === 'string' ? this.value : (<number><unknown>this.value) + '';
                 default:
                     return <string>this.value;
             }
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGINGTOPIC.PARAMETER, `Parameter(${this.id}).stringify`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.id}).stringify`, e);
         }
     }
 

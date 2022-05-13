@@ -1,8 +1,8 @@
 import 'reflect-metadata'
-import { CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
+import { CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { container } from 'tsyringe'
-import { LIGHTTYPE } from '@shapediver/viewer.rendering-engine.light-engine'
-import { RENDERERTYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { LIGHT_TYPE } from '@shapediver/viewer.rendering-engine.light-engine'
+import { RENDERER_TYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import {
   AbstractTreeNodeData,
   ITransformation,
@@ -15,8 +15,8 @@ import {
   ENVIRONMENT_MAP_CUBE,
   ThreejsData,
 } from '@shapediver/viewer.rendering-engine-threejs.standard'
-import { CustomData, GeometryData, MaterialStandardData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, HTMLElementAnchorData, AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, ITaskEvent, TASKTYPE, AbstractMaterialData, AbstractMaterialDataProperties, MapData, MaterialStandardDataProperties, MATERIAL_SHADING, MATERIAL_SIDE, MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, TEXTURE_FILTERING, TEXTURE_WRAPPING, MaterialUnlitData, MaterialUnlitDataProperties, MaterialVariantsData } from '@shapediver/viewer.shared.types'
-import { EVENTTYPE, LOGGINGLEVEL, MAINEVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services'
+import { CustomData, GeometryData, MaterialStandardData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTE_VISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, HTMLElementAnchorData, AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, ITaskEvent, TASK_TYPE, AbstractMaterialData, AbstractMaterialDataProperties, MapData, MaterialStandardDataProperties, MATERIAL_SHADING, MATERIAL_SIDE, MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, TEXTURE_FILTERING, TEXTURE_WRAPPING, MaterialUnlitData, MaterialUnlitDataProperties, MaterialVariantsData } from '@shapediver/viewer.shared.types'
+import { EVENTTYPE, LOGGING_LEVEL, MAIN_EVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/sdk.geometry-api-sdk-v2'
 
@@ -34,7 +34,7 @@ import { HemisphereLight } from './implementation/viewer/lights/HemisphereLight'
 import { PointLight } from './implementation/viewer/lights/PointLight'
 import { SpotLight } from './implementation/viewer/lights/SpotLight'
 import { LightScene } from './implementation/viewer/lights/LightScene'
-import { Parameter, PARAMETERTYPE, PARAMETERVISUALIZATION } from './implementation/session/Parameter'
+import { Parameter, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from './implementation/session/Parameter'
 import { FileParameter } from './implementation/session/FileParameter'
 import { AbstractLight } from './implementation/viewer/lights/AbstractLight'
 import { AbstractCamera } from './implementation/viewer/camera/AbstractCamera'
@@ -57,7 +57,7 @@ import { IPerspectiveCamera } from './interfaces/viewer/camera/IPerspectiveCamer
 import { ICamera } from './interfaces/viewer/camera/ICamera'
 import { ILightScene } from './interfaces/viewer/lights/ILightScene'
 import { ILight } from './interfaces/viewer/lights/ILight'
-import { IAnchor, IAnchorDataImage, IAnchorDataText, IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITag2D, ITag3D, ITexture, JUSTIFICATION } from '@shapediver/viewer.data-engine.shared-types'
+import { IAnchor, IAnchorDataImage, IAnchorDataText, IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITag2D, ITag3D, ITexture, TAG3D_JUSTIFICATION } from '@shapediver/viewer.data-engine.shared-types'
 import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
@@ -67,7 +67,7 @@ export const api: Api = <Api>container.resolve(Api);
 export const settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
 export {
-    RENDERERTYPE, CAMERATYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHTTYPE, VISIBILITYMODE, LOGGINGLEVEL, EVENTTYPE, MAINEVENTTYPE, EXPORTTYPE, PARAMETERTYPE, PARAMETERVISUALIZATION, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, TEXTURE_ENCODING, TONE_MAPPING
+    RENDERER_TYPE, CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHT_TYPE, VISIBILITY_MODE, LOGGING_LEVEL, EVENTTYPE, MAIN_EVENTTYPE, EXPORTTYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, TEXTURE_ENCODING, TONE_MAPPING
 }
 
 export {
@@ -113,11 +113,11 @@ export {
 }
 
 export {
-    SDTFAttributeData, SDTFAttributeOverview, SDTFOverview, SDTFItemData, SDTFAttributesData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION
+    SDTFAttributeData, SDTFAttributeOverview, SDTFOverview, SDTFItemData, SDTFAttributesData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, SDTFAttributeVisualization, ATTRIBUTE_VISUALIZATION
 }
 
 export {
-    IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, ITaskEvent, TASKTYPE
+    IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, ITaskEvent, TASK_TYPE
 }
 
 export {
@@ -125,7 +125,7 @@ export {
 }
 
 export {
-    JUSTIFICATION, ITag3D, ITag2D, IAnchorDataImage, IAnchorDataText, IAnchor
+    TAG3D_JUSTIFICATION, ITag3D, ITag2D, IAnchorDataImage, IAnchorDataText, IAnchor
 }
 
 export {

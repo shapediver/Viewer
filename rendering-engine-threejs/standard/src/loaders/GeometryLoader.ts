@@ -9,9 +9,9 @@ import {
   PrimitiveData,
 } from '@shapediver/viewer.shared.types'
 import { Box } from '@shapediver/viewer.shared.math'
-import { Logger, LOGGINGTOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
@@ -65,7 +65,7 @@ export class GeometryLoader implements ILoader {
     public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): Box {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
             let materialData: AbstractMaterialData | null;
-            if (this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
+            if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
             } else if (geometry.primitive.effectMaterials.length > 0) {
                 materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
@@ -77,7 +77,7 @@ export class GeometryLoader implements ILoader {
             const materialSettings = {
                 mode: geometry.primitive.mode,
                 useVertexTangents: threeGeometry.attributes.tangent !== undefined,
-                useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERERTYPE.ATTRIBUTES,
+                useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
                 useFlatShading: threeGeometry.attributes.normal === undefined,
                 useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
@@ -100,7 +100,7 @@ export class GeometryLoader implements ILoader {
             const threeGeometry = this.loadGeometry(geometry.primitive);
 
             let materialData: AbstractMaterialData | null;
-            if (this._renderingEngine.type === RENDERERTYPE.ATTRIBUTES) {
+            if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
             } else if (geometry.primitive.effectMaterials.length > 0) {
                 materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
@@ -111,7 +111,7 @@ export class GeometryLoader implements ILoader {
             const materialSettings = {
                 mode: geometry.primitive.mode,
                 useVertexTangents: threeGeometry.attributes.tangent !== undefined,
-                useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERERTYPE.ATTRIBUTES,
+                useVertexColors: threeGeometry.attributes.color !== undefined && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
                 useFlatShading: threeGeometry.attributes.normal === undefined,
                 useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
@@ -231,13 +231,13 @@ export class GeometryLoader implements ILoader {
                 index = geometry.getIndex();
             } else {
                 const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined position attribute. Processing not possible.`);
-                throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
+                throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
             }
         }
 
         if (index === null) {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Undefined index. Processing not possible.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
         }
         const numberOfTriangles = index.count - 2;
         const newIndices = [];
@@ -263,7 +263,7 @@ export class GeometryLoader implements ILoader {
 
         if ((newIndices.length / 3) !== numberOfTriangles) {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.convertToTriangleMode: Unable to generate correct amount of triangle.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.convertToTriangleMode`, error);
         }
 
         const newGeometry = geometry.clone();
@@ -315,7 +315,7 @@ export class GeometryLoader implements ILoader {
             obj.children.forEach(m => m.receiveShadow = true);
         } else {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
-            throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.load`, error);
+            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.load`, error);
         }
 
         obj.children.forEach(m => {
@@ -359,7 +359,7 @@ export class GeometryLoader implements ILoader {
             case 'TANGENT':
                 return 'tangent';
             default:
-                this._logger.warn(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.loadGeometry: Unrecognized attribute id ${attributeId}.`);
+                this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.loadGeometry: Unrecognized attribute id ${attributeId}.`);
         }
         return '';
     }
@@ -389,7 +389,7 @@ export class GeometryLoader implements ILoader {
                 if (bufferAttribute.itemSize >= 4) buffer.setW(index, bufferAttribute.sparseValues![i * bufferAttribute.itemSize + 3]);
                 if (bufferAttribute.itemSize >= 5) {
                     const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.loadGeometry: Unsupported itemSize in sparse BufferAttribute.`);
-                    throw this._logger.handleError(LOGGINGTOPIC.DATA_PROCESSING, `GeometryLoader.loadGeometry`, error);
+                    throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.loadGeometry`, error);
                 }
             }
         }

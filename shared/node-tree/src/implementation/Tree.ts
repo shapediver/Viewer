@@ -1,10 +1,10 @@
-import { vec3 } from 'gl-matrix'
 import { singleton } from 'tsyringe'
+import { ITree } from '../interfaces/ITree';
 
 import { TreeNode } from './TreeNode'
 
 @singleton()
-export class Tree {
+export class Tree implements ITree {
   // #region Properties (1)
 
   readonly #root = new TreeNode('root');
@@ -13,10 +13,6 @@ export class Tree {
 
   // #region Constructors (1)
 
-  /**
-   * @ignore
-   * Management of the main tree node.
-   */
   constructor() { }
 
   // #endregion Constructors (1)
@@ -29,15 +25,8 @@ export class Tree {
 
   // #endregion Public Accessors (1)
 
-  // #region Public Methods (4)
+  // #region Public Methods (6)
 
-  /**
-   * Add the node as a child of the corresponding parent node.
-   * 
-   * @param node the node to be added
-   * @param parent the targeted parent node
-   * @param root optional root at which the process begins, root node will be used per default
-   */
   public addNode(node: TreeNode, parent: TreeNode = this.#root, root: TreeNode = this.#root): boolean {
     if (root === parent) {
       root.addChild(node);
@@ -53,13 +42,6 @@ export class Tree {
     return false;
   }
 
-  /**
-   * Add the node at the corresponding path. (paths are dot separated ids)
-   * 
-   * @param node the node to be added
-   * @param path the path at which the node should be added
-   * @param root optional root at which the process begins, root node will be used per default
-   */
   public addNodeAtPath(node: TreeNode, path: string = this.root.getPath(), root: TreeNode = this.#root): boolean {
     if (root.name === path) {
       root.addChild(node);
@@ -80,62 +62,10 @@ export class Tree {
     return false;
   }
 
-  /**
-   * Remove a node from the tree.
-   * 
-   * @param node the node to remove 
-   * @param root optional root at which the process begins, root node will be used per default
-   */
-  public removeNode(node: TreeNode, root: TreeNode = this.#root): boolean {
-    if (root.hasChild(node)) {
-      root.removeChild(node);
-      return true;
-    }
-
-    for (let i = 0; i < root.children.length; i++) {
-      const child = root.children[i];
-      if (child && this.removeNode(node, child)) {
-        return true;
-      }
-    }
-
-    return false;
+  public convertSceneToGLTF(): Promise<Blob> {
+    throw new Error('Method not implemented.');
   }
 
-  /**
-   * Remove a node via the path of it.
-   * 
-   * @param path the path of the node to be removed
-   * @param root optional root at which the process begins, root node will be used per default
-   */
-  public removeNodeAtPath(path: string, root: TreeNode = this.#root): boolean {
-    if (root.name === path) {
-      root.parent?.removeChild(root);
-      return true;
-    }
-
-    const pathStart = path.substr(0, path.indexOf('.'));
-    if (root.name === pathStart) {
-      const shortenedPath = path.substr(pathStart.length + 1, path.length);
-
-
-      for (let i = 0; i < root.children.length; i++) {
-        const child = root.children[i];
-        if (child && this.removeNodeAtPath(shortenedPath, child)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Get the node at the provided path.
-   * 
-   * @param path 
-   * @param root 
-   * @returns 
-   */
   public getNodeAtPath(path: string = this.root.getPath(), root: TreeNode = this.#root): TreeNode | null {
     if (root.name === path) 
       return root;
@@ -152,6 +82,42 @@ export class Tree {
     }
     return null;
   }
-  
-  // #endregion Public Methods (4)
+
+  public removeNode(node: TreeNode, root: TreeNode = this.#root): boolean {
+    if (root.hasChild(node)) {
+      root.removeChild(node);
+      return true;
+    }
+
+    for (let i = 0; i < root.children.length; i++) {
+      const child = root.children[i];
+      if (child && this.removeNode(node, child)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public removeNodeAtPath(path: string, root: TreeNode = this.#root): boolean {
+    if (root.name === path) {
+      root.parent?.removeChild(root);
+      return true;
+    }
+
+    const pathStart = path.substr(0, path.indexOf('.'));
+    if (root.name === pathStart) {
+      const shortenedPath = path.substr(pathStart.length + 1, path.length);
+
+      for (let i = 0; i < root.children.length; i++) {
+        const child = root.children[i];
+        if (child && this.removeNodeAtPath(shortenedPath, child)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // #endregion Public Methods (6)
 }

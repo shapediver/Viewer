@@ -9,7 +9,7 @@ import { ShapeDiverViewerConnectionError, ShapeDiverViewerUnknownError } from '.
 import { ShapeDiverRequestError, ShapeDiverResponseError, ShapeDiverResponseErrorType } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ShapeDiverViewerError } from './ShapeDiverError'
 
-export enum LOGGINGLEVEL {
+export enum LOGGING_LEVEL {
     NONE = 'none',
     ERROR = 'error',
     FATAL = 'fatal',
@@ -21,7 +21,7 @@ export enum LOGGINGLEVEL {
     DEBUG_LOW = 'debug_low',
 }
 
-export enum LOGGINGTOPIC {
+export enum LOGGING_TOPIC {
     AR = 'ar',
     GENERAL = 'general',
     EXPORT = 'export',
@@ -42,7 +42,7 @@ export enum LOGGINGTOPIC {
 export class Logger {
     // #region Properties (2)
 
-    private _loggingLevel: LOGGINGLEVEL = LOGGINGLEVEL.WARN;
+    private _loggingLevel: LOGGING_LEVEL = LOGGING_LEVEL.WARN;
     private _showMessages: boolean = true;
     private _breadCrumbs: Sentry.Breadcrumb[] = [];
     private _breadCrumbCounter: number = 0;
@@ -81,11 +81,11 @@ export class Logger {
 
     // #region Public Accessors (4)
 
-    public get loggingLevel(): LOGGINGLEVEL {
+    public get loggingLevel(): LOGGING_LEVEL {
         return this._loggingLevel;
     }
 
-    public set loggingLevel(value: LOGGINGLEVEL) {
+    public set loggingLevel(value: LOGGING_LEVEL) {
         this._loggingLevel = value;
     }
 
@@ -97,41 +97,41 @@ export class Logger {
         this._showMessages = value;
     }
 
-    private canLog(loggingLevel: LOGGINGLEVEL): boolean {
+    private canLog(loggingLevel: LOGGING_LEVEL): boolean {
         switch (this.loggingLevel) {
-            case LOGGINGLEVEL.ERROR:
-                if (loggingLevel === LOGGINGLEVEL.FATAL) return false;
-                if (loggingLevel === LOGGINGLEVEL.WARN) return false;
-                if (loggingLevel === LOGGINGLEVEL.INFO) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_HIGH) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
-            case LOGGINGLEVEL.FATAL:
-                if (loggingLevel === LOGGINGLEVEL.WARN) return false;
-                if (loggingLevel === LOGGINGLEVEL.INFO) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_HIGH) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
-            case LOGGINGLEVEL.WARN:
-                if (loggingLevel === LOGGINGLEVEL.INFO) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_HIGH) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
-            case LOGGINGLEVEL.INFO:
-                if (loggingLevel === LOGGINGLEVEL.DEBUG) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_HIGH) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
-            case LOGGINGLEVEL.DEBUG_HIGH:
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_MEDIUM) return false;
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
-            case LOGGINGLEVEL.DEBUG_MEDIUM:
-                if (loggingLevel === LOGGINGLEVEL.DEBUG_LOW) return false;
-            case LOGGINGLEVEL.DEBUG_LOW:
-            case LOGGINGLEVEL.DEBUG:
+            case LOGGING_LEVEL.ERROR:
+                if (loggingLevel === LOGGING_LEVEL.FATAL) return false;
+                if (loggingLevel === LOGGING_LEVEL.WARN) return false;
+                if (loggingLevel === LOGGING_LEVEL.INFO) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_HIGH) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_MEDIUM) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_LOW) return false;
+            case LOGGING_LEVEL.FATAL:
+                if (loggingLevel === LOGGING_LEVEL.WARN) return false;
+                if (loggingLevel === LOGGING_LEVEL.INFO) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_HIGH) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_MEDIUM) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_LOW) return false;
+            case LOGGING_LEVEL.WARN:
+                if (loggingLevel === LOGGING_LEVEL.INFO) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_HIGH) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_MEDIUM) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_LOW) return false;
+            case LOGGING_LEVEL.INFO:
+                if (loggingLevel === LOGGING_LEVEL.DEBUG) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_HIGH) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_MEDIUM) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_LOW) return false;
+            case LOGGING_LEVEL.DEBUG_HIGH:
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_MEDIUM) return false;
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_LOW) return false;
+            case LOGGING_LEVEL.DEBUG_MEDIUM:
+                if (loggingLevel === LOGGING_LEVEL.DEBUG_LOW) return false;
+            case LOGGING_LEVEL.DEBUG_LOW:
+            case LOGGING_LEVEL.DEBUG:
             default:
                 return true;
         }
@@ -141,8 +141,8 @@ export class Logger {
 
     // #region Public Methods (8)
     
-    public handleError(topic: LOGGINGTOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, logToSentry = true) {
-        if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true) 
+    public handleError(topic: LOGGING_TOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, logToSentry = true) {
+        if (this.canLog(LOGGING_LEVEL.ERROR) && this.showMessages === true) 
             console.error('(ERROR) ', e);
         if(e instanceof ShapeDiverRequestError) {
             const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
@@ -170,7 +170,7 @@ export class Logger {
         }
     }
 
-    public sentryError(topic: LOGGINGTOPIC, error: ShapeDiverBackendError | ShapeDiverViewerError | Error, msg?: string) {
+    public sentryError(topic: LOGGING_TOPIC, error: ShapeDiverBackendError | ShapeDiverViewerError | Error, msg?: string) {
         this.sentryBreadcrumb(topic, msg || error.message, Sentry.Severity.Error); 
 
         const breadcrumbCounter = this._breadCrumbCounter > 100 ? 100 : this._breadCrumbCounter;
@@ -194,7 +194,7 @@ export class Logger {
         }
     }
 
-    public sentryBreadcrumb(topic: LOGGINGTOPIC, msg: string, level: Sentry.Severity) {
+    public sentryBreadcrumb(topic: LOGGING_TOPIC, msg: string, level: Sentry.Severity) {
         this._breadCrumbs.push({
             category: topic,
             message: msg,
@@ -207,8 +207,8 @@ export class Logger {
      * Logging a debug message.
      * @param msg the message
      */
-    public debug(topic: LOGGINGTOPIC, msg: string): void {
-        if (this.canLog(LOGGINGLEVEL.DEBUG) && this.showMessages === true)
+    public debug(topic: LOGGING_TOPIC, msg: string): void {
+        if (this.canLog(LOGGING_LEVEL.DEBUG) && this.showMessages === true)
             console.debug('(DEBUG) ' + this.messageConstruction(msg));
     }
 
@@ -216,8 +216,8 @@ export class Logger {
      * Logging a debug message with high priority.
      * @param msg the message
      */
-    public debugHigh(topic: LOGGINGTOPIC, msg: string): void {
-        if (this.canLog(LOGGINGLEVEL.DEBUG_HIGH) && this.showMessages === true)
+    public debugHigh(topic: LOGGING_TOPIC, msg: string): void {
+        if (this.canLog(LOGGING_LEVEL.DEBUG_HIGH) && this.showMessages === true)
             console.debug('(DEBUG_HIGH) ' + this.messageConstruction(msg));
     }
 
@@ -225,8 +225,8 @@ export class Logger {
      * Logging a debug message with low priority.
      * @param msg the message
      */
-    public debugLow(topic: LOGGINGTOPIC, msg: string): void {
-        if (this.canLog(LOGGINGLEVEL.DEBUG_LOW) && this.showMessages === true)
+    public debugLow(topic: LOGGING_TOPIC, msg: string): void {
+        if (this.canLog(LOGGING_LEVEL.DEBUG_LOW) && this.showMessages === true)
             console.debug('(DEBUG_LOW) ' + this.messageConstruction(msg));
     }
 
@@ -234,8 +234,8 @@ export class Logger {
      * Logging a debug message with medium priority.
      * @param msg the message
      */
-    public debugMedium(topic: LOGGINGTOPIC, msg: string): void {
-        if (this.canLog(LOGGINGLEVEL.DEBUG_MEDIUM) && this.showMessages === true)
+    public debugMedium(topic: LOGGING_TOPIC, msg: string): void {
+        if (this.canLog(LOGGING_LEVEL.DEBUG_MEDIUM) && this.showMessages === true)
             console.debug('(DEBUG_MEDIUM) ' + this.messageConstruction(msg));
     }
 
@@ -243,11 +243,11 @@ export class Logger {
      * Logging an error.
      * @param msg the message
      */
-    public error(topic: LOGGINGTOPIC, error: Error, msg?: string, throwError: boolean = false, notifySentry: boolean = true): void {
+    public error(topic: LOGGING_TOPIC, error: Error, msg?: string, throwError: boolean = false, notifySentry: boolean = true): void {
         this.sentryBreadcrumb(topic, msg || error.message, Sentry.Severity.Error); 
         if(notifySentry) 
             this.sentryError(topic, error, msg);
-        if (this.canLog(LOGGINGLEVEL.ERROR) && this.showMessages === true) 
+        if (this.canLog(LOGGING_LEVEL.ERROR) && this.showMessages === true) 
             console.error('(ERROR) ' + this.messageConstruction(msg || error.message));
         if(throwError) throw error;
     }
@@ -256,10 +256,10 @@ export class Logger {
      * Logging a fatal error.
      * @param msg the message
      */
-    public fatal(topic: LOGGINGTOPIC, msg: string, error: Error, throwError: boolean = false): void {
+    public fatal(topic: LOGGING_TOPIC, msg: string, error: Error, throwError: boolean = false): void {
         this.sentryBreadcrumb(topic, msg, Sentry.Severity.Fatal);
         this.sentryError(topic, error, msg);
-        if (this.canLog(LOGGINGLEVEL.FATAL) && this.showMessages === true)
+        if (this.canLog(LOGGING_LEVEL.FATAL) && this.showMessages === true)
             console.error('(FATAL) ' + this.messageConstruction(msg));
         if(throwError) throw error;
     }
@@ -268,9 +268,9 @@ export class Logger {
      * Logging an info.
      * @param msg the message
      */
-    public info(topic: LOGGINGTOPIC, msg: string): void {
+    public info(topic: LOGGING_TOPIC, msg: string): void {
         this.sentryBreadcrumb(topic, msg, Sentry.Severity.Info);
-        if (this.canLog(LOGGINGLEVEL.INFO) && this.showMessages === true)
+        if (this.canLog(LOGGING_LEVEL.INFO) && this.showMessages === true)
             console.info('(INFO) ' + this.messageConstruction(msg));
     }
 
@@ -278,9 +278,9 @@ export class Logger {
      * Logging a warning.
      * @param msg the message
      */
-    public warn(topic: LOGGINGTOPIC, msg: string): void {
+    public warn(topic: LOGGING_TOPIC, msg: string): void {
         this.sentryBreadcrumb(topic, msg, Sentry.Severity.Warning);
-        if (this.canLog(LOGGINGLEVEL.WARN) && this.showMessages === true)
+        if (this.canLog(LOGGING_LEVEL.WARN) && this.showMessages === true)
             console.warn('(WARN) ' + this.messageConstruction(msg));
     }
 

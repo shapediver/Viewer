@@ -4,10 +4,10 @@ import {
   MaterialStandardData, MaterialStandardDataProperties,
 } from './data/material/MaterialStandardData'
 import { AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData } from './data/HTMLElementAnchorData'
-import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributesData } from './data/sdtf/SDTFAttributesData'
+import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT, SDTFAttributeData, SDTFAttributesData } from './data/sdtf/SDTFAttributesData'
 import { SDTFItemData } from './data/sdtf/SDTFItemData'
 import { SDTFAttributeOverview, SDTFOverview } from './data/sdtf/SDTFAttributeOverview'
-import { ATTRIBUTEVISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisualizationData } from './data/sdtf/SDTFAttributeVisualization'
+import { ATTRIBUTE_VISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisualizationData } from './data/sdtf/SDTFAttributeVisualization'
 import { AnimationData, AnimationTrack } from './data/AnimationData'
 import { IViewerEvent } from './events/IViewerEvent'
 import { ISessionEvent } from './events/ISessionEvent'
@@ -15,7 +15,7 @@ import { ICameraEvent } from './events/ICameraEvent'
 import { IEnvironmentEvent } from './events/IEnvironmentEvent'
 import { ISceneEvent } from './events/ISceneEvent'
 import { ISettingsEvent } from './events/ISettingsEvent'
-import { ITaskEvent, TASKTYPE } from './events/ITaskEvent'
+import { ITaskEvent, TASK_TYPE } from './events/ITaskEvent'
 import { MaterialVariantsData } from './data/material/MaterialVariantsData'
 import { MapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './data/material/MapData'
 import { MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, AbstractMaterialData, AbstractMaterialDataProperties } from './data/material/AbstractMaterialData'
@@ -43,9 +43,9 @@ export {
 }
 
 export {
-  IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, ITaskEvent, TASKTYPE
+  IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, ITaskEvent, TASK_TYPE
 }
 
 export {
-  SDTFAttributeOverview, SDTFOverview, SDTFAttributesData, SDTFAttributeVisualizationData, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, SDTFAttributeData, SDTFItemData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT
+  SDTFAttributeOverview, SDTFOverview, SDTFAttributesData, SDTFAttributeVisualizationData, SDTFAttributeVisualization, ATTRIBUTE_VISUALIZATION, SDTFAttributeData, SDTFItemData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT
 }
