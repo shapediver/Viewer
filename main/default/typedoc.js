@@ -11,5 +11,6 @@ module.exports = {
     theme: 'default',
     excludeExternals: false,
     excludePrivate: true,
+    sort: ['required-first', 'kind', 'alphabetical'],
 }
 //    "doc": "s --theme minimal --name Viewer && cp -r api/api/images docs/images",

@@ -90,7 +90,7 @@ export interface ISessionApi {
     /**
      * A callback that refreshes the JWT token once it expires.
      */
-    refreshJwtToken?: () => Promise<string>;
+    refreshJwtToken: (() => Promise<string>) | undefined;
 
     // #endregion Properties (13)
 
