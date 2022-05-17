@@ -141,11 +141,11 @@ export const createSession = async (
 };
 
 /**
- * Create and initialize a viewer with the provided type and canvas.
+ * Create and initialize a viewport with the provided type and canvas.
  * An id can be provided. This id can be used to retrieve this object later on.
  * In the case no id has been provided, a unique one will be generated.
  * 
- * The viewer will automatically load what is currently in the scene tree.
+ * The viewport will automatically load what is currently in the scene tree.
  * 
  * @param properties.type The type of the viewport.
  * @param properties.visibility The visibility of the viewport.
