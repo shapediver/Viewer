@@ -14,6 +14,9 @@ import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
 import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
 
+/**
+ * Modes used to indicate that a viewport is busy.
+ */
 export enum BUSY_MODE_DISPLAY {
   /** The viewport will be blurred when a session is busy. */
   BLUR = 'blur',
@@ -23,17 +26,32 @@ export enum BUSY_MODE_DISPLAY {
   NONE = 'none'
 };
 
+/**
+ * Session settings to be used by a viewport.
+ */
 export enum SESSION_SETTINGS_MODE {
   /** No settings of a session will be used. */
   NONE = 'none',
-  /** The first created session will be used for the settings of the viewport. */
+  /** 
+   * The first created session will be used for the settings of the viewport. 
+   * ATOM: It's not totally clear what this means.
+   */
   FIRST = 'first',
-  /** The next created session will be used for the settings of the viewport. */
+  /** 
+   * The next created session will be used for the settings of the viewport. 
+   * ATOM: It's not totally clear what this means.
+   */
   NEXT = 'next',
-  /** The previous created session will be used for the settings of the viewport. */
+  /** 
+   * The previous created session will be used for the settings of the viewport. 
+   * ATOM: It's not totally clear what this means.
+   */
   PREVIOUS = 'previous',
 };
 
+/**
+ * Types of flags used to influence the render loop.
+ */
 export enum FLAG_TYPE {
   /** The flag to freeze the camera. */
   CAMERA_FREEZE = 'camera_freeze',
@@ -45,10 +63,13 @@ export enum FLAG_TYPE {
 
 /**
  * The api for a viewport.
- * A viewport can be started by calling the {@link createViewport} method.
+ * Viewports are created by calling the {@link createViewport} method.
  * 
- * Inside a session are the corresponding [cameras]{@link ICameraApi} and [lights]{@link ILightApi}.
+ * Each viewport has corresponding [cameras]{@link ICameraApi} and [lights]{@link ILightApi}.
+ * 
  * Additionally, there are various other settings to adjust the behavior and rendering of the viewport.
+ * 
+ * ATOM: By default a new viewport displays the complete scene tree, is this so? Let's add more details here.
  */
 export interface IViewportApi {
   // #region Properties (34)
@@ -86,11 +107,15 @@ export interface IViewportApi {
 
   /**
    * Option to enable / disable the AR (Augmented Reality) function for this viewport. (default: true)
+   * ATOM: let's be more specific: what exactly is this used for?
    */
   enableAR: boolean;
 
   /**
-   * The scaling factor that is used to display the scene in AR (Augmented Reality).
+   * The scaling factor that is used to export the scene for AR (Augmented Reality).
+   * The unit system used by AR is meter, therefore this scaling factor needs to be chosen
+   * such that scene coordinates are transformed to meters.
+   * ATOM: is there a corresponding "arOrigin" property? 
    */
   arScale: vec3;
 
@@ -106,41 +131,49 @@ export interface IViewportApi {
 
   /**
    * An array of all animations that are currently present in the viewport.
+   * ATOM: "active" instead of "present"? Are animations controlled by setting this property?
    */
   animations: IAnimationData[];
 
   /**
    * Option to enable / disable the automatic resizing. (default: true)
+   * ATOM: what exactly is automatic resizing?
    */
   automaticResizing: boolean;
 
   /**
    * The duration that the beauty rendering blends in.
+   * ATOM: please specify the unit
    */
   beautyRenderBlendingDuration: number;
 
   /**
    * The delay with which the beauty rendering starts.
+   * ATOM: please specify the unit
    */
   beautyRenderDelay: number;
 
   /**
-   * The mode with which to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
+   * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
+   * ATOM: in case this is set to NONE, are there events which can be reacted upon to do sth custom? Let's mention them here.
    */
   busyModeDisplay: BUSY_MODE_DISPLAY;
 
   /**
-   * The clear alpha value of the viewport.
+   * The clear alpha value of the viewport. 
+   * Use this to influence the background appearance of the viewport.
    */
   clearAlpha: number;
 
   /**
    * The clear color value of the viewport.
+   * Use this to influence the background appearance of the viewport.
    */
   clearColor: string | number | vec3;
 
   /**
-   * The environment map of the viewport.
+   * The environment map used by the viewport.
+   * ATOM: Let's add detailed requirements here (image types, when do we need a single image, how many images if not a single)
    */
   environmentMap: string | string[];
 
@@ -151,6 +184,7 @@ export interface IViewportApi {
 
   /**
    * The environment map resolution that is used for our deprecated cube maps.
+   * ATOM: are they really deprecated?
    */
   environmentMapResolution: string;
 
@@ -176,6 +210,7 @@ export interface IViewportApi {
 
   /**
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
+   * ATOM: What is the "output texture"? :-)
    */
   outputEncoding: TEXTURE_ENCODING;
 
@@ -190,22 +225,31 @@ export interface IViewportApi {
   pointSize: number;
 
   /**
-   * The id of the session that is currently used for the settings of the viewport.
+   * Optional id of the session to be used for persisting / loading settings of the viewport.
+   * ATOM: Let's add details on what this exactly means.
    */
   sessionSettingsId: string;
 
   /**
-   * Option to enable / disable the shadows of the viewport. (default: true)
+   * The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST}).
+   * ATOM: Let's add details on what this exactly means. Does this matter only on creation of the viewport? 
+   */
+  sessionSettingsMode?: SESSION_SETTINGS_MODE
+
+  /**
+   * Option to enable / disable rendering of shadows. (default: true)
    */
   shadows: boolean;
 
   /**
    * Option to show / hide the viewport.
+   * ATOM: Let's add some details here. This will disable rendering, but not hide the canvas, correct?
    */
   show: boolean;
 
   /**
    * Option to show / hide the statistics. (default: false)
+   * ATOM: Let's be more specific here. Where do we show statistics?
    */
   showStatistics: boolean;
 
@@ -245,13 +289,14 @@ export interface IViewportApi {
   addCanvasEventListener(listener: IDomEventListener): string;
 
   /**
-   * Add a flag for this viewport.
+   * Add a flag for this viewport. Adding/removing flags allows to influence the render loop.
    * If you want to stop this again call {@link removeFlag} with the returned token.
    */
   addFlag(flag: FLAG_TYPE): string;
 
   /**
    * Assign the camera with the specified id to the viewport.
+   * ATOM: What exactly does this do? Will this camera become the current one?
    * 
    * @param id The id of the camera.
    */
@@ -259,6 +304,7 @@ export interface IViewportApi {
 
   /**
    * Assign the light scene with the current id to the viewport.
+   * ATOM: What exactly does this do? Will this light scene become the current one?
    * 
    * @param id The id of the light scene.
    */
@@ -266,6 +312,7 @@ export interface IViewportApi {
 
   /**
    * Closes the viewport.
+   * ATOM: Please add some details. Will this remove all traces of the viewport on the canvas element?
    */
   close(): Promise<boolean>;
 
@@ -305,6 +352,7 @@ export interface IViewportApi {
 
   /**
    * Deregister the busy mode with the specified id.
+   * ATOM: Please explain what this is used for. 
    * 
    * @param value The id of the busy mode.
    */
@@ -319,6 +367,7 @@ export interface IViewportApi {
 
   /**
    * Get the complete URL of the current environment map, if it is a single file.
+   * ATOM: What's the difference to environmentMap?
    */
   getEnvironmentMapImageUrl(): string;
 
@@ -332,12 +381,15 @@ export interface IViewportApi {
 
   /**
    * Register the busy mode with the specified id.
+   * ATOM: Please explain what this is used for. 
+   * 
    * @param value The id of the busy mode.
    */
   registerBusyMode(value: string): boolean;
 
   /**
    * Remove the camera with the specified id.
+   * ATOM: Please explain what happens if the current camera is removed.
    * 
    * @param id The id of the camera.
    */
@@ -351,7 +403,7 @@ export interface IViewportApi {
   removeCanvasEventListener(token: string): boolean;
 
   /**
-   * Removes the registered flag.
+   * Removes the registered flag. Adding/removing flags allows to influence the render loop.
    * 
    * @param token The token that was returned by {@link addFlag}.
    */
@@ -359,6 +411,7 @@ export interface IViewportApi {
 
   /**
    * Remove the light scene with the specified id.
+   * ATOM: Please explain what happens if the current light scene is removed.
    * 
    * @param id The id of the light scene.
    */
@@ -372,6 +425,7 @@ export interface IViewportApi {
   /**
    * Reset the viewport.
    * Sets the {@link show}-value to false and waits for new settings to be registered.
+   * ATOM: what does "waiting for new settings mean"? Please explain it here.
    */
   reset(): void;
 
@@ -384,11 +438,13 @@ export interface IViewportApi {
 
   /**
    * Update the viewport with the current changes of the scene tree.
+   * ATOM: What exactly does this do? Is this like "render"?
    */
   update(): void;
 
   /**
    * Update the current node and all descendants in the scene tree.
+   * ATOM: Please add some details here.
    * @param node The node to update.
    */
   updateNode(node: ITreeNode): void;
@@ -399,6 +455,12 @@ export interface IViewportApi {
    * Please check first if the device supports the viewing of models in AR, see {@link viewableInAR}.
    * 
    * As some models might have a different scale then the AR apps (meters), the scaling can be chosen freely.
+   * 
+   * ATOM: How does this related to arScale? Let's also explain the process here to some extent, i.e. 
+   *   * export to glTF
+   *   * backend upload (which requires a session), and conversion for iOS
+   *   * opening the AR asset 
+   * Also: Does it make sense to expose the glTF exporting functionality?
    * 
    * @param androidOptions 
    */

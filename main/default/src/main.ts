@@ -141,19 +141,24 @@ export const createSession = async (
 };
 
 /**
- * Create and initialize a viewport with the provided type and canvas.
- * An id can be provided. This id can be used to retrieve this object later on.
- * In the case no id has been provided, a unique one will be generated.
+ * Create and initialize a viewport with the provided type and canvas, 
+ * and return an api object allowing to control it.
  * 
- * The viewport will automatically load what is currently in the scene tree.
+ * An id can be provided. This id can be used to retrieve this object later on. 
+ * ATOM: How?
  * 
- * @param properties.type The type of the viewport.
+ * In the case no id is provided, a unique one will be generated.
+ * 
+ * The viewport will automatically load what is currently in the scene tree. 
+ * ATOM: Is "load" a good term to use here? Isn't it "show" or "render"?
+ * 
+ * @param properties.type The type of the viewport. ATOM: there is no type parameter below
  * @param properties.visibility The visibility of the viewport.
- * @param properties.canvas The canvas that the viewport should use.
+ * @param properties.canvas The canvas that the viewport should use. ATOM: is this really optional?
  * @param properties.id The unique id the session should have .
  * @param properties.branding Optional branding options.
- * @param properties.sessionSettingsId The id of the session that is currently used for the settings of the viewport.
- * @param properties.sessionSettingsMode The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST})
+ * @param properties.sessionSettingsId The id of the session that is currently used for the settings of the viewport. ATOM: Let's adapt this once IViewportApi::sessionSettingsId has been clarified
+ * @param properties.sessionSettingsMode The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST}). ATOM: Let's adapt this once IViewportApi::sessionSettingsMode has been clarified.
  * @returns 
  */
 export const createViewport = async (
@@ -161,11 +166,22 @@ export const createViewport = async (
         canvas?: HTMLCanvasElement,
         id?: string, 
         branding?: {
-            /** Optional logo while the viewport is hidden. (our default will be used if none is provided, null will display no logo at all) */
+            /** 
+             * Optional URL to a logo to be displayed while the viewport is hidden. 
+             * A default logo will be used if none is provided. 
+             * Supply null to display no logo at all.
+             */
             logo?: string | null,
-            /** Optional background color while the viewport is hidden, can include alpha channel. (our default will be used if none is provided) */
+            /** 
+             * Optional background color to show while the viewport is hidden, can include alpha channel. 
+             * A default color will be used if none is provided.
+             */
             backgroundColor?: string,
-            /** Optional logo while the viewport is in busy mode. (our default will be used if none is provided) */
+            /** 
+             * Optional URL to a logo to be displayed while the viewport is in busy mode. 
+             * A default logo will be used if none is provided. 
+             * ATOM: Let's explain how the placement can be influenced.
+             */
             spinner?: string,
         },
         sessionSettingsId?: string,
