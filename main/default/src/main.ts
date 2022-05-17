@@ -82,7 +82,8 @@ export const removeListener = (id: string): boolean => {
 
 /**
  * The scene tree that is used to store the scene.
- * This stores all sessions, but can also be used to store your own data.
+ * The scene tree contains a unique node and child nodes for each session, 
+ * and can also be used to add your own nodes.
  */
 export const sceneTree: ITree = <ITree>container.resolve(Tree);
 
@@ -104,26 +105,33 @@ export let loggingLevel: LOGGING_LEVEL = viewerOptions.loggingLevel;
 
 /**
  * Option to show/hide messages.
+ * ATOM: Please add details on what this is used for exactly
  */
 export let showMessages: boolean = viewerOptions.showMessages;
 
 /**
- * Create and initialize a session with the provided ticket and modelViewUrl.
- * An id can be provided. This id can be used to retrieve this object later on.
- * In the case no id has been provided, a unique one will be generated.
+ * Create and initialize a session with a model on a 
+ * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend}, 
+ * using the provided ticket and modelViewUrl. 
+ * Returns a session api object allowing to control the session.
  * 
- * A jwtToken can be provided (JWT).
+ * A JWT can be specified for authorizing the API calls to the Geometry Backend. 
+ * The model's settings on the Geometry Backend might require a JWT to be provided.
+ *
+ * By default the outputs of the model for its default parameter values will be loaded.
  * 
- * The session will be initialized automatically, 
- * and the first computation will be loaded in the the scene tree once the promise has resolved.
+ * An optional identifier for the session can be provided. This identifier can be used to retrieve the  
+ * api object from {@link sessions}. In case no identifier is provided, a unique one will be generated.
  * 
- * @param properties.ticket The ticket of a session.
- * @param properties.modelViewUrl The modelViewUrl of the session.
- * @param properties.jwtToken The jwtToken of the session.
- * @param properties.id The unique id the session should have.
+ * ATOM: It would be useful to have an optional parameter allowing to specify a transformation for the session node.
+ * 
+ * @param properties.ticket The ticket for direct embedding of the model to create a session for.
+ * @param properties.modelViewUrl The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model.
+ * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
+ * @param properties.id The unique identifier to use for the session.
  * @param properties.waitForOutputs Option to wait for the outputs to be loaded. (default: true)
  * @param properties.loadOutputs Option to not load the outputs. (default: true)
- * @param properties.initialParameters The initial set of parameters.
+ * @param properties.initialParameters The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @returns 
  */
 export const createSession = async (
@@ -142,12 +150,10 @@ export const createSession = async (
 
 /**
  * Create and initialize a viewport with the provided type and canvas, 
- * and return an api object allowing to control it.
+ * and return a viewport api object allowing to control it.
  * 
- * An id can be provided. This id can be used to retrieve this object later on. 
- * ATOM: How?
- * 
- * In the case no id is provided, a unique one will be generated.
+ * An optional identifier for the viewport can be provided. This identifier can be used to retrieve the  
+ * viewport object from {@link viewports}. In case no identifier is provided, a unique one will be generated.
  * 
  * The viewport will automatically load what is currently in the scene tree. 
  * ATOM: Is "load" a good term to use here? Isn't it "show" or "render"?
@@ -155,7 +161,7 @@ export const createSession = async (
  * @param properties.type The type of the viewport. ATOM: there is no type parameter below
  * @param properties.visibility The visibility of the viewport.
  * @param properties.canvas The canvas that the viewport should use. ATOM: is this really optional?
- * @param properties.id The unique id the session should have .
+ * @param properties.id The unique identifier to use for the viewport.
  * @param properties.branding Optional branding options.
  * @param properties.sessionSettingsId The id of the session that is currently used for the settings of the viewport. ATOM: Let's adapt this once IViewportApi::sessionSettingsId has been clarified
  * @param properties.sessionSettingsMode The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST}). ATOM: Let's adapt this once IViewportApi::sessionSettingsMode has been clarified.
