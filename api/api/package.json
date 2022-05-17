@@ -1,5 +1,5 @@
 {
-  "name": "@shapediver/viewer",
+  "name": "@shapediver/viewer.old",
   "version": "1.14.14",
   "description": "",
   "keywords": [
@@ -28,13 +28,7 @@
     "type": "git",
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
-  "scripts": {
-    "test": "bash ../../scripts/test.sh",
-    "check": "tsc --noEmit",
-    "build": "bash ../../scripts/build.sh",
-    "build-watch": "bash ../../scripts/build-watch.sh",
-    "build-dep": "bash ../../scripts/build-dep.sh"
-  },
+  "scripts": {},
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
   },

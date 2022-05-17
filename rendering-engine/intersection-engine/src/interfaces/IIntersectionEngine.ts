@@ -1,8 +1,8 @@
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { IIntersection } from "./IIntersection";
 import { IIntersectionFilter } from "./IIntersectionFilter";
 import { IRay } from "./IRay";
 
 export interface IIntersectionEngine {
-    intersect(ray: IRay, filterCriteria?: IIntersectionFilter[], root?: TreeNode, viewerID?: string): IIntersection[];
+    intersect(ray: IRay, filterCriteria?: IIntersectionFilter[], root?: ITreeNode, viewerID?: string): IIntersection[];
 }

@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { Converter, HttpClient, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import {
@@ -40,7 +40,7 @@ export class MaterialEngine {
        * @param content the material content
        * @returns the scene graph node 
        */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         const node = new TreeNode(content.name || 'material');
         if (!content) {
             const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Invalid content was provided to material engine.');
@@ -150,7 +150,7 @@ export class MaterialEngine {
         if (specificDefinition.side) material.side = specificDefinition.side === 'front' ? MATERIAL_SIDE.FRONT : specificDefinition.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
     }
 
-    private getClassAndSpecificID(id: number): { class: string, specific: string } {
+    private getClassAndSpecificId(id: number): { class: string, specific: string } {
         // for a while, we had documented the presets to be 10, 20, 30 and 40 here, we allow for the few cases where this was used to succeed
         if (id < 100 && id % 10 == 0) id /= 10;
 
@@ -350,7 +350,7 @@ export class MaterialEngine {
     }
 
     public async loadPresetMaterial(preset: number, material: MaterialStandardData) {
-        const idStrings = this.getClassAndSpecificID(preset);
+        const idStrings = this.getClassAndSpecificId(preset);
         if (materialDatabase[idStrings.class] && materialDatabase[idStrings.class][idStrings.specific]) {
             await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class][idStrings.specific], material);
             await this.assignGeneralDefinition(idStrings, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class][idStrings.specific], material);

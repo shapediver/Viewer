@@ -10,4 +10,6 @@ export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
  }
 export interface IOrthographicCamera extends ICamera {
     direction: ORTHOGRAPHIC_CAMERA_DIRECTION;
+
+    clone(): IOrthographicCamera;
 }

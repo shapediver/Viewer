@@ -6,6 +6,7 @@ import { IParameterApi } from "../../interfaces/session/IParameterApi";
 import { ISessionApi } from "../../interfaces/session/ISessionApi";
 
 export class SessionApi implements ISessionApi {
+    excludeViewports: string[] = [];
     exports: { [key: string]: IExportApi; } = {};
     outputs: { [key: string]: IOutputApi; } = {};
     parameters: { [key: string]: IParameterApi<any>; } = {};

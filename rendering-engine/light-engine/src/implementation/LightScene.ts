@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix';
 
 import { ILight } from '../interface/ILight'
@@ -15,7 +15,7 @@ export class LightScene implements ILightScene {
 
     private readonly _id: string;
     private readonly _lights: { [key: string]: ILight; } = {};
-    private readonly _node: TreeNode;
+    private readonly _node: ITreeNode;
 
     private _name: string | undefined;
 
@@ -49,7 +49,7 @@ export class LightScene implements ILightScene {
         this._name = value;
     }
 
-    public get node(): TreeNode {
+    public get node(): ITreeNode {
         return this._node;
     }
 

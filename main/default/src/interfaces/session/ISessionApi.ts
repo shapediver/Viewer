@@ -78,6 +78,11 @@ export interface ISessionApi {
     customizeOnParameterChange: boolean;
 
     /**
+     * The ids of the viewports in which the session should not be shown.
+     */
+    excludeViewports: string[];
+
+    /**
      * The JWT token that is used for the communication with the server.
      */
     jwtToken: string | undefined;
@@ -85,7 +90,7 @@ export interface ISessionApi {
     /**
      * A callback that refreshes the JWT token once it expires.
      */
-    refreshJwtToken: () => Promise<string>;
+    refreshJwtToken?: () => Promise<string>;
 
     // #endregion Properties (13)
 

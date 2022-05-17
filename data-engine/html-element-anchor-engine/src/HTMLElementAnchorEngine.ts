@@ -1,6 +1,6 @@
 import { container, singleton } from 'tsyringe'
 import { HTMLElementAnchorData, HTMLElementAnchorTextData, HTMLElementAnchorImageData } from '@shapediver/viewer.shared.types'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Logger, LOGGING_TOPIC, Converter, ShapeDiverViewerDataProcessingError, InputValidator } from '@shapediver/viewer.shared.services'
 import { vec3, vec4 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
@@ -25,7 +25,7 @@ export class HTMLElementAnchorEngine {
      * @param content the material content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         try {
             const node = new TreeNode('htmlElementAnchors');
             if (content.format === 'tag2d') {

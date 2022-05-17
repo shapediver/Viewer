@@ -1,6 +1,6 @@
 import { container, singleton } from "tsyringe";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { GeometryData, AbstractMaterialData } from "@shapediver/viewer.shared.types";
+import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { GeometryData, IMaterialData } from "@shapediver/viewer.shared.types";
 import { UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IInteractionEffectUtils } from "../../interfaces/utils/IInteractionEffectUtils";
 
@@ -14,10 +14,10 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 
     // #region Public Methods (2)
 
-    public applyEffectMaterial(node: TreeNode, material: AbstractMaterialData): string {
+    public applyEffectMaterial(node: ITreeNode, material: IMaterialData): string {
         const token = this.#uuidGenerator.create();
 
-        const applyEffect = (node: TreeNode) => {
+        const applyEffect = (node: ITreeNode) => {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometryData = <GeometryData>node.data[i];
@@ -34,8 +34,8 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
         return token;
     }
 
-    public removeEffectMaterial(node: TreeNode, token: string) {
-        const removeEffect = (node: TreeNode) => {
+    public removeEffectMaterial(node: ITreeNode, token: string) {
+        const removeEffect = (node: ITreeNode) => {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometryData = <GeometryData>node.data[i];

@@ -13,15 +13,15 @@ import { ILightEngine } from '../interface/ILightEngine'
 import { ILight, LIGHT_TYPE } from '../interface/ILight'
 import { ILightScene } from '../interface/ILightScene'
 import { IAmbientLightPropertiesV3, IDirectionalLightPropertiesV3, IHemisphereLightPropertiesV3, ILightSceneSettingsV3, IPointLightPropertiesV3, ISpotLightPropertiesV3 } from '@shapediver/viewer.settings'
-import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _lightNode: TreeNode = new TreeNode('lights');
+    private readonly _lightNode: ITreeNode = new TreeNode('lights');
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-    private readonly _tree: Tree = <Tree>container.resolve(Tree);
+    private readonly _tree: ITree = <ITree>container.resolve(Tree);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _lightScene!: LightScene;

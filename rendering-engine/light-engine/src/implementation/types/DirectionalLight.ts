@@ -87,7 +87,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
 
     // #region Public Methods (1)
 
-    public clone(): ITreeNodeData {
+    public clone(): IDirectionalLight {
         return new DirectionalLight({
             color: this.color,
             intensity: this.intensity,

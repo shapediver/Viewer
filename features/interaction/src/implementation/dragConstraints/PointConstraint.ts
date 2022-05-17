@@ -1,8 +1,8 @@
 import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
 import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
-import { IViewer } from "@shapediver/viewer";
+import { IViewportApi } from "@shapediver/viewer";
 import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 import { container } from "tsyringe";
@@ -39,7 +39,7 @@ export class PointConstraint implements IDragConstraint {
 
     // #region Public Methods (2)
 
-    public intersect(viewer: IViewer, node: TreeNode, ray: IRay): { distance: number, transformation: mat4 } | undefined {
+    public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4 } | undefined {
         const closestPoint = vec3.sub(vec3.create(), this.#point, ray.origin);
 		const directionDistance = vec3.dot(closestPoint, ray.direction);
 
@@ -56,10 +56,10 @@ export class PointConstraint implements IDragConstraint {
         return;
     }
 
-    public setup(viewer: IViewer, node: TreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {       
+    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {       
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
         this.#dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
-        return this.intersect(viewer, node, ray);
+        return this.intersect(viewport, node, ray);
     }
 
     // #endregion Public Methods (2)

@@ -1,5 +1,5 @@
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseExport, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2';
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 export interface ISession {
     // #region Properties (9)
@@ -20,11 +20,11 @@ export interface ISession {
 
     // #region Public Methods (4)
 
-    customize(cancelRequest: () => boolean): Promise<TreeNode>;
+    customize(cancelRequest: () => boolean): Promise<ITreeNode>;
     init(parameterValues?: {
       [key: string]: string;
     }): Promise<void>;
-    loadOutputs(cancelRequest: () => boolean): Promise<TreeNode>;
+    loadOutputs(cancelRequest: () => boolean): Promise<ITreeNode>;
     requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
     uploadFile(parameterId: string, data: File, type: string): Promise<string>;
     uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<string>;

@@ -28,7 +28,7 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
 
     // #region Public Methods (1)
 
-    public clone(): ITreeNodeData {
+    public clone(): IAmbientLight {
         return new AmbientLight({
             color: this.color || '#ffffff', 
             intensity: this.intensity || 0.5, 

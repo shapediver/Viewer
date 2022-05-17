@@ -4,7 +4,7 @@ import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { SDTFEngine } from '@shapediver/viewer.data-engine.sdtf-engine'
 import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine'
-import { ITransformation, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITransformation, ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { HttpClient, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine'
 
@@ -26,14 +26,14 @@ export class DataEngine {
 
     // #region Public Methods (1)
 
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         if(!content || (content && !content.format)) {
             const error = new ShapeDiverViewerDataProcessingError('DataEngine cannot load content.');
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `DataEngine.loadContent`, error);
         }
 
         try {
-            let node: TreeNode;
+            let node: ITreeNode;
 
             if (content.format === 'glb' || content.format === 'gltf') {
                 node = await this._geometryEngine.loadContent(content);

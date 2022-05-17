@@ -1,10 +1,10 @@
-import { api, IViewer } from "@shapediver/viewer";
 import { vec3 } from "gl-matrix";
 import { Logger, LOGGING_TOPIC, UuidGenerator, ShapeDiverViewerGeneralError } from "@shapediver/viewer.shared.services";
 import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractionEngine";
 import { container } from "tsyringe";
 import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { IInteractionManager } from "../interfaces/IInteractionManager";
+import { IViewportApi, sceneTree } from "@shapediver/viewer";
 
 export class InteractionEngine implements IInteractionEngine {
     // #region Properties (5)
@@ -13,15 +13,15 @@ export class InteractionEngine implements IInteractionEngine {
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #managers: { [key: string]: IInteractionManager } = {};
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    readonly #viewer: IViewer;
+    readonly #viewport: IViewportApi;
 
     // #endregion Properties (5)
 
     // #region Constructors (1)
 
-    constructor(viewer: IViewer) {
-        this.#viewer = viewer;
-        this.#viewer.addCanvasEventListener(this);
+    constructor(viewport: IViewportApi) {
+        this.#viewport = viewport;
+        this.#viewport.addCanvasEventListener(this);
     }
 
     // #endregion Constructors (1)
@@ -31,7 +31,7 @@ export class InteractionEngine implements IInteractionEngine {
     public addInteractionManager(manager: IInteractionManager): string {
         const token = this.#uuidGenerator.create();
         this.#managers[token] = manager;
-        manager.viewer = this.#viewer;
+        manager.viewport = this.#viewport;
         return token;
     }
 
@@ -115,8 +115,8 @@ export class InteractionEngine implements IInteractionEngine {
         origin: vec3,
         direction: vec3
     } {
-        const rect = this.#viewer.canvas.getBoundingClientRect();
-        const camera = this.#viewer.camera;
+        const rect = this.#viewport.canvas.getBoundingClientRect();
+        const camera = this.#viewport.camera;
         if (!camera) {
             const error = new ShapeDiverViewerGeneralError('InteractionEngine.mouseEventToRay: No camera is defined for this viewer.');
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `InteractionEngine.mouseEventToRay`, error);
@@ -142,7 +142,7 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.DOWN));
 
-        const intersection = this.#intersectionEngine.intersect(ray, filters, api.sceneTree.root, this.#viewer.id) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters, sceneTree.root, this.#viewport.id) || [];
 
         for(let m in this.#managers)
             this.#managers[m].onDown(ray, intersection);
@@ -163,7 +163,7 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
             
-        const intersection = this.#intersectionEngine.intersect(ray, filters, api.sceneTree.root, this.#viewer.id) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters, sceneTree.root, this.#viewport.id) || [];
 
         for(let m in this.#managers)
             this.#managers[m].onEnd(ray, intersection, endState);
@@ -180,7 +180,7 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.MOVE));
 
-        const intersection = this.#intersectionEngine.intersect(ray, filters, api.sceneTree.root, this.#viewer.id) || [];
+        const intersection = this.#intersectionEngine.intersect(ray, filters, sceneTree.root, this.#viewport.id) || [];
 
         for(let m in this.#managers)
             this.#managers[m].onMove(ray, intersection);
@@ -196,8 +196,8 @@ export class InteractionEngine implements IInteractionEngine {
         origin: vec3,
         direction: vec3
     } {
-        const rect = this.#viewer.canvas.getBoundingClientRect();
-        const camera = this.#viewer.camera;
+        const rect = this.#viewport.canvas.getBoundingClientRect();
+        const camera = this.#viewport.camera;
         if (!camera) {
             const error = new ShapeDiverViewerGeneralError('InteractionEngine.touchToRay: No camera is defined for this viewer.');
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `InteractionEngine.touchToRay`, error);

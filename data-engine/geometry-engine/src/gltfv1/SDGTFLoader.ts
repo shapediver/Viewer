@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import {
   ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
@@ -28,7 +28,7 @@ export class SDGTFLoader {
 
     // #region Public Methods (1)
 
-    public async load(binaryGeometry: ArrayBuffer, gltfLength: number): Promise<TreeNode> {
+    public async load(binaryGeometry: ArrayBuffer, gltfLength: number): Promise<ITreeNode> {
         if (gltfLength < binaryGeometry.byteLength) {
             const headerDataView = new DataView(binaryGeometry, gltfLength, this.BINARY_EXTENSION_HEADER_LENGTH + 1);
             const header = {
@@ -89,7 +89,7 @@ export class SDGTFLoader {
         return new AttributeData(new ArrayType(bufferView, byteOffset, itemSize * accessor.count), itemSize, itemBytes, byteOffset, elementBytes, false, accessor.count);
     }
 
-    private async loadArcs(): Promise<TreeNode> {
+    private async loadArcs(): Promise<ITreeNode> {
         if (!this._content.arcs) throw new Error('Arcs not available.')
         const arc = this._content.arcs;
         const arcNode = new TreeNode('arcs');
@@ -167,7 +167,7 @@ export class SDGTFLoader {
         return arcNode;
     }
 
-    private async loadBeziercurve(beziercurveName: string): Promise<TreeNode> {
+    private async loadBeziercurve(beziercurveName: string): Promise<ITreeNode> {
         if (!this._content.beziercurves![beziercurveName]) throw new Error('Beziercurve not available.')
         const beziercurve = this._content.beziercurves![beziercurveName];
         const beziercurveNode = new TreeNode(beziercurveName);
@@ -276,7 +276,7 @@ export class SDGTFLoader {
         return beziercurveNode;
     }
 
-    private async loadCircles(): Promise<TreeNode> {
+    private async loadCircles(): Promise<ITreeNode> {
         if (!this._content.circles) throw new Error('Circles not available.')
         const circle = this._content.circles;
         const circleNode = new TreeNode('circles');
@@ -349,7 +349,7 @@ export class SDGTFLoader {
         return circleNode;
     }
 
-    private async loadCylinders(): Promise<TreeNode> {
+    private async loadCylinders(): Promise<ITreeNode> {
         if (!this._content.cylinders) throw new Error('Cylinders not available.')
         const cylinder = this._content.cylinders;
         const cylinderNode = new TreeNode('cylinders');
@@ -490,7 +490,7 @@ export class SDGTFLoader {
         return cylinderNode;
     }
 
-    private async loadSpheres(): Promise<TreeNode> {
+    private async loadSpheres(): Promise<ITreeNode> {
         if (!this._content.spheres) throw new Error('Spheres not available.')
         const sphere = this._content.spheres;
         const sphereNode = new TreeNode('spheres');
@@ -587,7 +587,7 @@ export class SDGTFLoader {
         return sphereNode;
     }
 
-    private async loadPoint(pointName: string): Promise<TreeNode> {
+    private async loadPoint(pointName: string): Promise<ITreeNode> {
         if (!this._content.points![pointName]) throw new Error('Point not available.')
         const point = this._content.points![pointName];
         const pointNode = new TreeNode(pointName);
@@ -605,7 +605,7 @@ export class SDGTFLoader {
         return pointNode;
     }
 
-    private async loadPolyline(polylineName: string): Promise<TreeNode> {
+    private async loadPolyline(polylineName: string): Promise<ITreeNode> {
         if (!this._content.polylines![polylineName]) throw new Error('Polyline not available.')
         const polyLine = this._content.polylines![polylineName];
         const polyLineNode = new TreeNode(polylineName);
@@ -623,7 +623,7 @@ export class SDGTFLoader {
         return polyLineNode;
     }
 
-    private async loadSurfacepatch(surfacepatchName: string): Promise<TreeNode> {
+    private async loadSurfacepatch(surfacepatchName: string): Promise<ITreeNode> {
         if (!this._content.surfacepatches![surfacepatchName]) throw new Error('Surfacepatch not available.')
         const surfacepatch = this._content.surfacepatches![surfacepatchName];
         const surfacepatchNode = new TreeNode(surfacepatchName);
@@ -781,7 +781,7 @@ export class SDGTFLoader {
     }
 
 
-    private async loadScene(): Promise<TreeNode> {
+    private async loadScene(): Promise<ITreeNode> {
         const sceneNode = new TreeNode('sdgtf_content');
 
         // arcs

@@ -1,11 +1,11 @@
-import { IEvent, LOGGING_LEVEL, MAIN_EVENTTYPE } from '@shapediver/viewer.shared.services'
+import { IEvent, LOGGING_LEVEL, MainEventTypes } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
 import { RENDERER_TYPE, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ISession } from './session/ISession'
 import { IViewer } from './viewer/IViewer'
-import { SDTFOverview } from '@shapediver/viewer.shared.types'
+import { ISDTFOverview } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 export interface IApi {
@@ -34,7 +34,7 @@ export interface IApi {
    * @param cb the callback
    * @returns 
    */
-  addListener(type: string | MAIN_EVENTTYPE, cb: (event: IEvent) => void): string;
+  addListener(type: string | MainEventTypes, cb: (event: IEvent) => void): string;
   /**
    * Update all or some settings of the primary session and the viewers via a ShapeDiverResponseBase of another model.
    * 
@@ -94,12 +94,12 @@ export interface IApi {
   createSession(properties: { ticket: string, modelViewUrl: string, bearerToken?: string, primarySession?: boolean, id?: string, excludeViewers?: string[], waitForOutputs?: boolean, loadOutputs?: boolean, initialParameters?: { [key: string]: string } }): Promise<ISession>;
   
   /**
-   * Create the {@link SDTFOverview} for the provided node.
+   * Create the {@link ISDTFOverview} for the provided node.
    * If no node was provided, the scene root is used instead.
    * 
    * @param node 
    */
-  createSDTFOverview(node: TreeNode): SDTFOverview;
+  createISDTFOverview(node: TreeNode): ISDTFOverview;
 
   /**
    * Create and initialize a viewer with the provided type and canvas.

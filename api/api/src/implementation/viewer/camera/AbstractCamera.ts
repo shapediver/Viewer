@@ -1,4 +1,4 @@
-import { CAMERA_TYPE } from '@shapediver/viewer.rendering-engine.camera-engine'
+import { CAMERA_TYPE, ICameraControls } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { container } from 'tsyringe'
 import { vec2, vec3 } from 'gl-matrix'
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerCameraError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'

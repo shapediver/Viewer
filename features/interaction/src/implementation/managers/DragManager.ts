@@ -1,17 +1,17 @@
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { MATERIAL_ALPHA, MATERIAL_SIDE, MaterialStandardData } from '@shapediver/viewer.shared.types'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { MATERIAL_ALPHA, MATERIAL_SIDE, MaterialStandardData, IDragEvent } from '@shapediver/viewer.shared.types'
 import { mat4, vec3 } from 'gl-matrix'
 import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { IViewer } from '@shapediver/viewer'
+import { IViewportApi } from '@shapediver/viewer'
 
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint'
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager'
 import { AbstractInteractionManager } from '../AbstractInteractionManager'
 import { InteractionData } from '../InteractionData'
-import { IDragEvent } from '../../interfaces/events/IDragEvent'
+import { ITransformation, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
 export class DragManager extends AbstractInteractionManager {
     // #region Properties (11)
@@ -23,7 +23,7 @@ export class DragManager extends AbstractInteractionManager {
     #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if(interactionState === INTERACTION_STATE.DOWN) {
-            return (node: TreeNode) => {
+            return (node: ITreeNode) => {
                 for(let i = 0; i < node.data.length; i++) {
                     if(node.data[i] instanceof InteractionData) {
                         if((<InteractionData>node.data[i]).interactionTypes['drag'])
@@ -34,14 +34,14 @@ export class DragManager extends AbstractInteractionManager {
             };
         }
 
-        return (node: TreeNode) => false;
+        return (node: ITreeNode) => false;
     };
 
     #intersection: IIntersection | null = null;
-    #node: TreeNode | null = null;
+    #node: ITreeNode | null = null;
     #setupOptions: {
-        viewer: IViewer, 
-        node: TreeNode, 
+        viewport: IViewportApi, 
+        node: ITreeNode, 
         ray: IRay, 
         intersection: IIntersection
     } | null = null;
@@ -64,7 +64,7 @@ export class DragManager extends AbstractInteractionManager {
     public addDragConstraint(constraint: IDragConstraint): string {
         const token = this.#uuidGenerator.create();
         this.#dragConstraints[token] = constraint;
-        if(this.#setupOptions) constraint.setup(this.#setupOptions.viewer, this.#setupOptions.node, this.#setupOptions.ray, this.#setupOptions.intersection);
+        if(this.#setupOptions) constraint.setup(this.#setupOptions.viewport, this.#setupOptions.node, this.#setupOptions.ray, this.#setupOptions.intersection);
         return token;
     }
 
@@ -81,9 +81,9 @@ export class DragManager extends AbstractInteractionManager {
     public onMove(ray: IRay, intersection: IIntersection[]): void {        
         if(!this.#node) return;
 
-        const transformationMatrix = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewer, this.#node!, ray);
+        const transformationMatrix = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
         this.applyTransformation(this.#node, transformationMatrix);
-        this.viewer.updateNode(this.#node!);
+        this.viewport.updateNode(this.#node!);
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_MOVE, { node: this.#node, matrix: transformationMatrix } as IDragEvent);
     }
@@ -102,18 +102,19 @@ export class DragManager extends AbstractInteractionManager {
     public removeNode() {
         if(!this.#node) return;
 
-        const transformationMatrix = this.#node.transformations.find(t => t.id === 'SD_drag_matrix')?.matrix;
+        const transformationMatrix = this.#node.transformations.find((t: ITransformation) => t.id === 'SD_drag_matrix')?.matrix;
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_END, { node: this.#node, matrix: transformationMatrix } as IDragEvent);
         this.#setupOptions = null;
 
         // optional removal
         // this.removeTransformation(this.#node!);
-        this.viewer.updateNode(this.#node!);
+        this.viewport.updateNode(this.#node!);
         this.deactivateNode();
         
-        this.viewer.removeCameraFreezeFlag(this.#tokenCameraFreeze);
-        this.viewer.removeContinuousRenderingFlag(this.#tokenContinuousRendering);
-        this.viewer.removeShadowMapUpdateFlag(this.#tokenContinuousShadowMapUpdate);
+        // TODO
+        // this.viewport.removeCameraFreezeFlag(this.#tokenCameraFreeze);
+        // this.viewport.removeContinuousRenderingFlag(this.#tokenContinuousRendering);
+        // this.viewport.removeShadowMapUpdateFlag(this.#tokenContinuousShadowMapUpdate);
     }
 
     /**
@@ -126,14 +127,16 @@ export class DragManager extends AbstractInteractionManager {
      * @param intersectionPoint 
      * @param ray 
      */
-    public setNode(node: TreeNode, distance: number = 0, intersectionPoint: vec3 = vec3.create(), ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
+    public setNode(node: ITreeNode, distance: number = 0, intersectionPoint: vec3 = vec3.create(), ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
         this.activateNode({node, distance, point: intersectionPoint});
-        this.#setupOptions = { viewer: this.viewer, node: this.#node!, ray, intersection: this.#intersection! };
-        const transformationMatrix = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewer, this.#node!, ray, this.#intersection!);
+        this.#setupOptions = { viewport: this.viewport, node: this.#node!, ray, intersection: this.#intersection! };
+        const transformationMatrix = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!);
         this.applyTransformation(this.#node!, transformationMatrix);
-        this.#tokenCameraFreeze = this.viewer.addCameraFreezeFlag();
-        this.#tokenContinuousRendering = this.viewer.addContinuousRenderingFlag();
-        this.#tokenContinuousShadowMapUpdate = this.viewer.addShadowMapUpdateFlag();
+
+        // TODO
+        // this.#tokenCameraFreeze = this.viewport.addCameraFreezeFlag();
+        // this.#tokenContinuousRendering = this.viewport.addContinuousRenderingFlag();
+        // this.#tokenContinuousShadowMapUpdate = this.viewport.addShadowMapUpdateFlag();
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_START, { node: this.#node, matrix: transformationMatrix } as IDragEvent);
     }
 
@@ -150,15 +153,15 @@ export class DragManager extends AbstractInteractionManager {
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
-        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if(data) data.interactionStates['drag'] = true;
         if(this.effectMaterial) {
             this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
         } else {
             this.#effectMaterialToken = undefined;
         }
-        this.viewer.updateNode(this.#node);
-        this.viewer.render();
+        this.viewport.updateNode(this.#node);
+        this.viewport.render();
     }
 
     /**
@@ -167,8 +170,8 @@ export class DragManager extends AbstractInteractionManager {
      * @param node 
      * @param matrix 
      */
-    private applyTransformation(node: TreeNode, matrix: mat4) {
-        const index = node.transformations.findIndex(t => t.id === 'SD_drag_matrix');
+    private applyTransformation(node: ITreeNode, matrix: mat4) {
+        const index = node.transformations.findIndex((t: ITransformation) => t.id === 'SD_drag_matrix');
         if(index !== -1) { 
             node.transformations[index].matrix = matrix;
         } else {
@@ -187,16 +190,16 @@ export class DragManager extends AbstractInteractionManager {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;
         }
-        this.viewer.updateNode(this.#node!);
-        this.viewer.render();
-        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        this.viewport.updateNode(this.#node!);
+        this.viewport.render();
+        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if(data) data.interactionStates['drag'] = false;
         this.#intersection = null;
         this.#node = null;
     }
 
-    private removeTransformation(node: TreeNode) {
-        const index = node.transformations.findIndex(t => t.id === 'SD_drag_matrix');
+    private removeTransformation(node: ITreeNode) {
+        const index = node.transformations.findIndex((t: ITransformation) => t.id === 'SD_drag_matrix');
         if(index !== -1) node.transformations.splice(index, 1);
     }
 

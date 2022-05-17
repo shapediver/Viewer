@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Converter, HttpClient, PerformanceEvaluator, UuidGenerator, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import {
   ACCESSORCOMPONENTTYPE_V1 as ACCESSOR_COMPONENTTYPE,
@@ -58,7 +58,7 @@ export class GLTFLoader {
         }
     }
 
-    public async loadWithUrl(url?: string | undefined): Promise<TreeNode> {
+    public async loadWithUrl(url?: string | undefined): Promise<ITreeNode> {
         this._performanceEvaluator.startSection('gltfProcessing.' + url);
         let binaryGeometry: ArrayBuffer;
 
@@ -232,7 +232,7 @@ export class GLTFLoader {
         return materialData;
     }
 
-    private async loadMesh(meshName: string): Promise<TreeNode> {
+    private async loadMesh(meshName: string): Promise<ITreeNode> {
         if (!this._content.meshes![meshName]) throw new Error('Mesh not available.')
         const mesh = this._content.meshes![meshName];
         const meshNode = new TreeNode(meshName);
@@ -274,7 +274,7 @@ export class GLTFLoader {
         return meshNode;
     }
 
-    private async loadNode(nodeName: string): Promise<TreeNode> {
+    private async loadNode(nodeName: string): Promise<ITreeNode> {
         if (!this._content.nodes![nodeName]) throw new Error('Node not available.')
         const node = this._content.nodes![nodeName];
         const nodeDef = new TreeNode(nodeName);
@@ -315,7 +315,7 @@ export class GLTFLoader {
         return nodeDef;
     }
 
-    private async loadScene(): Promise<TreeNode> {
+    private async loadScene(): Promise<ITreeNode> {
         if (!this._content.scene) throw new Error('No scene.')
         if (!this._content.scenes![this._content.scene!]) throw new Error('Scene not available.')
         const scene = this._content.scenes![this._content.scene!];

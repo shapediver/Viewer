@@ -1,7 +1,8 @@
 import { mat4 } from 'gl-matrix'
-import { ITransformation, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITransformation, ITreeNode, ITreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ISessionTreeNode } from '../interfaces/ISessionTreeNode';
 
-export class SessionTreeNode extends TreeNode {
+export class SessionTreeNode extends TreeNode implements ISessionTreeNode {
   // #region Properties (1)
 
   readonly #sessionNode: boolean = true;
@@ -22,7 +23,7 @@ export class SessionTreeNode extends TreeNode {
   constructor(
     name?: string,
     id?: string,
-    parent?: TreeNode | null,
+    parent?: ITreeNode | null,
     data?: ITreeNodeData[],
     transformations?: ITransformation[]
   ) {

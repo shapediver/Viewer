@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Box, Sphere } from '@shapediver/viewer.shared.math'
+import { Box, IBox, ISphere, Sphere } from '@shapediver/viewer.shared.math'
 import {
   AbstractLight,
   AmbientLight,
@@ -116,13 +116,13 @@ export class LightLoader implements ILoader {
         }
     }
 
-    public adjustToBoundingBox(light: AbstractLight, dataChild: SDData, boundingBox: Box) {
+    public adjustToBoundingBox(light: AbstractLight, dataChild: SDData, boundingBox: IBox) {
         let threeLight: THREE.Light = <THREE.Light>dataChild.children[0];
 
         if (light instanceof DirectionalLight) {
             const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
 
-            const bs: Sphere = boundingBox.boundingSphere;
+            const bs: ISphere = boundingBox.boundingSphere;
             threeDirectionalLight.position.set(bs.center[0] + light.direction[0] * bs.radius * 2.35, bs.center[1] + light.direction[1] * bs.radius * 2.35, bs.center[2] + light.direction[2] * bs.radius * 2.35);
             threeDirectionalLight.target.position.set(bs.center[0], bs.center[1], bs.center[2]);
 

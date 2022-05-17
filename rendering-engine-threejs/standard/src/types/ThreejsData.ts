@@ -1,7 +1,8 @@
 import * as THREE from 'three'
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { IThreejsData } from './IThreejsData';
 
-export class ThreejsData extends AbstractTreeNodeData {
+export class ThreejsData extends AbstractTreeNodeData implements IThreejsData {
     // #region Properties (1)
 
     #obj: THREE.Object3D;
@@ -34,7 +35,7 @@ export class ThreejsData extends AbstractTreeNodeData {
 
     // #region Public Methods (1)
 
-    public clone(): ITreeNodeData {
+    public clone(): IThreejsData {
         return new ThreejsData(this.obj.clone(), this.id);
     }
 

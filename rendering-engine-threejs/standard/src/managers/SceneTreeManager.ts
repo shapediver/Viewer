@@ -1,20 +1,22 @@
 import * as THREE from 'three'
 import {
-    AbstractMaterialData,
-  AnimationData,
-  ATTRIBUTE_VISUALIZATION,
-  GeometryData,
-  HTMLElementAnchorData,
-  MaterialStandardData,
+IMaterialData,
+  IAnimationData,
+  IGeometryData,
+  IHTMLElementAnchorData,
+  IMaterialStandardData,
   PRIMITIVE_TYPEHINT,
-  SDTFAttributeOverview,
-  SDTFAttributeVisualization,
-  SDTFAttributeVisualizationData,
+  SDTFOverviewData,
   SDTFItemData,
-  SDTFOverview,
+  GeometryData,
+  AbstractMaterialData,
+  HTMLElementAnchorData,
+  AnimationData,
+  MaterialStandardData,
+  ISDTFOverview,
 } from '@shapediver/viewer.shared.types'
-import { ISDObject, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { Box } from '@shapediver/viewer.shared.math'
+import { ISDObject, ITree, ITreeNode, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Box, IBox } from '@shapediver/viewer.shared.math'
 import {
   Converter,
   EventEngine,
@@ -49,15 +51,15 @@ export class SceneTreeManager implements IManager {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _scene: THREE.Scene = new THREE.Scene();
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    private readonly _tree: Tree = <Tree>container.resolve(Tree);
+    private readonly _tree: ITree = <ITree>container.resolve(Tree);
 
-    private _boundingBox: Box = new Box();
+    private _boundingBox: IBox = new Box();
     private _boundingBoxSensitiveData: {
         data: AbstractLight,
         dataChild: SDData
     }[] = [];
 
-    private _currentSDTFOverview!: SDTFOverview;
+    private _currentSDTFOverview!: ISDTFOverview;
     private _mainNode!: SDNode;
 
     // #endregion Properties (10)
@@ -72,7 +74,7 @@ export class SceneTreeManager implements IManager {
 
     // #region Public Accessors (2)
 
-    public get boundingBox(): Box {
+    public get boundingBox(): IBox {
         return this._boundingBox;
     }
 
@@ -91,7 +93,7 @@ export class SceneTreeManager implements IManager {
             this._boundingBox.max[0] === 0 && this._boundingBox.max[1] === 0 && this._boundingBox.max[2] === 0) || this._boundingBox.isEmpty());
     }
 
-    private getBone(node: TreeNode): SDBone {
+    private getBone(node: ITreeNode): SDBone {
         let bone: SDBone;
         this._mainNode.traverse((o) => {
             if((<SDNode>o).SDid === node.id)
@@ -106,7 +108,7 @@ export class SceneTreeManager implements IManager {
      * @param data the data element
      * @param obj the corresponding type node
      */
-    public updateData(node: TreeNode, obj: SDNode, data: ITreeNodeData): void {
+    public updateData(node: ITreeNode, obj: SDNode, data: ITreeNodeData): void {
         let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
 
         if (!dataChild)
@@ -120,7 +122,7 @@ export class SceneTreeManager implements IManager {
         switch (true) {
             case data instanceof GeometryData:
                 dataChild.SDtype = SD_DATA_TYPE.GEOMETRY;
-                const geometryData = <GeometryData>data;
+                const geometryData = <IGeometryData>data;
 
                 let skeleton;
                 if(geometryData.bones.length > 0) {
@@ -168,7 +170,7 @@ export class SceneTreeManager implements IManager {
         }
     }
 
-    public updateNodeTransformations(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
+    public updateNodeTransformations(node: ITreeNode = this._tree.root, obj: SDNode = this._mainNode) {
         if(!node || !obj) return;
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
         if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
@@ -185,7 +187,7 @@ export class SceneTreeManager implements IManager {
         }
     }
     
-    public updateMorphWeights(node: TreeNode = this._tree.root, obj: SDNode = this._mainNode) {
+    public updateMorphWeights(node: ITreeNode = this._tree.root, obj: SDNode = this._mainNode) {
         if(!node || !obj) return;
         if(node.excludeViewers.includes(this._renderingEngine.id)) return;
         if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
@@ -214,7 +216,7 @@ export class SceneTreeManager implements IManager {
         }
     }
     
-    public updateNodeData(node: TreeNode, obj: ISDObject) {
+    public updateNodeData(node: ITreeNode, obj: ISDObject) {
         const convertedObject = <SDNode>obj;
 
         // if this node specifically excludes the current viewer, skip it and all descendants
@@ -264,7 +266,7 @@ export class SceneTreeManager implements IManager {
             node.boundingBox.applyMatrix(node.nodeMatrix);
     }
 
-    public updateNodeHierarchy(node: TreeNode = this._tree.root, obj: ISDObject = this._mainNode) {
+    public updateNodeHierarchy(node: ITreeNode = this._tree.root, obj: ISDObject = this._mainNode) {
         const convertedObject = <SDNode>obj;
 
         // if this node specifically excludes the current viewer, skip it and all descendants
@@ -299,7 +301,7 @@ export class SceneTreeManager implements IManager {
      * @param node the scene graph node
      * @param obj the current type object
      */
-     public updateNode(node: TreeNode, obj: ISDObject) {
+     public updateNode(node: ITreeNode, obj: ISDObject) {
         const convertedObject = <SDNode>obj;
 
         // if this node specifically excludes the current viewer, skip it and all descendants
@@ -362,7 +364,7 @@ export class SceneTreeManager implements IManager {
             node.boundingBox.applyMatrix(node.nodeMatrix);
     }
 
-    public updateSceneTree(root: TreeNode, lightEngine: LightEngine): void {
+    public updateSceneTree(root: ITreeNode, lightEngine: LightEngine): void {
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
         this._renderingEngine.lightLoader.shadowMapCount = 0;
@@ -404,7 +406,7 @@ export class SceneTreeManager implements IManager {
 
     // #region Private Methods (4)
 
-    private collectSDTFItemData(node: TreeNode): SDTFItemData | undefined {
+    private collectSDTFItemData(node: ITreeNode): SDTFItemData | undefined {
         for (let i = 0, len = node.data.length; i < len; i++)
             if(node.data[i] instanceof SDTFItemData)
                 return <SDTFItemData>node.data[i];
@@ -413,22 +415,22 @@ export class SceneTreeManager implements IManager {
         return this.collectSDTFItemData(node.parent);
     }
 
-    private createSDTFOverview(node: TreeNode = this._tree.root): SDTFOverview {
-        const out: SDTFAttributeOverview = new SDTFAttributeOverview({});
+    private createSDTFOverview(node: ITreeNode = this._tree.root): ISDTFOverview {
+        const out: SDTFOverviewData = new SDTFOverviewData({});
         for (let i = 0, len = node.data.length; i < len; i++)
-        if (node.data[i] instanceof SDTFAttributeOverview)
-            out.merge(<SDTFAttributeOverview>node.data[i])
+        if (node.data[i] instanceof SDTFOverviewData)
+            out.merge(<SDTFOverviewData>node.data[i])
 
         for (let i = 0, len = node.children.length; i < len; i++)
-        out.merge(new SDTFAttributeOverview(this.createSDTFOverview(node.children[i])));
+        out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
 
         return out.overview;
       }
 
-    private injectAttributeData(node: TreeNode, data: ITreeNodeData) {
+    private injectAttributeData(node: ITreeNode, data: ITreeNodeData) {
         const itemData = this.collectSDTFItemData(node);       
         let visData: {
-            material: AbstractMaterialData,
+            material: IMaterialData,
             matrix: mat4
         } = {
             material: new MaterialStandardData({ color: '#00fff7', opacity: 1 }),

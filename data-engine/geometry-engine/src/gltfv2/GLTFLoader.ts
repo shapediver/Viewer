@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
   Converter,
   HttpClient,
@@ -13,7 +13,7 @@ import { IGLTF_v2, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.sha
 import { mat4, vec3, vec4 } from 'gl-matrix'
 import {
   AnimationData,
-  AnimationTrack,
+  IAnimationTrack,
   AttributeData,
   GeometryData,
   MaterialVariantsData,
@@ -74,7 +74,7 @@ export class GLTFLoader {
     private _geometryLoader!: GeometryLoader;
     private _materialLoader!: MaterialLoader;
     private _nodes: {
-        [key: number]: TreeNode
+        [key: number]: ITreeNode
     } = {};
     private _textureLoader!: TextureLoader;
 
@@ -122,7 +122,7 @@ export class GLTFLoader {
 
                         const skinNode = this._nodes[i];
 
-                        const bones: TreeNode[] = [];
+                        const bones: ITreeNode[] = [];
                         const boneInverses: mat4[] = [];
 
                         for (let j = 0; j < skinDef.joints.length; j++) {
@@ -140,7 +140,7 @@ export class GLTFLoader {
                             boneInverses.push(mat);
                         }
 
-                        const addBones = (node: TreeNode) => {
+                        const addBones = (node: ITreeNode) => {
                             for (let j = 0; j < node.data.length; j++)
                                 if (node.data[j] instanceof GeometryData) {
                                     (<GeometryData>node.data[j]).bones = bones;
@@ -164,7 +164,7 @@ export class GLTFLoader {
         }
     }
 
-    public async loadWithUrl(url?: string | undefined): Promise<TreeNode> {
+    public async loadWithUrl(url?: string | undefined): Promise<ITreeNode> {
         this._performanceEvaluator.startSection('gltfProcessing.' + url);
         let axiosResponse;
 
@@ -239,7 +239,7 @@ export class GLTFLoader {
         if (!this._content.animations) throw new Error('Animations not available.')
         if (!this._content.animations[animationId]) throw new Error('Animations not available.')
         const animationDef = this._content.animations[animationId];
-        const animationTracks: AnimationTrack[] = [];
+        const animationTracks: IAnimationTrack[] = [];
         let min = Infinity, max = -Infinity;
 
         for (let i = 0; i < animationDef.channels.length; i++) {
@@ -273,7 +273,7 @@ export class GLTFLoader {
         return new AnimationData(animationDef.name || 'gltf_animation_' + animationId, animationTracks, min, max - min);
     }
 
-    private loadCamera(cameraId: number): TreeNode {
+    private loadCamera(cameraId: number): ITreeNode {
         if (!this._content.cameras) throw new Error('Cameras not available.')
         if (!this._content.cameras[cameraId]) throw new Error('Cameras not available.')
         const cameraDef = this._content.cameras[cameraId];
@@ -306,7 +306,7 @@ export class GLTFLoader {
         return cameraNode;
     }
 
-    private loadLights(lightId: number): TreeNode {
+    private loadLights(lightId: number): ITreeNode {
         if (!this._content.extensions || !this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL] || !this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights) throw new Error(`Extension ${GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL} not available.`);
         if (!this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights[lightId]) throw new Error('Light not available.')
         const lightDef = this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights[lightId];
@@ -362,7 +362,7 @@ export class GLTFLoader {
         return lightNode;
     }
 
-    private loadNode(nodeId: number): TreeNode {
+    private loadNode(nodeId: number): ITreeNode {
         if (!this._content.nodes) throw new Error('Nodes not available.')
         if (!this._content.nodes[nodeId]) throw new Error('Node not available.')
         const node = this._content.nodes[nodeId];
@@ -428,12 +428,12 @@ export class GLTFLoader {
         return nodeDef;
     }
 
-    private loadScene(): TreeNode {
+    private loadScene(): ITreeNode {
         if (!this._content.scenes) throw new Error('Scenes not available.')
-        const sceneID = this._content.scene || 0;
-        if (!this._content.scenes[sceneID]) throw new Error('Scene not available.')
-        const scene = this._content.scenes[sceneID];
-        const sceneDef = new TreeNode(scene.name || 'scene_' + sceneID + '');
+        const sceneId = this._content.scene || 0;
+        if (!this._content.scenes[sceneId]) throw new Error('Scene not available.')
+        const scene = this._content.scenes[sceneId];
+        const sceneDef = new TreeNode(scene.name || 'scene_' + sceneId + '');
         sceneDef.transformations.push({
             id: this._uuidGenerator.create(),
             matrix: this._globalTransformation

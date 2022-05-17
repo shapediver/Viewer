@@ -1,4 +1,4 @@
-import { vec3 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import { IBox } from "./IBox";
 import { IGeometry } from "./IGeometry";
 
@@ -12,7 +12,9 @@ export interface ISphere extends IGeometry {
 
     // #region Public Methods (4)
 
+    applyMatrix(matrix: mat4): ISphere;
     clampPoint(point: vec3): vec3;
+    clone(): ISphere;
     containsPoint(point: vec3): boolean;
     setFromBox(box: IBox): ISphere;
 

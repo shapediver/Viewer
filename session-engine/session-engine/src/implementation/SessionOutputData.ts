@@ -1,7 +1,8 @@
 import { ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { ISessionOutputData } from '../interfaces/ISessionOutputData';
 
-export class SessionOutputData extends AbstractTreeNodeData {
+export class SessionOutputData extends AbstractTreeNodeData implements ISessionOutputData {
     // #region Properties (1)
 
     #responseOutput: ShapeDiverResponseOutput;
@@ -34,7 +35,7 @@ export class SessionOutputData extends AbstractTreeNodeData {
 
     // #region Public Methods (1)
 
-    public clone(): ITreeNodeData {
+    public clone(): ISessionOutputData {
         return new SessionOutputData(this.responseOutput, this.id);
     }
 

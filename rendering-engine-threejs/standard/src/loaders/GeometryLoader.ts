@@ -4,11 +4,13 @@ import {
   GeometryData,
   MATERIAL_ALPHA,
   MATERIAL_SIDE,
-  AbstractMaterialData,
+  IMaterialData,
   PRIMITIVE_MODE,
   PrimitiveData,
+  IPrimitiveData,
+  IAttributeData,
 } from '@shapediver/viewer.shared.types'
-import { Box } from '@shapediver/viewer.shared.math'
+import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
@@ -62,9 +64,9 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): Box {
+    public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): IBox {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
-            let materialData: AbstractMaterialData | null;
+            let materialData: IMaterialData | null;
             if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
             } else if (geometry.primitive.effectMaterials.length > 0) {
@@ -99,7 +101,7 @@ export class GeometryLoader implements ILoader {
         } else {
             const threeGeometry = this.loadGeometry(geometry.primitive);
 
-            let materialData: AbstractMaterialData | null;
+            let materialData: IMaterialData | null;
             if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
             } else if (geometry.primitive.effectMaterials.length > 0) {
@@ -127,7 +129,7 @@ export class GeometryLoader implements ILoader {
         return geometry.boundingBox.clone().applyMatrix(geometry.matrix);
     }
 
-    public loadGeometry(primitive: PrimitiveData): THREE.BufferGeometry {
+    public loadGeometry(primitive: IPrimitiveData): THREE.BufferGeometry {
         let geometry = new THREE.BufferGeometry();
         for (let attributeId in primitive.attributes) {
             const buffer = this.loadAttribute(primitive.attributes[attributeId], attributeId);
@@ -180,7 +182,7 @@ export class GeometryLoader implements ILoader {
 
     // #region Private Methods (5)
 
-    private checkNormals(primitive: PrimitiveData, attributeId: string, buffer: THREE.InterleavedBufferAttribute | THREE.BufferAttribute, geometry: THREE.BufferGeometry): boolean {
+    private checkNormals(primitive: IPrimitiveData, attributeId: string, buffer: THREE.InterleavedBufferAttribute | THREE.BufferAttribute, geometry: THREE.BufferGeometry): boolean {
         let blnNormalsOk = false;
         for (let index = 0; index < 10; ++index) {
           if (Math.abs(buffer.array[index * 3]) > 0.001) {
@@ -364,7 +366,7 @@ export class GeometryLoader implements ILoader {
         return '';
     }
 
-    private loadAttribute(bufferAttribute: AttributeData, attributeId: string) {
+    private loadAttribute(bufferAttribute: IAttributeData, attributeId: string) {
         let buffer: THREE.InterleavedBufferAttribute | THREE.BufferAttribute;
 
         if (bufferAttribute.byteStride && bufferAttribute.byteStride !== bufferAttribute.itemBytes) {

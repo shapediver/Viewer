@@ -74,7 +74,7 @@ export class PointLight extends AbstractLight implements IPointLight {
 
   // #region Public Methods (1)
 
-  public clone(): ITreeNodeData {
+  public clone(): IPointLight {
     return new PointLight({
       color: this.color,
       position: this.position,

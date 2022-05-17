@@ -1,5 +1,5 @@
 import { vec2, vec3 } from 'gl-matrix'
-import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
 import { container } from 'tsyringe'
 import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
@@ -12,7 +12,7 @@ export class SceneTracingManager implements IManager {
     // #region Properties (2)
 
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private readonly _tree: Tree = <Tree>container.resolve(Tree);
+    private readonly _tree: ITree = <ITree>container.resolve(Tree);
 
     // #endregion Properties (2)
 
@@ -58,9 +58,9 @@ export class SceneTracingManager implements IManager {
 
     public init(): void {}
 
-    public trace(origin: vec3, direction: vec3, root: TreeNode = this._tree.root) {
+    public trace(origin: vec3, direction: vec3, root: ITreeNode = this._tree.root) {
         const tracingData: { distance: number, data: GeometryData }[] = [];
-        const trace = (root: TreeNode) => {
+        const trace = (root: ITreeNode) => {
             if(root.excludeViewers.includes(this._renderingEngine.id)) return;
             if(root.includeViewers.length > 0 && !root.includeViewers.includes(this._renderingEngine.id)) return;
 

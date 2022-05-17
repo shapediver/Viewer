@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGING_TOPIC, PerformanceEvaluator, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 
@@ -31,7 +31,7 @@ export class GeometryEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         if (!content || (content && !content.href)) {
             const error = new ShapeDiverViewerDataProcessingError('GeometryEngine cannot load content.');
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryEngine.loadContent`, error);

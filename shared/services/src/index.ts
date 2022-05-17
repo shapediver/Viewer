@@ -1,5 +1,5 @@
 import { EventEngine } from './event-engine/EventEngine'
-import { EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_SETTINGS, EVENTTYPE_TASK, EVENTTYPE_VIEWER, MAIN_EVENTTYPE } from './event-engine/EventTypes'
+import { EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_TASK, EVENTTYPE_VIEWER, MainEventTypes } from './event-engine/EventTypes'
 import { SettingsEngine } from './settings-engine/SettingsEngine'
 import { StateEngine } from './state-engine/StateEngine'
 import { SystemInfo } from './system-info/SystemInfo'
@@ -19,8 +19,8 @@ import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geome
 import { ShapeDiverViewerError } from './logger/ShapeDiverError'
 
 export {
-  EventEngine, EVENTTYPE, MAIN_EVENTTYPE, IEvent,
-  EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_SETTINGS, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK
+  EventEngine, EVENTTYPE, MainEventTypes, IEvent,
+  EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK
 }
 
 export {

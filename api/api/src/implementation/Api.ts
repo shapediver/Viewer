@@ -10,7 +10,7 @@ import {
   Logger,
   LOGGING_LEVEL,
   LOGGING_TOPIC,
-  MAIN_EVENTTYPE,
+  MainEventTypes,
   SettingsEngine,
   ShapeDiverBackendError,
   ShapeDiverViewerArError,
@@ -25,7 +25,7 @@ import { VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-e
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { convert, ISettingsV3_1, validate } from '@shapediver/viewer.settings'
 import { mat4, vec3 } from 'gl-matrix'
-import { ITaskEvent, SDTFAttributeOverview, SDTFOverview, TASK_TYPE } from '@shapediver/viewer.shared.types'
+import { ITaskEvent, ISDTFOverviewData, ISDTFOverview, TASK_TYPE } from '@shapediver/viewer.shared.types'
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 import { IApi } from '../interfaces/IApi'
@@ -213,7 +213,7 @@ export class Api implements IApi {
 
   // #region Public Methods (12)
 
-  public addListener(type: string | MAIN_EVENTTYPE, cb: (event: IEvent) => void): string {
+  public addListener(type: string | MainEventTypes, cb: (event: IEvent) => void): string {
     try {
       this.#logger.debugLow(LOGGING_TOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
       this.#logger.debug(LOGGING_TOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
@@ -391,15 +391,15 @@ export class Api implements IApi {
       let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.globalScale);
       
       // add scaling matrix to scene tree node
-      const scalingMatrixID = this.#uuidGenerator.create();
-      this.sceneTree.root.transformations.push({ id: scalingMatrixID, matrix: scalingMatrix })
+      const scalingMatrixId = this.#uuidGenerator.create();
+      this.sceneTree.root.transformations.push({ id: scalingMatrixId, matrix: scalingMatrix })
 
       // create the gltf
       const result = await this.#gltfConverter.convert(this.sceneTree.root, convertForAR);
 
       // remove scaling the matrix
       for (let i = 0; i < this.sceneTree.root.transformations.length; i++)
-        if (this.sceneTree.root.transformations[i].id === scalingMatrixID)
+        if (this.sceneTree.root.transformations[i].id === scalingMatrixId)
           this.sceneTree.root.transformations.splice(i, 1);
 
       return new Blob([result], { type: 'application/octet-stream' });
@@ -409,15 +409,15 @@ export class Api implements IApi {
     }
   }
 
-  public createSDTFOverview(node: TreeNode = this.sceneTree.root): SDTFOverview {
+  public createSDTFOverview(node: TreeNode = this.sceneTree.root): ISDTFOverview {
     try {
-      const out: SDTFAttributeOverview = new SDTFAttributeOverview({});
+      const out: ISDTFOverviewData = new SDTFOverviewData({});
       for (let i = 0, len = node.data.length; i < len; i++)
-        if (node.data[i] instanceof SDTFAttributeOverview)
-          out.merge(<SDTFAttributeOverview>node.data[i])
+        if (node.data[i] instanceof SDTFOverviewData)
+          out.merge(<ISDTFOverviewData>node.data[i])
 
       for (let i = 0, len = node.children.length; i < len; i++)
-        out.merge(new SDTFAttributeOverview(this.createSDTFOverview(node.children[i])));
+        out.merge(new ISDTFOverviewData(this.createSDTFOverview(node.children[i])));
 
       return out.overview;
     } catch (e) {
@@ -620,7 +620,7 @@ export class Api implements IApi {
 
   public async viewInAR(options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'auto', arPlacement: 'floor', xrEnvironment: false }): Promise<void> {
     const eventId = this.#uuidGenerator.create();
-    const busyModeID = this.#uuidGenerator.create();
+    const busyModeId = this.#uuidGenerator.create();
     try {
       const event: ITaskEvent = { type: TASK_TYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
@@ -673,7 +673,7 @@ export class Api implements IApi {
 
       // register the busy mode to blur the scene and create a visual feedback
       for (let v in this.viewers)
-        this.viewers[v].registerBusyMode(busyModeID)
+        this.viewers[v].registerBusyMode(busyModeId)
 
       // convert and upload (and maybe convert to usdz) the file
       const file = await arSession.uploadGLTF(this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE, eventId);
@@ -694,7 +694,7 @@ export class Api implements IApi {
       }
 
       for (let v in this.viewers)
-        this.viewers[v].deregisterBusyMode(busyModeID)
+        this.viewers[v].deregisterBusyMode(busyModeId)
 
       const event2: ITaskEvent = { type: TASK_TYPE.AR_LOADING, id: eventId, progress: 1, status: 'Done loading AR scene, launching AR' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event2);
@@ -704,7 +704,7 @@ export class Api implements IApi {
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
 
       for (let v in this.viewers)
-        this.viewers[v].deregisterBusyMode(busyModeID)
+        this.viewers[v].deregisterBusyMode(busyModeId)
 
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.viewInAR', e);

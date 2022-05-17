@@ -1,6 +1,6 @@
 import { container } from 'tsyringe'
 import { IIntersection, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
-import { IViewer, AbstractMaterialData } from '@shapediver/viewer'
+import { IViewportApi, IMaterialData } from '@shapediver/viewer'
 
 import { IInteractionFilterOptions, IInteractionManager } from '../interfaces/IInteractionManager'
 import { DragConstraintUtils } from './utils/DragConstraintUtils'
@@ -13,9 +13,9 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
     // #region Properties (5)
 
     #dragConstraintUtils: IDragConstraintUtils = <DragConstraintUtils>container.resolve(DragConstraintUtils);
-    #effectMaterial?: AbstractMaterialData;
+    #effectMaterial?: IMaterialData;
     #interactionEffectUtils: IInteractionEffectUtils = <InteractionEffectUtils>container.resolve(InteractionEffectUtils);
-    #viewer!: IViewer;
+    #viewport!: IViewportApi;
     abstract filter: IInteractionFilterOptions;
 
     // #endregion Properties (5)
@@ -30,11 +30,11 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#dragConstraintUtils = value;
     }
 
-    public get effectMaterial(): AbstractMaterialData | undefined {
+    public get effectMaterial(): IMaterialData | undefined {
         return this.#effectMaterial;
     }
 
-    public set effectMaterial(value: AbstractMaterialData | undefined) {
+    public set effectMaterial(value: IMaterialData | undefined) {
         this.#effectMaterial = value;
     }
 
@@ -46,12 +46,12 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#interactionEffectUtils = value;
     }
 
-    public get viewer(): IViewer {
-        return this.#viewer;
+    public get viewport(): IViewportApi {
+        return this.#viewport;
     }
 
-    public set viewer(value: IViewer) {
-        this.#viewer = value;
+    public set viewport(value: IViewportApi) {
+        this.#viewport = value;
     }
 
     // #endregion Public Accessors (8)

@@ -1,5 +1,5 @@
 import { IIntersection, IIntersectionFilter, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { IViewer } from "@shapediver/viewer";
+import { IViewportApi } from "@shapediver/viewer";
 import { INTERACTION_STATE } from "./IInteractionEngine";
 
 export type IInteractionFilterOptions = {
@@ -18,7 +18,7 @@ export interface IInteractionManager {
     /**
      * The reference to the viewer.
      */
-    viewer: IViewer;
+    viewport: IViewportApi;
 
     // #endregion Properties (2)
 

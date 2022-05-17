@@ -1,7 +1,7 @@
 import { container } from 'tsyringe'
-import { AbstractMaterialData, GeometryData } from '@shapediver/viewer.shared.types'
+import { IMaterialData, GeometryData, AbstractMaterialData } from '@shapediver/viewer.shared.types'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
-import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { OutputDelayException } from './OutputDelayException'
 import { SessionTreeNode } from './SessionTreeNode'
@@ -9,6 +9,7 @@ import { SessionOutputData } from './SessionOutputData'
 import { PerformanceEvaluator } from '@shapediver/viewer.shared.services'
 import { ShapeDiverResponseDto, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { AxiosResponse } from 'axios'
+import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
 
 export class OutputLoader {
     // #region Properties (3)
@@ -16,11 +17,11 @@ export class OutputLoader {
     private readonly _dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
     private readonly _loadedOutputNodes: { 
         [key: string]: {
-            [key: string]: SessionTreeNode
+            [key: string]: ISessionTreeNode
         }; 
     } = {};
     private readonly _lastOutputNodes: { 
-        [key: string]: SessionTreeNode
+        [key: string]: ISessionTreeNode
     } = {};
     private readonly _performanceEvaluator: PerformanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
 
@@ -51,11 +52,11 @@ export class OutputLoader {
         const node = new SessionTreeNode(responseDto.model?.name);
         let currentNodes: { 
             [key: string]: {
-                [key: string]: SessionTreeNode
+                [key: string]: ISessionTreeNode
             }; 
         } = {};
-        let promises: Promise<TreeNode>[] = [];
-        let promisesNodes: SessionTreeNode[] = [];
+        let promises: Promise<ITreeNode>[] = [];
+        let promisesNodes: ISessionTreeNode[] = [];
         let maxDelay = 0;
 
         for (let outputID in outputs) {
@@ -125,8 +126,8 @@ export class OutputLoader {
 
     // #region Private Methods (2)
 
-    private assignMaterials(node: TreeNode) {
-        const addMaterialToGeometry = (node: TreeNode, material: AbstractMaterialData) => {
+    private assignMaterials(node: ITreeNode) {
+        const addMaterialToGeometry = (node: ITreeNode, material: IMaterialData) => {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometry = <GeometryData>node.data[i];
@@ -143,10 +144,10 @@ export class OutputLoader {
             }
         };
 
-        const getMaterialData = (node: TreeNode, materials: AbstractMaterialData[] = []): AbstractMaterialData[] => {
+        const getMaterialData = (node: ITreeNode, materials: IMaterialData[] = []): IMaterialData[] => {
             for (let k = 0; k < node.data.length; k++) {
                 if (node.data[k] instanceof AbstractMaterialData) {
-                    const material = <AbstractMaterialData>node.data[k];
+                    const material = <IMaterialData>node.data[k];
                     material.materialOutput = true;
                     materials.push(material);
                 }
@@ -161,7 +162,7 @@ export class OutputLoader {
             return materials;
         }
 
-        const getGeometryData = (node: TreeNode, geometries: GeometryData[] = []): GeometryData[] => {
+        const getGeometryData = (node: ITreeNode, geometries: GeometryData[] = []): GeometryData[] => {
             for (let k = 0; k < node.data.length; k++)
                 if (node.data[k] instanceof GeometryData)
                     geometries.push(<GeometryData>node.data[k]);
@@ -189,7 +190,7 @@ export class OutputLoader {
 
                 // case 1: we have a specific material id defined, let's use that
                 if(sessionOutputData.responseOutput.material) {
-                    let materialNodes: TreeNode[] = [];
+                    let materialNodes: ITreeNode[] = [];
                     // now we have id
                     // get material with it    
                     for (let n = 0; n < node.children.length; n++) {
@@ -244,7 +245,7 @@ export class OutputLoader {
         }
     }
 
-    private mergeContentNodes(node: SessionTreeNode) {
+    private mergeContentNodes(node: ISessionTreeNode) {
         if(!(node.children.length > 1)) return;
 
         const children = [];
@@ -253,7 +254,7 @@ export class OutputLoader {
             node.removeChild(node.children[0]);
         }
 
-        const mergeNodes = (node1: TreeNode, node2: TreeNode) => {
+        const mergeNodes = (node1: ITreeNode, node2: ITreeNode) => {
             for(let i = 0; i < node1.data.length; i++)
                 node2.data.push(node1.data[i]);
 

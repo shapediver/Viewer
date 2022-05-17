@@ -1,9 +1,9 @@
 import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
 import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
-import { IViewer } from "@shapediver/viewer";
-import { Plane } from "@shapediver/viewer.shared.math";
+import { IViewportApi } from "@shapediver/viewer";
+import { IPlane, Plane } from "@shapediver/viewer.shared.math";
 import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
@@ -11,7 +11,7 @@ export class CameraPlaneConstraint implements IDragConstraint {
     // #region Properties (3)
 
     #dragOrigin?: vec3;
-    #dragPlane?: Plane;
+    #dragPlane?: IPlane;
     #rotation: { axis: vec3; angle: number; };
 
     // #endregion Properties (3)
@@ -31,7 +31,7 @@ export class CameraPlaneConstraint implements IDragConstraint {
 
     // #region Public Methods (2)
 
-    public intersect(viewer: IViewer, node: TreeNode, ray: IRay): { distance: number, transformation: mat4 } | undefined {
+    public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4 } | undefined {
         const distance = this.#dragPlane?.intersect(ray.origin, ray.direction);
         if (distance && distance > 0) {
             const point = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
@@ -40,13 +40,13 @@ export class CameraPlaneConstraint implements IDragConstraint {
         return;
     }
 
-    public setup(viewer: IViewer, node: TreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {
-        const cameraDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), viewer.camera!.target, viewer.camera!.position));
+    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {
+        const cameraDirection = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), viewport.camera!.target, viewport.camera!.position));
         this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(cameraDirection, intersection.point);
 
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
         this.#dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
-        return this.intersect(viewer, node, ray);
+        return this.intersect(viewport, node, ray);
     }
 
     // #endregion Public Methods (2)

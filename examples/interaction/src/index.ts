@@ -98,7 +98,7 @@ let topShelf: ShelfDefinition = {
     ]
 };
 
-const dragLineConstraintsIDs: string[] = [];
+const dragLineConstraintsIds: string[] = [];
 const activateInteractionsToken: {
     start: string, 
     end: string
@@ -160,7 +160,7 @@ const activateInteractions = () => {
     activateInteractionsToken.start = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_START, async (e) => {
         const dragEvent = <IDragEvent>e;
 
-        dragLineConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d))
+        dragLineConstraintsIds.forEach(d => dragManager.removeDragConstraint(d))
 
         // we search for the right definition and add snap lines
         const shelves = [topShelf, bottomShelf];
@@ -168,15 +168,15 @@ const activateInteractions = () => {
         for(let i = 0; i < shelves.length; i++) {
             if(dragEvent.node.getPath().includes(shelves[i].output!.id)) {
                 def = shelves[i];
-                def.snapPoints.forEach(element => dragLineConstraintsIDs.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius, element.rotation))));
-                def.snapLines.forEach(element => dragLineConstraintsIDs.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
+                def.snapPoints.forEach(element => dragLineConstraintsIds.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius, element.rotation))));
+                def.snapLines.forEach(element => dragLineConstraintsIds.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
                 break;
             }
         }
 
         // once the movement has ended, we update the matrix in the parameter definition
         activateInteractionsToken.end = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
-            dragLineConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d));
+            dragLineConstraintsIds.forEach(d => dragManager.removeDragConstraint(d));
             const dragEvent = <IDragEvent>e;
             // apply the matrix to the dragged item
             const number = dragEvent.node.getPath().substring(dragEvent.node.getPath().lastIndexOf('_') + 1, dragEvent.node.getPath().length);
@@ -196,7 +196,7 @@ const activateInteractions = () => {
  * Deactivate the standard interactions
  */
 const deactivateInteractions = () => {
-    dragLineConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d))
+    dragLineConstraintsIds.forEach(d => dragManager.removeDragConstraint(d))
     SDV.api.removeListener(activateInteractionsToken.start); 
     SDV.api.removeListener(activateInteractionsToken.end); 
 
@@ -212,9 +212,9 @@ const addShelf = async (def: ShelfDefinition) => {
     deactivateInteractions();
 
     // create snap points for this shelf
-    const dragConstraintsIDs: string[] = [];
-    def.snapPoints.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius, element.rotation))));
-    def.snapLines.forEach(element => dragConstraintsIDs.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
+    const dragConstraintsIds: string[] = [];
+    def.snapPoints.forEach(element => dragConstraintsIds.push(dragManager.addDragConstraint(new PointConstraint(element.point, element.radius, element.rotation))));
+    def.snapLines.forEach(element => dragConstraintsIds.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
 
     // once the new node is created, this is how we find it
     const newNode = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter-1))!;
@@ -252,7 +252,7 @@ const addShelf = async (def: ShelfDefinition) => {
     // once the movement has ended, we update the matrix in the parameter definition
     const tokenEnd = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
         const dragEvent = <IDragEvent>e;
-        dragConstraintsIDs.forEach(d => dragManager.removeDragConstraint(d))        
+        dragConstraintsIds.forEach(d => dragManager.removeDragConstraint(d))        
         def.matrices[def.matrices.length-1].translation = mat4.fromTranslation(mat4.create(), mat4.getTranslation(vec3.create(), dragEvent.matrix));
         def.matrices[def.matrices.length-1].rotation = mat4.fromQuat(mat4.create(), mat4.getRotation(quat.create(), dragEvent.matrix));
         mat4.multiply(def.matrices[def.matrices.length-1].transformation, def.matrices[def.matrices.length-1].transformation, mat4.transpose(mat4.create(), dragEvent.matrix));

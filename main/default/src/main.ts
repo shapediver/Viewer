@@ -3,11 +3,12 @@ import { container } from 'tsyringe';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { ISessionApi } from './interfaces/session/ISessionApi';
 import { IViewportApi, SESSION_SETTINGS_MODE } from './interfaces/viewport/IViewportApi';
-import { IEvent, LOGGING_LEVEL, LOGGING_TOPIC, MAIN_EVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services';
+import { IEvent, LOGGING_LEVEL, LOGGING_TOPIC, MainEventTypes, SettingsEngine } from '@shapediver/viewer.shared.services';
 import { Logger } from '@shapediver/viewer.shared.services';
 import { ShapeDiverViewerError } from '@shapediver/viewer.shared.services';
 import { ShapeDiverBackendError } from '@shapediver/viewer.shared.services';
 import { InputValidator } from '@shapediver/viewer.shared.services';
+import { EventResponseMapping } from '.';
 
 class ViewerOptions {
     // #region Properties (3)
@@ -65,7 +66,7 @@ const viewerOptions = new ViewerOptions();
  * @param cb The callback.
  * @returns 
  */
-export const addListener = (type: string | MAIN_EVENTTYPE, cb: (event: IEvent) => void): string => {
+export const addListener = (type: string | MainEventTypes, cb: (event: IEvent) => void): string => {
     throw new Error('Method not implemented.');
 };
 
@@ -151,6 +152,7 @@ export const createSession = async (
  * @param properties.canvas The canvas that the viewport should use.
  * @param properties.id The unique id the session should have .
  * @param properties.branding Optional branding options.
+ * @param properties.sessionSettingsId The id of the session that is currently used for the settings of the viewport.
  * @param properties.sessionSettingsMode The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST})
  * @returns 
  */
@@ -166,6 +168,7 @@ export const createViewport = async (
             /** Optional logo while the viewport is in busy mode. (our default will be used if none is provided) */
             spinner?: string,
         },
+        sessionSettingsId?: string,
         sessionSettingsMode?: SESSION_SETTINGS_MODE,
         visibility?: VISIBILITY_MODE,
     }): Promise<IViewportApi> => {

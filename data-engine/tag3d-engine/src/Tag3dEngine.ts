@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGING_TOPIC, Converter, StateEngine, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { AttributeData, GeometryData, MaterialStandardData, PrimitiveData } from '@shapediver/viewer.shared.types'
@@ -36,7 +36,7 @@ export class Tag3dEngine {
      * @param content the tag3d content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         if(!this._font) {
             const json = await this._httpClient.loadData('https://viewer.shapediver.com/graphik_regular.typeface.json', { responseType: 'json' });
             this._font = new Font(json.data);

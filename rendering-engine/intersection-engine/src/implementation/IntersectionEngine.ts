@@ -1,7 +1,7 @@
-import { GeometryData, AbstractMaterialData, MATERIAL_SIDE, PRIMITIVE_MODE } from "@shapediver/viewer.shared.types";
+import { GeometryData, IMaterialData, MATERIAL_SIDE, PRIMITIVE_MODE } from "@shapediver/viewer.shared.types";
 import { mat4, vec3 } from "gl-matrix";
 import { Triangle } from "@shapediver/viewer.shared.math";
-import { Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { ITree, ITreeNode, Tree, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { IIntersection } from "../interfaces/IIntersection";
 import { IIntersectionEngine } from "../interfaces/IIntersectionEngine";
 import { IIntersectionFilter } from "../interfaces/IIntersectionFilter";
@@ -10,11 +10,11 @@ import { container, singleton } from "tsyringe";
 
 @singleton()
 export class IntersectionEngine implements IIntersectionEngine {
-    private readonly _tree: Tree = <Tree>container.resolve(Tree);
+    private readonly _tree: ITree = <ITree>container.resolve(Tree);
 
-    intersect(ray: IRay, filterCriteria: IIntersectionFilter[] = [], root: TreeNode = this._tree.root, viewerID?: string): IIntersection[] {
+    intersect(ray: IRay, filterCriteria: IIntersectionFilter[] = [], root: ITreeNode = this._tree.root, viewerID?: string): IIntersection[] {
         let intersections: IIntersection[] = [];
-        const intersectNode = (node: TreeNode) => {
+        const intersectNode = (node: ITreeNode) => {
             if(viewerID !== undefined) {
                 if(node.excludeViewers.includes(viewerID)) return;
                 if(node.includeViewers.length > 0 && !node.includeViewers.includes(viewerID)) return;
@@ -42,7 +42,7 @@ export class IntersectionEngine implements IIntersectionEngine {
     }
 
 
-    private checkIntersection(node: TreeNode, material: AbstractMaterialData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: TreeNode } | undefined {
+    private checkIntersection(node: ITreeNode, material: IMaterialData | null, ray: IRay, pA: vec3, pB: vec3, pC: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
         let point: vec3 | null;
 
         if (material && material.side === MATERIAL_SIDE.BACK) {
@@ -63,7 +63,7 @@ export class IntersectionEngine implements IIntersectionEngine {
         };
     }
 
-    private checkLineIntersection(node: TreeNode, ray: IRay, radius: number, pA: vec3, pB: vec3): { distance: number, point: vec3, node: TreeNode } | undefined {
+    private checkLineIntersection(node: ITreeNode, ray: IRay, radius: number, pA: vec3, pB: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
         const direction = vec3.sub(vec3.create(), pB, pA);
         const lineLength = vec3.length(direction);
         const lineRay = {
@@ -107,7 +107,7 @@ export class IntersectionEngine implements IIntersectionEngine {
     }
 
 
-    private checkPointIntersection(node: TreeNode, ray: IRay, radius: number, p: vec3): { distance: number, point: vec3, node: TreeNode } | undefined {
+    private checkPointIntersection(node: ITreeNode, ray: IRay, radius: number, p: vec3): { distance: number, point: vec3, node: ITreeNode } | undefined {
         const closestPoint = vec3.sub(vec3.create(), p, ray.origin);
         const directionDistance = vec3.dot(closestPoint, ray.direction);
 
@@ -131,7 +131,7 @@ export class IntersectionEngine implements IIntersectionEngine {
     }
 
 
-    private intersectNode(node: TreeNode, rayIn: IRay): IIntersection[] | undefined {
+    private intersectNode(node: ITreeNode, rayIn: IRay): IIntersection[] | undefined {
         const inverseMatrix = mat4.invert(mat4.create(), node.nodeMatrix);
         const ray = {
             origin: vec3.transformMat4(vec3.create(), rayIn.origin, inverseMatrix),

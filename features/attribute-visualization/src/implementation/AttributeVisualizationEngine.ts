@@ -1,21 +1,22 @@
 import { ILayer } from "../interfaces/ILayer";
-import { EVENTTYPE, IApi, IViewer, AbstractMaterialData, MaterialUnlitData, PRIMITIVE_TYPEHINT, SDTFAttributeVisualization, SDTFItemData, SDTFOverview } from "@shapediver/viewer"
+import { addListener, IViewportApi, sceneTree } from "@shapediver/viewer";
 import { IAttribute, IColorAttribute, IDefaultAttribute, INumberAttribute, IStringAttribute } from "../interfaces/IAttribute";
 import { mat4 } from "gl-matrix";
 import { container } from "tsyringe";
-import { Converter, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { Converter, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IAttributeVisualizationEngine } from "../interfaces/IAttributeVisualizationEngine";
+import { GEOMETRY_TYPEHINT, IMaterialData, ISDTFItemData, ISDTFOverview, MaterialUnlitData, PRIMITIVE_TYPEHINT } from "@shapediver/viewer.shared.types";
+import { AttributeVisualizationUtils } from "./AttributeVisualizationUtils";
 
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
     // #region Properties (7)
 
-    readonly #api: IApi;
     readonly #converter: Converter = <Converter>container.resolve(Converter);
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
-    readonly #viewer: IViewer;
+    readonly #viewport: IViewportApi;
 
     #attributes: IAttribute[] = [];
-    #defaultMaterial: AbstractMaterialData = new MaterialUnlitData({ color: '#000000', opacity: 1 });
+    #defaultMaterial: IMaterialData = new MaterialUnlitData({ color: '#000000', opacity: 1 });
     #defaultLayer: ILayer = {
         color: '#000000',
         opacity: 1,
@@ -24,7 +25,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     #layers: {
         [key: string]: ILayer
     } = {};
-    #overview: SDTFOverview;
+    #overview: ISDTFOverview;
     #listeners: {
         [key: string]: () => void
     } = {};
@@ -33,15 +34,14 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     // #region Constructors (1)
 
-    constructor(api: IApi, viewer: IViewer) {
-        this.#api = api;
-        this.#viewer = viewer;
+    constructor(viewport: IViewportApi) {
+        this.#viewport = viewport;
 
-        this.#overview = this.#api.createSDTFOverview(this.#api.sceneTree.root);
+        this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
         this.createLayers();
         this.constructAttributeVisualization();
-        this.#api.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
-            this.#overview = this.#api.createSDTFOverview(this.#api.sceneTree.root);
+        addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, () => {
+            this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
             this.createLayers();
             this.constructAttributeVisualization();
 
@@ -54,7 +54,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     // #region Public Accessors (3)
 
-    public get defaultMaterial(): AbstractMaterialData {
+    public get defaultMaterial(): IMaterialData {
         return this.#defaultMaterial;
     }
 
@@ -66,7 +66,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         return this.#layers;
     }
 
-    public get overview(): SDTFOverview {
+    public get overview(): ISDTFOverview {
         return this.#overview;
     }
 
@@ -84,7 +84,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         this.constructAttributeVisualization();
     }
 
-    public updateDefaultMaterial(material: AbstractMaterialData) {
+    public updateDefaultMaterial(material: IMaterialData) {
         this.#defaultMaterial = material;
         this.constructAttributeVisualization();
     }
@@ -111,7 +111,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     // #region Private Methods (2)
 
     private constructAttributeVisualization() {
-        this.#viewer.visualizeAttributes = (overview: SDTFOverview, itemData?: SDTFItemData) => {
+        this.#viewport.visualizeAttributes = (overview: ISDTFOverview, itemData?: ISDTFItemData) => {
             // early out if there are not attributes in this itemData
             if (!itemData || !itemData.attributes) {
                 if (this.#attributes.length === 0) {
@@ -146,7 +146,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
             // early out, layer is not enabled
             if (layer.enabled === false) {
-                const mat = <AbstractMaterialData>this.#defaultMaterial.clone();
+                const mat = <IMaterialData>this.#defaultMaterial.clone();
                 mat.opacity = 0;
                 return {
                     matrix: mat4.create(),
@@ -171,7 +171,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                     const a = this.#attributes[i];
                     if (itemData.attributes[a.key] && itemData.attributes[a.key].typeHint === a.type) {
                         const itemDataAttribute = itemData.attributes[a.key];
-                        const itemDataAttributeOverview = overview[a.key].filter(o => o.typeHint === a.type)[0];
+                        const itemDataAttributeOverview = overview[a.key].filter((o: { typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string; }) => o.typeHint === a.type)[0];
 
                         switch (true) {
                             case a.type == PRIMITIVE_TYPEHINT.COLOR:
@@ -183,7 +183,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                                 };
                             case a.type == PRIMITIVE_TYPEHINT.DECIMAL || a.type == PRIMITIVE_TYPEHINT.DOUBLE || a.type == PRIMITIVE_TYPEHINT.FLOAT || a.type == PRIMITIVE_TYPEHINT.INT:
                                 const numberAttribute = <INumberAttribute>a;
-                                const numberVisualizationData = SDTFAttributeVisualization.numberVisualization(
+                                const numberVisualizationData = AttributeVisualizationUtils.numberVisualization(
                                     itemDataAttribute.value,
                                     (numberAttribute.min !== undefined ? numberAttribute.min : itemDataAttributeOverview.min)!,
                                     (numberAttribute.max !== undefined ? numberAttribute.max : itemDataAttributeOverview.max)!,
@@ -194,7 +194,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                                 return numberVisualizationData;
                             case a.type == PRIMITIVE_TYPEHINT.STRING:
                                 const stringAttribute = <IStringAttribute>a;
-                                const stringVisualizationData = SDTFAttributeVisualization.stringVisualization(
+                                const stringVisualizationData = AttributeVisualizationUtils.stringVisualization(
                                     itemDataAttribute.value,
                                     stringAttribute.values || itemDataAttributeOverview.values,
                                     stringAttribute.visualization,
@@ -215,7 +215,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 }
 
                 // no attributes were found, return the default material adjusted by the layer opacity
-                const mat = <AbstractMaterialData>this.#defaultMaterial.clone();
+                const mat = <IMaterialData>this.#defaultMaterial.clone();
                 mat.opacity *= layer.opacity;
                 return {
                     matrix: mat4.create(),
@@ -224,14 +224,14 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
             }
         }
 
-        this.#api.sceneTree.root.updateVersion();
-        this.#api.update();
+        sceneTree.root.updateVersion();
+        this.#viewport.update();
     }
 
     private createLayers() {
         this.#layers = {};
         if (this.#overview['layer']) {
-            const layerStringAttributeOverview = this.#overview['layer'].find(a => a.typeHint === 'string');
+            const layerStringAttributeOverview = this.#overview['layer'].find((a: { typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string; }) => a.typeHint === 'string');
             if (layerStringAttributeOverview && layerStringAttributeOverview.values) {
                 for (let i = 0; i < layerStringAttributeOverview.values.length; i++) {
                     this.#layers[layerStringAttributeOverview.values[i]] = {

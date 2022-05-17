@@ -51,7 +51,7 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
 
     // #region Public Methods (1)
 
-    public clone(): ITreeNodeData {
+    public clone(): IHemisphereLight {
         return new HemisphereLight({
             color: this.color,
             groundColor: this.groundColor,

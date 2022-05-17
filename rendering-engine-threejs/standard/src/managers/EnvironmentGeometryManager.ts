@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { MATERIAL_SIDE, MaterialStandardData, ISceneEvent } from '@shapediver/viewer.shared.types'
 import { vec3 } from 'gl-matrix'
-import { Box } from '@shapediver/viewer.shared.math'
+import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 
 import { RenderingEngine } from '..'
@@ -96,7 +96,7 @@ export class EnvironmentGeometryManager implements IManager {
         (<THREE.MeshPhysicalMaterial>this._groundPlane.material).needsUpdate = true;
     }
 
-    public changeSceneExtents(bb: Box) {
+    public changeSceneExtents(bb: IBox) {
         if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
 
         this._initialized = true;

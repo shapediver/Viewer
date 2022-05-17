@@ -13,7 +13,7 @@ import {
   PerspectiveCameraControls,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
-import { Tree } from '@shapediver/viewer.shared.node-tree'
+import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import {
   IRenderingEngine,
@@ -35,15 +35,13 @@ import {
 } from '@shapediver/viewer.shared.services'
 import {
   AnimationData,
-  IEnvironmentEvent,
   ISceneEvent,
-  ISettingsEvent,
   MATERIAL_SIDE,
   MaterialStandardData,
-  SDTFAttributeOverview,
-  SDTFAttributeVisualizationData,
+  ISDTFOverviewData,
+  ISDTFAttributeVisualizationData,
   SDTFItemData,
-  SDTFOverview,
+  ISDTFOverview,
 } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -98,7 +96,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _sceneTreeManager: SceneTreeManager;
   private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
   private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-  private readonly _tree: Tree = <Tree>container.resolve(Tree);
+  private readonly _tree: ITree = <ITree>container.resolve(Tree);
   private readonly _visibility: VISIBILITY_MODE;
 
   // settings
@@ -114,7 +112,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _clearColor: string = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
-  private _visualizeAttributes: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
+  private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
   private _environmentMap: string | string[] = 'none';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
@@ -341,11 +339,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.continuousShadowMapUpdate = value;
   }
 
-  public get visualizeAttributes(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
+  public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
     return this._visualizeAttributes;
   }
 
-  public set visualizeAttributes(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
+  public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
     this._visualizeAttributes = value;
   }
 
@@ -672,7 +670,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     d.appendChild(p);
   }
 
-  public gatherAnimations(node: TreeNode = this._tree.root): AnimationData[] {
+  public gatherAnimations(node: ITreeNode = this._tree.root): AnimationData[] {
     let out: AnimationData[] = [];
     for (let i = 0, len = node.data.length; i < len; i++)
       if (node.data[i] instanceof AnimationData)

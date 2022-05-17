@@ -55,7 +55,7 @@ export interface ITreeNode {
     cloneInstance(): ITreeNode;
     /**
      * Returns the child with the specified id
-     * @return {TreeNode}
+     * @return {ITreeNode}
     */
     getChild(id: string): ITreeNode | null;
     /**

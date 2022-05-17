@@ -7,4 +7,6 @@ export interface IDirectionalLight extends ILight {
     direction: vec3;
     shadowMapBias: number;
     shadowMapResolution: number;
+    
+    clone(): IDirectionalLight;
 }

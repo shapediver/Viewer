@@ -26,4 +26,10 @@ export interface IInteractionData extends ITreeNodeData {
     };
 
     // #endregion Properties (4)
+
+    // #region Public Methods (1)
+
+    clone(): IInteractionData;
+
+    // #endregion Public Methods (1)
 }

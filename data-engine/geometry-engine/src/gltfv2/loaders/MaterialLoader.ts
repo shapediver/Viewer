@@ -8,17 +8,18 @@ import {
 } from '@shapediver/viewer.data-engine.shared-types'
 import { vec2 } from 'gl-matrix'
 import {
-  AbstractMaterialData,
-  AbstractMaterialDataProperties,
-  MapData,
   MATERIAL_ALPHA,
   MATERIAL_SIDE,
   MaterialSpecularGlossinessData,
-  MaterialSpecularGlossinessDataProperties,
   MaterialStandardData,
-  MaterialStandardDataProperties,
   MaterialUnlitData,
-  MaterialUnlitDataProperties,
+  IMaterialData,
+  IMaterialDataProperties,
+  IMaterialSpecularGlossinessDataProperties,
+  IMaterialStandardDataProperties,
+  IMaterialUnlitDataProperties,
+  MapData,
+  IMapData,
 } from '@shapediver/viewer.shared.types'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 
@@ -31,7 +32,7 @@ export class MaterialLoader {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
 
-    private _loaded: { [key: string]: AbstractMaterialData } = {};
+    private _loaded: { [key: string]: IMaterialData } = {};
 
     // #endregion Properties (4)
 
@@ -43,7 +44,7 @@ export class MaterialLoader {
 
     // #region Public Methods (2)
 
-    public getMaterial(materialId: number): AbstractMaterialData {
+    public getMaterial(materialId: number): IMaterialData {
         if (!this._content.materials) throw new Error('MaterialLoader.getMaterial: Materials not available.')
         if (!this._content.materials[materialId]) throw new Error('MaterialLoader.getMaterial: Material not available.')
         if (!this._loaded[materialId]) throw new Error('MaterialLoader.getMaterial: Material not loaded.')
@@ -60,7 +61,7 @@ export class MaterialLoader {
             const material: IGLTF_v2_Material = this._content.materials[materialId];
             const materialExtensions = material.extensions || {};
 
-            const materialDataProperties: AbstractMaterialDataProperties = {};
+            const materialDataProperties: IMaterialDataProperties = {};
             if (material.name !== undefined) materialDataProperties.name = material.name;
 
             if (materialExtensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET]) {
@@ -79,7 +80,7 @@ export class MaterialLoader {
 
             if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS]) {
                 const pbrSpecularGlossiness: IGLTF_v2_Material_KHR_materials_pbrSpecularGlossiness = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS];
-                const specularGlossinessMaterialDataProperties: MaterialSpecularGlossinessDataProperties = materialDataProperties;
+                const specularGlossinessMaterialDataProperties: IMaterialSpecularGlossinessDataProperties = materialDataProperties;
 
                 specularGlossinessMaterialDataProperties.color = '#ffffff';
                 specularGlossinessMaterialDataProperties.opacity = 1.0;
@@ -106,7 +107,7 @@ export class MaterialLoader {
                     specularGlossinessMaterialDataProperties.specularGlossinessMap = this.loadMap(pbrSpecularGlossiness.specularGlossinessTexture.index, specularGlossinessTextureOptions);
                 }
             } else if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_UNLIT]) {
-                const unlitMaterialDataProperties: MaterialUnlitDataProperties = materialDataProperties;
+                const unlitMaterialDataProperties: IMaterialUnlitDataProperties = materialDataProperties;
                 unlitMaterialDataProperties.color = '#ffffff';
                 unlitMaterialDataProperties.opacity = 1.0;
 
@@ -121,7 +122,7 @@ export class MaterialLoader {
                     }
                 }
             } else {
-                const standardMaterialDataProperties: MaterialStandardDataProperties = materialDataProperties;
+                const standardMaterialDataProperties: IMaterialStandardDataProperties = materialDataProperties;
                 if (material.pbrMetallicRoughness !== undefined) {
                     standardMaterialDataProperties.color = '#ffffff';
                     if (material.pbrMetallicRoughness.baseColorFactor !== undefined) {
@@ -189,18 +190,18 @@ export class MaterialLoader {
              * Early exit for specular glossiness and unlit materials
              */
             if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_PBRSPECULARGLOSSINESS]) {
-                const specularGlossinessMaterialDataProperties: MaterialSpecularGlossinessDataProperties = materialDataProperties;
+                const specularGlossinessMaterialDataProperties: IMaterialSpecularGlossinessDataProperties = materialDataProperties;
                 const materialData = new MaterialSpecularGlossinessData(specularGlossinessMaterialDataProperties);
                 this._loaded[materialId] = materialData;
                 continue;
             } else if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_UNLIT]) {
-                const unlitMaterialDataProperties: MaterialUnlitDataProperties = materialDataProperties;
+                const unlitMaterialDataProperties: IMaterialUnlitDataProperties = materialDataProperties;
                 const materialData = new MaterialUnlitData(unlitMaterialDataProperties);
                 this._loaded[materialId] = materialData;
                 continue;
             }
 
-            const standardMaterialDataProperties: MaterialStandardDataProperties = materialDataProperties;
+            const standardMaterialDataProperties: IMaterialStandardDataProperties = materialDataProperties;
 
             if (materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_CLEARCOAT]) {
                 const clearcoatExtension = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_CLEARCOAT];
@@ -321,7 +322,7 @@ export class MaterialLoader {
 
     // #region Private Methods (1)
 
-    private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number }): MapData {
+    private loadMap(textureId: number, properties?: { offset?: number[], scale?: number[], rotation?: number }): IMapData {
         if (!this._content.textures) throw new Error('Textures not available.')
         const texture = this._content.textures[textureId];
         if (!this._content.images) throw new Error('Images not available.')

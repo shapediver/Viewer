@@ -9,4 +9,6 @@ export interface ISpotLight extends ILight {
     penumbra: number;
     position: vec3;
     target: vec3;
+
+    clone(): ISpotLight;
 }

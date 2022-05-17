@@ -31,9 +31,9 @@ import { container, injectable } from 'tsyringe'
 import {
   AnimationData,
   IEnvironmentEvent,
-  SDTFAttributeVisualizationData,
+  ISDTFAttributeVisualizationData,
   SDTFItemData,
-  SDTFOverview,
+  ISDTFOverview,
 } from '@shapediver/viewer.shared.types'
 import { ISDObject, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
@@ -61,7 +61,7 @@ export class Viewer implements IViewer {
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
-  #busyModeIDs: string[] = [];
+  #busyModeIds: string[] = [];
   #flagsCameraFreeze: string[] = [];
   #flagsContinuousRendering: string[] = [];
   #flagsShadowMapUpdate: string[] = [];
@@ -284,11 +284,11 @@ export class Viewer implements IViewer {
     return this.#renderingEngine.closed;
   }
 
-  public get visualizeAttributes(): ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined {
+  public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
     return this.#renderingEngine.visualizeAttributes;
   }
 
-  public set visualizeAttributes(value: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined) {
+  public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
     this.#renderingEngine.visualizeAttributes = value;
   }
   
@@ -783,10 +783,10 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode: Deregistering busy mode for id ${value}.`);
       this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).deregisterBusyMode`, value, 'string');
 
-      if (!this.#busyModeIDs.includes(value)) return false;
-      this.#busyModeIDs.splice(this.#busyModeIDs.indexOf(value), 1);
+      if (!this.#busyModeIds.includes(value)) return false;
+      this.#busyModeIds.splice(this.#busyModeIds.indexOf(value), 1);
 
-      if (this.#busyModeIDs.length === 0) {
+      if (this.#busyModeIds.length === 0) {
         this.#renderingEngine.busy = false;
         this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_OFF, { viewerId: this.id });
       }
@@ -826,8 +826,8 @@ export class Viewer implements IViewer {
       this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode: Registering busy mode for id ${value}.`);
       this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer(${this.id}).registerBusyMode`, value, 'string');
 
-      if (this.#busyModeIDs.includes(value)) return false;
-      this.#busyModeIDs.push(value);
+      if (this.#busyModeIds.includes(value)) return false;
+      this.#busyModeIds.push(value);
 
       this.#renderingEngine.busy = true;
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_ON, { viewerId: this.id });

@@ -9,8 +9,8 @@ import {
     StateEngine,
 } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { Box } from '@shapediver/viewer.shared.math'
-import { AbstractTreeNodeData, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Box, IBox } from '@shapediver/viewer.shared.math'
+import { AbstractTreeNodeData, ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ICameraControls } from '../../interfaces/controls/ICameraControls'
 import { ICamera } from '../../interfaces/camera/ICamera'
@@ -27,7 +27,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     private _enableCameraControls: boolean = true;
     private _far: number = 1000;
     private _near: number = 1;
-    private _node?: TreeNode;
+    private _node?: ITreeNode;
     private _useNodeData: boolean = false;
     private _order?: number;
     private _revertAtMouseUp: boolean = false;
@@ -38,7 +38,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     protected readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
-    protected _boundingBox: Box = new Box();
+    protected _boundingBox: IBox = new Box();
     protected _controls!: AbstractCameraControls;
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
@@ -64,7 +64,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this._autoAdjust = value;
     }
 
-    public set boundingBox(value: Box) {
+    public set boundingBox(value: IBox) {
         this._boundingBox = value;
     }
 
@@ -124,11 +124,11 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         this._near = value;
     }
 
-    public get node(): TreeNode | undefined {
+    public get node(): ITreeNode | undefined {
         return this._node;
     }
 
-    public set node(value: TreeNode | undefined) {
+    public set node(value: ITreeNode | undefined) {
         this._node = value;
     }
 

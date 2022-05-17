@@ -1,9 +1,9 @@
 import { IDragConstraint } from "../../interfaces/utils/IDragConstraint";
 import { IRay, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4, vec3 } from "gl-matrix";
-import { IViewer } from "@shapediver/viewer";
-import { Plane } from "@shapediver/viewer.shared.math";
+import { IViewportApi } from "@shapediver/viewer";
+import { IPlane, Plane } from "@shapediver/viewer.shared.math";
 import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
@@ -12,7 +12,7 @@ export class PlaneConstraint implements IDragConstraint {
 
     #coplanarPoint?: vec3;
     #dragOrigin?: vec3;
-    #dragPlane?: Plane;
+    #dragPlane?: IPlane;;
     #normal: vec3;
     #rotation: {
         axis: vec3,
@@ -40,7 +40,7 @@ export class PlaneConstraint implements IDragConstraint {
 
     // #region Public Methods (2)
 
-    public intersect(viewer: IViewer, node: TreeNode, ray: IRay): { distance: number, transformation: mat4 } | undefined {
+    public intersect(viewport: IViewportApi, node: ITreeNode, ray: IRay): { distance: number, transformation: mat4 } | undefined {
         const distance = this.#dragPlane?.intersect(ray.origin, ray.direction);
         if (distance && distance > 0) {
             const point = vec3.add(vec3.create(), vec3.multiply(vec3.create(), ray.direction, vec3.fromValues(distance, distance, distance)), ray.origin);
@@ -49,7 +49,7 @@ export class PlaneConstraint implements IDragConstraint {
         return;
     }
 
-    public setup(viewer: IViewer, node: TreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {
+    public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {
         if (this.#coplanarPoint) {
             this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(this.#normal, this.#coplanarPoint);
         } else {
@@ -57,7 +57,7 @@ export class PlaneConstraint implements IDragConstraint {
         }
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
         this.#dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
-        return this.intersect(viewer, node, ray);
+        return this.intersect(viewport, node, ray);
     }
 
     // #endregion Public Methods (2)

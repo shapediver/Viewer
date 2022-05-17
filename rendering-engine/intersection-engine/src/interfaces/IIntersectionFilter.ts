@@ -1,5 +1,5 @@
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IIntersectionFilter {
-    (node: TreeNode): boolean;
+    (node: ITreeNode): boolean;
 }

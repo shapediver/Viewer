@@ -110,7 +110,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
 
   // #region Public Methods (1)
 
-  public clone(): ITreeNodeData {
+  public clone(): ISpotLight {
     return new SpotLight({
       color: this.color,
       position: this.position,

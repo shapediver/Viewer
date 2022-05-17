@@ -1,4 +1,4 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix'
 
 import { ILight } from './ILight'
@@ -9,7 +9,7 @@ export interface ILightScene {
     id: string;
     lights: { [key: string]: ILight; };
     name?: string
-    node: TreeNode;
+    node: ITreeNode;
 
     // #endregion Properties (4)
 

@@ -91,7 +91,7 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
     /**
      * Clones the scene graph data.
      */
-    public clone(): ITreeNodeData {
+    public clone(): IInteractionData {
         return new InteractionData(this.#interactionTypes, this.id);
     }
 

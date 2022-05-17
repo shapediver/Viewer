@@ -1,5 +1,6 @@
 import { singleton } from 'tsyringe'
 import { ITree } from '../interfaces/ITree';
+import { ITreeNode } from '../interfaces/ITreeNode';
 
 import { TreeNode } from './TreeNode'
 
@@ -19,7 +20,7 @@ export class Tree implements ITree {
 
   // #region Public Accessors (1)
 
-  public get root(): TreeNode {
+  public get root(): ITreeNode {
     return this.#root;
   }
 
@@ -27,7 +28,7 @@ export class Tree implements ITree {
 
   // #region Public Methods (6)
 
-  public addNode(node: TreeNode, parent: TreeNode = this.#root, root: TreeNode = this.#root): boolean {
+  public addNode(node: ITreeNode, parent: ITreeNode = this.#root, root: ITreeNode = this.#root): boolean {
     if (root === parent) {
       root.addChild(node);
       return true;
@@ -42,7 +43,7 @@ export class Tree implements ITree {
     return false;
   }
 
-  public addNodeAtPath(node: TreeNode, path: string = this.root.getPath(), root: TreeNode = this.#root): boolean {
+  public addNodeAtPath(node: ITreeNode, path: string = this.root.getPath(), root: ITreeNode = this.#root): boolean {
     if (root.name === path) {
       root.addChild(node);
       return true;
@@ -66,7 +67,7 @@ export class Tree implements ITree {
     throw new Error('Method not implemented.');
   }
 
-  public getNodeAtPath(path: string = this.root.getPath(), root: TreeNode = this.#root): TreeNode | null {
+  public getNodeAtPath(path: string = this.root.getPath(), root: ITreeNode = this.#root): ITreeNode | null {
     if (root.name === path) 
       return root;
 
@@ -83,7 +84,7 @@ export class Tree implements ITree {
     return null;
   }
 
-  public removeNode(node: TreeNode, root: TreeNode = this.#root): boolean {
+  public removeNode(node: ITreeNode, root: ITreeNode = this.#root): boolean {
     if (root.hasChild(node)) {
       root.removeChild(node);
       return true;
@@ -99,7 +100,7 @@ export class Tree implements ITree {
     return false;
   }
 
-  public removeNodeAtPath(path: string, root: TreeNode = this.#root): boolean {
+  public removeNodeAtPath(path: string, root: ITreeNode = this.#root): boolean {
     if (root.name === path) {
       root.parent?.removeChild(root);
       return true;

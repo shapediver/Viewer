@@ -5,9 +5,9 @@ import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
   AnimationData,
-  SDTFAttributeVisualizationData,
+  ISDTFAttributeVisualizationData,
   SDTFItemData,
-  SDTFOverview,
+  ISDTFOverview,
 } from '@shapediver/viewer.shared.types'
 
 import { ICamera } from './camera/ICamera'
@@ -36,10 +36,10 @@ export interface IViewer extends IRenderingEngine {
     clearAlpha: number;
     clearColor: string | number | vec3;
     /**
-     * Provide a callback that transforms a {@link SDTFItemData} to a {@link SDTFAttributeVisualizationData}.
-     * The {@link SDTFOverview} provides general information like min and max values for numbers or the available options for strings.
+     * Provide a callback that transforms a {@link SDTFItemData} to a {@link ISDTFAttributeVisualizationData}.
+     * The {@link ISDTFOverview} provides general information like min and max values for numbers or the available options for strings.
      */
-    visualizeAttributes: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
+    visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;
@@ -137,7 +137,7 @@ export interface IViewer extends IRenderingEngine {
      */
     createPerspectiveCamera(id?: string): IPerspectiveCamera;
     /**
-     * Deregister the busy mode with the specified ID.
+     * Deregister the busy mode with the specified id.
      * 
      * @param value 
      */
@@ -161,7 +161,7 @@ export interface IViewer extends IRenderingEngine {
      */
     getScreenshot(type?: string, quality?: number): string;
     /**
-     * Register the busy mode with the specified ID.
+     * Register the busy mode with the specified id.
      * @param value 
      */
     registerBusyMode(value: string): boolean;

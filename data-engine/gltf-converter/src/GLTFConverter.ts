@@ -1,5 +1,5 @@
 import { build_data } from '@shapediver/viewer.shared.build-data'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container, singleton } from 'tsyringe'
 import {
@@ -27,12 +27,16 @@ import {
     MATERIAL_ALPHA,
     MATERIAL_SIDE,
     MaterialStandardData,
-    PrimitiveData,
     AnimationData,
     PRIMITIVE_MODE,
     MaterialSpecularGlossinessData,
     MaterialUnlitData,
-    AbstractMaterialData,
+    IMaterialData,
+    IMapData,
+    IPrimitiveData,
+    IAttributeData,
+    IAnimationData,
+    IGeometryData,
 } from '@shapediver/viewer.shared.types'
 import * as THREE from 'three'
 
@@ -58,7 +62,7 @@ export class GLTFConverter {
     private readonly _renderer: THREE.WebGLRenderer;
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
-    private _animations: AnimationData[] = [];
+    private _animations: IAnimationData[] = [];
     private _buffers: ArrayBuffer[] = [];
     private _byteOffset: number = 0;
     private _content: IGLTF_v2 = {
@@ -75,7 +79,7 @@ export class GLTFConverter {
     private _extensionsUsed: string[] = [];
     private _imageCache: { [key: string]: number } = {};
     private _nodes: {
-        node: TreeNode,
+        node: ITreeNode,
         id: number
     }[] = [];
     private _promises: Promise<any>[] = [];
@@ -170,7 +174,7 @@ export class GLTFConverter {
 
     // #region Public Methods (1)
 
-    public async convert(node: TreeNode, convertForAR = false): Promise<ArrayBuffer> {
+    public async convert(node: ITreeNode, convertForAR = false): Promise<ArrayBuffer> {
         this.reset();
 
         this._convertForAR = convertForAR;
@@ -182,32 +186,32 @@ export class GLTFConverter {
             nodes: []
         };
 
-        const globalTransformationInverseID = this._uuidGenerator.create();
+        const globalTransformationInverseId = this._uuidGenerator.create();
         node.transformations.push({
-            id: globalTransformationInverseID,
+            id: globalTransformationInverseId,
             matrix: this._globalTransformationInverse,
         })
 
-        const translationMatrixID = this._uuidGenerator.create();
+        const translationMatrixId = this._uuidGenerator.create();
         if(convertForAR) {
           // add translation matrix to scene tree node
           const bb = node.boundingBox.clone();
           const translationVector = vec3.fromValues(-(bb.max[0] + bb.min[0]) / 2.0, -(bb.max[1] + bb.min[1]) / 2.0, -(bb.max[2] + bb.min[2]) / 2.0);
           let translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), translationVector);
-          node.transformations.push({ id: translationMatrixID, matrix: translationMatrix })
+          node.transformations.push({ id: translationMatrixId, matrix: translationMatrix })
         }
 
         sceneDef.nodes?.push(this.convertNode(node));
 
         for (let i = 0; i < node.transformations.length; i++)
-            if (node.transformations[i].id === globalTransformationInverseID)
+            if (node.transformations[i].id === globalTransformationInverseId)
                 node.transformations.splice(i, 1);
 
 
         if (convertForAR) {
             // remove translation the matrix
             for (let i = 0; i < node.transformations.length; i++)
-                if (node.transformations[i].id === translationMatrixID)
+                if (node.transformations[i].id === translationMatrixId)
                     node.transformations.splice(i, 1);
         }
 
@@ -284,7 +288,7 @@ export class GLTFConverter {
 
     // #region Private Methods (18)
 
-    private async combineTextures(red?: MapData, green?: MapData, blue?: MapData): Promise<MapData> {
+    private async combineTextures(red?: IMapData, green?: IMapData, blue?: IMapData): Promise<MapData> {
         if (!red && !green && !blue)
             throw new Error('No maps supplied.')
 
@@ -362,7 +366,7 @@ export class GLTFConverter {
         return new MapData(image, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.flipY);
     }
 
-    private convertAccessor(data: AttributeData): number {
+    private convertAccessor(data: IAttributeData): number {
         if (!this._content.accessors) this._content.accessors = [];
 
         const bufferView = this.convertBufferView(data);
@@ -496,7 +500,7 @@ export class GLTFConverter {
         return 0;
     }
 
-    private convertBufferView(data: AttributeData): number {
+    private convertBufferView(data: IAttributeData): number {
         if (!this._content.bufferViews) this._content.bufferViews = [];
         let componentTypeNumber = this.getComponentType(data.array)
         let componentSize = ACCESSORCOMPONENTSIZE_V2[<keyof typeof ACCESSORCOMPONENTSIZE_V2>componentTypeNumber];
@@ -565,7 +569,7 @@ export class GLTFConverter {
         });
     }
 
-    private convertImage(data: MapData): number {
+    private convertImage(data: IMapData): number {
         if (!this._content.images) this._content.images = [];
         if (this._imageCache[data.image.src]) return this._imageCache[data.image.src];
         const imageDef: IGLTF_v2_Image = {};
@@ -616,7 +620,7 @@ export class GLTFConverter {
         return this._content.images.length - 1;
     }
 
-    private convertMaterial(data: AbstractMaterialData, includeMaps = true): number {
+    private convertMaterial(data: IMaterialData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
@@ -684,7 +688,7 @@ export class GLTFConverter {
         return this._content.materials.length - 1;
     }
 
-    private convertMesh(data: GeometryData): number {
+    private convertMesh(data: IGeometryData): number {
         if (!this._content.meshes) this._content.meshes = [];
         const meshDef: IGLTF_v2_Mesh = {
             primitives: [],
@@ -697,7 +701,7 @@ export class GLTFConverter {
         return this._content.meshes.length - 1;
     }
 
-    private convertNode(node: TreeNode): number {
+    private convertNode(node: ITreeNode): number {
         if (!this._content.nodes) this._content.nodes = [];
         const nodeDef: IGLTF_v2_Node = {
             name: node.name,
@@ -740,7 +744,7 @@ export class GLTFConverter {
         return this._content.nodes.length - 1;
     }
 
-    private convertPrimitive(data: PrimitiveData): IGLTF_v2_Primitive {
+    private convertPrimitive(data: IPrimitiveData): IGLTF_v2_Primitive {
         const primitiveDef: IGLTF_v2_Primitive = {
             attributes: {},
             mode: data.mode
@@ -783,7 +787,7 @@ export class GLTFConverter {
         return primitiveDef;
     }
 
-    private convertTexture(data: MapData): number {
+    private convertTexture(data: IMapData): number {
         if (!this._content.textures) this._content.textures = [];
         const textureDef: IGLTF_v2_Texture = {
             source: this.convertImage(data)
@@ -810,7 +814,7 @@ export class GLTFConverter {
         }
     }
 
-    private getMinMax(data: AttributeData): { min: number[], max: number[] } {
+    private getMinMax(data: IAttributeData): { min: number[], max: number[] } {
         const output = {
             min: new Array(data.itemSize).fill(Number.POSITIVE_INFINITY),
             max: new Array(data.itemSize).fill(Number.NEGATIVE_INFINITY)

@@ -1,6 +1,6 @@
 import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.rendering-engine.intersection-engine'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { MaterialStandardData } from '@shapediver/viewer.shared.types'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { IHoverEvent, MaterialStandardData } from '@shapediver/viewer.shared.types'
 import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
@@ -8,7 +8,7 @@ import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
 import { IInteractionFilterOptions } from '../../interfaces/IInteractionManager'
 import { AbstractInteractionManager } from '../AbstractInteractionManager'
 import { InteractionData } from '../InteractionData'
-import { IHoverEvent } from '../../interfaces/events/IHoverEvent'
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
 export class HoverManager extends AbstractInteractionManager {
     // #region Properties (5)
@@ -18,7 +18,7 @@ export class HoverManager extends AbstractInteractionManager {
     #effectMaterialToken?: string;
     #filter: IInteractionFilterOptions = (interactionState: INTERACTION_STATE): IIntersectionFilter => {
         if (interactionState === INTERACTION_STATE.MOVE) {
-            return (node: TreeNode) => {
+            return (node: ITreeNode) => {
                 for (let i = 0; i < node.data.length; i++) {
                     if (node.data[i] instanceof InteractionData) {
                         if ((<InteractionData>node.data[i]).interactionTypes['hover'])
@@ -29,11 +29,11 @@ export class HoverManager extends AbstractInteractionManager {
             };
         }
 
-        return (node: TreeNode) => false;
+        return (node: ITreeNode) => false;
     };
 
     #intersection: IIntersection | null = null;
-    #node: TreeNode | null = null;
+    #node: ITreeNode | null = null;
 
     // #endregion Properties (5)
 
@@ -86,7 +86,7 @@ export class HoverManager extends AbstractInteractionManager {
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
-        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if (data) data.interactionStates['hover'] = true;
         if(this.effectMaterial) {
             this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
@@ -95,8 +95,8 @@ export class HoverManager extends AbstractInteractionManager {
         }
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, { node: this.#node } as IHoverEvent);
 
-        this.viewer.updateNode(this.#node);
-        this.viewer.render();
+        this.viewport.updateNode(this.#node);
+        this.viewport.render();
     }
 
     /**
@@ -110,9 +110,9 @@ export class HoverManager extends AbstractInteractionManager {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;
         }
-        this.viewer.updateNode(this.#node!);
-        this.viewer.render();
-        const data = <InteractionData>this.#node!.data.find(d => d instanceof InteractionData);
+        this.viewport.updateNode(this.#node!);
+        this.viewport.render();
+        const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if (data) data.interactionStates['hover'] = false;
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, { node: this.#node } as IHoverEvent);

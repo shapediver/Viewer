@@ -3,10 +3,11 @@ import { TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-eng
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
-  AnimationData,
-  SDTFAttributeVisualizationData,
+  IAnimationData,
+  ISDTFAttributeVisualizationData,
   SDTFItemData,
-  SDTFOverview,
+  ISDTFOverview,
+  ISDTFItemData,
 } from '@shapediver/viewer.shared.types'
 import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
@@ -32,6 +33,15 @@ export enum SESSION_SETTINGS_MODE {
   /** The previous created session will be used for the settings of the viewport. */
   PREVIOUS = 'previous',
 };
+
+export enum FLAG_TYPE {
+  /** The flag to freeze the camera. */
+  CAMERA_FREEZE = 'camera_freeze',
+  /** The flag to continuously render the scene. */
+  CONTINUOUS_RENDERING = 'continuous_rendering',
+  /** The flag to continuously update the shadow map. */
+  CONTINUOUS_SHADOW_MAP_UPDATE = 'continuous_shadow_map_update',
+}
 
 /**
  * The api for a viewport.
@@ -97,7 +107,7 @@ export interface IViewportApi {
   /**
    * An array of all animations that are currently present in the viewport.
    */
-  animations: AnimationData[];
+  animations: IAnimationData[];
 
   /**
    * Option to enable / disable the automatic resizing. (default: true)
@@ -180,6 +190,11 @@ export interface IViewportApi {
   pointSize: number;
 
   /**
+   * The id of the session that is currently used for the settings of the viewport.
+   */
+  sessionSettingsId: string;
+
+  /**
    * Option to enable / disable the shadows of the viewport. (default: true)
    */
   shadows: boolean;
@@ -213,20 +228,14 @@ export interface IViewportApi {
    * A possibility to visualize the attributes of the scene in any way you want. 
    * Please have a look at the {@link https://help.shapediver.com/doc/Attribute-Visualization.1856733198.html|help desk} documentation for more information.
    * 
-   * Provide a callback that transforms a {@link SDTFItemData} to a {@link SDTFAttributeVisualizationData}.
-   * The {@link SDTFOverview} provides general information like min and max values for numbers or the available options for strings.
+   * Provide a callback that transforms a {@link ISDTFItemData} to a {@link ISDTFAttributeVisualizationData}.
+   * The {@link ISDTFOverview} provides general information like min and max values for numbers or the available options for strings.
    */
-  visualizeAttributes: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
+  visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
   // #endregion Properties (34)
 
   // #region Public Methods (30)
-
-  /**
-   * Add a flag to freeze the camera.
-   * If you want to stop this again call {@link removeCameraFreezeFlag} with the returned token.
-   */
-  addCameraFreezeFlag(): string;
 
   /**
    * Add an event listener that receives all canvas events.
@@ -236,16 +245,10 @@ export interface IViewportApi {
   addCanvasEventListener(listener: IDomEventListener): string;
 
   /**
-   * Add a flag to continuously render the scene.
-   * If you want to stop this again call {@link removeContinuousRenderingFlag} with the returned token.
+   * Add a flag for this viewport.
+   * If you want to stop this again call {@link removeFlag} with the returned token.
    */
-  addContinuousRenderingFlag(): string;
-
-  /**
-   * Add a flag to continuously update the shadow map.
-   * If you want to stop this again call {@link removeShadowMapUpdateFlag} with the returned token.
-   */
-  addShadowMapUpdateFlag(): string;
+  addFlag(flag: FLAG_TYPE): string;
 
   /**
    * Assign the camera with the specified id to the viewport.
@@ -293,12 +296,12 @@ export interface IViewportApi {
   createPerspectiveCamera(id?: string): IPerspectiveCameraApi;
 
   /**
-   * Create the {@link SDTFOverview} for the provided node.
+   * Create the {@link ISDTFOverview} for the provided node.
    * If no node was provided, the scene root is used instead.
    * 
    * @param node The node for which the overview is created.
    */
-  createSDTFOverview(node: ITreeNode): SDTFOverview;
+  createSDTFOverview(node: ITreeNode): ISDTFOverview;
 
   /**
    * Deregister the busy mode with the specified id.
@@ -341,13 +344,6 @@ export interface IViewportApi {
   removeCamera(id: string): boolean;
 
   /**
-   * Removes the registered flag for freezing the camera.
-   * 
-   * @param token The token that was returned by {@link addCameraFreezeFlag}.
-   */
-  removeCameraFreezeFlag(token: string): boolean;
-
-  /**
    * Remove an event listener that received all canvas events.
    * 
    * @param token The token that was returned by {@link addCanvasEventListener}.
@@ -355,11 +351,11 @@ export interface IViewportApi {
   removeCanvasEventListener(token: string): boolean;
 
   /**
-   * Removes the registered flag for continuous rendering.
+   * Removes the registered flag.
    * 
-   * @param token The token that was returned by {@link addContinuousRenderingFlag}.
+   * @param token The token that was returned by {@link addFlag}.
    */
-  removeContinuousRenderingFlag(token: string): boolean;
+  removeFlag(token: string): boolean;
 
   /**
    * Remove the light scene with the specified id.
@@ -367,13 +363,6 @@ export interface IViewportApi {
    * @param id The id of the light scene.
    */
   removeLightScene(id: string): boolean;
-
-  /**
-   * Removes the registered flag for continuous shadow map updates.
-   * 
-   * @param token The token that was returned by {@link addShadowMapUpdateFlag}.
-   */
-  removeShadowMapUpdateFlag(token: string): boolean;
 
   /**
    * Manual call to render the scene.

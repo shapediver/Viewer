@@ -6,11 +6,11 @@ import {
   TEXTURE_WRAPPING,
   MATERIAL_ALPHA,
   PRIMITIVE_MODE,
-  AbstractMaterialData,
+  IMaterialData,
   MaterialUnlitData,
   MaterialSpecularGlossinessData,
-  MaterialUnlitDataProperties,
   MaterialStandardData,
+  IMapData,
 } from '@shapediver/viewer.shared.types'
 import { vec4 } from 'gl-matrix'
 
@@ -205,7 +205,7 @@ export class MaterialLoader implements ILoader {
     public init(): void {}
 
     public getMaterialProperties(
-        materialData: AbstractMaterialData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
+        materialData: IMaterialData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
         type: MATERIAL_TYPE,
         materialSettings?: MaterialSettings
     ): {
@@ -495,7 +495,7 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        materialData: AbstractMaterialData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
+        materialData: IMaterialData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
         materialSettings?: MaterialSettings
     ): THREE.Material {
 
@@ -583,7 +583,7 @@ export class MaterialLoader implements ILoader {
 
     // #region Private Methods (1)
 
-    private createTexture(map: MapData): THREE.Texture {
+    private createTexture(map: IMapData): THREE.Texture {
         const texture = new THREE.Texture(map.image);
         texture.format = THREE.RGBAFormat;
         texture.minFilter = (() => {

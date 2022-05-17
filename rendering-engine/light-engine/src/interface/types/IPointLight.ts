@@ -6,4 +6,6 @@ export interface IPointLight extends ILight {
     decay: number;
     distance: number;
     position: vec3;
+
+    clone(): IPointLight;
 }

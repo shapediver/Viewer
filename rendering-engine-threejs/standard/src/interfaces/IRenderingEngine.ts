@@ -1,6 +1,6 @@
 import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
-import { AnimationData, SDTFAttributeVisualizationData, SDTFItemData, SDTFOverview } from "@shapediver/viewer.shared.types";
+import { AnimationData, SDTFItemData, ISDTFOverview, ISDTFAttributeVisualizationData } from "@shapediver/viewer.shared.types";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IRenderingEngineThreeJS extends IRenderingEngine {
@@ -13,7 +13,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     beautyRenderDelay: number;
     clearAlpha: number;
     clearColor: string | number | vec3;
-    visualizeAttributes: ((overview: SDTFOverview, itemData?: SDTFItemData) => SDTFAttributeVisualizationData) | undefined;
+    visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;

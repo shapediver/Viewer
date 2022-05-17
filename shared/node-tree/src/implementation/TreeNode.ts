@@ -10,7 +10,7 @@ import { ISDObject } from '../interfaces/ISDObject'
 export class TreeNode implements ITreeNode {
   // #region Properties (10)
 
-  readonly #children: TreeNode[] = [];
+  readonly #children: ITreeNode[] = [];
   readonly #data: ITreeNodeData[] = [];
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #name: string = '';
@@ -18,7 +18,7 @@ export class TreeNode implements ITreeNode {
 
   #boundingBox: IBox = new Box();
   #id: string;
-  #parent: TreeNode | null = null;
+  #parent: ITreeNode | null = null;
   #transformations: ITransformation[] = [];
   #transformedNodes: {
     [key: string]: ISDObject
@@ -43,7 +43,7 @@ export class TreeNode implements ITreeNode {
    */
   constructor(
     name: string = 'node',
-    parent: TreeNode | null = null,
+    parent: ITreeNode | null = null,
     data: ITreeNodeData[] = [],
     transformations: ITransformation[] = []
   ) {
@@ -77,7 +77,7 @@ export class TreeNode implements ITreeNode {
     this.#boundingBox = value;
   }
 
-  public get children(): TreeNode[] {
+  public get children(): ITreeNode[] {
     return this.#children;
   }
 
@@ -127,11 +127,11 @@ export class TreeNode implements ITreeNode {
     return matrix;
   }
 
-  public get parent(): TreeNode | null {
+  public get parent(): ITreeNode | null {
     return this.#parent;
   }
 
-  public set parent(value: TreeNode | null) {
+  public set parent(value: ITreeNode | null) {
     // check if it was removed from previous parent
     if (value === null && this.#parent !== null)
       this.#parent.removeChild(this);
@@ -183,7 +183,7 @@ export class TreeNode implements ITreeNode {
     for (let transform of this.#transformations)
       mat4.multiply(matrix, matrix, transform.matrix);
 
-    let node: TreeNode = this;
+    let node: ITreeNode = this;
     while (node.parent) {
       mat4.multiply(matrix, matrix, node.parent.nodeMatrix);
       node = node.parent;
@@ -201,7 +201,7 @@ export class TreeNode implements ITreeNode {
    * 
    * @param child the child to add
    */
-  public addChild(child: TreeNode): boolean {
+  public addChild(child: ITreeNode): boolean {
     if (this.hasChild(child)) return false;
 
     this.#children.push(child);
@@ -214,7 +214,7 @@ export class TreeNode implements ITreeNode {
   /**
    * Clones this node and all its children.
    */
-  public clone(): TreeNode {
+  public clone(): ITreeNode {
     const clone = new TreeNode(this.name);
     clone.visible = this.visible;
     for (let child of this.#children)
@@ -233,7 +233,7 @@ export class TreeNode implements ITreeNode {
   /**
    * Clones this node and all its children.
    */
-  public cloneInstance(): TreeNode {
+  public cloneInstance(): ITreeNode {
     const clone = new TreeNode(this.name);
     clone.visible = this.visible;
     for (let child of this.#children)
@@ -251,9 +251,9 @@ export class TreeNode implements ITreeNode {
 
   /**
    * Returns the child with the specified id
-   * @return {TreeNode}
+   * @return {ITreeNode}
    */
-  public getChild(id: string): TreeNode | null {
+  public getChild(id: string): ITreeNode | null {
     for (let i = 0; i < this.#children.length; i++)
       if (this.#children[i].id === id)
         return this.#children[i];
@@ -265,7 +265,7 @@ export class TreeNode implements ITreeNode {
    */
   public getPath(): string {
     let path = this.name;
-    let node: TreeNode | null = this.parent;
+    let node: ITreeNode | null = this.parent;
     while (node) {
       path = node.name + '.' + path;
       node = node.parent;
@@ -278,7 +278,7 @@ export class TreeNode implements ITreeNode {
    * 
    * @param child the child to check
    */
-  public hasChild(child: TreeNode): boolean {
+  public hasChild(child: ITreeNode): boolean {
     return this.#children.includes(child);
   }
 
@@ -287,7 +287,7 @@ export class TreeNode implements ITreeNode {
    * 
    * @param child the child to remove
    */
-  public removeChild(child: TreeNode): boolean {
+  public removeChild(child: ITreeNode): boolean {
     const index = this.#children.indexOf(child);
     if (index === -1) return false;
     this.#children.splice(index, 1);
@@ -299,7 +299,7 @@ export class TreeNode implements ITreeNode {
    * Update the version
    */
   public updateVersion(): void {
-    let node = <TreeNode>this;
+    let node = <ITreeNode>this;
     while (node.parent !== null) {
       node = node.parent;
       node.updateVersionAtomic();

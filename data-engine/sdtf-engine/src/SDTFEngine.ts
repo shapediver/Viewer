@@ -1,8 +1,8 @@
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
 import { HttpClient, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { ISDTF } from '@shapediver/viewer.data-engine.shared-types'
-import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT, SDTFAttributeData, SDTFAttributeOverview, SDTFAttributesData, SDTFItemData } from '@shapediver/viewer.shared.types'
+import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT, ISDTFOverviewData, SDTFAttributesData, SDTFAttributeData, SDTFItemData, SDTFOverviewData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 
 @singleton()
@@ -32,7 +32,7 @@ export class SDTFEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         const node = new TreeNode('sdtf');
 
         if (!content || (content && !content.href)) {
@@ -143,7 +143,7 @@ export class SDTFEngine {
                     }
                 }
             }
-            node.data.push(new SDTFAttributeOverview(overview));
+            node.data.push(new SDTFOverviewData(overview));
 
             for(let i = 0; i < this._content.chunks.length; i++) {
                 node.children.push(await this.loadChunk(i));
@@ -158,10 +158,10 @@ export class SDTFEngine {
 
     // #region Private Methods (4)
 
-    private loadAttributes(attributesID: number): SDTFAttributesData {
+    private loadAttributes(attributesId: number): SDTFAttributesData {
         if (!this._content.attributes) throw new Error('Attributes not available.')
-        if (!this._content.attributes[attributesID]) throw new Error('Attributes not available.')
-        const attributes = this._content.attributes[attributesID];
+        if (!this._content.attributes[attributesId]) throw new Error('Attributes not available.')
+        const attributes = this._content.attributes[attributesId];
         const data = new SDTFAttributesData();
         for(let key in attributes) {
             if(attributes[key].value === undefined) {
@@ -176,7 +176,7 @@ export class SDTFEngine {
         return data;
     }
 
-    private async loadChunk(chunkId: number): Promise<TreeNode> {
+    private async loadChunk(chunkId: number): Promise<ITreeNode> {
         if (!this._content.chunks) throw new Error('Chunks not available.')
         if (!this._content.chunks[chunkId]) throw new Error('Chunks not available.')
         const chunk = this._content.chunks[chunkId];
@@ -202,7 +202,7 @@ export class SDTFEngine {
         return chunkDef;
     }
 
-    private async loadItem(itemId: number, index: number): Promise<TreeNode> {
+    private async loadItem(itemId: number, index: number): Promise<ITreeNode> {
         if (!this._content.items) throw new Error('Item not available.')
         if (!this._content.items[itemId]) throw new Error('Item not available.')
         const item = this._content.items[itemId];
@@ -217,7 +217,7 @@ export class SDTFEngine {
         return itemDef;
     }
 
-    private async loadNode(nodeId: number): Promise<TreeNode> {
+    private async loadNode(nodeId: number): Promise<ITreeNode> {
         if (!this._content.nodes) throw new Error('Node not available.')
         if (!this._content.nodes[nodeId]) throw new Error('Node not available.')
         const node = this._content.nodes[nodeId];

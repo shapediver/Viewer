@@ -9,10 +9,10 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { mat4, quat, vec2, vec3 } from 'gl-matrix'
-import { Box, Plane } from '@shapediver/viewer.shared.math'
+import { Box, IBox, Plane } from '@shapediver/viewer.shared.math'
 import { IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
-import { Tree } from '@shapediver/viewer.shared.node-tree'
+import { ITree, Tree } from '@shapediver/viewer.shared.node-tree'
 
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCamera } from './AbstractCamera'
@@ -24,7 +24,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
-  private readonly _tree: Tree = <Tree>container.resolve(Tree);
+  private readonly _tree: ITree = <ITree>container.resolve(Tree);
 
   private _domEventListenerToken?: string;
   private _domEventEngine?: DomEventEngine;
@@ -99,7 +99,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     const renderingEngines = (<IRenderingEngine[]>container.resolveAll('renderingEngine'));
     let renderingEngine: IRenderingEngine | undefined = renderingEngines.find(r => r.id === viewerId && r.closed === false);
     if(!renderingEngine) {
-      const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with ID ${viewerId} not found.`);
+      const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with id ${viewerId} not found.`);
       throw this._logger.handleError(LOGGING_TOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);
     }
 
@@ -115,12 +115,12 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     this.boundingBox = this._tree.root.boundingBox.clone();
   }
 
-  public clone(): PerspectiveCamera {
+  public clone(): IPerspectiveCamera {
     return new PerspectiveCamera(this.id);
   }
 
   public calculateZoomTo(zoomTarget?: Box, startingPosition: vec3 = this.position, startingTarget: vec3 = this.target): { position: vec3, target: vec3 } {
-    let box: Box;
+    let box: IBox;
 
     // Part 1 - calculate the bounding box that we should zoom to
     if (!zoomTarget) {

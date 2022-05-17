@@ -12,9 +12,6 @@ import { IDragConstraint } from "./interfaces/utils/IDragConstraint";
 import { IInteractionEngine, INTERACTION_STATE } from "./interfaces/IInteractionEngine"
 import { IInteractionFilterOptions, IInteractionManager } from "./interfaces/IInteractionManager";
 import { InteractionData } from "./implementation/InteractionData";
-import { ISelectEvent } from "./interfaces/events/ISelectEvent";
-import { IDragEvent } from "./interfaces/events/IDragEvent";
-import { IHoverEvent } from "./interfaces/events/IHoverEvent";
 import { IDragConstraintUtils } from "./interfaces/utils/IDragConstraintUtils";
 import { IInteractionEffectUtils } from "./interfaces/utils/IInteractionEffectUtils";
 import { IInteractionData } from "./interfaces/IInteractionData";
@@ -29,10 +26,6 @@ export {
 
 export {
     SelectManager, SelectOnUpManager, HoverManager, DragManager
-}
-
-export {
-    IDragEvent, IHoverEvent, ISelectEvent
 }
 
 export {

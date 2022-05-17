@@ -1,10 +1,10 @@
 import { mat4, vec3 } from "gl-matrix";
-import { TreeNode } from "@shapediver/viewer.shared.node-tree";
+import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { InteractionData } from "../InteractionData";
 
 export const calculateDragMatrix =
     (
-        node: TreeNode,
+        node: ITreeNode,
         snapPoint: vec3,
         snapRotation: {
             axis: vec3,

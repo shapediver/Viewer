@@ -1,51 +1,66 @@
-import { CustomData } from './data/CustomData'
-import { AttributeData, GeometryData, PRIMITIVE_MODE, PrimitiveData } from './data/GeometryData'
+import { CustomData } from './implementation/data/CustomData'
+import { AttributeData, GeometryData, PrimitiveData } from './implementation/data/GeometryData'
 import {
-  MaterialStandardData, MaterialStandardDataProperties,
-} from './data/material/MaterialStandardData'
-import { AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData } from './data/HTMLElementAnchorData'
-import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT, SDTFAttributeData, SDTFAttributesData } from './data/sdtf/SDTFAttributesData'
-import { SDTFItemData } from './data/sdtf/SDTFItemData'
-import { SDTFAttributeOverview, SDTFOverview } from './data/sdtf/SDTFAttributeOverview'
-import { ATTRIBUTE_VISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisualizationData } from './data/sdtf/SDTFAttributeVisualization'
-import { AnimationData, AnimationTrack } from './data/AnimationData'
-import { IViewerEvent } from './events/IViewerEvent'
-import { ISessionEvent } from './events/ISessionEvent'
-import { ICameraEvent } from './events/ICameraEvent'
-import { IEnvironmentEvent } from './events/IEnvironmentEvent'
-import { ISceneEvent } from './events/ISceneEvent'
-import { ISettingsEvent } from './events/ISettingsEvent'
-import { ITaskEvent, TASK_TYPE } from './events/ITaskEvent'
-import { MaterialVariantsData } from './data/material/MaterialVariantsData'
-import { MapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './data/material/MapData'
-import { MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, AbstractMaterialData, AbstractMaterialDataProperties } from './data/material/AbstractMaterialData'
-import { MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties } from './data/material/MaterialSpecularGlossinessData'
-import { MaterialUnlitData, MaterialUnlitDataProperties } from './data/material/MaterialUnlitData'
+  MaterialStandardData,
+} from './implementation/material/MaterialStandardData'
+import { HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData } from './implementation/data/HTMLElementAnchorData'
+import { SDTFItemData } from './implementation/sdtf/SDTFItemData'
+import { AnimationData } from './implementation/data/AnimationData'
+import { IViewerEvent } from './interfaces/events/IViewerEvent'
+import { ISessionEvent } from './interfaces/events/ISessionEvent'
+import { ICameraEvent } from './interfaces/events/ICameraEvent'
+import { ISceneEvent } from './interfaces/events/ISceneEvent'
+import { ITaskEvent, TASK_TYPE } from './interfaces/events/ITaskEvent'
+import { MaterialVariantsData } from './implementation/material/MaterialVariantsData'
+import { MapData } from './implementation/material/MapData'
+import { MaterialSpecularGlossinessData } from './implementation/material/MaterialSpecularGlossinessData'
+import { MaterialUnlitData } from './implementation/material/MaterialUnlitData'
+import { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData } from './interfaces/data/IHTMLElementAnchorData'
+import { IMaterialData, IMaterialDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from './interfaces/data/material/IMaterialData'
+import { IAttributeData, IGeometryData, IPrimitiveData, PRIMITIVE_MODE } from './interfaces/data/IGeometryData'
+import { TEXTURE_WRAPPING, TEXTURE_FILTERING, IMapData } from './interfaces/data/material/IMapData'
+import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties } from './interfaces/data/material/IMaterialSpecularGlossinessDataProperties'
+import { IMaterialStandardData, IMaterialStandardDataProperties } from './interfaces/data/material/IMaterialStandardData'
+import { IMaterialUnlitData, IMaterialUnlitDataProperties } from './interfaces/data/material/IMaterialUnlitData'
+import { IMaterialVariantsData } from './interfaces/data/material/IMaterialVariantsData'
+import { IAnimationData, IAnimationTrack } from './interfaces/data/IAnimationData'
+import { ICustomData } from './interfaces/data/ICustomData'
+import { AbstractMaterialData } from './implementation/material/AbstractMaterialData'
+import { ISDTFOverview, ISDTFOverviewData } from './interfaces/sdtf/ISDTFOverviewData'
+import { SDTFAttributeData, SDTFAttributesData } from './implementation/sdtf/SDTFAttributesData'
+import { SDTFOverviewData } from './implementation/sdtf/SDTFOverviewData'
+import { ISDTFAttributesData, ISDTFAttributeData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT } from './interfaces/sdtf/ISDTFAttributesData'
+import { ISDTFItemData } from './interfaces/sdtf/ISDTFItemData'
+import { ISDTFAttributeVisualizationData } from './interfaces/sdtf/ISDTFAttributeVisualizationData'
+import { EventResponseMapping } from './interfaces/events/EventResponseMapping'
+import { IDragEvent } from './interfaces/events/IDragEvent'
+import { IHoverEvent } from './interfaces/events/IHoverEvent'
+import { ISelectEvent } from './interfaces/events/ISelectEvent'
 
 export {
-  MaterialStandardData, MaterialStandardDataProperties, 
-  AbstractMaterialData, AbstractMaterialDataProperties, 
-  MaterialUnlitData, MaterialUnlitDataProperties, 
-  MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, 
-  MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
+  IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
+  IMaterialData, IMaterialDataProperties, AbstractMaterialData,
+  IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, 
+  IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, 
+  IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
 }
 
 export {
-  AnimationData, AnimationTrack, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData, PRIMITIVE_MODE
+  IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData, PRIMITIVE_MODE
 }
 
 export {
-  AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData
+  IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData
 }
 
 export {
-  CustomData
+  ICustomData, CustomData
 }
 
 export {
-  IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, ITaskEvent, TASK_TYPE
+  EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, ISceneEvent, ITaskEvent, TASK_TYPE
 }
 
 export {
-  SDTFAttributeOverview, SDTFOverview, SDTFAttributesData, SDTFAttributeVisualizationData, SDTFAttributeVisualization, ATTRIBUTE_VISUALIZATION, SDTFAttributeData, SDTFItemData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT
+  ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT
 }

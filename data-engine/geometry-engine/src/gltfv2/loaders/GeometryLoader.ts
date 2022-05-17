@@ -1,5 +1,5 @@
 import { IGLTF_v2, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { AttributeData, GeometryData, MaterialVariantsData, PrimitiveData } from '@shapediver/viewer.shared.types'
 
 import { GLTF_EXTENSIONS } from '../GLTFLoader'
@@ -36,7 +36,7 @@ export class GeometryLoader {
 
     // #region Public Methods (1)
 
-    public loadMesh(meshId: number, weights?: number[]): TreeNode {
+    public loadMesh(meshId: number, weights?: number[]): ITreeNode {
         if (!this._content.meshes) throw new Error('GeometryLoader.loadMesh: Meshes not available.')
         if (!this._content.meshes[meshId]) throw new Error('GeometryLoader.loadMesh: Mesh not available.')
         const mesh = this._content.meshes[meshId];
@@ -53,7 +53,7 @@ export class GeometryLoader {
 
     // #region Private Methods (1)
 
-    private loadPrimitive(primitives: IGLTF_v2_Primitive[], index: number, weights: number[] = []): TreeNode {
+    private loadPrimitive(primitives: IGLTF_v2_Primitive[], index: number, weights: number[] = []): ITreeNode {
         const primitive = primitives[index];
         const primitiveNode = new TreeNode('primitive_' + index);
 

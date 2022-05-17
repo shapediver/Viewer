@@ -6,6 +6,8 @@ import { RENDERER_TYPE, TEXTURE_ENCODING, TONE_MAPPING, VISIBILITY_MODE } from '
 import {
   AbstractTreeNodeData,
   ITransformation,
+  ITree,
+  ITreeNode,
   ITreeNodeData,
   Tree,
   TreeNode,
@@ -15,8 +17,8 @@ import {
   ENVIRONMENT_MAP_CUBE,
   ThreejsData,
 } from '@shapediver/viewer.rendering-engine-threejs.standard'
-import { CustomData, GeometryData, MaterialStandardData, SDTFAttributeData, SDTFAttributeOverview, SDTFItemData, SDTFAttributesData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, SDTFOverview, SDTFAttributeVisualization, ATTRIBUTE_VISUALIZATION, AnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, HTMLElementAnchorData, AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, ITaskEvent, TASK_TYPE, AbstractMaterialData, AbstractMaterialDataProperties, MapData, MaterialStandardDataProperties, MATERIAL_SHADING, MATERIAL_SIDE, MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, TEXTURE_FILTERING, TEXTURE_WRAPPING, MaterialUnlitData, MaterialUnlitDataProperties, MaterialVariantsData } from '@shapediver/viewer.shared.types'
-import { EVENTTYPE, LOGGING_LEVEL, MAIN_EVENTTYPE, SettingsEngine } from '@shapediver/viewer.shared.services'
+import { CustomData, ICustomData, GeometryData, MaterialStandardData, SDTFAttributeData, ISDTFOverviewData, SDTFItemData, SDTFAttributesData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, ISDTFOverview, ATTRIBUTE_VISUALIZATION, IAnimationTrack, AnimationData, MATERIAL_ALPHA, IViewerEvent, ISessionEvent, ICameraEvent, IEnvironmentEvent, ISceneEvent, ISettingsEvent, HTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, ITaskEvent, TASK_TYPE, IMaterialData, IMaterialDataProperties, MapData, MATERIAL_SHADING, MATERIAL_SIDE, MaterialSpecularGlossinessData, TEXTURE_FILTERING, TEXTURE_WRAPPING, MaterialUnlitData, MaterialVariantsData, IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, IMaterialUnlitDataProperties, IAnimationData, IGeometryData } from '@shapediver/viewer.shared.types'
+import { EVENTTYPE, LOGGING_LEVEL, MainEventTypes, SettingsEngine } from '@shapediver/viewer.shared.services'
 import { SessionData, SessionOutputData } from '@shapediver/viewer.session-engine.session-engine'
 import { ShapeDiverResponseExportDefinitionType as EXPORTTYPE } from '@shapediver/sdk.geometry-api-sdk-v2'
 
@@ -67,7 +69,7 @@ export const api: Api = <Api>container.resolve(Api);
 export const settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
 
 export {
-    RENDERER_TYPE, CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHT_TYPE, VISIBILITY_MODE, LOGGING_LEVEL, EVENTTYPE, MAIN_EVENTTYPE, EXPORTTYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, TEXTURE_ENCODING, TONE_MAPPING
+    RENDERER_TYPE, CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, LIGHT_TYPE, VISIBILITY_MODE, LOGGING_LEVEL, EVENTTYPE, MainEventTypes, EXPORTTYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, TEXTURE_ENCODING, TONE_MAPPING
 }
 
 export {
@@ -79,21 +81,21 @@ export {
 }
 
 export {
-    Tree, TreeNode, ITransformation, ITreeNodeData, AbstractTreeNodeData, ThreejsData, CustomData, GeometryData, AnimationData, AnimationTrack, SessionData, SessionOutputData
+    Tree, ITree, TreeNode, ITreeNode, ITransformation, ITreeNodeData, AbstractTreeNodeData, ThreejsData, CustomData, ICustomData, GeometryData, IGeometryData, AnimationData, IAnimationData, IAnimationTrack, SessionData, SessionOutputData
 }
 
+
 export {
-    MaterialStandardData, MaterialStandardDataProperties, 
-    MaterialStandardData as MaterialData, MaterialStandardDataProperties as MaterialDataProperties, 
-    AbstractMaterialData, AbstractMaterialDataProperties, 
-    MaterialUnlitData, MaterialUnlitDataProperties, 
-    MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties, 
+    IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
+    IMaterialData, IMaterialDataProperties, 
+    IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, 
+    IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, 
     MaterialVariantsData,
     MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
   }
 
 export {
-    AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData
+    HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData
 }
 
 export {
@@ -113,7 +115,7 @@ export {
 }
 
 export {
-    SDTFAttributeData, SDTFAttributeOverview, SDTFOverview, SDTFItemData, SDTFAttributesData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, SDTFAttributeVisualization, ATTRIBUTE_VISUALIZATION
+    SDTFAttributeData, ISDTFOverviewData, ISDTFOverview, SDTFItemData, SDTFAttributesData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, ATTRIBUTE_VISUALIZATION
 }
 
 export {

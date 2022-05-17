@@ -15,7 +15,7 @@ import { Box } from '@shapediver/viewer.shared.math'
 import { vec3 } from 'gl-matrix'
 import { IOrthographicCameraSettingsV3, IPerspectiveCameraSettingsV3 } from '@shapediver/viewer.settings'
 import { ISceneEvent } from '@shapediver/viewer.shared.types'
-import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { CAMERA_TYPE, ICameraEngine } from '../interfaces/ICameraEngine'
 import { AbstractCamera, AbstractCamera as Camera } from './camera/AbstractCamera'
@@ -38,7 +38,7 @@ export class CameraEngine implements ICameraEngine {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
-    private readonly _tree: Tree = <Tree>container.resolve(Tree);
+    private readonly _tree: ITree = <ITree>container.resolve(Tree);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _camera: Camera | null = null;
@@ -291,7 +291,7 @@ export class CameraEngine implements ICameraEngine {
     // #region Private Methods (1)
 
     private searchForNewCameras() {
-        const getCameraData = (node: TreeNode) => {
+        const getCameraData = (node: ITreeNode) => {
             for(let i = 0; i < node.data.length; i++)
                 if((node.data[i] instanceof AbstractCamera) && !this._cameras[node.data[i].id]) {
                     const camera = <AbstractCamera>node.data[i];

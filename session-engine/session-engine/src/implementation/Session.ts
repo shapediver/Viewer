@@ -8,6 +8,7 @@ import { ISession } from '../interfaces/ISession'
 import { SessionData } from './SessionData'
 import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
 
 export class Session implements ISession {
     // #region Properties (22)
@@ -211,7 +212,7 @@ export class Session implements ISession {
      * @param parameters the parameter set to update the session
      * @returns promise with a scene graph node
      */
-    public async customize(cancelRequest: () => boolean): Promise<SessionTreeNode> {
+    public async customize(cancelRequest: () => boolean): Promise<ISessionTreeNode> {
         return this.customizeSession(this._parameterValues, cancelRequest);
     }
 
@@ -258,7 +259,7 @@ export class Session implements ISession {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(cancelRequest: () => boolean = () => false, retry = false): Promise<SessionTreeNode> {
+    public async loadOutputs(cancelRequest: () => boolean = () => false, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability();
 
         const o = Object.assign({}, this._outputs);
@@ -469,7 +470,7 @@ export class Session implements ISession {
         }
     }
 
-    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, retry = false): Promise<SessionTreeNode> {
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability('customize');
         try {
             this._performanceEvaluator.startSection('sessionResponse');

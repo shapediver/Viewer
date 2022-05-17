@@ -1,10 +1,11 @@
 import { Box } from '@shapediver/viewer.shared.math'
 import { mat4, vec2, vec3 } from 'gl-matrix'
+import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
 import { ICameraControls } from '../controls/ICameraControls'
 import { CAMERA_TYPE } from '../ICameraEngine'
 
-export interface ICamera {
+export interface ICamera extends ITreeNodeData {
     // #region Properties (13)
 
     readonly controls: ICameraControls;
