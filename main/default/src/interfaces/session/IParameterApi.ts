@@ -2,6 +2,7 @@ import { ShapeDiverResponseParameter } from "@shapediver/sdk.geometry-api-sdk-v2
 
 /**
  * The type of the parameter.
+ * ATOM: I suggest we add this enum to the Geometry Backend SDK and export it from there, the enum is already used in the backend.
  */
 export enum PARAMETER_TYPE {
     FLOAT = 'Float',
@@ -38,8 +39,8 @@ export enum PARAMETER_TYPE {
 }
 
 /**
- * Different types of visualization for the parameter.
- * These types do not have to be used, but are specified in Grasshopper.
+ * Type of visualization which should be used for UI elements representing the parameter.
+ * ATOM: I suggest we add this enum to the Geometry Backend SDK and export it from there, the enum is already used in the backend.
  */
 export enum PARAMETER_VISUALIZATION {
     SLIDER = 'slider',
@@ -57,25 +58,35 @@ export enum PARAMETER_VISUALIZATION {
 }
 
 /**
- * The api for a parameter of the corresponding [session]{@link ISessionApi}.
+ * The api for a parameter of a corresponding [session]{@link ISessionApi}.
+ * 
+ * Parameters represent the channels through which data can be input into the model
+ * represented by a session. 
+ * 
  * The current value can be changed by setting the {@link value} property.
- * Additional information of the parameter is provided, as well as values at different states.
+ * TODO add description of different value properties.
  */
 export interface IParameterApi<T> extends ShapeDiverResponseParameter {
     // #region Properties (3)
 
     /**
      * The last value that was successfully validated.
+     * ATOM: What precisely is the last value that was successfully validated? How is it related with {@link customize}?
      */
     lastValidatedValue: T | string;
 
     /**
      * The value that is currently used in the session.
+     * ATOM: What precisely is meant by "used in the session"?  How is it related with {@link automaticSceneUpdate}?
      */
     sessionValue: T | string;
 
     /**
      * The current value.
+     * ATOM: What precisely is the current value? When does validation happen?
+     * 
+     * In case {@link automaticSceneUpdate} is true, setting the value will immediately 
+     * trigger a customization (see {@link customize}).
      */
     value: T | string;
 

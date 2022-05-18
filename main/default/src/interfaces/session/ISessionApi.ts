@@ -195,10 +195,12 @@ export interface ISessionApi {
      * Customize the session.
      * 
      * The current state of parameter values is used to request the outputs
-     * of the model from the Geometry Backend. In case the Geometry Backend 
-     * has the required output versions cached, it will reply immediately, 
-     * otherwise a computation request for the model will be triggered and awaited. 
-     * Once the output versions are available the resulting assets will be 
+     * of the model from the Geometry Backend. The specific version of an 
+     * output for a given set of parameter values is called _output version_. 
+     * In case the Geometry Backend has the corresponding output versions cached, 
+     * it will reply immediately, otherwise a computation request for the model 
+     * will be triggered and awaited. 
+     * Once the output versions are available, the resulting assets will be 
      * downloaded, extracted, and the resulting scene tree node will be returned.
      * 
      * Unless {@link automaticSceneUpdate} is set to false, the session's {@link node}
