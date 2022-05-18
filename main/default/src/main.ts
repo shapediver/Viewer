@@ -110,7 +110,7 @@ export let loggingLevel: LOGGING_LEVEL = viewerOptions.loggingLevel;
 export let showMessages: boolean = viewerOptions.showMessages;
 
 /**
- * Create and initialize a session with a model on a 
+ * Create and initialize a session with a model hosted on a 
  * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend}, 
  * using the provided ticket and modelViewUrl. 
  * Returns a session api object allowing to control the session.
@@ -125,7 +125,7 @@ export let showMessages: boolean = viewerOptions.showMessages;
  * 
  * ATOM: It would be useful to have an optional parameter allowing to specify a transformation for the session node.
  * 
- * @param properties.ticket The ticket for direct embedding of the model to create a session for.
+ * @param properties.ticket The ticket for direct embedding of the model to create a session for. This identifies the model on the Geometry Backend.
  * @param properties.modelViewUrl The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model.
  * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
  * @param properties.id The unique identifier to use for the session.

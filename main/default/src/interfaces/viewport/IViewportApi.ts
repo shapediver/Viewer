@@ -62,7 +62,8 @@ export enum FLAG_TYPE {
 }
 
 /**
- * The api for a viewport.
+ * The api for viewports.
+ * 
  * Viewports are created by calling the {@link createViewport} method.
  * 
  * Each viewport has corresponding [cameras]{@link ICameraApi} and [lights]{@link ILightApi}.
