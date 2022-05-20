@@ -49,7 +49,7 @@
     "@types/three": "^0.138.0",
     "gl-matrix": "3.3.0",
     "stats.js": "^0.17.0",
-    "three": "^0.138.0",
+    "three": "^0.140.2",
     "tsyringe": "^4.5.0"
   },
   "gitHead": "25b1bd5dade0720d4e40aa8f4db33c58ffcc8aae"
