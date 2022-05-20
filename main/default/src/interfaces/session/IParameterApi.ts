@@ -64,29 +64,24 @@ export enum PARAMETER_VISUALIZATION {
  * represented by a session. 
  * 
  * The current value can be changed by setting the {@link value} property.
- * TODO add description of different value properties.
  */
 export interface IParameterApi<T> extends ShapeDiverResponseParameter {
     // #region Properties (3)
 
     /**
-     * The last value that was successfully validated.
-     * ATOM: What precisely is the last value that was successfully validated? How is it related with {@link customize}?
-     */
-    lastValidatedValue: T | string;
-
-    /**
-     * The value that is currently used in the session.
-     * ATOM: What precisely is meant by "used in the session"?  How is it related with {@link automaticSceneUpdate}?
+     * The value that corresponds to the latest successful call to {@link ISessionApi.customize}.
+     * This property will be updated immediately before {@link ISessionApi.customize} returns.
      */
     sessionValue: T | string;
 
     /**
      * The current value.
-     * ATOM: What precisely is the current value? When does validation happen?
      * 
-     * In case {@link automaticSceneUpdate} is true, setting the value will immediately 
-     * trigger a customization (see {@link customize}).
+     * Validation happens immediately when setting this property. An error will be thrown in case
+     * validation fails. Use {@link isValid} to test whether a value passes validation.
+     * 
+     * In case {@link ISessionApi.automaticSceneUpdate} is true, setting the value will immediately 
+     * trigger a customization (see {@link ISessionApi.customize}).
      */
     value: T | string;
 
@@ -98,7 +93,7 @@ export interface IParameterApi<T> extends ShapeDiverResponseParameter {
      * Evaluates if a given value is valid for this parameter.
      * 
      * @param value the value to evaluate
-     * @param throwError if true, an error is thrown if the value is not valid (default: false)
+     * @param throwError if true, an error is thrown if validation does not pass (default: false)
      */
     isValid(value: any, throwError?: boolean): boolean;
 
@@ -108,7 +103,7 @@ export interface IParameterApi<T> extends ShapeDiverResponseParameter {
     resetToDefaultValue(): void;
 
     /**
-     * Resets the value to the value currently used in the computed session.
+     * Resets the value to {@link sessionValue}.
      */
     resetToSessionValue(): void;
     

@@ -37,7 +37,8 @@ export interface ShapeDiverResponseOutputContent extends ShapeDiverResponseOutpu
  * Specifically the _content_ property refers to output assets and embedded data.
  * 
  * Each output has a corresponding {@link node} in the [scene tree]{@link ITree}
- * which represents the data output from the model for the current parameter values.
+ * which represents the data that got output from the model for the parameter values
+ * stored in {@link IParameterApi.sessionValue}.
  * 
  * An output's content can be updated manually by calling the {@link updateOutputContent} method.
  * Using the {@link freeze} property the output's content can be frozen, which means subsequent
@@ -48,13 +49,16 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
 
     /**
      * The {@link node} corresponding to the output in the [scene tree]{@link ITree}.
-     * ATOM: describe what happens in case of freeze. Does this node always correspond to the node in the scene tree?
      */
     readonly node?: ITreeNode;
 
     /**
-     * The freeze flag, when set to true, the output is not updated by the session.
-     * ATOM: What exactly happens for frozen outputs?
+     * The freeze flag. 
+     * When set to true, calls to the following functions will not update the output: 
+     * 
+     *   * {@link updateOutputContent}
+     *   * {@link ISessionApi.customize}
+     *   * {@link ISessionApi.updateOutputs}
      */
     freeze: boolean;
     
@@ -72,8 +76,13 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
     /**
      * Update the output's content, effectively overriding the content which was output from the model.
      * 
+     * This can be used to override the content which was output from the model (e.g. materials). 
+     * In case you want the override content to persist further calls to {@link ISessionApi.customize}, 
+     * await the call to this function and then set {@link freeze} to true.
+     * 
      * @param content The new output content.
-     * @param preventUpdate Option to not update the output immediately. (default: false) ATOM: to be clarified
+     * @param preventUpdate Option to not update the output immediately (default: false). Use this to update
+     *                      the content of several outputs at the same time, then call {@link ISessionApi.updateOutputs}.
      */
     updateOutputContent(content: ShapeDiverResponseOutputContent[], preventUpdate?: boolean): Promise<ITreeNode | undefined>;
 

@@ -28,25 +28,28 @@ export enum BUSY_MODE_DISPLAY {
 
 /**
  * Session settings to be used by a viewport.
+ * 
+ * The {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} 
+ * allows to persist settings of the viewer, individually for each model that it hosts. Persisting the settings
+ * of the viewer requires permissions which are typically only granted to the owner of the model. Editing
+ * of the settings typically happens on the model edit page of the ShapeDiver Platform.
+ * 
+ * Whenever an instance of the viewer creates a session with a model, the settings are made available to the viewer.
+ * It is possible to use multiple sessions with different models from a single instance of the viewer. 
+ * Therefore the viewer offers a choice on which settings to use.
  */
 export enum SESSION_SETTINGS_MODE {
-  /** No settings of a session will be used. */
+  /** No settings of a session will be used for the viewport. */
   NONE = 'none',
   /** 
-   * The first created session will be used for the settings of the viewport. 
-   * ATOM: It's not totally clear what this means.
+   * The settings of the very first session created will be used for the viewport. 
    */
   FIRST = 'first',
   /** 
-   * The next created session will be used for the settings of the viewport. 
-   * ATOM: It's not totally clear what this means.
+   * Use this mode in case you want to assign a specific session identifier 
+   * to the viewport, whose settings will be used.
    */
-  NEXT = 'next',
-  /** 
-   * The previous created session will be used for the settings of the viewport. 
-   * ATOM: It's not totally clear what this means.
-   */
-  PREVIOUS = 'previous',
+  CUSTOM = 'custom',
 };
 
 /**
@@ -70,7 +73,9 @@ export enum FLAG_TYPE {
  * 
  * Additionally, there are various other settings to adjust the behavior and rendering of the viewport.
  * 
- * ATOM: By default a new viewport displays the complete scene tree, is this so? Let's add more details here.
+ * By default a new viewport displays the complete scene tree. Viewports can be excluded from 
+ * displaying geometry for specific sessions by using the {@link excludeViewports} property of
+ * {@link ISessionApi}.
  */
 export interface IViewportApi {
   // #region Properties (34)
@@ -107,16 +112,18 @@ export interface IViewportApi {
   readonly lightScenes: { [key: string]: ILightSceneApi };
 
   /**
-   * Option to enable / disable the AR (Augmented Reality) function for this viewport. (default: true)
-   * ATOM: let's be more specific: what exactly is this used for?
+   * Option to enable / disable the AR (Augmented Reality) functionality for this viewport. (default: true)
+   * This setting is used purely for UI purposes, it does not have any influence on the viewport itself.
    */
   enableAR: boolean;
 
   /**
-   * The scaling factor that is used to export the scene for AR (Augmented Reality).
+   * The scaling factor that is used when exporting the scene for AR (Augmented Reality).
+   * 
    * The unit system used by AR is meter, therefore this scaling factor needs to be chosen
    * such that scene coordinates are transformed to meters.
-   * ATOM: is there a corresponding "arOrigin" property? 
+   * 
+   * ATOM: Please link to the corresponding arTranslation and arRotation properties, and explain in which order they get applied. 
    */
   arScale: vec3;
 
@@ -131,26 +138,23 @@ export interface IViewportApi {
   ambientOcclusionIntensity: number;
 
   /**
-   * An array of all animations that are currently present in the viewport.
-   * ATOM: "active" instead of "present"? Are animations controlled by setting this property?
+   * An array of all animations that are currently present in the parts of
+   * the scene tree relevant to this viewport.
    */
   animations: IAnimationData[];
 
   /**
-   * Option to enable / disable the automatic resizing. (default: true)
-   * ATOM: what exactly is automatic resizing?
+   * Option to enable / disable the automatic resizing of the viewport to changes of the {@link canvas}. (default: true)
    */
   automaticResizing: boolean;
 
   /**
-   * The duration that the beauty rendering blends in.
-   * ATOM: please specify the unit
+   * The duration used by the beauty rendering to blend in (milliseconds).
    */
   beautyRenderBlendingDuration: number;
 
   /**
-   * The delay with which the beauty rendering starts.
-   * ATOM: please specify the unit
+   * The delay after which the beauty rendering starts (milliseconds).
    */
   beautyRenderDelay: number;
 
@@ -174,7 +178,7 @@ export interface IViewportApi {
 
   /**
    * The environment map used by the viewport.
-   * ATOM: Let's add detailed requirements here (image types, when do we need a single image, how many images if not a single)
+   * ATOM: Let's add detailed requirements here (image types, when do we need a single image, how many images if not a single, preset envmaps)
    */
   environmentMap: string | string[];
 
@@ -184,8 +188,8 @@ export interface IViewportApi {
   environmentMapAsBackground: boolean;
 
   /**
-   * The environment map resolution that is used for our deprecated cube maps.
-   * ATOM: are they really deprecated?
+   * The environment map resolution that is used for preset cube maps.
+   * @see {@link environmentMap}
    */
   environmentMapResolution: string;
 
@@ -211,7 +215,8 @@ export interface IViewportApi {
 
   /**
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
-   * ATOM: What is the "output texture"? :-)
+   * 
+   * ATOM: Please link to {@link textureEncoding} and explain the difference.
    */
   outputEncoding: TEXTURE_ENCODING;
 
@@ -226,14 +231,15 @@ export interface IViewportApi {
   pointSize: number;
 
   /**
-   * Optional id of the session to be used for persisting / loading settings of the viewport.
-   * ATOM: Let's add details on what this exactly means.
+   * Optional identifier of the session to be used for loading / persisting settings of the viewport.
+   * This is ignored in case {@link sessionSettingsMode} is not {@link SESSION_SETTINGS_MODE.CUSTOM}.
    */
   sessionSettingsId: string;
 
   /**
-   * The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST}).
-   * ATOM: Let's add details on what this exactly means. Does this matter only on creation of the viewport? 
+   * Allows to control which session to use for loading / persisting settings of the viewport. 
+   * (default: {@link SESSION_SETTINGS_MODE.FIRST}).
+   * @see {@link sessionSettingsId} 
    */
   sessionSettingsMode?: SESSION_SETTINGS_MODE
 
@@ -244,18 +250,19 @@ export interface IViewportApi {
 
   /**
    * Option to show / hide the viewport.
-   * ATOM: Let's add some details here. This will disable rendering, but not hide the canvas, correct?
+   * ATOM: Let's add some details here. This will disable rendering, and hide the canvas behind a div, etc
    */
   show: boolean;
 
   /**
-   * Option to show / hide the statistics. (default: false)
-   * ATOM: Let's be more specific here. Where do we show statistics?
+   * Option to show / hide rendering statistics overlayed to the viewport. (default: false)
    */
   showStatistics: boolean;
 
   /**
    * The encoding that is used for textures. (default: TEXTURE_ENCODING.SRGB)
+   * 
+   * ATOM: Please link to {@link outputEncoding} and explain the difference.
    */
   textureEncoding: TEXTURE_ENCODING;
   
@@ -275,6 +282,8 @@ export interface IViewportApi {
    * 
    * Provide a callback that transforms a {@link ISDTFItemData} to a {@link ISDTFAttributeVisualizationData}.
    * The {@link ISDTFOverview} provides general information like min and max values for numbers or the available options for strings.
+   * 
+   * ATOM: I guess this will be partially updated as part of https://shapediver.atlassian.net/browse/SS-5174
    */
   visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
@@ -297,7 +306,9 @@ export interface IViewportApi {
 
   /**
    * Assign the camera with the specified id to the viewport.
-   * ATOM: What exactly does this do? Will this camera become the current one?
+   * This will make the given camera the current one. 
+   * 
+   * @see {@link camera}
    * 
    * @param id The id of the camera.
    */
@@ -305,7 +316,9 @@ export interface IViewportApi {
 
   /**
    * Assign the light scene with the current id to the viewport.
-   * ATOM: What exactly does this do? Will this light scene become the current one?
+   * This will make the given light scene the current one.
+   * 
+   * @see {@link lightScene}
    * 
    * @param id The id of the light scene.
    */
@@ -347,17 +360,11 @@ export interface IViewportApi {
    * Create the {@link ISDTFOverview} for the provided node.
    * If no node was provided, the scene root is used instead.
    * 
+   * ATOM: I guess this will be partially updated as part of https://shapediver.atlassian.net/browse/SS-5174
+   * 
    * @param node The node for which the overview is created.
    */
   createSDTFOverview(node: ITreeNode): ISDTFOverview;
-
-  /**
-   * Deregister the busy mode with the specified id.
-   * ATOM: Please explain what this is used for. 
-   * 
-   * @param value The id of the busy mode.
-   */
-  deregisterBusyMode(value: string): boolean;
 
   /**
    * Display an error message on the canvas.
@@ -368,7 +375,7 @@ export interface IViewportApi {
 
   /**
    * Get the complete URL of the current environment map, if it is a single file.
-   * ATOM: What's the difference to environmentMap?
+   * This can be used in case {@link environmentMap} is set to a preset environment map.
    */
   getEnvironmentMapImageUrl(): string;
 
@@ -379,14 +386,6 @@ export interface IViewportApi {
    * @param quality The quality of the screenshot, default is 1.
    */
   getScreenshot(type?: string, quality?: number): string;
-
-  /**
-   * Register the busy mode with the specified id.
-   * ATOM: Please explain what this is used for. 
-   * 
-   * @param value The id of the busy mode.
-   */
-  registerBusyMode(value: string): boolean;
 
   /**
    * Remove the camera with the specified id.
@@ -424,13 +423,6 @@ export interface IViewportApi {
   render(): void;
 
   /**
-   * Reset the viewport.
-   * Sets the {@link show}-value to false and waits for new settings to be registered.
-   * ATOM: what does "waiting for new settings mean"? Please explain it here.
-   */
-  reset(): void;
-
-  /**
    * If the {@link automaticResizing} is option is set to `false`, this function resizes the Viewport.
    * @param width The new width of the Viewport.
    * @param height The new height of the Viewport.
@@ -438,14 +430,17 @@ export interface IViewportApi {
   resize(width: number, height: number): void;
 
   /**
-   * Update the viewport with the current changes of the scene tree.
-   * ATOM: What exactly does this do? Is this like "render"?
+   * Update the viewport with the current changes of the complete scene tree.
+   * This carries out preparations for rendering. Call it after doing 
+   * direct changes to the scene tree. 
    */
   update(): void;
 
   /**
-   * Update the current node and all descendants in the scene tree.
-   * ATOM: Please add some details here.
+   * Update the viewport with the current changes of given scene tree node and its descendants.
+   * This carries out preparations for rendering. Call it after doing 
+   * direct changes to the scene tree. 
+   * 
    * @param node The node to update.
    */
   updateNode(node: ITreeNode): void;
@@ -468,7 +463,7 @@ export interface IViewportApi {
   viewInAR(options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
   
   /**
-   * Determines if the current devices supports the viewing in AR.
+   * Determines if the current device supports viewing in AR.
    */
   viewableInAR(): boolean;
 

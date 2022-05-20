@@ -104,8 +104,7 @@ export const sessions: { [key: string]: ISessionApi; } = {};
 export let loggingLevel: LOGGING_LEVEL = viewerOptions.loggingLevel;
 
 /**
- * Option to show/hide messages.
- * ATOM: Please add details on what this is used for exactly
+ * Option to show/hide messages in the browser console.
  */
 export let showMessages: boolean = viewerOptions.showMessages;
 
@@ -129,9 +128,9 @@ export let showMessages: boolean = viewerOptions.showMessages;
  * @param properties.modelViewUrl The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model.
  * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
  * @param properties.id The unique identifier to use for the session.
- * @param properties.waitForOutputs Option to wait for the outputs to be loaded. (default: true)
- * @param properties.loadOutputs Option to not load the outputs. (default: true)
- * @param properties.initialParameters The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
+ * @param properties.waitForOutputs Option to wait for the outputs to be loaded, or return immediately after creation of the session. (default: true)
+ * @param properties.loadOutputs Option to load the outputs, or not load them until the first call of {@link ISessionApi.customize}. (default: true)
+ * @param properties.initialParameterValues The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @returns 
  */
 export const createSession = async (
@@ -142,7 +141,7 @@ export const createSession = async (
         id?: string,
         waitForOutputs?: boolean,
         loadOutputs?: boolean,
-        initialParameters?: { [key: string]: string }
+        initialParameterValues?: { [key: string]: string }
     }
 ): Promise<ISessionApi> => {
     throw new Error('Method not implemented.');
@@ -155,16 +154,16 @@ export const createSession = async (
  * An optional identifier for the viewport can be provided. This identifier can be used to retrieve the  
  * viewport object from {@link viewports}. In case no identifier is provided, a unique one will be generated.
  * 
- * The viewport will automatically load what is currently in the scene tree. 
- * ATOM: Is "load" a good term to use here? Isn't it "show" or "render"?
+ * By default a new viewport displays the complete scene tree. Viewports can be excluded from 
+ * displaying geometry for specific sessions by using the {@link excludeViewports} property of
+ * {@link ISessionApi}.
  * 
- * @param properties.type The type of the viewport. ATOM: there is no type parameter below
  * @param properties.visibility The visibility of the viewport.
- * @param properties.canvas The canvas that the viewport should use. ATOM: is this really optional?
+ * @param properties.canvas The canvas that the viewport should use. A canvas element will be created if none is provided. 
  * @param properties.id The unique identifier to use for the viewport.
  * @param properties.branding Optional branding options.
- * @param properties.sessionSettingsId The id of the session that is currently used for the settings of the viewport. ATOM: Let's adapt this once IViewportApi::sessionSettingsId has been clarified
- * @param properties.sessionSettingsMode The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST}). ATOM: Let's adapt this once IViewportApi::sessionSettingsMode has been clarified.
+ * @param properties.sessionSettingsId Optional identifier of the session to be used for loading / persisting settings of the viewport. 
+ * @param properties.sessionSettingsMode Allows to control which session to use for loading / persisting settings of the viewport. (default: {@link SESSION_SETTINGS_MODE.FIRST}).
  * @returns 
  */
 export const createViewport = async (
@@ -186,7 +185,7 @@ export const createViewport = async (
             /** 
              * Optional URL to a logo to be displayed while the viewport is in busy mode. 
              * A default logo will be used if none is provided. 
-             * ATOM: Let's explain how the placement can be influenced.
+             * ATOM: Let's explain how the spinner's placement can be influenced.
              */
             spinner?: string,
         },

@@ -19,7 +19,7 @@ import { IParameterApi } from './IParameterApi'
  * 
  * On change of parameter values (aka _customizations_), the session makes the necessary calls to the Geometry Backend
  * to trigger a computation of the model (if required), wait for its completion, download the resulting assets, 
- * and update the session's scene tree node.
+ * and create an updated scene tree.
  * 
  * A model may define {@link exports}, whose data is not reflected in the scene tree, but can
  * be requested by functionality of the session.
@@ -67,12 +67,6 @@ export interface ISessionApi {
 
 
     /**
-     * Determines if the session was already initialized.
-     * ATOM: What does this mean precisely?
-     */
-    readonly initialized: boolean;
-
-    /**
      * The node of the session in the [scene tree]{@link ITree}.
      */
     readonly node: ITreeNode;
@@ -80,25 +74,29 @@ export interface ISessionApi {
 
     /**
      * (Platform specific) Option to enable commit-mode for parameters.
-     * ATOM: Which precise effect does this have on the behavior of the session?
+     * This setting is used purely for UI purposes, it does not have any influence on the session itself.
      */
     commitParameters: boolean;
 
     /**
      * (Platform specific) Option to enable commit-mode for settings.
-     * ATOM: Which precise effect does this have on the behavior of the session?
+     * This setting is used purely for UI purposes, it does not have any influence on the session itself.
      */
     commitSettings: boolean;
 
     /**
-     * Option to automatically update the scene tree node whenever a customization finishes.
+     * Option to automatically update the session's scene tree node whenever a customization finishes. (default: true)
+     * 
+     * In case this is set to false, the session's scene tree {@link node} will not be automatically replaced
+     * by the node returned from {@link customize}. This can be used to plug the result of {@link customize}
+     * into other parts of the scene tree.
      */
     automaticSceneUpdate: boolean;
 
     /**
-     * Option to trigger a customization whenever a parameter value is changed.
+     * Option to trigger a call to {@link customize} whenever a parameter value is changed.
+     * 
      * Use this with care as this might max out the rate limit for your model on the Geometry Backend.
-     * ATOM: Did we have this option so far?
      */
     customizeOnParameterChange: boolean;
 
@@ -126,10 +124,12 @@ export interface ISessionApi {
     /**
      * Update all or some settings of the current session and the viewports based on the Geometry Backend
      * response object of another model. 
-     * ATOM: please explain how {@link SESSION_SETTINGS_MODE} of the viewports influences this.
+     * 
+     * @see {@link IViewportApi.sessionSettingsMode}
+     * @see {@link IViewportApi.sessionSettingsId}
      * 
      * @param response the ShapeDiverResponseDto of the model whose settings shall be applied
-     * @param sections ATOM: please explain
+     * @param sections specify true for those parts of the settings that should be applied
      */
     applySettings(response: ShapeDiverResponseDto, sections?: {
         session?: {
@@ -167,6 +167,8 @@ export interface ISessionApi {
     /**
      * Check if the session's history allows to go back to a previous state of parameter values.
      * 
+     * A further state of parameter values is recorded whenever a successful _customization_ happens.
+     * 
      * @see {@link canGoBack}
      * @see {@link canGoForward}
      * @see {@link goBack}
@@ -177,6 +179,8 @@ export interface ISessionApi {
     /**
      * Check if the session's history allows to go forward to a next state of parameter values.
      * 
+     * A further state of parameter values is recorded whenever a successful _customization_ happens.
+     *
      * @see {@link canGoBack}
      * @see {@link canGoForward}
      * @see {@link goBack}
@@ -197,16 +201,42 @@ export interface ISessionApi {
      * The current state of parameter values is used to request the outputs
      * of the model from the Geometry Backend. The specific version of an 
      * output for a given set of parameter values is called _output version_. 
-     * In case the Geometry Backend has the corresponding output versions cached, 
-     * it will reply immediately, otherwise a computation request for the model 
-     * will be triggered and awaited. 
+     * In case the Geometry Backend has already cached the requested output versions, 
+     * it will reply immediately, otherwise a computation request for the missing
+     * output versions of the model will be triggered and awaited. 
      * Once the output versions are available, the resulting assets will be 
-     * downloaded, extracted, and the resulting scene tree node will be returned.
+     * downloaded, extracted, and the resulting scene tree node will be created.
      * 
      * Unless {@link automaticSceneUpdate} is set to false, the session's {@link node}
-     * will be updated immediately and viewports will be rendered.
+     * will be updated and viewports will be rendered.
+     * 
+     * Independent of {@link automaticSceneUpdate}, right before returning the following
+     * will happen: 
+     * 
+     *   * for each parameter {@link IParameterApi.sessionValue} will be updated. 
+     *   * for each output affected by the customization, {@link IOutputApi.updateCallback} 
+     *     will be invoked, and {@link IOutputApi.node} will be updated (outputs for which
+     *     {@link IOutputApi.freeze} is true will be skipped).
      */
     customize(): Promise<ITreeNode>;
+
+    /**
+     * Customize the session, parallel mode.
+     * 
+     * Use this instead of {@link customize} in case you want to run several 
+     * _customizations_ in parallel, or you do not want the customization to 
+     * affect the current state of the {@link ouputs} or {@link parameters}. 
+     * The node resulting from this call has to be manually inserted into the scene.
+     * 
+     * Calls to this function will not update the session's {@link node}
+     * nor the outputs' {@link IOutputApi.node|nodes}, and also not update 
+     * {@link IParameterApi.sessionValue} of the parameters.
+     * Note that {@link IOutputApi.updateCallback} will not be called, and 
+     * {@link IOutputApi.freeze} will be ignored.
+     * 
+     * * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
+     */
+    customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
 
     /**
      * Get an export definition by id.
@@ -235,10 +265,8 @@ export interface ISessionApi {
      * Get output definitions by format of the output's current content.
      * 
      * This function filters output definitions by the format of the output's
-     * current content, which depends on the current state of the {@link node}.
+     * current content, which depends on the current state of the output's {@link IOutputApi.node}.
      * The results of this function may vary depending on this state.
-     * 
-     * ATOM to be clarified what the filter is based on exactly.
      * 
      * @param format The format of the output's content.
      */
@@ -303,19 +331,6 @@ export interface ISessionApi {
     goForward(): Promise<ITreeNode>;
 
     /**
-     * Initialize the session.
-     * Normally, there is no need to call this function.
-     * The initialization is done on creation via the api.
-     * 
-     * ATOM: Do we need to expose this function? To my understanding all of this is covered by createSession.
-     * 
-     * @param waitForOutputs Option to resolve the promise only when all outputs are loaded. (default: true)
-     * @param loadOutputs Option to not load the outputs. (default: true)
-     * @param initialParameters Optional initial parameter set.
-     */
-    init(waitForOutputs?: boolean, loadOutputs?: boolean, initialParameters?: { [key: string]: string }): Promise<void>;
-    
-    /**
      * Save the current state of parameter values of this session as the default parameter values of the model. 
      * 
      * This call will throw an exception if the ticket and JWT do not grant the required permission to 
@@ -327,18 +342,13 @@ export interface ISessionApi {
      * Save UI-related properties of parameter, output, and export definitions (displayname, order, hidden and tooltip, etc).
      * 
      * This call will throw an exception if the ticket and JWT do not grant the required permissions for the model.
-     * 
-     * ATOM: If supported by the geometry backend let's split that call into separate ones for parameters, outputs, exports.
      */
     saveUiProperties(): Promise<boolean>;
     
     /**
      * Save the 3D viewer related settings of this session to the model hosted on the Geometry Backend.
      * 
-     * ATOM: Is this correct?: If there are multiple viewports, the first one will be used for the settings.
-     * ATOM: Let's extend this such that viewport and session settings can be saved individually or both at the same time. 
-     * Probably this will require to fetch the current settings object from the backend, update only the viewport or session
-     * settings part of it, and save again.
+     * ATOM: Please add details on how parameter viewportId is used.
      * 
      * This call will throw an exception if the ticket and JWT do not grant the required permission to 
      * save viewer settings for the model.
@@ -349,9 +359,8 @@ export interface ISessionApi {
     
     /**
      * Update the current available outputs.
-     * Calling this function makes sense if you have updated the outputs manually.
-     * 
-     * ATOM: How does one update the outputs manually?
+     * Calling this function makes sense if you have updated one of
+     * the outputs manually by calling {@link IOutputApi.updateOutputContent}.
      */
     updateOutputs(): Promise<ITreeNode>;
 
