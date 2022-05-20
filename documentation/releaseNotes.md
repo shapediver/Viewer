@@ -8,6 +8,9 @@
 * __Commit:__ d868569b13a097b60eb062a4d8b3427450a40b82
 <!--- VERSION_END -->
 
+## Version 1.14.15 - `Near Dark`
+- three.js update
+
 ## Version 1.14.14 - `Nights Of Cabiria`
 - bugfixes: SelectOnUpManager
 
