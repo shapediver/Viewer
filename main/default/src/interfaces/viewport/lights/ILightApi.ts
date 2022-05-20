@@ -26,11 +26,15 @@ export interface ILightApi {
 
   /**
    * The name of the light.
+   * 
+   * ATOM: what's the difference to id?
    */
   name?: string;
 
   /**
    * The order of the light.
+   * 
+   * ATOM: Please explain
    */
   order?: number;
   

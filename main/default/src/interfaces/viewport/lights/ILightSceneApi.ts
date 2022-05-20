@@ -12,6 +12,8 @@ import { ISpotLightApi } from './types/ISpotLightApi'
  * The api for a light scene.
  * A light scene is a collection of lights. Therefore multiple light scene can be used to switch between different lighting environments.
  * It can be created by calling the {@link createLightScene} method.
+ * 
+ * ATOM: Please add more details to the parameters in general, I left some comments only (also for the diverse light types)
  */
 export interface ILightSceneApi {
     // #region Properties (4)
@@ -43,8 +45,8 @@ export interface ILightSceneApi {
     /**
      * Create an ambient light and add it to the light scene.
      * 
-     * @param properties.color The color of the light.
-     * @param properties.intensity The intensity of the light.
+     * @param properties.color The color of the light. ATOM: Please explain (range etc
+     * @param properties.intensity The intensity of the light. ATOM: Please explain (range etc)
      * @param properties.id The id of the light.
      * @param properties.name The name of the light.
      */
@@ -59,13 +61,13 @@ export interface ILightSceneApi {
      * Create a directional light and add it to the light scene.
      * 
      * @param properties.color The color of the light.
-     * @param properties.intensity The intensity of the light.
+     * @param properties.intensity The intensity of the light. ATOM: Please explain (range etc)
      * @param properties.id The id of the light.
      * @param properties.name The name of the light.
      * @param properties.direction The direction of the light.
      * @param properties.castShadow Option for the light to cast shadows.
-     * @param properties.shadowMapResolution The shadowMapResolution of the shadow map.
-     * @param properties.shadowMapBias The vias of the shadow map.
+     * @param properties.shadowMapResolution The shadowMapResolution of the shadow map. ATOM: Please explain
+     * @param properties.shadowMapBias The bias of the shadow map. ATOM: Please explain
      */
     addDirectionalLight(properties: {
         color?: string | number | vec3, 
@@ -82,7 +84,7 @@ export interface ILightSceneApi {
      * Create an hemisphere light and add it to the light scene.
      * 
      * @param properties.color The color of the light.
-     * @param properties.intensity The intensity of the light.
+     * @param properties.intensity The intensity of the light. ATOM: Please explain (range etc
      * @param properties.id The id of the light.
      * @param properties.name The name of the light.
      * @param properties.groundColor The ground color of the light.
@@ -99,7 +101,7 @@ export interface ILightSceneApi {
      * Create a point light and add it to the light scene.
      * 
      * @param properties.color The color of the light.
-     * @param properties.intensity The intensity of the light.
+     * @param properties.intensity The intensity of the light. ATOM: Please explain (range etc
      * @param properties.id The id of the light.
      * @param properties.name The name of the light.
      * @param properties.position The position of the light.
@@ -120,7 +122,7 @@ export interface ILightSceneApi {
      * Create a point light and add it to the light scene.
      * 
      * @param properties.color The color of the light.
-     * @param properties.intensity The intensity of the light.
+     * @param properties.intensity The intensity of the light. ATOM: Please explain (range etc
      * @param properties.id The id of the light.
      * @param properties.name The name of the light.
      * @param properties.position The position of the light.
