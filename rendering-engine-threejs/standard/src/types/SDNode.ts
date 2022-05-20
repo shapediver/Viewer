@@ -1,8 +1,8 @@
-import * as THREE from 'three'
+import {Object3D, Matrix4} from 'three'
 import { mat4 } from 'gl-matrix'
 import { ISDObject } from '@shapediver/viewer.shared.node-tree';
 
-export class SDNode extends THREE.Object3D implements ISDObject {
+export class SDNode extends Object3D implements ISDObject {
     // #region Constructors (1)
 
     #SDid: string;
@@ -23,7 +23,7 @@ export class SDNode extends THREE.Object3D implements ISDObject {
         this.position.set(0,0,0)
         this.scale.set(1,1,1)
         this.quaternion.set(0,0,0,1)
-        this.applyMatrix4(new THREE.Matrix4().fromArray(transformation));
+        this.applyMatrix4(new Matrix4().fromArray(transformation));
     }
 
     // #endregion Constructors (1)
