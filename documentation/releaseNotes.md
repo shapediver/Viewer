@@ -8,6 +8,9 @@
 * __Commit:__ 135ee479f9732dd284544e80196be10ff4b8cca6
 <!--- VERSION_END -->
 
+## Version 1.14.16 - `Night and the City`
+- different three.js extension
+
 ## Version 1.14.15 - `Near Dark`
 - three.js update
 
