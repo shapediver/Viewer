@@ -41,10 +41,13 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.19",
+    "@shapediver/viewer.shared.build-data": "1.14.14",
     "@shapediver/viewer.data-engine.data-engine": "1.14.14",
+    "@shapediver/viewer.data-engine.shared-types": "1.14.14",
     "@shapediver/viewer.shared.node-tree": "1.14.14",
     "@shapediver/viewer.shared.services": "1.14.14",
     "@shapediver/viewer.shared.types": "1.14.14",
+    "@shapediver/viewer.utils.mime-type": "0.0.15",
     "axios": "^0.21.1",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"

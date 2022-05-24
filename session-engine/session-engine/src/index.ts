@@ -4,13 +4,21 @@ import { SessionOutputData } from './implementation/SessionOutputData'
 import { SessionData } from './implementation/SessionData'
 import { ISessionData } from './interfaces/ISessionData'
 import { ISessionOutputData } from './interfaces/ISessionOutputData'
+import { Export } from './implementation/dto/Export'
+import { FileParameter } from './implementation/dto/FileParameter'
+import { Output } from './implementation/dto/Output'
+import { Parameter } from './implementation/dto/Parameter'
+import { IExport } from './interfaces/dto/IExport'
+import { IFileParameter } from './interfaces/dto/IFileParameter'
+import { IOutput, ShapeDiverResponseOutputContent } from './interfaces/dto/IOutput'
+import { IParameter } from './interfaces/dto/IParameter'
 
 export {
   ISessionData, SessionData, ISessionOutputData, SessionOutputData
 }
 
 export {
-  ISessionEngine, SessionEngine
+  ISessionEngine, SessionEngine, IOutput, Output, IParameter, Parameter, IFileParameter, FileParameter, IExport, Export, ShapeDiverResponseOutputContent
 }
 
 export {

@@ -1,17 +1,6 @@
-import { ShapeDiverResponseOutput, ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend } from '@shapediver/sdk.geometry-api-sdk-v2';
-import { IAnchor, IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, ITag2D, ITag3D } from '@shapediver/viewer.data-engine.shared-types';
+import { ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
-
-/**
- * Extension of the ShapeDiverResponseOutputContent as the viewer already creates types for them
- */
-export interface ShapeDiverResponseOutputContent extends ShapeDiverResponseOutputContentBackend {
-    // #region Properties (1)
-
-    data?: ITag2D[] | ITag3D[] | IAnchor[] | IMaterialContentData | IMaterialContentDataV1 | IMaterialContentDataV2 | IMaterialContentDataV3 | any;
-
-    // #endregion Properties (1)
-}
+import { ShapeDiverResponseOutputContent } from '@shapediver/viewer.session-engine.session-engine';
 
 /**
  * The api for an output of a corresponding [session]{@link ISessionApi}.
@@ -51,6 +40,11 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
      * The {@link node} corresponding to the output in the [scene tree]{@link ITree}.
      */
     readonly node?: ITreeNode;
+
+    /**
+     * The format of the items in the content array.
+     */
+    format: string[];
 
     /**
      * The freeze flag. 

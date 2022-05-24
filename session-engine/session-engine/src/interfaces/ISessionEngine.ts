@@ -1,11 +1,14 @@
-import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseExport, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2';
+import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseExport, ShapeDiverResponseOutput, ShapeDiverResponseParameter } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { SettingsEngine } from '@shapediver/viewer.shared.services';
+import { IExport } from './dto/IExport';
+import { IOutput } from './dto/IOutput';
+import { IParameter } from './dto/IParameter';
 
 /**
  * The type of the parameter.
  */
- export enum PARAMETER_TYPE {
+export enum PARAMETER_TYPE {
   FLOAT = 'Float',
   INT = 'Int',
   EVEN = 'Even',
@@ -57,33 +60,63 @@ export enum PARAMETER_VISUALIZATION {
   TEXT = 'text'
 }
 export interface ISessionEngine {
-    // #region Properties (9)
+  // #region Properties (11)
 
-    bearerToken?: string;
-    canUploadGLTF: boolean;
-    exports: { [key: string]: ShapeDiverResponseExport };
-    id: string;
-    initialized: boolean;
-    modelViewUrl: string;
-    outputs: { [key: string]: ShapeDiverResponseOutput };
-    parameters: { [key: string]: ShapeDiverResponseParameter };
-    refreshBearerToken: (() => Promise<string>) | undefined;
-    ticket: string;
-    settingsEngine: SettingsEngine;
+  bearerToken?: string;
+  canUploadGLTF: boolean;
+  exports: { [key: string]: IExport };
+  id: string;
+  initialized: boolean;
+  modelViewUrl: string;
+  outputs: { [key: string]: IOutput };
+  parameters: { [key: string]: IParameter<any> };
+  refreshBearerToken: (() => Promise<string>) | undefined;
+  settingsEngine: SettingsEngine;
+  ticket: string;
 
-    // #endregion Properties (9)
+  // #endregion Properties (11)
 
-    // #region Public Methods (4)
+  // #region Public Methods (18)
 
-    close(): Promise<void>;
-    customize(cancelRequest: () => boolean): Promise<ITreeNode>;
-    init(parameterValues?: {
-      [key: string]: string;
-    }): Promise<void>;
-    loadOutputs(cancelRequest: () => boolean): Promise<ITreeNode>;
-    requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
-    uploadFile(parameterId: string, data: File, type: string): Promise<string>;
-    uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<string>;
+  applySettings(response: ShapeDiverResponseDto, sections?: {
+    session?: {
+      parameter?: {
+        displayname?: boolean,
+        order?: boolean,
+        hidden?: boolean,
+        value?: boolean
+      },
+      export?: {
+        displayname?: boolean,
+        order?: boolean,
+        hidden?: boolean
+      }
+    },
+    viewport?: {
+      scene?: boolean,
+      camera?: boolean,
+      light?: boolean,
+      environment?: boolean
+    }
+  }): Promise<void>;
+  canGoBack(): boolean;
+  canGoForward(): boolean;
+  close(): Promise<void>;
+  customize(): Promise<ITreeNode>;
+  customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
+  goBack(): Promise<ITreeNode>;
+  goForward(): Promise<ITreeNode>;
+  init(parameterValues?: {
+    [key: string]: string;
+  }): Promise<void>;
+  loadOutputs(cancelRequest: () => boolean): Promise<ITreeNode>;
+  requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
+  saveDefaultParameterValues(): Promise<boolean>;
+  saveSettings(viewportId?: string): Promise<boolean>;
+  saveUiProperties(): Promise<boolean>;
+  updateOutputs(): Promise<ITreeNode>;
+  uploadFile(parameterId: string, data: File, type: string): Promise<string>;
+  uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<string>;
 
-    // #endregion Public Methods (4)
+  // #endregion Public Methods (18)
 }

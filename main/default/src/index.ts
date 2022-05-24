@@ -9,7 +9,7 @@ import { PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTUR
 import { ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, IThreejsData } from '@shapediver/viewer.rendering-engine-threejs.standard'
 import { IExportApi } from "./interfaces/session/IExportApi";
 import { IFileParameterApi } from "./interfaces/session/IFileParameterApi";
-import { IOutputApi, ShapeDiverResponseOutputContent } from "./interfaces/session/IOutputApi";
+import { IOutputApi } from "./interfaces/session/IOutputApi";
 import { IParameterApi } from "./interfaces/session/IParameterApi";
 import { ISessionApi } from "./interfaces/session/ISessionApi";
 import { ICameraApi } from "./interfaces/viewport/camera/ICameraApi";
@@ -25,7 +25,7 @@ import { IPointLightApi } from "./interfaces/viewport/lights/types/IPointLightAp
 import { ISpotLightApi } from "./interfaces/viewport/lights/types/ISpotLightApi";
 import { addListener, createSession, createViewport, loggingLevel, removeListener, sceneTree, sessions, showMessages, viewports } from "./main";
 import { IBox, ISphere, IGeometry } from "@shapediver/viewer.shared.math";
-import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from "@shapediver/viewer.session-engine.session-engine";
+import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, ShapeDiverResponseOutputContent } from "@shapediver/viewer.session-engine.session-engine";
 
 export {
     createViewport, createSession, addListener, removeListener,

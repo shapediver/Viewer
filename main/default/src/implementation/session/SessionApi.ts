@@ -1,5 +1,5 @@
 import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
-import { SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
+import { FileParameter, IParameter, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { container } from "tsyringe";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
@@ -7,12 +7,23 @@ import { IExportApi } from "../../interfaces/session/IExportApi";
 import { IOutputApi } from "../../interfaces/session/IOutputApi";
 import { IParameterApi } from "../../interfaces/session/IParameterApi";
 import { ISessionApi } from "../../interfaces/session/ISessionApi";
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { OutputApi } from "./OutputApi";
+import { ExportApi } from "./ExportApi";
+import { ParameterApi } from "./ParameterApi";
+import { FileParameterApi } from "./FileParameterApi";
 
 export class SessionApi implements ISessionApi {
     // #region Properties (2)
 
     readonly #creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
     readonly #sessionEngine: SessionEngine;
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+
+    readonly #outputs: { [key: string]: IOutputApi; } = {};
+    readonly #parameters: { [key: string]: IParameterApi<any>; } = {};
+    readonly #exports: { [key: string]: IExportApi; } = {};
 
     // #endregion Properties (2)
 
@@ -20,6 +31,21 @@ export class SessionApi implements ISessionApi {
 
     constructor(sessionEngine: SessionEngine) {
         this.#sessionEngine = sessionEngine;
+        if(!this.#sessionEngine.initialized) throw new Error();
+
+        for(let o in this.#sessionEngine.outputs)
+            this.#outputs[o] = new OutputApi(this.#sessionEngine.outputs[o]);
+
+        for(let e in this.#sessionEngine.exports)
+            this.#exports[e] = new ExportApi(this.#sessionEngine.exports[e]);
+        
+        for(let p in this.#sessionEngine.parameters) {
+            if(this.#sessionEngine.parameters[p] instanceof FileParameter) {
+                this.#parameters[p] = new FileParameterApi(<FileParameter>this.#sessionEngine.parameters[p]);
+            } else {
+                this.#parameters[p] = new ParameterApi(this.#sessionEngine.parameters[p]);
+            }
+        }
     }
 
     // #endregion Constructors (1)
@@ -27,46 +53,87 @@ export class SessionApi implements ISessionApi {
     // #region Public Accessors (26)
 
     public get automaticSceneUpdate(): boolean {
-        throw new Error('Missing impl')
+        return this.#sessionEngine.automaticSceneUpdate;
     }
 
     public set automaticSceneUpdate(value: boolean) {
+        try {
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).automaticSceneUpdate: Updating to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).automaticSceneUpdate`, value, 'boolean');
+            this.#sessionEngine.automaticSceneUpdate = value;
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).automaticSceneUpdate: was set to ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).automaticSceneUpdate`, e);
+        }
     }
 
     public get commitParameters(): boolean {
-        throw new Error('Missing impl')
+        return this.#sessionEngine.settingsEngine.general.commitParameters;
     }
 
     public set commitParameters(value: boolean) {
+        try {
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitParameters: Updating to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitParameters`, value, 'boolean');
+            this.#sessionEngine.settingsEngine.general.commitParameters = value;
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitParameters: was set to ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitParameters`, e);
+        }
     }
 
     public get commitSettings(): boolean {
-        throw new Error('Missing impl')
+        return this.#sessionEngine.settingsEngine.general.commitSettings;
     }
 
     public set commitSettings(value: boolean) {
+        try {
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitSettings: Updating to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitSettings`, value, 'boolean');
+            this.#sessionEngine.settingsEngine.general.commitSettings = value;
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitSettings: was set to ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitSettings`, e);
+        }
     }
 
     public get customizeOnParameterChange(): boolean {
-        throw new Error('Missing impl')
+        return this.#sessionEngine.customizeOnParameterChange;
     }
 
     public set customizeOnParameterChange(value: boolean) {
+        try {
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customizeOnParameterChange: Updating to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customizeOnParameterChange`, value, 'boolean');
+            this.#sessionEngine.customizeOnParameterChange = value;
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customizeOnParameterChange: was set to ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customizeOnParameterChange`, e);
+        }
     }
 
     public get excludeViewports(): string[] {
-        throw new Error('Missing impl')
+        return this.#sessionEngine.excludeViewers;
     }
 
     public set excludeViewports(value: string[]) {
-        throw new Error('Missing impl')
+        try {
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewers: Updating to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewers`, value, 'stringArray');
+            this.#sessionEngine.excludeViewers = value;
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewers: was set to ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewers`, e);
+        }
     }
 
     public get exports(): { [key: string]: IExportApi; } {
-        throw new Error('Missing impl')
-    }
-
-    public set exports(value: { [key: string]: IExportApi; }) {
+        return this.#exports;
     }
 
     public get id(): string {
@@ -82,7 +149,15 @@ export class SessionApi implements ISessionApi {
     }
 
     public set jwtToken(value: string | undefined) {
-        this.#sessionEngine.bearerToken = value;
+        try {
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).bearerToken: Updating to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).bearerToken`, value, 'string', false);
+            this.#sessionEngine.bearerToken = value;
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).bearerToken: was set to ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).bearerToken`, e);
+        }
     }
 
     public get modelViewUrl(): string {
@@ -90,24 +165,15 @@ export class SessionApi implements ISessionApi {
     }
 
     public get node(): ITreeNode {
-        throw new Error('Missing impl')
-    }
-
-    public set node(value: ITreeNode) {
+        return this.#sessionEngine.node;
     }
 
     public get outputs(): { [key: string]: IOutputApi; } {
-        throw new Error('Missing impl')
-    }
-
-    public set outputs(value: { [key: string]: IOutputApi; }) {
+        return this.#outputs;
     }
 
     public get parameters(): { [key: string]: IParameterApi<any>; } {
-        throw new Error('Missing impl')
-    }
-
-    public set parameters(value: { [key: string]: IParameterApi<any>; }) {
+        return this.#parameters;
     }
 
     public get refreshJwtToken(): (() => Promise<string>) | undefined {
@@ -115,7 +181,15 @@ export class SessionApi implements ISessionApi {
     }
 
     public set refreshJwtToken(value: (() => Promise<string>) | undefined) {
-        this.#sessionEngine.refreshBearerToken = value;
+        try {
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).refreshJwtToken: Updating to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).refreshJwtToken`, value, 'function', false);
+            this.#sessionEngine.refreshBearerToken = value;
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).refreshJwtToken: was set to ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).refreshJwtToken`, e);
+        }
     }
 
     public get ticket(): string {
@@ -127,15 +201,15 @@ export class SessionApi implements ISessionApi {
     // #region Public Methods (21)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined; } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; } | undefined; } | undefined; viewport?: { scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; } | undefined; }): Promise<void> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.applySettings(response, sections);
     }
 
     public canGoBack(): boolean {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.canGoBack();
     }
 
     public canGoForward(): boolean {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.canGoForward();
     }
 
     public async close(): Promise<void> {
@@ -143,71 +217,71 @@ export class SessionApi implements ISessionApi {
     }
 
     public customize(): Promise<ITreeNode> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.customize();
     }
 
     public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.customizeParallel(parameterValues);
     }
 
     public getExportById(id: string): IExportApi | null {
-        throw new Error("Method not implemented.");
+        return this.#exports[id];
     }
 
     public getExportByName(name: string): IExportApi[] {
-        throw new Error("Method not implemented.");
+        return Object.values(this.#exports).filter(e => e.name === name);
     }
 
     public getExportByType(type: string): IExportApi[] {
-        throw new Error("Method not implemented.");
+        return Object.values(this.#exports).filter(e => e.type === type);
     }
 
     public getOutputByFormat(format: string): IOutputApi[] {
-        throw new Error("Method not implemented.");
+        return Object.values(this.#outputs).filter(o => o.format.includes(format));
     }
 
     public getOutputById(id: string): IOutputApi | null {
-        throw new Error("Method not implemented.");
+        return this.#outputs[id];
     }
 
     public getOutputByName(name: string): IOutputApi[] {
-        throw new Error("Method not implemented.");
+        return Object.values(this.#outputs).filter(o => o.name === name);
     }
 
     public getParameterById(id: string): IParameterApi<any> | null {
-        throw new Error("Method not implemented.");
+        return this.#parameters[id];
     }
 
     public getParameterByName(name: string): IParameterApi<any>[] {
-        throw new Error("Method not implemented.");
+        return Object.values(this.#parameters).filter(p => p.name === name);
     }
 
     public getParameterByType(type: string): IParameterApi<any>[] {
-        throw new Error("Method not implemented.");
+        return Object.values(this.#parameters).filter(p => p.type === type);
     }
 
     public goBack(): Promise<ITreeNode> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.goBack();
     }
 
     public goForward(): Promise<ITreeNode> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.goForward();
     }
 
     public saveDefaultParameterValues(): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.saveDefaultParameterValues();
     }
 
     public saveSettings(viewportId?: string): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.saveSettings(viewportId);
     }
 
     public saveUiProperties(): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.saveUiProperties();
     }
 
     public updateOutputs(): Promise<ITreeNode> {
-        throw new Error("Method not implemented.");
+        return this.#sessionEngine.updateOutputs();
     }
 
     // #endregion Public Methods (21)

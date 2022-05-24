@@ -389,7 +389,7 @@ export class ViewportApi implements IViewportApi {
     }
 
     public update(): void {
-        throw new Error("Method not implemented.");
+        this.#renderingEngine.update();
     }
 
     public updateNode(node: ITreeNode): void {

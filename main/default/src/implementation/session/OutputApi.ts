@@ -1,0 +1,200 @@
+import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutputChunk } from "@shapediver/api.geometry-api-dto-v2";
+import { IOutput, ShapeDiverResponseOutputContent } from "@shapediver/viewer.session-engine.session-engine";
+import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { container } from "tsyringe";
+import { IOutputApi } from "../../interfaces/session/IOutputApi";
+
+export class OutputApi implements IOutputApi {
+    // #region Properties (3)
+
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #output: IOutput;
+
+    // #endregion Properties (3)
+
+    // #region Constructors (1)
+
+    constructor(output: IOutput) {
+        this.#output = output;
+    }
+
+    // #endregion Constructors (1)
+
+    // #region Public Accessors (27)
+
+    public get bbmax(): number[] | undefined {
+        return this.#output.bbmax;
+    }
+
+    public get bbmin(): number[] | undefined {
+        return this.#output.bbmin;
+    }
+
+    public get chunks(): ShapeDiverResponseOutputChunk[] | undefined {
+        return this.#output.chunks;
+    }
+
+    public get content(): ShapeDiverResponseOutputContent[] | undefined {
+        return this.#output.content;
+    }
+
+    public get delay(): number | undefined {
+        return this.#output.delay;
+    }
+
+    public get dependency(): string[] {
+        return this.#output.dependency;
+    }
+
+    public get displayname(): string | undefined {
+        return this.#output.displayname;
+    }
+
+    public set displayname(value: string | undefined) {
+        try {
+            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).displayname: Updating DisplayName to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).displayname`, value, 'string', false);
+            this.#output.displayname = value;
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).displayname: DisplayName was updated to ${this.#output.displayname}.`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).displayname`, e);
+        }
+    }
+
+    public get format(): string[] {
+        return this.#output.format;
+    }
+
+    public get freeze(): boolean {
+        return this.#output.freeze;
+    }
+
+    public set freeze(value: boolean) {
+        try {
+            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).freeze: Updating Freeze to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).freeze`, value, 'boolean');
+            this.#output.freeze = value;
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).freeze: Freeze was updated to ${this.#output.freeze}.`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).freeze`, e);
+        }
+    }
+
+    public get hidden(): boolean {
+        return this.#output.hidden;
+    }
+
+    public set hidden(value: boolean) {
+        try {
+            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).hidden: Updating Hidden to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).hidden`, value, 'boolean');
+            this.#output.hidden = value;
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).hidden: Hidden was updated to ${this.#output.hidden}.`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).hidden`, e);
+        }
+    }
+
+    public get id(): string {
+        return this.#output.id;
+    }
+
+    public get material(): string | undefined {
+        return this.#output.material;
+    }
+
+    public get msg(): string | undefined {
+        return this.#output.msg;
+    }
+
+    public get name(): string {
+        return this.#output.name;
+    }
+
+    public get node(): ITreeNode | undefined {
+        return this.#output.node;
+    }
+
+    public get order(): number | undefined {
+        return this.#output.order;
+    }
+
+    public set order(value: number | undefined) {
+        try {
+            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).order: Updating Order to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).order`, value, 'number', false);
+            this.#output.order = value;
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).order: Order was updated to ${this.#output.order}.`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).order`, e);
+        }
+    }
+
+    public get status_collect(): ShapeDiverResponseModelComputationStatus | undefined {
+        return this.#output.status_collect;
+    }
+
+    public get status_computation(): ShapeDiverResponseModelComputationStatus | undefined {
+        return this.#output.status_computation;
+    }
+
+    public get tooltip(): string | undefined {
+        return this.#output.tooltip;
+    }
+
+    public set tooltip(value: string | undefined) {
+        try {
+            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).tooltip: Updating tooltip to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).tooltip`, value, 'string', false);
+            this.#output.tooltip = value;
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).tooltip: tooltip was updated to ${this.#output.tooltip}.`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).tooltip`, e);
+        }
+    }
+
+    public get uid(): string | undefined {
+        return this.#output.uid;
+    }
+
+    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
+        return this.#output.updateCallback;
+    }
+
+    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+        try {
+            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback: Updating updateCallback to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback`, value, 'function', false);
+            this.#output.updateCallback = value;
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback: updateCallback was updated to ${this.#output.updateCallback}.`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback`, e);
+        }
+    }
+
+    public get version(): string {
+        return this.#output.version;
+    }
+
+    // #endregion Public Accessors (27)
+
+    // #region Public Methods (2)
+
+    public updateOutput(newNode: ITreeNode, oldNode: ITreeNode) {
+        this.#output.updateOutput(newNode, oldNode);
+    }
+
+    public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[], preventUpdate: boolean = false): Promise<ITreeNode | undefined> {
+        return this.#output.updateOutputContent(outputContent, preventUpdate);
+    }
+
+    // #endregion Public Methods (2)
+}
