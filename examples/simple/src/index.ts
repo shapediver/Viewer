@@ -1,16 +1,20 @@
 
 
-import { api, CAMERA_TYPE, ENVIRONMENT_MAP, EVENTTYPE, EXPORTTYPE, LIGHT_TYPE, LOGGING_LEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETER_TYPE, PARAMETER_VISUALIZATION, RENDERER_TYPE, VISIBILITY_MODE } from '@shapediver/viewer'
-import * as SDV from '@shapediver/viewer'
-import { mat4 } from 'gl-matrix';
+import { createSession, createViewport, SESSION_SETTINGS_MODE } from '@shapediver/viewer';
+import * as SDV from '@shapediver/viewer';
 
 (<any>window).SDV = SDV;
 
 (async () => {
-    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    let session = await api.createSession({ 
-        ticket: 'd2795be17bb5f36ad8e799cd58c35b4fb84e84cb7ef5b8aa1365b7fe76fcaf3234167f0924fa613f03f31f82057b3107631c003bcc9077f785d38ad9a354a489e652d2be97a8e1f69c975bba070727b28f24af7ff68a9c966a124121362de07f6aecbdb9ebc46a-c13747650a644e02d24c0579cc104655', 
+    let session = await createSession({ 
+        ticket: '7d6061acf274727aff4710230595ff9e58fbd019a1e173ccd5f2342ecc697fd2397ab08cadc3014b2760f858d18b4aade0aade39fd73a5c1b44fef4d5a457739c1fe28ec6b44ef593a41f6c0cccc78fb3f62234080db167d60c23886b32c759068cdff6af5a8e3-853d465964df80e5db72abe9655cedee',
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession',
+        waitForOutputs: false
+    });
+    let viewer = await createViewport({ 
+        canvas: <HTMLCanvasElement>document.getElementById('canvas'), 
+        id: 'myViewer',
+        sessionSettingsMode: SESSION_SETTINGS_MODE.FIRST
     });
 })();

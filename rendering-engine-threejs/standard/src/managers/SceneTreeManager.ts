@@ -388,10 +388,11 @@ export class SceneTreeManager implements IManager {
         if(!this._boundingBox.isEmpty())
             this._boundingBox.applyMatrix(root.nodeMatrix);
 
+        console.log('ici', this._boundingBox, oldBB)
         if (!(this._boundingBox.min[0] === oldBB.min[0] && this._boundingBox.min[1] === oldBB.min[1] && this._boundingBox.min[2] === oldBB.min[2] && 
-            this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2]) && !this._boundingBox.isEmpty()) {
-            if (!this._stateEngine.boundingBoxCreated.resolved)
-                this._stateEngine.boundingBoxCreated.resolve(true);
+            this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2])) {
+            if (!this._stateEngine.renderingEngines[this._renderingEngine.id].boundingBoxCreated.resolved && !this._boundingBox.isEmpty())
+                this._stateEngine.renderingEngines[this._renderingEngine.id].boundingBoxCreated.resolve(true);
 
             this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, { viewerId: this._renderingEngine.id, boundingBox: {
                 min: vec3.clone(this._boundingBox.min),

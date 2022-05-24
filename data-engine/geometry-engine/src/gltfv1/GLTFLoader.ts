@@ -38,7 +38,7 @@ export class GLTFLoader {
 
     // #region Public Methods (1)
 
-    public async load(content: IGLTF_v1, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<TreeNode> {
+    public async load(content: IGLTF_v1, gltfBinary?: ArrayBuffer, gltfHeader?: { magic: string, version: number, length: number, contentLength: number, contentFormat: number }, baseUri?: string): Promise<ITreeNode> {
         this._baseUri = baseUri;
         if(gltfBinary && gltfHeader)
             this._body = gltfBinary.slice(this.BINARY_EXTENSION_HEADER_LENGTH + gltfHeader.contentLength, gltfHeader.length);

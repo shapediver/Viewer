@@ -10,7 +10,11 @@
     "test": "__tests__"
   },
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
   ],
   "publishConfig": {
     "access": "public"
@@ -36,9 +40,13 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "@shapediver/viewer.shared.build-data": "1.14.14",
     "@shapediver/viewer.rendering-engine-threejs.standard": "1.14.14",
     "@shapediver/viewer.rendering-engine.rendering-engine": "1.14.14",
     "@shapediver/viewer.session-engine.session-engine": "1.14.14",
+    "@shapediver/viewer.shared.node-tree": "1.14.14",
+    "@shapediver/viewer.shared.services": "1.14.14",
+    "@shapediver/viewer.shared.types": "1.14.14",
     "gl-matrix": "3.3.0",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"

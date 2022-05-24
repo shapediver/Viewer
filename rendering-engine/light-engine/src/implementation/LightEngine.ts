@@ -20,7 +20,6 @@ export class LightEngine implements ILightEngine {
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _lightNode: ITreeNode = new TreeNode('lights');
-    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _tree: ITree = <ITree>container.resolve(Tree);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
@@ -54,16 +53,16 @@ export class LightEngine implements ILightEngine {
 
     // #region Public Methods (6)
 
-    public applySettings(): void {
+    public applySettings(settingsEngine: SettingsEngine): void {
         this._lightScenes = {};
 
-        for (let lightSceneId in this._settingsEngine.light.lightScenes) {
+        for (let lightSceneId in settingsEngine.light.lightScenes) {
             const lightSceneUUID = this._uuidGenerator.validate(lightSceneId) ? lightSceneId : this._uuidGenerator.create();
-            const lightSceneName = this._settingsEngine.light.lightScenes[lightSceneId].name ? this._settingsEngine.light.lightScenes[lightSceneId].name : lightSceneId;
+            const lightSceneName = settingsEngine.light.lightScenes[lightSceneId].name ? settingsEngine.light.lightScenes[lightSceneId].name : lightSceneId;
             const ls = new LightScene({id: lightSceneUUID, name: lightSceneName});
-            for (let lightId in this._settingsEngine.light.lightScenes[lightSceneId].lights) {
+            for (let lightId in settingsEngine.light.lightScenes[lightSceneId].lights) {
                 const lightUUID = this._uuidGenerator.validate(lightId) ? lightId : this._uuidGenerator.create();
-                const light = this._settingsEngine.light.lightScenes[lightSceneId].lights[lightId];
+                const light = settingsEngine.light.lightScenes[lightSceneId].lights[lightId];
                 let l: AbstractLight;
                 switch (light.type) {
                     case LIGHT_TYPE.DIRECTIONAL:
@@ -130,20 +129,20 @@ export class LightEngine implements ILightEngine {
         }
 
         // there is a light scene but no id is saved (old viewer)
-        if(this._settingsEngine.light.lightSceneId === undefined && Object.values(this._settingsEngine.light.lightScenes).length > 0) {
-            const res = this.assignLightScene(Object.keys(this._settingsEngine.light.lightScenes)[0]);
+        if(settingsEngine.light.lightSceneId === undefined && Object.values(settingsEngine.light.lightScenes).length > 0) {
+            const res = this.assignLightScene(Object.keys(settingsEngine.light.lightScenes)[0]);
             if(res === false){
-                const ls = <LightScene>this.createLightScene({ name: this._settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard' });
+                const ls = <LightScene>this.createLightScene({ name: settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard' });
                 ls.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
                 ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
                 ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
                 this._lightScenes[ls.id] = ls;
             }
         } // there is no standard light scene in the light scenes, but a light scene name is specified (old viewer)
-        else if (this._settingsEngine.light.lightSceneId) {
-            const res = this.assignLightScene(this._settingsEngine.light.lightSceneId);
+        else if (settingsEngine.light.lightSceneId) {
+            const res = this.assignLightScene(settingsEngine.light.lightSceneId);
             if(res === false){
-                const ls = <LightScene>this.createLightScene({ name: this._settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard' });
+                const ls = <LightScene>this.createLightScene({ name: settingsEngine.light.lightSceneId === 'default' ? 'default' : 'standard' });
                 ls.addLight(new AmbientLight({color: '#ffffff', intensity: 0.5, name: 'ambient0'}));
                 ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.75, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
                 ls.addLight(new DirectionalLight({color: '#ffffff', intensity: 0.35, direction: vec3.fromValues(.25, -1, 1), castShadow: false, name: 'directional1'}));
@@ -223,8 +222,8 @@ export class LightEngine implements ILightEngine {
         return true;
     }
 
-    public saveSettings() {
-        this._settingsEngine.light.lightSceneId = this.lightScene ? this.lightScene.id : 'standard';
+    public saveSettings(settingsEngine: SettingsEngine) {
+        settingsEngine.light.lightSceneId = this.lightScene ? this.lightScene.id : 'standard';
         
         const converted: ILightSceneSettingsV3 = {};
         for(let lightSceneId in this._lightScenes) {
@@ -293,7 +292,7 @@ export class LightEngine implements ILightEngine {
                     converted[lightSceneId].lights[lightId].order = light.order;
             }
         }
-        this._settingsEngine.light.lightScenes = converted;
+        settingsEngine.light.lightScenes = converted;
     }
 
     // #endregion Public Methods (6)

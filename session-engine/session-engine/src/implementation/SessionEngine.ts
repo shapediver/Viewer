@@ -1,16 +1,17 @@
 import { container } from 'tsyringe'
-import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter } from '@shapediver/viewer.shared.services'
+import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
-import { ISession } from '../interfaces/ISession'
+import { ISessionEngine } from '../interfaces/ISessionEngine'
 import { SessionData } from './SessionData'
 import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
+import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
-export class Session implements ISession {
+export class SessionEngine implements ISessionEngine {
     // #region Properties (22)
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
@@ -25,12 +26,15 @@ export class Session implements ISession {
     private readonly _parameterValues: { [key: string]: string; } = {};
     private readonly _parameters: { [key: string]: ShapeDiverResponseParameter; } = {};
     private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
+    private readonly _sceneTree: ITree = <ITree>container.resolve(Tree);
     private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    private readonly _settingsEngine: SettingsEngine = new SettingsEngine();
     private readonly _ticket: string;
 
+    private _automaticSceneUpdate: boolean = true;
     private _bearerToken?: string;
     private _closed: boolean = false;
-    private _closeOnFailure: () => Promise<void>
+    private _closeOnFailure: () => Promise<void> = async () => {}; // TODO
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
@@ -39,6 +43,7 @@ export class Session implements ISession {
     };
     private _initialized: boolean = false;
     private _modelId?: string;
+    private _node: ITreeNode;
     private _refreshBearerToken?: () => Promise<string>;
     private _responseDto?: ShapeDiverResponseDto;
     private _retryCounter = 0;
@@ -57,11 +62,11 @@ export class Session implements ISession {
      * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, closeOnFailure: () => Promise<void>, bearerToken?: string, primarySession?: boolean }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string }) {
         this._id = properties.id;
+        this._node = new TreeNode(properties.id);
         this._ticket = properties.ticket;
         this._modelViewUrl = properties.modelViewUrl;
-        this._closeOnFailure = properties.closeOnFailure;
         this._bearerToken = properties.bearerToken;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
@@ -125,8 +130,16 @@ export class Session implements ISession {
         return this._parameters;
     }
 
-    public set refreshBearerToken(value: () => Promise<string>) {
+    public get refreshBearerToken(): (() => Promise<string>) | undefined {
+        return this._refreshBearerToken;
+    }
+
+    public set refreshBearerToken(value: (() => Promise<string>) | undefined) {
         this._refreshBearerToken = value;
+    }
+    
+    public get settingsEngine(): SettingsEngine {
+        return this._settingsEngine;
     }
 
     public get ticket(): string {
@@ -193,13 +206,14 @@ export class Session implements ISession {
 
     // #region Public Methods (13)
 
-    public async close(retry = false): Promise<boolean> {
+    public async close(retry = false): Promise<void> {
         this.checkAvailability('close');
 
         try {
-            await this._sdk.session.close(this._sessionId!)
+            await this._sdk.session.close(this._sessionId!);
+            if (this._automaticSceneUpdate) this._sceneTree.removeNode(this._node);
+
             this._closed = true;
-            return true;
         } catch (e) {
             await this.handleError(LOGGING_TOPIC.SESSION, 'Session.close', e, retry);
             return await this.close(true); 
@@ -235,6 +249,7 @@ export class Session implements ISession {
             this._performanceEvaluator.endSection('sessionResponse');
 
             this._viewerSettings = this._responseDto.viewer?.config;
+            this._settingsEngine.loadSettings(this._viewerSettings);
             this._sessionId = this._responseDto.sessionId;
             this._modelId = this._responseDto.model?.id;
 
@@ -267,6 +282,11 @@ export class Session implements ISession {
         try {
             const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of, cancelRequest);
             node.data.push(new SessionData(this._responseDto!));
+
+            if (this._automaticSceneUpdate) this._sceneTree.removeNode(this._node);
+            this._node = node;
+            if (this._automaticSceneUpdate) this._sceneTree.addNode(this._node);
+
             return node;
         }
         catch (e) {

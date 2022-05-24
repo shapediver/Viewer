@@ -1,101 +1,18 @@
-import * as fs from 'fs'
-import AWS from 'aws-sdk'
-import pako from 'pako'
-
-const recursiveReadSync = require('recursive-readdir-sync');
-const { exec } = require("child_process");
-const readline = require('readline');
-
-const execPromise = (cmd: string) => {
-    return new Promise((resolve, reject) => {
-        exec(cmd, (error: any, stdout: any) => {
-            console.log(error, stdout)
-            if (error) throw new Error(error);
-            if (!error && typeof stdout === 'string') resolve(stdout.replace('\n', ''));
-        });
-    });
-}
-
-const s3 = new AWS.S3({ maxRetries: 5 });
-const bucketName = 'shapediverviewer';
-const prefixLatest = 'v3/latest';
-
-const deployToS3 = (directoryPath: string, name?: string, prefix?: string) => {
-    const fileContents = <string[]>recursiveReadSync(directoryPath);
-    fileContents.map(function (f, cb) {
-        const key = (name ? prefix + '/' + name : prefix) + f.substring(directoryPath.length, f.length).replace(/\\/g, '/');
-        s3.putObject({
-            Bucket: bucketName,
-            Key: key,
-            Body: pako.gzip(fs.readFileSync(f)),
-            ACL: 'public-read',
-            ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
-            CacheControl: 'max-age=3600',
-            ContentEncoding: 'gzip'
-        }, (err) => { if (err) console.log(err) });
-    });
-    fileContents.map(function (f, cb) {
-        const key = (name ? prefixLatest + '/' + name : prefixLatest) + f.substring(directoryPath.length, f.length).replace(/\\/g, '/');
-        s3.putObject({
-            Bucket: bucketName,
-            Key: key,
-            Body: pako.gzip(fs.readFileSync(f)),
-            ACL: 'public-read',
-            ContentType: f.endsWith('.js') || f.endsWith('.js.map') ? 'text/javascript' : f.endsWith('.html') ? 'text/html' : f.endsWith('.css') ? 'text/css' : f.endsWith('.png') ? 'image/png' : 'text/plain',
-            CacheControl: 'max-age=3600',
-            ContentEncoding: 'gzip'
-        }, (err) => { if (err) console.log(err) });
-    });
-};
-
-const getDirectories = async (source: string) =>
-    (await fs.promises.readdir(source, { withFileTypes: true }))
-        .filter(dirent => dirent.isDirectory())
-        .map(dirent => dirent.name);
+import * as fs from 'fs';
+import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer } from './utils';
 
 (async () => {
     try {
         /**
          * How do we increment the version?
          */
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        let version;
-        await new Promise<void>((resolve) => {
-            rl.question('Which part of the version would you like to increment? (major, minor, patch, prerelease, preminor, premajor)\n', (answer: string) => {
-                if (answer === 'major' || answer === 'minor' || answer === 'patch' || answer === 'prerelease' || answer === 'preminor' || answer === 'premajor') {
-                    version = answer;
-                } else {
-                    throw new Error('Invalid version, has to be major, minor, patch, prerelease, preminor or premajor.')
-                }
-                rl.close();
-                resolve();
-            });
-        });
+        let version = await readAnswerOptions('Which part of the version would you like to increment? (major, minor, patch)\n', ['major', 'minor', 'patch'])
         
-        const rl3 = readline.createInterface({ input: process.stdin, output: process.stdout });
-        let github_publish = false;
-        await new Promise<void>((resolve) => {
-            rl3.question('Publish to github?\n', (answer: string) => {
-                github_publish = (answer === 'yes' || answer === 'y');
-                rl3.close();
-                resolve();
-            });
-        });
-        
-        const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
-        let npm_publish = false;
-        await new Promise<void>((resolve) => {
-            rl2.question('Publish to npm?\n', (answer: string) => {
-                npm_publish = (answer === 'yes' || answer === 'y');
-                rl2.close();
-                resolve();
-            });
-        });
-        
-        console.log('deploying tests...')
-        await execPromise(`npm run deploy-tests`)
-        console.log('starting tests...')
-        await execPromise(`npm run test-all`)
+        let github_publish_answer = await readAnswer('Publish to github?\n');
+        let github_publish = (github_publish_answer === 'yes' || github_publish_answer === 'y');
+
+        let npm_publish_answer = await readAnswer('Publish to npm?\n');
+        let npm_publish = (npm_publish_answer === 'yes' || npm_publish_answer === 'y');
 
         const changes = await execPromise(`git status --porcelain`);
         if(changes) {
@@ -104,6 +21,11 @@ const getDirectories = async (source: string) =>
             console.log(changes);
         }
 
+        console.log('deploying tests...')
+        await execPromise(`npm run deploy-tests`)
+        console.log('starting tests...')
+        await execPromise(`npm run test-all`)
+        
         console.log('checking versioning...')
 
         /**
@@ -158,24 +80,24 @@ const getDirectories = async (source: string) =>
             console.log('publishing to github...')
             console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
         }
-
+        
         const prefix = 'v3/' + newVersion;
-
+      
         if(npm_publish) {
             console.log('deploying to s3...')
-            deployToS3('docs', 'api', prefix)
-    
+            deployToS3('docs', 'api', prefix, true)
+
             const examples = await getDirectories('examples');
             
-            for(let i = 0; i < examples.length; i++) {    
+            for(let i = 0; i < examples.length; i++) {
                 console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
                 const example = examples[i];
                 console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
-                deployToS3('examples/' + example + '/dist-prod', example, prefix)
+                deployToS3('examples/' + example + '/dist-prod', example, prefix, true)
             }
         }
-
-        deployToS3('examples/cdn/dist-prod', undefined, prefix)
+            
+        deployToS3('examples/cdn/dist-prod', undefined, prefix, true)
 
         await execPromise(`git tag -a viewer@${newVersion} -m "deployed viewer version ${newVersion}"`);
         await execPromise(`git push origin viewer@${newVersion}`);

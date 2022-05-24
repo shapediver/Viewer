@@ -1,5 +1,5 @@
 import { mat4 } from "gl-matrix";
-import { ITreeNode, IViewportApi, TreeNode } from "@shapediver/viewer";
+import { ITreeNode, IViewportApi } from "@shapediver/viewer";
 import { IDragConstraint } from "./IDragConstraint";
 import { IIntersection, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 

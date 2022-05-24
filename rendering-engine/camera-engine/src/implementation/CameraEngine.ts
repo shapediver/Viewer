@@ -24,6 +24,7 @@ import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCameraControls } from './controls/PerspectiveCameraControls'
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../interfaces/camera/IOrthographicCamera'
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (10)
@@ -50,10 +51,10 @@ export class CameraEngine implements ICameraEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _viewerId: string, private readonly _canvas: HTMLCanvasElement, private readonly _domEventEngine: DomEventEngine) {
+    constructor(private readonly _renderingEngine: IRenderingEngine, private readonly _canvas: HTMLCanvasElement) {
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
             const viewerEvent = <ISceneEvent>e;
-            if (viewerEvent.viewerId === this._viewerId) {
+            if (viewerEvent.viewerId === this._renderingEngine.id) {
                 this._boundingBox = new Box(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max);
 
                 const cameras = this.cameras;
@@ -64,7 +65,7 @@ export class CameraEngine implements ICameraEngine {
 
         this._eventEngine.addListener(EVENTTYPE.VIEWER.VIEWER_UPDATED, (e: IEvent) => {
             const viewerEvent = <ISceneEvent>e;
-            if (viewerEvent.viewerId === this._viewerId) {
+            if (viewerEvent.viewerId === this._renderingEngine.id) {
                 this.searchForNewCameras();
             }
         });
@@ -95,13 +96,13 @@ export class CameraEngine implements ICameraEngine {
             (<PerspectiveCameraControls | OrthographicCameraControls>cameras[c].controls).cameraControlsEventDistribution.activateCameraEvents();
     }
 
-    public applySettings() {
+    public applySettings(settingsEngine: SettingsEngine) {
         const cameras = this.cameras;
         for (let c in cameras)
             this.removeCamera(c);
 
-        for(let id in this._settingsEngine.settings.camera.cameras) {
-            const cameraSetting = this._settingsEngine.settings.camera.cameras[id];
+        for(let id in settingsEngine.settings.camera.cameras) {
+            const cameraSetting = settingsEngine.settings.camera.cameras[id];
             if(cameraSetting.type === 'perspective') {
                 this.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
             } else {
@@ -112,20 +113,20 @@ export class CameraEngine implements ICameraEngine {
 
         if(!this._settingsApplied)
             for (let c in cameras)
-                cameras[c].applySettings();
+                cameras[c].applySettings(settingsEngine);
 
-        const cameraKeys = Object.keys(this._settingsEngine.settings.camera.cameras);
+        const cameraKeys = Object.keys(settingsEngine.settings.camera.cameras);
 
         if(cameraKeys.length > 0) {
-            if(!this._settingsEngine.settings.camera.cameraId) {
+            if(!settingsEngine.settings.camera.cameraId) {
                 this.assignCamera(cameraKeys[0]);
             } else {
-                this.assignCamera(this._settingsEngine.settings.camera.cameraId);
+                this.assignCamera(settingsEngine.settings.camera.cameraId);
             }
         } else {
             const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'standard');
             this.assignCamera(camera.id);
-            camera.applySettings();
+            camera.applySettings(settingsEngine);
         }
 
         this._settingsApplied = true;
@@ -146,11 +147,11 @@ export class CameraEngine implements ICameraEngine {
         }
         
         const camera = CAMERA_TYPE.PERSPECTIVE === type ? new PerspectiveCamera(cameraId) : new OrthographicCamera(cameraId);
-        camera.assignViewer(this._viewerId);
+        camera.assignViewer(this._renderingEngine.id);
 
         cameras[cameraId] = camera;
-        if (this._settingsApplied) {
-            camera.applySettings();
+        if (this._settingsApplied && this._renderingEngine.settingsEngine) {
+            camera.applySettings(this._renderingEngine.settingsEngine);
         } else {
             camera.zoomTo(undefined, { duration: 0 });
         }
@@ -168,7 +169,7 @@ export class CameraEngine implements ICameraEngine {
         const cameras = this.cameras;
         const camera = cameras[id];
         if (!camera) return false;
-        this._domEventEngine.removeDomEventListener(this._camerasDomEventListenerToken[id])
+        this._renderingEngine.domEventEngine.removeDomEventListener(this._camerasDomEventListenerToken[id])
         if (this._camera && this._camera.id === id)
             this._camera = null;
 
@@ -177,9 +178,9 @@ export class CameraEngine implements ICameraEngine {
         return true;
     }
 
-    public saveSettings() {
-        this._settingsEngine.settings.camera.cameraId = this._camera ? this._camera.id : 'standard';
-        this._settingsEngine.settings.camera.cameras = {};
+    public saveSettings(settingsEngine: SettingsEngine) {
+        settingsEngine.settings.camera.cameraId = this._camera ? this._camera.id : 'standard';
+        settingsEngine.settings.camera.cameras = {};
 
         // TODO: once the platform is ready for it, save all cameras
         // for (let c in this.cameras) {
@@ -190,7 +191,7 @@ export class CameraEngine implements ICameraEngine {
 
         if (camera.type === CAMERA_TYPE.PERSPECTIVE) {
             const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
-            this._settingsEngine.camera.cameras[camera.id] = {
+            settingsEngine.camera.cameras[camera.id] = {
                 autoAdjust: camera.autoAdjust,
                 cameraMovementDuration: camera.cameraMovementDuration,
                 enableCameraControls: camera.enableCameraControls,
@@ -243,17 +244,17 @@ export class CameraEngine implements ICameraEngine {
             }
 
         } else {
-            if (this._settingsEngine.camera.cameras[camera.id]) {
-                const previousDirection = this._settingsEngine.camera.cameras[camera.id].type;
+            if (settingsEngine.camera.cameras[camera.id]) {
+                const previousDirection = settingsEngine.camera.cameras[camera.id].type;
 
                 // if the direction changed, but the default position & target did not, there is an issue
                 if (previousDirection !== camera.type && (
-                    this._settingsEngine.camera.cameras[camera.id].position.x === camera.defaultPosition[0] &&
-                    this._settingsEngine.camera.cameras[camera.id].position.y === camera.defaultPosition[1] &&
-                    this._settingsEngine.camera.cameras[camera.id].position.z === camera.defaultPosition[2] &&
-                    this._settingsEngine.camera.cameras[camera.id].target.x === camera.defaultTarget[0] &&
-                    this._settingsEngine.camera.cameras[camera.id].target.y === camera.defaultTarget[1] &&
-                    this._settingsEngine.camera.cameras[camera.id].target.z === camera.defaultTarget[2]
+                    settingsEngine.camera.cameras[camera.id].position.x === camera.defaultPosition[0] &&
+                    settingsEngine.camera.cameras[camera.id].position.y === camera.defaultPosition[1] &&
+                    settingsEngine.camera.cameras[camera.id].position.z === camera.defaultPosition[2] &&
+                    settingsEngine.camera.cameras[camera.id].target.x === camera.defaultTarget[0] &&
+                    settingsEngine.camera.cameras[camera.id].target.y === camera.defaultTarget[1] &&
+                    settingsEngine.camera.cameras[camera.id].target.z === camera.defaultTarget[2]
                 )) {
                     camera.defaultPosition = vec3.clone(camera.position);
                     camera.defaultTarget = vec3.clone(camera.target);
@@ -261,7 +262,7 @@ export class CameraEngine implements ICameraEngine {
             }
             const controls = <OrthographicCameraControls>(<OrthographicCamera>camera).controls;
 
-            this._settingsEngine.camera.cameras[camera.id] = {
+            settingsEngine.camera.cameras[camera.id] = {
                 autoAdjust: camera.autoAdjust,
                 cameraMovementDuration: camera.cameraMovementDuration,
                 enableCameraControls: camera.enableCameraControls,
@@ -295,7 +296,7 @@ export class CameraEngine implements ICameraEngine {
             for(let i = 0; i < node.data.length; i++)
                 if((node.data[i] instanceof AbstractCamera) && !this._cameras[node.data[i].id]) {
                     const camera = <AbstractCamera>node.data[i];
-                    if(camera.viewerId === this._viewerId)
+                    if(camera.viewerId === this._renderingEngine.id)
                         this._cameras[camera.id] = camera;
                 }
 

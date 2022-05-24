@@ -19,7 +19,11 @@
     "test": "__tests__"
   },
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
   ],
   "publishConfig": {
     "access": "public"
@@ -34,6 +38,7 @@
     "build": "bash ../../scripts/build.sh",
     "build-watch": "bash ../../scripts/build-watch.sh",
     "build-dep": "bash ../../scripts/build-dep.sh",
+    "build-current": "npm run build-dep",
     "doc": "typedoc"
   },
   "bugs": {
@@ -47,6 +52,7 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.19",
+    "@shapediver/viewer.main.creation-control-center": "1.14.14",
     "@shapediver/viewer.data-engine.data-engine": "1.14.14",
     "@shapediver/viewer.data-engine.geometry-engine": "1.14.14",
     "@shapediver/viewer.data-engine.gltf-converter": "1.14.14",

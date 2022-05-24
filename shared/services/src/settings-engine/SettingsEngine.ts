@@ -14,7 +14,6 @@ type ILightSettings = ISettingsV3_1["light"];
 type IRenderingSettings = ISettingsV3_1["rendering"];
 type ISessionSettings = ISettingsV3_1["session"];
 
-@singleton()
 export class SettingsEngine {
     // #region Properties (8)
 
@@ -95,7 +94,7 @@ export class SettingsEngine {
         return flattenObject(this.settings);
     }
 
-    public loadSettings(json: any, sessionId: string, loadAsPrimary: boolean = false) {
+    public loadSettings(json: any) {
         if (JSON.stringify(json) !== JSON.stringify({})) {
             try { 
                 validate(json, '1.0');             

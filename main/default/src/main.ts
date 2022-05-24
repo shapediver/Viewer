@@ -1,56 +1,57 @@
-import { VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IRenderingEngineOptions, SESSION_SETTINGS_MODE, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { container } from 'tsyringe';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { ISessionApi } from './interfaces/session/ISessionApi';
-import { IViewportApi, SESSION_SETTINGS_MODE } from './interfaces/viewport/IViewportApi';
-import { IEvent, LOGGING_LEVEL, LOGGING_TOPIC, MainEventTypes, SettingsEngine } from '@shapediver/viewer.shared.services';
+import { IViewportApi } from './interfaces/viewport/IViewportApi';
+import { EventEngine, IEvent, LOGGING_LEVEL, LOGGING_TOPIC, MainEventTypes, SettingsEngine, UuidGenerator } from '@shapediver/viewer.shared.services';
 import { Logger } from '@shapediver/viewer.shared.services';
 import { ShapeDiverViewerError } from '@shapediver/viewer.shared.services';
 import { ShapeDiverBackendError } from '@shapediver/viewer.shared.services';
 import { InputValidator } from '@shapediver/viewer.shared.services';
-import { EventResponseMapping } from '.';
+import { CreationControlCenter, ICreationControlCenter } from '@shapediver/viewer.main.creation-control-center';
+import { ViewportApi } from './implementation/viewport/ViewportApi';
+import { ISessionEngineOptions, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
+import { SessionApi } from './implementation/session/SessionApi';
+import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine-threejs.standard';
+
+
+const creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
+const inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+const logger: Logger = <Logger>container.resolve(Logger);
+const eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
 class ViewerOptions {
-    // #region Properties (3)
-
-    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
-    readonly #logger: Logger = <Logger>container.resolve(Logger);
-    readonly #settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
-
-    // #endregion Properties (3)
-
     // #region Public Accessors (4)
 
     public get loggingLevel(): LOGGING_LEVEL {
-        return this.#logger.loggingLevel;
+        return logger.loggingLevel;
     }
 
     public set loggingLevel(value: LOGGING_LEVEL) {
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.GENERAL, `Api.loggingLevel: Updating LoggingLevel to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, 'Api.loggingLevel', value, 'enum', true, Object.values(LOGGING_LEVEL));
-            this.#logger.loggingLevel = value;
-            this.#logger.debug(LOGGING_TOPIC.GENERAL, `Api.loggingLevel: LoggingLevel was set to: ${value}`);
+            logger.debugLow(LOGGING_TOPIC.GENERAL, `Api.loggingLevel: Updating LoggingLevel to ${value}.`);
+            inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, 'Api.loggingLevel', value, 'enum', true, Object.values(LOGGING_LEVEL));
+            logger.loggingLevel = value;
+            logger.debug(LOGGING_TOPIC.GENERAL, `Api.loggingLevel: LoggingLevel was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.loggingLevel', e);
+            throw logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.loggingLevel', e);
         }
     }
 
     public get showMessages(): boolean {
-        return this.#logger.showMessages;
+        return logger.showMessages;
     }
 
     public set showMessages(value: boolean) {
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.GENERAL, `Api.showMessages: Updating ShowMessages to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, 'Api.showMessages', value, 'boolean');
-            this.#logger.showMessages = value;
-            this.#settingsEngine.general.showMessages = this.#logger.showMessages;
-            this.#logger.debug(LOGGING_TOPIC.GENERAL, `Api.showMessages: ShowMessages was set to: ${value}`);
+            logger.debugLow(LOGGING_TOPIC.GENERAL, `Api.showMessages: Updating ShowMessages to ${value}.`);
+            inputValidator.validateAndError(LOGGING_TOPIC.GENERAL, 'Api.showMessages', value, 'boolean');
+            logger.showMessages = value;
+            logger.debug(LOGGING_TOPIC.GENERAL, `Api.showMessages: ShowMessages was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.showMessages', e);
+            throw logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.showMessages', e);
         }
     }
 
@@ -58,7 +59,6 @@ class ViewerOptions {
 }
 
 const viewerOptions = new ViewerOptions();
-
 /**
  * Adds an event listener.
  * 
@@ -67,7 +67,14 @@ const viewerOptions = new ViewerOptions();
  * @returns 
  */
 export const addListener = (type: string | MainEventTypes, cb: (event: IEvent) => void): string => {
-    throw new Error('Method not implemented.');
+    try {
+        logger.debugLow(LOGGING_TOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
+        logger.debug(LOGGING_TOPIC.GENERAL, `Api.addListener: Event Listener was registered for ${type}.`);
+        return eventEngine.addListener(type, cb);
+    } catch (e) {
+        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+        throw logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.addListener', e);
+    }
 };
 
 /**
@@ -77,7 +84,13 @@ export const addListener = (type: string | MainEventTypes, cb: (event: IEvent) =
  * @returns 
  */
 export const removeListener = (id: string): boolean => {
-    throw new Error('Method not implemented.');
+    try {
+        logger.debugLow(LOGGING_TOPIC.GENERAL, `Api.removeListener: Removing event listener with id ${id}.`);
+        return eventEngine.removeListener(id);
+    } catch (e) {
+        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+        throw logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.removeListener', e);
+    }
 };
 
 /**
@@ -96,6 +109,27 @@ export const viewports: { [key: string]: IViewportApi; } = {};
  */
 export const sessions: { [key: string]: ISessionApi; } = {};
 
+creationControlCenter.update = (
+    sessionEngines: { [key: string]: SessionEngine; }, 
+    renderingEngines: { [key: string]: RenderingEngineThreeJs; }
+) => {
+    for (let s in sessionEngines)
+        if (!sessions[s])
+            sessions[s] = new SessionApi(sessionEngines[s]);
+
+    for (let s in sessions)
+        if (!sessionEngines[s])
+            delete sessions[s];
+
+    for (let v in renderingEngines)
+        if (!viewports[v])
+            viewports[v] = new ViewportApi(renderingEngines[v]);
+
+    for (let v in viewports) {
+        if (!renderingEngines[v])
+            delete viewports[v];
+    }
+}
 
 /**
  * The logging level that is used.
@@ -126,18 +160,24 @@ export let showMessages: boolean = viewerOptions.showMessages;
  * @param properties.initialParameters The initial set of parameters.
  * @returns 
  */
-export const createSession = async (
-    properties: {
-        ticket: string,
-        modelViewUrl: string,
-        jwtToken?: string,
-        id?: string,
-        waitForOutputs?: boolean,
-        loadOutputs?: boolean,
-        initialParameters?: { [key: string]: string }
-    }
-): Promise<ISessionApi> => {
-    throw new Error('Method not implemented.');
+export const createSession = async (properties: ISessionEngineOptions): Promise<ISessionApi> => {
+    logger.info(LOGGING_TOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
+    // input validation
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties, 'object');
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.ticket, 'string');
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.modelViewUrl, 'string');
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.jwtToken, 'string', false);
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.id, 'string', false);
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.waitForOutputs, 'boolean', false);
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.loadOutputs, 'boolean', false);
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.initialParameters, 'object', false);
+    if (properties.initialParameters)
+        for (let p in properties.initialParameters)
+            inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.initialParameters[p], 'string');
+
+    const sessionEngine = await creationControlCenter.createSessionEngine(properties);
+    sessions[sessionEngine.id] = new SessionApi(sessionEngine);
+    return sessions[sessionEngine.id];
 };
 
 /**
@@ -156,21 +196,26 @@ export const createSession = async (
  * @param properties.sessionSettingsMode The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST})
  * @returns 
  */
-export const createViewport = async (
-    properties?: {
-        canvas?: HTMLCanvasElement,
-        id?: string, 
-        branding?: {
-            /** Optional logo while the viewport is hidden. (our default will be used if none is provided, null will display no logo at all) */
-            logo?: string | null,
-            /** Optional background color while the viewport is hidden, can include alpha channel. (our default will be used if none is provided) */
-            backgroundColor?: string,
-            /** Optional logo while the viewport is in busy mode. (our default will be used if none is provided) */
-            spinner?: string,
-        },
-        sessionSettingsId?: string,
-        sessionSettingsMode?: SESSION_SETTINGS_MODE,
-        visibility?: VISIBILITY_MODE,
-    }): Promise<IViewportApi> => {
-    throw new Error('Method not implemented.');
+export const createViewport = async (properties?: IRenderingEngineOptions): Promise<IViewportApi> => {
+    try {
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
+        const prop = Object.assign({}, properties);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Api.createViewer`, prop.visibility, 'enum', false, Object.values(VISIBILITY_MODE));
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Api.createViewer`, prop.canvas, 'HTMLCanvasElement', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Api.createViewer`, prop.id, 'string', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, 'Api.createViewer', prop.branding, 'object', false);
+        const branding = Object.assign({}, prop.branding);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Api.createViewer`, branding.backgroundColor, 'string', false);
+
+        prop.sessionSettingsMode = prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST;
+        //TODO proper type checking
+
+        const renderingEngine = await creationControlCenter.createRenderingEngineThreeJs(prop);
+
+        viewports[renderingEngine.id] = new ViewportApi(renderingEngine);
+        return viewports[renderingEngine.id];
+    } catch (e) {
+        if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+        throw logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.createViewer', e);
+    }
 };

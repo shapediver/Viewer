@@ -6,12 +6,13 @@
         "sourceMap": true,
         "declaration": true,
         "declarationMap": true,
-        "target": "ES2015",
+        "target": "ES6",
         "strict": true,
         "rootDir": ".",
         "outDir": "dist",
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true
+        "emitDecoratorMetadata": true,
+        "moduleResolution": "node"
     },
     "include": [
         "./**/*.ts"

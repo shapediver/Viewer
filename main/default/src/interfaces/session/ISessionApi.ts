@@ -157,7 +157,7 @@ export interface ISessionApi {
     /**
      * Closes the session.
      */
-    close(): Promise<boolean>;
+    close(): Promise<void>;
 
     /**
      * Customize the session.
@@ -250,17 +250,6 @@ export interface ISessionApi {
      */
     goForward(): Promise<ITreeNode>;
 
-    /**
-     * Initialize the session.
-     * Normally, there is no need to call this function.
-     * The initialization is done on creation via the api.
-     * 
-     * @param waitForOutputs Option to resolve the promise only when all outputs are loaded. (default: true)
-     * @param loadOutputs Option to not load the outputs. (default: true)
-     * @param initialParameters Optional initial parameter set.
-     */
-    init(waitForOutputs?: boolean, loadOutputs?: boolean, initialParameters?: { [key: string]: string }): Promise<void>;
-    
     /**
      * Save the parameters that are currently used for this session as default parameters.
      * This only works when this session was created with an author ticket.

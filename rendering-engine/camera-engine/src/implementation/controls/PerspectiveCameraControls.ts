@@ -34,7 +34,6 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
     private _zoomRestriction: { minDistance: number, maxDistance: number } = { minDistance: 0, maxDistance: Infinity };
     private _zoomSpeed: number = 0.5;
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     // #endregion Properties (19)
@@ -47,8 +46,8 @@ export class PerspectiveCameraControls extends AbstractCameraControls implements
         this._cameraControlsEventDistribution = new OrbitCameraControlsEventDistribution(this, <OrbitCameraControlsLogic>this._cameraLogic);
     }
 
-    public applySettings() {
-        const cameraSetting = this._settingsEngine.camera.cameras[this.camera.id];
+    public applySettings(settingsEngine: SettingsEngine) {
+        const cameraSetting = settingsEngine.camera.cameras[this.camera.id];
         if(!cameraSetting) return;
         this.reset();
         const controlsSettings = <IOrbitControlsSettingsV3>cameraSetting.controls;

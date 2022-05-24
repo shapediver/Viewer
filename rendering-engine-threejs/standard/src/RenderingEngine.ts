@@ -17,7 +17,9 @@ import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import {
   IRenderingEngine,
+  IRenderingEngineOptions,
   RENDERER_TYPE,
+  SESSION_SETTINGS_MODE,
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITY_MODE,
@@ -32,6 +34,7 @@ import {
   LOGGING_TOPIC,
   SettingsEngine,
   StateEngine,
+  UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import {
   AnimationData,
@@ -63,11 +66,13 @@ import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 import { AnimationManager } from './managers/AnimationManager'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
-  // #region Properties (53)
+  // #region Properties (54)
 
   // managers
   private readonly _animationManager: AnimationManager;
   private readonly _beautyRenderingManager: BeautyRenderingManager;
+  // constructor properties
+  private readonly _branding: { logo: string | null, backgroundColor: string };
   // engines
   private readonly _cameraEngine: CameraEngine;
   private readonly _cameraManager: CameraManager;
@@ -83,8 +88,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   private readonly _geometryLoader: GeometryLoader;
   private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
-  // constructor properties
-  private readonly _branding: { logo: string | null, backgroundColor: string };
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
@@ -94,7 +97,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _renderingManager: RenderingManager;
   private readonly _sceneTracingManager: SceneTracingManager;
   private readonly _sceneTreeManager: SceneTreeManager;
-  private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
+  private readonly _sessionSettingsId?: string;
+  private readonly _sessionSettingsMode: SESSION_SETTINGS_MODE;
   private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   private readonly _tree: ITree = <ITree>container.resolve(Tree);
   private readonly _visibility: VISIBILITY_MODE;
@@ -112,7 +116,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _clearColor: string = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
-  private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
   private _environmentMap: string | string[] = 'none';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
@@ -120,32 +123,44 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _groundPlaneVisibility: boolean = true;
   private _logoDivElement: HTMLDivElement;
   private _pointSize: number = 1.0;
+  private _settingsEngine?: SettingsEngine;
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showStatistics: boolean = false;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
+  private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
+
+  readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
 
   #animations: AnimationData[] = [];
 
-  // #endregion Properties (53)
+  // #endregion Properties (54)
 
   // #region Constructors (1)
 
-  constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITY_MODE, branding: { logo: string | null, backgroundColor: string } }) {
+  constructor(properties?: IRenderingEngineOptions) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
+    const prop = Object.assign({}, properties);
+    const branding = Object.assign({}, prop.branding);
+
     // setting some of the provided properties
-    this._id = properties.id;
-    this._visibility = properties.visibility;
-    this._branding = properties.branding;
+    this._id = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
+    this._visibility = prop.visibility || VISIBILITY_MODE.SESSION;
+    this._sessionSettingsMode = prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST;
+    this._sessionSettingsId = prop.sessionSettingsId;
+    this._branding = {
+      logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
+      backgroundColor: branding.backgroundColor || '#393a45FF'
+    };
 
     // creation of viewer essentials
-    this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(properties.canvas));
+    this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(prop.canvas));
 
     // creation of the engines (all singleton engines were created already)
     this._domEventEngine = new DomEventEngine(this._id, this._canvas.canvasElement);
-    this._cameraEngine = new CameraEngine(this._id, this._canvas.canvasElement, this._domEventEngine);
+    this._cameraEngine = new CameraEngine(this, this._canvas.canvasElement);
     this._lightEngine = new LightEngine(this._id);
 
     // creation of the managers (all singleton engines were created already)
@@ -167,7 +182,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // start the creation and initialization process 
     this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
     this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._branding);
-
+  
     // creation of the managers (all singleton engines were created already)
     this._beautyRenderingManager.init();
     this._cameraManager.init();
@@ -185,31 +200,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     this._renderingManager.start()
 
-    if (this._visibility === VISIBILITY_MODE.INSTANT) this.show = true;
-
-    if (this._visibility === VISIBILITY_MODE.SESSION) {
-      this._stateEngine.boundingBoxCreated.then(() => {
-        if (this._closed) return;
-        // wait for settings to load before showing the scene
-        this._stateEngine.viewers[this.id].settingsLoaded.then(() => {
-          if (this._closed) return;
-          this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
-          this.show = true;
-        })
-      })
-    }
-
-    this.stateEngine.primarySessionAvailable.then(() => {
-      this.stateEngine.primarySession?.settingsRegistered.then(() => {
-        if (this._closed) return;
-        this.applySettings()
-      })
+    this._stateEngine.renderingEngines[this.id].boundingBoxCreated.then(() => {
+      this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
     })
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (78)
+  // #region Public Accessors (92)
 
   public get ambientOcclusion(): boolean {
     return this._ambientOcclusion;
@@ -337,14 +335,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set continuousShadowMapUpdate(value: boolean) {
     this._renderingManager.continuousShadowMapUpdate = value;
-  }
-
-  public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
-    return this._visualizeAttributes;
-  }
-
-  public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
-    this._visualizeAttributes = value;
   }
 
   public get domEventEngine(): DomEventEngine {
@@ -520,8 +510,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._sceneTreeManager;
   }
 
-  public get settingsEngine(): SettingsEngine {
+  public get sessionSettingsId(): string | undefined {
+    return this._sessionSettingsId;
+  }
+
+  public get sessionSettingsMode(): SESSION_SETTINGS_MODE {
+    return this._sessionSettingsMode;
+  }
+
+  public get settingsEngine(): SettingsEngine | undefined {
     return this._settingsEngine;
+  }
+  
+  public set settingsEngine(value: SettingsEngine | undefined) {
+    this._settingsEngine = value;
   }
 
   public get shadows(): boolean {
@@ -551,7 +553,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public get stateEngine(): StateEngine {
     return this._stateEngine;
   }
-  
+
   public get textureEncoding(): TEXTURE_ENCODING {
     switch (this.materialLoader.textureEncoding) {
       case (THREE.sRGBEncoding):
@@ -632,11 +634,89 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this.renderingManager.usingSwiftShader;
   }
 
-  // #endregion Public Accessors (78)
+  public get visibility(): VISIBILITY_MODE {
+    return this._visibility;
+  }
 
-  // #region Public Methods (8)
+  public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
+    return this._visualizeAttributes;
+  }
 
-  public async close(): Promise<boolean> {
+  public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
+    this._visualizeAttributes = value;
+  }
+
+  // #endregion Public Accessors (92)
+
+  // #region Public Methods (11)
+
+  public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
+    if (!this._settingsEngine) return;
+    if (sections.environment) {
+      // as the environment map is the only thing that needs time to load, load it first
+      this._stateEngine.renderingEngines[this.id].environmentMapLoaded.then(() => {
+        if (!this._settingsEngine) return;
+        this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
+        this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
+        this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
+        this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
+        this.clearAlpha = this._settingsEngine.environment.clearAlpha;
+        this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
+
+        if (sections.scene) {
+          this.shadows = this._settingsEngine.rendering.shadows;
+          this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
+          this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
+          this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
+          this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
+          this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
+          this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
+          this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
+          this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
+          this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
+          this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
+          this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
+          this.pointSize = this._settingsEngine.general.pointSize;
+        }
+
+        if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
+        if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
+        this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
+        this.update();
+      })
+
+      // set it like this to not trigger the loading
+      this._environmentMapResolution = this._settingsEngine.environment.mapResolution;
+      this.environmentMap = this._settingsEngine.environment.map;
+    } else {
+      this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
+      this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
+      this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
+
+      if (sections.scene) {
+        this.shadows = this._settingsEngine.rendering.shadows;
+        this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
+        this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
+        this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
+        this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
+        this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
+        this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
+        this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
+        this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
+        this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
+        this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
+        this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
+        this.pointSize = this._settingsEngine.general.pointSize;
+      }
+
+      if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
+      if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
+      this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
+      this.update();
+    }
+  }
+
+  public async close(): Promise<void> {
     this._closed = true;
     this._lightEngine.close();
     this._renderer.clear(true, true, true);
@@ -646,7 +726,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);
     this._canvas.canvasElement.parentNode?.removeChild(this._htmlElementAnchorLoader.parentDiv);
     this._canvas.reset();
-    return true;
   }
 
   public displayErrorMessage(message: string) {
@@ -690,10 +769,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._renderingManager.getScreenshot(type, encoderOptions);
   }
 
+  public init(): void {
+    throw new Error('Method not implemented.')
+  }
+
   public reset() {
     this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox)
     if (this._visibility === VISIBILITY_MODE.SESSION) this.show = false;
-    this._stateEngine.viewers[this.id].settingsLoaded.reset();
+    this._stateEngine.renderingEngines[this.id].settingsAssigned.reset();
   }
 
   public resize(width: number, height: number): void {
@@ -702,8 +785,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public saveSettings() {
-    (<LightEngine>this.lightEngine).saveSettings();
-    (<CameraEngine>this.cameraEngine).saveSettings();
+    if (!this._settingsEngine) return;
+    (<LightEngine>this.lightEngine).saveSettings(this._settingsEngine);
+    (<CameraEngine>this.cameraEngine).saveSettings(this._settingsEngine);
 
     this._settingsEngine.general.blurWhenBusy = this.blurSceneWhenBusy;
     this._settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
@@ -735,73 +819,5 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.render();
   }
 
-  // #endregion Public Methods (8)
-
-  // #region Private Methods (1)
-
-  public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
-    if (sections.environment) {
-      // as the environment map is the only thing that needs time to load, load it first
-      this._stateEngine.viewers[this.id].environmentMapLoaded.then(() => {
-        this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
-        this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
-        this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-        this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
-        this.clearAlpha = this._settingsEngine.environment.clearAlpha;
-        this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
-
-        if (sections.scene) {
-          this.shadows = this._settingsEngine.rendering.shadows;
-          this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
-          this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
-          this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
-          this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
-          this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
-          this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
-          this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
-          this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
-          this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
-          this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
-          this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
-          this.pointSize = this._settingsEngine.general.pointSize;
-        }
-
-        if (sections.light) (<LightEngine>this.lightEngine).applySettings();
-        if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
-        this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
-        this.update();
-      })
-
-      // set it like this to not trigger the loading
-      this._environmentMapResolution = this._settingsEngine.environment.mapResolution;
-      this.environmentMap = this._settingsEngine.environment.map;
-    } else {
-      this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
-      this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-      this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
-
-      if (sections.scene) {
-        this.shadows = this._settingsEngine.rendering.shadows;
-        this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
-        this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
-        this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
-        this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
-        this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
-        this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
-        this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
-        this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
-        this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
-        this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
-        this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
-        this.pointSize = this._settingsEngine.general.pointSize;
-      }
-
-      if (sections.light) (<LightEngine>this.lightEngine).applySettings();
-      if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
-      this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
-      this.update();
-    }
-  }
-
-  // #endregion Private Methods (1)
+  // #endregion Public Methods (11)
 }

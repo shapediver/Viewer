@@ -129,8 +129,8 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
   // #region Public Methods (6)
 
-  public applySettings() {
-    const cameraSetting = <IOrthographicCameraSettingsV3>this._settingsEngine.camera.cameras[this.id];
+  public applySettings(settingsEngine: SettingsEngine) {
+    const cameraSetting = <IOrthographicCameraSettingsV3>settingsEngine.camera.cameras[this.id];
     if (cameraSetting) {
       this.autoAdjust = cameraSetting.autoAdjust;
       this.cameraMovementDuration = cameraSetting.cameraMovementDuration;
@@ -149,13 +149,15 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     }
 
     if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
-      this._stateEngine.boundingBoxCreated.then(async () => {
-        await this.zoomTo(undefined, { duration: 0 });
-        this.defaultPosition = vec3.clone(this._controls.position);
-        this.defaultTarget = vec3.clone(this._controls.target);
-      })
+      if(this._viewerId) {
+          this._stateEngine.renderingEngines[this._viewerId].boundingBoxCreated.then(async () => {
+          await this.zoomTo(undefined, { duration: 0 });
+          this.defaultPosition = vec3.clone(this._controls.position);
+          this.defaultTarget = vec3.clone(this._controls.target);
+        })
+      }
     }
-    (<OrthographicCameraControls>this._controls).applySettings();
+    (<OrthographicCameraControls>this._controls).applySettings(settingsEngine);
   }
 
   public assignViewer(viewerId: string): void {

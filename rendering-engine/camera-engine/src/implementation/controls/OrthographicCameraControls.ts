@@ -23,7 +23,6 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
     private _panSpeed: number = 0.5;
     private _zoomSpeed: number = 0.5;
 
-    private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     // #endregion Properties (9)
@@ -36,8 +35,8 @@ export class OrthographicCameraControls extends AbstractCameraControls implement
         this._cameraControlsEventDistribution = new OrthographicCameraControlsEventDistribution(this, <OrthographicCameraControlsLogic>this._cameraLogic);
     }
 
-    public applySettings() {
-        const cameraSetting = this._settingsEngine.camera.cameras[this.camera.id];
+    public applySettings(settingsEngine: SettingsEngine) {
+        const cameraSetting = settingsEngine.camera.cameras[this.camera.id];
         if(!cameraSetting) return;
         this.reset();
         const controlsSettings = <IOrthographicControlsSettingsV3>cameraSetting.controls;

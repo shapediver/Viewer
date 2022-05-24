@@ -1,4 +1,3 @@
-# npm run check-npm-version
 npm i
 
 SCOPE=$(json -f 'scope.json' scope)

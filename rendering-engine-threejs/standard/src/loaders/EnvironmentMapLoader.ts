@@ -126,8 +126,8 @@ export class EnvironmentMapLoader implements ILoader {
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
         } else {
             event = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, progress: 1, status: `Loaded EnvironmentMap` };
-            this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded.resolve(true);
-            this._stateEngine.viewers[this._renderingEngine.id].environmentMapLoaded = new StatePromise();
+            this._stateEngine.renderingEngines[this._renderingEngine.id].environmentMapLoaded.resolve(true);
+            this._stateEngine.renderingEngines[this._renderingEngine.id].environmentMapLoaded = new StatePromise();
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event);
         }
     }

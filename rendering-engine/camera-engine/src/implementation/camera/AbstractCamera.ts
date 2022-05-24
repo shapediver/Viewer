@@ -35,7 +35,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     private _zoomExtentsFactor: number = 1;
 
     protected readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-    protected readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
     protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     protected _boundingBox: IBox = new Box();
@@ -268,7 +267,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Public Abstract Methods (5)
 
-    abstract applySettings(): void;
+    abstract applySettings(settingsEngine?: SettingsEngine): void;
     abstract assignViewer(viewerId: string): void;
     abstract calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;

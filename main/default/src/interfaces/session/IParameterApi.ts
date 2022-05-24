@@ -1,62 +1,6 @@
 import { ShapeDiverResponseParameter } from "@shapediver/sdk.geometry-api-sdk-v2";
 
 /**
- * The type of the parameter.
- */
-export enum PARAMETER_TYPE {
-    FLOAT = 'Float',
-    INT = 'Int',
-    EVEN = 'Even',
-    ODD = 'Odd',
-    STRING = 'String',
-    COLOR = 'Color',
-    STRINGLIST = 'StringList',
-    BOOL = 'Bool',
-    TIME = 'Time',
-    FILE = 'File',
-    SNUMBER = 'sNumber',
-    SINTEGER = 'sInteger',
-    SSTRING = 'sString',
-    SCOLOR = 'sColor',
-    SBOOL = 'sBool',
-    STIME = 'sTime',
-    SBITMAP = 'sBitmap',
-    SDOMAIN = 'sDomain',
-    SDOMAIN2D = 'sDomain2D',
-    SPOINT = 'sPoint',
-    SLINE = 'sLine',
-    SVECTOR = 'sVector',
-    SBOX = 'sBox',
-    SPLANE = 'sPlane',
-    SRECTANGLE = 'sRectangle',
-    SCURVE = 'sCurve',
-    SCIRCLE = 'sCircle',
-    SMESH = 'sMesh',
-    SSURFACE = 'sSurface',
-    SBREP = 'sBrep',
-    SSUBDIV = 'sSubdiv'
-}
-
-/**
- * Different types of visualization for the parameter.
- * These types do not have to be used, but are specified in Grasshopper.
- */
-export enum PARAMETER_VISUALIZATION {
-    SLIDER = 'slider',
-    SEQUENCE = 'sequence',
-    CYCLE = 'cycle',
-    DROPDOWN = 'dropdown',
-    CHECKLIST = 'checklist',
-    CLOCK = 'color',
-    CALENDAR = 'calendar',
-    TOGGLE = 'toggle',
-    SWATCH = 'swatch',
-    BUTTON = 'button',
-    DIAL = 'dial',
-    TEXT = 'text'
-}
-
-/**
  * The api for a parameter of the corresponding [session]{@link ISessionApi}.
  * The current value can be changed by setting the {@link value} property.
  * Additional information of the parameter is provided, as well as values at different states.

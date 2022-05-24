@@ -1,5 +1,5 @@
 import { vec3 } from 'gl-matrix'
-import { TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { TEXTURE_ENCODING, TONE_MAPPING, BUSY_MODE_DISPLAY, FLAG_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
@@ -13,35 +13,6 @@ import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
 import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
-
-export enum BUSY_MODE_DISPLAY {
-  /** The viewport will be blurred when a session is busy. */
-  BLUR = 'blur',
-  /** A spinner will be shown when a session is busy. */
-  SPINNER = 'spinner',
-  /** Nothing happens when a session is busy. */
-  NONE = 'none'
-};
-
-export enum SESSION_SETTINGS_MODE {
-  /** No settings of a session will be used. */
-  NONE = 'none',
-  /** The first created session will be used for the settings of the viewport. */
-  FIRST = 'first',
-  /** The next created session will be used for the settings of the viewport. */
-  NEXT = 'next',
-  /** The previous created session will be used for the settings of the viewport. */
-  PREVIOUS = 'previous',
-};
-
-export enum FLAG_TYPE {
-  /** The flag to freeze the camera. */
-  CAMERA_FREEZE = 'camera_freeze',
-  /** The flag to continuously render the scene. */
-  CONTINUOUS_RENDERING = 'continuous_rendering',
-  /** The flag to continuously update the shadow map. */
-  CONTINUOUS_SHADOW_MAP_UPDATE = 'continuous_shadow_map_update',
-}
 
 /**
  * The api for a viewport.
@@ -267,7 +238,7 @@ export interface IViewportApi {
   /**
    * Closes the viewport.
    */
-  close(): Promise<boolean>;
+  close(): Promise<void>;
 
   /**
    * Create a new light scene.
@@ -368,12 +339,6 @@ export interface IViewportApi {
    * Manual call to render the scene.
    */
   render(): void;
-
-  /**
-   * Reset the viewport.
-   * Sets the {@link show}-value to false and waits for new settings to be registered.
-   */
-  reset(): void;
 
   /**
    * If the {@link automaticResizing} is option is set to `false`, this function resizes the Viewport.
