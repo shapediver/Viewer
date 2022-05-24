@@ -1,4 +1,4 @@
-import { ITreeNodeData } from "../../../../node-tree/dist";
+import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 
 export enum PRIMITIVE_TYPEHINT {
   DOUBLE = 'double',

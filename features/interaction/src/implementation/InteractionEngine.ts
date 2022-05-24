@@ -155,7 +155,6 @@ export class InteractionEngine implements IInteractionEngine {
      * @param ray 
      */
     private onEnd(ray: IRay, endState: INTERACTION_STATE): void {
-        console.log(endState)
         const filters: IIntersectionFilter[] = [];
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(endState));

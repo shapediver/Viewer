@@ -1,5 +1,5 @@
 import { vec3 } from 'gl-matrix'
-import { TEXTURE_ENCODING, TONE_MAPPING, BUSY_MODE_DISPLAY, FLAG_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { TEXTURE_ENCODING, TONE_MAPPING, BUSY_MODE_DISPLAY, FLAG_TYPE, SESSION_SETTINGS_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
@@ -15,11 +15,17 @@ import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
 
 /**
- * The api for a viewport.
- * A viewport can be started by calling the {@link createViewport} method.
+ * The api for viewports.
  * 
- * Inside a session are the corresponding [cameras]{@link ICameraApi} and [lights]{@link ILightApi}.
+ * Viewports are created by calling the {@link createViewport} method.
+ * 
+ * Each viewport has corresponding [cameras]{@link ICameraApi} and [lights]{@link ILightApi}.
+ * 
  * Additionally, there are various other settings to adjust the behavior and rendering of the viewport.
+ * 
+ * By default a new viewport displays the complete scene tree. Viewports can be excluded from 
+ * displaying geometry for specific sessions by using the {@link excludeViewports} property of
+ * {@link ISessionApi}.
  */
 export interface IViewportApi {
   // #region Properties (34)
@@ -56,12 +62,18 @@ export interface IViewportApi {
   readonly lightScenes: { [key: string]: ILightSceneApi };
 
   /**
-   * Option to enable / disable the AR (Augmented Reality) function for this viewport. (default: true)
+   * Option to enable / disable the AR (Augmented Reality) functionality for this viewport. (default: true)
+   * This setting is used purely for UI purposes, it does not have any influence on the viewport itself.
    */
   enableAR: boolean;
 
   /**
-   * The scaling factor that is used to display the scene in AR (Augmented Reality).
+   * The scaling factor that is used when exporting the scene for AR (Augmented Reality).
+   * 
+   * The unit system used by AR is meter, therefore this scaling factor needs to be chosen
+   * such that scene coordinates are transformed to meters.
+   * 
+   * ATOM: Please link to the corresponding arTranslation and arRotation properties, and explain in which order they get applied. 
    */
   arScale: vec3;
 
@@ -76,42 +88,47 @@ export interface IViewportApi {
   ambientOcclusionIntensity: number;
 
   /**
-   * An array of all animations that are currently present in the viewport.
+   * An array of all animations that are currently present in the parts of
+   * the scene tree relevant to this viewport.
    */
   animations: IAnimationData[];
 
   /**
-   * Option to enable / disable the automatic resizing. (default: true)
+   * Option to enable / disable the automatic resizing of the viewport to changes of the {@link canvas}. (default: true)
    */
   automaticResizing: boolean;
 
   /**
-   * The duration that the beauty rendering blends in.
+   * The duration used by the beauty rendering to blend in (milliseconds).
    */
   beautyRenderBlendingDuration: number;
 
   /**
-   * The delay with which the beauty rendering starts.
+   * The delay after which the beauty rendering starts (milliseconds).
    */
   beautyRenderDelay: number;
 
   /**
-   * The mode with which to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
+   * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
+   * ATOM: in case this is set to NONE, are there events which can be reacted upon to do sth custom? Let's mention them here.
    */
   busyModeDisplay: BUSY_MODE_DISPLAY;
 
   /**
-   * The clear alpha value of the viewport.
+   * The clear alpha value of the viewport. 
+   * Use this to influence the background appearance of the viewport.
    */
   clearAlpha: number;
 
   /**
    * The clear color value of the viewport.
+   * Use this to influence the background appearance of the viewport.
    */
   clearColor: string | number | vec3;
 
   /**
-   * The environment map of the viewport.
+   * The environment map used by the viewport.
+   * ATOM: Let's add detailed requirements here (image types, when do we need a single image, how many images if not a single, preset envmaps)
    */
   environmentMap: string | string[];
 
@@ -121,7 +138,8 @@ export interface IViewportApi {
   environmentMapAsBackground: boolean;
 
   /**
-   * The environment map resolution that is used for our deprecated cube maps.
+   * The environment map resolution that is used for preset cube maps.
+   * @see {@link environmentMap}
    */
   environmentMapResolution: string;
 
@@ -147,6 +165,8 @@ export interface IViewportApi {
 
   /**
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
+   * 
+   * ATOM: Please link to {@link textureEncoding} and explain the difference.
    */
   outputEncoding: TEXTURE_ENCODING;
 
@@ -161,27 +181,38 @@ export interface IViewportApi {
   pointSize: number;
 
   /**
-   * The id of the session that is currently used for the settings of the viewport.
+   * Optional identifier of the session to be used for loading / persisting settings of the viewport.
+   * This is ignored in case {@link sessionSettingsMode} is not {@link SESSION_SETTINGS_MODE.CUSTOM}.
    */
   sessionSettingsId: string;
 
   /**
-   * Option to enable / disable the shadows of the viewport. (default: true)
+   * Allows to control which session to use for loading / persisting settings of the viewport. 
+   * (default: {@link SESSION_SETTINGS_MODE.FIRST}).
+   * @see {@link sessionSettingsId} 
+   */
+  sessionSettingsMode?: SESSION_SETTINGS_MODE;
+
+  /**
+   * Option to enable / disable rendering of shadows. (default: true)
    */
   shadows: boolean;
 
   /**
    * Option to show / hide the viewport.
+   * ATOM: Let's add some details here. This will disable rendering, and hide the canvas behind a div, etc
    */
   show: boolean;
 
   /**
-   * Option to show / hide the statistics. (default: false)
+   * Option to show / hide rendering statistics overlayed to the viewport. (default: false)
    */
   showStatistics: boolean;
 
   /**
    * The encoding that is used for textures. (default: TEXTURE_ENCODING.SRGB)
+   * 
+   * ATOM: Please link to {@link outputEncoding} and explain the difference.
    */
   textureEncoding: TEXTURE_ENCODING;
   
@@ -201,6 +232,8 @@ export interface IViewportApi {
    * 
    * Provide a callback that transforms a {@link ISDTFItemData} to a {@link ISDTFAttributeVisualizationData}.
    * The {@link ISDTFOverview} provides general information like min and max values for numbers or the available options for strings.
+   * 
+   * ATOM: I guess this will be partially updated as part of https://shapediver.atlassian.net/browse/SS-5174
    */
   visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
@@ -216,13 +249,16 @@ export interface IViewportApi {
   addCanvasEventListener(listener: IDomEventListener): string;
 
   /**
-   * Add a flag for this viewport.
+   * Add a flag for this viewport. Adding/removing flags allows to influence the render loop.
    * If you want to stop this again call {@link removeFlag} with the returned token.
    */
   addFlag(flag: FLAG_TYPE): string;
 
   /**
    * Assign the camera with the specified id to the viewport.
+   * This will make the given camera the current one. 
+   * 
+   * @see {@link camera}
    * 
    * @param id The id of the camera.
    */
@@ -230,6 +266,9 @@ export interface IViewportApi {
 
   /**
    * Assign the light scene with the current id to the viewport.
+   * This will make the given light scene the current one.
+   * 
+   * @see {@link lightScene}
    * 
    * @param id The id of the light scene.
    */
@@ -237,6 +276,7 @@ export interface IViewportApi {
 
   /**
    * Closes the viewport.
+   * ATOM: Please add some details. Will this remove all traces of the viewport on the canvas element?
    */
   close(): Promise<void>;
 
@@ -270,16 +310,11 @@ export interface IViewportApi {
    * Create the {@link ISDTFOverview} for the provided node.
    * If no node was provided, the scene root is used instead.
    * 
+   * ATOM: I guess this will be partially updated as part of https://shapediver.atlassian.net/browse/SS-5174
+   * 
    * @param node The node for which the overview is created.
    */
   createSDTFOverview(node: ITreeNode): ISDTFOverview;
-
-  /**
-   * Deregister the busy mode with the specified id.
-   * 
-   * @param value The id of the busy mode.
-   */
-  deregisterBusyMode(value: string): boolean;
 
   /**
    * Display an error message on the canvas.
@@ -290,6 +325,7 @@ export interface IViewportApi {
 
   /**
    * Get the complete URL of the current environment map, if it is a single file.
+   * This can be used in case {@link environmentMap} is set to a preset environment map.
    */
   getEnvironmentMapImageUrl(): string;
 
@@ -302,13 +338,8 @@ export interface IViewportApi {
   getScreenshot(type?: string, quality?: number): string;
 
   /**
-   * Register the busy mode with the specified id.
-   * @param value The id of the busy mode.
-   */
-  registerBusyMode(value: string): boolean;
-
-  /**
    * Remove the camera with the specified id.
+   * ATOM: Please explain what happens if the current camera is removed.
    * 
    * @param id The id of the camera.
    */
@@ -322,7 +353,7 @@ export interface IViewportApi {
   removeCanvasEventListener(token: string): boolean;
 
   /**
-   * Removes the registered flag.
+   * Removes the registered flag. Adding/removing flags allows to influence the render loop.
    * 
    * @param token The token that was returned by {@link addFlag}.
    */
@@ -330,6 +361,7 @@ export interface IViewportApi {
 
   /**
    * Remove the light scene with the specified id.
+   * ATOM: Please explain what happens if the current light scene is removed.
    * 
    * @param id The id of the light scene.
    */
@@ -348,12 +380,17 @@ export interface IViewportApi {
   resize(width: number, height: number): void;
 
   /**
-   * Update the viewport with the current changes of the scene tree.
+   * Update the viewport with the current changes of the complete scene tree.
+   * This carries out preparations for rendering. Call it after doing 
+   * direct changes to the scene tree. 
    */
   update(): void;
 
   /**
-   * Update the current node and all descendants in the scene tree.
+   * Update the viewport with the current changes of given scene tree node and its descendants.
+   * This carries out preparations for rendering. Call it after doing 
+   * direct changes to the scene tree. 
+   * 
    * @param node The node to update.
    */
   updateNode(node: ITreeNode): void;
@@ -365,12 +402,18 @@ export interface IViewportApi {
    * 
    * As some models might have a different scale then the AR apps (meters), the scaling can be chosen freely.
    * 
+   * ATOM: How does this related to arScale? Let's also explain the process here to some extent, i.e. 
+   *   * export to glTF
+   *   * backend upload (which requires a session), and conversion for iOS
+   *   * opening the AR asset 
+   * Also: Does it make sense to expose the glTF exporting functionality?
+   * 
    * @param androidOptions 
    */
   viewInAR(options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
   
   /**
-   * Determines if the current devices supports the viewing in AR.
+   * Determines if the current device supports viewing in AR.
    */
   viewableInAR(): boolean;
 

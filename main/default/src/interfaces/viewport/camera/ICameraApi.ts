@@ -22,7 +22,9 @@ export interface ICameraApi {
     
 
     /**
-     * Option to automatically adjust the camera to the size of the scene whenever the session is customized.
+     * Option to automatically adjust the camera to the size of the scene whenever a call to 
+     * {@link ISessionApi.customize} replaced {@link ISessionApi.node}.
+     * This does not happen in case {@link ISessionApi.automaticSceneUpdate} is set to false.
      */
     autoAdjust: boolean;
 
@@ -43,16 +45,20 @@ export interface ICameraApi {
 
     /**
      * Option to enable / disable the movement of the camera.
+     * ATOM: Please explain in detail what this does exactly. Ignore mouse/pointer events? 
+     * What about calls to update the position, trigger animations, etc?
      */
     enabled: boolean;
 
     /**
      * The name of the camera.
+     * ATOM: What is the difference to id?
      */
     name?: string;
 
     /**
      * Optional order property for the camera.
+     * ATOM: Please explain what this is used for.
      */
     order?: number;
 
@@ -62,12 +68,12 @@ export interface ICameraApi {
     position: vec3;
 
     /**
-     * Option to reset the camera position and target to their defaults whenever the mouse/touch up event is fired.
+     * Option to animate the camera position and target to their defaults whenever the mouse/touch up event is fired.
      */
     revertAtMouseUp: boolean;
 
     /**
-     * The standard duration for revertAtMouseUp movements.
+     * The standard duration for revertAtMouseUp animations.
      */
     revertAtMouseUpDuration: number;
 
@@ -77,7 +83,9 @@ export interface ICameraApi {
     target: vec3;
 
     /**
-     * The factor that is used when the zoomTo function is called.
+     * The factor that is used when the {@link zoomTo} function is called.
+     * 
+     * See also {@link calculateZoomTo}
      */
     zoomToFactor: number;
 
@@ -86,7 +94,9 @@ export interface ICameraApi {
     // #region Public Methods (7)
 
     /**
-     * Let the camera follow a path from different position and target pairs to another.
+     * Let the camera follow a path along pairs of position and target.
+     * 
+     * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
      * 
      * @param path The defined path.
      * @param options Various options to be adjusted.
@@ -94,10 +104,12 @@ export interface ICameraApi {
     animate(path: { position: vec3, target: vec3 }[], options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
     
     /**
-     * Calculate the position for our {@link zoomTo} method.
-     * A specific target can be provided, as well as a specific camera startingPosition and startingTarget.
-     * If no target is provided, the current bounding box is used.
-     * If not startingPosition and startingTarget are provided, the current camera position and target are used.
+     * Calculate the position and target which a call to {@link zoomTo} would result in.
+     * 
+     * If no target to zoom to is provided, the current bounding box is used.
+     * If no startingPosition and startingTarget are provided, the current camera position and target are used.
+     * 
+     * @see {@link zoomToFactor}
      * 
      * @param zoomTarget The target to zoom to.
      * @param startingPosition The starting position of the camera.
@@ -113,14 +125,18 @@ export interface ICameraApi {
     project(p: vec3): vec2;
     
     /**
-     * Reset the camera to its default position and target.
+     * Reset / animate the camera to its default position and target.
+     * 
+     * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
      * 
      * @param options Various options to be adjusted.
      */
     reset(options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
     
     /**
-     * Set the camera to its a specific position and target.
+     * Set / animate the camera to a specific position and target.
+     * 
+     * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
      * 
      * @param options Various options to be adjusted.
      */
@@ -129,12 +145,16 @@ export interface ICameraApi {
     /**
      * Project a point on the screen to a point in the scene.
      * 
+     * ATOM: Please add details. Does this a raycast and returns the first hit? What if no hit?
+     * 
      * @param p The point on the screen to project.
      */
     unproject(p: vec3): vec3;
     
     /**
-     * Zoom in on a specific part of the scene, or the whole scene (default).
+     * Zoom to a specific part of the scene, or the whole scene (default).
+     * 
+     * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
      * 
      * @param zoomTarget The target to zoom to.
      * @param options Various options to be adjusted.

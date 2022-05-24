@@ -9,18 +9,22 @@ import { IParameterApi } from "../../interfaces/session/IParameterApi";
 import { ISessionApi } from "../../interfaces/session/ISessionApi";
 
 export class SessionApi implements ISessionApi {
-    // #region Properties (15)
+    // #region Properties (2)
 
-    readonly #sessionEngine: SessionEngine;
     readonly #creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
+    readonly #sessionEngine: SessionEngine;
 
-    // #endregion Properties (15)
+    // #endregion Properties (2)
 
+    // #region Constructors (1)
 
     constructor(sessionEngine: SessionEngine) {
         this.#sessionEngine = sessionEngine;
     }
-    // #region Public Accessors (30)
+
+    // #endregion Constructors (1)
+
+    // #region Public Accessors (26)
 
     public get automaticSceneUpdate(): boolean {
         throw new Error('Missing impl')
@@ -118,7 +122,7 @@ export class SessionApi implements ISessionApi {
         return this.#sessionEngine.ticket;
     }
 
-    // #endregion Public Accessors (30)
+    // #endregion Public Accessors (26)
 
     // #region Public Methods (21)
 
@@ -139,6 +143,10 @@ export class SessionApi implements ISessionApi {
     }
 
     public customize(): Promise<ITreeNode> {
+        throw new Error("Method not implemented.");
+    }
+
+    public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
         throw new Error("Method not implemented.");
     }
 
@@ -186,15 +194,15 @@ export class SessionApi implements ISessionApi {
         throw new Error("Method not implemented.");
     }
 
-    public saveDefaultParameters(): Promise<boolean> {
-        throw new Error("Method not implemented.");
-    }
-
-    public saveSessionProperties(): Promise<boolean> {
+    public saveDefaultParameterValues(): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
 
     public saveSettings(viewportId?: string): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    public saveUiProperties(): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
 

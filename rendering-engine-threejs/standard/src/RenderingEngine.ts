@@ -17,7 +17,6 @@ import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import {
   IRenderingEngine,
-  IRenderingEngineOptions,
   RENDERER_TYPE,
   SESSION_SETTINGS_MODE,
   TEXTURE_ENCODING,
@@ -138,7 +137,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Constructors (1)
 
-  constructor(properties?: IRenderingEngineOptions) {
+  constructor(properties?: {
+    canvas?: HTMLCanvasElement,
+    id?: string,
+    branding?: {
+      logo?: string | null,
+      backgroundColor?: string,
+      spinner?: string,
+    },
+    sessionSettingsId?: string,
+    sessionSettingsMode?: SESSION_SETTINGS_MODE,
+    visibility?: VISIBILITY_MODE,
+  }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 

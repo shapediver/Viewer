@@ -40,9 +40,8 @@ import { SettingsEngine } from '@shapediver/viewer.shared.services';
 }
 
 /**
-* Different types of visualization for the parameter.
-* These types do not have to be used, but are specified in Grasshopper.
-*/
+ * Type of visualization which should be used for UI elements representing the parameter.
+ */
 export enum PARAMETER_VISUALIZATION {
   SLIDER = 'slider',
   SEQUENCE = 'sequence',
@@ -57,17 +56,6 @@ export enum PARAMETER_VISUALIZATION {
   DIAL = 'dial',
   TEXT = 'text'
 }
-
-export interface ISessionEngineOptions {
-    ticket: string,
-    modelViewUrl: string,
-    jwtToken?: string,
-    id?: string,
-    waitForOutputs?: boolean,
-    loadOutputs?: boolean,
-    initialParameters?: { [key: string]: string }
-}
-
 export interface ISessionEngine {
     // #region Properties (9)
 

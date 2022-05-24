@@ -1,5 +1,5 @@
 import { SessionEngine } from './implementation/SessionEngine'
-import { ISessionEngine, ISessionEngineOptions, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from './interfaces/ISessionEngine'
+import { ISessionEngine, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from './interfaces/ISessionEngine'
 import { SessionOutputData } from './implementation/SessionOutputData'
 import { SessionData } from './implementation/SessionData'
 import { ISessionData } from './interfaces/ISessionData'
@@ -10,7 +10,7 @@ export {
 }
 
 export {
-  ISessionEngine, SessionEngine, ISessionEngineOptions
+  ISessionEngine, SessionEngine
 }
 
 export {

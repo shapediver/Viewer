@@ -1,4 +1,4 @@
-import { IRenderingEngineOptions, SESSION_SETTINGS_MODE, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { SESSION_SETTINGS_MODE, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { container } from 'tsyringe';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { ISessionApi } from './interfaces/session/ISessionApi';
@@ -10,7 +10,7 @@ import { ShapeDiverBackendError } from '@shapediver/viewer.shared.services';
 import { InputValidator } from '@shapediver/viewer.shared.services';
 import { CreationControlCenter, ICreationControlCenter } from '@shapediver/viewer.main.creation-control-center';
 import { ViewportApi } from './implementation/viewport/ViewportApi';
-import { ISessionEngineOptions, SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
+import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { SessionApi } from './implementation/session/SessionApi';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine-threejs.standard';
 
@@ -95,7 +95,8 @@ export const removeListener = (id: string): boolean => {
 
 /**
  * The scene tree that is used to store the scene.
- * This stores all sessions, but can also be used to store your own data.
+ * The scene tree contains a unique node and child nodes for each session, 
+ * and can also be used to add your own nodes.
  */
 export const sceneTree: ITree = <ITree>container.resolve(Tree);
 
@@ -137,30 +138,44 @@ creationControlCenter.update = (
 export let loggingLevel: LOGGING_LEVEL = viewerOptions.loggingLevel;
 
 /**
- * Option to show/hide messages.
+ * Option to show/hide messages in the browser console.
  */
 export let showMessages: boolean = viewerOptions.showMessages;
 
 /**
- * Create and initialize a session with the provided ticket and modelViewUrl.
- * An id can be provided. This id can be used to retrieve this object later on.
- * In the case no id has been provided, a unique one will be generated.
+ * Create and initialize a session with a model hosted on a 
+ * {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend}, 
+ * using the provided ticket and modelViewUrl. 
+ * Returns a session api object allowing to control the session.
  * 
- * A jwtToken can be provided (JWT).
+ * A JWT can be specified for authorizing the API calls to the Geometry Backend. 
+ * The model's settings on the Geometry Backend might require a JWT to be provided.
+ *
+ * By default the outputs of the model for its default parameter values will be loaded.
  * 
- * The session will be initialized automatically, 
- * and the first computation will be loaded in the the scene tree once the promise has resolved.
+ * An optional identifier for the session can be provided. This identifier can be used to retrieve the  
+ * api object from {@link sessions}. In case no identifier is provided, a unique one will be generated.
  * 
- * @param properties.ticket The ticket of a session.
- * @param properties.modelViewUrl The modelViewUrl of the session.
- * @param properties.jwtToken The jwtToken of the session.
- * @param properties.id The unique id the session should have.
- * @param properties.waitForOutputs Option to wait for the outputs to be loaded. (default: true)
- * @param properties.loadOutputs Option to not load the outputs. (default: true)
- * @param properties.initialParameters The initial set of parameters.
+ * ATOM: It would be useful to have an optional parameter allowing to specify a transformation for the session node.
+ * 
+ * @param properties.ticket The ticket for direct embedding of the model to create a session for. This identifies the model on the Geometry Backend.
+ * @param properties.modelViewUrl The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model.
+ * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
+ * @param properties.id The unique identifier to use for the session.
+ * @param properties.waitForOutputs Option to wait for the outputs to be loaded, or return immediately after creation of the session. (default: true)
+ * @param properties.loadOutputs Option to load the outputs, or not load them until the first call of {@link ISessionApi.customize}. (default: true)
+ * @param properties.initialParameterValues The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @returns 
  */
-export const createSession = async (properties: ISessionEngineOptions): Promise<ISessionApi> => {
+export const createSession = async (properties: {
+    ticket: string,
+    modelViewUrl: string,
+    jwtToken?: string,
+    id?: string,
+    waitForOutputs?: boolean,
+    loadOutputs?: boolean,
+    initialParameterValues?: { [key: string]: string }
+}): Promise<ISessionApi> => {
     logger.info(LOGGING_TOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
     // input validation
     inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties, 'object');
@@ -170,10 +185,10 @@ export const createSession = async (properties: ISessionEngineOptions): Promise<
     inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.id, 'string', false);
     inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.waitForOutputs, 'boolean', false);
     inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.loadOutputs, 'boolean', false);
-    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.initialParameters, 'object', false);
-    if (properties.initialParameters)
-        for (let p in properties.initialParameters)
-            inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.initialParameters[p], 'string');
+    inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.initialParameterValues, 'object', false);
+    if (properties.initialParameterValues)
+        for (let p in properties.initialParameterValues)
+            inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.initialParameterValues[p], 'string');
 
     const sessionEngine = await creationControlCenter.createSessionEngine(properties);
     sessions[sessionEngine.id] = new SessionApi(sessionEngine);
@@ -181,22 +196,50 @@ export const createSession = async (properties: ISessionEngineOptions): Promise<
 };
 
 /**
- * Create and initialize a viewport with the provided type and canvas.
- * An id can be provided. This id can be used to retrieve this object later on.
- * In the case no id has been provided, a unique one will be generated.
+ * Create and initialize a viewport with the provided type and canvas, 
+ * and return a viewport api object allowing to control it.
  * 
- * The viewport will automatically load what is currently in the scene tree.
+ * An optional identifier for the viewport can be provided. This identifier can be used to retrieve the  
+ * viewport object from {@link viewports}. In case no identifier is provided, a unique one will be generated.
  * 
- * @param properties.type The type of the viewport.
+ * By default a new viewport displays the complete scene tree. Viewports can be excluded from 
+ * displaying geometry for specific sessions by using the {@link excludeViewports} property of
+ * {@link ISessionApi}.
+ * 
  * @param properties.visibility The visibility of the viewport.
- * @param properties.canvas The canvas that the viewport should use.
- * @param properties.id The unique id the session should have .
+ * @param properties.canvas The canvas that the viewport should use. A canvas element will be created if none is provided. 
+ * @param properties.id The unique identifier to use for the viewport.
  * @param properties.branding Optional branding options.
- * @param properties.sessionSettingsId The id of the session that is currently used for the settings of the viewport.
- * @param properties.sessionSettingsMode The mode in which the session settings should be loaded. (default: {@link SESSION_SETTINGS_MODE.FIRST})
+ * @param properties.sessionSettingsId Optional identifier of the session to be used for loading / persisting settings of the viewport. 
+ * @param properties.sessionSettingsMode Allows to control which session to use for loading / persisting settings of the viewport. (default: {@link SESSION_SETTINGS_MODE.FIRST}).
  * @returns 
  */
-export const createViewport = async (properties?: IRenderingEngineOptions): Promise<IViewportApi> => {
+export const createViewport = async (properties?: {
+    canvas?: HTMLCanvasElement,
+    id?: string,
+    branding?: {
+      /** 
+       * Optional URL to a logo to be displayed while the viewport is hidden. 
+       * A default logo will be used if none is provided. 
+       * Supply null to display no logo at all.
+       */
+      logo?: string | null,
+      /** 
+       * Optional background color to show while the viewport is hidden, can include alpha channel. 
+       * A default color will be used if none is provided.
+       */
+      backgroundColor?: string,
+      /** 
+       * Optional URL to a logo to be displayed while the viewport is in busy mode. 
+       * A default logo will be used if none is provided. 
+       * ATOM: Let's explain how the spinner's placement can be influenced.
+       */
+      spinner?: string,
+    },
+    sessionSettingsId?: string,
+    sessionSettingsMode?: SESSION_SETTINGS_MODE,
+    visibility?: VISIBILITY_MODE,
+  }): Promise<IViewportApi> => {
     try {
         inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, 'Api.createViewer', properties, 'object', false);
         const prop = Object.assign({}, properties);
