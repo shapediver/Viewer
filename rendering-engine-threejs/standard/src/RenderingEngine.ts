@@ -912,14 +912,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       if (this.stateEngine.renderingEngines[this.id].busy.length > 0) {
         if (!currentBusyState) {
           this.busy = true;
-          this._eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_ON, { viewerId: this.id });
           this._renderingManager.render();
+          this._eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_ON, { viewerId: this.id });
         }
       } else {
         if (currentBusyState) {
           this.busy = false;
-          this._eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_OFF, { viewerId: this.id });
           this._renderingManager.render();
+          this._eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_OFF, { viewerId: this.id });
         }
       }
     }
@@ -928,10 +928,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     {
       if (this.#flags[FLAG_TYPE.CAMERA_FREEZE].length > 0) {
         this.cameraEngine.deactivateCameraEvents();
-        this._renderingManager.render();
       } else {
         this.cameraEngine.activateCameraEvents();
-        this._renderingManager.render();
       }
     }
 
@@ -946,7 +944,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       } else {
         if (currentContinuousRenderingState) {
           this.continuousRendering = false;
-          this._renderingManager.render();
         }
       }
     }
@@ -962,7 +959,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       } else {
         if (currentShadowMapUpdateState) {
           this.continuousShadowMapUpdate = false;
-          this._renderingManager.render();
         }
       }
     }

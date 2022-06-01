@@ -3,7 +3,7 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot'
 import { Options } from 'selenium-webdriver/chrome'
 import { jest } from '@jest/globals'
 
-jest.setTimeout(30000); // 3000 seconds
+jest.setTimeout(3000000); // 3000 seconds
 expect.extend({ toMatchImageSnapshot });
 
 export const screenshotCompare = async (image: any, name: string) => {
@@ -39,7 +39,7 @@ export const createDriver = async (): Promise<webdriver.WebDriver> => {
     opt.windowSize({width: dprSize.width + (dprSize.width - size.width), height: dprSize.height + (dprSize.height - size.height)});
     const driver = await new webdriver.Builder().setChromeOptions(opt).withCapabilities(webdriver.Capabilities.chrome()).build();
     await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
-    const TIMEOUT = 30000
+    const TIMEOUT = 3000000
     await driver.manage().setTimeouts({ implicit: TIMEOUT, pageLoad: TIMEOUT, script: TIMEOUT });
     return driver;
 }

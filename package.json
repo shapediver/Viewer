@@ -2,7 +2,6 @@
   "name": "root",
   "private": true,
   "devDependencies": {
-    "@shapediver/sdk.platform-api": "^1.14.16",
     "@types/chromedriver": "^81.0.1",
     "@types/jest": "^27.4.1",
     "@types/jest-image-snapshot": "^4.3.1",
@@ -44,8 +43,7 @@
     "doc": "ts-node ./scripts/doc.ts",
     "init": "bash ./scripts/init.sh",
     "test": "lerna run test --concurrency 1 --stream --no-bail",
-    "test-all": "lerna run test --concurrency 4 --stream --no-bail && npm run test-no-concurrency && npm run test-browserstack",
-    "test-no-concurrency": "lerna run test-no-concurrency --stream --concurrency 1 --no-bail",
+    "test-all": "lerna run test --concurrency 4 --stream --no-bail && npm run test-browserstack",
     "test-browserstack": "lerna run test-browserstack --stream --no-bail ",
     "build": "lerna run build --stream",
     "build-watch": "lerna run build-watch --stream --parallel",
@@ -59,7 +57,6 @@
     "deploy-test": "ts-node ./scripts/deploy-test.ts",
     "deploy-and-test": "npm run deploy-tests && npm run test",
     "deploy-demo": "ts-node ./scripts/deploy-demo.ts",
-    "platform-api-token": "ts-node ./tests/general/src/createTokenFromSlug.ts",
     "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md",
     "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md",
     "doc-main": "typedoc"

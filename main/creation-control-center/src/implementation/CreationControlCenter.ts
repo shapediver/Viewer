@@ -1,7 +1,7 @@
 import { SESSION_SETTINGS_MODE, VISIBILITY_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { RenderingEngine, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
-import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { EventResponseMapping, ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
 import { container, singleton } from "tsyringe";
 import { ICreationControlCenter } from "../interfaces/ICreationControlCenter";
@@ -9,16 +9,17 @@ import { build_data } from '@shapediver/viewer.shared.build-data'
 import { CAMERA_TYPE } from "@shapediver/viewer.rendering-engine.camera-engine"
 import { Box } from "@shapediver/viewer.shared.math";
 import { ITree, Tree } from "@shapediver/viewer.shared.node-tree";
+import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
 
 @singleton()
 export class CreationControlCenter implements ICreationControlCenter {
-  // #region Properties (9)
+  // #region Properties (10)
 
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
-  readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #sceneTree: ITree = <ITree>container.resolve(Tree);
+  readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
   readonly renderingEngines: { [key: string]: RenderingEngineThreeJs } = {};
   readonly sessionEngines: { [key: string]: SessionEngine } = {};
@@ -29,13 +30,38 @@ export class CreationControlCenter implements ICreationControlCenter {
     renderingEngines: { [key: string]: RenderingEngine; }
   ) => void;
 
-  // #endregion Properties (9)
+  // #endregion Properties (10)
 
-  // #region Public Methods (4)
+  // #region Public Methods (6)
+
+  public applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined; } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; } | undefined; } | undefined; viewport?: { scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; } | undefined; }): Promise<void> {
+    sections = sections || {};
+    this.sessionEngines[sessionId].applySettings(response, sections);
+
+    const promises: Promise<any>[] = [];
+
+    if (sections.session && sections.session.parameter && sections.session.parameter.value)
+      promises.push(this.sessionEngines[sessionId].customize());
+
+    for (let r in this.renderingEngines) {
+      if ((this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
+        (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === this.renderingEngines[r].sessionSettingsId)) {
+        this.#stateEngine.renderingEngines[r].settingsAssigned.reset();
+        promises.push(new Promise<void>(resolve => {
+          this.#stateEngine.renderingEngines[r].settingsAssigned.then(() => {
+            resolve();
+          })
+        }));
+
+        this.renderingEngines[r].applySettings(sections.viewport);
+      }
+    }
+    return new Promise(resolve => Promise.all(promises).then(() => resolve()));
+  }
 
   public async closeRenderingEngine(id: string): Promise<void> {
     try {
-      if(!this.renderingEngines[id]) return;
+      if (!this.renderingEngines[id]) return;
 
       this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Api.closeRenderingEngine: Closing viewer ${id}.`);
       if (this.#stateEngine.renderingEngines[id].initialized.resolved === false)
@@ -62,7 +88,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
   public async closeSessionEngine(id: string): Promise<void> {
     try {
-      if(!this.sessionEngines[id]) return;
+      if (!this.sessionEngines[id]) return;
 
       this.#logger.debugLow(LOGGING_TOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
 
@@ -74,7 +100,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       // remove from rendering engines (also directly assigned)
       for (let r in this.renderingEngines) {
         if ((this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && this.renderingEngines[r].sessionSettingsId === id) ||
-            (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine === this.sessionEngines[id])) {
+          (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine === this.sessionEngines[id])) {
           this.renderingEngines[r].reset();
         }
       }
@@ -83,10 +109,10 @@ export class CreationControlCenter implements ICreationControlCenter {
         this.#httpClient.removeDataLoading()
         const engines = Object.values(this.sessionEngines).filter(s => s.id !== id);
         this.#firstSessionEngine = engines.length === 0 ? undefined : engines[0];
-        if(this.#firstSessionEngine) {
+        if (this.#firstSessionEngine) {
           this.#httpClient.addDataLoading(this.#firstSessionEngine.loadData.bind(this.#firstSessionEngine));
           let promises: StatePromise<boolean>[] = []
-  
+
           for (let r in this.renderingEngines) {
             if (this.#stateEngine.renderingEngines[r].settingsAssigned.resolved === false) {
               if (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST) {
@@ -95,9 +121,9 @@ export class CreationControlCenter implements ICreationControlCenter {
               }
             }
           }
-    
+
           await Promise.all(promises)
-    
+
           if (this.update) this.update(this.sessionEngines, this.renderingEngines);
         }
       }
@@ -194,7 +220,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         renderingEngine.show = true;
       } else if (renderingEngine.visibility === VISIBILITY_MODE.SESSION) {
         // wait for settings to load before showing the scene
-        if(this.#sceneTree.root.boundingBox.isEmpty()) {
+        if (this.#sceneTree.root.boundingBox.isEmpty()) {
           this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
             const event = e as EventResponseMapping[EVENTTYPE_SCENE.SCENE_BOUNDING_BOX_CHANGE];
             if (event.viewerId === renderingEngine.id) {
@@ -317,7 +343,7 @@ export class CreationControlCenter implements ICreationControlCenter {
           this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
           for (let r in this.renderingEngines)
             this.renderingEngines[r].update('CreationControlCenter.createSessionEngine.waitForOutputs=true')
-          } else {
+        } else {
           sessionEngine.loadOutputs().then(() => {
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
@@ -340,7 +366,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         this.#firstSessionEngine = sessionEngine;
         this.#httpClient.addDataLoading(sessionEngine.loadData.bind(sessionEngine));
       }
-      
+
       let promises: StatePromise<boolean>[] = []
 
       for (let r in this.renderingEngines) {
@@ -353,7 +379,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       }
 
       await Promise.all(promises)
-      
+
       for (let r in this.renderingEngines)
         this.renderingEngines[r].update('CreationControlCenter.createSessionEngine')
 
@@ -381,7 +407,47 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
-  // #endregion Public Methods (4)
+  public async saveSettings(sessionId: string, viewportId?: string): Promise<boolean> {
+    try {
+      const session = this.sessionEngines[sessionId];
+      await session.saveUiProperties(false);
+
+      session.settingsEngine.settings.build_version = build_data.build_version;
+      session.settingsEngine.settings.build_date = build_data.build_date;
+      session.settingsEngine.settings.settings_version = '3.1';
+
+      let renderingEngine;
+      if(viewportId && this.renderingEngines[viewportId]) {
+        renderingEngine = this.renderingEngines[viewportId];
+      } else {
+        for (let r in this.renderingEngines) {
+          if ((this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
+            (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === this.renderingEngines[r].sessionSettingsId)) {
+              renderingEngine = this.renderingEngines[r];
+              continue;
+          }
+        }
+      }
+
+      if (renderingEngine) {
+        renderingEngine.saveSettings();
+        const response = await session.saveSettings(session.settingsEngine.convertToTargetVersion());
+        if (response) {
+          this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings: Saved settings.`);
+        } else {
+          const error = new ShapeDiverViewerSessionError(`Session(${sessionId}).saveSettings: Could not save settings.`);
+          throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, error);
+        }
+        return response;
+      }
+      return false;
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, e);
+    }
+  }
+
+  // #endregion Public Methods (6)
 
   // #region Private Methods (1)
 

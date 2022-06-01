@@ -1,6 +1,7 @@
 import { SESSION_SETTINGS_MODE, VISIBILITY_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
+import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
 
 export interface ICreationControlCenter {
   // #region Public Methods (4)
@@ -12,6 +13,8 @@ export interface ICreationControlCenter {
     sessionEngines: { [key: string]: SessionEngine; },
     renderingEngines: { [key: string]: RenderingEngineThreeJs; }
   ) => void;
+
+  applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined; } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; } | undefined; } | undefined; viewport?: { scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; } | undefined; }): Promise<void>;
 
   closeSessionEngine(id: string): Promise<void>;
 
@@ -40,6 +43,8 @@ export interface ICreationControlCenter {
     sessionSettingsMode?: SESSION_SETTINGS_MODE,
     visibility?: VISIBILITY_MODE,
   }): Promise<RenderingEngineThreeJs>;
+
+  saveSettings(sessionId: string, viewportId?: string): Promise<boolean>;
   
   // #endregion Public Methods (4)
 }

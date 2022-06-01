@@ -201,7 +201,7 @@ export class SessionApi implements ISessionApi {
     // #region Public Methods (21)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined; } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; } | undefined; } | undefined; viewport?: { scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; } | undefined; }): Promise<void> {
-        return this.#sessionEngine.applySettings(response, sections);
+        return this.#creationControlCenter.applySettings(this.id, response, sections);
     }
 
     public canGoBack(): boolean {
@@ -213,7 +213,7 @@ export class SessionApi implements ISessionApi {
     }
 
     public async close(): Promise<void> {
-        await this.#creationControlCenter.closeSessionEngine(this.id);
+        return await this.#creationControlCenter.closeSessionEngine(this.id);
     }
 
     public customize(): Promise<ITreeNode> {
@@ -273,7 +273,7 @@ export class SessionApi implements ISessionApi {
     }
 
     public saveSettings(viewportId?: string): Promise<boolean> {
-        return this.#sessionEngine.saveSettings(viewportId);
+        return this.#creationControlCenter.saveSettings(this.id, viewportId);
     }
 
     public saveUiProperties(): Promise<boolean> {

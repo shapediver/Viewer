@@ -100,6 +100,9 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
       const { position, target } = this.calculateZoomTo(undefined);
       this.defaultPosition = vec3.clone(position);
       this.defaultTarget = vec3.clone(target);
+      
+      this.position = vec3.clone(position);
+      this.target = vec3.clone(target);
     }
   }
 

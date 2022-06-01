@@ -33,7 +33,6 @@
     "url": "git+https://github.com/shapediver/Viewer.git"
   },
   "scripts": {
-    "test": "bash ../../scripts/test.sh",
     "check": "tsc --noEmit",
     "build": "bash ../../scripts/build.sh",
     "build-watch": "bash ../../scripts/build-watch.sh",

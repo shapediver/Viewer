@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine } from '@shapediver/viewer.shared.services'
+import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
@@ -20,11 +20,13 @@ import { Parameter } from './dto/Parameter'
 import { vec3 } from 'gl-matrix'
 import { Export } from './dto/Export'
 import { Output } from './dto/Output'
+import { convert, ISettingsV3_1, validate } from '@shapediver/viewer.settings'
 
 export class SessionEngine implements ISessionEngine {
-    // #region Properties (33)
+    // #region Properties (40)
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
+    private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _exports: { [key: string]: IExport; } = {};
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _id: string;
@@ -36,13 +38,12 @@ export class SessionEngine implements ISessionEngine {
     private readonly _parameterValues: { [key: string]: string; } = {};
     private readonly _parameters: { [key: string]: IParameter<any>; } = {};
     private readonly _performanceEvaluator = <PerformanceEvaluator>container.resolve(PerformanceEvaluator);
-    private readonly _eventEngine = <EventEngine>container.resolve(EventEngine);
-    private readonly _uuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private readonly _sceneTree: ITree = <ITree>container.resolve(Tree);
     private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
     private readonly _settingsEngine: SettingsEngine = new SettingsEngine();
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _ticket: string;
+    private readonly _uuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _automaticSceneUpdate: boolean = true;
     private _bearerToken?: string;
@@ -69,8 +70,8 @@ export class SessionEngine implements ISessionEngine {
     private _sdk: ShapeDiverSdk;
     private _sessionId?: string;
     private _viewerSettings?: object;
-    #customizationProcess!: string;
 
+    #customizationProcess!: string;
     #parameterHistory: {
         [key: string]: {
             value: any,
@@ -85,7 +86,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }[] = [];
 
-    // #endregion Properties (33)
+    // #endregion Properties (40)
 
     // #region Constructors (1)
 
@@ -216,8 +217,127 @@ export class SessionEngine implements ISessionEngine {
 
     // #region Public Methods (22)
 
-    public applySettings(response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined } | undefined } | undefined; viewport?: { scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined } | undefined }): Promise<void> {
-        throw new Error('Method not implemented.')
+    public applySettings(response: ShapeDiverResponseDto, sections?: {
+        session?: {
+            parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined } | undefined;
+            export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined } | undefined
+        } | undefined;
+        viewport?: { scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined } | undefined
+    }) {
+        try {
+            sections = sections || {};
+            if (sections.session === undefined) {
+                sections.session = {
+                    parameter: { displayname: false, order: false, hidden: false },
+                    export: { displayname: false, order: false, hidden: false }
+                };
+            }
+            if (sections.session.parameter === undefined)
+                sections.session.parameter = { displayname: false, order: false, hidden: false, value: false };
+            if (sections.session.export === undefined)
+                sections.session.export = { displayname: false, order: false, hidden: false };
+            if (sections.viewport === undefined)
+                sections.viewport = { scene: false, camera: false, light: false, environment: false };
+
+            let config: object;
+            if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
+                config = (<ShapeDiverResponseDto>response).viewer!.config;
+            } else {
+                const error = new ShapeDiverViewerSettingsError('Api.applySettings: No config object available.');
+                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Api.applySettings', error);
+            }
+
+            try {
+                validate(config)
+            } catch (e) {
+                const error = new ShapeDiverViewerSettingsError('Api.applySettings: Was not able to validate config object.');
+                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Api.applySettings', error);
+            }
+
+            const settings = <ISettingsV3_1>convert(config, '3.1');
+
+            const exportMappingUid: { [key: string]: string | undefined } = {};
+            if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
+                if (response.exports)
+                    for (let exportId in response.exports)
+                        if (response.exports[exportId].uid !== undefined)
+                            exportMappingUid[response.exports[exportId].uid!] = exportId;
+
+            const currentSettings = this._settingsEngine.settings;
+
+            // apply parameter settings
+            if (sections.session.parameter.displayname || sections.session.parameter.order || sections.session.parameter.hidden || sections.session.parameter.value) {
+                for (let p in this.parameters) {
+                    if (settings.session[p]) {
+                        if (sections.session.parameter.displayname) this.parameters[p].displayname = settings.session[p].displayname;
+                        if (sections.session.parameter.order) this.parameters[p].order = settings.session[p].order;
+                        if (sections.session.parameter.hidden) this.parameters[p].hidden = settings.session[p].hidden || false;
+                    }
+
+                    if (response.parameters && response.parameters[p]) {
+                        if (sections.session.parameter.value) this.parameters[p].value = response.parameters[p].defval !== undefined ? response.parameters[p].defval : this.parameters[p].value;
+                    }
+                }
+            }
+
+            // apply export settings
+            if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden) {
+                for (let p in this.exports) {
+                    let idForSettings = '';
+                    if (settings.session[p]) {
+                        idForSettings = p;
+                    } else {
+                        const uid = this.exports[p].uid;
+                        if (!uid) continue;
+                        if (!exportMappingUid[uid]) continue;
+                        idForSettings = exportMappingUid[uid]!;
+                    }
+                    if (settings.session[idForSettings]) {
+                        if (sections.session.export.displayname) this.exports[p].displayname = settings.session[idForSettings].displayname;
+                        if (sections.session.export.order) this.exports[p].order = settings.session[idForSettings].order;
+                        if (sections.session.export.hidden) this.exports[p].hidden = settings.session[idForSettings].hidden || false;
+                    }
+                }
+            }
+
+            // apply camera settings
+            if (sections.viewport.camera)
+                currentSettings.camera = settings.camera;
+
+            // apply light settings
+            if (sections.viewport.light)
+                currentSettings.light = settings.light;
+
+            // apply scene settings
+            if (sections.viewport.scene) {
+                currentSettings.rendering.shadows = settings.rendering.shadows;
+                currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
+                currentSettings.rendering.ambientOcclusionIntensity = settings.rendering.ambientOcclusionIntensity;
+                currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
+                currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;
+                currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
+                currentSettings.rendering.toneMapping = settings.rendering.toneMapping;
+                currentSettings.rendering.toneMappingExposure = settings.rendering.toneMappingExposure;
+                currentSettings.environmentGeometry.gridColor = settings.environmentGeometry.gridColor;
+                currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
+                currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
+                currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
+                currentSettings.general.commitParameters = settings.general.commitParameters;
+                currentSettings.general.pointSize = settings.general.pointSize;
+            }
+
+            // apply environment settings
+            if (sections.viewport.environment) {
+                currentSettings.environment.clearAlpha = settings.environment.clearAlpha;
+                currentSettings.environment.clearColor = settings.environment.clearColor;
+                currentSettings.environment.map = settings.environment.map;
+                currentSettings.environment.mapAsBackground = settings.environment.mapAsBackground;
+            }
+
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.applySettings', e);
+        }
     }
 
     public canGoBack(): boolean {
@@ -262,7 +382,7 @@ export class SessionEngine implements ISessionEngine {
 
             this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Customizing session.`);
 
-            for(let r in this._stateEngine.renderingEngines)
+            for (let r in this._stateEngine.renderingEngines)
                 this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
             const eventFileUpload: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
@@ -275,11 +395,11 @@ export class SessionEngine implements ISessionEngine {
                     fileParameterIds[parameterId] = await (<IFileParameter>this.parameters[parameterId]).upload();
 
                     // OPTION TO SKIP - PART 1a
-                    if (this.#customizationProcess !== customizationId) {            
-                        for(let r in this._stateEngine.renderingEngines)
-                            if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                    if (this.#customizationProcess !== customizationId) {
+                        for (let r in this._stateEngine.renderingEngines)
+                            if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                                 this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
-        
+
                         this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
 
                         const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
@@ -291,8 +411,8 @@ export class SessionEngine implements ISessionEngine {
 
             // OPTION TO SKIP - PART 1b
             if (this.#customizationProcess !== customizationId) {
-                for(let r in this._stateEngine.renderingEngines)
-                    if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                for (let r in this._stateEngine.renderingEngines)
+                    if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                         this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
                 const eventCancel1b: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
@@ -335,8 +455,8 @@ export class SessionEngine implements ISessionEngine {
 
             // OPTION TO SKIP - PART 2
             if (this.#customizationProcess !== customizationId) {
-                for(let r in this._stateEngine.renderingEngines)
-                    if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                for (let r in this._stateEngine.renderingEngines)
+                    if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                         this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
                 const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
@@ -376,8 +496,8 @@ export class SessionEngine implements ISessionEngine {
 
             this.node.excludeViewports = this._excludeViewports;
 
-            for(let r in this._stateEngine.renderingEngines)
-                if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+            for (let r in this._stateEngine.renderingEngines)
+                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
             this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
@@ -392,18 +512,13 @@ export class SessionEngine implements ISessionEngine {
             const eventCancel: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
 
-            for(let r in this._stateEngine.renderingEngines)
-                if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+            for (let r in this._stateEngine.renderingEngines)
+                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize`, e);
         }
-
-    }
-
-    private async customizeInternal(cancelRequest: () => boolean): Promise<ISessionTreeNode> {
-        return this.customizeSession(this._parameterValues, cancelRequest);
     }
 
     public customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
@@ -574,8 +689,21 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public saveDefaultParameterValues(): Promise<boolean> {
-        throw new Error('Method not implemented.')
+    public async saveDefaultParameterValues(): Promise<boolean> {
+        try {
+            this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saving default parameters.`);
+            const response = await this.saveDefaultParameters();
+            if (response) {
+                this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveDefaultParameters: Saved default parameters.`);
+            } else {
+                const error = new ShapeDiverViewerSessionError(`Session(${this.id}).saveDefaultParameters: Could not save default parameters.`);
+                throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveDefaultParameters`, error);
+            }
+            return response;
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveDefaultParameters`, e);
+        }
     }
 
     public async saveDefaultParameters(retry = false): Promise<boolean> {
@@ -672,8 +800,66 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public saveUiProperties(): Promise<boolean> {
-        throw new Error('Method not implemented.')
+    public async saveUiProperties(saveInSettings: boolean = true): Promise<boolean> {
+        try {
+            this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saving session properties.`);
+
+            // settings saving 
+            this._saveSessionSettings();
+
+            let properties: {
+                [key: string]: {
+                    displayname: string,
+                    hidden: boolean,
+                    order: number,
+                    tooltip: string
+                }
+            } = {};
+            for (let p in this.parameters) {
+                properties[p] = {
+                    displayname: this.parameters[p].displayname !== undefined ? this.parameters[p].displayname! : '',
+                    hidden: this.parameters[p].hidden !== undefined ? this.parameters[p].hidden : false,
+                    order: this.parameters[p].order !== undefined ? this.parameters[p].order! : 0,
+                    tooltip: this.parameters[p].tooltip !== undefined ? this.parameters[p].tooltip! : '',
+                };
+            }
+            const responseP = Object.values(properties).length !== 0 ? await this.saveParameterProperties(properties) : true;
+
+            properties = {};
+            for (let e in this.exports) {
+                properties[e] = {
+                    displayname: this.exports[e].displayname !== undefined ? this.exports[e].displayname! : '',
+                    hidden: this.exports[e].hidden !== undefined ? this.exports[e].hidden : false,
+                    order: this.exports[e].order !== undefined ? this.exports[e].order! : 0,
+                    tooltip: this.exports[e].tooltip !== undefined ? this.exports[e].tooltip! : '',
+                };
+            }
+            const responseE = Object.values(properties).length !== 0 ? await this.saveExportProperties(properties) : true;
+
+            properties = {};
+            for (let o in this.outputs) {
+                properties[o] = {
+                    displayname: this.outputs[o].displayname !== undefined ? this.outputs[o].displayname! : '',
+                    hidden: this.outputs[o].hidden !== undefined ? this.outputs[o].hidden : false,
+                    order: this.outputs[o].order !== undefined ? this.outputs[o].order! : 0,
+                    tooltip: this.outputs[o].tooltip !== undefined ? this.outputs[o].tooltip! : '',
+                };
+            }
+            const responseO = Object.values(properties).length !== 0 ? await this.saveOutputProperties(properties) : true;
+
+            // save partial settings
+            const response = saveInSettings ? await this.saveSettings(this._settingsEngine.convertToTargetVersion()) : true;
+
+            if (response && responseP && responseO && responseE) {
+                this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Saved session properties.`);
+            } else {
+                this._logger.warn(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveSessionProperties: Could not save session properties.`);
+            }
+            return response && responseP && responseO && responseE;
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).saveSessionProperties`, e);
+        }
     }
 
     public async updateOutputs(): Promise<ITreeNode> {
@@ -687,7 +873,7 @@ export class SessionEngine implements ISessionEngine {
 
         this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating Outputs.`);
 
-        for(let r in this._stateEngine.renderingEngines)
+        for (let r in this._stateEngine.renderingEngines)
             this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
         const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Loading outputs' };
@@ -700,8 +886,8 @@ export class SessionEngine implements ISessionEngine {
 
         // OPTION TO SKIP - PART 1
         if (this.#customizationProcess !== customizationId) {
-            for(let r in this._stateEngine.renderingEngines)
-                if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+            for (let r in this._stateEngine.renderingEngines)
+                if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
             const eventCancel1: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Output updating was exceeded by other customization request' };
@@ -731,8 +917,8 @@ export class SessionEngine implements ISessionEngine {
         this._warningCreator();
         this.node.excludeViewports = this.excludeViewports;
 
-        for(let r in this._stateEngine.renderingEngines)
-            if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+        for (let r in this._stateEngine.renderingEngines)
+            if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
                 this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
         this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updated outputs.`);
@@ -781,7 +967,77 @@ export class SessionEngine implements ISessionEngine {
 
     // #endregion Public Methods (22)
 
-    // #region Private Methods (5)
+    // #region Private Methods (8)
+
+    private _saveSessionSettings() {
+        const parameters = this.parameters;
+        const exports = this.exports;
+
+        const sessionProperties: {
+            [key: string]: {
+                order: number;
+                displayname: string;
+                hidden: boolean;
+            }
+        } = {};
+        for (let p in parameters) {
+            sessionProperties[p] = {
+                order: parameters[p].order || 0,
+                displayname: parameters[p].displayname || '',
+                hidden: parameters[p].hidden
+            }
+        }
+        for (let e in exports) {
+            sessionProperties[e] = {
+                order: exports[e].order || 0,
+                displayname: exports[e].displayname || '',
+                hidden: exports[e].hidden
+            }
+        }
+        this._settingsEngine.session = sessionProperties;
+
+        let orderedOutputs: IOutput[] = [];
+        for (let o in this.outputs) orderedOutputs.push(this.outputs[o]);
+        orderedOutputs.sort((a, b) => ((a.order || Infinity) - (b.order || Infinity)));
+        let zerosOutputs = orderedOutputs.filter(x => x.order === 0);
+        orderedOutputs = orderedOutputs.filter((el) => { return !zerosOutputs.includes(el); });
+        orderedOutputs = zerosOutputs.concat(orderedOutputs);
+
+        const controlOrderOutputs = orderedOutputs.map((value) => { return value.id; });
+        for (let i = 0; i < controlOrderOutputs.length; i++) {
+            if (this.outputs[controlOrderOutputs[i]])
+                if (this.outputs[controlOrderOutputs[i]]!.order !== i)
+                    this.outputs[controlOrderOutputs[i]]!.order = i;
+        }
+    }
+
+    private _warningCreator() {
+        // set the output content to what has been updated
+        for (const outputId in this.outputs) {
+            let warning: string = '';
+            if (this.outputs[outputId].msg)
+                warning += `\n\t- ${this.outputs[outputId].msg}`;
+            if (this.outputs[outputId].status_collect && this.outputs[outputId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_collect is ${this.outputs[outputId].status_collect}`;
+            if (this.outputs[outputId].status_computation && this.outputs[outputId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_computation is ${this.outputs[outputId].status_computation}`;
+            if (warning)
+                this._logger.warn(LOGGING_TOPIC.SESSION, `\nOutput(${outputId}):${warning}`);
+        }
+
+        // set the export definitions
+        for (const exportId in this.exports) {
+            let warning: string = '';
+            if (this.exports[exportId].msg)
+                warning += `\n\t- ${this.exports[exportId].msg}`;
+            if (this.exports[exportId].status_collect && this.exports[exportId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_collect is ${this.exports[exportId].status_collect}`;
+            if (this.exports[exportId].status_computation && this.exports[exportId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
+                warning += `\n\t- status_computation is ${this.exports[exportId].status_computation}`;
+            if (warning)
+                this._logger.warn(LOGGING_TOPIC.SESSION, `\nExport(${exportId}):${warning}`);
+        }
+    }
 
     private checkAvailability(action?: string, checkForModelId = false) {
         if (!this._responseDto) {
@@ -809,6 +1065,10 @@ export class SessionEngine implements ISessionEngine {
             const error = new ShapeDiverViewerSessionError(`Session.checkAvailability: action ${action} not available.`);
             throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.checkAvailability', error);
         }
+    }
+
+    private async customizeInternal(cancelRequest: () => boolean): Promise<ISessionTreeNode> {
+        return this.customizeSession(this._parameterValues, cancelRequest);
     }
 
     private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, retry = false): Promise<ISessionTreeNode> {
@@ -976,34 +1236,5 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-
-    private _warningCreator() {
-        // set the output content to what has been updated
-        for (const outputId in this.outputs) {
-            let warning: string = '';
-            if (this.outputs[outputId].msg)
-                warning += `\n\t- ${this.outputs[outputId].msg}`;
-            if (this.outputs[outputId].status_collect && this.outputs[outputId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_collect is ${this.outputs[outputId].status_collect}`;
-            if (this.outputs[outputId].status_computation && this.outputs[outputId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_computation is ${this.outputs[outputId].status_computation}`;
-            if (warning)
-                this._logger.warn(LOGGING_TOPIC.SESSION, `\nOutput(${outputId}):${warning}`);
-        }
-
-        // set the export definitions
-        for (const exportId in this.exports) {
-            let warning: string = '';
-            if (this.exports[exportId].msg)
-                warning += `\n\t- ${this.exports[exportId].msg}`;
-            if (this.exports[exportId].status_collect && this.exports[exportId].status_collect !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_collect is ${this.exports[exportId].status_collect}`;
-            if (this.exports[exportId].status_computation && this.exports[exportId].status_computation !== ShapeDiverResponseModelComputationStatus.SUCCESS)
-                warning += `\n\t- status_computation is ${this.exports[exportId].status_computation}`;
-            if (warning)
-                this._logger.warn(LOGGING_TOPIC.SESSION, `\nExport(${exportId}):${warning}`);
-        }
-    }
-
-    // #endregion Private Methods (5)
+    // #endregion Private Methods (8)
 }

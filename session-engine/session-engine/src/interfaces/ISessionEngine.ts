@@ -98,7 +98,7 @@ export interface ISessionEngine {
       light?: boolean,
       environment?: boolean
     }
-  }): Promise<void>;
+  }): void;
   canGoBack(): boolean;
   canGoForward(): boolean;
   close(): Promise<void>;
