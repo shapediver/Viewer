@@ -1,9 +1,10 @@
-import { Box } from '@shapediver/viewer.shared.math'
 import { mat4, vec2, vec3 } from 'gl-matrix'
-import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { ITreeNode, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
 import { ICameraControls } from '../controls/ICameraControls'
 import { CAMERA_TYPE } from '../ICameraEngine'
+import { IBox } from '@shapediver/viewer.shared.math'
+import { SettingsEngine } from '@shapediver/viewer.shared.services'
 
 export interface ICamera extends ITreeNodeData {
     // #region Properties (13)
@@ -13,15 +14,19 @@ export interface ICamera extends ITreeNodeData {
     readonly type: CAMERA_TYPE;
 
     autoAdjust: boolean;
+    boundingBox: IBox;
     cameraMovementDuration: number;
     defaultPosition: vec3;
     defaultTarget: vec3;
     enableCameraControls: boolean;
     position: vec3;
+    name?: string;
+    node?: ITreeNode;
     order?: number;
     revertAtMouseUp: boolean;
     revertAtMouseUpDuration: number;
     target: vec3;
+    useNodeData: boolean;
     zoomExtentsFactor: number;
 
     // #endregion Properties (13)
@@ -29,10 +34,11 @@ export interface ICamera extends ITreeNodeData {
     // #region Public Methods (6)
 
     animate(path: { position: vec3, target: vec3 }[], options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    applySettings(settingsEngine: SettingsEngine): void;
     reset(options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
     set(position: vec3, target: vec3, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
-    zoomTo(zoomTarget?: Box, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
-    calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
+    zoomTo(zoomTarget?: IBox, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    calculateZoomTo(zoomTarget?: IBox, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
     project(p: vec3): vec2;
     unproject(p: vec3): vec3;
 

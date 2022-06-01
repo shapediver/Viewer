@@ -146,7 +146,7 @@ export class SDGTFLoader {
             const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null));
             singleArcNode.data.push(geometry);
 
-            singleArcNode.transformations.push({
+            singleArcNode.addTransformation({
                 id: 'arc_' + i + '_translation',
                 matrix: mat4.translate(mat4.create(), mat4.create(), vec3.fromValues(arcCenter[0], arcCenter[1], arcCenter[2]))
             });
@@ -157,7 +157,7 @@ export class SDGTFLoader {
                 arcXAxis[2], arcYAxis[2], arcZAxis[2], 0,
                 0, 0, 0, 1
             ));
-            singleArcNode.transformations.push({
+            singleArcNode.addTransformation({
                 id: 'arc_' + i + '_rotation',
                 matrix: arcRotationMatrix
             });
@@ -327,7 +327,7 @@ export class SDGTFLoader {
             const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.LINE_STRIP, null));
             singleCircleNode.data.push(geometry);
 
-            singleCircleNode.transformations.push({
+            singleCircleNode.addTransformation({
                 id: 'circle_' + i + '_translation',
                 matrix: mat4.translate(mat4.create(), mat4.create(), vec3.fromValues(circleCenter[0], circleCenter[1], circleCenter[2]))
             });
@@ -338,7 +338,7 @@ export class SDGTFLoader {
                 circleXAxis[2], circleYAxis[2], circleZAxis[2], 0,
                 0, 0, 0, 1
             ));
-            singleCircleNode.transformations.push({
+            singleCircleNode.addTransformation({
                 id: 'circle_' + i + '_rotation',
                 matrix: circleRotationMatrix
             });
@@ -459,7 +459,7 @@ export class SDGTFLoader {
             const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length)));
             singleCylinderNode.data.push(geometry);
 
-            singleCylinderNode.transformations.push({
+            singleCylinderNode.addTransformation({
                 id: 'cylinder_' + i + '_translation',
                 matrix: mat4.translate(mat4.create(), mat4.create(), cylinderBottom)
             });
@@ -470,17 +470,17 @@ export class SDGTFLoader {
                 cylinderXAxis[2], cylinderYAxis[2], cylinderAxis[2], 0,
                 0, 0, 0, 1
             ));
-            singleCylinderNode.transformations.push({
+            singleCylinderNode.addTransformation({
                 id: 'cylinder_' + i + '_rotation',
                 matrix: cylinderRotationMatrix
             });
 
 
-            singleCylinderNode.transformations.push({
+            singleCylinderNode.addTransformation({
                 id: 'cylinder_' + i + '_rotation2',
                 matrix: mat4.rotateX(mat4.create(), mat4.create(), 0.5 * Math.PI)
             });
-            singleCylinderNode.transformations.push({
+            singleCylinderNode.addTransformation({
                 id: 'cylinder_' + i + '_translation2',
                 matrix: mat4.translate(mat4.create(), mat4.create(), vec3.fromValues(0, 0, 0.5 * vec3.distance(cylinderTop, cylinderBottom)))
             });
@@ -577,7 +577,7 @@ export class SDGTFLoader {
             const geometry = new GeometryData(new PrimitiveData(attributes, PRIMITIVE_MODE.TRIANGLES, new AttributeData(this.convertToIndicesArray(indices), 1, 0, 0, 0, false, indices.length)));
             singleSphereNode.data.push(geometry);
 
-            singleSphereNode.transformations.push({
+            singleSphereNode.addTransformation({
                 id: 'sphere_' + i + '_translation',
                 matrix: mat4.translate(mat4.create(), mat4.create(), sphereTranslation)
             });

@@ -37,7 +37,7 @@ export enum TONE_MAPPING {
 /**
  * Modes used to indicate that a viewport is busy.
  */
- export enum BUSY_MODE_DISPLAY {
+export enum BUSY_MODE_DISPLAY {
   /** The viewport will be blurred when a session is busy. */
   BLUR = 'blur',
   /** A spinner will be shown when a session is busy. */
@@ -69,13 +69,15 @@ export enum SESSION_SETTINGS_MODE {
    * Use this mode in case you want to assign a specific session identifier 
    * to the viewport, whose settings will be used.
    */
-  CUSTOM = 'custom',
+  MANUAL = 'manual',
 };
 
 /**
  * Types of flags used to influence the render loop.
  */
 export enum FLAG_TYPE {
+  /** The flag for the busy mode. */
+  BUSY_MODE = 'busy_mode',
   /** The flag to freeze the camera. */
   CAMERA_FREEZE = 'camera_freeze',
   /** The flag to continuously render the scene. */
@@ -85,7 +87,7 @@ export enum FLAG_TYPE {
 }
 
 export interface IRenderingEngine {
-  // #region Properties (2)
+  // #region Properties (15)
 
   automaticResizing: boolean;
   blur: boolean;
@@ -95,28 +97,25 @@ export interface IRenderingEngine {
   domEventEngine: DomEventEngine;
   id: string;
   pointSize: number;
-  type: RENDERER_TYPE;
+  sessionSettingsId?: string;
+  sessionSettingsMode: SESSION_SETTINGS_MODE;
   settingsEngine?: SettingsEngine;
   show: boolean;
   showStatistics: boolean;
-  sessionSettingsId?: string;
-  sessionSettingsMode: SESSION_SETTINGS_MODE;
+  type: RENDERER_TYPE;
   visibility: VISIBILITY_MODE;
 
-  // #endregion Properties (2)
+  // #endregion Properties (15)
 
-  // #region Public Methods (1)
+  // #region Public Methods (7)
 
-  /**
-   * Update the current tree with the provided node.
-   * 
-   * @param root the root node
-   */
-  update(): void;
+  addFlag(flag: FLAG_TYPE): string;
+  getScreenshot(type?: string, encoderOptions?: number): string;
   init(): void;
+  removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;
-  getScreenshot(type?: string, encoderOptions?: number): string;
+  update(id: string): void;
 
-  // #endregion Public Methods (1)
+  // #endregion Public Methods (7)
 }

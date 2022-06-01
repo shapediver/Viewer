@@ -280,7 +280,7 @@ export class GLTFLoader {
         const nodeDef = new TreeNode(nodeName);
 
         if (node.matrix) {
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: this._uuidGenerator.create(),
                 matrix: mat4.fromValues(node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
                 node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
@@ -292,7 +292,7 @@ export class GLTFLoader {
             const matS = node.scale ? mat4.fromScaling(mat4.create(), vec3.fromValues(node.scale[0], node.scale[1], node.scale[2])) : mat4.create();
             const matR = node.rotation ? mat4.fromQuat(mat4.create(), vec4.fromValues(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3])) : mat4.create();
             const matrix = mat4.mul(mat4.create(), mat4.mul(mat4.create(), matT, matS), matR);
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: this._uuidGenerator.create(),
                 matrix: matrix
             });
@@ -321,7 +321,7 @@ export class GLTFLoader {
         const scene = this._content.scenes![this._content.scene!];
         const sceneDef = new TreeNode(this._content.scene!);
         if(this._content.asset && this._content.asset?.generator !== "ShapeDiverGltfWriter" && this._content.asset?.generator !== "ShapeDiverGltfV1Writer") {
-            sceneDef.transformations.push({
+            sceneDef.addTransformation({
                 id: this._uuidGenerator.create(),
                 matrix: this._globalTransformation
             })

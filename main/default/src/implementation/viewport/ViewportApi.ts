@@ -4,12 +4,22 @@ import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.re
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
 import { container } from "tsyringe";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
+import { Converter } from "@shapediver/viewer.shared.services";
+import { RENDERER_TYPE, SESSION_SETTINGS_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { CAMERA_TYPE, IOrthographicCamera, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { PerspectiveCameraApi } from "./camera/PerspectiveCameraApi";
+import { OrthographicCameraApi } from "./camera/OrthographicCameraApi";
+import { LightSceneApi } from "./lights/LightSceneApi";
 
 export class ViewportApi implements IViewportApi {
     // #region Properties (2)
 
     readonly #renderingEngine: RenderingEngineThreeJs;
     readonly #creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
+    readonly #converter: Converter = <Converter>container.resolve(Converter);
+
+    readonly #cameras: { [key: string]: ICameraApi } = {};
+    readonly #lightScenes: { [key: string]: ILightSceneApi } = {};
 
     // #endregion Properties (2)
 
@@ -17,18 +27,57 @@ export class ViewportApi implements IViewportApi {
 
     constructor(renderingEngine: RenderingEngineThreeJs) {
         this.#renderingEngine = renderingEngine;
+
+        // Whenever a camera is added or removed from the camera engine, this update is called.
+        this.#renderingEngine.cameraEngine.update = () => {
+            for (let c in this.#renderingEngine.cameraEngine.cameras) {
+                if (!this.#cameras[c]) {
+                    if(this.#renderingEngine.cameraEngine.cameras[c].type === CAMERA_TYPE.PERSPECTIVE) {
+                        this.#cameras[c] = new PerspectiveCameraApi(<IPerspectiveCamera>this.#renderingEngine.cameraEngine.cameras[c]);
+                    } else {
+                        this.#cameras[c] = new OrthographicCameraApi(<IOrthographicCamera>this.#renderingEngine.cameraEngine.cameras[c]);
+                    }
+                }
+            }
+
+            for (let c in this.#cameras) {
+                if (!this.#renderingEngine.cameraEngine.cameras[c]) {
+                    delete this.#cameras[c];
+                }
+            }
+        }
+
+        // We call it once in the beginning to get the current state.
+        this.#renderingEngine.cameraEngine.update();
+        
+        // Whenever a camera is added or removed from the camera engine, this update is called.
+        this.#renderingEngine.lightEngine.update = () => {
+            for (let l in this.#renderingEngine.lightEngine.lightScenes) {
+                if (!this.#lightScenes[l]) {
+                    this.#lightScenes[l] = new LightSceneApi(this.#renderingEngine.lightEngine.lightScenes[l]);
+                }
+            }
+
+            for (let l in this.#lightScenes) {
+                if (!this.#renderingEngine.lightEngine.lightScenes[l]) {
+                    delete this.#lightScenes[l];
+                }
+            }
+        }
+
+        // We call it once in the beginning to get the current state.
+        this.#renderingEngine.lightEngine.update();
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (66)
 
-    public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: ISDTFItemData | undefined) => ISDTFAttributeVisualizationData) {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.visualizeAttributes;
+    public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
+        return this.#renderingEngine.visualizeAttributes;
     }
 
-    public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: ISDTFItemData | undefined) => ISDTFAttributeVisualizationData)) {
+    public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
         this.#renderingEngine.visualizeAttributes = value;
     }
 
@@ -52,17 +101,28 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.animations;
     }
 
-    public set animations(value: IAnimationData[]) {
-        //this.#renderingEngine.animations = value;
-    }
-
     public get arScale(): vec3 {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.arScale;
+        return this.#renderingEngine.arScale;
     }
 
     public set arScale(value: vec3) {
-        //this.#renderingEngine.arScale = value;
+        this.#renderingEngine.arScale = value;
+    }
+
+    public get arRotation(): vec3 {
+        return this.#renderingEngine.arRotation;
+    }
+
+    public set arRotation(value: vec3) {
+        this.#renderingEngine.arRotation = value;
+    }
+
+    public get arTranslation(): vec3 {
+        return this.#renderingEngine.arTranslation;
+    }
+
+    public set arTranslation(value: vec3) {
+        this.#renderingEngine.arTranslation = value;
     }
 
     public get automaticResizing(): boolean {
@@ -90,30 +150,20 @@ export class ViewportApi implements IViewportApi {
     }
 
     public get busyModeDisplay(): BUSY_MODE_DISPLAY {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.busyModeDisplay;
+        return this.#renderingEngine.busyModeDisplay;
     }
 
     public set busyModeDisplay(value: BUSY_MODE_DISPLAY) {
-        //this.#renderingEngine.busyModeDisplay = value;
+        this.#renderingEngine.busyModeDisplay = value;
     }
 
     public get camera(): ICameraApi | null {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.camera;
-    }
-
-    public set camera(value: ICameraApi | null) {
-        //this.#renderingEngine.camera = value;
+        if(!this.#renderingEngine.cameraEngine.camera) return null;
+        return this.#cameras[this.#renderingEngine.cameraEngine.camera.id];
     }
 
     public get cameras(): { [key: string]: ICameraApi; } {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.cameras;
-    }
-
-    public set cameras(value: { [key: string]: ICameraApi; }) {
-        //this.#renderingEngine.cameras = value;
+        return this.#cameras;
     }
 
     public get canvas(): HTMLCanvasElement {
@@ -133,16 +183,15 @@ export class ViewportApi implements IViewportApi {
     }
 
     public set clearColor(value: string | number | vec3) {
-        //this.#renderingEngine.clearColor = value;
+        this.#renderingEngine.clearColor = this.#converter.toColor(value);
     }
 
     public get enableAR(): boolean {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.enableAR;
+        return this.#renderingEngine.enableAR;
     }
 
     public set enableAR(value: boolean) {
-        //this.#renderingEngine.enableAR = value;
+        this.#renderingEngine.enableAR = value;
     }
 
     public get environmentMap(): string | string[] {
@@ -174,7 +223,7 @@ export class ViewportApi implements IViewportApi {
     }
 
     public set gridColor(value: string | number | vec3) {
-        //this.#renderingEngine.gridColor = value;
+        this.#renderingEngine.gridColor = this.#converter.toColor(value);
     }
 
     public get gridVisibility(): boolean {
@@ -190,7 +239,7 @@ export class ViewportApi implements IViewportApi {
     }
 
     public set groundPlaneColor(value: string | number | vec3) {
-        //this.#renderingEngine.groundPlaneColor = value;
+        this.#renderingEngine.groundPlaneColor = this.#converter.toColor(value);
     }
 
     public get groundPlaneVisibility(): boolean {
@@ -206,21 +255,12 @@ export class ViewportApi implements IViewportApi {
     }
 
     public get lightScene(): ILightSceneApi | null {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.lightScene;
-    }
-
-    public set lightScene(value: ILightSceneApi | null) {
-        //this.#renderingEngine.lightScene = value;
+        if(!this.#renderingEngine.lightEngine.lightScene) return null;
+        return this.#lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
     }
 
     public get lightScenes(): { [key: string]: ILightSceneApi; } {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.lightScenes;
-    }
-
-    public set lightScenes(value: { [key: string]: ILightSceneApi; }) {
-        //this.#renderingEngine.lightScenes = value;
+        return this.#lightScenes;
     }
 
     public get outputEncoding(): TEXTURE_ENCODING {
@@ -247,13 +287,20 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.pointSize = value;
     }
 
-    public get sessionSettingsId(): string {
-        throw new Error('Missing impl')
-        //return this.#renderingEngine.sessionSettingsId;
+    public get sessionSettingsId(): string | undefined {
+        return this.#renderingEngine.sessionSettingsId;
     }
 
-    public set sessionSettingsId(value: string) {
-        //this.#renderingEngine.sessionSettingsId = value;
+    public set sessionSettingsId(value: string | undefined) {
+        this.#renderingEngine.sessionSettingsId = value;
+    }
+
+    public get sessionSettingsMode(): SESSION_SETTINGS_MODE {
+        return this.#renderingEngine.sessionSettingsMode;
+    }
+
+    public set sessionSettingsMode(value: SESSION_SETTINGS_MODE) {
+        this.#renderingEngine.sessionSettingsMode = value;
     }
 
     public get shadows(): boolean {
@@ -304,96 +351,100 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.toneMappingExposure = value;
     }
 
+    public get type(): RENDERER_TYPE {
+        return this.#renderingEngine.type;
+    }
+
+    public set type(value: RENDERER_TYPE) {
+        this.#renderingEngine.type = value;
+    }
+
     // #endregion Public Accessors (66)
 
     // #region Public Methods (25)
 
     public addCanvasEventListener(listener: IDomEventListener): string {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.domEventEngine.addDomEventListener(listener);
     }
 
     public addFlag(flag: FLAG_TYPE): string {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.addFlag(flag)
     }
 
-    public assignCamera(id: string): void {
-        throw new Error("Method not implemented.");
+    public assignCamera(id: string): boolean {
+        return this.#renderingEngine.cameraEngine.assignCamera(id);
     }
 
     public assignLightScene(id: string): boolean {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.lightEngine.assignLightScene(id);
     }
 
     public async close(): Promise<void> {
-        await this.#creationControlCenter.closeRenderingEngine(this.id);
+        return await this.#creationControlCenter.closeRenderingEngine(this.id);
     }
 
     public createLightScene(properties?: { name?: string | undefined; standard?: boolean | undefined; }): ILightSceneApi {
-        throw new Error("Method not implemented.");
+        // TODO input sanitation 
+        const lightScene = this.#renderingEngine.lightEngine.createLightScene(properties || {});
+        return this.#lightScenes[lightScene.id];
     }
 
     public createOrthographicCamera(id?: string): IOrthographicCameraApi {
-        throw new Error("Method not implemented.");
+        const camera = this.#renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, id);
+        return <IOrthographicCameraApi>this.#cameras[camera.id];
     }
 
     public createPerspectiveCamera(id?: string): IPerspectiveCameraApi {
-        throw new Error("Method not implemented.");
+        const camera = this.#renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.PERSPECTIVE, id);
+        return <IPerspectiveCameraApi>this.#cameras[camera.id];
     }
 
     public createSDTFOverview(node: ITreeNode): ISDTFOverview {
-        throw new Error("Method not implemented.");
-    }
-
-    public deregisterBusyMode(value: string): boolean {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.createSDTFOverview(node);
     }
 
     public displayErrorMessage(message: string): void {
-        throw new Error("Method not implemented.");
+        this.#renderingEngine.displayErrorMessage(message);
     }
 
     public getEnvironmentMapImageUrl(): string {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.getEnvironmentMapImageUrl();
     }
 
     public getScreenshot(type?: string, quality?: number): string {
-        throw new Error("Method not implemented.");
-    }
-
-    public registerBusyMode(value: string): boolean {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.getScreenshot(type, quality);
     }
 
     public removeCamera(id: string): boolean {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.cameraEngine.removeCamera(id);
     }
 
     public removeCanvasEventListener(token: string): boolean {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.domEventEngine.removeDomEventListener(token);
     }
 
     public removeFlag(token: string): boolean {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.removeFlag(token)
     }
 
     public removeLightScene(id: string): boolean {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.lightEngine.removeLightScene(id);
     }
 
     public render(): void {
-        throw new Error("Method not implemented.");
+        this.#renderingEngine.renderingManager.render();
     }
     
     public resize(width: number, height: number): void {
-        throw new Error("Method not implemented.");
+        this.#renderingEngine.resize(width, height);
     }
 
     public update(): void {
-        this.#renderingEngine.update();
+        this.#renderingEngine.update('ViewportApi');
     }
 
     public updateNode(node: ITreeNode): void {
-        throw new Error("Method not implemented.");
+        this.#renderingEngine.sceneTreeManager.updateNode(node, node.transformedNodes[this.id]);
     }
 
     public viewInAR(options?: { arScale?: "auto" | "fixed" | undefined; arPlacement?: "floor" | "wall" | undefined; xrEnvironment?: boolean | undefined; }): Promise<void> {

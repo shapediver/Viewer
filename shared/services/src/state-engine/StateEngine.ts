@@ -25,7 +25,8 @@ export class StateEngine {
             initialized: StatePromise<boolean>,
             settingsAssigned: StatePromise<boolean>,
             environmentMapLoaded: StatePromise<boolean>,
-            boundingBoxCreated: StatePromise<boolean>
+            boundingBoxCreated: StatePromise<boolean>,
+            busy: string[]
         }
     } = {};
 
@@ -61,7 +62,8 @@ export class StateEngine {
             initialized: StatePromise<boolean>,
             settingsAssigned: StatePromise<boolean>,
             environmentMapLoaded: StatePromise<boolean>,
-            boundingBoxCreated: StatePromise<boolean>
+            boundingBoxCreated: StatePromise<boolean>,
+            busy: string[]
         }
     } {
         return this._renderingEngines;

@@ -14,7 +14,7 @@ describe('device testing', () => {
     });
 
     beforeEach(async () => {
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/interaction/index.html');
+        await driver.navigate().to('https://viewer.shapediver.com/v3/branch/task/restructuring/interaction/index.html')
     });
 
     afterAll(async () => {

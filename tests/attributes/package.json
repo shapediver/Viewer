@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@shapediver/viewer": "*",
+    "@shapediver/viewer.features.attribute-visualization": "*",
     "chromedriver": "^100.0.0",
     "gl-matrix": "3.3.0",
     "jest-image-snapshot": "^4.5.1",

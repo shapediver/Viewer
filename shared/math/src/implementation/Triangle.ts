@@ -42,4 +42,10 @@ export class Triangle implements ITriangle {
         const t = f * vec3.dot(edge2, q);
         return t > EPSILON ? vec3.add(vec3.create(), vec3.multiply(vec3.create(), direction, vec3.fromValues(t, t, t)), origin):null;
     }
+
+    reset() {
+        this._v0 = vec3.create();
+        this._v1 = vec3.create();
+        this._v2 = vec3.create();    
+    }
 }

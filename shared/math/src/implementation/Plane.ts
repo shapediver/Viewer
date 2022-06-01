@@ -77,5 +77,10 @@ export class Plane implements IPlane {
 		return this;
     }
 
+    public reset() {
+        this._normal = vec3.fromValues(1,0,0);
+        this._constant = 0;
+    }
+
     // #endregion Public Methods (7)
 }

@@ -1,6 +1,6 @@
 import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API } from '@shapediver/viewer'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { createDriver, screenshotCompare } from '../../general/src/setup'
 import { sdeuc1 } from '../../general/src/models'
@@ -11,7 +11,7 @@ require('chromedriver');
 const shelfTicket = sdeuc1.models['Shelf'].ticket;
 
 let driver: webdriver.WebDriver;
-let name = 'camera_api_tests';
+let name = 'camera_SDV_tests';
 let token: string;
 
 describe('device testing', () => {
@@ -21,14 +21,14 @@ describe('device testing', () => {
     });
 
     beforeEach(async () => {
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
+        await driver.navigate().to('https://viewer.shapediver.com/v3/branch/task/restructuring/cdn/index.html')
     });
 
     afterAll(async () => {
         // await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-        //     const api: typeof API = (<any>window).SDV.api;
-        //     let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-        //     let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', bearerToken });
+        //     const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+        //     let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+        //     let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', bearerToken });
 
         //     const camera = viewer.createPerspectiveCamera();
         //     viewer.assignCamera(camera.id);
@@ -49,11 +49,11 @@ describe('device testing', () => {
 
     it(name + '_save_perspective_front_1', async () => {
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', bearerToken });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', jwtToken: bearerToken });
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             await session.saveSettings();
             cb();
@@ -65,17 +65,17 @@ describe('device testing', () => {
     it(name + '_save_perspective_front_2', async () => {
         // change and save
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', bearerToken });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', jwtToken: bearerToken });
 
             const camera = viewer.createOrthographicCamera('myNewCamera');
             (<any>camera).direction = ('front')
-            viewer.assignCamera(camera.id);
+            viewer.assignCamera(camera.id);            
             viewer.update();
 
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             await session.saveSettings();
             cb();
@@ -86,9 +86,9 @@ describe('device testing', () => {
     it(name + '_save_perspective_front_3', async () => {
         // reset and save
         await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', bearerToken });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', jwtToken: bearerToken });
 
             const camera = viewer.createPerspectiveCamera();
             viewer.assignCamera(camera.id);
@@ -101,7 +101,7 @@ describe('device testing', () => {
             viewer.update();
 
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             await session.saveSettings();
             cb();

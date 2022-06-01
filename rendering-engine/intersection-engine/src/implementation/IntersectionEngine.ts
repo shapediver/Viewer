@@ -16,8 +16,8 @@ export class IntersectionEngine implements IIntersectionEngine {
         let intersections: IIntersection[] = [];
         const intersectNode = (node: ITreeNode) => {
             if(viewerID !== undefined) {
-                if(node.excludeViewers.includes(viewerID)) return;
-                if(node.includeViewers.length > 0 && !node.includeViewers.includes(viewerID)) return;
+                if(node.excludeViewports.includes(viewerID)) return;
+                if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(viewerID)) return;
             }
 
             for (let i = 0; i < filterCriteria.length; i++) {

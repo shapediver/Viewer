@@ -1,3 +1,4 @@
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix';
 
@@ -18,12 +19,13 @@ export class LightScene implements ILightScene {
     private readonly _node: ITreeNode;
 
     private _name: string | undefined;
+    private _update?: () => void;
 
     // #endregion Properties (5)
 
     // #region Constructors (1)
 
-    constructor(properties: {id: string, name?: string}) {
+    constructor(private readonly _renderingEngine: IRenderingEngine, properties: {id: string, name?: string}) {
         this._id = properties.id;
         this._name = properties.name;
         this._node = new TreeNode(properties.name || properties.id);
@@ -51,6 +53,14 @@ export class LightScene implements ILightScene {
 
     public get node(): ITreeNode {
         return this._node;
+    }
+    
+    public get update(): (() => void) | undefined {
+        return this._update;
+    }
+
+    public set update(value: (() => void) | undefined) {
+        this._update = value;
     }
 
     // #endregion Public Accessors (5)
@@ -82,6 +92,7 @@ export class LightScene implements ILightScene {
         this._lights[light.id] = light;
         
         this._node.updateVersion();
+        if(this._update) this._update();
     }
 
     public addPointLight(properties: {color?: string, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string}): PointLight {
@@ -109,6 +120,7 @@ export class LightScene implements ILightScene {
 
         delete this._lights[id];
         this._node.updateVersion();
+        if(this._update) this._update();
         return true;
     }
 

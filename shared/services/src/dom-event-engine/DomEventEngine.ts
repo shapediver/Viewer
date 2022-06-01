@@ -43,7 +43,7 @@ export class DomEventEngine {
 
     // #region Constructors (1)
 
-    constructor(private readonly _viewerId: string, canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement) {
         this._canvas = canvas;
         this._onMouseWheel = this.onMouseWheel.bind(this);
         this._onMouseDown = this.onMouseDown.bind(this);

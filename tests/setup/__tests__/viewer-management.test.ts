@@ -1,6 +1,6 @@
 import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API } from '@shapediver/viewer'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { createDriver, screenshotCompare } from '../../general/src/setup'
 import { sdeuc1 } from '../../general/src/models'
@@ -18,7 +18,7 @@ describe('device testing', () => {
     });
 
     beforeEach(async () => {
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
+        await driver.navigate().to('https://viewer.shapediver.com/v3/branch/task/restructuring/cdn/index.html')
     });
 
     afterAll(async () => {
@@ -28,28 +28,28 @@ describe('device testing', () => {
 
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/1_1');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            await api.closeViewer('myViewer');
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            await SDV.viewports['myViewer'].close();
             cb();
         });
         await screenshotCompare(await driver.takeScreenshot(), name + '/1_2');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -58,16 +58,16 @@ describe('device testing', () => {
 
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             cb();
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/2_2');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            await api.closeViewer('myViewer');
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            await SDV.viewports['myViewer'].close();
             cb();
         });
         await screenshotCompare(await driver.takeScreenshot(), name + '/2_3');

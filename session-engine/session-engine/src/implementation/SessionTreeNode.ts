@@ -15,20 +15,17 @@ export class SessionTreeNode extends TreeNode implements ISessionTreeNode {
    * Special scene graph node for session data. Only to be created internally.
    * 
    * @param name the name of the node 
-   * @param id the id of the node
    * @param parent the parent of this node
    * @param data the array of data 
    * @param transformation the array of transformations
    */
   constructor(
     name?: string,
-    id?: string,
-    parent?: ITreeNode | null,
+    parent?: ITreeNode,
     data?: ITreeNodeData[],
     transformations?: ITransformation[]
   ) {
     super(name, parent, data, transformations);
-    if (id) this.id = id;
   }
 
   // #endregion Constructors (1)

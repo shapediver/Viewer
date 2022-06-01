@@ -1,6 +1,6 @@
 import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API, PerspectiveCamera, PerspectiveCameraControls } from '@shapediver/viewer'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { createDriver, screenshotCompare } from '../../general/src/setup'
 
@@ -19,7 +19,7 @@ describe('device testing', () => {
     });
 
     beforeEach(async () => {
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/gltf/index.html')
+        await driver.navigate().to('https://viewer.shapediver.com/v3/branch/task/restructuring/gltf/index.html')
     });
 
     afterAll(async () => {
@@ -45,9 +45,9 @@ describe('device testing', () => {
 
                 await driver.executeAsyncScript(async (name: string, variant: string, cb: any) => {
                     await ((<any>window).addGLTF(`https://raw.githubusercontent.com/shapediver/glTF-Sample-Models/master/2.0/${name}/${variant}/${name}.${variant === 'glTF-Binary' ? 'glb' : 'gltf'}`));
-                    const api: typeof API = (<any>window).SDV.api;
+                    const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
                     await new Promise<void>((resolve) => {
-                        api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                        SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                     })
                     cb();
                 }, modelJson.name, variant);

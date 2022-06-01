@@ -175,7 +175,7 @@ export class DragManager extends AbstractInteractionManager {
         if(index !== -1) { 
             node.transformations[index].matrix = matrix;
         } else {
-            node.transformations.push({ id: 'SD_drag_matrix', matrix })
+            node.addTransformation({ id: 'SD_drag_matrix', matrix })
         }
     }
 
@@ -200,7 +200,8 @@ export class DragManager extends AbstractInteractionManager {
 
     private removeTransformation(node: ITreeNode) {
         const index = node.transformations.findIndex((t: ITransformation) => t.id === 'SD_drag_matrix');
-        if(index !== -1) node.transformations.splice(index, 1);
+        if(index !== -1) node.removeTransformation(node.transformations[index]);
+
     }
 
     // #endregion Private Methods (4)

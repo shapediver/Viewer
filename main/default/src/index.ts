@@ -5,7 +5,7 @@ import { CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from "@shapediver/viewer.r
 import { LIGHT_TYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { RENDERER_TYPE, VISIBILITY_MODE, TEXTURE_ENCODING, TONE_MAPPING, FLAG_TYPE, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { MainEventTypes, EVENTTYPE, LOGGING_LEVEL, LOGGING_TOPIC, IDomEventListener, IEvent, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK } from "@shapediver/viewer.shared.services";
-import { PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, TASK_TYPE, ISDTFAttributeVisualizationData, ISDTFOverview, IMaterialData, IAnimationTrack, IMaterialDataProperties, IMapData, IAnimationData, ISDTFItemData, ISDTFAttributeData, ISDTFAttributesData, IViewerEvent, ICameraEvent, ISceneEvent, ISessionEvent, ITaskEvent, EventResponseMapping, IDragEvent, IHoverEvent, ISelectEvent } from "@shapediver/viewer.shared.types";
+import { PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, TASK_TYPE, ISDTFAttributeVisualizationData, ISDTFOverview, IMaterialData, IAnimationTrack, IMaterialDataProperties, IMapData, IAnimationData, ISDTFItemData, ISDTFAttributeData, ISDTFAttributesData, IViewerEvent, ICameraEvent, ISceneEvent, ISessionEvent, ITaskEvent, EventResponseMapping, IDragEvent, IHoverEvent, ISelectEvent, AnimationData, MaterialStandardData, MaterialUnlitData, MaterialSpecularGlossinessData } from "@shapediver/viewer.shared.types";
 import { ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, IThreejsData } from '@shapediver/viewer.rendering-engine-threejs.standard'
 import { IExportApi } from "./interfaces/session/IExportApi";
 import { IFileParameterApi } from "./interfaces/session/IFileParameterApi";
@@ -40,3 +40,8 @@ export { ITree, ITreeNode, ITreeNodeData }
 export { FLAG_TYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, CAMERA_TYPE, LIGHT_TYPE, RENDERER_TYPE, VISIBILITY_MODE, ORTHOGRAPHIC_CAMERA_DIRECTION, TEXTURE_ENCODING, TONE_MAPPING, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, LOGGING_LEVEL, LOGGING_TOPIC, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE }
 export { EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, ISceneEvent, ITaskEvent, TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK }
 export { IBox, ISphere, IGeometry, ITransformation, IMaterialData, IMaterialDataProperties, IMapData, IAnimationTrack, ISDTFAttributeData, ISDTFAttributesData, ISDTFItemData, IAnimationData, ISDTFOverview, ShapeDiverResponseOutputContent, ISDObject, ISDTFAttributeVisualizationData, IDomEventListener, IEvent, IThreejsData, ISessionData, ISessionOutputData }
+
+export { 
+    AnimationData,
+    MaterialStandardData as MaterialData, MaterialStandardData, MaterialUnlitData, MaterialSpecularGlossinessData
+}

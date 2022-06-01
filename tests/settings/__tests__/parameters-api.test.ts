@@ -1,6 +1,6 @@
 import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API, DirectionalLight } from '@shapediver/viewer'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { sdeuc1 } from '../../general/src/models'
 import { createTokenFromSlug } from '../../general/src/createTokenFromSlug'
@@ -33,12 +33,12 @@ describe('device testing', () => {
     it(name + '_sessionSettingsDefault', async () => {
         // check starting default
         const r: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({
                 ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
-                bearerToken
+                jwtToken: bearerToken
             });
             await session.saveSettings();
             cb({ settings: (<any>window).SDV.settingsEngine.flatten(), tooltip: session.parameters['dd319731-fb8a-4aa2-9aef-ac85e96a3060'].tooltip });
@@ -52,12 +52,12 @@ describe('device testing', () => {
     it(name + '_sessionSettingsChange', async () => {
         // check starting default
         const r: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({
                 ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
-                bearerToken
+                jwtToken: bearerToken
             });
             session.parameters['dd319731-fb8a-4aa2-9aef-ac85e96a3060'].displayname = 'test';
             session.parameters['dd319731-fb8a-4aa2-9aef-ac85e96a3060'].hidden = true;
@@ -75,12 +75,12 @@ describe('device testing', () => {
     it(name + '_sessionSettingsChangeCheck', async () => {
         // check starting default
         const r: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({
                 ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
-                bearerToken
+                jwtToken: bearerToken
             });
             cb({ settings: (<any>window).SDV.settingsEngine.flatten(), tooltip: session.parameters['dd319731-fb8a-4aa2-9aef-ac85e96a3060'].tooltip });
         }, shelfTicket, token);
@@ -93,12 +93,12 @@ describe('device testing', () => {
     it(name + '_sessionSettingsReset', async () => {
         // check starting default
         const r: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({
                 ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
-                bearerToken
+                jwtToken: bearerToken
             });
             session.parameters['dd319731-fb8a-4aa2-9aef-ac85e96a3060'].displayname = '';
             session.parameters['dd319731-fb8a-4aa2-9aef-ac85e96a3060'].hidden = false;
@@ -116,12 +116,12 @@ describe('device testing', () => {
     it(name + '_sessionSettingsResetCheck', async () => {
         // check starting default
         const r: any = await driver.executeAsyncScript(async (ticket: string, bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({
                 ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
-                bearerToken
+                jwtToken: bearerToken
             });
             cb({ settings: (<any>window).SDV.settingsEngine.flatten(), tooltip: session.parameters['dd319731-fb8a-4aa2-9aef-ac85e96a3060'].tooltip });
         }, shelfTicket, token);

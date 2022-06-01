@@ -10,6 +10,7 @@ export interface ILightScene {
     lights: { [key: string]: ILight; };
     name?: string
     node: ITreeNode;
+    update?: () => void;
 
     // #endregion Properties (4)
 

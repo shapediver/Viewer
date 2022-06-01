@@ -110,6 +110,7 @@ export const viewports: { [key: string]: IViewportApi; } = {};
  */
 export const sessions: { [key: string]: ISessionApi; } = {};
 
+// Whenever a session or viewport is added or removed, this update is called.
 creationControlCenter.update = (
     sessionEngines: { [key: string]: SessionEngine; }, 
     renderingEngines: { [key: string]: RenderingEngineThreeJs; }
@@ -164,6 +165,7 @@ export let showMessages: boolean = viewerOptions.showMessages;
  * @param properties.id The unique identifier to use for the session.
  * @param properties.waitForOutputs Option to wait for the outputs to be loaded, or return immediately after creation of the session. (default: true)
  * @param properties.loadOutputs Option to load the outputs, or not load them until the first call of {@link ISessionApi.customize}. (default: true)
+ * @param properties.excludeViewports Option to exclude some viewports from the start. Can be accessed via {@link ISessionApi.excludeViewports}.
  * @param properties.initialParameterValues The initial set of parameter values to use. Map from parameter id to parameter value. The default value will be used for any parameter not specified.
  * @returns 
  */
@@ -174,6 +176,7 @@ export const createSession = async (properties: {
     id?: string,
     waitForOutputs?: boolean,
     loadOutputs?: boolean,
+    excludeViewports?: string[],
     initialParameterValues?: { [key: string]: string }
 }): Promise<ISessionApi> => {
     logger.info(LOGGING_TOPIC.SESSION, `Api.createSession: Creating and initializing session with properties ${JSON.stringify(properties)}.`);
@@ -189,6 +192,9 @@ export const createSession = async (properties: {
     if (properties.initialParameterValues)
         for (let p in properties.initialParameterValues)
             inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Api.createSession`, properties.initialParameterValues[p], 'string');
+
+    if(properties.waitForOutputs === undefined) properties.waitForOutputs = true;
+    if(properties.loadOutputs === undefined) properties.loadOutputs = true;
 
     const sessionEngine = await creationControlCenter.createSessionEngine(properties);
     sessions[sessionEngine.id] = new SessionApi(sessionEngine);

@@ -26,6 +26,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     private _defaultTarget: vec3 = vec3.create();
     private _enableCameraControls: boolean = true;
     private _far: number = 1000;
+    private _name?: string;
     private _near: number = 1;
     private _node?: ITreeNode;
     private _useNodeData: boolean = false;
@@ -38,10 +39,11 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     protected readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
 
     protected _boundingBox: IBox = new Box();
-    protected _controls!: AbstractCameraControls;
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
     protected _viewerId?: string;
+
+    protected abstract _controls: ICameraControls;
 
     // #endregion Properties (23)
 
@@ -113,6 +115,14 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     public get id(): string {
         return this._id;
+    }
+
+    public get name(): string | undefined {
+        return this._name;
+    }
+
+    public set name(value: string | undefined) {
+        this._name = value;
     }
 
     public get near(): number {

@@ -1,6 +1,6 @@
 import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API } from '@shapediver/viewer'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { createDriver, screenshotCompare } from '../../general/src/setup'
 import { sdeuc1 } from '../../general/src/models'
@@ -18,7 +18,7 @@ describe('device testing', () => {
     });
 
     beforeEach(async () => {
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
+        await driver.navigate().to('https://viewer.shapediver.com/v3/branch/task/restructuring/cdn/index.html')
     });
 
     afterAll(async () => {
@@ -28,9 +28,9 @@ describe('device testing', () => {
 
     test(name + '_positioning', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
@@ -50,9 +50,9 @@ describe('device testing', () => {
 
     test(name + '_set', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
@@ -70,11 +70,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/set_1');
 
         const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -93,9 +93,9 @@ describe('device testing', () => {
 
     test(name + '_reset', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
@@ -113,11 +113,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/reset_1');
 
         const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -133,11 +133,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/reset_2');
 
         const r3: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.reset({});
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -156,9 +156,9 @@ describe('device testing', () => {
 
     test(name + '_zoomTo', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
@@ -176,11 +176,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/zoom_1');
 
         const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -196,11 +196,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/zoom_2');
 
         const r3: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.zoomTo();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -214,15 +214,15 @@ describe('device testing', () => {
 
     test(name + '_ortho_switch', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
             viewer.assignCamera(camera.id)
             viewer.update();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
@@ -242,15 +242,15 @@ describe('device testing', () => {
 
     test(name + '_ortho_set', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
             viewer.assignCamera(camera.id)
             viewer.update();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
@@ -268,11 +268,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
         const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -291,15 +291,15 @@ describe('device testing', () => {
 
     test(name + '_ortho_reset', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
             viewer.assignCamera(camera.id)
             viewer.update();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
@@ -317,11 +317,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
         const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.set([100, 100, 100], [-100, -100, -100], {});
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -337,11 +337,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_set');
 
         const r3: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.reset({});
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -360,15 +360,15 @@ describe('device testing', () => {
 
     test(name + '_ortho_zoomTo', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
 
             const camera = viewer.createOrthographicCamera('myOrthographicCamera');
             viewer.assignCamera(camera.id)
             viewer.update();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 defaultPosition: viewer.camera!.defaultPosition,
@@ -386,11 +386,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_positioning');
 
         const r2: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.set([100, 0, 0], [-100, 0, 0], {});
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,
@@ -406,11 +406,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), name + '/ortho_zoom');
 
         const r3: any = await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = api.viewers['myViewer']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = SDV.viewports['myViewer']!;
             await viewer.camera!.zoomTo();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb({
                 position: viewer.camera!.position,

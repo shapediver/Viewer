@@ -18,6 +18,7 @@ import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCamera } from './AbstractCamera'
 import { PerspectiveCameraControls } from '../controls/PerspectiveCameraControls'
 import { IPerspectiveCamera } from '../../interfaces/camera/IPerspectiveCamera'
+import { IPerspectiveCameraControls } from '../../interfaces/controls/IPerspectiveCameraControls'
 
 export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCamera {
   // #region Properties (3)
@@ -25,6 +26,8 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
   private readonly _tree: ITree = <ITree>container.resolve(Tree);
+
+  protected _controls: IPerspectiveCameraControls;
 
   private _domEventListenerToken?: string;
   private _domEventEngine?: DomEventEngine;
@@ -51,6 +54,14 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
   public set aspect(value: number | undefined) {
     this._aspect = value;
+  }
+
+  public get controls(): IPerspectiveCameraControls {
+    return this._controls;
+  }
+
+  public set controls(value: IPerspectiveCameraControls) {
+    this._controls = value;
   }
 
   public get fov(): number {
@@ -115,6 +126,11 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     this._domEventListenerToken = this._domEventEngine.addDomEventListener((<PerspectiveCameraControls>this._controls).cameraControlsEventDistribution);
 
     this.boundingBox = this._tree.root.boundingBox.clone();
+
+    this._stateEngine.renderingEngines[viewerId].boundingBoxCreated.then(async () => {
+      if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])
+        await this.zoomTo(undefined, { duration: 0 });
+    })
   }
 
   public clone(): IPerspectiveCamera {

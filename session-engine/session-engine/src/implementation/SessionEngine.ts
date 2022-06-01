@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine } from '@shapediver/viewer.shared.services'
+import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
@@ -41,6 +41,7 @@ export class SessionEngine implements ISessionEngine {
     private readonly _sceneTree: ITree = <ITree>container.resolve(Tree);
     private readonly _sessionEngineId = (<UuidGenerator>container.resolve(UuidGenerator)).create();
     private readonly _settingsEngine: SettingsEngine = new SettingsEngine();
+    private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _ticket: string;
 
     private _automaticSceneUpdate: boolean = true;
@@ -48,12 +49,11 @@ export class SessionEngine implements ISessionEngine {
     private _closeOnFailure: () => Promise<void> = async () => { };
 
     private _closed: boolean = false;
-    // TODO
     private _customizeOnParameterChange: boolean = false;
     private _dataCache: {
         [key: string]: Promise<AxiosResponse<any>>
     } = {};
-    private _excludeViewers: string[] = [];
+    private _excludeViewports: string[] = [];
     private _headers = {
         "X-ShapeDiver-Origin": (<SystemInfo>container.resolve(SystemInfo)).origin,
         "X-ShapeDiver-SessionEngineId": this._sessionEngineId,
@@ -93,11 +93,12 @@ export class SessionEngine implements ISessionEngine {
      * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string, excludeViewports?: string[] }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
         this._ticket = properties.ticket;
         this._modelViewUrl = properties.modelViewUrl;
+        this._excludeViewports = properties.excludeViewports || [];
         this._bearerToken = properties.bearerToken;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
@@ -146,13 +147,13 @@ export class SessionEngine implements ISessionEngine {
         this._customizeOnParameterChange = value;
     }
 
-    public get excludeViewers(): string[] {
-        return this._excludeViewers;
+    public get excludeViewports(): string[] {
+        return this._excludeViewports;
     }
 
-    public set excludeViewers(value: string[]) {
-        this._excludeViewers = value;
-        this._node.excludeViewers = value;
+    public set excludeViewports(value: string[]) {
+        this._excludeViewports = value;
+        this._node.excludeViewports = value;
     }
 
     public get exports(): { [key: string]: IExport; } {
@@ -261,9 +262,8 @@ export class SessionEngine implements ISessionEngine {
 
             this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Customizing session.`);
 
-            // TODO
-            // for (let viewerId in this.#api.viewers)
-            //     this.#api.viewers[viewerId].registerBusyMode(customizationId);
+            for(let r in this._stateEngine.renderingEngines)
+                this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
             const eventFileUpload: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.1, data: { sessionId: this.id }, status: 'Uploading file parameters' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventFileUpload);
@@ -275,10 +275,11 @@ export class SessionEngine implements ISessionEngine {
                     fileParameterIds[parameterId] = await (<IFileParameter>this.parameters[parameterId]).upload();
 
                     // OPTION TO SKIP - PART 1a
-                    if (this.#customizationProcess !== customizationId) {
-                        // TODO
-                        // for (let viewerId in this.#api.viewers)
-                        //     this.#api.viewers[viewerId].deregisterBusyMode(customizationId);
+                    if (this.#customizationProcess !== customizationId) {            
+                        for(let r in this._stateEngine.renderingEngines)
+                            if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+        
                         this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customization was exceeded by other customization request.`);
 
                         const eventCancel1a: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
@@ -290,9 +291,9 @@ export class SessionEngine implements ISessionEngine {
 
             // OPTION TO SKIP - PART 1b
             if (this.#customizationProcess !== customizationId) {
-                // TODO
-                // for (let viewerId in this.#api.viewers)
-                //     this.#api.viewers[viewerId].deregisterBusyMode(customizationId);
+                for(let r in this._stateEngine.renderingEngines)
+                    if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
                 const eventCancel1b: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                 this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1b);
@@ -327,7 +328,6 @@ export class SessionEngine implements ISessionEngine {
             const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Sending customization request' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
 
-            console.log(parameterSet)
             const newNode = await this.customizeInternal(() => this.#customizationProcess !== customizationId);
 
             const eventSceneUpdate: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0.75, data: { sessionId: this.id }, status: 'Updating scene' };
@@ -335,9 +335,9 @@ export class SessionEngine implements ISessionEngine {
 
             // OPTION TO SKIP - PART 2
             if (this.#customizationProcess !== customizationId) {
-                // TODO
-                // for (let viewerId in this.#api.viewers)
-                //     this.#api.viewers[viewerId].deregisterBusyMode(customizationId);
+                for(let r in this._stateEngine.renderingEngines)
+                    if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                        this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
                 const eventCancel2: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization was exceeded by other customization request' };
                 this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
@@ -374,11 +374,11 @@ export class SessionEngine implements ISessionEngine {
 
             this._warningCreator();
 
-            this.node.excludeViewers = this._excludeViewers;
+            this.node.excludeViewports = this._excludeViewports;
 
-            // TODO
-            // for (let viewerId in this.#api.viewers)
-            //     this.#api.viewers[viewerId].deregisterBusyMode(customizationId);
+            for(let r in this._stateEngine.renderingEngines)
+                if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
             this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
 
@@ -392,9 +392,9 @@ export class SessionEngine implements ISessionEngine {
             const eventCancel: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Session customization failed' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel);
 
-            // TODO
-            // for (let viewerId in this.#api.viewers)
-            //     this.#api.viewers[viewerId].deregisterBusyMode(customizationId);
+            for(let r in this._stateEngine.renderingEngines)
+                if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize`, e);
@@ -403,7 +403,6 @@ export class SessionEngine implements ISessionEngine {
     }
 
     private async customizeInternal(cancelRequest: () => boolean): Promise<ISessionTreeNode> {
-        console.log(this._parameterValues)
         return this.customizeSession(this._parameterValues, cancelRequest);
     }
 
@@ -531,6 +530,8 @@ export class SessionEngine implements ISessionEngine {
             if (this._automaticSceneUpdate) this._sceneTree.removeNode(this._node);
             this._node = node;
             if (this._automaticSceneUpdate) this._sceneTree.addNode(this._node);
+
+            this.node.excludeViewports = this._excludeViewports;
 
             return node;
         }
@@ -686,9 +687,8 @@ export class SessionEngine implements ISessionEngine {
 
         this._logger.debugLow(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating Outputs.`);
 
-        // TODO
-        // for (let viewerId in this.#api.viewers)
-        //     this.#api.viewers[viewerId].registerBusyMode(customizationId);
+        for(let r in this._stateEngine.renderingEngines)
+            this._stateEngine.renderingEngines[r].busy.push(customizationId);
 
         const eventRequest: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 0.25, data: { sessionId: this.id }, status: 'Loading outputs' };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventRequest);
@@ -700,9 +700,10 @@ export class SessionEngine implements ISessionEngine {
 
         // OPTION TO SKIP - PART 1
         if (this.#customizationProcess !== customizationId) {
-            // TODO
-            // for (let viewerId in this.#api.viewers)
-            //     this.#api.viewers[viewerId].deregisterBusyMode(customizationId);
+            for(let r in this._stateEngine.renderingEngines)
+                if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                    this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
+
             const eventCancel1: ITaskEvent = { type: TASK_TYPE.SESSION_OUTPUTS_UPDATE, id: eventId, progress: 1, data: { sessionId: this.id }, status: 'Output updating was exceeded by other customization request' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel1);
             this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Output updating was exceeded by other request.`);
@@ -728,11 +729,11 @@ export class SessionEngine implements ISessionEngine {
             this.exports[exportId].updateExport();
 
         this._warningCreator();
-        this.node.excludeViewers = this.excludeViewers;
+        this.node.excludeViewports = this.excludeViewports;
 
-        // TODO
-        // for (let viewerId in this.#api.viewers)
-        //     this.#api.viewers[viewerId].deregisterBusyMode(customizationId);
+        for(let r in this._stateEngine.renderingEngines)
+            if(this._stateEngine.renderingEngines[r].busy.includes(customizationId))
+                this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
         this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updated outputs.`);
 

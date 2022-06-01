@@ -24,6 +24,7 @@ import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-eng
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
 import { IManager } from '../interfaces/IManager'
+import { ITree, Tree } from '@shapediver/viewer.shared.node-tree'
 
 export class RenderingManager implements IManager {
     // #region Properties (20)
@@ -33,6 +34,7 @@ export class RenderingManager implements IManager {
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
     private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
+    private readonly _tree: ITree = <ITree>container.resolve(Tree);
 
     private _activeRendering: boolean = true;
     private _cameraChanged: boolean = false;
@@ -40,6 +42,7 @@ export class RenderingManager implements IManager {
     private _continuousShadowMapUpdate: boolean = false;
     private _height: number = 0;
     private _lastCameraMatrix: mat4 = mat4.create();
+    private _lastRootVersion: string = '';
     private _lastSize: {
         adjustedWidth: number,
         adjustedHeight: number,
@@ -85,6 +88,14 @@ export class RenderingManager implements IManager {
 
     public set continuousShadowMapUpdate(value: boolean) {
         this._continuousShadowMapUpdate = value;
+    }
+
+    public get lastRootVersion(): string {
+        return this._lastRootVersion;
+    }
+
+    public set lastRootVersion(value: string) {
+        this._lastRootVersion = value;
     }
 
     public get minimalRendering(): boolean {
@@ -151,7 +162,7 @@ export class RenderingManager implements IManager {
         if(value > this._maxTextureUnits) {
             this._logger.warn(LOGGING_TOPIC.VIEWER, `RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
             this._renderingEngine.lightLoader.forceDisabledShadows = true;
-            this._renderingEngine.update();
+            this._renderingEngine.update('RenderingManager.evaluateTextureUnitCount');
         } else {
             this._renderingEngine.lightLoader.forceDisabledShadows = false;
         }
@@ -242,6 +253,17 @@ export class RenderingManager implements IManager {
         TWEEN.update(time);
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
+
+        this._renderingEngine.evaluateFlagState();
+
+        // update if needed
+        if(this._tree.root.version !== this._lastRootVersion) {
+            this._renderingEngine.sceneTreeManager.updateSceneTree(this._tree.root, this._renderingEngine.lightEngine);
+            this.updateShadowMap();
+            this._renderingEngine.startGatherAnimations();
+            this._lastRootVersion = this._tree.root.version;
+            this.render();
+        }
 
         const runningAnimation = this._renderingEngine.animationManager.update(deltaTime);
         if(runningAnimation !== this._runningAnimation) this.render();

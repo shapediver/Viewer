@@ -1,3 +1,4 @@
+import { IOrthographicCameraControls } from '../controls/IOrthographicCameraControls';
 import { ICamera } from './ICamera'
 
 export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
@@ -9,6 +10,8 @@ export enum ORTHOGRAPHIC_CAMERA_DIRECTION {
     BACK = 'back',
  }
 export interface IOrthographicCamera extends ICamera {
+    readonly controls: IOrthographicCameraControls;
+    
     direction: ORTHOGRAPHIC_CAMERA_DIRECTION;
 
     clone(): IOrthographicCamera;

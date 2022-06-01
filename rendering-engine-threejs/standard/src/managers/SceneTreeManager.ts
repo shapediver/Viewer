@@ -14,6 +14,7 @@ IMaterialData,
   AnimationData,
   MaterialStandardData,
   ISDTFOverview,
+  BoneData
 } from '@shapediver/viewer.shared.types'
 import { ISDObject, ITree, ITreeNode, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
@@ -172,8 +173,8 @@ export class SceneTreeManager implements IManager {
 
     public updateNodeTransformations(node: ITreeNode = this._tree.root, obj: SDNode = this._mainNode) {
         if(!node || !obj) return;
-        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
+        if(node.excludeViewports.includes(this._renderingEngine.id)) return;
+        if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
         obj.visible = node.visible;
         obj.applyTransformation(node.nodeMatrix);
@@ -189,8 +190,8 @@ export class SceneTreeManager implements IManager {
     
     public updateMorphWeights(node: ITreeNode = this._tree.root, obj: SDNode = this._mainNode) {
         if(!node || !obj) return;
-        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
+        if(node.excludeViewports.includes(this._renderingEngine.id)) return;
+        if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
         for (let i = 0, len = node.data.length; i < len; i++) {
             if(node.data[i] instanceof GeometryData) {
@@ -220,12 +221,12 @@ export class SceneTreeManager implements IManager {
         const convertedObject = <SDNode>obj;
 
         // if this node specifically excludes the current viewer, skip it and all descendants
-        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
+        if(node.excludeViewports.includes(this._renderingEngine.id)) return;
+        if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
         // reset the bounding box of the current node
         // it will be recomputed in the following steps
-        node.boundingBox = new Box();
+        node.boundingBox.reset();
 
         // remove all data items that do not exist anymore
         const dataIds = node.data.map(d => d.id);
@@ -237,7 +238,7 @@ export class SceneTreeManager implements IManager {
 
         // remove all child nodes in the transformed object that do not exist anymore
         // the filter goes also through the data items as they were already added
-        const nodeIds = node.children.map(d => d.id);
+        const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
         const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDNode ? !nodeIds.includes(oc.SDid) : false);
         childrenToRemove.forEach(cTR => {
             cTR.traverse((o) => {
@@ -270,8 +271,8 @@ export class SceneTreeManager implements IManager {
         const convertedObject = <SDNode>obj;
 
         // if this node specifically excludes the current viewer, skip it and all descendants
-        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
+        if(node.excludeViewports.includes(this._renderingEngine.id)) return;
+        if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
         // add new children and update the ones that have a different version
         for (let i = 0, len = node.children.length; i < len; i++) {
@@ -279,7 +280,7 @@ export class SceneTreeManager implements IManager {
             const objChild = <SDNode>convertedObject.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
 
             if (!objChild) {
-                const newChild = node.bone ? new SDBone(nodeChild.id, nodeChild.version) : new SDNode(nodeChild.id, nodeChild.version);
+                const newChild = node.data.find(d => d instanceof BoneData) ? new SDBone(nodeChild.id, nodeChild.version) : new SDNode(nodeChild.id, nodeChild.version);
                 nodeChild.transformedNodes[this._renderingEngine.id] = newChild;
                 convertedObject.add(newChild);
                 this.updateNodeHierarchy(nodeChild, newChild);
@@ -305,12 +306,12 @@ export class SceneTreeManager implements IManager {
         const convertedObject = <SDNode>obj;
 
         // if this node specifically excludes the current viewer, skip it and all descendants
-        if(node.excludeViewers.includes(this._renderingEngine.id)) return;
-        if(node.includeViewers.length > 0 && !node.includeViewers.includes(this._renderingEngine.id)) return;
+        if(node.excludeViewports.includes(this._renderingEngine.id)) return;
+        if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
         // reset the bounding box of the current node
         // it will be recomputed in the following steps
-        node.boundingBox = new Box();
+        node.boundingBox.reset();
 
         // remove all data items that do not exist anymore
         const dataIds = node.data.map(d => d.id);
@@ -322,7 +323,7 @@ export class SceneTreeManager implements IManager {
 
         // remove all child nodes in the transformed object that do not exist anymore
         // the filter goes also through the data items as they were already added
-        const nodeIds = node.children.map(d => d.id);
+        const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
         const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDNode ? !nodeIds.includes(oc.SDid) : false);
         childrenToRemove.forEach(cTR => {
             cTR.traverse((o) => {
@@ -451,7 +452,7 @@ export class SceneTreeManager implements IManager {
             }
         }
 
-        node.transformations.push({
+        node.addTransformation({
             id: 'sdtf',
             matrix: visData.matrix
         })

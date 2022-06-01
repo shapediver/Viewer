@@ -1,25 +1,21 @@
 
 
-import {
-  api,
-  ENVIRONMENT_MAP,
-  TreeNode,
-} from '@shapediver/viewer'
+import * as SDV from '@shapediver/viewer'
 import { container } from 'tsyringe'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
+import { addListener, createViewport, ENVIRONMENT_MAP, EVENTTYPE, ITaskEvent, ITreeNode, sceneTree, TASK_TYPE, viewports } from '@shapediver/viewer';
 
-import * as SDV from '@shapediver/viewer'
 
 (<any>window).SDV = SDV;
 (<any>window).gltfVersion = '2.0'
 
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
-let currentNode: TreeNode;
+let currentNode: ITreeNode;
 
 let promise: Promise<void>;
 
 (async () => {
-    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', branding: { logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png', backgroundColor: 'rgb(3, 5, 49)' } });
+    let viewer = await createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', branding: { logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png', backgroundColor: 'rgb(3, 5, 49)' } });
     viewer.ambientOcclusion = false;
     viewer.shadows = false;
     viewer.physicallyCorrectLights = true;
@@ -27,9 +23,9 @@ let promise: Promise<void>;
     viewer.gridVisibility = false;
     viewer.environmentMap = ENVIRONMENT_MAP.NEUTRAL;
     promise = new Promise<void>(resolve => {
-        api.addListener(SDV.EVENTTYPE.TASK.TASK_END, (e) => {
-            const taskEvent = e as SDV.ITaskEvent;
-            if(taskEvent.type === SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING)
+        addListener(EVENTTYPE.TASK.TASK_END, (e) => {
+            const taskEvent = e as ITaskEvent;
+            if(taskEvent.type === TASK_TYPE.ENVIRONMENT_MAP_LOADING)
             resolve();
         });
     })
@@ -39,16 +35,16 @@ let promise: Promise<void>;
 
 (<any>window).addGLTF = async (uri: string) => {
     await promise;
-    let viewer = api.viewers['myViewer'];
+    let viewer = viewports['myViewer'];
 
     const node = await dataEngine.loadContent({
         format: (<any>window).gltfVersion === '1.0' ? 'glb': 'gltf',
         href: uri
     })
-    if (currentNode) api.sceneTree.removeNode(currentNode);
+    if (currentNode) sceneTree.removeNode(currentNode);
     currentNode = node;
-    api.sceneTree.addNode(currentNode);
-    api.update()
+    sceneTree.addNode(currentNode);
+    viewer.update()
     await viewer.camera!.set([0,0,0], [0,0,0], { duration: 0 });
     await viewer.camera!.zoomTo(undefined, { duration: 0 });
     viewer.show = true;

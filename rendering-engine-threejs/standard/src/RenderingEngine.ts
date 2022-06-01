@@ -16,6 +16,8 @@ import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engi
 import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import {
+  BUSY_MODE_DISPLAY,
+  FLAG_TYPE,
   IRenderingEngine,
   RENDERER_TYPE,
   SESSION_SETTINGS_MODE,
@@ -44,6 +46,8 @@ import {
   ISDTFAttributeVisualizationData,
   SDTFItemData,
   ISDTFOverview,
+  ISDTFItemData,
+  SDTFOverviewData,
 } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -65,7 +69,7 @@ import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 import { AnimationManager } from './managers/AnimationManager'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
-  // #region Properties (54)
+  // #region Properties (59)
 
   // managers
   private readonly _animationManager: AnimationManager;
@@ -80,6 +84,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _canvasEngine: CanvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
   // utils
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
+  private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
   private readonly _domEventEngine: DomEventEngine;
   private readonly _environmentGeometryManager: EnvironmentGeometryManager;
   // loaders
@@ -96,8 +101,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _renderingManager: RenderingManager;
   private readonly _sceneTracingManager: SceneTracingManager;
   private readonly _sceneTreeManager: SceneTreeManager;
-  private readonly _sessionSettingsId?: string;
-  private readonly _sessionSettingsMode: SESSION_SETTINGS_MODE;
   private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   private readonly _tree: ITree = <ITree>container.resolve(Tree);
   private readonly _visibility: VISIBILITY_MODE;
@@ -105,16 +108,21 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   // settings
   private _ambientOcclusion: boolean = true;
   private _ambientOcclusionIntensity: number = 0.1;
+  private _arRotation: vec3 = vec3.create();
+  private _arScale: vec3 = vec3.fromValues(1,1,1);
+  private _arTranslation: vec3 = vec3.create();
   private _automaticResizing: boolean = true;
   private _beautyRenderBlendingDuration: number = 1500;
   private _beautyRenderDelay: number = 50;
   private _blur: boolean = false;
   private _blurSceneWhenBusy: boolean = true;
   private _busy: boolean = false;
+  private _busyModeDisplay: BUSY_MODE_DISPLAY = BUSY_MODE_DISPLAY.SPINNER;
   private _clearAlpha: number = 1.0;
   private _clearColor: string = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
+  private _enableAR: boolean = true;
   private _environmentMap: string | string[] = 'none';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
@@ -122,18 +130,25 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _groundPlaneVisibility: boolean = true;
   private _logoDivElement: HTMLDivElement;
   private _pointSize: number = 1.0;
+  private _sessionSettingsId?: string;
+  private _sessionSettingsMode: SESSION_SETTINGS_MODE;
   private _settingsEngine?: SettingsEngine;
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showStatistics: boolean = false;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
-  private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
+  private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
   readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
 
   #animations: AnimationData[] = [];
+  #flags: { [key: string]: string[] } = {
+    [FLAG_TYPE.CAMERA_FREEZE]: [],
+    [FLAG_TYPE.CONTINUOUS_RENDERING]: [],
+    [FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE]: [],
+  };
 
-  // #endregion Properties (54)
+  // #endregion Properties (59)
 
   // #region Constructors (1)
 
@@ -169,9 +184,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(prop.canvas));
 
     // creation of the engines (all singleton engines were created already)
-    this._domEventEngine = new DomEventEngine(this._id, this._canvas.canvasElement);
+    this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
     this._cameraEngine = new CameraEngine(this, this._canvas.canvasElement);
-    this._lightEngine = new LightEngine(this._id);
+    this._lightEngine = new LightEngine(this);
 
     // creation of the managers (all singleton engines were created already)
     this._animationManager = new AnimationManager(this);
@@ -192,7 +207,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // start the creation and initialization process 
     this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
     this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._branding);
-  
+
     // creation of the managers (all singleton engines were created already)
     this._beautyRenderingManager.init();
     this._cameraManager.init();
@@ -213,11 +228,17 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._stateEngine.renderingEngines[this.id].boundingBoxCreated.then(() => {
       this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
     })
+
+    if(this._sessionSettingsMode === SESSION_SETTINGS_MODE.NONE) {
+      this.environmentMap = 'photo_studio';
+      this.ambientOcclusion = false;
+    }
+
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (92)
+  // #region Public Accessors (105)
 
   public get ambientOcclusion(): boolean {
     return this._ambientOcclusion;
@@ -241,6 +262,30 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get animations(): AnimationData[] {
     return this.#animations;
+  }
+
+  public get arRotation(): vec3 {
+    return this._arRotation;
+  }
+
+  public set arRotation(value: vec3) {
+    this._arRotation = value;
+  }
+
+  public get arScale(): vec3 {
+    return this._arScale;
+  }
+
+  public set arScale(value: vec3) {
+    this._arScale = value;
+  }
+
+  public get arTranslation(): vec3 {
+    return this._arTranslation;
+  }
+
+  public set arTranslation(value: vec3) {
+    this._arTranslation = value;
   }
 
   public get automaticResizing(): boolean {
@@ -293,6 +338,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set busy(value: boolean) {
     this._busy = value;
+  }
+
+  public get busyModeDisplay(): BUSY_MODE_DISPLAY {
+    return this._busyModeDisplay;
+  }
+
+  public set busyModeDisplay(value: BUSY_MODE_DISPLAY) {
+    this._busyModeDisplay = value;
   }
 
   public get cameraEngine(): CameraEngine {
@@ -349,6 +402,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get domEventEngine(): DomEventEngine {
     return this._domEventEngine;
+  }
+
+  public get enableAR(): boolean {
+    return this._enableAR;
+  }
+
+  public set enableAR(value: boolean) {
+    this._enableAR = value;
   }
 
   public get environmentMap(): string | string[] {
@@ -524,14 +585,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._sessionSettingsId;
   }
 
+  public set sessionSettingsId(value: string | undefined) {
+    this._sessionSettingsId = value;
+  }
+
   public get sessionSettingsMode(): SESSION_SETTINGS_MODE {
     return this._sessionSettingsMode;
+  }
+
+  public set sessionSettingsMode(value: SESSION_SETTINGS_MODE) {
+    this._sessionSettingsMode = value;
   }
 
   public get settingsEngine(): SettingsEngine | undefined {
     return this._settingsEngine;
   }
-  
+
   public set settingsEngine(value: SettingsEngine | undefined) {
     this._settingsEngine = value;
   }
@@ -567,7 +636,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public get textureEncoding(): TEXTURE_ENCODING {
     switch (this.materialLoader.textureEncoding) {
       case (THREE.sRGBEncoding):
-        return TEXTURE_ENCODING.SRGB; 
+        return TEXTURE_ENCODING.SRGB;
       case (THREE.LinearEncoding):
       default:
         return TEXTURE_ENCODING.LINEAR;
@@ -638,6 +707,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set type(value: RENDERER_TYPE) {
     this._type = value;
+    this.update('RenderingEngine.type')
   }
 
   public get usingSwiftShader(): boolean {
@@ -648,17 +718,30 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._visibility;
   }
 
-  public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
+  public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
     return this._visualizeAttributes;
   }
 
-  public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
+  public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
     this._visualizeAttributes = value;
   }
 
-  // #endregion Public Accessors (92)
+  // #endregion Public Accessors (105)
 
-  // #region Public Methods (11)
+  // #region Public Methods (13)
+
+
+
+  public addFlag(flag: FLAG_TYPE): string {
+    const token = this._uuidGenerator.create();
+    if(flag === FLAG_TYPE.BUSY_MODE) {
+      this.stateEngine.renderingEngines[this.id].busy.push(token);
+    } else {
+      this.#flags[flag].push(token);
+    }
+    this.evaluateFlagState();
+    return token;
+  }
 
   public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
     if (!this._settingsEngine) return;
@@ -670,10 +753,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
         this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
         this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
-        this.clearAlpha = this._settingsEngine.environment.clearAlpha;
-        this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
-
+        this.arScale = vec3.fromValues(this._settingsEngine.general.transformation.scale.x, this._settingsEngine.general.transformation.scale.y, this._settingsEngine.general.transformation.scale.z);
+        this.arTranslation = vec3.fromValues(this._settingsEngine.general.transformation.translation.x, this._settingsEngine.general.transformation.translation.y, this._settingsEngine.general.transformation.translation.z);
+        this.arRotation = vec3.fromValues(this._settingsEngine.general.transformation.rotation.x, this._settingsEngine.general.transformation.rotation.y, this._settingsEngine.general.transformation.rotation.z);
+  
         if (sections.scene) {
+          this.clearAlpha = this._settingsEngine.environment.clearAlpha;
+          this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);  
           this.shadows = this._settingsEngine.rendering.shadows;
           this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
           this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
@@ -692,7 +778,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
         if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
         this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
-        this.update();
+        this.update('RenderingEngine.applySettings1');
       })
 
       // set it like this to not trigger the loading
@@ -702,6 +788,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
       this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
       this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
+      this.arScale = vec3.fromValues(this._settingsEngine.general.transformation.scale.x, this._settingsEngine.general.transformation.scale.y, this._settingsEngine.general.transformation.scale.z);
+      this.arTranslation = vec3.fromValues(this._settingsEngine.general.transformation.translation.x, this._settingsEngine.general.transformation.translation.y, this._settingsEngine.general.transformation.translation.z);
+      this.arRotation = vec3.fromValues(this._settingsEngine.general.transformation.rotation.x, this._settingsEngine.general.transformation.rotation.y, this._settingsEngine.general.transformation.rotation.z);
 
       if (sections.scene) {
         this.shadows = this._settingsEngine.rendering.shadows;
@@ -722,7 +811,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
       if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
       this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
-      this.update();
+      this.update('RenderingEngine.applySettings2');
     }
   }
 
@@ -738,16 +827,28 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._canvas.reset();
   }
 
+  public createSDTFOverview(node: ITreeNode): ISDTFOverview {
+    const out: ISDTFOverviewData = new SDTFOverviewData({});
+    for (let i = 0, len = node.data.length; i < len; i++)
+      if (node.data[i] instanceof SDTFOverviewData)
+        out.merge(<ISDTFOverviewData>node.data[i])
+
+    for (let i = 0, len = node.children.length; i < len; i++)
+      out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
+
+    return out.overview;
+  }
+
   public displayErrorMessage(message: string) {
-    for(let i = 0; i < this.logoDivElement.children.length; i++)
+    for (let i = 0; i < this.logoDivElement.children.length; i++)
       (<HTMLElement>this.logoDivElement.children[i]).style.visibility = 'hidden';
-    
+
     const d = <HTMLDivElement>document.createElement('div');
     d.style.position = 'absolute';
     d.style.top = '50%';
     d.style.left = '50%';
     d.style.transform = 'translateX(-50%) translateY(-50%)';
-    d.style.textAlign='center';
+    d.style.textAlign = 'center';
     this.logoDivElement.appendChild(d);
 
     const p = <HTMLParagraphElement>document.createElement('p');
@@ -783,10 +884,98 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     throw new Error('Method not implemented.')
   }
 
+  public removeFlag(token: string): boolean {
+    let success = false;
+    for (let f in FLAG_TYPE) {
+      if(f === FLAG_TYPE.BUSY_MODE) {
+        if (this.stateEngine.renderingEngines[this.id].busy.includes(token)) {
+          this.stateEngine.renderingEngines[this.id].busy.splice(this.stateEngine.renderingEngines[this.id].busy.indexOf(token), 1);
+          success = true;
+          break;
+        }
+      } else {
+        if (this.#flags[f].includes(token)) {
+          this.#flags[f].splice(this.#flags[f].indexOf(token), 1);
+          success = true;
+          break;
+        }
+      }
+    }
+    this.evaluateFlagState();
+    return success;
+  }
+
+  public evaluateFlagState() {
+    // busy
+    {
+      const currentBusyState = this.busy;
+      if (this.stateEngine.renderingEngines[this.id].busy.length > 0) {
+        if (!currentBusyState) {
+          this.busy = true;
+          this._eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_ON, { viewerId: this.id });
+          this._renderingManager.render();
+        }
+      } else {
+        if (currentBusyState) {
+          this.busy = false;
+          this._eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_OFF, { viewerId: this.id });
+          this._renderingManager.render();
+        }
+      }
+    }
+
+    // camera freeze
+    {
+      if (this.#flags[FLAG_TYPE.CAMERA_FREEZE].length > 0) {
+        this.cameraEngine.deactivateCameraEvents();
+        this._renderingManager.render();
+      } else {
+        this.cameraEngine.activateCameraEvents();
+        this._renderingManager.render();
+      }
+    }
+
+    // continuous rendering
+    {
+      const currentContinuousRenderingState = this.continuousRendering;
+      if (this.#flags[FLAG_TYPE.CONTINUOUS_RENDERING].length > 0) {
+        if (!currentContinuousRenderingState) {
+          this.continuousRendering = true;
+          this._renderingManager.render();
+        }
+      } else {
+        if (currentContinuousRenderingState) {
+          this.continuousRendering = false;
+          this._renderingManager.render();
+        }
+      }
+    }
+
+    // continuous shadow map update
+    {
+      const currentShadowMapUpdateState = this.continuousShadowMapUpdate;
+      if (this.#flags[FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE].length > 0) {
+        if (!currentShadowMapUpdateState) {
+          this.continuousShadowMapUpdate = true;
+          this._renderingManager.render();
+        }
+      } else {
+        if (currentShadowMapUpdateState) {
+          this.continuousShadowMapUpdate = false;
+          this._renderingManager.render();
+        }
+      }
+    }
+  }
+
   public reset() {
-    this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox)
-    if (this._visibility === VISIBILITY_MODE.SESSION) this.show = false;
     this._stateEngine.renderingEngines[this.id].settingsAssigned.reset();
+    this._stateEngine.renderingEngines[this.id].boundingBoxCreated.reset();
+    this._stateEngine.renderingEngines[this.id].environmentMapLoaded.reset();
+
+    this._stateEngine.renderingEngines[this.id].boundingBoxCreated.then(() => {
+      this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
+    })
   }
 
   public resize(width: number, height: number): void {
@@ -822,12 +1011,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._settingsEngine.rendering.shadows = this.shadows;
   }
 
-  public update(): void {
+  public startGatherAnimations(node: ITreeNode = this._tree.root) {
+    this.#animations = this.gatherAnimations();
+  }
+
+  public update(id: string): void {
     this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     this._renderingManager.updateShadowMap();
     this.#animations = this.gatherAnimations();
     this._renderingManager.render();
+
+    this._renderingManager.lastRootVersion = this._tree.root.version;
   }
 
-  // #endregion Public Methods (11)
+  // #endregion Public Methods (13)
 }

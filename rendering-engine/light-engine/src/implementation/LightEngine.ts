@@ -14,6 +14,7 @@ import { ILight, LIGHT_TYPE } from '../interface/ILight'
 import { ILightScene } from '../interface/ILightScene'
 import { IAmbientLightPropertiesV3, IDirectionalLightPropertiesV3, IHemisphereLightPropertiesV3, ILightSceneSettingsV3, IPointLightPropertiesV3, ISpotLightPropertiesV3 } from '@shapediver/viewer.settings'
 import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class LightEngine implements ILightEngine {
     // #region Properties (6)
@@ -25,14 +26,15 @@ export class LightEngine implements ILightEngine {
 
     private _lightScene!: LightScene;
     private _lightScenes: { [key: string]: LightScene; } = {};
+    private _update?: () => void;
 
     // #endregion Properties (6)
 
     // #region Constructors (1)
 
-    constructor(private readonly _viewerId: string) {
+    constructor(private readonly _renderingEngine: IRenderingEngine) {
         this._tree.root.addChild(this._lightNode);
-        this._lightNode.includeViewers = [this._viewerId];
+        this._lightNode.restrictViewports = [this._renderingEngine.id];
     }
 
     // #endregion Constructors (1)
@@ -49,6 +51,14 @@ export class LightEngine implements ILightEngine {
         return this._lightScenes;
     }
 
+    public get update(): (() => void) | undefined {
+        return this._update;
+    }
+
+    public set update(value: (() => void) | undefined) {
+        this._update = value;
+    }
+
     // #endregion Public Accessors (2)
 
     // #region Public Methods (6)
@@ -59,7 +69,7 @@ export class LightEngine implements ILightEngine {
         for (let lightSceneId in settingsEngine.light.lightScenes) {
             const lightSceneUUID = this._uuidGenerator.validate(lightSceneId) ? lightSceneId : this._uuidGenerator.create();
             const lightSceneName = settingsEngine.light.lightScenes[lightSceneId].name ? settingsEngine.light.lightScenes[lightSceneId].name : lightSceneId;
-            const ls = new LightScene({id: lightSceneUUID, name: lightSceneName});
+            const ls = new LightScene(this._renderingEngine, {id: lightSceneUUID, name: lightSceneName});
             for (let lightId in settingsEngine.light.lightScenes[lightSceneId].lights) {
                 const lightUUID = this._uuidGenerator.validate(lightId) ? lightId : this._uuidGenerator.create();
                 const light = settingsEngine.light.lightScenes[lightSceneId].lights[lightId];
@@ -154,6 +164,7 @@ export class LightEngine implements ILightEngine {
             const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
             this._lightScenes[ls.id] = ls;
         }
+        if(this._update) this._update();
     }
 
     public assignLightScene(id: string): boolean {
@@ -183,7 +194,7 @@ export class LightEngine implements ILightEngine {
 
     public createLightScene(properties: {name?: string, standard?: boolean}): ILightScene {
         const lightSceneId = this._uuidGenerator.create();
-        const lightScene = new LightScene({id: lightSceneId, name: properties.name});
+        const lightScene = new LightScene(this._renderingEngine, {id: lightSceneId, name: properties.name});
         if (properties.standard === true) {
             lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 2.5, direction: vec3.fromValues(.5774, -.5774, .5774), castShadow: true, name: 'directional0'}));
             lightScene.addLight(new DirectionalLight({color: '#ffffff', intensity: 1, direction: vec3.fromValues(-.5774, -.5774, .5774), castShadow: false, name: 'directional1'}));
@@ -195,6 +206,7 @@ export class LightEngine implements ILightEngine {
         this._lightNode.addChild(this._lightScene!.node)
         this._lightNode.updateVersion();
 
+        if(this._update) this._update();
         return lightScene;
     }
 
@@ -219,6 +231,7 @@ export class LightEngine implements ILightEngine {
             this._lightNode.removeChild(this._lightNode.children[0]);
         this._lightNode.updateVersion();
 
+        if(this._update) this._update();
         return true;
     }
 

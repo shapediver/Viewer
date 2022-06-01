@@ -1,5 +1,5 @@
 import { vec3 } from 'gl-matrix'
-import { TEXTURE_ENCODING, TONE_MAPPING, BUSY_MODE_DISPLAY, FLAG_TYPE, SESSION_SETTINGS_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { TEXTURE_ENCODING, TONE_MAPPING, BUSY_MODE_DISPLAY, FLAG_TYPE, SESSION_SETTINGS_MODE, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
@@ -73,9 +73,29 @@ export interface IViewportApi {
    * The unit system used by AR is meter, therefore this scaling factor needs to be chosen
    * such that scene coordinates are transformed to meters.
    * 
-   * ATOM: Please link to the corresponding arTranslation and arRotation properties, and explain in which order they get applied. 
+   * @see arScale
+   * @see arTranslation
+   * @see arRotation
    */
   arScale: vec3;
+  
+  /**
+   * The translation factor that is used when exporting the scene for AR (Augmented Reality). The unit system used by AR is meter.
+   * 
+   * @see arScale
+   * @see arTranslation
+   * @see arRotation
+   */
+  arTranslation: vec3;
+  
+  /**
+   * The rotation factor that is used when exporting the scene for AR (Augmented Reality). The unit system used by AR is meter.
+   * 
+   * @see arScale
+   * @see arTranslation
+   * @see arRotation
+   */
+  arRotation: vec3;
 
   /**
    * Option to enable / disable the ambient occlusion post-processing. (default: false)
@@ -182,9 +202,9 @@ export interface IViewportApi {
 
   /**
    * Optional identifier of the session to be used for loading / persisting settings of the viewport.
-   * This is ignored in case {@link sessionSettingsMode} is not {@link SESSION_SETTINGS_MODE.CUSTOM}.
+   * This is ignored in case {@link sessionSettingsMode} is not {@link SESSION_SETTINGS_MODE.MANUAL}.
    */
-  sessionSettingsId: string;
+  sessionSettingsId?: string;
 
   /**
    * Allows to control which session to use for loading / persisting settings of the viewport. 
@@ -227,6 +247,11 @@ export interface IViewportApi {
   toneMappingExposure: number;
 
   /**
+   * The type of rendering of this viewport.
+   */
+  type: RENDERER_TYPE;
+
+  /**
    * A possibility to visualize the attributes of the scene in any way you want. 
    * Please have a look at the {@link https://help.shapediver.com/doc/Attribute-Visualization.1856733198.html|help desk} documentation for more information.
    * 
@@ -262,7 +287,7 @@ export interface IViewportApi {
    * 
    * @param id The id of the camera.
    */
-  assignCamera(id: string): void;
+  assignCamera(id: string): boolean;
 
   /**
    * Assign the light scene with the current id to the viewport.

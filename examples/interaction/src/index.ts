@@ -1,10 +1,9 @@
 
 
-import { api } from '@shapediver/viewer'
 import * as SDV from '@shapediver/viewer'
-import { InteractionEngine, HoverManager, DragManager, PointConstraint, InteractionData, LineConstraint, PlaneConstraint, IDragEvent } from '@shapediver/viewer.features.interaction'
+import { InteractionEngine, HoverManager, DragManager, PointConstraint, InteractionData, LineConstraint, PlaneConstraint } from '@shapediver/viewer.features.interaction'
 import { mat4, quat, vec3 } from 'gl-matrix';
-(<any>window).api = SDV.api;
+(<any>window).SDV = SDV;
 
 // monitor if the mouse is up or down
 let mouseDown = 0;
@@ -24,8 +23,8 @@ document.body.ontouchend = () => {
 };
 
 
-let session: SDV.ISession;
-let viewer: SDV.IViewer;
+let session: SDV.ISessionApi;
+let viewer: SDV.IViewportApi;
 
 let dragManager: DragManager;
 let hoverManager: HoverManager;
@@ -36,8 +35,8 @@ type ShelfDefinition = {
         rotation: mat4,
         translation: mat4
     }[],
-    output?: SDV.IOutput,
-    parameter?: SDV.IParameter<string>,
+    output?: SDV.IOutputApi,
+    parameter?: SDV.IParameterApi<string>,
     counter: number,
     snapPoints: { point: vec3, radius: number, rotation: {axis: vec3, angle: number}}[],
     snapLines: { point1: vec3, point2: vec3, radius: number, rotation: {axis: vec3, angle: number}}[],
@@ -121,7 +120,7 @@ const updateInteractions = (interactionTypes: { [key: string]: boolean; }) => {
     const shelves = [topShelf, bottomShelf];
     for(let i = 0; i < shelves.length; i++) {
         for(let j = 0; j < shelves[i].counter; j++) {
-            const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + j)!;
+            const node = SDV.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + j)!;
             if(!node) continue;
     
             // we enable dragging for this node
@@ -157,8 +156,8 @@ const activateInteractions = () => {
     deactivateInteractions();
     updateInteractions({drag: true, hover: true});
 
-    activateInteractionsToken.start = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_START, async (e) => {
-        const dragEvent = <IDragEvent>e;
+    activateInteractionsToken.start = SDV.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_START, async (e) => {
+        const dragEvent = <SDV.IDragEvent>e;
 
         dragLineConstraintsIds.forEach(d => dragManager.removeDragConstraint(d))
 
@@ -175,20 +174,20 @@ const activateInteractions = () => {
         }
 
         // once the movement has ended, we update the matrix in the parameter definition
-        activateInteractionsToken.end = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
+        activateInteractionsToken.end = SDV.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
             dragLineConstraintsIds.forEach(d => dragManager.removeDragConstraint(d));
-            const dragEvent = <IDragEvent>e;
+            const dragEvent = <SDV.IDragEvent>e;
             // apply the matrix to the dragged item
             const number = dragEvent.node.getPath().substring(dragEvent.node.getPath().lastIndexOf('_') + 1, dragEvent.node.getPath().length);
             mat4.multiply(def.matrices[+number].translation, def.matrices[+number].translation, mat4.fromTranslation(mat4.create(), mat4.getTranslation(vec3.create(), dragEvent.matrix)));
             mat4.multiply(def.matrices[+number].rotation, def.matrices[+number].rotation, mat4.fromQuat(mat4.create(), mat4.getRotation(quat.create(), dragEvent.matrix)));
             mat4.multiply(def.matrices[+number].transformation, def.matrices[+number].transformation, mat4.transpose(mat4.create(), (<any>e).matrix));
             await updateParameter(def);
-            SDV.api.removeListener(activateInteractionsToken.end); 
+            SDV.removeListener(activateInteractionsToken.end); 
             activateInteractions();
         })
 
-        SDV.api.removeListener(activateInteractionsToken.start); 
+        SDV.removeListener(activateInteractionsToken.start); 
     })
 }
 
@@ -197,8 +196,8 @@ const activateInteractions = () => {
  */
 const deactivateInteractions = () => {
     dragLineConstraintsIds.forEach(d => dragManager.removeDragConstraint(d))
-    SDV.api.removeListener(activateInteractionsToken.start); 
-    SDV.api.removeListener(activateInteractionsToken.end); 
+    SDV.removeListener(activateInteractionsToken.start); 
+    SDV.removeListener(activateInteractionsToken.end); 
 
     updateInteractions({drag: false, hover: false});
 }
@@ -217,7 +216,7 @@ const addShelf = async (def: ShelfDefinition) => {
     def.snapLines.forEach(element => dragConstraintsIds.push(dragManager.addDragConstraint(new LineConstraint(element.point1, element.point2, element.radius, element.rotation))));
 
     // once the new node is created, this is how we find it
-    const newNode = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter-1))!;
+    const newNode = SDV.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter-1))!;
 
     // we enable dragging for this node
     const data = new InteractionData({drag: true});
@@ -230,13 +229,14 @@ const addShelf = async (def: ShelfDefinition) => {
     // we add the data and make the node invisible for now
     newNode.data.push(data);
     newNode!.visible = false;
-    SDV.api.update();
+    SDV.viewports[viewer.id].update();
+
 
     // we tell the dragManager to drag this node
     dragManager.setNode(newNode!);
 
     // some things have to be done on the first move in the viewer
-    const tokenMove = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_MOVE, async (e) => {
+    const tokenMove = SDV.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_MOVE, async (e) => {
         if(!mouseDown && !touchDown ) {
             // the mouse was released before entering the viewer
             dragManager.removeNode();
@@ -246,12 +246,12 @@ const addShelf = async (def: ShelfDefinition) => {
             newNode!.visible = true;
             viewer.updateNode(newNode);
         }
-        SDV.api.removeListener(tokenMove); 
+        SDV.removeListener(tokenMove); 
     })
 
     // once the movement has ended, we update the matrix in the parameter definition
-    const tokenEnd = SDV.api.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
-        const dragEvent = <IDragEvent>e;
+    const tokenEnd = SDV.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
+        const dragEvent = <SDV.IDragEvent>e;
         dragConstraintsIds.forEach(d => dragManager.removeDragConstraint(d))        
         def.matrices[def.matrices.length-1].translation = mat4.fromTranslation(mat4.create(), mat4.getTranslation(vec3.create(), dragEvent.matrix));
         def.matrices[def.matrices.length-1].rotation = mat4.fromQuat(mat4.create(), mat4.getRotation(quat.create(), dragEvent.matrix));
@@ -267,11 +267,10 @@ const addShelf = async (def: ShelfDefinition) => {
 
         await updateParameter(def);
 
-        const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter - 1))!;
+        const node = SDV.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + def.output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (def.counter - 1))!;
         node.visible = false;
-        SDV.api.update();
         
-        SDV.api.removeListener(tokenEnd); 
+        SDV.removeListener(tokenEnd); 
         activateInteractions();
     })
 };
@@ -285,8 +284,8 @@ const addShelf = async (def: ShelfDefinition) => {
 };
 
 (async () => {
-    viewer = <SDV.IViewer>await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: SDV.VISIBILITY_MODE.MANUAL });
-    session = await api.createSession({ 
+    viewer = <SDV.IViewportApi>await SDV.createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: SDV.VISIBILITY_MODE.MANUAL });
+    session = await SDV.createSession({ 
         ticket: '855ada5173c8ea4b7ee2ccb78efe082f092229942db6017217cd677166ab5bed6f04d07060e002602d5a0d819a517e6b2958bcb4400176b0018862be817b8a1cc57a3acd84bd7039076f1b807ae26cc554b77b9be48c0bd053652d8ecb6cb74252dc5df70151a8-798c320934a5643f8c6272de5b2a830c', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
@@ -327,11 +326,10 @@ const addShelf = async (def: ShelfDefinition) => {
     const shelves = [topShelf, bottomShelf];
 
     for(let i = 0; i < shelves.length; i++) {
-            const node = api.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (shelves[i].counter - 1))!;
+            const node = SDV.sceneTree.getNodeAtPath('root.KitchenConfigurator.' + shelves[i].output!.id + '.transformation.scene_0.TransformZUpToYUp.no_transformations.mesh_0.primitive_' + (shelves[i].counter - 1))!;
             if(!node) continue;
             node.visible = false;
     }
-    SDV.api.update();
 
     viewer.show = true;
 

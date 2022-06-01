@@ -8,7 +8,9 @@ export enum CAMERA_TYPE {
 }
 
 export interface ICameraEngine {
-    assignCamera(id: string): void;
+    update?: () => void;
+
+    assignCamera(id: string): boolean;
     createCamera(type: CAMERA_TYPE, id?: string): ICamera;
     removeCamera(id: string): boolean;
 

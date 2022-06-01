@@ -17,71 +17,127 @@ export interface ITreeNode {
 
     readonly children: ITreeNode[];
     readonly data: ITreeNodeData[];
+
     readonly id: string;
     readonly name: string;
-    readonly nodeMatrix: mat4;
-    readonly nodeMatrixSDTF: mat4;
     readonly version: string;
+    readonly parent?: ITreeNode;
+
+    readonly nodeMatrix: mat4;
     readonly worldMatrix: mat4;
 
-    bone: boolean
-    boundingBox: IBox
-    excludeViewers: string[];
-    includeViewers: string[];
-    parent: ITreeNode | null;
-    transformations: ITransformation[];
-    transformedNodes: {
+    readonly boundingBox: IBox;
+    readonly transformedNodes: {
         [key: string]: ISDObject
     };
+
+    excludeViewports: string[];
+    restrictViewports: string[];
+
+    transformations: ITransformation[];
     visible: boolean;
 
     // #endregion Properties (16)
 
-    // #region Public Methods (9)
+    // #region Public Methods (13)
 
     /**
-     * Add a child from the children of this node.
+     * Add a child to the children of this node.
      * 
      * @param child the child to add
      */
     addChild(child: ITreeNode): boolean;
+
+    /**
+     * Add a data item to node.
+     * 
+     * @param data the data to add
+     */
+    addData(data: ITreeNodeData): boolean;
+
+    /**
+     * Add a transformation to this node.
+     * 
+     * @param transformation the transformation to add
+     */
+    addTransformation(transformation: ITransformation): boolean;
+
     /**
      * Clones this node and all its children.
      */
     clone(): ITreeNode;
+
     /**
      * Clones this node and all its children.
      */
     cloneInstance(): ITreeNode;
+
     /**
      * Returns the child with the specified id
-     * @return {ITreeNode}
     */
-    getChild(id: string): ITreeNode | null;
+    getChild(id: string): ITreeNode | undefined;
+
+    /**
+     * Returns the data item with the specified id
+    */
+    getData(id: string): ITreeNodeData | undefined;
+
+    /**
+     * Returns the transformation with the specified id
+    */
+    getTransformation(id: string): ITransformation | undefined;
+
     /**
      * Return the path to this node.
      */
     getPath(): string;
+
     /**
      * Check for existence of a child from the children of this node.
      * 
      * @param child the child to check
      */
     hasChild(child: ITreeNode): boolean;
+
+    /**
+     * Check for existence of a data item of this node.
+     * 
+     * @param data the data item to check
+     */
+    hasData(data: ITreeNodeData): boolean;
+
+    /**
+     * Check for existence of a transformation of this node.
+     * 
+     * @param data the transformation to check
+     */
+    hasTransformation(transformation: ITransformation): boolean;
+
     /**
      * Remove a child from the children of this node.
      * 
      * @param child the child to remove
      */
     removeChild(child: ITreeNode): boolean;
+
+    /**
+     * Remove a data item from this node.
+     * 
+     * @param data the data to remove
+     */
+    removeData(data: ITreeNodeData): boolean;
+
+    /**
+     * Remove a transformation from this node.
+     * 
+     * @param transformation the transformation to remove
+     */
+    removeTransformation(transformation: ITransformation): boolean;
+
     /**
      * Update the version
      */
     updateVersion(): void;
-    /**
-     * Only updates the version of this node.
-     */
-    updateVersionAtomic(): void;
 
-    // #endregion Public Methods (9)
+    // #endregion Public Methods (13)
 }

@@ -18,6 +18,7 @@ import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCamera } from './AbstractCamera'
 import { OrthographicCameraControls } from '../controls/OrthographicCameraControls'
 import { IOrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '../../interfaces/camera/IOrthographicCamera'
+import { IOrthographicCameraControls } from '../../interfaces/controls/IOrthographicCameraControls'
 
 export class OrthographicCamera extends AbstractCamera implements IOrthographicCamera {
   // #region Properties (7)
@@ -35,6 +36,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   private _right: number = 100;
   private _top: number = 100;
   private _up: vec3 = vec3.fromValues(0, 1, 0);
+  protected _controls: IOrthographicCameraControls;
 
   // #endregion Properties (7)
 
@@ -55,6 +57,14 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
   public set bottom(value: number) {
     this._bottom = value;
+  }
+
+  public get controls(): IOrthographicCameraControls {
+    return this._controls;
+  }
+
+  public set controls(value: IOrthographicCameraControls) {
+    this._controls = value;
   }
 
   public get direction(): ORTHOGRAPHIC_CAMERA_DIRECTION {
@@ -178,6 +188,11 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     this._domEventListenerToken = this._domEventEngine.addDomEventListener((<OrthographicCameraControls>this._controls).cameraControlsEventDistribution);
 
     this.boundingBox = this._tree.root.boundingBox.clone();
+      
+    this._stateEngine.renderingEngines[viewerId].boundingBoxCreated.then(async () => {
+      if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])
+        await this.zoomTo(undefined, { duration: 0 });
+    })
   }
 
   public clone(): IOrthographicCamera {

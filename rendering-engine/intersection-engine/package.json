@@ -40,6 +40,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "@shapediver/viewer.rendering-engine.rendering-engine": "1.14.14",
     "@shapediver/viewer.shared.math": "1.14.14",
     "@shapediver/viewer.shared.node-tree": "1.14.14",
     "@shapediver/viewer.shared.services": "1.14.14",

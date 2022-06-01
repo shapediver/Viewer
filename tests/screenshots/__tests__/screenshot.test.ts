@@ -1,5 +1,6 @@
 import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { createDriver, screenshotCompare } from '../../general/src/setup'
 import { sddev2, sdeuc1, sdtest } from '../../general/src/models'
@@ -14,7 +15,7 @@ describe('device testing', () => {
     });
 
     beforeEach(async () => {
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
+        await driver.navigate().to('https://viewer.shapediver.com/v3/branch/task/restructuring/cdn/index.html')
     });
 
     afterAll(async () => {
@@ -30,11 +31,12 @@ describe('device testing', () => {
             test(modelDescription.name + '_' + model, async () => {
                 // DO SOMETHING WITH THE API
                 await driver.executeAsyncScript(async (ticket: string, modelViewUrl: string, cb: any) => {
-                    let viewer = await (<any>window).SDV.api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-                    let session = await (<any>window).SDV.api.createSession({ ticket, modelViewUrl });
+                    const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+                    let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+                    let session = await SDV.createSession({ ticket, modelViewUrl });
 
                     await new Promise<void>((resolve) => {
-                        (<any>window).SDV.api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                        SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                     })
                     cb();
                 }, modelTicket, backend);

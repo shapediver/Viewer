@@ -63,5 +63,10 @@ export class Sphere implements ISphere {
         return this;
     }
 
+    public reset() {
+        this._center = vec3.create();
+        this._radius = 0;
+    }
+
     // #endregion Public Methods (4)
 }

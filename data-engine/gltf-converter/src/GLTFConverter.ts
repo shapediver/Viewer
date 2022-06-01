@@ -187,7 +187,7 @@ export class GLTFConverter {
         };
 
         const globalTransformationInverseId = this._uuidGenerator.create();
-        node.transformations.push({
+        node.addTransformation({
             id: globalTransformationInverseId,
             matrix: this._globalTransformationInverse,
         })
@@ -198,21 +198,21 @@ export class GLTFConverter {
           const bb = node.boundingBox.clone();
           const translationVector = vec3.fromValues(-(bb.max[0] + bb.min[0]) / 2.0, -(bb.max[1] + bb.min[1]) / 2.0, -(bb.max[2] + bb.min[2]) / 2.0);
           let translationMatrix: mat4 = mat4.fromTranslation(mat4.create(), translationVector);
-          node.transformations.push({ id: translationMatrixId, matrix: translationMatrix })
+          node.addTransformation({ id: translationMatrixId, matrix: translationMatrix })
         }
 
         sceneDef.nodes?.push(this.convertNode(node));
 
         for (let i = 0; i < node.transformations.length; i++)
             if (node.transformations[i].id === globalTransformationInverseId)
-                node.transformations.splice(i, 1);
+                node.removeTransformation(node.transformations[i]);
 
 
         if (convertForAR) {
             // remove translation the matrix
             for (let i = 0; i < node.transformations.length; i++)
                 if (node.transformations[i].id === translationMatrixId)
-                    node.transformations.splice(i, 1);
+                    node.removeTransformation(node.transformations[i]);
         }
 
         this._content.scenes = [];

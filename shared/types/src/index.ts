@@ -36,6 +36,8 @@ import { EventResponseMapping } from './interfaces/events/EventResponseMapping'
 import { IDragEvent } from './interfaces/events/IDragEvent'
 import { IHoverEvent } from './interfaces/events/IHoverEvent'
 import { ISelectEvent } from './interfaces/events/ISelectEvent'
+import { IBoneData } from './interfaces/data/IBoneData'
+import { BoneData } from './implementation/data/BoneData'
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
@@ -54,7 +56,7 @@ export {
 }
 
 export {
-  ICustomData, CustomData
+  ICustomData, CustomData, IBoneData, BoneData
 }
 
 export {

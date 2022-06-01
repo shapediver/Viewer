@@ -18,19 +18,20 @@ import { ISceneEvent } from '@shapediver/viewer.shared.types'
 import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { CAMERA_TYPE, ICameraEngine } from '../interfaces/ICameraEngine'
-import { AbstractCamera, AbstractCamera as Camera } from './camera/AbstractCamera'
+import { AbstractCamera } from './camera/AbstractCamera'
 import { OrthographicCameraControls } from './controls/OrthographicCameraControls'
 import { PerspectiveCamera } from './camera/PerspectiveCamera'
 import { OrthographicCamera } from './camera/OrthographicCamera'
 import { PerspectiveCameraControls } from './controls/PerspectiveCameraControls'
 import { ORTHOGRAPHIC_CAMERA_DIRECTION } from '../interfaces/camera/IOrthographicCamera'
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { ICamera } from '../interfaces/camera/ICamera'
 
 export class CameraEngine implements ICameraEngine {
     // #region Properties (10)
 
     private readonly _cameras: {
-        [key: string]: Camera
+        [key: string]: ICamera
     } = {};
     private readonly _camerasDomEventListenerToken: {
         [key: string]: string
@@ -42,10 +43,11 @@ export class CameraEngine implements ICameraEngine {
     private readonly _tree: ITree = <ITree>container.resolve(Tree);
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
-    private _camera: Camera | null = null;
+    private _camera: ICamera | null = null;
     private _settingsApplied: boolean = false;
 
     protected _boundingBox: Box = new Box();
+    private _update?: () => void;
 
     // #endregion Properties (10)
 
@@ -75,15 +77,22 @@ export class CameraEngine implements ICameraEngine {
 
     // #region Public Accessors (2)
 
-    public get camera(): Camera | null {
+    public get camera(): ICamera | null {
         return this._camera;
     }
 
     public get cameras(): {
-        [key: string]: Camera
+        [key: string]: ICamera
     } {
-        this.searchForNewCameras();
         return this._cameras;
+    }
+    
+    public get update(): (() => void) | undefined {
+        return this._update;
+    }
+
+    public set update(value: (() => void) | undefined) {
+        this._update = value;
     }
 
     // #endregion Public Accessors (2)
@@ -130,15 +139,17 @@ export class CameraEngine implements ICameraEngine {
         }
 
         this._settingsApplied = true;
+        if(this._update) this._update();
     }
 
-    public assignCamera(id: string): void {
+    public assignCamera(id: string): boolean {
         const camera = this.cameras[id];
-        if (!camera) return;
+        if (!camera) return false;
         this._camera = camera;
+        return true;
     }
 
-    public createCamera(type: CAMERA_TYPE, id?: string): Camera {
+    public createCamera(type: CAMERA_TYPE, id?: string): ICamera {
         const cameras = this.cameras;
         const cameraId = id || this._uuidGenerator.create();
         if (cameras[cameraId]) {
@@ -156,6 +167,7 @@ export class CameraEngine implements ICameraEngine {
             camera.zoomTo(undefined, { duration: 0 });
         }
 
+        if(this._update) this._update();
         return camera;
     }
 
@@ -175,6 +187,7 @@ export class CameraEngine implements ICameraEngine {
 
         delete cameras[id];
         delete this._camerasDomEventListenerToken[id];
+        if(this._update) this._update();
         return true;
     }
 
@@ -304,6 +317,7 @@ export class CameraEngine implements ICameraEngine {
                 getCameraData(node.children[i]);
         };
         getCameraData(this._tree.root);
+        if(this._update) this._update();
     }
 
     // #endregion Private Methods (1)

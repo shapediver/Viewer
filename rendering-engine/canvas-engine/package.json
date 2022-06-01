@@ -40,6 +40,7 @@
     "testEnvironment": "jsdom"
   },
   "dependencies": {
+    "@shapediver/viewer.rendering-engine.rendering-engine": "1.14.14",
     "@shapediver/viewer.shared.services": "1.14.14",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"

@@ -43,7 +43,7 @@
     "clean": "lerna clean --yes && rm -rf node_modules",
     "doc": "ts-node ./scripts/doc.ts",
     "init": "bash ./scripts/init.sh",
-    "test": "lerna run test --concurrency 4 --stream --no-bail",
+    "test": "lerna run test --concurrency 1 --stream --no-bail",
     "test-all": "lerna run test --concurrency 4 --stream --no-bail && npm run test-no-concurrency && npm run test-browserstack",
     "test-no-concurrency": "lerna run test-no-concurrency --stream --concurrency 1 --no-bail",
     "test-browserstack": "lerna run test-browserstack --stream --no-bail ",

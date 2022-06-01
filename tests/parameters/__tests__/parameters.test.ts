@@ -1,6 +1,6 @@
 import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API } from '@shapediver/viewer'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { createDriver, screenshotCompare } from '../../general/src/setup'
 import { sdeuc1 } from '../../general/src/models'
@@ -18,7 +18,7 @@ describe('device testing', () => {
     });
 
     beforeEach(async () => {
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
+        await driver.navigate().to('https://viewer.shapediver.com/v3/branch/task/restructuring/cdn/index.html')
     });
 
     afterAll(async () => {
@@ -28,23 +28,23 @@ describe('device testing', () => {
 
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         }, shelfTicket);
 
         for (let i = 2; i <= 10; i++) {
             await driver.executeAsyncScript(async (i: number, cb: any) => {
-                const api: typeof API = (<any>window).SDV.api;
-                const session = api.sessions['mySession']!;
+                const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+                const session = SDV.sessions['mySession']!;
                 session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = i;
                 await session.customize();
                 await new Promise<void>((resolve) => {
-                    api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                    SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
                 })
                 cb();
             }, i);
@@ -54,11 +54,11 @@ describe('device testing', () => {
 
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         }, shelfTicket);
@@ -66,12 +66,12 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_4');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (2)
             await session.customize();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -79,12 +79,12 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_2');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (3)
             await session.customize();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -92,12 +92,12 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_3');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (4)
             await session.customize();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -105,12 +105,12 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_4');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (5)
             await session.customize();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -118,11 +118,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_5');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             await session.goBack();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -130,11 +130,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_4');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             await session.goBack();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -142,11 +142,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_3');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             await session.goForward();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -154,12 +154,12 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_4');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             session.getParameterById('de76cade-0cea-47b1-879e-1a0b717910e1')!.value = (2)
             await session.customize();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -167,8 +167,8 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_2');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             await session.goForward();
             cb();
         });
@@ -177,11 +177,11 @@ describe('device testing', () => {
         await screenshotCompare(await driver.takeScreenshot(), 'undo/change_2');
 
         await driver.executeAsyncScript(async (cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            const session = api.sessions['mySession']!;
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            const session = SDV.sessions['mySession']!;
             await session.goBack();
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         });
@@ -191,18 +191,18 @@ describe('device testing', () => {
 
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await api.createSession({
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({
                 id: 'mySession',
                 ticket,
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com',
-                initialParameters: {
+                initialParameterValues: {
                     'de76cade-0cea-47b1-879e-1a0b717910e1': '2'
                 }
             });
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb();
         }, shelfTicket);

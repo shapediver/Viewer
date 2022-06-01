@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, test } from '@jest/globals'
 
 import { sdeuc1 } from '../../general/src/models'
 import { createDriver, screenshotCompare } from '../../general/src/setup'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 require('chromedriver');
 
@@ -17,7 +18,7 @@ describe('device testing', () => {
     });
 
     beforeEach(async () => {
-        await driver.navigate().to('https://viewer.shapediver.com/v3/latest/cdn/index.html')
+        await driver.navigate().to('https://viewer.shapediver.com/v3/branch/task/restructuring/cdn/index.html')
     });
 
     afterAll(async () => {
@@ -27,13 +28,13 @@ describe('device testing', () => {
 
     test(name + '_translation', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const SDV = (<any>window).SDV;
-            let viewer = await SDV.api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await SDV.api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {
-                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
-            const tracks = [{
+            const tracks: ShapeDiverViewer.IAnimationTrack[] = [{
                 times: [0, 0.5],
                 node: session.node,
                 values: [0, 0, 0, 25, 0, 0],
@@ -44,12 +45,11 @@ describe('device testing', () => {
             data.reset = false;
             session.node.data.push(data);
             data.startAnimation();
-            SDV.api.update();
-
+            viewer.update();
 
             await new Promise(resolve => setTimeout(resolve, 600))
             await new Promise<void>((resolve) => {
-                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb()
         }, shelfTicket);
@@ -59,13 +59,13 @@ describe('device testing', () => {
 
     test(name + '_rotation', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const SDV = (<any>window).SDV;
-            let viewer = await SDV.api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await SDV.api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {
-                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
-            const tracks = [{
+            const tracks: ShapeDiverViewer.IAnimationTrack[] = [{
                 times: [0, 0.5],
                 node: session.node,
                 values: [0, 0, 0, 1, 0, 0, 1, 0],
@@ -76,12 +76,11 @@ describe('device testing', () => {
             data.reset = false;
             session.node.data.push(data);
             data.startAnimation();
-            SDV.api.update();
-
+            viewer.update();
 
             await new Promise(resolve => setTimeout(resolve, 600))
             await new Promise<void>((resolve) => {
-                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb()
         }, shelfTicket);
@@ -90,13 +89,13 @@ describe('device testing', () => {
 
     test(name + '_scale', async () => {
         const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
-            const SDV = (<any>window).SDV;
-            let viewer = await SDV.api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
-            let session = await SDV.api.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {
-                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
-            const tracks = [{
+            const tracks: ShapeDiverViewer.IAnimationTrack[] = [{
                 times: [0, 0.5],
                 node: session.node,
                 values: [1, 1, 1, 1.5, 1.5, 1.5],
@@ -107,12 +106,11 @@ describe('device testing', () => {
             data.reset = false;
             session.node.data.push(data);
             data.startAnimation();
-            SDV.api.update();
-
+            viewer.update();
 
             await new Promise(resolve => setTimeout(resolve, 600))
             await new Promise<void>((resolve) => {
-                SDV.api.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb()
         }, shelfTicket);

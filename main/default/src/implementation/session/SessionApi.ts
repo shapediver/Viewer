@@ -117,18 +117,18 @@ export class SessionApi implements ISessionApi {
     }
 
     public get excludeViewports(): string[] {
-        return this.#sessionEngine.excludeViewers;
+        return this.#sessionEngine.excludeViewports;
     }
 
     public set excludeViewports(value: string[]) {
         try {
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewers: Updating to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewers`, value, 'stringArray');
-            this.#sessionEngine.excludeViewers = value;
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewers: was set to ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewports: Updating to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewports`, value, 'stringArray');
+            this.#sessionEngine.excludeViewports = value;
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewports: was set to ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewers`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewports`, e);
         }
     }
 

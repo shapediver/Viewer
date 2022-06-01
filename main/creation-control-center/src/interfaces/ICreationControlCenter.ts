@@ -24,6 +24,7 @@ export interface ICreationControlCenter {
     id?: string,
     waitForOutputs?: boolean,
     loadOutputs?: boolean,
+    excludeViewports?: string[],
     initialParameterValues?: { [key: string]: string }
   }): Promise<SessionEngine>;
 
@@ -39,6 +40,6 @@ export interface ICreationControlCenter {
     sessionSettingsMode?: SESSION_SETTINGS_MODE,
     visibility?: VISIBILITY_MODE,
   }): Promise<RenderingEngineThreeJs>;
-
+  
   // #endregion Public Methods (4)
 }

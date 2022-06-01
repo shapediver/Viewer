@@ -1,5 +1,5 @@
 import { AttributeVisualizationEngine } from "./implementation/AttributeVisualizationEngine";
-import { IAttribute, IColorAttribute, IStringAttribute, INumberAttribute, IDefaultAttribute } from "./interfaces/IAttribute";
+import { IAttribute, IColorAttribute, IStringAttribute, INumberAttribute, IDefaultAttribute, ATTRIBUTE_VISUALIZATION } from "./interfaces/IAttribute";
 import { IAttributeVisualizationEngine } from "./interfaces/IAttributeVisualizationEngine";
 import { ILayer } from "./interfaces/ILayer";
 
@@ -14,4 +14,8 @@ export {
     IStringAttribute,
     INumberAttribute,
     IDefaultAttribute
+}
+
+export {
+    ATTRIBUTE_VISUALIZATION
 }

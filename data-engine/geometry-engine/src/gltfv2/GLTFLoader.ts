@@ -18,6 +18,7 @@ import {
   GeometryData,
   MaterialVariantsData,
   PrimitiveData,
+  BoneData
 } from '@shapediver/viewer.shared.types'
 import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 import {
@@ -126,7 +127,7 @@ export class GLTFLoader {
                         const boneInverses: mat4[] = [];
 
                         for (let j = 0; j < skinDef.joints.length; j++) {
-                            this._nodes[skinDef.joints[j]].bone = true;
+                            this._nodes[skinDef.joints[j]].data.push(new BoneData())
                             bones.push(this._nodes[skinDef.joints[j]]);
 
                             let mat = mat4.create();
@@ -370,7 +371,7 @@ export class GLTFLoader {
         this._nodes[nodeId] = nodeDef;
 
         if (node.matrix) {
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: 'gltf_matrix',
                 matrix: mat4.fromValues(node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
                     node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
@@ -378,15 +379,15 @@ export class GLTFLoader {
                     node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15])
             });
 
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: 'gltf_matrix_translation',
                 matrix: mat4.create()
             });
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: 'gltf_matrix_rotation',
                 matrix: mat4.create()
             });
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: 'gltf_matrix_scale',
                 matrix: mat4.create()
             });
@@ -395,15 +396,15 @@ export class GLTFLoader {
             const matS = node.scale ? mat4.fromScaling(mat4.create(), vec3.fromValues(node.scale[0], node.scale[1], node.scale[2])) : mat4.create();
             const matR = node.rotation ? mat4.fromQuat(mat4.create(), vec4.fromValues(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3])) : mat4.create();
 
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: 'gltf_matrix_translation',
                 matrix: matT
             });
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: 'gltf_matrix_rotation',
                 matrix: matR
             });
-            nodeDef.transformations.push({
+            nodeDef.addTransformation({
                 id: 'gltf_matrix_scale',
                 matrix: matS
             });
@@ -434,7 +435,7 @@ export class GLTFLoader {
         if (!this._content.scenes[sceneId]) throw new Error('Scene not available.')
         const scene = this._content.scenes[sceneId];
         const sceneDef = new TreeNode(scene.name || 'scene_' + sceneId + '');
-        sceneDef.transformations.push({
+        sceneDef.addTransformation({
             id: this._uuidGenerator.create(),
             matrix: this._globalTransformation
         })

@@ -61,8 +61,8 @@ export class SceneTracingManager implements IManager {
     public trace(origin: vec3, direction: vec3, root: ITreeNode = this._tree.root) {
         const tracingData: { distance: number, data: GeometryData }[] = [];
         const trace = (root: ITreeNode) => {
-            if(root.excludeViewers.includes(this._renderingEngine.id)) return;
-            if(root.includeViewers.length > 0 && !root.includeViewers.includes(this._renderingEngine.id)) return;
+            if(root.excludeViewports.includes(this._renderingEngine.id)) return;
+            if(root.restrictViewports.length > 0 && !root.restrictViewports.includes(this._renderingEngine.id)) return;
 
             for (let i = 0; i < root.data.length; i++)
                 if (root.data[i] instanceof GeometryData) {

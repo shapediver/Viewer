@@ -1,12 +1,14 @@
 import 'reflect-metadata'
 
-import { Tree } from '../src/Tree'
-import { ITransformation, TreeNode } from '../src/TreeNode'
+import { Tree } from '../src/implementation/Tree'
+import { TreeNode } from '../src/implementation/TreeNode'
+import { ITree } from '../src/interfaces/ITree'
+import { ITransformation, ITreeNode } from '../src/interfaces/ITreeNode'
 import { ITreeNodeData } from '../src/interfaces/ITreeNodeData'
 
 describe('scene graph engine - test', () => {
-  let tree: Tree;
-  let root: TreeNode;
+  let tree: ITree;
+  let root: ITreeNode;
 
   beforeEach(() => {
     tree = new Tree();
@@ -212,7 +214,7 @@ describe('scene graph node - test', () => {
     const name = 'name';
     const data: ITreeNodeData[] = [];
     const transformations: ITransformation[] = [];
-    const node = new TreeNode(name, null, data, transformations);
+    const node = new TreeNode(name, undefined, data, transformations);
 
     expect(node.name).toBe(name);
     expect(node.data).toStrictEqual(data);
@@ -306,7 +308,7 @@ describe('scene graph node - test', () => {
     const name = 'name';
     const data: ITreeNodeData[] = [];
     const transformations: ITransformation[] = [];
-    const node = new TreeNode(name, null, data, transformations);
+    const node = new TreeNode(name, undefined, data, transformations);
     const clonedNode = node.clone();
     expect(node.name).toBe(clonedNode.name);
     expect(node.parent).toBe(clonedNode.parent);
@@ -319,7 +321,7 @@ describe('scene graph node - test', () => {
     const name = 'name';
     const data: ITreeNodeData[] = [];
     const transformations: ITransformation[] = [];
-    const node = new TreeNode(name, null, data, transformations);
+    const node = new TreeNode(name, undefined, data, transformations);
     node.addChild(new TreeNode('child1'));
     node.addChild(new TreeNode('child2'));
     new TreeNode('child3', node)

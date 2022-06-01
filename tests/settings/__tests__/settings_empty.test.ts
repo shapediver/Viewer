@@ -1,6 +1,6 @@
 import webdriver from 'selenium-webdriver'
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
-import { api as API, DirectionalLight } from '@shapediver/viewer'
+import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { createDriver, screenshotCompare } from '../../general/src/setup'
 import { createTokenFromSlug } from '../../general/src/createTokenFromSlug'
@@ -29,16 +29,16 @@ describe('device testing', () => {
         const token = await createTokenFromSlug("shelf-49");
         // check starting default
         const settings1: any = await driver.executeAsyncScript(async (bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-            let session = await api.createSession({
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+            let session = await SDV.createSession({
                 ticket: '60e6373b9152f62f53967a0bb1c4c3c176fc7fa6dab1190e9a27d47f46678467b62615558b1c0d0a46b23cc1343eb51029566d41515358b0d335c50fa8e40b6e2e8b682db843bfbe5acfddf54abe8ac61a60888709a5be90f8ac14b15807948a8814874c401d8a-748c1301025b18e3fef38e12d5cca40d',
                 modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com',
                 id: 'mySession',
-                bearerToken
+                jwtToken: bearerToken
             });
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb((<any>window).SDV.settingsEngine.flatten());
         }, token);
@@ -93,17 +93,17 @@ describe('device testing', () => {
         const token = await createTokenFromSlug("shelf-49");
         // check starting default
         const settings1: any = await driver.executeAsyncScript(async (bearerToken: string, cb: any) => {
-            const api: typeof API = (<any>window).SDV.api;
-            let session = await api.createSession({
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let session = await SDV.createSession({
                 ticket: '60e6373b9152f62f53967a0bb1c4c3c176fc7fa6dab1190e9a27d47f46678467b62615558b1c0d0a46b23cc1343eb51029566d41515358b0d335c50fa8e40b6e2e8b682db843bfbe5acfddf54abe8ac61a60888709a5be90f8ac14b15807948a8814874c401d8a-748c1301025b18e3fef38e12d5cca40d',
                 modelViewUrl: 'https://sddev2.eu-central-1.shapediver.com',
                 id: 'mySession',
-                bearerToken,
+                jwtToken: bearerToken,
                 waitForOutputs: false
             });
-            let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+            let viewer = await SDV.createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
             await new Promise<void>((resolve) => {
-                api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
             cb((<any>window).SDV.settingsEngine.flatten());
         }, token);
