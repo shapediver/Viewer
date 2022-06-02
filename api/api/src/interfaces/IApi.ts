@@ -46,7 +46,7 @@ export interface IApi {
       parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean },
       export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
     },
-    viewer?: { scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
+    viewer?: { ar?: boolean, scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
   }): Promise<void>;
   /**
    * Closes the session with the specified id.

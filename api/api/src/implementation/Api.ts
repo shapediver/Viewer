@@ -231,14 +231,14 @@ export class Api implements IApi {
         parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean, value?: boolean },
         export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
       },
-      viewer?: { scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
+      viewer?: { ar?: boolean, scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
     } =
       {
         session: {
           parameter: { displayname: false, order: false, hidden: false, value: false },
           export: { displayname: false, order: false, hidden: false }
         },
-        viewer: { scene: false, camera: false, light: false, environment: false }
+        viewer: { ar: false, scene: false, camera: false, light: false, environment: false }
       }
   ): Promise<void> {
     try {
@@ -253,7 +253,7 @@ export class Api implements IApi {
       if (sections.session.export === undefined)
         sections.session.export = { displayname: false, order: false, hidden: false };
       if (sections.viewer === undefined)
-        sections.viewer = { scene: false, camera: false, light: false, environment: false };
+        sections.viewer = { ar: false, scene: false, camera: false, light: false, environment: false };
 
       let config: object;
       if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
@@ -285,7 +285,7 @@ export class Api implements IApi {
         throw this.#logger.handleError(LOGGINGTOPIC.SETTINGS, 'Api.applySettings', error);
       }
 
-      const currentSettings = this.#settingsEngine.settings;
+      const currentSettings = <ISettingsV3_1>this.#settingsEngine.settings;
 
       // apply parameter settings
       if (sections.session.parameter.displayname || sections.session.parameter.order || sections.session.parameter.hidden || sections.session.parameter.value) {
@@ -320,6 +320,12 @@ export class Api implements IApi {
             if (sections.session.export.hidden) session.exports[p].hidden = settings.session[idForSettings].hidden || false;
           }
         }
+      }
+
+      // apply ar settings
+      if (sections.viewer.ar) {
+        currentSettings.ar = settings.ar;
+        currentSettings.general.transformation = settings.general.transformation;
       }
 
       // apply camera settings
