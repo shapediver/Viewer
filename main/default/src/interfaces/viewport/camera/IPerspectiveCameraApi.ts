@@ -5,8 +5,6 @@ import { vec3 } from 'gl-matrix'
  * The api for a perspective camera.
  * A perspective camera can be created by calling the {@link createPerspectiveCamera} method.
  * A camera has a multitude of properties and methods that can be used to adjust the behavior.
- * 
- * ATOM: I left comments in IOrthographicCameraApi, let's do analogous updates here.
  */
 export interface IPerspectiveCameraApi extends ICameraApi {  
     /**

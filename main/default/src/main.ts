@@ -157,8 +157,6 @@ export let showMessages: boolean = viewerOptions.showMessages;
  * An optional identifier for the session can be provided. This identifier can be used to retrieve the  
  * api object from {@link sessions}. In case no identifier is provided, a unique one will be generated.
  * 
- * ATOM: It would be useful to have an optional parameter allowing to specify a transformation for the session node.
- * 
  * @param properties.ticket The ticket for direct embedding of the model to create a session for. This identifies the model on the Geometry Backend.
  * @param properties.modelViewUrl The modelViewUrl of the {@link https://help.shapediver.com/doc/Geometry-Backend.1863942173.html|ShapeDiver Geometry Backend} hosting the model.
  * @param properties.jwtToken The JWT to use for authorizing the API calls to the Geometry Backend.
@@ -239,6 +237,7 @@ export const createViewport = async (properties?: {
        * Optional URL to a logo to be displayed while the viewport is in busy mode. 
        * A default logo will be used if none is provided. 
        * ATOM: Let's explain how the spinner's placement can be influenced.
+       * MTOA: Currently it can't, what do you have in mind?
        */
       spinner?: string,
     },

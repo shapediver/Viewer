@@ -28,6 +28,7 @@ export interface ILightApi {
    * The name of the light.
    * 
    * ATOM: what's the difference to id?
+   * MTOA: it's a name ;)
    */
   name?: string;
 
@@ -35,6 +36,7 @@ export interface ILightApi {
    * The order of the light.
    * 
    * ATOM: Please explain
+   * MTOA: we might need it on the platform
    */
   order?: number;
   

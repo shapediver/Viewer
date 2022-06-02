@@ -130,7 +130,7 @@ export interface IViewportApi {
 
   /**
    * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
-   * ATOM: in case this is set to NONE, are there events which can be reacted upon to do sth custom? Let's mention them here.
+   * Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWER.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWER.BUSY_MODE_OFF} will be emitted.
    */
   busyModeDisplay: BUSY_MODE_DISPLAY;
 
@@ -148,7 +148,8 @@ export interface IViewportApi {
 
   /**
    * The environment map used by the viewport.
-   * ATOM: Let's add detailed requirements here (image types, when do we need a single image, how many images if not a single, preset envmaps)
+   * You can either use the HDR maps at {@link ENVIRONMENT_MAP} or the LDR legacy maps at {@link ENVIRONMENT_MAP_CUBE}.
+   * Additionally, you can specify your own maps. For HDR maps, provide a link to a .hdr file, for LDR provide the folder where the six cube map images are located.
    */
   environmentMap: string | string[];
 
@@ -185,8 +186,9 @@ export interface IViewportApi {
 
   /**
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
+   * This is the texture that is rendered to the screen.
    * 
-   * ATOM: Please link to {@link textureEncoding} and explain the difference.
+   * @see textureEncoding
    */
   outputEncoding: TEXTURE_ENCODING;
 
@@ -220,7 +222,8 @@ export interface IViewportApi {
 
   /**
    * Option to show / hide the viewport.
-   * ATOM: Let's add some details here. This will disable rendering, and hide the canvas behind a div, etc
+   * This will disable rendering, and hide the canvas behind the logo.
+   * Using this setting especially makes sense with {@link VISIBILITY_MODE.MANUAL} where you can decide at what point you first want to show the scene.
    */
   show: boolean;
 
@@ -232,7 +235,7 @@ export interface IViewportApi {
   /**
    * The encoding that is used for textures. (default: TEXTURE_ENCODING.SRGB)
    * 
-   * ATOM: Please link to {@link outputEncoding} and explain the difference.
+   * @see outputEncoding
    */
   textureEncoding: TEXTURE_ENCODING;
   
@@ -300,8 +303,7 @@ export interface IViewportApi {
   assignLightScene(id: string): boolean;
 
   /**
-   * Closes the viewport.
-   * ATOM: Please add some details. Will this remove all traces of the viewport on the canvas element?
+   * Closes the viewport and will remove all traces of the canvas element.
    */
   close(): Promise<void>;
 
@@ -363,8 +365,8 @@ export interface IViewportApi {
   getScreenshot(type?: string, quality?: number): string;
 
   /**
-   * Remove the camera with the specified id.
-   * ATOM: Please explain what happens if the current camera is removed.
+   * Remove the camera with the specified id and destroys it.
+   * If you remove the current active camera, the rendering will be stopped until a new camera is assigned.
    * 
    * @param id The id of the camera.
    */
@@ -386,7 +388,7 @@ export interface IViewportApi {
 
   /**
    * Remove the light scene with the specified id.
-   * ATOM: Please explain what happens if the current light scene is removed.
+   * If you remove the current active light scene, no lights will be shown.
    * 
    * @param id The id of the light scene.
    */
@@ -424,14 +426,9 @@ export interface IViewportApi {
    * View the current scene in AR.
    * 
    * Please check first if the device supports the viewing of models in AR, see {@link viewableInAR}.
+   * As some models might have a different scale then the AR apps (meters), the scaling can be chosen freely {@link arScale}.
    * 
-   * As some models might have a different scale then the AR apps (meters), the scaling can be chosen freely.
-   * 
-   * ATOM: How does this related to arScale? Let's also explain the process here to some extent, i.e. 
-   *   * export to glTF
-   *   * backend upload (which requires a session), and conversion for iOS
-   *   * opening the AR asset 
-   * Also: Does it make sense to expose the glTF exporting functionality?
+   * Internally, the scene will first be converted into a glTF. This glTF will be uploaded to our backend to be able to start AR.
    * 
    * @param androidOptions 
    */

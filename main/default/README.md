@@ -8,3 +8,40 @@ For more information on ShapeDiver, please visit our [homepage](https://shapediv
 ```
 npm install --save @shapediver/viewer
 ```
+
+## Usage
+
+The ShapeDiver Viewer consists of simple components that you can use in your own application. You can see here how you can create those components and some things that you can do with them. Please have a look at the specific documentations or the [help desk](https://help.shapediver.com/doc/Viewer.1836580882.html) for further information.
+
+### createSession
+
+The [session]()(TODO link to doc) is the component that connects to the ShapeDiver servers. This component is used to change [parameters]()(TODO link to doc), to create [exports]()(TODO link to doc) and to manage the [outputs]()(TODO link to doc). For more information on what all of these terms mean, please visit our [help desk page](https://help.shapediver.com/doc/Sessions.1841659905.html).
+
+```typescript
+import { createSession } from '@shapediver/viewer';
+
+const session = await createSession({
+    id: 'mySession',
+    ticket: MY_TICKET, 
+    modelViewUrl: MY_MODEL_VIEW_URL
+});
+```
+
+Once a session is created, the initial outputs are already loaded (unless specified otherwise in the [method options]()(TODO link to doc)).
+
+### createViewport
+
+The [viewport]()(TODO link to doc) is the component where the rendering takes place. To create it, a canvas is needed that is somewhere in your page. 
+
+```typescript
+import { createViewport } from '@shapediver/viewer';
+
+const viewport = await createViewport({
+    id: 'myViewport',
+    canvas: document.getElementById('canvas') as HTMLCanvasElement
+});
+```
+
+Once you created a viewport, you can see the logo. When nothing is in the scene yet, the logo is shown until there is something to render. 
+
+There are many options that you can already provide on initialization, please have a look at them [here]()(TODO link to doc).

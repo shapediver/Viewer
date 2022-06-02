@@ -348,7 +348,7 @@ export interface ISessionApi {
     /**
      * Save the 3D viewer related settings of this session to the model hosted on the Geometry Backend.
      * 
-     * ATOM: Please add details on how parameter viewportId is used.
+     * If a viewportId is provided, the settings of that viewport will be used for saving.
      * 
      * This call will throw an exception if the ticket and JWT do not grant the required permission to 
      * save viewer settings for the model.

@@ -45,20 +45,20 @@ export interface ICameraApi {
 
     /**
      * Option to enable / disable the movement of the camera.
-     * ATOM: Please explain in detail what this does exactly. Ignore mouse/pointer events? 
-     * What about calls to update the position, trigger animations, etc?
      */
     enabled: boolean;
 
     /**
      * The name of the camera.
      * ATOM: What is the difference to id?
+     * MTOA: It's a name ;)
      */
     name?: string;
 
     /**
      * Optional order property for the camera.
      * ATOM: Please explain what this is used for.
+     * MTOA: This was implemented as we will need it on the platform.
      */
     order?: number;
 
@@ -93,10 +93,12 @@ export interface ICameraApi {
 
     // #region Public Methods (7)
 
+    // TODO
     /**
      * Let the camera follow a path along pairs of position and target.
      * 
      * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
+     * MTOA: TODO
      * 
      * @param path The defined path.
      * @param options Various options to be adjusted.
@@ -128,6 +130,7 @@ export interface ICameraApi {
      * Reset / animate the camera to its default position and target.
      * 
      * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
+     * MTOA: TODO
      * 
      * @param options Various options to be adjusted.
      */
@@ -137,6 +140,7 @@ export interface ICameraApi {
      * Set / animate the camera to a specific position and target.
      * 
      * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
+     * MTOA: TODO
      * 
      * @param options Various options to be adjusted.
      */
@@ -146,6 +150,7 @@ export interface ICameraApi {
      * Project a point on the screen to a point in the scene.
      * 
      * ATOM: Please add details. Does this a raycast and returns the first hit? What if no hit?
+     * MTOA: This is not a raycast, it is a simple projection. Not even looking at geometry.
      * 
      * @param p The point on the screen to project.
      */
@@ -155,6 +160,7 @@ export interface ICameraApi {
      * Zoom to a specific part of the scene, or the whole scene (default).
      * 
      * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
+     * MTOA: TODO
      * 
      * @param zoomTarget The target to zoom to.
      * @param options Various options to be adjusted.

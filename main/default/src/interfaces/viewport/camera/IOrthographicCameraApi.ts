@@ -11,13 +11,14 @@ export interface IOrthographicCameraApi extends ICameraApi {
      * The direction of the camera.
      * 
      * ATOM: can this be updated?
+     * MTOA: of course
      */
     direction: ORTHOGRAPHIC_CAMERA_DIRECTION;
 
     /**
      * The damping factor for the camera.
-     * 
-     * ATOM: Let's add details on how this works.
+     * The dampening affects how much the camera moves even after you let it got.
+     * This smooths the usage of the camera.
      */
     damping: number;
 
@@ -30,6 +31,7 @@ export interface IOrthographicCameraApi extends ICameraApi {
      * Option to enable panning.
      * 
      * ATOM: Let's add a description of the controls, i.e. which mouse buttons have to be pressed, and how it works with touch events.
+     * MTOA: I'd rather not, currently we don't expose it, but we might make it possible to change the inputs.
      */
     enablePan: boolean;
 
@@ -37,20 +39,19 @@ export interface IOrthographicCameraApi extends ICameraApi {
      * Option to enable zooming.
      * 
      * ATOM: Let's add a description of the controls, i.e. which mouse buttons have to be pressed, and how it works with touch events.
+     * MTOA: I'd rather not, currently we don't expose it, but we might make it possible to change the inputs.
      */
     enableZoom: boolean;
 
     /**
      * The speed of the camera for key panning.
-     * 
-     * ATOM: Let's add details on how this works.
+     * MTOA: how key panning works?
      */
     keyPanSpeed: number;
 
     /**
      * The factor for applying smoothing to the camera movement.
-     * 
-     * ATOM: Let's add details on how this works.
+     * The various events that come in are blended together to ensure that extremes are not as pronounced.
      */
     movementSmoothness: number;
 
@@ -58,6 +59,7 @@ export interface IOrthographicCameraApi extends ICameraApi {
      * The speed of the camera for panning.
      * 
      * ATOM: Let's add details on how this works.
+     * MTOA: how panning works?
      */
     panSpeed: number;
 
@@ -65,6 +67,7 @@ export interface IOrthographicCameraApi extends ICameraApi {
      * The speed of the camera for zooming.
      * 
      * ATOM: Let's add details on how this works.
+     * MTOA: how zooming works?
      */
     zoomSpeed: number;
 }
