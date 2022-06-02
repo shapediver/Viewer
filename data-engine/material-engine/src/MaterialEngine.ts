@@ -1,6 +1,6 @@
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { Converter, HttpClient, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, HttpResponse, Logger, LOGGINGTOPIC, ShapeDiverBackendError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerError } from '@shapediver/viewer.shared.services'
 import {
     MapData,
     MATERIAL_SIDE,
@@ -13,7 +13,6 @@ import { vec2, vec3, vec4 } from 'gl-matrix'
 import { materialDatabase } from './materialDatabase'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { IMaterialContentData, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, IPresetMaterialDefinition, ITexture } from '@shapediver/viewer.data-engine.shared-types'
-import { AxiosResponse } from 'axios'
 
 @singleton()
 export class MaterialEngine {
@@ -23,7 +22,7 @@ export class MaterialEngine {
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-    private _loadData?: (img: string) => Promise<AxiosResponse<any>> = this._httpClient.loadData.bind(this._httpClient);;
+    private _loadData?: (img: string) => Promise<HttpResponse<any>> = this._httpClient.loadData.bind(this._httpClient);;
     // #endregion Properties (3)
 
     // #region Constructors (1)

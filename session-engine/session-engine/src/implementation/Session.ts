@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter } from '@shapediver/viewer.shared.services'
+import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGINGTOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, HttpResponse } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
@@ -7,7 +7,7 @@ import { SessionTreeNode } from './SessionTreeNode'
 import { ISession } from '../interfaces/ISession'
 import { SessionData } from './SessionData'
 import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { AxiosRequestConfig } from 'axios'
 
 export class Session implements ISession {
     // #region Properties (22)
@@ -45,7 +45,7 @@ export class Session implements ISession {
     private _sessionId?: string;
     private _viewerSettings?: object;
     private _dataCache: {
-        [key: string]: Promise<AxiosResponse<any>>
+        [key: string]: Promise<HttpResponse<any>>
     } = {};
 
     // #endregion Properties (22)
@@ -485,7 +485,7 @@ export class Session implements ISession {
         }
     }
 
-    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }, retry = false): Promise<AxiosResponse<any>> {
+    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, retry = false): Promise<HttpResponse<ArrayBuffer>> {
         this.checkAvailability();
         try {
             const dataKey = btoa(href);
@@ -494,10 +494,18 @@ export class Session implements ISession {
             if(href.startsWith('blob:') || href.startsWith('data:')) {
                 this._dataCache[dataKey] = this._httpClient.get(href, config);
             } else {
-                this._dataCache[dataKey] = this._httpClient.get(
-                    `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${dataKey}`,
-                    config
-                );
+
+                this._dataCache[dataKey] = new Promise<HttpResponse<any>>(resolve => {
+                    this._sdk.asset.downloadImage(this._sessionId!, href).then((res) => {
+                        resolve({
+                            data: res[0],
+                            headers: {
+                                'content-type': res[1]
+                            }
+                        })
+                    });
+                });
+                
             }
             return await this._dataCache[dataKey];
         } catch (e) {

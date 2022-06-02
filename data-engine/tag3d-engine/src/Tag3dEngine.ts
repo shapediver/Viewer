@@ -7,6 +7,7 @@ import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sd
 import { ITag3D } from '@shapediver/viewer.data-engine.shared-types'
 import { TextGeometry } from './three/geometries/TextGeometry'
 import { Font } from './three/loaders/FontLoader';
+import { font } from './font'
 
 @singleton()
 export class Tag3dEngine {
@@ -38,8 +39,7 @@ export class Tag3dEngine {
      */
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<TreeNode> {
         if(!this._font) {
-            const json = await this._httpClient.loadData('https://viewer.shapediver.com/graphik_regular.typeface.json', { responseType: 'json' });
-            this._font = new Font(json.data);
+            this._font = new Font(font);
             this._stateEngine.fontLoaded.resolve(true);
         }
 
