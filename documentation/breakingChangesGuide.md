@@ -1,5 +1,8 @@
 # Breaking Changes Guide
 
+## Version 1.14.16 -> 1.15.0
+- removed `busy` and `blurSceneWhenBusy`, you can now use the branding options when creating a viewer
+
 ## Version 1.12.5 -> 1.13.0
 - `viewableInAR` only returns a boolean now, no more errors
 

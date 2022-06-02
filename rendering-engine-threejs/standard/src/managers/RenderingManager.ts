@@ -19,7 +19,7 @@ import {
 import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import { ICameraEvent } from '@shapediver/viewer.shared.types'
-import { RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { BUSY_MODE_DISPLAY, RENDERERTYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
@@ -99,7 +99,12 @@ export class RenderingManager implements IManager {
 
     // #region Public Methods (9)
 
-    public addLogo(canvas: HTMLCanvasElement, branding: { logo: string | null, backgroundColor: string }): HTMLDivElement {
+    public addLogo(canvas: HTMLCanvasElement, branding: {
+        logo: string | null;
+        backgroundColor: string;
+        busyModeSpinner: string;
+        busyModeDisplay: BUSY_MODE_DISPLAY;
+      }): HTMLDivElement {
         const logoDivElement = document.createElement('div');
         logoDivElement.style.backgroundColor = branding.backgroundColor;
         logoDivElement.style.position = 'relative';
@@ -118,6 +123,31 @@ export class RenderingManager implements IManager {
         }
 
         return logoDivElement;
+    }
+
+    public addSpinner(canvas: HTMLCanvasElement, branding: {
+        logo: string | null;
+        backgroundColor: string;
+        busyModeSpinner: string;
+        busyModeDisplay: BUSY_MODE_DISPLAY;
+      }): HTMLDivElement {
+        const spinnerDivElement = document.createElement('div');
+        spinnerDivElement.style.position = 'absolute';
+        spinnerDivElement.style.right = '10px';
+        spinnerDivElement.style.bottom = '10px';
+        spinnerDivElement.style.visibility = 'hidden';
+        canvas.parentElement?.appendChild(spinnerDivElement);
+
+        if(branding.busyModeSpinner) {
+            const img = new Image();
+            img.src = branding.busyModeSpinner;
+            img.style.float = 'right';
+            img.style.width = 'calc(100% * 0.55)';
+            img.style.height = 'calc(100% * 0.55)';
+            spinnerDivElement.appendChild(img)
+        }
+
+        return spinnerDivElement;
     }
 
     public createRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
@@ -278,8 +308,8 @@ export class RenderingManager implements IManager {
         this._stats.begin();
         this.showStatistics();
 
-        // toggle the blurring
-        this.toggleBlur(states.blurScene);
+        // toggle the busy mode
+        this.toggleBusyMode(states.busyMode);
 
         // animation loop - part 8: calculate the current size
         this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
@@ -420,7 +450,7 @@ export class RenderingManager implements IManager {
     private evaluateRenderingState(): {
         showScene: boolean,
         rendering: boolean,
-        blurScene: boolean,
+        busyMode: boolean,
         updateShadowMap: boolean,
         beautyRendering: boolean
     } {
@@ -444,25 +474,25 @@ export class RenderingManager implements IManager {
             if (camera.type === CAMERATYPE.PERSPECTIVE) {
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
                 if (controls.enableAutoRotation === true && controls.autoRotationSpeed !== 0)
-                    return { showScene, rendering: true, updateShadowMap, blurScene: false, beautyRendering: false };
+                    return { showScene, rendering: true, updateShadowMap, busyMode: false, beautyRendering: false };
             }
         } else {
             rendering = false;
         }
 
         // If the scene should be blurred
-        let blurScene = false;
-        if ((this._renderingEngine.blurSceneWhenBusy && this._renderingEngine.busy) || this._renderingEngine.blur)
-            blurScene = true;
+        let busyMode = false;
+        if (this._renderingEngine.busy)
+            busyMode = true;
 
         // If we should render in beauty mode
         let beautyRendering = false;
-        if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && blurScene === false &&
+        if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && busyMode === false &&
             (this._renderingEngine.shadows || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
             this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false && this._renderingEngine.type !== RENDERERTYPE.ATTRIBUTES)
             beautyRendering = true;
 
-        return { showScene, rendering, updateShadowMap, blurScene, beautyRendering };
+        return { showScene, rendering, updateShadowMap, busyMode, beautyRendering };
     }
 
     private showStatistics() {
@@ -490,15 +520,24 @@ export class RenderingManager implements IManager {
         this._renderingEngine.beautyRenderingManager.startBeautyRenderCountdown();
     }
 
-    private toggleBlur(toggle: boolean) {
-        this._renderingEngine.htmlElementAnchorLoader.toggleBlur(toggle);
-        if (toggle) {
-            if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
-                return;
-            this._renderingEngine.renderer.domElement.style.filter = 'blur(3px)';
-        } else {
-            this._renderingEngine.renderer.domElement.style.filter = '';
+    private toggleBusyMode(toggle: boolean) {
+        if(this._renderingEngine.branding.busyModeDisplay === BUSY_MODE_DISPLAY.BLUR) {
+            this._renderingEngine.htmlElementAnchorLoader.toggleBlur(toggle);
+            if (toggle) {
+                if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
+                    return;
+                this._renderingEngine.renderer.domElement.style.filter = 'blur(3px)';
+            } else {
+                this._renderingEngine.renderer.domElement.style.filter = '';
+            }
+        } else if(this._renderingEngine.branding.busyModeDisplay === BUSY_MODE_DISPLAY.SPINNER) {
+            if (toggle) {
+                this._renderingEngine.spinnerDivElement.style.visibility = 'visible';
+            } else {
+                this._renderingEngine.spinnerDivElement.style.visibility = 'hidden';
+            }
         }
+
     }
 
     private toggleLogo(toggle: boolean) {

@@ -21,7 +21,7 @@ import {
   SystemInfo,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
-import { VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { BUSY_MODE_DISPLAY, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { convert, ISettingsV3_1, validate } from '@shapediver/viewer.settings'
 import { mat4, vec3 } from 'gl-matrix'
@@ -38,7 +38,8 @@ import { Viewer } from './viewer/Viewer'
 export class Api implements IApi {
   // #region Properties (13)
 
-  readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
+  readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
+  readonly #defaultSpinner: string = 'https://shapediverviewer.s3.amazonaws.com/v3/graphics/spinner_ripple.svg';
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -521,7 +522,17 @@ export class Api implements IApi {
     }
   }
 
-  public async createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string } }): Promise<IViewer> {
+  public async createViewer(properties?: { 
+    visibility?: VISIBILITYMODE, 
+    canvas?: HTMLCanvasElement, 
+    id?: string, 
+    branding?: { 
+      logo?: string | null, 
+      backgroundColor?: string,
+      busyModeSpinner?: string,
+      busyModeDisplay?: BUSY_MODE_DISPLAY
+    } 
+  }): Promise<IViewer> {
     let viewerId: string = '';
     const eventId = this.#uuidGenerator.create();
     try {
@@ -537,6 +548,9 @@ export class Api implements IApi {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, 'Api.createViewer', prop.branding, 'object', false);
       const branding = Object.assign({}, prop.branding);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.backgroundColor, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.logo, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.busyModeSpinner, 'string', false);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
 
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
@@ -562,7 +576,9 @@ export class Api implements IApi {
         visibility: prop.visibility || VISIBILITYMODE.SESSION,
         branding: {
           logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
-          backgroundColor: branding.backgroundColor || '#393a45FF'
+          backgroundColor: branding.backgroundColor || '#393a45FF',
+          busyModeSpinner: branding.busyModeSpinner === undefined ? this.#defaultSpinner : branding.busyModeSpinner,
+          busyModeDisplay: branding.busyModeDisplay || BUSY_MODE_DISPLAY.SPINNER,
         }
       });
 
@@ -677,7 +693,7 @@ export class Api implements IApi {
         }
       }
 
-      // register the busy mode to blur the scene and create a visual feedback
+      // register the busy mode to create a visual feedback
       for (let v in this.viewers)
         this.viewers[v].registerBusyMode(busyModeID)
 

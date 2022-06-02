@@ -5,6 +5,7 @@ import {
   PerspectiveCamera as PerspectiveCameraLogic,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
 import {
+  BUSY_MODE_DISPLAY,
   RENDERERTYPE,
   TEXTURE_ENCODING,
   TONE_MAPPING,
@@ -77,7 +78,17 @@ export class Viewer implements IViewer {
    * @param type 
    * @param canvas 
    */
-  constructor(properties: { id: string, canvas?: HTMLCanvasElement, visibility: VISIBILITYMODE, branding: { logo: string | null, backgroundColor: string } }) {
+  constructor(properties: { 
+    id: string, 
+    canvas?: HTMLCanvasElement, 
+    visibility: VISIBILITYMODE, 
+    branding: { 
+      logo: string | null, 
+      backgroundColor: string,
+      busyModeSpinner: string,
+      busyModeDisplay: BUSY_MODE_DISPLAY
+    } 
+  }) {
     try {
       this.#renderingEngine = new RenderingEngineThreejs(properties);
       container.registerInstance('renderingEngine', this.#renderingEngine);
@@ -187,37 +198,20 @@ export class Viewer implements IViewer {
     }
   }
 
-  public get blur(): boolean {
-    return this.#renderingEngine.blur;
+  public get busy(): boolean {
+    return this.#renderingEngine.busy;
   }
 
-  public set blur(value: boolean) {
+  public set busy(value: boolean) {
     try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: Updating Blur to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur`, value, 'boolean');
-      this.#renderingEngine.blur = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur: blur was set to: ${value}`);
+      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).busy: Updating busy to ${value}.`);
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).busy`, value, 'boolean');
+      this.#renderingEngine.busy = value;
+      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).busy: busy was set to: ${value}`);
       this.update();
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blur`, e);
-    }
-  }
-
-  public get blurSceneWhenBusy(): boolean {
-    return this.#renderingEngine.blurSceneWhenBusy;
-  }
-
-  public set blurSceneWhenBusy(value: boolean) {
-    try {
-      this.#logger.debugLow(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: Updating BlurSceneWhenBusy to ${value}.`);
-      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, value, 'boolean');
-      this.#renderingEngine.blurSceneWhenBusy = value;
-      this.#logger.debug(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy: blurSceneWhenBusy was set to: ${value}`);
-      this.update();
-    } catch (e) {
-      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).blurSceneWhenBusy`, e);
+      throw this.#logger.handleError(LOGGINGTOPIC.VIEWER, `Viewer(${this.id}).busy`, e);
     }
   }
 

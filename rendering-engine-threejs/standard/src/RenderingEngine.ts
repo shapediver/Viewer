@@ -16,6 +16,7 @@ import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engi
 import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import {
+  BUSY_MODE_DISPLAY,
   IRenderingEngine,
   RENDERERTYPE,
   TEXTURE_ENCODING,
@@ -86,7 +87,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _geometryLoader: GeometryLoader;
   private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
   // constructor properties
-  private readonly _branding: { logo: string | null, backgroundColor: string };
+  private readonly _branding: {
+    logo: string | null,
+    backgroundColor: string,
+    busyModeSpinner: string,
+    busyModeDisplay: BUSY_MODE_DISPLAY
+  };
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
@@ -107,8 +113,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _automaticResizing: boolean = true;
   private _beautyRenderBlendingDuration: number = 1500;
   private _beautyRenderDelay: number = 50;
-  private _blur: boolean = false;
-  private _blurSceneWhenBusy: boolean = true;
   private _busy: boolean = false;
   private _clearAlpha: number = 1.0;
   private _clearColor: string = '#ffffff';
@@ -125,6 +129,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showStatistics: boolean = false;
+  private _spinnerDivElement: HTMLDivElement;
   private _type: RENDERERTYPE = RENDERERTYPE.STANDARD;
 
   #animations: AnimationData[] = [];
@@ -133,7 +138,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Constructors (1)
 
-  constructor(properties: { id: string, canvas?: string | HTMLCanvasElement, visibility: VISIBILITYMODE, branding: { logo: string | null, backgroundColor: string } }) {
+  constructor(properties:
+    {
+      id: string,
+      canvas?: string | HTMLCanvasElement,
+      visibility: VISIBILITYMODE,
+      branding: {
+        logo: string | null,
+        backgroundColor: string,
+        busyModeSpinner: string,
+        busyModeDisplay: BUSY_MODE_DISPLAY
+      }
+    }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -169,6 +185,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // start the creation and initialization process 
     this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
     this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._branding);
+    this._spinnerDivElement = this.renderingManager.addSpinner(this._canvas.canvasElement, this._branding);
 
     // creation of the managers (all singleton engines were created already)
     this._beautyRenderingManager.init();
@@ -265,28 +282,21 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._beautyRenderingManager;
   }
 
-  public get blur(): boolean {
-    return this._blur;
-  }
-
-  public set blur(value: boolean) {
-    this._blur = value;
-  }
-
-  public get blurSceneWhenBusy(): boolean {
-    return this._blurSceneWhenBusy;
-  }
-
-  public set blurSceneWhenBusy(value: boolean) {
-    this._blurSceneWhenBusy = value;
-  }
-
   public get busy(): boolean {
     return this._busy;
   }
 
   public set busy(value: boolean) {
     this._busy = value;
+  }
+
+  public get branding(): {
+    logo: string | null;
+    backgroundColor: string;
+    busyModeSpinner: string;
+    busyModeDisplay: BUSY_MODE_DISPLAY;
+  } {
+    return this._branding;
   }
 
   public get cameraEngine(): CameraEngine {
@@ -550,6 +560,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._showStatistics = value;
   }
 
+  public get spinnerDivElement(): HTMLDivElement {
+    return this._spinnerDivElement;
+  }
+
   public get stateEngine(): StateEngine {
     return this._stateEngine;
   }
@@ -646,6 +660,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._domEventEngine.removeAllDomEventListener();
     this._domEventEngine.dispose();
     this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);
+    this._canvas.canvasElement.parentElement?.removeChild(this._spinnerDivElement);
     this._canvas.canvasElement.parentNode?.removeChild(this._htmlElementAnchorLoader.parentDiv);
     this._canvas.reset();
     return true;
@@ -707,7 +722,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     (<LightEngine>this.lightEngine).saveSettings();
     (<CameraEngine>this.cameraEngine).saveSettings();
 
-    this._settingsEngine.general.blurWhenBusy = this.blurSceneWhenBusy;
     this._settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     this._settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
     this._settingsEngine.environment.mapResolution = this.environmentMapResolution;
@@ -748,7 +762,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
         this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
         this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-        this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
         this.clearAlpha = this._settingsEngine.environment.clearAlpha;
         this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
 
@@ -780,7 +793,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     } else {
       this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
       this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-      this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
 
       if (sections.scene) {
         this.shadows = this._settingsEngine.rendering.shadows;

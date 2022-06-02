@@ -1,6 +1,6 @@
 import { vec3 } from 'gl-matrix'
 import { CAMERATYPE } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { BUSY_MODE_DISPLAY, IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {
@@ -31,8 +31,7 @@ export interface IViewer extends IRenderingEngine {
     automaticResizing: boolean;
     beautyRenderBlendingDuration: number;
     beautyRenderDelay: number;
-    blur: boolean;
-    blurSceneWhenBusy: boolean;
+    busy: boolean;
     clearAlpha: number;
     clearColor: string | number | vec3;
     /**

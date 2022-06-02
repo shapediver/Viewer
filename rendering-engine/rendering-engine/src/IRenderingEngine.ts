@@ -35,13 +35,17 @@ export enum TONE_MAPPING {
   ACES_FILMIC = 'aces_filmic'
 }
 
+export enum BUSY_MODE_DISPLAY {
+  NONE = 'none',
+  BLUR = 'blur',
+  SPINNER = 'spinner'
+}
 
 export interface IRenderingEngine {
   // #region Properties (2)
 
   automaticResizing: boolean;
-  blur: boolean;
-  blurSceneWhenBusy: boolean;
+  busy: boolean;
   canvas: HTMLCanvasElement;
   closed: boolean;
   domEventEngine: DomEventEngine;

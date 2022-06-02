@@ -1,6 +1,6 @@
 import { IEvent, LOGGINGLEVEL, MAINEVENTTYPE } from '@shapediver/viewer.shared.services'
 import { vec3 } from 'gl-matrix'
-import { RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { BUSY_MODE_DISPLAY, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ISession } from './session/ISession'
@@ -115,9 +115,21 @@ export interface IApi {
    * @param properties.branding optional branding options while the viewer is hidden
    * @param properties.branding.logo optional logo while the viewer is hidden (our default will be used if none is provided, null will display no logo at all)
    * @param properties.branding.backgroundColor optional background color while the viewer is hidden, can include alpha channel (our default will be used if none is provided)
+   * @param properties.branding.busyModeDisplay optional way of specifying what should happen if the viewer is in busy mode (default: BUSY_MODE_DISPLAY.SPINNER)
+   * @param properties.branding.busyModeSpinner optional spinner while the viewer is busy (our default will be used if none is provided)
    * @returns 
    */
-  createViewer(properties?: { visibility?: VISIBILITYMODE, canvas?: HTMLCanvasElement, id?: string, branding?: { logo?: string | null, backgroundColor?: string } }): Promise<IViewer>;
+  createViewer(properties?: {
+    visibility?: VISIBILITYMODE,
+    canvas?: HTMLCanvasElement,
+    id?: string,
+    branding?: {
+      logo?: string | null,
+      backgroundColor?: string,
+      busyModeSpinner?: string,
+      busyModeDisplay?: BUSY_MODE_DISPLAY
+    }
+  }): Promise<IViewer>;
   /**
    * Removes an event listener.
    * 
