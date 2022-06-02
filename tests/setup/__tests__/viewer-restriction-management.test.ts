@@ -30,7 +30,8 @@ describe('device testing', () => {
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, ticket2: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }, id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session1 = await SDV.createSession({ id: 'mySession1', ticket: ticket2, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', excludeViewports: ['myViewer'] });
             let session2 = await SDV.createSession({ id: 'mySession2', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {

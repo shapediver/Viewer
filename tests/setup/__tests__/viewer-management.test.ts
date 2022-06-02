@@ -29,7 +29,8 @@ describe('device testing', () => {
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }, id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {
                 SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -47,7 +48,8 @@ describe('device testing', () => {
 
         await driver.executeAsyncScript(async (cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }, id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             await new Promise<void>((resolve) => {
                 SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
@@ -59,7 +61,8 @@ describe('device testing', () => {
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
-            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }, id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
             let session = await SDV.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             cb();
         }, shelfTicket);
