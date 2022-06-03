@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.14.16
-* __Build date:__ 2022-05-20T13:17:12.023Z
+* __Version:__ 1.15.0
+* __Build date:__ 2022-06-03T08:45:50.023Z
 * __Branch:__ development
-* __Commit:__ ea0f6e5f30bde73c530f787793a7c8c2a55671bb
+* __Commit:__ 8fd975cd69fd85daf155606cdba53f18a3f8ce16
 <!--- VERSION_END -->
 
 ## Version 1.15.0 - `Once Upon a Time... in Hollywood`
