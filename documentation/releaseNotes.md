@@ -8,6 +8,10 @@
 * __Commit:__ ea0f6e5f30bde73c530f787793a7c8c2a55671bb
 <!--- VERSION_END -->
 
+## Version 1.15.0 - `Once Upon a Time... in Hollywood`
+- busy spinner
+- animated logo
+
 ## Version 1.14.16 - `Night and the City`
 - different three.js extension
 
