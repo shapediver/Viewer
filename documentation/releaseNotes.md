@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.15.1
-* __Build date:__ 2022-06-07T07:29:45.815Z
+* __Version:__ 1.15.2
+* __Build date:__ 2022-06-07T12:26:35.680Z
 * __Branch:__ development
-* __Commit:__ 0870a23147c252dbc5d3dd577b070da0eb03d12a
+* __Commit:__ 198ec5594be00a3d3836499e0dbe4d368b28f540
 <!--- VERSION_END -->
 
 ## Version 1.15.2 - `Ocean's Twelve`
