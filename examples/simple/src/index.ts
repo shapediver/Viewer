@@ -26,6 +26,7 @@ const materialEngine: MaterialEngine = <MaterialEngine>(container.resolve(Materi
 const modelsSelect = <HTMLSelectElement>document.getElementById("models");
 const envMapsSelect = <HTMLSelectElement>document.getElementById("envMaps");
 const backgroundColorInput = <HTMLInputElement>document.getElementById("background");
+const environmentMapAsBackgroundInput = <HTMLInputElement>document.getElementById("environmentMapAsBackground");
 
 let viewer: IViewer;
 
@@ -187,7 +188,7 @@ const createModelDropdown = () => {
 
 
 const createEnvironmentMapDropdown = () => {
-    const envMaps = [ENVIRONMENT_MAP.BALLROOM, ENVIRONMENT_MAP.LARGE_CORRIDOR, ENVIRONMENT_MAP.OLD_HALL, ENVIRONMENT_MAP.PAUL_LOBE_HAUS];
+    const envMaps = ['ballroom', 'paul_lobe_haus', 'old_hall', 'leadenhall_market', 'sepulchral_chapel_rotunda'];
     envMapsSelect.onchange = async () => {
         api.addListener(EVENTTYPE.TASK.TASK_START, (e) => {
             const taskEvent = e as ITaskEvent;
@@ -201,7 +202,7 @@ const createEnvironmentMapDropdown = () => {
                 viewer.deregisterBusyMode(taskEvent.id)
         });
 
-        viewer.environmentMap = envMaps[+envMapsSelect.value];
+        viewer.environmentMap = "https://viewer.shapediver.com/v3/demos/bocci/simple/envMaps/" + envMaps[+envMapsSelect.value] + "_4k.hdr";
     };
 
     for (let i = 0; i < envMaps.length; i++) {
@@ -214,14 +215,19 @@ const createEnvironmentMapDropdown = () => {
 };
 
 (async () => {
-    viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: VISIBILITYMODE.MANUAL });
+    viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: VISIBILITYMODE.MANUAL, branding: { backgroundColor: '#35363a' } });
     viewer.groundPlaneVisibility = false;
     viewer.gridVisibility = false;
     viewer.ambientOcclusion = false;
     viewer.shadows = false;
-    viewer.environmentMap = ENVIRONMENT_MAP.LARGE_CORRIDOR;
+    viewer.environmentMap = "https://viewer.shapediver.com/v3/demos/bocci/simple/envMaps/ballroom_4k.hdr";
     viewer.createLightScene();
 
+    backgroundColorInput.onchange = () => viewer.clearColor = backgroundColorInput.value;
+    backgroundColorInput.value = '#35363a'
+    viewer.clearColor = '#35363a';
+    environmentMapAsBackgroundInput.onchange = () => viewer.environmentMapAsBackground = environmentMapAsBackgroundInput.checked;
+    
     const promises = [];
 
     promises.push(new Promise<void>((resolve) => {
@@ -235,9 +241,6 @@ const createEnvironmentMapDropdown = () => {
     createModelDropdown();
     createEnvironmentMapDropdown();
 
-    backgroundColorInput.onchange = () => {
-        viewer.clearColor = backgroundColorInput.value;
-    }
 
     await Promise.all(promises);
     viewer.show = true;
