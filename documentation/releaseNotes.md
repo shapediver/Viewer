@@ -8,6 +8,9 @@
 * __Commit:__ 8fd975cd69fd85daf155606cdba53f18a3f8ce16
 <!--- VERSION_END -->
 
+## Version 1.15.1 - `Ocean's Eleven`
+- update geometry sdk version
+
 ## Version 1.15.0 - `Once Upon a Time... in Hollywood`
 - busy spinner
 - animated logo
