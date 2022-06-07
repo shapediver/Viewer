@@ -1,6 +1,6 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { PRIMITIVE_TYPEHINT } from '../../interfaces/sdtf/ISDTFAttributesData';
 import { ISDTFOverview, ISDTFOverviewData } from '../../interfaces/sdtf/ISDTFOverviewData';
+import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives'
 
 export class SDTFOverviewData extends AbstractTreeNodeData implements ISDTFOverviewData {
     // #region Properties (1)
@@ -46,13 +46,10 @@ export class SDTFOverviewData extends AbstractTreeNodeData implements ISDTFOverv
                 if(this.overview[overviewKey] && existingEntries.length > 0) {
                     const entry = existingEntries[0];
                     entry.count++;
-                    if (dataToCopy.typeHint === PRIMITIVE_TYPEHINT.STRING) {
+                    if (SdtfPrimitiveTypeGuard.isStringType(dataToCopy.typeHint)) {
                         entry.values = entry.values?.concat(dataToCopy.values!.filter((item) => entry.values!.indexOf(item) < 0))
                     }
-                    if (dataToCopy.typeHint === PRIMITIVE_TYPEHINT.DOUBLE ||
-                    dataToCopy.typeHint === PRIMITIVE_TYPEHINT.FLOAT ||
-                    dataToCopy.typeHint === PRIMITIVE_TYPEHINT.DECIMAL ||
-                    dataToCopy.typeHint === PRIMITIVE_TYPEHINT.INT) {
+                    if (SdtfPrimitiveTypeGuard.isNumberType(dataToCopy.typeHint)) {
                     entry.min = Math.min(dataToCopy.min!, entry.min!);
                     entry.max = Math.max(dataToCopy.max!, entry.max!);
                     }

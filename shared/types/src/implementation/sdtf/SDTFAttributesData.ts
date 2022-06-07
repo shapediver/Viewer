@@ -1,5 +1,6 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { GEOMETRY_TYPEHINT, ISDTFAttributeData, ISDTFAttributesData, PRIMITIVE_TYPEHINT } from '../../interfaces/sdtf/ISDTFAttributesData';
+import { ISDTFAttributeData, ISDTFAttributesData } from '../../interfaces/sdtf/ISDTFAttributesData';
+import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
 
 export class SDTFAttributeData implements ISDTFAttributeData {
     // #region Properties (2)
@@ -12,7 +13,7 @@ export class SDTFAttributeData implements ISDTFAttributeData {
     // #region Constructors (1)
 
     constructor(
-        typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string,
+        typeHint: SdtfTypeHintName | string,
         value: any
     ) {
         this.#typeHint = typeHint;
@@ -23,7 +24,7 @@ export class SDTFAttributeData implements ISDTFAttributeData {
 
     // #region Public Accessors (2)
 
-    public get typeHint(): PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string {
+    public get typeHint(): SdtfTypeHintName | string {
         return this.#typeHint;
     }
 

@@ -29,7 +29,7 @@ import { AbstractMaterialData } from './implementation/material/AbstractMaterial
 import { ISDTFOverview, ISDTFOverviewData } from './interfaces/sdtf/ISDTFOverviewData'
 import { SDTFAttributeData, SDTFAttributesData } from './implementation/sdtf/SDTFAttributesData'
 import { SDTFOverviewData } from './implementation/sdtf/SDTFOverviewData'
-import { ISDTFAttributesData, ISDTFAttributeData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT } from './interfaces/sdtf/ISDTFAttributesData'
+import { ISDTFAttributesData, ISDTFAttributeData } from './interfaces/sdtf/ISDTFAttributesData'
 import { ISDTFItemData } from './interfaces/sdtf/ISDTFItemData'
 import { ISDTFAttributeVisualizationData } from './interfaces/sdtf/ISDTFAttributeVisualizationData'
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping'
@@ -38,6 +38,8 @@ import { IHoverEvent } from './interfaces/events/IHoverEvent'
 import { ISelectEvent } from './interfaces/events/ISelectEvent'
 import { IBoneData } from './interfaces/data/IBoneData'
 import { BoneData } from './implementation/data/BoneData'
+import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
+import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives'
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
@@ -64,5 +66,6 @@ export {
 }
 
 export {
-  ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, PRIMITIVE_TYPEHINT, GEOMETRY_TYPEHINT
+  ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData,
+  SdtfTypeHintName as SDTF_TYPEHINT, SdtfPrimitiveTypeGuard
 }

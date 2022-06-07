@@ -30,19 +30,19 @@ import * as ShapeDiverViewerAttributeVisualization from '@shapediver/viewer.feat
 
     // case 4 - string attribute
     // attributeVisualizationEngine.updateAttributes([
-    //     <SDVAttributeVisualization.IStringAttribute>{
+    //     <ShapeDiverViewerAttributeVisualization.IStringAttribute>{
     //         key: 'x+y, string',
-    //         type: SDV.PRIMITIVE_TYPEHINT.STRING,
-    //         visualization: SDV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
+    //         type: ShapeDiverViewer.SDTF_TYPEHINT.STRING,
+    //         visualization: ShapeDiverViewerAttributeVisualization.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
     //     }
     // ])
 
     // case 5 - number attribute
     // attributeVisualizationEngine.updateAttributes([
-    //     <SDVAttributeVisualization.INumberAttribute>{
+    //     <ShapeDiverViewerAttributeVisualization.INumberAttribute>{
     //         key: 'x+y, number',
-    //         type: SDV.PRIMITIVE_TYPEHINT.DOUBLE,
-    //         visualization: SDV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
+    //         type: ShapeDiverViewer.SDTF_TYPEHINT.DOUBLE,
+    //         visualization: ShapeDiverViewerAttributeVisualization.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
     //     }
     // ])
 })();

@@ -1,5 +1,6 @@
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { GEOMETRY_TYPEHINT, ISDTFAttributeData, PRIMITIVE_TYPEHINT } from "./ISDTFAttributesData";
+import { ISDTFAttributeData } from "./ISDTFAttributesData";
+import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
 
 export interface ISDTFItemData extends ITreeNodeData {
     // #region Properties (3)
@@ -8,7 +9,7 @@ export interface ISDTFItemData extends ITreeNodeData {
         [key: string]: ISDTFAttributeData
     }
 
-    readonly typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string
+    readonly typeHint: SdtfTypeHintName | string
     readonly value: any;
 
     // #endregion Properties (3)

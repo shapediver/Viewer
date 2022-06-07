@@ -82,7 +82,7 @@ describe('device testing', () => {
             attributeVisualizationEngine.updateAttributes([
                 {
                     key: 'x+y, string',
-                    type: SDV.PRIMITIVE_TYPEHINT.STRING,
+                    type: SDV.SDTF_TYPEHINT.STRING,
                     visualization: SDVAV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
                 }
             ])
@@ -106,7 +106,7 @@ describe('device testing', () => {
             attributeVisualizationEngine.updateAttributes([
                 {
                     key: 'x+y, number',
-                    type: SDV.PRIMITIVE_TYPEHINT.DOUBLE,
+                    type: SDV.SDTF_TYPEHINT.DOUBLE,
                     visualization: SDVAV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED
                 }
             ])

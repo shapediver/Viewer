@@ -64,14 +64,14 @@ const updateDefinition = () => {
         } = JSON.parse(child.getAttribute('value') || '');
 
         switch (true) {
-            case attributeDefinition.type == SDV.PRIMITIVE_TYPEHINT.COLOR:
+            case SDV.SdtfPrimitiveTypeGuard.isColorType(attributeDefinition.type):
                 const colorAttribute: SDVAttributeVisualization.IColorAttribute = {
                     key: attributeDefinition.key, 
-                    type: SDV.PRIMITIVE_TYPEHINT.COLOR
+                    type: SDV.SDTF_TYPEHINT.COLOR
                 };
                 attributes.push(colorAttribute)
                 break;
-            case attributeDefinition.type == SDV.PRIMITIVE_TYPEHINT.DECIMAL || attributeDefinition.type == SDV.PRIMITIVE_TYPEHINT.DOUBLE || attributeDefinition.type == SDV.PRIMITIVE_TYPEHINT.FLOAT || attributeDefinition.type == SDV.PRIMITIVE_TYPEHINT.INT:
+            case SDV.SdtfPrimitiveTypeGuard.isNumberType(attributeDefinition.type):
                 let numberMin: HTMLInputElement, numberMax: HTMLInputElement, numberVisualization: HTMLSelectElement;
 
                 for(let i  = 0; i < child.children.length; i++) {
@@ -85,14 +85,14 @@ const updateDefinition = () => {
                 }
                 const numberAttribute: SDVAttributeVisualization.INumberAttribute = {
                     key: attributeDefinition.key, 
-                    type: <SDV.PRIMITIVE_TYPEHINT.DOUBLE | SDV.PRIMITIVE_TYPEHINT.FLOAT | SDV.PRIMITIVE_TYPEHINT.DECIMAL | SDV.PRIMITIVE_TYPEHINT.INT>attributeDefinition.type,
+                    type: <SDV.SDTF_TYPEHINT>attributeDefinition.type,
                     min: +numberMin!.value,
                     max: +numberMax!.value,
-                    visualization: <SDV.ATTRIBUTE_VISUALIZATION>numberVisualization!.value.toLowerCase()
+                    visualization: <SDVAttributeVisualization.ATTRIBUTE_VISUALIZATION>numberVisualization!.value.toLowerCase()
                 };
                 attributes.push(numberAttribute)
                 break;
-            case attributeDefinition.type == SDV.PRIMITIVE_TYPEHINT.STRING:
+            case SDV.SdtfPrimitiveTypeGuard.isStringType(attributeDefinition.type):
                 let stringValues: HTMLInputElement, stringVisualization: HTMLSelectElement;
 
                 for(let i  = 0; i < child.children.length; i++) {
@@ -105,9 +105,9 @@ const updateDefinition = () => {
                 }
                 const stringAttribute: SDVAttributeVisualization.IStringAttribute = {
                     key: attributeDefinition.key, 
-                    type: SDV.PRIMITIVE_TYPEHINT.STRING,
+                    type: SDV.SDTF_TYPEHINT.STRING,
                     values: stringValues!.value.split(','),
-                    visualization: <SDV.ATTRIBUTE_VISUALIZATION>stringVisualization!.value.toLowerCase()
+                    visualization: <SDVAttributeVisualization.ATTRIBUTE_VISUALIZATION>stringVisualization!.value.toLowerCase()
                 };
                 attributes.push(stringAttribute)
                 break;
@@ -123,7 +123,7 @@ const updateDefinition = () => {
                 }
                 const defaultAttribute: SDVAttributeVisualization.IDefaultAttribute = {
                     key: attributeDefinition.key, 
-                    type: <SDV.PRIMITIVE_TYPEHINT>attributeDefinition.type,
+                    type: <SDV.SDTF_TYPEHINT>attributeDefinition.type,
                     color: defaultColor!.value
                 };
                 attributes.push(defaultAttribute)
@@ -185,10 +185,10 @@ dropDown.onchange = async () => {
     attributeMenuList.appendChild(div);
 
     switch (true) {
-        case attribute.typeHint == SDV.PRIMITIVE_TYPEHINT.COLOR:
+        case SDV.SdtfPrimitiveTypeGuard.isColorType(attribute.typeHint):
             break;
             
-        case attribute.typeHint == SDV.PRIMITIVE_TYPEHINT.DECIMAL || attribute.typeHint == SDV.PRIMITIVE_TYPEHINT.DOUBLE || attribute.typeHint == SDV.PRIMITIVE_TYPEHINT.FLOAT || attribute.typeHint == SDV.PRIMITIVE_TYPEHINT.INT:
+        case SDV.SdtfPrimitiveTypeGuard.isNumberType(attribute.typeHint):
             const numberOptionsDiv = document.createElement("div");
             numberOptionsDiv.id = 'options';
             numberOptionsDiv.style.background = '#ffffff'
@@ -221,7 +221,7 @@ dropDown.onchange = async () => {
 
             
             const numberDropDown = document.createElement("select");
-            for (let a in SDV.ATTRIBUTE_VISUALIZATION) {
+            for (let a in SDVAttributeVisualization.ATTRIBUTE_VISUALIZATION) {
                 let option = document.createElement("option");
                 option.setAttribute("name", a);
                 option.setAttribute("value", a);
@@ -236,7 +236,7 @@ dropDown.onchange = async () => {
 
             div.appendChild(numberOptionsDiv);
             break;
-        case attribute.typeHint == SDV.PRIMITIVE_TYPEHINT.STRING:
+        case SDV.SdtfPrimitiveTypeGuard.isStringType(attribute.typeHint):
             const stringOptionsDiv = document.createElement("div");
             stringOptionsDiv.id = 'options';
             stringOptionsDiv.style.background = '#ffffff'
@@ -254,7 +254,7 @@ dropDown.onchange = async () => {
             };
             
             const dropDown = document.createElement("select");
-            for (let a in SDV.ATTRIBUTE_VISUALIZATION) {
+            for (let a in SDVAttributeVisualization.ATTRIBUTE_VISUALIZATION) {
                 let option = document.createElement("option");
                 option.setAttribute("name", a);
                 option.setAttribute("value", a);
@@ -299,7 +299,7 @@ const updateAttributeMenu = () => {
         for(let i = 0; i < attribute.length; i++) {
 
             // the layers are already handled differently 
-            if(a === 'layer' && attribute[i].typeHint === SDV.PRIMITIVE_TYPEHINT.STRING) continue;
+            if(a === 'layer' && attribute[i].typeHint === SDV.SDTF_TYPEHINT.STRING) continue;
 
             let option = document.createElement("option");
             option.setAttribute("name", a + ' (' + attribute[i].typeHint + ')');
@@ -315,15 +315,15 @@ const updateAttributeMenu = () => {
 }
 
 (async () => {
-    let viewer = await SDV.api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    let session = await SDV.api.createSession({ 
-        ticket: '4e87845052d876e1e8fb70fc43b7112aafe762545f20148b26e06d3636f4aa7af86e0fed0539be8107d2313c6fe5624a8a682d4c47a46d1d257f11be4ba558eb619e49f79bbf0a885984ea33795a2fdddd879374d5dce52f765cfdbadc45fc80bd3ba00ec1d57d-e796f62331f0a78069ed73a2a0c0f2b0', 
+    let viewport = await SDV.createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
+    let session = await SDV.createSession({ 
+        ticket: 'c447bfffe225713d181eb8a0548395c414bc59016043f5bb35f1d85b91e292c21a93d68ff0378a8880d964805470fbac0ec7dc753b28ec8b3400470f7f75ee171aaa11081fde2a756e7adb2861b85bfc66b35d6710d5cfb3d2e0de5ae3a0f6d6dccb054654ab9d-5f88acfb5e9a64acac6ae2ba0d8a04c8', 
         modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
         id: 'mySession'
     });
-    viewer.type = SDV.RENDERER_TYPE.ATTRIBUTES;
+    viewport.type = SDV.RENDERER_TYPE.ATTRIBUTES;
 
-    attributeVisualizationEngine = new SDVAttributeVisualization.AttributeVisualizationEngine(SDV.api, viewer);
+    attributeVisualizationEngine = new SDVAttributeVisualization.AttributeVisualizationEngine(viewport);
     updateLayerMenu();
     updateAttributeMenu();
 

@@ -1,22 +1,20 @@
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { container, singleton } from 'tsyringe'
-import { HttpClient, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
-import { ISDTF } from '@shapediver/viewer.data-engine.shared-types'
-import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT, ISDTFOverviewData, SDTFAttributesData, SDTFAttributeData, SDTFItemData, SDTFOverviewData } from '@shapediver/viewer.shared.types'
+import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { SDTFAttributesData, SDTFAttributeData, SDTFItemData, SDTFOverviewData } from '@shapediver/viewer.shared.types'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { create, ISdtfReadableAsset, ISdtfReadableAttributes, ISdtfReadableChunk, ISdtfReadableDataItem, ISdtfReadableNode, SdtfTypeHintName  } from '@shapediver/sdk.sdtf-v1'
+import { SdtfPrimitiveTypeGuard  } from '@shapediver/sdk.sdtf-primitives'
 
 @singleton()
 export class SDTFEngine {
-    // #region Properties (5)
+    // #region Properties (2)
 
-    private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
-    private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-    private _body!: ArrayBuffer;
-    private _content!: ISDTF;
+    private _parsedFile!: ISdtfReadableAsset;
 
-    // #endregion Properties (5)
+    // #endregion Properties (2)
 
     // #region Constructors (1)
 
@@ -27,7 +25,7 @@ export class SDTFEngine {
     // #region Public Methods (1)
 
     /**
-     * Load the geometry content into a scene graph node.
+     * Load the sdtf content into a scene graph node.
      * 
      * @param content the geometry content
      * @returns the scene graph node 
@@ -35,213 +33,253 @@ export class SDTFEngine {
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
         const node = new TreeNode('sdtf');
 
+        // We have to be safe and check if the content is a valid SDTF file
         if (!content || (content && !content.href)) {
             const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid content was provided to geometry engine.');
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
         }
 
-        let axiosResponse;
-        try {
-            axiosResponse = await this._httpClient.get(content.href!, {
-                responseType: 'arraybuffer'
-            });
-        } catch (e) {
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, e);
-        }
-
-        if (!(axiosResponse.headers['content-type'] && axiosResponse.headers['content-type'] === 'model/vnd.sdtf')) {
-            const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Non-binary SDTF encoding not implemented.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
-        }
-
-        let arrayBuffer: ArrayBuffer;
-        if (axiosResponse.data instanceof ArrayBuffer) {
-            arrayBuffer = axiosResponse.data;
-        } else {
-            arrayBuffer = (<Uint8Array>axiosResponse.data).buffer
-        }
-
-        const headerDataView = new DataView(arrayBuffer, 0, this.BINARY_EXTENSION_HEADER_LENGTH);
-
-        const magic = String.fromCharCode(headerDataView.getUint8(0)) + String.fromCharCode(headerDataView.getUint8(1)) + String.fromCharCode(headerDataView.getUint8(2)) + String.fromCharCode(headerDataView.getUint8(3));
-        if (magic !== 'sdtf') {
-            const error = new ShapeDiverViewerDataProcessingError('SDTFEngine.loadContent: Invalid data: sdtf magic wrong.');
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
-        } 
-        const version = headerDataView.getUint32(4, true);
-        if (version !== 1) {
-            const error = new ShapeDiverViewerDataProcessingError(`SDTFEngine.loadContent: Invalid version: sdtf loader does not support version ${version}.`);
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
-        } 
-        const totalLength = headerDataView.getUint32(8, true);
-        const contentLength = headerDataView.getUint32(12, true);
-        const contentFormat = headerDataView.getUint32(16, true);
-        if (contentFormat !== 0) {
-            const error = new ShapeDiverViewerDataProcessingError(`SDTFEngine.loadContent: Content format is not Json (0), content invalid.`);
-            throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.loadContent`, error);
-        }
-
-        this._content = <ISDTF>JSON.parse(new TextDecoder().decode(new DataView(arrayBuffer, this.BINARY_EXTENSION_HEADER_LENGTH, contentLength)));
-        this._body = arrayBuffer.slice(this.BINARY_EXTENSION_HEADER_LENGTH + contentLength, totalLength);
-
-        // look through attributes
+        // create the sdtf sdk
+        const sdk = await create();
+        // crete the sdtf parser
+        const parser = sdk.createParser();
+        // parse the file
+        this._parsedFile = await parser.readFromUrl(content.href!);
 
         try {
-            const overview: {
-                [key: string]: {
-                    typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string;
-                    count: number;
-                    values?: string[];
-                    min?: number;
-                    max?: number;
-                }[];
-            } = {};
+            // crete the overview and save it in the node data
+            node.data.push(await this.createSDTFOverview());
 
-            for (let i = 0; i < this._content.attributes.length; i++) {
-                const attributes = this._content.attributes[i];
-                for (let key in attributes) {
-                    const dataToCopy = attributes[key];
-                    const dataTypehint = this._content.typeHints[dataToCopy.typeHint].name;
-
-                    const existingEntries = overview[key] ? overview[key].filter(o => o.typeHint === dataTypehint) : [];
-                    if (overview[key] && existingEntries.length > 0) {
-                        const entry = existingEntries[0];
-                        entry.count++;
-                        if (dataTypehint === PRIMITIVE_TYPEHINT.STRING) {
-                            if (!entry.values?.includes(dataToCopy.value))
-                                entry.values?.push(dataToCopy.value)
-                        }
-                        if (dataTypehint === PRIMITIVE_TYPEHINT.DOUBLE ||
-                            dataTypehint === PRIMITIVE_TYPEHINT.FLOAT ||
-                            dataTypehint === PRIMITIVE_TYPEHINT.DECIMAL ||
-                            dataTypehint === PRIMITIVE_TYPEHINT.INT) {
-                            entry.min = Math.min(<number>dataToCopy.value, entry.min!);
-                            entry.max = Math.max(<number>dataToCopy.value, entry.max!);
-                        }
-                    } else {
-                        if (overview[key]) {
-                            overview[key].push({
-                                typeHint: dataTypehint,
-                                count: 1,
-                            })
-                        } else {
-                            overview[key] = [{
-                                typeHint: dataTypehint,
-                                count: 1,
-                            }]
-                        }
-                        if (dataTypehint === PRIMITIVE_TYPEHINT.STRING) {
-                            overview[key][overview[key].length - 1].values = [dataToCopy.value];
-                        }
-                        if (dataTypehint === PRIMITIVE_TYPEHINT.DOUBLE ||
-                            dataTypehint === PRIMITIVE_TYPEHINT.FLOAT ||
-                            dataTypehint === PRIMITIVE_TYPEHINT.DECIMAL ||
-                            dataTypehint === PRIMITIVE_TYPEHINT.INT) {
-                            overview[key][overview[key].length - 1].min = <number>dataToCopy.value;
-                            overview[key][overview[key].length - 1].max = <number>dataToCopy.value;
-                        }
-                    }
-                }
-            }
-            node.data.push(new SDTFOverviewData(overview));
-
-            for(let i = 0; i < this._content.chunks.length; i++) {
-                node.children.push(await this.loadChunk(i));
-            }
+            // add the loaded chunks to the node
+            for (let i = 0; i < this._parsedFile.chunks.length; i++) 
+                node.children.push(await this.loadChunk(this._parsedFile.chunks[i], i));
+                
             return node;
-        } catch (e) {            
+        } catch (e) {
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `SDTFEngine.load`, e);
         }
     }
 
     // #endregion Public Methods (1)
 
-    // #region Private Methods (4)
+    // #region Private Methods (5)
 
-    private loadAttributes(attributesId: number): SDTFAttributesData {
-        if (!this._content.attributes) throw new Error('Attributes not available.')
-        if (!this._content.attributes[attributesId]) throw new Error('Attributes not available.')
-        const attributes = this._content.attributes[attributesId];
+    /**
+     * Create an overview of the SDTF file.
+     * This overview is used for the data visualization.
+     * It is structured as a dictionary with the name as the key and an array of Objects as the value.
+     * The array of objects contains the different types that can be found in the SDTF file under the same name.
+     * 
+     * Example:
+     * {
+     *     "color": [
+     *         {
+     *             typeHint: 'string',
+     *             count: 2,
+     *             values: ["red", "blue"]
+     *         },
+     *         {
+     *             typeHint: 'numberArray',
+     *             count: 2,
+     *             values: [[1,0,0,1], [0,0,1,1]]
+     *         },
+     *     ]
+     * }
+     * 
+     * The overview contains the following information:
+     * - name of the attribute + type of the attribute
+     * - the count 
+     * - for numerical attributes, the min and max values
+     * - for string attributes, the unique values
+     * 
+     * @returns 
+     */
+    private async createSDTFOverview(): Promise<SDTFOverviewData> {
+        const overview: {
+            [key: string]: {
+                typeHint: SdtfTypeHintName | string;
+                count: number;
+                values?: string[];
+                min?: number;
+                max?: number;
+            }[];
+        } = {};
+
+        // go through all attributes
+        for (let i = 0; i < this._parsedFile.attributes.length; i++) {
+            const attributes = this._parsedFile.attributes[i];
+
+            // go through all entries
+            for (let key in attributes.entries) {
+                const dataToCopy = attributes.entries[key];
+                const value = await dataToCopy.getContent();
+
+                // create the type hint to use
+                const dataTypehint = dataToCopy.typeHint === undefined ? 'undefined' : dataToCopy.typeHint.name;
+
+                // check if the attribute is already in the overview
+                const existingEntries = overview[key] ? overview[key].filter(o => o.typeHint === dataTypehint) : [];
+
+                if (overview[key] && existingEntries.length > 0) {
+                    // update the existing entry
+                    const entry = existingEntries[0];
+                    // update the count
+                    entry.count++;
+
+                    // update the values
+                    if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
+                        if (!entry.values?.includes(<string>value))
+                            entry.values?.push(<string>value)
+                    }
+                    
+                    // update the min and max
+                    if (SdtfPrimitiveTypeGuard.isNumberType(dataTypehint)) {  
+                        entry.min = Math.min(<number>value, entry.min!);
+                        entry.max = Math.max(<number>value, entry.max!);
+                    }
+                } else {
+                    // create a new entry, if the name already exists, but the type does not
+                    if (overview[key]) {
+                        overview[key].push({
+                            typeHint: dataTypehint,
+                            count: 1,
+                        })
+                    } 
+                    // create completely new entry
+                    else {
+                        overview[key] = [{
+                            typeHint: dataTypehint,
+                            count: 1,
+                        }]
+                    }
+
+                    // update the values
+                    if (SdtfPrimitiveTypeGuard.isStringType(dataTypehint)) {
+                        overview[key][overview[key].length - 1].values = [<string>value];
+                    }
+                                        
+                    // update the min and max
+                    if (SdtfPrimitiveTypeGuard.isNumberType(dataTypehint)) {
+                        overview[key][overview[key].length - 1].min = <number>value;
+                        overview[key][overview[key].length - 1].max = <number>value;
+                    }
+                }
+            }
+        }
+        return new SDTFOverviewData(overview);
+    }
+
+    /**
+     * Load the attributes into a SDTFAttributesData data item.
+     * 
+     * @param attributes 
+     * @returns 
+     */
+    private async loadAttributes(attributes: ISdtfReadableAttributes): Promise<SDTFAttributesData> {
         const data = new SDTFAttributesData();
-        for(let key in attributes) {
-            if(attributes[key].value === undefined) {
-                // TODO async data
-            } else {
-                data.attributes[key] = new SDTFAttributeData(
-                    this._content.typeHints[attributes[key].typeHint].name,
-                    attributes[key].value
-                );
+        // go through all attributes entries and save them in data items
+        for (let key in attributes.entries) {
+            if (SdtfPrimitiveTypeGuard.isBooleanType(attributes.entries[key].typeHint?.name) || SdtfPrimitiveTypeGuard.isColorType(attributes.entries[key].typeHint?.name) || SdtfPrimitiveTypeGuard.isNumberType(attributes.entries[key].typeHint?.name) || SdtfPrimitiveTypeGuard.isStringType(attributes.entries[key].typeHint?.name)) {
+                // create the data item and save it in the dictionary
+                const typeHint = attributes.entries[key].typeHint === undefined ? 'undefined' : attributes.entries[key].typeHint!.name;
+                data.attributes[key] = new SDTFAttributeData(typeHint, await attributes.entries[key].getContent());
             }
         }
         return data;
     }
 
-    private async loadChunk(chunkId: number): Promise<ITreeNode> {
-        if (!this._content.chunks) throw new Error('Chunks not available.')
-        if (!this._content.chunks[chunkId]) throw new Error('Chunks not available.')
-        const chunk = this._content.chunks[chunkId];
+    /**
+     * Load the chunk into a scene graph node.
+     * 
+     * @param chunk 
+     * @param chunkId 
+     * @returns 
+     */
+    private async loadChunk(chunk: ISdtfReadableChunk, chunkId: number): Promise<TreeNode> {
         const chunkDef = new TreeNode(chunk.name || 'chunk_' + chunkId);
 
-        if(chunk.attributes !== undefined) {
-            chunkDef.data.push(this.loadAttributes(chunk.attributes));
+        // if there are attributes, add them to the chunk as data
+        if (chunk.attributes !== undefined) {
+            chunkDef.data.push(await this.loadAttributes(chunk.attributes));
         }
-        if(chunk.items !== undefined && chunk.items.length > 0) {
+
+        // if there are items, add them to the chunk as children
+        if (chunk.items !== undefined && chunk.items.length > 0) {
             for (let i = 0, len = chunk.items.length; i < len; i++) {
-                // got through all children
+                // got through all items
                 chunkDef.addChild(await this.loadItem(chunk.items[i], i));
             }
         }
 
+        // if there are nodes, add them to the chunk as children
         if (chunk.nodes !== undefined && chunk.nodes.length > 0) {
             for (let i = 0, len = chunk.nodes.length; i < len; i++) {
                 // got through all children
-                chunkDef.addChild(await this.loadNode(chunk.nodes[i]));
+                chunkDef.addChild(await this.loadNode(chunk.nodes[i], i));
             }
         }
 
         return chunkDef;
     }
 
-    private async loadItem(itemId: number, index: number): Promise<ITreeNode> {
-        if (!this._content.items) throw new Error('Item not available.')
-        if (!this._content.items[itemId]) throw new Error('Item not available.')
-        const item = this._content.items[itemId];
-        const itemDef = new TreeNode(index + '');
+    /**
+     * Load the item into a scene graph node.
+     * 
+     * @param item 
+     * @param itemId 
+     * @returns 
+     */
+    private async loadItem(item: ISdtfReadableDataItem, itemId: number): Promise<TreeNode> {
+        const itemDef = new TreeNode(itemId + '');
 
+        // if there are attributes, add them to the item
         let attributes;
-        if (item.attributes !== undefined) 
-                attributes = this.loadAttributes(item.attributes);
-        const itemData = new SDTFItemData(this._content.typeHints[item.typeHint].name, item.value, attributes?.attributes!)
+        if (item.attributes !== undefined)
+            attributes = await this.loadAttributes(item.attributes);
+
+        // create the typehint
+        const typeHint = item.typeHint === undefined ? 'undefined' : item.typeHint!.name;
+
+        // create the data and save it in the item node
+        const itemData = new SDTFItemData(typeHint, await item.getContent(), attributes?.attributes!)
         itemDef.data.push(itemData)
 
         return itemDef;
     }
 
-    private async loadNode(nodeId: number): Promise<ITreeNode> {
-        if (!this._content.nodes) throw new Error('Node not available.')
-        if (!this._content.nodes[nodeId]) throw new Error('Node not available.')
-        const node = this._content.nodes[nodeId];
+    /**
+     * Load the node into a scene graph node.
+     * 
+     * @param node 
+     * @param nodeId 
+     * @returns 
+     */
+    private async loadNode(node: ISdtfReadableNode, nodeId: number): Promise<TreeNode> {
         const nodeDef = new TreeNode(node.name || 'node_' + nodeId);
 
-        if(node.attributes !== undefined) {
-            nodeDef.data.push(this.loadAttributes(node.attributes));
+        // if there are attributes, add them to the node as data
+        if (node.attributes !== undefined) {
+            nodeDef.data.push(await this.loadAttributes(node.attributes));
         }
-        if(node.items !== undefined && node.items.length > 0) {
+
+        // if there are items, add them to the node as children
+        if (node.items !== undefined && node.items.length > 0) {
             for (let i = 0, len = node.items.length; i < len; i++) {
-                // got through all children
+                // got through all items
                 nodeDef.addChild(await this.loadItem(node.items[i], i));
             }
         }
 
+        // if there are nodes, add them to the node as children
         if (node.nodes !== undefined && node.nodes.length > 0) {
             for (let i = 0, len = node.nodes.length; i < len; i++) {
                 // got through all children
-                nodeDef.addChild(await this.loadNode(node.nodes[i]));
+                nodeDef.addChild(await this.loadNode(node.nodes[i], i));
             }
         }
 
         return nodeDef;
     }
 
-    // #endregion Private Methods (4)
+    // #endregion Private Methods (5)
 }

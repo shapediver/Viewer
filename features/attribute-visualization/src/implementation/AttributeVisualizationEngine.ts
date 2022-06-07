@@ -5,7 +5,7 @@ import { mat4 } from "gl-matrix";
 import { container } from "tsyringe";
 import { Converter, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IAttributeVisualizationEngine } from "../interfaces/IAttributeVisualizationEngine";
-import { GEOMETRY_TYPEHINT, IMaterialData, ISDTFItemData, ISDTFOverview, MaterialUnlitData, PRIMITIVE_TYPEHINT } from "@shapediver/viewer.shared.types";
+import { IMaterialData, ISDTFItemData, ISDTFOverview, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
 import { AttributeVisualizationUtils } from "./AttributeVisualizationUtils";
 
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
@@ -139,7 +139,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
             // search for the responsible layer property, if none is found, default layer is assigned
             let layer: ILayer = this.defaultLayer;
-            if (itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === PRIMITIVE_TYPEHINT.STRING) {
+            if (itemData.attributes['layer'] && SdtfPrimitiveTypeGuard.isStringType(itemData.attributes['layer'].typeHint)) {
                 const layerAttributes = itemData.attributes['layer'];
                 layer = this.#layers[layerAttributes.value];
             }
@@ -171,17 +171,17 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                     const a = this.#attributes[i];
                     if (itemData.attributes[a.key] && itemData.attributes[a.key].typeHint === a.type) {
                         const itemDataAttribute = itemData.attributes[a.key];
-                        const itemDataAttributeOverview = overview[a.key].filter((o: { typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string; }) => o.typeHint === a.type)[0];
+                        const itemDataAttributeOverview = overview[a.key].filter(o => o.typeHint === a.type)[0];
 
                         switch (true) {
-                            case a.type == PRIMITIVE_TYPEHINT.COLOR:
+                            case SdtfPrimitiveTypeGuard.isColorType(a.type):
                                 material.color = this.#converter.toColor('rgb(' + itemDataAttribute.value + ')');
                                 material.opacity *= layer.opacity;
                                 return {
                                     matrix: mat4.create(),
                                     material
                                 };
-                            case a.type == PRIMITIVE_TYPEHINT.DECIMAL || a.type == PRIMITIVE_TYPEHINT.DOUBLE || a.type == PRIMITIVE_TYPEHINT.FLOAT || a.type == PRIMITIVE_TYPEHINT.INT:
+                            case SdtfPrimitiveTypeGuard.isNumberType(a.type):
                                 const numberAttribute = <INumberAttribute>a;
                                 const numberVisualizationData = AttributeVisualizationUtils.numberVisualization(
                                     itemDataAttribute.value,
@@ -192,7 +192,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                                 );
                                 numberVisualizationData.material.opacity *= layer.opacity;
                                 return numberVisualizationData;
-                            case a.type == PRIMITIVE_TYPEHINT.STRING:
+                            case SdtfPrimitiveTypeGuard.isStringType(a.type):
                                 const stringAttribute = <IStringAttribute>a;
                                 const stringVisualizationData = AttributeVisualizationUtils.stringVisualization(
                                     itemDataAttribute.value,
@@ -231,7 +231,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     private createLayers() {
         this.#layers = {};
         if (this.#overview['layer']) {
-            const layerStringAttributeOverview = this.#overview['layer'].find((a: { typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string; }) => a.typeHint === 'string');
+            const layerStringAttributeOverview = this.#overview['layer'].find(a => a.typeHint === 'string');
             if (layerStringAttributeOverview && layerStringAttributeOverview.values) {
                 for (let i = 0; i < layerStringAttributeOverview.values.length; i++) {
                     this.#layers[layerStringAttributeOverview.values[i]] = {

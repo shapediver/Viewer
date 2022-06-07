@@ -1,11 +1,11 @@
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { GEOMETRY_TYPEHINT, PRIMITIVE_TYPEHINT } from "./ISDTFAttributesData";
+import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
 
 export interface ISDTFOverview {
     // #region Public Indexers (1)
 
     [key: string]: {
-        typeHint: PRIMITIVE_TYPEHINT | GEOMETRY_TYPEHINT | string;
+        typeHint: SdtfTypeHintName | string;
         count: number;
         values?: string[];
         min?: number;
