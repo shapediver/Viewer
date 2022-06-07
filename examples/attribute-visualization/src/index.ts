@@ -26,12 +26,12 @@ import * as SDVAttributeVisualization from '@shapediver/viewer.features.attribut
     // case 3 - layer
     // attributeVisualizationEngine.layers['pinky'].opacity = 0;
     // attributeVisualizationEngine.updateLayers(attributeVisualizationEngine.layers);
-
+    
     // case 4 - string attribute
     // attributeVisualizationEngine.updateAttributes([
     //     <SDVAttributeVisualization.IStringAttribute>{
     //         key: 'x+y, string',
-    //         type: SDV.PRIMITIVETYPEHINT.STRING,
+    //         type: SDV.SdtfTypeHintName.STRING,
     //         visualization: SDV.ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED
     //     }
     // ])
@@ -40,7 +40,7 @@ import * as SDVAttributeVisualization from '@shapediver/viewer.features.attribut
     // attributeVisualizationEngine.updateAttributes([
     //     <SDVAttributeVisualization.INumberAttribute>{
     //         key: 'x+y, number',
-    //         type: SDV.PRIMITIVETYPEHINT.DOUBLE,
+    //         type: SDV.SdtfTypeHintName.DOUBLE,
     //         visualization: SDV.ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED
     //     }
     // ])

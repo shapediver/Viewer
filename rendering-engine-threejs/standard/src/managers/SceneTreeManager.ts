@@ -6,7 +6,6 @@ import {
   GeometryData,
   HTMLElementAnchorData,
   MaterialStandardData,
-  PRIMITIVETYPEHINT,
   SDTFAttributeOverview,
   SDTFAttributeVisualization,
   SDTFAttributeVisualizationData,

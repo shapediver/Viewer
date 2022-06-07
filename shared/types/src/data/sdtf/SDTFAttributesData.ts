@@ -1,53 +1,5 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 
-export enum PRIMITIVETYPEHINT {
-    DOUBLE = 'double',
-    COLOR = 'color',
-    STRING = 'string',
-    BOOL = 'bool',
-    FLOAT = 'float',
-    DECIMAL = 'decimal',
-    CULTUREINFO = 'cultureinfo',
-    INT = 'int',
-}
-
-export enum GEOMETRYTYPEHINT {
-    COMPLEX = 'geometry.complex',
-    INTERVAL2 = 'geometry.interval2',
-    PATH = 'grasshopper.path',
-    ARC = 'geometry.arc',
-    BOUNDINGBOX = 'geometry.boundingbox',
-    BOX = 'geometry.box',
-    CIRCLE = 'geometry.circle',
-    CONE = 'geometry.cone',
-    CYLINDER = 'geometry.cylinder',
-    ELLIPSE = 'geometry.ellipse',
-    INTERVAL = 'geometry.interval',
-    LINE = 'geometry.line',
-    MATRIX = 'geometry.matrix',
-    PLANE = 'geometry.plane',
-    POINT2D = 'geometry.point2d',
-    POINT2F = 'geometry.point2f',
-    POINT3D = 'geometry.point3d',
-    POINT3F = 'geometry.point3f',
-    POINT4D = 'geometry.point4d',
-    POLYLINE = 'geometry.polyline',
-    RAY = 'geometry.ray',
-    RECTANGLE = 'geometry.rectangle',
-    SPHERE = 'geometry.sphere',
-    TORUS = 'geometry.torus',
-    TRANSFORM = 'geometry.transform',
-    VECTOR2D = 'geometry.vector2d',
-    VECTOR2F = 'geometry.vector2f',
-    VECTOR3D = 'geometry.vector3d',
-    VECTOR3F = 'geometry.vector3f',
-}
-  
-  // https://shapediver.atlassian.net/browse/SS-2957
-//   export enum RHINOTYPEHINT {
-//     TEMP = 'temp'
-//   }
-
 export class SDTFAttributeData {
     // #region Properties (2)
 
@@ -59,7 +11,7 @@ export class SDTFAttributeData {
     // #region Constructors (1)
 
     constructor(
-        typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string,
+        typeHint: string,
         value: any
     ) {
         this.#typeHint = typeHint;
@@ -70,7 +22,7 @@ export class SDTFAttributeData {
 
     // #region Public Accessors (2)
 
-    public get typeHint(): PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string {
+    public get typeHint(): string {
         return this.#typeHint;
     }
 

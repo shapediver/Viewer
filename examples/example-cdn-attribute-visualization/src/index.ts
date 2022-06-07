@@ -16,7 +16,7 @@
     attributeVisualizationEngine.updateAttributes([
         {
             key: 'x+y, number',
-            type: SDV.PRIMITIVETYPEHINT.DOUBLE,
+            type: SDV.SdtfTypeHintName.DOUBLE,
             visualization: SDV.ATTRIBUTEVISUALIZATION.GREEN_WHITE_RED
         }
     ])

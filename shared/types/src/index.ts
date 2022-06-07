@@ -4,7 +4,7 @@ import {
   MaterialStandardData, MaterialStandardDataProperties,
 } from './data/material/MaterialStandardData'
 import { AnchorDataImage, AnchorDataText, HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData } from './data/HTMLElementAnchorData'
-import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT, SDTFAttributeData, SDTFAttributesData } from './data/sdtf/SDTFAttributesData'
+import { SDTFAttributeData, SDTFAttributesData } from './data/sdtf/SDTFAttributesData'
 import { SDTFItemData } from './data/sdtf/SDTFItemData'
 import { SDTFAttributeOverview, SDTFOverview } from './data/sdtf/SDTFAttributeOverview'
 import { ATTRIBUTEVISUALIZATION, SDTFAttributeVisualization, SDTFAttributeVisualizationData } from './data/sdtf/SDTFAttributeVisualization'
@@ -21,6 +21,8 @@ import { MapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from './data/material/Ma
 import { MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, AbstractMaterialData, AbstractMaterialDataProperties } from './data/material/AbstractMaterialData'
 import { MaterialSpecularGlossinessData, MaterialSpecularGlossinessDataProperties } from './data/material/MaterialSpecularGlossinessData'
 import { MaterialUnlitData, MaterialUnlitDataProperties } from './data/material/MaterialUnlitData'
+import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
+import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives'
 
 export {
   MaterialStandardData, MaterialStandardDataProperties, 
@@ -47,5 +49,5 @@ export {
 }
 
 export {
-  SDTFAttributeOverview, SDTFOverview, SDTFAttributesData, SDTFAttributeVisualizationData, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, SDTFAttributeData, SDTFItemData, PRIMITIVETYPEHINT, GEOMETRYTYPEHINT
+  SDTFAttributeOverview, SDTFOverview, SDTFAttributesData, SDTFAttributeVisualizationData, SDTFAttributeVisualization, ATTRIBUTEVISUALIZATION, SDTFAttributeData, SDTFItemData, SdtfTypeHintName, SdtfPrimitiveTypeGuard
 }

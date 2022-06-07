@@ -1,9 +1,10 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { GEOMETRYTYPEHINT, PRIMITIVETYPEHINT } from './SDTFAttributesData';
+import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives'
+import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
 
 export type SDTFOverview = {
     [key: string]: {
-        typeHint: PRIMITIVETYPEHINT | GEOMETRYTYPEHINT | string;
+        typeHint: SdtfTypeHintName | string;
         count: number;
         values?: string[];
         min?: number;
@@ -55,13 +56,10 @@ export class SDTFAttributeOverview extends AbstractTreeNodeData {
                 if(this.overview[overviewKey] && existingEntries.length > 0) {
                     const entry = existingEntries[0];
                     entry.count++;
-                    if (dataToCopy.typeHint === PRIMITIVETYPEHINT.STRING) {
+                    if (SdtfPrimitiveTypeGuard.isStringType(dataToCopy.typeHint)) {
                         entry.values = entry.values?.concat(dataToCopy.values!.filter((item) => entry.values!.indexOf(item) < 0))
                     }
-                    if (dataToCopy.typeHint === PRIMITIVETYPEHINT.DOUBLE ||
-                    dataToCopy.typeHint === PRIMITIVETYPEHINT.FLOAT ||
-                    dataToCopy.typeHint === PRIMITIVETYPEHINT.DECIMAL ||
-                    dataToCopy.typeHint === PRIMITIVETYPEHINT.INT) {
+                    if (SdtfPrimitiveTypeGuard.isNumberType(dataToCopy.typeHint)) {
                     entry.min = Math.min(dataToCopy.min!, entry.min!);
                     entry.max = Math.max(dataToCopy.max!, entry.max!);
                     }

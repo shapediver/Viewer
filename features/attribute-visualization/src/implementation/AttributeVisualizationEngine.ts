@@ -1,10 +1,11 @@
 import { ILayer } from "../interfaces/ILayer";
-import { EVENTTYPE, IApi, IViewer, AbstractMaterialData, MaterialUnlitData, PRIMITIVETYPEHINT, SDTFAttributeVisualization, SDTFItemData, SDTFOverview } from "@shapediver/viewer"
+import { EVENTTYPE, IApi, IViewer, AbstractMaterialData, MaterialUnlitData, SDTFAttributeVisualization, SDTFItemData, SDTFOverview } from "@shapediver/viewer"
 import { IAttribute, IColorAttribute, IDefaultAttribute, INumberAttribute, IStringAttribute } from "../interfaces/IAttribute";
 import { mat4 } from "gl-matrix";
 import { container } from "tsyringe";
 import { Converter, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IAttributeVisualizationEngine } from "../interfaces/IAttributeVisualizationEngine";
+import { SdtfPrimitiveTypeGuard  } from '@shapediver/sdk.sdtf-primitives'
 
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
     // #region Properties (7)
@@ -139,7 +140,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
             // search for the responsible layer property, if none is found, default layer is assigned
             let layer: ILayer = this.defaultLayer;
-            if (itemData.attributes['layer'] && itemData.attributes['layer'].typeHint === PRIMITIVETYPEHINT.STRING) {
+            if (itemData.attributes['layer'] && SdtfPrimitiveTypeGuard.isStringType(itemData.attributes['layer'].typeHint)) {
                 const layerAttributes = itemData.attributes['layer'];
                 layer = this.#layers[layerAttributes.value];
             }
@@ -174,14 +175,14 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                         const itemDataAttributeOverview = overview[a.key].filter(o => o.typeHint === a.type)[0];
 
                         switch (true) {
-                            case a.type == PRIMITIVETYPEHINT.COLOR:
+                            case SdtfPrimitiveTypeGuard.isColorType(a.type):
                                 material.color = this.#converter.toColor('rgb(' + itemDataAttribute.value + ')');
                                 material.opacity *= layer.opacity;
                                 return {
                                     matrix: mat4.create(),
                                     material
                                 };
-                            case a.type == PRIMITIVETYPEHINT.DECIMAL || a.type == PRIMITIVETYPEHINT.DOUBLE || a.type == PRIMITIVETYPEHINT.FLOAT || a.type == PRIMITIVETYPEHINT.INT:
+                            case SdtfPrimitiveTypeGuard.isNumberType(a.type):
                                 const numberAttribute = <INumberAttribute>a;
                                 const numberVisualizationData = SDTFAttributeVisualization.numberVisualization(
                                     itemDataAttribute.value,
@@ -192,7 +193,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                                 );
                                 numberVisualizationData.material.opacity *= layer.opacity;
                                 return numberVisualizationData;
-                            case a.type == PRIMITIVETYPEHINT.STRING:
+                            case SdtfPrimitiveTypeGuard.isStringType(a.type):
                                 const stringAttribute = <IStringAttribute>a;
                                 const stringVisualizationData = SDTFAttributeVisualization.stringVisualization(
                                     itemDataAttribute.value,
