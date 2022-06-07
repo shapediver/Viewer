@@ -39,7 +39,7 @@ export class Api implements IApi {
   // #region Properties (13)
 
   readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
-  readonly #defaultSpinner: string = 'https://shapediverviewer.s3.amazonaws.com/v3/graphics/spinner_ripple.svg';
+  readonly #defaultSpinner: string = 'https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg';
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);

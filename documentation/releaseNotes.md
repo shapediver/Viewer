@@ -8,6 +8,9 @@
 * __Commit:__ 0870a23147c252dbc5d3dd577b070da0eb03d12a
 <!--- VERSION_END -->
 
+## Version 1.15.2 - `Ocean's Twelve`
+- removed direct links
+
 ## Version 1.15.1 - `Ocean's Eleven`
 - update geometry sdk version
 

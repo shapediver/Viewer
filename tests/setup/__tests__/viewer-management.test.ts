@@ -29,7 +29,7 @@ describe('device testing', () => {
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas'), branding: { logo: 'https://shapediverviewer.s3.amazonaws.com/v3/graphics/logo.png' } })
+            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas'), branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' } })
             let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             await new Promise<void>((resolve) => {
                 api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
@@ -47,7 +47,7 @@ describe('device testing', () => {
 
         await driver.executeAsyncScript(async (cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas'), branding: { logo: 'https://shapediverviewer.s3.amazonaws.com/v3/graphics/logo.png' } })
+            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas'), branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' } })
             await new Promise<void>((resolve) => {
                 api.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
             })
@@ -59,7 +59,7 @@ describe('device testing', () => {
     test(name, async () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const api: typeof API = (<any>window).SDV.api;
-            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas'), branding: { logo: 'https://shapediverviewer.s3.amazonaws.com/v3/graphics/logo.png' } })
+            let viewer = await api.createViewer({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas'), branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' } })
             let session = await api.createSession({ id: 'mySession', ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
             cb();
         }, shelfTicket);
