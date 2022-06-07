@@ -8,6 +8,9 @@
 * __Commit:__ 198ec5594be00a3d3836499e0dbe4d368b28f540
 <!--- VERSION_END -->
 
+## Version 1.15.2 - `Ocean's Thirteen`
+- update to new sdtf package
+
 ## Version 1.15.2 - `Ocean's Twelve`
 - removed direct links
 
