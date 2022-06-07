@@ -8,6 +8,24 @@
 <body>
     <div style="width: 100%; height: 100%; display: flex; position: absolute; left: 0%; top: 0%">
         <canvas id="canvas"></canvas>
+        <div style="position: absolute;">
+            <table>
+                <tbody>
+                    <tr>
+                        <td><label>Models: </label></td>
+                        <td><select name="models" id="models"></select><br></td>
+                    </tr>
+                    <tr>
+                        <td><label>Environment Maps: </label></td>
+                        <td><select name="envMaps" id="envMaps"></select><br></td>
+                    </tr>
+                    <tr>
+                        <td><label>Background Color: </label></td>
+                        <td><input type="color" id="background" name="background" value="#ffffff"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
     <script type="module" src="./bundle.js"></script>
 </body>

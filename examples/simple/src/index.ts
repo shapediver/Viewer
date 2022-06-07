@@ -1,16 +1,111 @@
+import {
+    api,
+    ENVIRONMENT_MAP,
+    EVENTTYPE,
+    ITaskEvent,
+    IViewer,
+    TASKTYPE,
+    VISIBILITYMODE,
+} from "@shapediver/viewer";
+import { container } from "tsyringe";
+import { DataEngine } from "@shapediver/viewer.data-engine.data-engine";
+import { UuidGenerator } from "@shapediver/viewer.shared.services";
+
+const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
+const uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+
+const modelsSelect = <HTMLSelectElement>document.getElementById("models");
+const envMapsSelect = <HTMLSelectElement>document.getElementById("envMaps");
+const backgroundColorInput = <HTMLInputElement>document.getElementById("background");
+
+let viewer: IViewer;
+
+const addGLTF = async (uri: string) => {
+    const node = await dataEngine.loadContent({
+        format: "gltf",
+        href: uri
+    });
+
+    for(let child of api.sceneTree.root.children)
+        api.sceneTree.removeNode(child);
+    api.sceneTree.addNode(node);
+    api.update();
+    await viewer.camera!.set([0, 0, 0], [0, 0, 0], { duration: 0 });
+    await viewer.camera!.zoomTo(undefined, { duration: 0 });
+};
+
+const createModelDropdown = () => {
+    const models = ["28", "73"];
+
+    modelsSelect.onchange = async () => {
+        const id = uuidGenerator.create();
+        viewer.registerBusyMode(id)
+        await addGLTF("bocci_lights_3D_" + models[+modelsSelect.value] + ".gltf");
+        viewer.deregisterBusyMode(id)
+    };
+
+    for (let i = 0; i < models.length; i++) {
+        const option = document.createElement("option");
+        option.setAttribute("value", i + "");
+        option.setAttribute("name", models[i]);
+        option.innerHTML = models[i];
+        modelsSelect.appendChild(option);
+    }
+};
 
 
-import { api, CAMERATYPE, ENVIRONMENT_MAP, EVENTTYPE, EXPORTTYPE, LIGHTTYPE, LOGGINGLEVEL, ORTHOGRAPHIC_CAMERA_DIRECTION, PARAMETERTYPE, PARAMETERVISUALIZATION, RENDERERTYPE, VISIBILITYMODE } from '@shapediver/viewer'
-import * as SDV from '@shapediver/viewer'
-import { mat4 } from 'gl-matrix';
+const createEnvironmentMapDropdown = () => {
+    const envMaps = [ENVIRONMENT_MAP.BALLROOM, ENVIRONMENT_MAP.COLORFUL_STUDIO, ENVIRONMENT_MAP.LARGE_CORRIDOR, ENVIRONMENT_MAP.OLD_HALL, ENVIRONMENT_MAP.PAUL_LOBE_HAUS];
+    envMapsSelect.onchange = async () => {
+        api.addListener(EVENTTYPE.TASK.TASK_START, (e) => {
+            const taskEvent = e as ITaskEvent;
+            if (taskEvent.type === TASKTYPE.ENVIRONMENT_MAP_LOADING)
+                viewer.registerBusyMode(taskEvent.id)
+        });
 
-(<any>window).SDV = SDV;
+        api.addListener(EVENTTYPE.TASK.TASK_END, (e) => {
+            const taskEvent = e as ITaskEvent;
+            if (taskEvent.type === TASKTYPE.ENVIRONMENT_MAP_LOADING)
+                viewer.deregisterBusyMode(taskEvent.id)
+        });
+
+        viewer.environmentMap = envMaps[+envMapsSelect.value];
+    };
+
+    for (let i = 0; i < envMaps.length; i++) {
+        const option = document.createElement("option");
+        option.setAttribute("value", i + "");
+        option.setAttribute("name", envMaps[i]);
+        option.innerHTML = envMaps[i];
+        envMapsSelect.appendChild(option);
+    }
+};
 
 (async () => {
-    let viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer' });
-    let session = await api.createSession({ 
-        ticket: 'd2795be17bb5f36ad8e799cd58c35b4fb84e84cb7ef5b8aa1365b7fe76fcaf3234167f0924fa613f03f31f82057b3107631c003bcc9077f785d38ad9a354a489e652d2be97a8e1f69c975bba070727b28f24af7ff68a9c966a124121362de07f6aecbdb9ebc46a-c13747650a644e02d24c0579cc104655', 
-        modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com', 
-        id: 'mySession',
-    });
+    viewer = await api.createViewer({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', visibility: VISIBILITYMODE.MANUAL });
+    viewer.groundPlaneVisibility = false;
+    viewer.gridVisibility = false;
+    viewer.ambientOcclusion = false;
+    viewer.shadows = false;
+    viewer.environmentMap = ENVIRONMENT_MAP.LARGE_CORRIDOR;
+
+    const promises = [];
+
+    promises.push(new Promise<void>((resolve) => {
+        api.addListener(EVENTTYPE.TASK.TASK_END, (e) => {
+            const taskEvent = e as ITaskEvent;
+            if (taskEvent.type === TASKTYPE.ENVIRONMENT_MAP_LOADING) resolve();
+        });
+    }));
+
+    promises.push(addGLTF("bocci_lights_3D_28.gltf"));
+    createModelDropdown();
+    createEnvironmentMapDropdown();
+
+    backgroundColorInput.onchange = () => {
+        viewer.clearColor = backgroundColorInput.value;
+    }
+
+    await Promise.all(promises);
+    viewer.show = true;
 })();
