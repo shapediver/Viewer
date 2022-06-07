@@ -2,9 +2,17 @@ import {
     api,
     ENVIRONMENT_MAP,
     EVENTTYPE,
+    GeometryData,
     ITaskEvent,
     IViewer,
+    MapData,
+    MaterialData,
+    MaterialEngine,
+    MaterialStandardData,
+    MATERIAL_ALPHA,
+    MATERIAL_SIDE,
     TASKTYPE,
+    TreeNode,
     VISIBILITYMODE,
 } from "@shapediver/viewer";
 import { container } from "tsyringe";
@@ -13,6 +21,7 @@ import { UuidGenerator } from "@shapediver/viewer.shared.services";
 
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 const uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
+const materialEngine: MaterialEngine = <MaterialEngine>(container.resolve(MaterialEngine));
 
 const modelsSelect = <HTMLSelectElement>document.getElementById("models");
 const envMapsSelect = <HTMLSelectElement>document.getElementById("envMaps");
@@ -20,27 +29,150 @@ const backgroundColorInput = <HTMLInputElement>document.getElementById("backgrou
 
 let viewer: IViewer;
 
-const addGLTF = async (uri: string) => {
+const modelMaterials: {
+    [key: string]: {
+        [key: string]: {
+            aoMap?: string,
+            map?: string,
+            normalMap?: string,
+            transmission?: number,
+            roughness?: number,
+            metalness?: number,
+        }
+    }
+} = {
+    '28': {
+        'Glass': {
+            aoMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/28/AmbientOcclusion.png',
+            map: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/28/Color.png',
+            transmission: 0
+        }
+    },
+    '73': {
+        'Fabric_Silver': {
+            map: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/73_glass_texture_map.png',
+            normalMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Normal.png',
+            roughness: 0.15,
+            metalness: 0
+        }
+    }
+}
+
+const addGLTF = async (id: string) => {
     const node = await dataEngine.loadContent({
         format: "gltf",
-        href: uri
+        href: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/' + id + '/bocci_lights_3D_' + id + '.gltf'
     });
+
+    const materials = modelMaterials[id];
+
+    const getGeometries = async (node: TreeNode) => {
+        for (let i = 0; i < node.data.length; i++) {
+            if (node.data[i] instanceof GeometryData) {
+                const geometryData = <GeometryData>node.data[i];
+                const materialData = <MaterialStandardData>geometryData.primitive.material;
+                if(!materialData) throw new Error('No material found.')
+                if(!materialData.name) throw new Error('No material name found.')
+                if(materials[materialData.name]) {
+
+                    const map = materials[materialData.name].map;
+                    if(map !== undefined){
+                        materialData.map = (await materialEngine.loadMap(map)) || undefined;
+                        materialData.map = new MapData(
+                            materialData.map?.image!, 
+                            materialData.map?.wrapS, 
+                            materialData.map?.wrapT, 
+                            materialData.map?.minFilter, 
+                            materialData.map?.magFilter, 
+                            materialData.map?.center, 
+                            materialData.map?.color, 
+                            materialData.map?.offset,  
+                            materialData.map?.repeat, 
+                            materialData.map?.rotation, 
+                            false
+                        );
+                    }
+
+                    const normalMap = materials[materialData.name].normalMap;
+                    if (normalMap !== undefined) {
+                        materialData.normalMap = (await materialEngine.loadMap(normalMap)) || undefined;
+                        materialData.normalMap = new MapData(
+                            materialData.normalMap?.image!, 
+                            materialData.normalMap?.wrapS, 
+                            materialData.normalMap?.wrapT, 
+                            materialData.normalMap?.minFilter, 
+                            materialData.normalMap?.magFilter, 
+                            materialData.normalMap?.center, 
+                            materialData.normalMap?.color, 
+                            materialData.normalMap?.offset,  
+                            materialData.normalMap?.repeat, 
+                            materialData.normalMap?.rotation, 
+                            false
+                        );
+                    }
+
+                    const aoMap = materials[materialData.name].aoMap;
+                    if (aoMap !== undefined) {
+                        materialData.aoMap = (await materialEngine.loadMap(aoMap)) || undefined;
+                        materialData.aoMap = new MapData(
+                            materialData.aoMap?.image!, 
+                            materialData.aoMap?.wrapS, 
+                            materialData.aoMap?.wrapT, 
+                            materialData.aoMap?.minFilter, 
+                            materialData.aoMap?.magFilter, 
+                            materialData.aoMap?.center, 
+                            materialData.aoMap?.color, 
+                            materialData.aoMap?.offset,  
+                            materialData.aoMap?.repeat, 
+                            materialData.aoMap?.rotation, 
+                            false
+                        );
+                        materialData.alphaMap = materialData.aoMap;
+
+                        materialData.alphaMode = MATERIAL_ALPHA.BLEND;
+                        materialData.alphaCutoff = 0.01;
+                    }
+                
+                    const transmission = materials[materialData.name].transmission;
+                    if(transmission !== undefined)
+                        materialData.transmission = transmission;
+                        
+                    const roughness = materials[materialData.name].roughness;
+                    if(roughness !== undefined)
+                        materialData.roughness = roughness;
+                        
+                    const metalness = materials[materialData.name].metalness;
+                    if(metalness !== undefined)
+                        materialData.metalness = metalness;
+
+                    materialData.updateVersion();
+                    geometryData.updateVersion();
+                    node.updateVersion();
+                }
+            }
+        }
+
+        for(let i = 0; i < node.children.length; i++)
+            await getGeometries(node.children[i]);
+    }
+    await getGeometries(node);
 
     for(let child of api.sceneTree.root.children)
         api.sceneTree.removeNode(child);
     api.sceneTree.addNode(node);
+
     api.update();
     await viewer.camera!.set([0, 0, 0], [0, 0, 0], { duration: 0 });
     await viewer.camera!.zoomTo(undefined, { duration: 0 });
 };
 
 const createModelDropdown = () => {
-    const models = ["28", "73"];
+    const models = Object.keys(modelMaterials);
 
     modelsSelect.onchange = async () => {
         const id = uuidGenerator.create();
         viewer.registerBusyMode(id)
-        await addGLTF("bocci_lights_3D_" + models[+modelsSelect.value] + ".gltf");
+        await addGLTF(models[+modelsSelect.value]);
         viewer.deregisterBusyMode(id)
     };
 
@@ -55,7 +187,7 @@ const createModelDropdown = () => {
 
 
 const createEnvironmentMapDropdown = () => {
-    const envMaps = [ENVIRONMENT_MAP.BALLROOM, ENVIRONMENT_MAP.COLORFUL_STUDIO, ENVIRONMENT_MAP.LARGE_CORRIDOR, ENVIRONMENT_MAP.OLD_HALL, ENVIRONMENT_MAP.PAUL_LOBE_HAUS];
+    const envMaps = [ENVIRONMENT_MAP.BALLROOM, ENVIRONMENT_MAP.LARGE_CORRIDOR, ENVIRONMENT_MAP.OLD_HALL, ENVIRONMENT_MAP.PAUL_LOBE_HAUS];
     envMapsSelect.onchange = async () => {
         api.addListener(EVENTTYPE.TASK.TASK_START, (e) => {
             const taskEvent = e as ITaskEvent;
@@ -88,6 +220,7 @@ const createEnvironmentMapDropdown = () => {
     viewer.ambientOcclusion = false;
     viewer.shadows = false;
     viewer.environmentMap = ENVIRONMENT_MAP.LARGE_CORRIDOR;
+    viewer.createLightScene();
 
     const promises = [];
 
@@ -98,7 +231,7 @@ const createEnvironmentMapDropdown = () => {
         });
     }));
 
-    promises.push(addGLTF("bocci_lights_3D_28.gltf"));
+    promises.push(addGLTF("28"));
     createModelDropdown();
     createEnvironmentMapDropdown();
 
