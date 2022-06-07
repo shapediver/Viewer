@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.15.2
-* __Build date:__ 2022-06-07T12:26:35.680Z
+* __Version:__ 1.15.3
+* __Build date:__ 2022-06-07T17:25:42.271Z
 * __Branch:__ development
-* __Commit:__ 198ec5594be00a3d3836499e0dbe4d368b28f540
+* __Commit:__ 0ae41a20e27a3d8529cc14295c12414365a21375
 <!--- VERSION_END -->
 
 ## Version 1.15.2 - `Ocean's Thirteen`
