@@ -69,7 +69,7 @@ import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 import { AnimationManager } from './managers/AnimationManager'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
-  // #region Properties (59)
+  // #region Properties (61)
 
   // managers
   private readonly _animationManager: AnimationManager;
@@ -89,7 +89,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _canvasEngine: CanvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
   // utils
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
-  private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
   private readonly _domEventEngine: DomEventEngine;
   private readonly _environmentGeometryManager: EnvironmentGeometryManager;
   // loaders
@@ -108,13 +107,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _sceneTreeManager: SceneTreeManager;
   private readonly _stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
   private readonly _tree: ITree = <ITree>container.resolve(Tree);
+  private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
   private readonly _visibility: VISIBILITY_MODE;
 
   // settings
   private _ambientOcclusion: boolean = true;
   private _ambientOcclusionIntensity: number = 0.1;
   private _arRotation: vec3 = vec3.create();
-  private _arScale: vec3 = vec3.fromValues(1,1,1);
+  private _arScale: vec3 = vec3.fromValues(1, 1, 1);
   private _arTranslation: vec3 = vec3.create();
   private _automaticResizing: boolean = true;
   private _beautyRenderBlendingDuration: number = 1500;
@@ -145,7 +145,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
   readonly #defaultSpinner: string = 'https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg';
-  
+
   #animations: AnimationData[] = [];
   #flags: { [key: string]: string[] } = {
     [FLAG_TYPE.CAMERA_FREEZE]: [],
@@ -153,7 +153,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     [FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE]: [],
   };
 
-  // #endregion Properties (59)
+  // #endregion Properties (61)
 
   // #region Constructors (1)
 
@@ -238,16 +238,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this._environmentGeometryManager.changeSceneExtents(this._sceneTreeManager.boundingBox);
     })
 
-    if(this._sessionSettingsMode === SESSION_SETTINGS_MODE.NONE) {
+    if (this._sessionSettingsMode === SESSION_SETTINGS_MODE.NONE) {
       this.environmentMap = 'photo_studio';
       this.ambientOcclusion = false;
     }
-
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (105)
+  // #region Public Accessors (103)
 
   public get ambientOcclusion(): boolean {
     return this._ambientOcclusion;
@@ -325,14 +324,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._beautyRenderingManager;
   }
 
-  public get busy(): boolean {
-    return this._busy;
-  }
-
-  public set busy(value: boolean) {
-    this._busy = value;
-  }
-
   public get branding(): {
     logo: string | null;
     backgroundColor: string;
@@ -340,6 +331,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     busyModeDisplay: BUSY_MODE_DISPLAY;
   } {
     return this._branding;
+  }
+
+  public get busy(): boolean {
+    return this._busy;
+  }
+
+  public set busy(value: boolean) {
+    this._busy = value;
   }
 
   public get busyModeDisplay(): BUSY_MODE_DISPLAY {
@@ -732,15 +731,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._visualizeAttributes = value;
   }
 
-  // #endregion Public Accessors (105)
+  // #endregion Public Accessors (103)
 
-  // #region Public Methods (13)
-
-
+  // #region Public Methods (16)
 
   public addFlag(flag: FLAG_TYPE): string {
     const token = this._uuidGenerator.create();
-    if(flag === FLAG_TYPE.BUSY_MODE) {
+    if (flag === FLAG_TYPE.BUSY_MODE) {
       this.stateEngine.renderingEngines[this.id].busy.push(token);
     } else {
       this.#flags[flag].push(token);
@@ -749,73 +746,37 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return token;
   }
 
-  public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
+  public applySettings(sections: {
+    ar?: boolean,
+    scene?: boolean,
+    camera?: boolean,
+    light?: boolean,
+    environment?: boolean,
+    general?: boolean
+  } = {
+      ar: true,
+      scene: true,
+      camera: true,
+      light: true,
+      environment: true,
+      general: true
+    }) {
     if (!this._settingsEngine) return;
+
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
       this._stateEngine.renderingEngines[this.id].environmentMapLoaded.then(() => {
         if (!this._settingsEngine) return;
         this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
-        this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
-        this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-        this.arScale = vec3.fromValues(this._settingsEngine.general.transformation.scale.x, this._settingsEngine.general.transformation.scale.y, this._settingsEngine.general.transformation.scale.z);
-        this.arTranslation = vec3.fromValues(this._settingsEngine.general.transformation.translation.x, this._settingsEngine.general.transformation.translation.y, this._settingsEngine.general.transformation.translation.z);
-        this.arRotation = vec3.fromValues(this._settingsEngine.general.transformation.rotation.x, this._settingsEngine.general.transformation.rotation.y, this._settingsEngine.general.transformation.rotation.z);
-  
-        if (sections.scene) {
-          this.clearAlpha = this._settingsEngine.environment.clearAlpha;
-          this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);  
-          this.shadows = this._settingsEngine.rendering.shadows;
-          this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
-          this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
-          this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
-          this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
-          this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
-          this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
-          this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
-          this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
-          this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
-          this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
-          this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
-          this.pointSize = this._settingsEngine.general.pointSize;
-        }
-
-        if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
-        if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
-        this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
-        this.update('RenderingEngine.applySettings1');
+        this.clearAlpha = this._settingsEngine.environment.clearAlpha;
+        this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
+        this.applySyncSettings(sections)
       })
 
       // set it like this to not trigger the loading
-      this._environmentMapResolution = this._settingsEngine.environment.mapResolution;
       this.environmentMap = this._settingsEngine.environment.map;
     } else {
-      this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
-      this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-      this.arScale = vec3.fromValues(this._settingsEngine.general.transformation.scale.x, this._settingsEngine.general.transformation.scale.y, this._settingsEngine.general.transformation.scale.z);
-      this.arTranslation = vec3.fromValues(this._settingsEngine.general.transformation.translation.x, this._settingsEngine.general.transformation.translation.y, this._settingsEngine.general.transformation.translation.z);
-      this.arRotation = vec3.fromValues(this._settingsEngine.general.transformation.rotation.x, this._settingsEngine.general.transformation.rotation.y, this._settingsEngine.general.transformation.rotation.z);
-
-      if (sections.scene) {
-        this.shadows = this._settingsEngine.rendering.shadows;
-        this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
-        this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
-        this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
-        this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
-        this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
-        this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
-        this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
-        this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
-        this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
-        this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
-        this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
-        this.pointSize = this._settingsEngine.general.pointSize;
-      }
-
-      if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
-      if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
-      this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
-      this.update('RenderingEngine.applySettings2');
+      this.applySyncSettings(sections)
     }
   }
 
@@ -863,51 +824,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     p.style.color = this.logoDivElement.style.backgroundColor;
     p.style['filter'] = 'invert(100%)';
     d.appendChild(p);
-  }
-
-  public gatherAnimations(node: ITreeNode = this._tree.root): AnimationData[] {
-    let out: AnimationData[] = [];
-    for (let i = 0, len = node.data.length; i < len; i++)
-      if (node.data[i] instanceof AnimationData)
-        out.push(<AnimationData>node.data[i])
-
-    for (let i = 0, len = node.children.length; i < len; i++)
-      out = out.concat(this.gatherAnimations(node.children[i]))
-
-    return out;
-  }
-
-  public getEnvironmentMapImageUrl() {
-    return this._environmentMapLoader.getEnvironmentMapImageUrl(this.environmentMap);
-  }
-
-  public getScreenshot(type?: string, encoderOptions?: number): string {
-    return this._renderingManager.getScreenshot(type, encoderOptions);
-  }
-
-  public init(): void {
-    throw new Error('Method not implemented.')
-  }
-
-  public removeFlag(token: string): boolean {
-    let success = false;
-    for (let f in FLAG_TYPE) {
-      if(f === FLAG_TYPE.BUSY_MODE) {
-        if (this.stateEngine.renderingEngines[this.id].busy.includes(token)) {
-          this.stateEngine.renderingEngines[this.id].busy.splice(this.stateEngine.renderingEngines[this.id].busy.indexOf(token), 1);
-          success = true;
-          break;
-        }
-      } else {
-        if (this.#flags[f].includes(token)) {
-          this.#flags[f].splice(this.#flags[f].indexOf(token), 1);
-          success = true;
-          break;
-        }
-      }
-    }
-    this.evaluateFlagState();
-    return success;
   }
 
   public evaluateFlagState() {
@@ -969,6 +885,51 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
   }
 
+  public gatherAnimations(node: ITreeNode = this._tree.root): AnimationData[] {
+    let out: AnimationData[] = [];
+    for (let i = 0, len = node.data.length; i < len; i++)
+      if (node.data[i] instanceof AnimationData)
+        out.push(<AnimationData>node.data[i])
+
+    for (let i = 0, len = node.children.length; i < len; i++)
+      out = out.concat(this.gatherAnimations(node.children[i]))
+
+    return out;
+  }
+
+  public getEnvironmentMapImageUrl() {
+    return this._environmentMapLoader.getEnvironmentMapImageUrl(this.environmentMap);
+  }
+
+  public getScreenshot(type?: string, encoderOptions?: number): string {
+    return this._renderingManager.getScreenshot(type, encoderOptions);
+  }
+
+  public init(): void {
+    throw new Error('Method not implemented.')
+  }
+
+  public removeFlag(token: string): boolean {
+    let success = false;
+    for (let f in FLAG_TYPE) {
+      if (f === FLAG_TYPE.BUSY_MODE) {
+        if (this.stateEngine.renderingEngines[this.id].busy.includes(token)) {
+          this.stateEngine.renderingEngines[this.id].busy.splice(this.stateEngine.renderingEngines[this.id].busy.indexOf(token), 1);
+          success = true;
+          break;
+        }
+      } else {
+        if (this.#flags[f].includes(token)) {
+          this.#flags[f].splice(this.#flags[f].indexOf(token), 1);
+          success = true;
+          break;
+        }
+      }
+    }
+    this.evaluateFlagState();
+    return success;
+  }
+
   public reset() {
     this._stateEngine.renderingEngines[this.id].settingsAssigned.reset();
     this._stateEngine.renderingEngines[this.id].boundingBoxCreated.reset();
@@ -1024,5 +985,59 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.lastRootVersion = this._tree.root.version;
   }
 
-  // #endregion Public Methods (13)
+  // #endregion Public Methods (16)
+
+  // #region Private Methods (1)
+
+  private applySyncSettings(sections: {
+    ar?: boolean,
+    scene?: boolean,
+    camera?: boolean,
+    light?: boolean,
+    environment?: boolean,
+    general?: boolean
+  } = {
+      ar: true,
+      scene: true,
+      camera: true,
+      light: true,
+      environment: true,
+      general: true
+    }) {
+    if (!this._settingsEngine) return;
+    
+    if (sections.ar) {
+      this.enableAR = this._settingsEngine.ar.enable;
+      this.arScale = [this._settingsEngine.general.transformation.scale.x, this._settingsEngine.general.transformation.scale.y, this._settingsEngine.general.transformation.scale.z];
+      this.arTranslation = [this._settingsEngine.general.transformation.translation.x, this._settingsEngine.general.transformation.translation.y, this._settingsEngine.general.transformation.translation.z];
+      this.arRotation = [this._settingsEngine.general.transformation.rotation.x, this._settingsEngine.general.transformation.rotation.y, this._settingsEngine.general.transformation.rotation.z];
+    }
+
+    if (sections.scene) {
+      this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
+      this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
+      this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
+      this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
+
+      this.shadows = this._settingsEngine.rendering.shadows;
+      this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
+
+      this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
+      this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
+      this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
+      this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
+      this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
+    }
+
+    if (sections.general) {
+      this.pointSize = this._settingsEngine.general.pointSize;
+    }
+
+    if (sections.light) (<LightEngine>this.lightEngine).applySettings(this._settingsEngine);
+    if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings(this._settingsEngine);
+    this._stateEngine.renderingEngines[this.id].settingsAssigned.resolve(true);
+    this.update('RenderingEngine.applySyncSettings');
+  }
+
+  // #endregion Private Methods (1)
 }

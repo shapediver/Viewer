@@ -222,7 +222,7 @@ export class SessionEngine implements ISessionEngine {
             parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined } | undefined;
             export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined } | undefined
         } | undefined;
-        viewport?: { scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined } | undefined
+        viewport?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined } | undefined
     }) {
         try {
             sections = sections || {};
@@ -237,7 +237,7 @@ export class SessionEngine implements ISessionEngine {
             if (sections.session.export === undefined)
                 sections.session.export = { displayname: false, order: false, hidden: false };
             if (sections.viewport === undefined)
-                sections.viewport = { scene: false, camera: false, light: false, environment: false };
+                sections.viewport = { ar: false, scene: false, camera: false, light: false, environment: false, general: false };
 
             let config: object;
             if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
@@ -300,6 +300,12 @@ export class SessionEngine implements ISessionEngine {
                 }
             }
 
+            // apply ar settings
+            if (sections.viewport.ar) {
+                currentSettings.ar = settings.ar;
+                currentSettings.general.transformation = settings.general.transformation;
+            }
+
             // apply camera settings
             if (sections.viewport.camera)
                 currentSettings.camera = settings.camera;
@@ -310,18 +316,22 @@ export class SessionEngine implements ISessionEngine {
 
             // apply scene settings
             if (sections.viewport.scene) {
-                currentSettings.rendering.shadows = settings.rendering.shadows;
-                currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
-                currentSettings.rendering.ambientOcclusionIntensity = settings.rendering.ambientOcclusionIntensity;
-                currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
-                currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;
-                currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
-                currentSettings.rendering.toneMapping = settings.rendering.toneMapping;
-                currentSettings.rendering.toneMappingExposure = settings.rendering.toneMappingExposure;
                 currentSettings.environmentGeometry.gridColor = settings.environmentGeometry.gridColor;
                 currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
                 currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
                 currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
+
+                currentSettings.rendering.shadows = settings.rendering.shadows;
+                currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
+
+                currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
+                currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
+                currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;
+                currentSettings.rendering.toneMapping = settings.rendering.toneMapping;
+                currentSettings.rendering.toneMappingExposure = settings.rendering.toneMappingExposure;
+            }
+
+            if (sections.viewport.general) {
                 currentSettings.general.commitParameters = settings.general.commitParameters;
                 currentSettings.general.pointSize = settings.general.pointSize;
             }

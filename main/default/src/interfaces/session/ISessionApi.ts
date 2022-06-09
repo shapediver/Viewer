@@ -152,15 +152,19 @@ export interface ISessionApi {
                 hidden?: boolean 
             }
         },
-        viewport?: { 
+        viewport?: {
+            /** Option to update the ar settings (default: false) */
+            ar?: boolean,
             /** Option to update the scene settings (default: false) */
-            scene?: boolean, 
+            scene?: boolean,
             /** Option to update the camera settings (default: false) */
-            camera?: boolean, 
+            camera?: boolean,
             /** Option to update the light settings (default: false) */
-            light?: boolean, 
+            light?: boolean,
             /** Option to update the environment settings (default: false) */
-            environment?: boolean 
+            environment?: boolean
+            /** Option to update the general settings (default: false) */
+            general?: boolean
         }
     }): Promise<void>;
 
