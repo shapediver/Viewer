@@ -2,11 +2,33 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.14.14
-* __Build date:__ 2022-05-09T10:47:11.864Z
+* __Version:__ 1.15.3
+* __Build date:__ 2022-06-07T17:25:42.271Z
 * __Branch:__ development
-* __Commit:__ d868569b13a097b60eb062a4d8b3427450a40b82
+* __Commit:__ 0ae41a20e27a3d8529cc14295c12414365a21375
 <!--- VERSION_END -->
+
+## Version 1.15.4 - `Olympus Has Fallen`
+- improved applySettings functionality
+
+## Version 1.15.3 - `Ocean's Thirteen`
+- update to new sdtf package
+
+## Version 1.15.2 - `Ocean's Twelve`
+- removed direct links
+
+## Version 1.15.1 - `Ocean's Eleven`
+- update geometry sdk version
+
+## Version 1.15.0 - `Once Upon a Time... in Hollywood`
+- busy spinner
+- animated logo
+
+## Version 1.14.16 - `Night and the City`
+- different three.js extension
+
+## Version 1.14.15 - `Near Dark`
+- three.js update
 
 ## Version 1.14.14 - `Nights Of Cabiria`
 - bugfixes: SelectOnUpManager
