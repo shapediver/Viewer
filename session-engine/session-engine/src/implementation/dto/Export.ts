@@ -6,7 +6,7 @@ import { IExport } from "../../interfaces/dto/IExport";
 import { SessionEngine } from "../SessionEngine";
 
 export class Export implements IExport {
-  // #region Properties (21)
+  // #region Properties (24)
 
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   readonly #id: string;
@@ -34,7 +34,7 @@ export class Export implements IExport {
   #uid?: string;
   #version?: string;
 
-  // #endregion Properties (21)
+  // #endregion Properties (24)
 
   // #region Constructors (1)
 
@@ -49,7 +49,7 @@ export class Export implements IExport {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (21)
+  // #region Public Accessors (24)
 
   public get content(): ShapeDiverResponseExportContent[] | undefined {
     return this.#content;
@@ -147,9 +147,9 @@ export class Export implements IExport {
     return this.#version;
   }
 
-  // #endregion Public Accessors (21)
+  // #endregion Public Accessors (24)
 
-  // #region Public Methods (2)
+  // #region Public Methods (3)
 
   public async request(parameters: { [key: string]: string } = {}): Promise<ShapeDiverResponseExport> {
     const eventId = this.#uuidGenerator.create();
@@ -201,11 +201,7 @@ export class Export implements IExport {
     this.#group = exportDef.group;
   }
 
-  // #endregion Public Methods (2)
-
-  // #region Private Methods (1)
-
-  private updateExportDefinition(exportDef: ShapeDiverResponseExport) {
+  public updateExportDefinition(exportDef: ShapeDiverResponseExport) {
     this.#dependency = exportDef.dependency;
     this.#uid = exportDef.uid;
     this.#displayname = exportDef.displayname;
@@ -223,5 +219,5 @@ export class Export implements IExport {
     this.#group = exportDef.group;
   }
 
-  // #endregion Private Methods (1)
+  // #endregion Public Methods (3)
 }

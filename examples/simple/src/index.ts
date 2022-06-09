@@ -7,9 +7,6 @@ import * as SDV from '@shapediver/viewer';
     let viewport = await SDV.createViewport({
         id: 'myViewport',
         canvas: <HTMLCanvasElement>document.getElementById('canvas'),
-        visibility: SDV.VISIBILITY_MODE.MANUAL,
-        branding: {
-            logo: "http://localhost:8080/Ripple-1s-200px.svg"
-        }
+        visibility: SDV.VISIBILITY_MODE.MANUAL
     })
 })();

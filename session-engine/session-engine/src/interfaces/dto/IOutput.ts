@@ -28,6 +28,7 @@ export interface IOutput extends ShapeDiverResponseOutput {
     
     updateOutput(newNode: ITreeNode, oldNode: ITreeNode): void;
     updateOutputContent(content: ShapeDiverResponseOutputContent[], preventUpdate?: boolean): Promise<ITreeNode | undefined>;
+    updateOutputDefinition(outputDef: ShapeDiverResponseOutput): void;
 
     // #endregion Public Methods (1)
 }

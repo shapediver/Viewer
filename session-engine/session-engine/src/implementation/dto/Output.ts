@@ -6,7 +6,7 @@ import { IOutput, ShapeDiverResponseOutputContent } from "../../interfaces/dto/I
 import { SessionEngine } from "../SessionEngine";
 
 export class Output implements IOutput {
-  // #region Properties (24)
+  // #region Properties (23)
 
   readonly #id: string;
   readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
@@ -33,7 +33,7 @@ export class Output implements IOutput {
   #updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
   #version: string;
 
-  // #endregion Properties (24)
+  // #endregion Properties (23)
 
   // #region Constructors (1)
 
@@ -48,7 +48,7 @@ export class Output implements IOutput {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (27)
+  // #region Public Accessors (28)
 
   public get bbmax(): number[] | undefined {
     return this.#bbmax;
@@ -81,7 +81,7 @@ export class Output implements IOutput {
   public set displayname(value: string | undefined) {
     this.#displayname = value;
   }
-  
+
   public get format(): string[] {
     return this.#content ? this.#content.map(c => c.format) : [];
   }
@@ -162,9 +162,9 @@ export class Output implements IOutput {
     return this.#version;
   }
 
-  // #endregion Public Accessors (27)
+  // #endregion Public Accessors (28)
 
-  // #region Public Methods (2)
+  // #region Public Methods (3)
 
   public updateOutput(newNode: TreeNode, oldNode: TreeNode) {
     const outputDef = this.#sessionEngine.outputs[this.id];
@@ -180,11 +180,7 @@ export class Output implements IOutput {
     return this.node;
   }
 
-  // #endregion Public Methods (2)
-
-  // #region Private Methods (1)
-
-  private updateOutputDefinition(outputDef: ShapeDiverResponseOutput) {
+  public updateOutputDefinition(outputDef: ShapeDiverResponseOutput) {
     this.#dependency = outputDef.dependency;
     this.#uid = outputDef.uid;
     this.#material = outputDef.material;
@@ -204,5 +200,5 @@ export class Output implements IOutput {
     this.#hidden = outputDef.hidden;
   }
 
-  // #endregion Private Methods (1)
+  // #endregion Public Methods (3)
 }

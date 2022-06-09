@@ -11,6 +11,7 @@ export interface IExport extends ShapeDiverResponseExport {
 
     request(parameters?: { [key: string]: string }): Promise<ShapeDiverResponseExport>;
     updateExport(): void;
+    updateExportDefinition(exportDef: ShapeDiverResponseExport): void;
 
     // #endregion Public Methods (2)
 }

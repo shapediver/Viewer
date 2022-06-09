@@ -1224,15 +1224,23 @@ export class SessionEngine implements ISessionEngine {
 
         for (let exportId in this._responseDto.exports) {
             if (this._responseDto.exports[exportId].type === ShapeDiverResponseExportDefinitionType.EMAIL || this._responseDto.exports[exportId].type === ShapeDiverResponseExportDefinitionType.DOWNLOAD) {
-                this._responseDto.exports[exportId].id = exportId;
-                this.exports[exportId] = new Export(this._responseDto.exports[exportId], this);
+                if(!this.exports[exportId]) {
+                    this._responseDto.exports[exportId].id = exportId;
+                    this.exports[exportId] = new Export(this._responseDto.exports[exportId], this);
+                } else {
+                    this.exports[exportId].updateExportDefinition(this._responseDto.exports[exportId])
+                }
             }
         }
 
         for (let outputId in this._responseDto.outputs) {
-            this._responseDto.outputs[outputId].id = outputId;
-            if (this.outputsFreeze[outputId] === undefined) this.outputsFreeze[outputId] = false;
-            this.outputs[outputId] = new Output(<ShapeDiverResponseOutput>this._responseDto.outputs[outputId], this);
+            if(!this.outputs[outputId]) {
+                this._responseDto.outputs[outputId].id = outputId;
+                if (this.outputsFreeze[outputId] === undefined) this.outputsFreeze[outputId] = false;
+                this.outputs[outputId] = new Output(<ShapeDiverResponseOutput>this._responseDto.outputs[outputId], this);
+            } else {
+                this.outputs[outputId].updateOutputDefinition(<ShapeDiverResponseOutput>this._responseDto.outputs[outputId])
+            }
         }
     }
 
