@@ -1,15 +1,16 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import { singleton } from 'tsyringe'
 import { ShapeDiverViewerConnectionError } from '../logger/ShapeDiverViewerErrors';
+import { HttpResponse } from './HttpResponse';
 
 @singleton()
 export class HttpClient {
     // #region Properties (2)
 
     private _dataCache: {
-        [key: string]: Promise<AxiosResponse<any>>
+        [key: string]: Promise<HttpResponse<any>>
     } = {};
-    private _loadData?: (img: string, config?: AxiosRequestConfig) => Promise<AxiosResponse<any>>;
+    private _loadData?: (img: string, config?: AxiosRequestConfig) => Promise<HttpResponse<any>>;
 
     // #endregion Properties (2)
 
@@ -36,15 +37,15 @@ export class HttpClient {
 
     // #region Public Methods (7)
 
-    public addDataLoading(value: (img: string, config?: AxiosRequestConfig) => Promise<AxiosResponse<any>>) {
+    public addDataLoading(value: (img: string, config?: AxiosRequestConfig) => Promise<HttpResponse<any>>) {
         this._loadData = value;
     }
 
-    public async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
+    public async get(url: string, config?: AxiosRequestConfig | undefined): Promise<HttpResponse<any>> {
         return axios(url, Object.assign({ method: 'get' }, config));
     }
 
-    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }): Promise<AxiosResponse<any>> {
+    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }): Promise<HttpResponse<ArrayBuffer>> {
         const dataKey = btoa(href);
         if (dataKey in this._dataCache) return await this._dataCache[dataKey];
 
@@ -57,15 +58,15 @@ export class HttpClient {
         return await this._dataCache[dataKey];
     }
 
-    public async patch(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
+    public async patch(url: string, config?: AxiosRequestConfig | undefined): Promise<HttpResponse<any>> {
         return axios(url, Object.assign({ method: 'patch' }, config));
     }
 
-    public async post(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
+    public async post(url: string, config?: AxiosRequestConfig | undefined): Promise<HttpResponse<any>> {
         return axios(url, Object.assign({ method: 'post' }, config));
     }
 
-    public async put(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
+    public async put(url: string, config?: AxiosRequestConfig | undefined): Promise<HttpResponse<any>> {
         return axios(url, Object.assign({ method: 'put' }, config));
     }
 

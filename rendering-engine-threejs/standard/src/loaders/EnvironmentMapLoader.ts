@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Logger, LOGGING_TOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { Logger, LOGGING_TOPIC, EventEngine, EVENTTYPE, StateEngine, StatePromise, ShapeDiverViewerEnvironmentMapError, HttpClient, HttpResponse, Converter, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '..'
@@ -266,7 +266,9 @@ export class EnvironmentMapLoader implements ILoader {
     private async loadEnvironmentMap(name: string, url: string[], eventId: string) {
         return new Promise<void>(async (resolve, reject) => {
             if(name.endsWith('.hdr')) {
-                const blob = (await this._httpClient.loadData(name)).data;
+                const response: HttpResponse<ArrayBuffer> = await this._httpClient.loadData(name);
+                const arrayBufferView = new Uint8Array( response.data );
+                const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
                 new RGBELoader().load(URL.createObjectURL(blob), (texture) => {
                     const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                     this._pmremGenerator.dispose();

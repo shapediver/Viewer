@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { HttpClient, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
+import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemInfo, Logger, LOGGING_TOPIC, ShapeDiverViewerSessionError, ShapeDiverViewerError, Converter, SettingsEngine, EVENTTYPE, EventEngine, StateEngine, ShapeDiverViewerSettingsError } from '@shapediver/viewer.shared.services'
 
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
@@ -7,7 +7,7 @@ import { SessionTreeNode } from './SessionTreeNode'
 import { ISessionEngine, PARAMETER_TYPE } from '../interfaces/ISessionEngine'
 import { SessionData } from './SessionData'
 import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { AxiosRequestConfig } from 'axios'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
 import { ITree, ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { ITaskEvent, TASK_TYPE } from '@shapediver/viewer.shared.types'
@@ -52,7 +52,7 @@ export class SessionEngine implements ISessionEngine {
     private _closed: boolean = false;
     private _customizeOnParameterChange: boolean = false;
     private _dataCache: {
-        [key: string]: Promise<AxiosResponse<any>>
+        [key: string]: Promise<HttpResponse<any>>
     } = {};
     private _excludeViewports: string[] = [];
     private _headers = {
@@ -604,7 +604,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'blob' }, retry = false): Promise<AxiosResponse<any>> {
+    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, retry = false): Promise<HttpResponse<ArrayBuffer>> {
         this.checkAvailability();
         try {
             const dataKey = btoa(href);
@@ -613,10 +613,16 @@ export class SessionEngine implements ISessionEngine {
             if (href.startsWith('blob:') || href.startsWith('data:')) {
                 this._dataCache[dataKey] = this._httpClient.get(href, config);
             } else {
-                this._dataCache[dataKey] = this._httpClient.get(
-                    `${this.modelViewUrl}/api/v2/session/${this._sessionId}/image?url=${dataKey}`,
-                    config
-                );
+                this._dataCache[dataKey] = new Promise<HttpResponse<any>>(resolve => {
+                    this._sdk.asset.downloadImage(this._sessionId!, href).then((res) => {
+                        resolve({
+                            data: res[0],
+                            headers: {
+                                'content-type': res[1]
+                            }
+                        })
+                    });
+                });
             }
             return await this._dataCache[dataKey];
         } catch (e) {

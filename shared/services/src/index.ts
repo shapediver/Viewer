@@ -17,6 +17,7 @@ import { StatePromise } from './state-engine/StatePromise'
 import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerGeneralError, ShapeDiverViewerWebGLError } from './logger/ShapeDiverViewerErrors'
 import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ShapeDiverViewerError } from './logger/ShapeDiverError'
+import { HttpResponse } from './http-client/HttpResponse'
 
 export {
   EventEngine, EVENTTYPE, MainEventTypes, IEvent,
@@ -40,7 +41,7 @@ export {
 }
 
 export {
-    HttpClient
+    HttpClient, HttpResponse
 }
 
 export {

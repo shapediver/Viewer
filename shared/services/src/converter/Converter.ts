@@ -2,7 +2,7 @@ import { vec3, vec4 } from 'gl-matrix'
 import { TinyColor } from '@ctrl/tinycolor'
 import { container, singleton } from 'tsyringe'
 import { HttpClient } from '../http-client/HttpClient';
-import { AxiosResponse } from 'axios';
+import { HttpResponse } from '../http-client/HttpResponse';
 
 @singleton()
 export class Converter {
@@ -276,9 +276,11 @@ export class Converter {
         return vec3.create();
     }
 
-    public async responseToImage(response: AxiosResponse<any>): Promise<HTMLImageElement> {
+    public async responseToImage(response: HttpResponse<ArrayBuffer>): Promise<HTMLImageElement> {
+        const arrayBufferView = new Uint8Array( response.data );
+        const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
         if (response.headers['content-type'] === 'image/svg+xml') {
-            const img = await this.processSVG(response.data);
+            const img = await this.processSVG(blob);
             return img;
         } else {
             const img = new Image();
@@ -290,7 +292,7 @@ export class Converter {
             let data = <string>await new Promise((resolve, _) => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(<string>reader.result);
-                reader.readAsDataURL(response.data);
+                reader.readAsDataURL(blob);
             });
             img.src = data;
             await promise;

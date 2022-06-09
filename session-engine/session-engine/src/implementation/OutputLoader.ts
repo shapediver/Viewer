@@ -8,7 +8,6 @@ import { SessionTreeNode } from './SessionTreeNode'
 import { SessionOutputData } from './SessionOutputData'
 import { PerformanceEvaluator } from '@shapediver/viewer.shared.services'
 import { ShapeDiverResponseDto, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { AxiosResponse } from 'axios'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
 
 export class OutputLoader {

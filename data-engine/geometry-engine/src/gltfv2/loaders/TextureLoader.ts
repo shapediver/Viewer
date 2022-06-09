@@ -1,8 +1,6 @@
 import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types'
-import { AxiosResponse } from 'axios'
-import { Converter, HttpClient } from '@shapediver/viewer.shared.services'
+import { Converter, HttpClient, HttpResponse } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { resolve } from 'path/posix'
 
 import { BufferViewLoader } from './BufferViewLoader'
 
@@ -12,7 +10,7 @@ export class TextureLoader {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
 
-    private _loadData: (img: string) => Promise<AxiosResponse<any>> = this._httpClient.loadData.bind(this._httpClient);
+    private _loadData: (img: string) => Promise<HttpResponse<any>> = this._httpClient.loadData.bind(this._httpClient);
     private _loaded: {
         [key: string]: HTMLImageElement
     } = {};
