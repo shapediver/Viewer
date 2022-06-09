@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.15.3
-* __Build date:__ 2022-06-07T17:25:42.271Z
+* __Version:__ 1.15.4
+* __Build date:__ 2022-06-09T08:49:40.841Z
 * __Branch:__ development
-* __Commit:__ 0ae41a20e27a3d8529cc14295c12414365a21375
+* __Commit:__ b937bacddc3b627a1e836e2886722d6fe8a1b344
 <!--- VERSION_END -->
 
 ## Version 1.15.4 - `Olympus Has Fallen`
