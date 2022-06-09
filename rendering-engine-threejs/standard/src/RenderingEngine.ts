@@ -755,65 +755,76 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   // #region Private Methods (1)
 
-  public applySettings(sections: { camera?: boolean, light?: boolean, scene?: boolean, environment?: boolean } = { camera: true, light: true, scene: true, environment: true }) {
+  private applySyncSettings(sections: { 
+    ar?: boolean, 
+    scene?: boolean, 
+    camera?: boolean, 
+    light?: boolean, 
+    environment?: boolean,
+    general?: boolean
+  } = { 
+    ar: true, 
+    scene: true, 
+    camera: true, 
+    light: true, 
+    environment: true,
+    general: true
+  }) {
+    if (sections.scene) {
+      this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
+      this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
+      this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
+      this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
+
+      this.shadows = this._settingsEngine.rendering.shadows;
+      this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
+
+      this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
+      this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
+      this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
+      this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
+      this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
+    }
+    
+    if (sections.general) {
+      this.pointSize = this._settingsEngine.general.pointSize;
+    }
+
+    if (sections.light) (<LightEngine>this.lightEngine).applySettings();
+    if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
+    this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
+    this.update();
+  }
+
+
+  public applySettings(sections: { 
+    ar?: boolean, 
+    scene?: boolean, 
+    camera?: boolean, 
+    light?: boolean, 
+    environment?: boolean,
+    general?: boolean
+  } = { 
+    ar: true, 
+    scene: true, 
+    camera: true, 
+    light: true, 
+    environment: true,
+    general: true
+  }) {
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
       this._stateEngine.viewers[this.id].environmentMapLoaded.then(() => {
         this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
-        this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
-        this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
         this.clearAlpha = this._settingsEngine.environment.clearAlpha;
         this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
-
-        if (sections.scene) {
-          this.shadows = this._settingsEngine.rendering.shadows;
-          this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
-          this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
-          this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
-          this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
-          this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
-          this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
-          this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
-          this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
-          this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
-          this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
-          this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
-          this.pointSize = this._settingsEngine.general.pointSize;
-        }
-
-        if (sections.light) (<LightEngine>this.lightEngine).applySettings();
-        if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
-        this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
-        this.update();
+        this.applySyncSettings(sections)
       })
 
       // set it like this to not trigger the loading
-      this._environmentMapResolution = this._settingsEngine.environment.mapResolution;
       this.environmentMap = this._settingsEngine.environment.map;
     } else {
-      this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
-      this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-
-      if (sections.scene) {
-        this.shadows = this._settingsEngine.rendering.shadows;
-        this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
-        this.ambientOcclusionIntensity = this._settingsEngine.rendering.ambientOcclusionIntensity;
-        this.gridColor = this._settingsEngine.environmentGeometry.gridColor;
-        this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
-        this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
-        this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;
-        this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
-        this.toneMapping = <TONE_MAPPING>this._settingsEngine.rendering.toneMapping;
-        this.toneMappingExposure = this._settingsEngine.rendering.toneMappingExposure;
-        this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
-        this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
-        this.pointSize = this._settingsEngine.general.pointSize;
-      }
-
-      if (sections.light) (<LightEngine>this.lightEngine).applySettings();
-      if (sections.camera) (<CameraEngine>this.cameraEngine).applySettings();
-      this._stateEngine.viewers[this.id].settingsLoaded.resolve(true);
-      this.update();
+      this.applySyncSettings(sections)
     }
   }
 

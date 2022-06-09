@@ -60,8 +60,6 @@ export class Session implements ISession {
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     #automaticUpdate: boolean = false;
-    #commitParameters: boolean = false;
-    #commitSettings: boolean = false;
     #customizationProcess!: string;
     #excludeViewers: string[] = [];
     #node: TreeNode;
@@ -115,9 +113,6 @@ export class Session implements ISession {
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
 
                 this.#stateEngine.sessions[this.id].settingsRegistered.then(() => {
-                    this.#commitParameters = this.#settingsEngine.general.commitParameters;
-                    this.#commitSettings = this.#settingsEngine.general.commitSettings;
-
                     // only update the display names, order and hidden properties if the parameters / exports / outputs don't have these properties defined
                     if (this.#useSessionSettings === true) {
                         for (let s in this.#settingsEngine.session) {
@@ -185,14 +180,14 @@ export class Session implements ISession {
     }
 
     public get commitParameters(): boolean {
-        return this.#commitParameters;
+        return this.#settingsEngine.general.commitParameters;
     }
 
     public set commitParameters(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: Updating CommitParameters to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters`, value, 'boolean');
-            this.#commitParameters = value;
+            this.#settingsEngine.general.commitParameters = value;
             this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitParameters: commitParameters was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -201,14 +196,14 @@ export class Session implements ISession {
     }
 
     public get commitSettings(): boolean {
-        return this.#commitSettings;
+        return this.#settingsEngine.general.commitSettings;
     }
 
     public set commitSettings(value: boolean) {
         try {
             this.#logger.debugLow(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: Updating CommitSettings to ${value}.`);
             this.#inputValidator.validateAndError(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings`, value, 'boolean');
-            this.#commitSettings = value;
+            this.#settingsEngine.general.commitSettings = value;
             this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}).commitSettings: commitSettings was set to: ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

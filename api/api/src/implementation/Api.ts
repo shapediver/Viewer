@@ -232,14 +232,28 @@ export class Api implements IApi {
         parameter?: { displayname?: boolean, order?: boolean, hidden?: boolean, value?: boolean },
         export?: { displayname?: boolean, order?: boolean, hidden?: boolean }
       },
-      viewer?: { ar?: boolean, scene?: boolean, camera?: boolean, light?: boolean, environment?: boolean }
+      viewer?: { 
+        ar?: boolean, 
+        scene?: boolean, 
+        camera?: boolean, 
+        light?: boolean, 
+        environment?: boolean,
+        general?: boolean
+      }
     } =
       {
         session: {
           parameter: { displayname: false, order: false, hidden: false, value: false },
           export: { displayname: false, order: false, hidden: false }
         },
-        viewer: { ar: false, scene: false, camera: false, light: false, environment: false }
+        viewer: { 
+          ar: false, 
+          scene: false, 
+          camera: false, 
+          light: false, 
+          environment: false,
+          general: false
+        }
       }
   ): Promise<void> {
     try {
@@ -254,7 +268,7 @@ export class Api implements IApi {
       if (sections.session.export === undefined)
         sections.session.export = { displayname: false, order: false, hidden: false };
       if (sections.viewer === undefined)
-        sections.viewer = { ar: false, scene: false, camera: false, light: false, environment: false };
+        sections.viewer = { ar: false, scene: false, camera: false, light: false, environment: false, general: false };
 
       let config: object;
       if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
@@ -339,18 +353,22 @@ export class Api implements IApi {
 
       // apply scene settings
       if (sections.viewer.scene) {
-        currentSettings.rendering.shadows = settings.rendering.shadows;
-        currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
-        currentSettings.rendering.ambientOcclusionIntensity = settings.rendering.ambientOcclusionIntensity;
-        currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
-        currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;
-        currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
-        currentSettings.rendering.toneMapping = settings.rendering.toneMapping;
-        currentSettings.rendering.toneMappingExposure = settings.rendering.toneMappingExposure;
         currentSettings.environmentGeometry.gridColor = settings.environmentGeometry.gridColor;
         currentSettings.environmentGeometry.gridVisibility = settings.environmentGeometry.gridVisibility;
         currentSettings.environmentGeometry.groundPlaneColor = settings.environmentGeometry.groundPlaneColor;
         currentSettings.environmentGeometry.groundPlaneVisibility = settings.environmentGeometry.groundPlaneVisibility;
+        
+        currentSettings.rendering.shadows = settings.rendering.shadows;
+        currentSettings.rendering.ambientOcclusion = settings.rendering.ambientOcclusion;
+
+        currentSettings.rendering.textureEncoding = settings.rendering.textureEncoding;
+        currentSettings.rendering.outputEncoding = settings.rendering.outputEncoding;
+        currentSettings.rendering.physicallyCorrectLights = settings.rendering.physicallyCorrectLights;
+        currentSettings.rendering.toneMapping = settings.rendering.toneMapping;
+        currentSettings.rendering.toneMappingExposure = settings.rendering.toneMappingExposure;
+      }
+
+      if (sections.viewer.general) {
         currentSettings.general.commitParameters = settings.general.commitParameters;
         currentSettings.general.pointSize = settings.general.pointSize;
       }
