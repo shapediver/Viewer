@@ -703,11 +703,17 @@ export class GLTFConverter {
             name: node.name,
         };
 
-        if (node.transformations.length > 0)
-            nodeDef.matrix = [node.nodeMatrix[0], node.nodeMatrix[1], node.nodeMatrix[2], node.nodeMatrix[3],
-            node.nodeMatrix[4], node.nodeMatrix[5], node.nodeMatrix[6], node.nodeMatrix[7],
-            node.nodeMatrix[8], node.nodeMatrix[9], node.nodeMatrix[10], node.nodeMatrix[11],
-            node.nodeMatrix[12], node.nodeMatrix[13], node.nodeMatrix[14], node.nodeMatrix[15]];
+        if (node.transformations.length > 0) {
+            let matrix = node.nodeMatrix;
+            if(node.nodeMatrix.filter(v => isNaN(v) || v === Infinity || v === -Infinity).length > 0)
+                matrix = mat4.create();
+
+            nodeDef.matrix = [matrix[0], matrix[1], matrix[2], matrix[3],
+            matrix[4], matrix[5], matrix[6], matrix[7],
+            matrix[8], matrix[9], matrix[10], matrix[11],
+            matrix[12], matrix[13], matrix[14], matrix[15]];
+
+        }
 
         for (let i = 0; i < node.data.length; i++) {
             if (node.data[i] instanceof GeometryData) {
