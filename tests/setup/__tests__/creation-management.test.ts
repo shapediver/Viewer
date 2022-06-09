@@ -31,7 +31,8 @@ describe('viewer / session', () => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
                 id: 'myViewer',
-                canvas: <HTMLCanvasElement>document.getElementById('canvas')
+                canvas: <HTMLCanvasElement>document.getElementById('canvas'),
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }
             })
             let session = await SDV.createSession({
                 id: 'mySession',
@@ -53,7 +54,8 @@ describe('viewer / session', () => {
             let viewer = await SDV.createViewport({
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
-                visibility: SDV.VISIBILITY_MODE.INSTANT
+                visibility: SDV.VISIBILITY_MODE.INSTANT,
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }
             })
             let session = await SDV.createSession({
                 id: 'mySession',
@@ -77,7 +79,8 @@ describe('viewer / session', () => {
             let viewer = await SDV.createViewport({
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
-                visibility: SDV.VISIBILITY_MODE.MANUAL
+                visibility: SDV.VISIBILITY_MODE.MANUAL,
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }
             })
             let session = await SDV.createSession({
                 id: 'mySession',
@@ -109,7 +112,8 @@ describe('viewer / session', () => {
             let viewer = await SDV.createViewport({
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
-                sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE
+                sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }
             })
             let session = await SDV.createSession({
                 id: 'mySession',
@@ -132,7 +136,8 @@ describe('viewer / session', () => {
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
-                visibility: SDV.VISIBILITY_MODE.INSTANT
+                visibility: SDV.VISIBILITY_MODE.INSTANT,
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }
             })
             let session = await SDV.createSession({
                 id: 'mySession',
@@ -158,7 +163,8 @@ describe('viewer / session', () => {
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
-                visibility: SDV.VISIBILITY_MODE.MANUAL
+                visibility: SDV.VISIBILITY_MODE.MANUAL,
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' }
             })
             let session = await SDV.createSession({
                 id: 'mySession',
@@ -187,6 +193,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -209,6 +216,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -235,6 +243,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -265,6 +274,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas')
             })
@@ -283,6 +293,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.INSTANT
@@ -302,6 +313,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.MANUAL
@@ -331,6 +343,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE
@@ -350,6 +363,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -370,6 +384,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -399,6 +414,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -419,6 +435,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -440,6 +457,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -467,6 +485,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas')
             })
@@ -488,6 +507,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.INSTANT
@@ -513,6 +533,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.MANUAL
@@ -548,6 +569,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE
@@ -570,6 +592,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -596,6 +619,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -631,6 +655,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -654,6 +679,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -681,6 +707,7 @@ describe('viewer / session', () => {
         await driver.executeAsyncScript(async (ticket: string, cb: any) => {
             const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -720,6 +747,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas')
             })
@@ -740,6 +768,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.INSTANT
@@ -764,6 +793,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.MANUAL
@@ -795,6 +825,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE
@@ -816,6 +847,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -841,6 +873,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -872,6 +905,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -894,6 +928,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -920,6 +955,7 @@ describe('viewer / session', () => {
                 modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -950,6 +986,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas')
             })
@@ -968,6 +1005,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.INSTANT
@@ -987,6 +1025,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.MANUAL
@@ -1016,6 +1055,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE
@@ -1035,6 +1075,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -1055,6 +1096,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -1084,6 +1126,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -1104,6 +1147,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -1125,6 +1169,7 @@ describe('viewer / session', () => {
                 loadOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -1152,6 +1197,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas')
             })
@@ -1173,6 +1219,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.INSTANT
@@ -1198,6 +1245,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 visibility: SDV.VISIBILITY_MODE.MANUAL
@@ -1233,6 +1281,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE
@@ -1255,6 +1304,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -1281,6 +1331,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsMode: SDV.SESSION_SETTINGS_MODE.NONE,
@@ -1316,6 +1367,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -1339,6 +1391,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',
@@ -1366,6 +1419,7 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             let viewer = await SDV.createViewport({
+                branding: { logo: 'https://viewer.shapediver.com/v3/graphics/logo.png' },
                 id: 'myViewer',
                 canvas: <HTMLCanvasElement>document.getElementById('canvas'),
                 sessionSettingsId: 'mySession',

@@ -144,7 +144,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
   readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
-  readonly #defaultSpinner: string = 'https://shapediverviewer.s3.amazonaws.com/v3/graphics/spinner_ripple.svg';
+  readonly #defaultSpinner: string = 'https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg';
   
   #animations: AnimationData[] = [];
   #flags: { [key: string]: string[] } = {
