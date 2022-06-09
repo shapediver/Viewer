@@ -8,7 +8,10 @@
 * __Commit:__ 0ae41a20e27a3d8529cc14295c12414365a21375
 <!--- VERSION_END -->
 
-## Version 1.15.2 - `Ocean's Thirteen`
+## Version 1.15.4 - `Olympus Has Fallen`
+- improved applySettings functionality
+
+## Version 1.15.3 - `Ocean's Thirteen`
 - update to new sdtf package
 
 ## Version 1.15.2 - `Ocean's Twelve`
