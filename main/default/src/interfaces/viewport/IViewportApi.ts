@@ -129,12 +129,6 @@ export interface IViewportApi {
   beautyRenderDelay: number;
 
   /**
-   * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
-   * Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWER.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWER.BUSY_MODE_OFF} will be emitted.
-   */
-  busyModeDisplay: BUSY_MODE_DISPLAY;
-
-  /**
    * The clear alpha value of the viewport. 
    * Use this to influence the background appearance of the viewport.
    */

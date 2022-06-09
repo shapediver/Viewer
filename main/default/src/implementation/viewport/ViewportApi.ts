@@ -149,14 +149,6 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.beautyRenderDelay = value;
     }
 
-    public get busyModeDisplay(): BUSY_MODE_DISPLAY {
-        return this.#renderingEngine.busyModeDisplay;
-    }
-
-    public set busyModeDisplay(value: BUSY_MODE_DISPLAY) {
-        this.#renderingEngine.busyModeDisplay = value;
-    }
-
     public get camera(): ICameraApi | null {
         if(!this.#renderingEngine.cameraEngine.camera) return null;
         return this.#cameras[this.#renderingEngine.cameraEngine.camera.id];

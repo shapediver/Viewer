@@ -1,4 +1,4 @@
-import { SESSION_SETTINGS_MODE, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, VISIBILITY_MODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { container } from 'tsyringe';
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree';
 import { ISessionApi } from './interfaces/session/ISessionApi';
@@ -239,7 +239,13 @@ export const createViewport = async (properties?: {
        * ATOM: Let's explain how the spinner's placement can be influenced.
        * MTOA: Currently it can't, what do you have in mind?
        */
-      spinner?: string,
+       busyModeSpinner?: string,
+       /**
+        * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
+        * Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWER.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWER.BUSY_MODE_OFF} will be emitted.
+        */
+       busyModeDisplay?: BUSY_MODE_DISPLAY
+
     },
     sessionSettingsId?: string,
     sessionSettingsMode?: SESSION_SETTINGS_MODE,
@@ -254,6 +260,8 @@ export const createViewport = async (properties?: {
         inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, 'Api.createViewer', prop.branding, 'object', false);
         const branding = Object.assign({}, prop.branding);
         inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Api.createViewer`, branding.backgroundColor, 'string', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Api.createViewer`, branding.busyModeSpinner, 'string', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Api.createViewer`, branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
 
         prop.sessionSettingsMode = prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST;
         //TODO proper type checking

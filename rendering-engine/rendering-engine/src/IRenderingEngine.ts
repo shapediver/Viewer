@@ -90,8 +90,6 @@ export interface IRenderingEngine {
   // #region Properties (15)
 
   automaticResizing: boolean;
-  blur: boolean;
-  blurSceneWhenBusy: boolean;
   canvas: HTMLCanvasElement;
   closed: boolean;
   domEventEngine: DomEventEngine;

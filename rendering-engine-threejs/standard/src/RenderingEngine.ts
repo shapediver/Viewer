@@ -75,7 +75,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _animationManager: AnimationManager;
   private readonly _beautyRenderingManager: BeautyRenderingManager;
   // constructor properties
-  private readonly _branding: { logo: string | null, backgroundColor: string };
+  private readonly _branding: {
+    logo: string | null,
+    backgroundColor: string,
+    busyModeSpinner: string,
+    busyModeDisplay: BUSY_MODE_DISPLAY
+  };
   // engines
   private readonly _cameraEngine: CameraEngine;
   private readonly _cameraManager: CameraManager;
@@ -114,8 +119,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _automaticResizing: boolean = true;
   private _beautyRenderBlendingDuration: number = 1500;
   private _beautyRenderDelay: number = 50;
-  private _blur: boolean = false;
-  private _blurSceneWhenBusy: boolean = true;
   private _busy: boolean = false;
   private _busyModeDisplay: BUSY_MODE_DISPLAY = BUSY_MODE_DISPLAY.SPINNER;
   private _clearAlpha: number = 1.0;
@@ -136,11 +139,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _shadows: boolean = true;
   private _show: boolean = false;
   private _showStatistics: boolean = false;
+  private _spinnerDivElement: HTMLDivElement;
   private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
-  readonly #defaultLogo: string = 'https://d2tuv7fwq0eipl.cloudfront.net/production/assets/img/icon_logo_white.png';
-
+  readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
+  readonly #defaultSpinner: string = 'https://shapediverviewer.s3.amazonaws.com/v3/graphics/spinner_ripple.svg';
+  
   #animations: AnimationData[] = [];
   #flags: { [key: string]: string[] } = {
     [FLAG_TYPE.CAMERA_FREEZE]: [],
@@ -158,7 +163,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     branding?: {
       logo?: string | null,
       backgroundColor?: string,
-      spinner?: string,
+      busyModeSpinner?: string,
+      busyModeDisplay?: BUSY_MODE_DISPLAY
     },
     sessionSettingsId?: string,
     sessionSettingsMode?: SESSION_SETTINGS_MODE,
@@ -177,7 +183,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._sessionSettingsId = prop.sessionSettingsId;
     this._branding = {
       logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
-      backgroundColor: branding.backgroundColor || '#393a45FF'
+      backgroundColor: branding.backgroundColor || '#393a45FF',
+      busyModeSpinner: branding.busyModeSpinner === undefined ? this.#defaultSpinner : branding.busyModeSpinner,
+      busyModeDisplay: branding.busyModeDisplay || BUSY_MODE_DISPLAY.SPINNER
     };
 
     // creation of viewer essentials
@@ -207,6 +215,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // start the creation and initialization process 
     this._renderer = this.renderingManager.createRenderer(this._canvas.canvasElement);
     this._logoDivElement = this.renderingManager.addLogo(this._canvas.canvasElement, this._branding);
+    this._spinnerDivElement = this.renderingManager.addSpinner(this._canvas.canvasElement, this._branding);
 
     // creation of the managers (all singleton engines were created already)
     this._beautyRenderingManager.init();
@@ -316,28 +325,21 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._beautyRenderingManager;
   }
 
-  public get blur(): boolean {
-    return this._blur;
-  }
-
-  public set blur(value: boolean) {
-    this._blur = value;
-  }
-
-  public get blurSceneWhenBusy(): boolean {
-    return this._blurSceneWhenBusy;
-  }
-
-  public set blurSceneWhenBusy(value: boolean) {
-    this._blurSceneWhenBusy = value;
-  }
-
   public get busy(): boolean {
     return this._busy;
   }
 
   public set busy(value: boolean) {
     this._busy = value;
+  }
+
+  public get branding(): {
+    logo: string | null;
+    backgroundColor: string;
+    busyModeSpinner: string;
+    busyModeDisplay: BUSY_MODE_DISPLAY;
+  } {
+    return this._branding;
   }
 
   public get busyModeDisplay(): BUSY_MODE_DISPLAY {
@@ -629,6 +631,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._showStatistics = value;
   }
 
+  public get spinnerDivElement(): HTMLDivElement {
+    return this._spinnerDivElement;
+  }
+
   public get stateEngine(): StateEngine {
     return this._stateEngine;
   }
@@ -752,7 +758,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
         this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
         this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-        this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
         this.arScale = vec3.fromValues(this._settingsEngine.general.transformation.scale.x, this._settingsEngine.general.transformation.scale.y, this._settingsEngine.general.transformation.scale.z);
         this.arTranslation = vec3.fromValues(this._settingsEngine.general.transformation.translation.x, this._settingsEngine.general.transformation.translation.y, this._settingsEngine.general.transformation.translation.z);
         this.arRotation = vec3.fromValues(this._settingsEngine.general.transformation.rotation.x, this._settingsEngine.general.transformation.rotation.y, this._settingsEngine.general.transformation.rotation.z);
@@ -787,7 +792,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     } else {
       this.beautyRenderBlendingDuration = this._settingsEngine.rendering.beautyRenderBlendingDuration;
       this.beautyRenderDelay = this._settingsEngine.rendering.beautyRenderDelay;
-      this.blurSceneWhenBusy = this._settingsEngine.general.blurWhenBusy;
       this.arScale = vec3.fromValues(this._settingsEngine.general.transformation.scale.x, this._settingsEngine.general.transformation.scale.y, this._settingsEngine.general.transformation.scale.z);
       this.arTranslation = vec3.fromValues(this._settingsEngine.general.transformation.translation.x, this._settingsEngine.general.transformation.translation.y, this._settingsEngine.general.transformation.translation.z);
       this.arRotation = vec3.fromValues(this._settingsEngine.general.transformation.rotation.x, this._settingsEngine.general.transformation.rotation.y, this._settingsEngine.general.transformation.rotation.z);
@@ -823,6 +827,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._domEventEngine.removeAllDomEventListener();
     this._domEventEngine.dispose();
     this._canvas.canvasElement.parentElement?.removeChild(this._logoDivElement);
+    this._canvas.canvasElement.parentElement?.removeChild(this._spinnerDivElement);
     this._canvas.canvasElement.parentNode?.removeChild(this._htmlElementAnchorLoader.parentDiv);
     this._canvas.reset();
   }
@@ -984,7 +989,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     (<LightEngine>this.lightEngine).saveSettings(this._settingsEngine);
     (<CameraEngine>this.cameraEngine).saveSettings(this._settingsEngine);
 
-    this._settingsEngine.general.blurWhenBusy = this.blurSceneWhenBusy;
     this._settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     this._settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
     this._settingsEngine.environment.mapResolution = this.environmentMapResolution;

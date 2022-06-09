@@ -72,7 +72,7 @@ export class HTMLElementAnchorLoader implements ILoader {
         }
     }
 
-    public toggleBlur(toggle: boolean) {
+    public toggleBusyMode(toggle: boolean) {
         if (toggle) {
             if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.userAgent.toLowerCase().indexOf('android') > -1)
                 return;
