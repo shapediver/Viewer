@@ -27,6 +27,9 @@ const modelsSelect = <HTMLSelectElement>document.getElementById("models");
 const envMapsSelect = <HTMLSelectElement>document.getElementById("envMaps");
 const backgroundColorInput = <HTMLInputElement>document.getElementById("background");
 const environmentMapAsBackgroundInput = <HTMLInputElement>document.getElementById("environmentMapAsBackground");
+const transmissionInput = <HTMLInputElement>document.getElementById("transmission");
+const transmissionOption = <HTMLElement>document.getElementById("transmissionOption");
+transmissionInput.checked = true;
 
 let viewer: IViewer;
 
@@ -34,27 +37,32 @@ const modelMaterials: {
     [key: string]: {
         [key: string]: {
             aoMap?: string,
+            alphaMap?: string,
             map?: string,
             normalMap?: string,
             transmission?: number,
             roughness?: number,
             metalness?: number,
+            opacity?: number,
         }
     }
 } = {
     '28': {
         'Glass': {
             aoMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/28/AmbientOcclusion.png',
+            alphaMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/28/AmbientOcclusion.png',
             map: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/28/Color.png',
             transmission: 0
         }
     },
     '73': {
-        'Fabric_Silver': {
-            map: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/73_glass_texture_map.png',
-            normalMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Normal.png',
-            roughness: 0.15,
-            metalness: 0
+        'Fabric 73': {
+            aoMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Ambient_Occlusion_73.png',
+            alphaMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Opacity_map_73_1.png',
+            // map: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Color_73.png',
+            // normalMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Normal_73.png',
+            // roughness: 0.15,
+            // metalness: 0,
         }
     }
 }
@@ -128,15 +136,36 @@ const addGLTF = async (id: string) => {
                             materialData.aoMap?.rotation, 
                             false
                         );
-                        materialData.alphaMap = materialData.aoMap;
-
-                        materialData.alphaMode = MATERIAL_ALPHA.BLEND;
-                        materialData.alphaCutoff = 0.01;
                     }
-                
-                    const transmission = materials[materialData.name].transmission;
-                    if(transmission !== undefined)
-                        materialData.transmission = transmission;
+
+                    if(transmissionInput.checked) {
+
+                    } else {
+                        materialData.transmission = 0;
+
+                        const opacity = materials[materialData.name].opacity;
+                        if(opacity !== undefined) 
+                            materialData.opacity = opacity;
+
+                        const alphaMap = materials[materialData.name].alphaMap;
+                        if (alphaMap !== undefined) {
+                            materialData.alphaMap = (await materialEngine.loadMap(alphaMap)) || undefined;
+                            materialData.alphaMap = new MapData(
+                                materialData.alphaMap?.image!, 
+                                materialData.alphaMap?.wrapS, 
+                                materialData.alphaMap?.wrapT, 
+                                materialData.alphaMap?.minFilter, 
+                                materialData.alphaMap?.magFilter, 
+                                materialData.alphaMap?.center, 
+                                materialData.alphaMap?.color, 
+                                materialData.alphaMap?.offset,  
+                                materialData.alphaMap?.repeat, 
+                                materialData.alphaMap?.rotation, 
+                                false
+                            );
+                            materialData.alphaMode = MATERIAL_ALPHA.MASK
+                        }
+                    }
                         
                     const roughness = materials[materialData.name].roughness;
                     if(roughness !== undefined)
@@ -171,6 +200,13 @@ const createModelDropdown = () => {
     const models = Object.keys(modelMaterials);
 
     modelsSelect.onchange = async () => {
+        if(modelsSelect.value === '28') {
+            transmissionInput.checked = true;
+            transmissionOption.style.visibility = 'visible'
+        } else {
+            transmissionInput.checked = true;
+            transmissionOption.style.visibility = 'hidden'
+        }
         const id = uuidGenerator.create();
         viewer.registerBusyMode(id)
         await addGLTF(models[+modelsSelect.value]);
@@ -241,7 +277,16 @@ const createEnvironmentMapDropdown = () => {
     createModelDropdown();
     createEnvironmentMapDropdown();
 
-
     await Promise.all(promises);
     viewer.show = true;
+
+    transmissionInput.checked = true;
+    transmissionInput.onchange = async () => {
+        const models = Object.keys(modelMaterials);
+        const id = uuidGenerator.create();
+        viewer.registerBusyMode(id)
+        await addGLTF(models[+modelsSelect.value]);
+        viewer.deregisterBusyMode(id)
+    };
+
 })();
