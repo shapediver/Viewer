@@ -18,6 +18,7 @@ import {
 import { container } from "tsyringe";
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine";
 import { UuidGenerator } from "@shapediver/viewer.shared.services";
+import { vec3 } from "gl-matrix";
 
 const dataEngine: DataEngine = <DataEngine>container.resolve(DataEngine);
 const uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
@@ -29,9 +30,17 @@ const backgroundColorInput = <HTMLInputElement>document.getElementById("backgrou
 const environmentMapAsBackgroundInput = <HTMLInputElement>document.getElementById("environmentMapAsBackground");
 const transmissionInput = <HTMLInputElement>document.getElementById("transmission");
 const transmissionOption = <HTMLElement>document.getElementById("transmissionOption");
-transmissionInput.checked = true;
 
 let viewer: IViewer;
+
+transmissionInput.checked = false;
+transmissionInput.onchange = async () => {
+    const models = Object.keys(modelMaterials);
+    const id = uuidGenerator.create();
+    viewer.registerBusyMode(id)
+    await addGLTF(models[+modelsSelect.value]);
+    viewer.deregisterBusyMode(id)
+};
 
 const modelMaterials: {
     [key: string]: {
@@ -192,16 +201,17 @@ const addGLTF = async (id: string) => {
     api.sceneTree.addNode(node);
 
     api.update();
-    await viewer.camera!.set([0, 0, 0], [0, 0, 0], { duration: 0 });
-    await viewer.camera!.zoomTo(undefined, { duration: 0 });
+
+    const center = api.sceneTree.root.boundingBox.boundingSphere.center;    
+    await viewer.camera!.set(vec3.add(vec3.create(), center, [0, 6, -2]), vec3.add(vec3.create(), center, [0, 0, -2]), { duration: 0 });
 };
 
 const createModelDropdown = () => {
     const models = Object.keys(modelMaterials);
 
     modelsSelect.onchange = async () => {
-        if(modelsSelect.value === '28') {
-            transmissionInput.checked = true;
+        if(models[+modelsSelect.value] === '28') {
+            transmissionInput.checked = false;
             transmissionOption.style.visibility = 'visible'
         } else {
             transmissionInput.checked = true;
@@ -224,7 +234,7 @@ const createModelDropdown = () => {
 
 
 const createEnvironmentMapDropdown = () => {
-    const envMaps = ['ballroom', 'paul_lobe_haus', 'old_hall', 'leadenhall_market', 'sepulchral_chapel_rotunda'];
+    const envMaps = ['sepulchral_chapel_rotunda', 'ballroom', 'paul_lobe_haus', 'old_hall', 'leadenhall_market'];
     envMapsSelect.onchange = async () => {
         api.addListener(EVENTTYPE.TASK.TASK_START, (e) => {
             const taskEvent = e as ITaskEvent;
@@ -256,7 +266,8 @@ const createEnvironmentMapDropdown = () => {
     viewer.gridVisibility = false;
     viewer.ambientOcclusion = false;
     viewer.shadows = false;
-    viewer.environmentMap = "https://viewer.shapediver.com/v3/demos/bocci/simple/envMaps/ballroom_4k.hdr";
+
+    viewer.environmentMap = "https://viewer.shapediver.com/v3/demos/bocci/simple/envMaps/sepulchral_chapel_rotunda_4k.hdr";
     viewer.createLightScene();
 
     backgroundColorInput.onchange = () => viewer.clearColor = backgroundColorInput.value;
@@ -279,14 +290,5 @@ const createEnvironmentMapDropdown = () => {
 
     await Promise.all(promises);
     viewer.show = true;
-
-    transmissionInput.checked = true;
-    transmissionInput.onchange = async () => {
-        const models = Object.keys(modelMaterials);
-        const id = uuidGenerator.create();
-        viewer.registerBusyMode(id)
-        await addGLTF(models[+modelsSelect.value]);
-        viewer.deregisterBusyMode(id)
-    };
 
 })();
