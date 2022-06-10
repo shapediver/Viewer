@@ -5,7 +5,6 @@
     "shared/*",
     "data-engine/*",
     "session-engine/*",
-    "api/*",
     "examples/*",
     "rendering-engine/*",
     "rendering-engine-threejs/*",
