@@ -176,6 +176,22 @@ export class SessionApi implements ISessionApi {
         return this.#parameters;
     }
 
+    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
+        return this.#sessionEngine.updateCallback;
+    }
+
+    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+        try {
+            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback: Updating updateCallback to ${value}.`);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback`, value, 'function', false);
+            this.#sessionEngine.updateCallback = value;
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback: updateCallback was updated to ${value}.`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback`, e);
+        }
+    }
+
     public get refreshJwtToken(): (() => Promise<string>) | undefined {
         return this.#sessionEngine.refreshBearerToken;
     }

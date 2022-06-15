@@ -911,7 +911,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public removeFlag(token: string): boolean {
     let success = false;
-    for (let f in FLAG_TYPE) {
+    const Flags = Object.values(FLAG_TYPE);
+    for (let f of Flags) {
       if (f === FLAG_TYPE.BUSY_MODE) {
         if (this.stateEngine.renderingEngines[this.id].busy.includes(token)) {
           this.stateEngine.renderingEngines[this.id].busy.splice(this.stateEngine.renderingEngines[this.id].busy.indexOf(token), 1);

@@ -109,6 +109,13 @@ export interface ISessionApi {
      * The JWT used for authorizing API calls to the Geometry Backend.
      */
     jwtToken: string | undefined;
+    
+    /**
+     * A callback that is executed whenever a session's {@link node} is to be replaced
+     * due to an update of the session's content.
+     * Provides the new scene tree node and the old one, so that data can be carried over.
+     */
+    updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
 
     /**
      * Optional callback which can be specified for refreshing the JWT. 

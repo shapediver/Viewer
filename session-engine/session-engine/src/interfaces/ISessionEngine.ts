@@ -73,6 +73,7 @@ export interface ISessionEngine {
   refreshBearerToken: (() => Promise<string>) | undefined;
   settingsEngine: SettingsEngine;
   ticket: string;
+  updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
 
   // #endregion Properties (11)
 

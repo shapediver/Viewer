@@ -69,6 +69,7 @@ export class SessionEngine implements ISessionEngine {
     private _retryCounter = 0;
     private _sdk: ShapeDiverSdk;
     private _sessionId?: string;
+    private _updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
     private _viewerSettings?: object;
 
     #customizationProcess!: string;
@@ -208,6 +209,14 @@ export class SessionEngine implements ISessionEngine {
     public get ticket(): string {
         return this._ticket;
     }
+
+    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
+      return this._updateCallback;
+    }
+  
+    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+      this._updateCallback = value;
+    }  
 
     public get viewerSettings(): object | undefined {
         return this._viewerSettings;
@@ -491,6 +500,8 @@ export class SessionEngine implements ISessionEngine {
             for (const parameterId in this.parameters)
                 (<any>this.parameters[parameterId].sessionValue) = parameterSet[parameterId].value;
 
+            if (this._updateCallback) this._updateCallback(newNode, oldNode);
+                
             // set the output content to what has been updated
             for (const outputId in this.outputs)
                 this.outputs[outputId].updateOutput(
@@ -917,6 +928,8 @@ export class SessionEngine implements ISessionEngine {
         if (this.automaticSceneUpdate) this._sceneTree.addNode(this.node);
 
         this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).updateOutputs: Updating outputs finished, updating geometry.`);
+        
+        if (this._updateCallback) this._updateCallback(newNode, oldNode);
 
         // set the output content to what has been updated
         for (const outputId in this.outputs) {

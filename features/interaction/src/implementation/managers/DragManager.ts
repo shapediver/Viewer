@@ -4,7 +4,7 @@ import { MATERIAL_ALPHA, MATERIAL_SIDE, MaterialStandardData, IDragEvent } from 
 import { mat4, vec3 } from 'gl-matrix'
 import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { IViewportApi } from '@shapediver/viewer'
+import { FLAG_TYPE, IViewportApi } from '@shapediver/viewer'
 
 import { IDragConstraint } from '../../interfaces/utils/IDragConstraint'
 import { INTERACTION_STATE } from '../../interfaces/IInteractionEngine'
@@ -111,10 +111,9 @@ export class DragManager extends AbstractInteractionManager {
         this.viewport.updateNode(this.#node!);
         this.deactivateNode();
         
-        // TODO
-        // this.viewport.removeCameraFreezeFlag(this.#tokenCameraFreeze);
-        // this.viewport.removeContinuousRenderingFlag(this.#tokenContinuousRendering);
-        // this.viewport.removeShadowMapUpdateFlag(this.#tokenContinuousShadowMapUpdate);
+        this.viewport.removeFlag(this.#tokenCameraFreeze);
+        this.viewport.removeFlag(this.#tokenContinuousRendering);
+        this.viewport.removeFlag(this.#tokenContinuousShadowMapUpdate);
     }
 
     /**
@@ -133,10 +132,9 @@ export class DragManager extends AbstractInteractionManager {
         const transformationMatrix = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!);
         this.applyTransformation(this.#node!, transformationMatrix);
 
-        // TODO
-        // this.#tokenCameraFreeze = this.viewport.addCameraFreezeFlag();
-        // this.#tokenContinuousRendering = this.viewport.addContinuousRenderingFlag();
-        // this.#tokenContinuousShadowMapUpdate = this.viewport.addShadowMapUpdateFlag();
+        this.#tokenCameraFreeze = this.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
+        this.#tokenContinuousRendering = this.viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
+        this.#tokenContinuousShadowMapUpdate = this.viewport.addFlag(FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE);
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_START, { node: this.#node, matrix: transformationMatrix } as IDragEvent);
     }
 

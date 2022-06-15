@@ -55,6 +55,17 @@ export class SelectManager extends AbstractInteractionManager {
 
     // #region Public Methods (3)
 
+    public select(intersection: IIntersection) {
+        if(this.#node)
+            this.deactivateNode();
+        this.activateNode(intersection);
+    }
+
+    public deselect() {
+        if(this.#node)
+            this.deactivateNode();
+    }
+
     public onDown(ray: IRay, intersection: IIntersection[]): void {
         const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.DOWN)(i.node))
 
@@ -100,11 +111,11 @@ export class SelectManager extends AbstractInteractionManager {
         } else {
             this.#effectMaterialToken = undefined;
         }
-        
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { node: this.#node } as ISelectEvent);
 
         this.viewport.updateNode(this.#node);
         this.viewport.render();
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { node: this.#node } as ISelectEvent);
     }
 
     /**
@@ -123,10 +134,12 @@ export class SelectManager extends AbstractInteractionManager {
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if(data) data.interactionStates['select'] = false;
         
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { node: this.#node } as ISelectEvent);
+        const node = this.#node;
 
         this.#intersection = null;
         this.#node = null;
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { node } as ISelectEvent);
     }
 
     // #endregion Private Methods (2)
