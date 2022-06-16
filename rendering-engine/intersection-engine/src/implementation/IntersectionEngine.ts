@@ -132,7 +132,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 
     private intersectNode(node: ITreeNode, rayIn: IRay): IIntersection[] | undefined {
-        const inverseMatrix = mat4.invert(mat4.create(), node.nodeMatrix);
+        const inverseMatrix = mat4.invert(mat4.create(), node.worldMatrix);
         const ray = {
             origin: vec3.transformMat4(vec3.create(), rayIn.origin, inverseMatrix),
             direction: vec3.normalize(vec3.create(), vec3.fromValues(
@@ -153,7 +153,7 @@ export class IntersectionEngine implements IIntersectionEngine {
         if (!geometryData) {
             let intersections: IIntersection[] = [];
             for (let i = 0; i < node.children.length; i++) {
-                let intersection = this.intersectNode(node.children[i], ray);
+                let intersection = this.intersectNode(node.children[i], rayIn);
                 if (intersection)
                     intersections = intersections.concat(intersection);
             }
@@ -164,7 +164,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             return;
         } else if (geometryData.primitive.mode === PRIMITIVE_MODE.LINES) {
             // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
-            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
+            if (node.boundingBox.clone().applyMatrix(node.worldMatrix).intersect(rayIn.origin, rayIn.direction) === null) return;
             
             const index = geometryData.primitive.indices;
             const position = geometryData.primitive.attributes['POSITION'];
@@ -193,10 +193,11 @@ export class IntersectionEngine implements IIntersectionEngine {
             }
 
             intersections.sort((a, b) => a.distance - b.distance);
+            intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
             return intersections;
         } else if (geometryData.primitive.mode === PRIMITIVE_MODE.LINE_LOOP || geometryData.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
             // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
-            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
+            if (node.boundingBox.clone().applyMatrix(node.worldMatrix).intersect(rayIn.origin, rayIn.direction) === null) return;
             
             const index = geometryData.primitive.indices;
             const position = geometryData.primitive.attributes['POSITION'];
@@ -225,6 +226,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             }
 
             intersections.sort((a, b) => a.distance - b.distance);
+            intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
             return intersections;
         } else if (geometryData.primitive.mode === PRIMITIVE_MODE.POINTS) {
             const position = geometryData.primitive.attributes['POSITION'];
@@ -240,11 +242,12 @@ export class IntersectionEngine implements IIntersectionEngine {
             }
 
             intersections.sort((a, b) => a.distance - b.distance);
+            intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
             return intersections;
         } else {
 
             // if (node.boundingBox.boundingSphere.intersect(ray.origin, ray.direction) === null) return;
-            if (node.boundingBox.intersect(rayIn.origin, rayIn.direction) === null) return;
+            if (node.boundingBox.clone().applyMatrix(node.worldMatrix).intersect(rayIn.origin, rayIn.direction) === null) return;
 
             const material = geometryData.primitive.material;
             const index = geometryData.primitive.indices;
@@ -280,6 +283,7 @@ export class IntersectionEngine implements IIntersectionEngine {
             }
 
             intersections.sort((a, b) => a.distance - b.distance);
+            intersections.forEach(i => i.point = vec3.transformMat4(i.point, i.point, node.worldMatrix));
             return intersections;
         }
     }

@@ -510,7 +510,7 @@ export class RenderingManager implements IManager {
 
         // If we should render in beauty mode
         let beautyRendering = false;
-        if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && busyMode === false &&
+        if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive === true && busyMode === false && this._continuousRendering === false &&
             (this._renderingEngine.shadows || ((this._renderingEngine.ambientOcclusion && this._renderingEngine.ambientOcclusionIntensity > 0.0) && !this._systemInfo.isIOS)) &&
             this._renderingEngine.usingSwiftShader === false && this._runningAnimation === false && this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES)
             beautyRendering = true;

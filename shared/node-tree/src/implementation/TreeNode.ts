@@ -164,7 +164,7 @@ export class TreeNode implements ITreeNode {
 
     let node: ITreeNode = this;
     while (node.parent) {
-      mat4.multiply(matrix, matrix, node.parent.nodeMatrix);
+      mat4.multiply(matrix, node.parent.nodeMatrix, matrix);
       node = node.parent;
     }
 

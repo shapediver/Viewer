@@ -48,6 +48,9 @@ export class DragManager extends AbstractInteractionManager {
     #tokenCameraFreeze!: string;
     #tokenContinuousRendering!: string;
     #tokenContinuousShadowMapUpdate!: string;
+    #nodeWorldMatrix: mat4 = mat4.create();
+    #nodeWorldMatrixInverse: mat4 = mat4.create();
+    #previousDragMatrix: mat4 = mat4.create();
 
     // #endregion Properties (11)
 
@@ -81,7 +84,9 @@ export class DragManager extends AbstractInteractionManager {
     public onMove(ray: IRay, intersection: IIntersection[]): void {        
         if(!this.#node) return;
 
-        const transformationMatrix = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
+        let transformationMatrix = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
+        transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformationMatrix), this.#nodeWorldMatrix)
+        
         this.applyTransformation(this.#node, transformationMatrix);
         this.viewport.updateNode(this.#node!);
 
@@ -129,7 +134,10 @@ export class DragManager extends AbstractInteractionManager {
     public setNode(node: ITreeNode, distance: number = 0, intersectionPoint: vec3 = vec3.create(), ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
         this.activateNode({node, distance, point: intersectionPoint});
         this.#setupOptions = { viewport: this.viewport, node: this.#node!, ray, intersection: this.#intersection! };
-        const transformationMatrix = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!);
+        
+        let transformationMatrix = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!);
+        transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformationMatrix), this.#nodeWorldMatrix)
+        
         this.applyTransformation(this.#node!, transformationMatrix);
 
         this.#tokenCameraFreeze = this.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
@@ -151,6 +159,25 @@ export class DragManager extends AbstractInteractionManager {
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
+        this.#nodeWorldMatrix = mat4.create();
+        this.#previousDragMatrix = mat4.create();
+        
+        for (let transform of this.#node.transformations) {
+            if (transform.id !== 'SD_drag_matrix') {
+                mat4.multiply(this.#nodeWorldMatrix, this.#nodeWorldMatrix, transform.matrix);
+            } else {
+                this.#previousDragMatrix = transform.matrix;
+            }
+        }
+
+        let node: ITreeNode = this.#node;
+        while (node.parent) {
+            mat4.multiply(this.#nodeWorldMatrix, node.parent.nodeMatrix, this.#nodeWorldMatrix);
+            node = node.parent;
+        }
+        
+        this.#nodeWorldMatrixInverse = mat4.invert(mat4.create(), this.#nodeWorldMatrix);
+
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if(data) data.interactionStates['drag'] = true;
         if(this.effectMaterial) {
@@ -171,7 +198,7 @@ export class DragManager extends AbstractInteractionManager {
     private applyTransformation(node: ITreeNode, matrix: mat4) {
         const index = node.transformations.findIndex((t: ITransformation) => t.id === 'SD_drag_matrix');
         if(index !== -1) { 
-            node.transformations[index].matrix = matrix;
+            node.transformations[index].matrix = mat4.multiply(mat4.create(), this.#previousDragMatrix, matrix);
         } else {
             node.addTransformation({ id: 'SD_drag_matrix', matrix })
         }
