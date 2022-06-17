@@ -159,23 +159,9 @@ export class DragManager extends AbstractInteractionManager {
     private activateNode(intersection: IIntersection) {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
-        this.#nodeWorldMatrix = mat4.create();
-        this.#previousDragMatrix = mat4.create();
-        
-        for (let transform of this.#node.transformations) {
-            if (transform.id !== 'SD_drag_matrix') {
-                mat4.multiply(this.#nodeWorldMatrix, this.#nodeWorldMatrix, transform.matrix);
-            } else {
-                this.#previousDragMatrix = transform.matrix;
-            }
-        }
 
-        let node: ITreeNode = this.#node;
-        while (node.parent) {
-            mat4.multiply(this.#nodeWorldMatrix, node.parent.nodeMatrix, this.#nodeWorldMatrix);
-            node = node.parent;
-        }
-        
+        this.removeTransformation(this.#node)
+        this.#nodeWorldMatrix = this.#node.worldMatrix;
         this.#nodeWorldMatrixInverse = mat4.invert(mat4.create(), this.#nodeWorldMatrix);
 
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
@@ -198,7 +184,7 @@ export class DragManager extends AbstractInteractionManager {
     private applyTransformation(node: ITreeNode, matrix: mat4) {
         const index = node.transformations.findIndex((t: ITransformation) => t.id === 'SD_drag_matrix');
         if(index !== -1) { 
-            node.transformations[index].matrix = mat4.multiply(mat4.create(), this.#previousDragMatrix, matrix);
+            node.transformations[index].matrix = matrix;
         } else {
             node.addTransformation({ id: 'SD_drag_matrix', matrix })
         }
