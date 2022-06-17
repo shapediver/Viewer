@@ -56,7 +56,7 @@ export class PlaneConstraint implements IDragConstraint {
             this.#dragPlane = new Plane().setFromNormalAndCoplanarPoint(this.#normal, intersection.point);
         }
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-        this.#dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
+        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : intersection.point;
         return this.intersect(viewport, node, ray);
     }
 

@@ -84,7 +84,7 @@ export class LineConstraint implements IDragConstraint {
 
     public setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined {
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-        this.#dragOrigin = data && data.dragOrigin ? data.dragOrigin : intersection.point;
+        this.#dragOrigin = data && data.dragOrigin ? vec3.transformMat4(vec3.create(), data.dragOrigin!, node.worldMatrix) : intersection.point;
         return this.intersect(viewport, node, ray);
     }
 
