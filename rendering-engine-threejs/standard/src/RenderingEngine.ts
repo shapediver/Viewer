@@ -34,7 +34,9 @@ import {
   Logger,
   LOGGING_TOPIC,
   SettingsEngine,
+  ShapeDiverViewerArError,
   StateEngine,
+  SystemInfo,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import {
@@ -48,6 +50,8 @@ import {
   ISDTFOverview,
   ISDTFItemData,
   SDTFOverviewData,
+  ITaskEvent,
+  TASK_TYPE,
 } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -91,6 +95,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
   private readonly _domEventEngine: DomEventEngine;
   private readonly _environmentGeometryManager: EnvironmentGeometryManager;
+  private readonly _systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
   // loaders
   private readonly _environmentMapLoader: EnvironmentMapLoader;
   private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
@@ -984,6 +989,68 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.render();
 
     this._renderingManager.lastRootVersion = this._tree.root.version;
+  }
+
+  public async viewInAR(file: string, options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'auto', arPlacement: 'floor', xrEnvironment: false }): Promise<void> {
+    const eventId = this._uuidGenerator.create();
+    const event: ITaskEvent = { type: TASK_TYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };
+    this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
+
+    // if this is not a supported device, throw an error
+    if (this.viewableInAR() === false) {
+      const event: ITaskEvent = { type: TASK_TYPE.AR_LOADING, id: eventId, progress: 1, status: 'Stopped AR loading due to an error' };
+      this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, event);
+      const error = new ShapeDiverViewerArError('Api.viewInAR: The device or browser is not supported for this functionality, please call "viewableInAR" for more information.');
+      throw this._logger.handleError(LOGGING_TOPIC.AR, 'Api.viewInAR', error, false);
+    }
+
+    const arScale = options.arScale !== 'auto' ? 'fixed' : 'auto';
+    const arPlacement = options.arPlacement !== 'wall' ? 'floor' : 'wall';
+    const xrEnvironment = options.xrEnvironment !== true ? false : true;
+
+    let arEnvironment = '';
+    const envMapUrl = this.getEnvironmentMapImageUrl();
+    if (envMapUrl !== '') {
+      if (envMapUrl.endsWith('.hdr')) {
+        arEnvironment = 'skybox-image=' + envMapUrl;
+      } else {
+        arEnvironment = 'environment-image=' + envMapUrl;
+      }
+    }
+
+    if (this._systemInfo.isIOS) {
+      // create the link and click it
+      const a = document.createElement('a');
+      a.href = file + (arScale === 'fixed' ? '.usdz_allowsContentScaling=0' : '.usdz')
+      a.rel = 'ar';
+      const img = document.createElement('img');
+      img.src = this.#defaultLogo;
+      a.appendChild(img);
+      a.click();
+    } else {
+      const a = document.createElement('a');
+      a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=${arScale === 'fixed' ? 'false' : 'true'}&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`
+      a.click();
+    }
+
+    const event2: ITaskEvent = { type: TASK_TYPE.AR_LOADING, id: eventId, progress: 1, status: 'Done loading AR scene, launching AR' };
+    this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, event2);
+  }
+
+  public viewableInAR(): boolean {
+    // has to be a mobile device (duh)
+    if (this._systemInfo.isIOS === false && this._systemInfo.isAndroid === false)
+      return false;
+
+    // no Firefox on Android
+    if (this._systemInfo.isAndroid === true && this._systemInfo.isFirefox === true)
+      return false;
+
+    // no Firefox on iOS
+    if (this._systemInfo.isIOS === true && this._systemInfo.isFirefox === true)
+      return false;
+
+    return true;
   }
 
   // #endregion Public Methods (16)

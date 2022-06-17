@@ -1,27 +1,32 @@
 import { vec3 } from "gl-matrix";
-import { ICameraApi, ILightSceneApi, IAnimationData, BUSY_MODE_DISPLAY, TEXTURE_ENCODING, TONE_MAPPING, ISDTFOverview, ISDTFItemData, ISDTFAttributeVisualizationData, IDomEventListener, FLAG_TYPE, IOrthographicCameraApi, IPerspectiveCameraApi, ITreeNode } from "../..";
+import { ICameraApi, ILightSceneApi, IAnimationData, BUSY_MODE_DISPLAY, TEXTURE_ENCODING, TONE_MAPPING, ISDTFOverview, ISDTFItemData, ISDTFAttributeVisualizationData, IDomEventListener, FLAG_TYPE, IOrthographicCameraApi, IPerspectiveCameraApi, ITreeNode, sceneTree } from "../..";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
 import { container } from "tsyringe";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
-import { Converter } from "@shapediver/viewer.shared.services";
+import { Converter, Logger, LOGGING_TOPIC, ShapeDiverViewerArError, SystemInfo } from "@shapediver/viewer.shared.services";
 import { RENDERER_TYPE, SESSION_SETTINGS_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { CAMERA_TYPE, IOrthographicCamera, IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { PerspectiveCameraApi } from "./camera/PerspectiveCameraApi";
 import { OrthographicCameraApi } from "./camera/OrthographicCameraApi";
 import { LightSceneApi } from "./lights/LightSceneApi";
+import { GLTFConverter } from "@shapediver/viewer.data-engine.gltf-converter";
+import { ShapeDiverRequestGltfUploadQueryConversion } from "@shapediver/sdk.geometry-api-sdk-v2";
 
 export class ViewportApi implements IViewportApi {
-    // #region Properties (2)
+    // #region Properties (5)
 
     readonly #renderingEngine: RenderingEngineThreeJs;
     readonly #creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
     readonly #converter: Converter = <Converter>container.resolve(Converter);
+    readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    readonly #systemInfo: SystemInfo = <SystemInfo>container.resolve(SystemInfo);
 
     readonly #cameras: { [key: string]: ICameraApi } = {};
     readonly #lightScenes: { [key: string]: ILightSceneApi } = {};
 
-    // #endregion Properties (2)
+    // #endregion Properties (5)
 
     // #region Constructors (1)
 
@@ -71,15 +76,7 @@ export class ViewportApi implements IViewportApi {
 
     // #endregion Constructors (1)
 
-    // #region Public Accessors (66)
-
-    public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
-        return this.#renderingEngine.visualizeAttributes;
-    }
-
-    public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
-        this.#renderingEngine.visualizeAttributes = value;
-    }
+    // #region Public Accessors (69)
 
     public get ambientOcclusion(): boolean {
         return this.#renderingEngine.ambientOcclusion;
@@ -101,20 +98,20 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.animations;
     }
 
-    public get arScale(): vec3 {
-        return this.#renderingEngine.arScale;
-    }
-
-    public set arScale(value: vec3) {
-        this.#renderingEngine.arScale = value;
-    }
-
     public get arRotation(): vec3 {
         return this.#renderingEngine.arRotation;
     }
 
     public set arRotation(value: vec3) {
         this.#renderingEngine.arRotation = value;
+    }
+
+    public get arScale(): vec3 {
+        return this.#renderingEngine.arScale;
+    }
+
+    public set arScale(value: vec3) {
+        this.#renderingEngine.arScale = value;
     }
 
     public get arTranslation(): vec3 {
@@ -351,9 +348,17 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.type = value;
     }
 
-    // #endregion Public Accessors (66)
+    public get visualizeAttributes(): ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined {
+        return this.#renderingEngine.visualizeAttributes;
+    }
 
-    // #region Public Methods (25)
+    public set visualizeAttributes(value: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined) {
+        this.#renderingEngine.visualizeAttributes = value;
+    }
+
+    // #endregion Public Accessors (69)
+
+    // #region Public Methods (23)
 
     public addCanvasEventListener(listener: IDomEventListener): string {
         return this.#renderingEngine.domEventEngine.addDomEventListener(listener);
@@ -373,6 +378,11 @@ export class ViewportApi implements IViewportApi {
 
     public async close(): Promise<void> {
         return await this.#creationControlCenter.closeRenderingEngine(this.id);
+    }
+
+    public async convertToGlTF(node: ITreeNode = sceneTree.root): Promise<Blob> {
+        const result = await this.#gltfConverter.convert(node, false, this.id);
+        return new Blob([result], { type: 'application/octet-stream' });
     }
 
     public createLightScene(properties?: { name?: string | undefined; standard?: boolean | undefined; }): ILightSceneApi {
@@ -426,7 +436,7 @@ export class ViewportApi implements IViewportApi {
     public render(): void {
         this.#renderingEngine.renderingManager.render();
     }
-    
+
     public resize(width: number, height: number): void {
         this.#renderingEngine.resize(width, height);
     }
@@ -439,13 +449,19 @@ export class ViewportApi implements IViewportApi {
         this.#renderingEngine.sceneTreeManager.updateNode(node, node.transformedNodes[this.id]);
     }
 
-    public viewInAR(options?: { arScale?: "auto" | "fixed" | undefined; arPlacement?: "floor" | "wall" | undefined; xrEnvironment?: boolean | undefined; }): Promise<void> {
-        throw new Error("Method not implemented.");
+    public async viewInAR(node?: ITreeNode): Promise<void> {
+        const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
+        if (!arSessionEngine) {
+            const error = new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
+            throw this.#logger.handleError(LOGGING_TOPIC.AR, 'Api.viewInAR', error, false);
+        }
+        const blob = await this.#gltfConverter.convert(node || sceneTree.root, true);
+        const file = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
+        return this.#renderingEngine.viewInAR(file)
     }
 
     public viewableInAR(): boolean {
-        throw new Error("Method not implemented.");
+        return this.#renderingEngine.viewableInAR();
     }
-
-    // #endregion Public Methods (25)
+    // #endregion Public Methods (23)
 }

@@ -302,6 +302,15 @@ export interface IViewportApi {
   close(): Promise<void>;
 
   /**
+   * Convert the current visible elements (or just from the node specified) in the viewport into a glTF file.
+   * 
+   * The gound plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
+   * 
+   * @param node Optional node to provide to transform into a glTF. (default: scene tree)
+   */
+  convertToGlTF(node?: ITreeNode): Promise<Blob>;
+
+  /**
    * Create a new light scene.
    * An id can be provided. If not, a unique id will be created.
    * If the standard option is chosen, the default lights will be added from the start.
@@ -424,9 +433,10 @@ export interface IViewportApi {
    * 
    * Internally, the scene will first be converted into a glTF. This glTF will be uploaded to our backend to be able to start AR.
    * 
+   * @param node Optional node to display in AR. (default: scene tree)
    * @param androidOptions 
    */
-  viewInAR(options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
+  viewInAR(node?: ITreeNode): Promise<void>;
   
   /**
    * Determines if the current device supports viewing in AR.

@@ -114,6 +114,8 @@ export interface IRenderingEngine {
   reset(): void;
   resize(width: number, height: number): void;
   update(id: string): void;
+  viewInAR(file: string, options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
+  viewableInAR(): boolean;
 
   // #endregion Public Methods (7)
 }

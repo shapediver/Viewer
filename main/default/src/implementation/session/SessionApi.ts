@@ -12,6 +12,7 @@ import { OutputApi } from "./OutputApi";
 import { ExportApi } from "./ExportApi";
 import { ParameterApi } from "./ParameterApi";
 import { FileParameterApi } from "./FileParameterApi";
+import { GLTFConverter } from "@shapediver/viewer.data-engine.gltf-converter";
 
 export class SessionApi implements ISessionApi {
     // #region Properties (2)
@@ -20,6 +21,7 @@ export class SessionApi implements ISessionApi {
     readonly #sessionEngine: SessionEngine;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
 
     readonly #outputs: { [key: string]: IOutputApi; } = {};
     readonly #parameters: { [key: string]: IParameterApi<any>; } = {};
@@ -230,6 +232,11 @@ export class SessionApi implements ISessionApi {
 
     public async close(): Promise<void> {
         return await this.#creationControlCenter.closeSessionEngine(this.id);
+    }
+
+    public async convertToGlTF(): Promise<Blob> {
+        const result = await this.#gltfConverter.convert(this.node, false);
+        return new Blob([result], { type: 'application/octet-stream' });
     }
 
     public customize(): Promise<ITreeNode> {

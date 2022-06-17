@@ -408,6 +408,14 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
+  public getARSessionEngine(): SessionEngine | undefined {
+    for (let s in this.sessionEngines) {
+      if (this.sessionEngines[s].canUploadGLTF) {
+        return this.sessionEngines[s];
+      }
+    }
+  }
+
   public async saveSettings(sessionId: string, viewportId?: string): Promise<boolean> {
     try {
       const session = this.sessionEngines[sessionId];

@@ -83,6 +83,7 @@ export class GLTFConverter {
         id: number
     }[] = [];
     private _promises: Promise<any>[] = [];
+    private _viewport?: string;
 
     // #endregion Properties (17)
 
@@ -174,10 +175,13 @@ export class GLTFConverter {
 
     // #region Public Methods (1)
 
-    public async convert(node: ITreeNode, convertForAR = false): Promise<ArrayBuffer> {
+    public async convert(node: ITreeNode, convertForAR = false, viewport?: string): Promise<ArrayBuffer> {
         this.reset();
 
         this._convertForAR = convertForAR;
+        this._viewport = viewport;
+        const originalParent = node.parent;
+
         const sceneNode = new TreeNode('ShapeDiverRootNode');
         sceneNode.addChild(node);
 
@@ -201,7 +205,13 @@ export class GLTFConverter {
           node.addTransformation({ id: translationMatrixId, matrix: translationMatrix })
         }
 
-        sceneDef.nodes?.push(this.convertNode(node));
+        if (this._viewport) {
+            if(this._viewport && node.excludeViewports.includes(this._viewport) === false && (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._viewport)) === false) {
+                sceneDef.nodes?.push(this.convertNode(node));
+            }
+        } else {
+            sceneDef.nodes?.push(this.convertNode(node));
+        }
 
         for (let i = 0; i < node.transformations.length; i++)
             if (node.transformations[i].id === globalTransformationInverseId)
@@ -221,10 +231,8 @@ export class GLTFConverter {
         this.convertAnimations();
 
         // Declare extensions.
-        const extensionsUsedList = Object.keys(this._extensionsUsed);
-        if (extensionsUsedList.length > 0) this._content.extensionsUsed = extensionsUsedList;
-        const extensionsRequiredList = Object.keys(this._extensionsRequired);
-        if (extensionsRequiredList.length > 0) this._content.extensionsRequired = extensionsRequiredList;
+        if (this._extensionsUsed.length > 0) this._content.extensionsUsed = this._extensionsUsed;
+        if (this._extensionsRequired.length > 0) this._content.extensionsRequired = this._extensionsRequired;
 
         let promisesLength = 0;
         while (promisesLength !== this._promises.length) {
@@ -234,6 +242,9 @@ export class GLTFConverter {
         }
         // Merge buffers.
         const blob = new Blob(this._buffers, { type: 'application/octet-stream' });
+        
+        if(originalParent)
+            originalParent.addChild(node);
 
         // Update byte length of the single buffer.
         if (this._content.buffers && this._content.buffers.length > 0) this._content.buffers[0].byteLength = blob.size;
@@ -738,8 +749,13 @@ export class GLTFConverter {
 
         if (node.children.length > 0) nodeDef.children = [];
         for (let i = 0; i < node.children.length; i++) {
-            if(node.children[i].visible === true)
+            if(node.children[i].visible === true) {
+                if(this._viewport) {
+                    if(node.children[i].excludeViewports.includes(this._viewport)) continue;
+                    if(node.children[i].restrictViewports.length > 0 && !node.children[i].restrictViewports.includes(this._viewport)) continue;
+                }
                 nodeDef.children?.push(this.convertNode(node.children[i]));
+            }
         }
 
         this._content.nodes.push(nodeDef);

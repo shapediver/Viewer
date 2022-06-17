@@ -205,6 +205,13 @@ export interface ISessionApi {
      * with the Geometry Backend.
      */
     close(): Promise<void>;
+    
+    /**
+     * Convert the session into a glTF file.
+     * 
+     * The gound plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
+     */
+    convertToGlTF(): Promise<Blob>;
 
     /**
      * Customize the session.

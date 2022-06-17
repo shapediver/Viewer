@@ -45,6 +45,8 @@ export interface ICreationControlCenter {
     visibility?: VISIBILITY_MODE,
   }): Promise<RenderingEngineThreeJs>;
 
+  getARSessionEngine(): SessionEngine | undefined;
+
   saveSettings(sessionId: string, viewportId?: string): Promise<boolean>;
   
   // #endregion Public Methods (4)
