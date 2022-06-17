@@ -617,7 +617,7 @@ export class SessionEngine implements ISessionEngine {
             if (!this._modelId)
                 throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a model.id.`)
 
-            this.updateResponseDto(this._responseDto);
+            this.updateResponseDto(this._responseDto, parameterValues);
             this._initialized = true;
         } catch (e) {
             await this.handleError(LOGGING_TOPIC.SESSION, 'Session.init', e, retry);
@@ -1178,7 +1178,9 @@ export class SessionEngine implements ISessionEngine {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    private updateResponseDto(responseDto: ShapeDiverResponseDto) {
+    private updateResponseDto(responseDto: ShapeDiverResponseDto, initialParameters?: {
+        [key: string]: string;
+    }) {
         if (!this._responseDto) {
             this._responseDto = responseDto;
             return;
@@ -1238,6 +1240,10 @@ export class SessionEngine implements ISessionEngine {
                     this.parameters[parameterId] = new Parameter<string>(this._responseDto.parameters[parameterId], this);
                     break;
             }
+
+            if(initialParameters && initialParameters[parameterId] !== undefined) 
+                this.parameters[parameterId].value = initialParameters[parameterId]
+
             parameterSet[parameterId] = {
                 value: this.parameters[parameterId].value,
                 valueString: this.parameters[parameterId].stringify()
