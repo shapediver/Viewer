@@ -19,7 +19,7 @@ import {
 import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import { ICameraEvent } from '@shapediver/viewer.shared.types'
-import { BUSY_MODE_DISPLAY, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { BUSY_MODE_DISPLAY, RENDERER_TYPE, SPINNER_POSITIONING } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
@@ -115,6 +115,7 @@ export class RenderingManager implements IManager {
         backgroundColor: string;
         busyModeSpinner: string;
         busyModeDisplay: BUSY_MODE_DISPLAY;
+        spinnerPositioning: SPINNER_POSITIONING
       }): HTMLDivElement {
         const logoDivElement = document.createElement('div');
         logoDivElement.style.backgroundColor = branding.backgroundColor;
@@ -142,20 +143,52 @@ export class RenderingManager implements IManager {
         backgroundColor: string;
         busyModeSpinner: string;
         busyModeDisplay: BUSY_MODE_DISPLAY;
+        spinnerPositioning: SPINNER_POSITIONING
       }): HTMLDivElement {
         const spinnerDivElement = document.createElement('div');
         spinnerDivElement.style.position = 'absolute';
-        spinnerDivElement.style.right = '10px';
-        spinnerDivElement.style.bottom = '10px';
+        spinnerDivElement.style.userSelect = 'none';
+        spinnerDivElement.style.cursor = 'default';
+        spinnerDivElement.style.pointerEvents = 'none';
+
+        if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT) {
+            spinnerDivElement.style.right = '10px';
+            spinnerDivElement.style.bottom = '10px';
+        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT) {
+            spinnerDivElement.style.left = '10px';
+            spinnerDivElement.style.bottom = '10px';
+        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
+            spinnerDivElement.style.right = '10px';
+            spinnerDivElement.style.top = '10px';
+        } else if(branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
+            spinnerDivElement.style.left = '10px';
+            spinnerDivElement.style.top = '10px';
+        } else {
+            spinnerDivElement.style.height = '100%';
+            spinnerDivElement.style.width = '100%';
+        }
+
         spinnerDivElement.style.visibility = 'hidden';
         canvas.parentElement?.appendChild(spinnerDivElement);
 
         if(branding.busyModeSpinner) {
             const img = new Image();
             img.src = branding.busyModeSpinner;
-            img.style.float = 'right';
-            img.style.width = 'calc(100% * 0.55)';
-            img.style.height = 'calc(100% * 0.55)';
+
+            if(branding.spinnerPositioning === SPINNER_POSITIONING.CENTER) {
+                img.style.position = 'absolute';
+                img.style.top = '50%';
+                img.style.left = '50%';
+                img.style.transform = 'translateX(-50%) translateY(-50%)';
+            } else {
+                if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_RIGHT || branding.spinnerPositioning === SPINNER_POSITIONING.TOP_RIGHT) {
+                    img.style.float = 'right';
+                } else if(branding.spinnerPositioning === SPINNER_POSITIONING.BOTTOM_LEFT || branding.spinnerPositioning === SPINNER_POSITIONING.TOP_LEFT) {
+                    img.style.float = 'left';
+                } 
+                img.style.width = 'calc(100% * 0.75)';
+                img.style.height = 'calc(100% * 0.75)';
+            }
             spinnerDivElement.appendChild(img)
         }
 

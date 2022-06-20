@@ -18,6 +18,7 @@ import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.l
 import {
   BUSY_MODE_DISPLAY,
   FLAG_TYPE,
+  SPINNER_POSITIONING,
   IRenderingEngine,
   RENDERER_TYPE,
   SESSION_SETTINGS_MODE,
@@ -78,13 +79,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   // managers
   private readonly _animationManager: AnimationManager;
   private readonly _beautyRenderingManager: BeautyRenderingManager;
-  // constructor properties
-  private readonly _branding: {
-    logo: string | null,
-    backgroundColor: string,
-    busyModeSpinner: string,
-    busyModeDisplay: BUSY_MODE_DISPLAY
-  };
   // engines
   private readonly _cameraEngine: CameraEngine;
   private readonly _cameraManager: CameraManager;
@@ -101,6 +95,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
   private readonly _geometryLoader: GeometryLoader;
   private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
+  // constructor properties
+  private readonly _branding: {
+    logo: string | null,
+    backgroundColor: string,
+    busyModeSpinner: string,
+    busyModeDisplay: BUSY_MODE_DISPLAY,
+    spinnerPositioning: SPINNER_POSITIONING
+  };
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
@@ -169,7 +171,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       logo?: string | null,
       backgroundColor?: string,
       busyModeSpinner?: string,
-      busyModeDisplay?: BUSY_MODE_DISPLAY
+      busyModeDisplay?: BUSY_MODE_DISPLAY,
+      spinnerPositioning?: SPINNER_POSITIONING
     },
     sessionSettingsId?: string,
     sessionSettingsMode?: SESSION_SETTINGS_MODE,
@@ -190,7 +193,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
       backgroundColor: branding.backgroundColor || '#393a45FF',
       busyModeSpinner: branding.busyModeSpinner === undefined ? this.#defaultSpinner : branding.busyModeSpinner,
-      busyModeDisplay: branding.busyModeDisplay || BUSY_MODE_DISPLAY.SPINNER
+      busyModeDisplay: branding.busyModeDisplay || BUSY_MODE_DISPLAY.SPINNER,
+      spinnerPositioning: branding.spinnerPositioning || SPINNER_POSITIONING.BOTTOM_RIGHT
     };
 
     // creation of viewer essentials
@@ -329,15 +333,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._beautyRenderingManager;
   }
 
-  public get branding(): {
-    logo: string | null;
-    backgroundColor: string;
-    busyModeSpinner: string;
-    busyModeDisplay: BUSY_MODE_DISPLAY;
-  } {
-    return this._branding;
-  }
-
   public get busy(): boolean {
     return this._busy;
   }
@@ -352,6 +347,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set busyModeDisplay(value: BUSY_MODE_DISPLAY) {
     this._busyModeDisplay = value;
+  }
+
+  public get branding(): {
+    logo: string | null;
+    backgroundColor: string;
+    busyModeSpinner: string;
+    busyModeDisplay: BUSY_MODE_DISPLAY;
+    spinnerPositioning: SPINNER_POSITIONING
+  } {
+    return this._branding;
   }
 
   public get cameraEngine(): CameraEngine {

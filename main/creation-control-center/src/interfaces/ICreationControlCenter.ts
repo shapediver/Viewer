@@ -1,4 +1,4 @@
-import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, VISIBILITY_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
+import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILITY_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
@@ -38,7 +38,8 @@ export interface ICreationControlCenter {
       logo?: string | null,
       backgroundColor?: string,
       busyModeSpinner?: string,
-      busyModeDisplay?: BUSY_MODE_DISPLAY
+      busyModeDisplay?: BUSY_MODE_DISPLAY,
+      spinnerPositioning?: SPINNER_POSITIONING
     },
     sessionSettingsId?: string,
     sessionSettingsMode?: SESSION_SETTINGS_MODE,

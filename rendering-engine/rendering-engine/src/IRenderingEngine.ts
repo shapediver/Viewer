@@ -86,6 +86,14 @@ export enum FLAG_TYPE {
   CONTINUOUS_SHADOW_MAP_UPDATE = 'continuous_shadow_map_update',
 }
 
+export enum SPINNER_POSITIONING {
+  CENTER = 'center',
+  TOP_LEFT = 'top_left',
+  TOP_RIGHT = 'top_right',
+  BOTTOM_LEFT = 'bottom_left',
+  BOTTOM_RIGHT = 'bottom_right',
+}
+
 export interface IRenderingEngine {
   // #region Properties (15)
 
