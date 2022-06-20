@@ -327,9 +327,6 @@ export class CreationControlCenter implements ICreationControlCenter {
         bearerToken: properties.jwtToken,
       });
 
-      // save the session
-      this.sessionEngines[sessionEngineId] = sessionEngine;
-
       const eventInit: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventInit);
 
@@ -380,6 +377,9 @@ export class CreationControlCenter implements ICreationControlCenter {
       }
 
       await Promise.all(promises)
+
+      // save the session
+      this.sessionEngines[sessionEngineId] = sessionEngine;
 
       for (let r in this.renderingEngines)
         this.renderingEngines[r].update('CreationControlCenter.createSessionEngine')

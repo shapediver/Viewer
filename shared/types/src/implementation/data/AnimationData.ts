@@ -234,7 +234,7 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
                         id: 'gltf_matrix_translation',
                         matrix: mat4.create()
                     }
-                    track.node.addTransformation(translationTransformation)
+                    track.node.transformations.push(translationTransformation)
                 }
 
                 let rotationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation');
@@ -243,7 +243,7 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
                         id: 'gltf_matrix_rotation',
                         matrix: mat4.create()
                     }
-                    track.node.addTransformation(rotationTransformation)
+                    track.node.transformations.push(rotationTransformation)
                 }
 
                 let scaleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_scale');
@@ -252,7 +252,7 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
                         id: 'gltf_matrix_scale',
                         matrix: mat4.create()
                     }
-                    track.node.addTransformation(scaleTransformation)
+                    track.node.transformations.push(scaleTransformation)
                 }
 
                 switch (track.path) {
