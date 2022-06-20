@@ -58,6 +58,8 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     // #region Public Abstract Methods (3)
 
+    abstract add(): void;
+    abstract remove(): void;
     abstract onDown(ray: IRay, intersection: IIntersection[]): void;
     abstract onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
     abstract onMove(ray: IRay, intersection: IIntersection[]): void;

@@ -47,6 +47,15 @@ export class HoverManager extends AbstractInteractionManager {
 
     // #region Public Methods (3)
 
+    public add(): void {
+
+    }
+
+    public remove(): void {
+        if (this.#node)
+            this.deactivateNode(); 
+    }
+
     public onDown(ray: IRay, intersection: IIntersection[]): void { }
 
     public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void { }

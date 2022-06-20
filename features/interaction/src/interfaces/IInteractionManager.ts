@@ -56,5 +56,8 @@ export interface IInteractionManager {
      */
     onMove(ray: IRay, intersection: IIntersection[]): void;
 
+    add(): void;
+    remove(): void;
+
     // #endregion Public Methods (3)
 }

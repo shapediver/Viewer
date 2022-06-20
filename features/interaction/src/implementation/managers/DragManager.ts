@@ -64,6 +64,14 @@ export class DragManager extends AbstractInteractionManager {
 
     // #region Public Methods (7)
 
+    public add(): void {
+
+    }
+
+    public remove(): void {
+        this.removeNode();
+    }
+
     public addDragConstraint(constraint: IDragConstraint): string {
         const token = this.#uuidGenerator.create();
         this.#dragConstraints[token] = constraint;

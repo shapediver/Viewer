@@ -55,6 +55,15 @@ export class SelectManager extends AbstractInteractionManager {
 
     // #region Public Methods (3)
 
+    public add(): void {
+
+    }
+
+    public remove(): void {
+        if (this.#node)
+            this.deactivateNode(); 
+    }
+
     public select(intersection: IIntersection) {
         if(this.#node)
             this.deactivateNode();

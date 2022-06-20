@@ -32,6 +32,7 @@ export class InteractionEngine implements IInteractionEngine {
         const token = this.#uuidGenerator.create();
         this.#managers[token] = manager;
         manager.viewport = this.#viewport;
+        manager.add();
         return token;
     }
 
@@ -97,6 +98,7 @@ export class InteractionEngine implements IInteractionEngine {
 
     public removeInteractionManager(token: string): boolean {
         if(!this.#managers[token]) return false;
+        this.#managers[token].remove();
         delete this.#managers[token];
         return true;
     }
