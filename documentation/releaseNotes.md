@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.15.4
-* __Build date:__ 2022-06-09T08:49:40.841Z
+* __Version:__ 1.15.5
+* __Build date:__ 2022-06-20T17:58:23.028Z
 * __Branch:__ development
-* __Commit:__ b937bacddc3b627a1e836e2886722d6fe8a1b344
+* __Commit:__ f6c13ac95b93814558fb894abaa9a47ea067f504
 <!--- VERSION_END -->
 
 ## Version 1.15.5 - `Oliver Twist`
