@@ -21,7 +21,7 @@ import {
   SystemInfo,
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
-import { BUSY_MODE_DISPLAY, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { BUSY_MODE_DISPLAY, SPINNER_POSITIONING, VISIBILITYMODE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { build_data } from '@shapediver/viewer.shared.build-data'
 import { convert, ISettingsV3_1, validate } from '@shapediver/viewer.settings'
 import { mat4, vec3 } from 'gl-matrix'
@@ -548,7 +548,8 @@ export class Api implements IApi {
       logo?: string | null, 
       backgroundColor?: string,
       busyModeSpinner?: string,
-      busyModeDisplay?: BUSY_MODE_DISPLAY
+      busyModeDisplay?: BUSY_MODE_DISPLAY,
+      spinnerPositioning?: SPINNER_POSITIONING
     } 
   }): Promise<IViewer> {
     let viewerId: string = '';
@@ -569,6 +570,7 @@ export class Api implements IApi {
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.logo, 'string', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.busyModeSpinner, 'string', false);
       this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
+      this.#inputValidator.validateAndError(LOGGINGTOPIC.VIEWER, `Api.createViewer`, branding.spinnerPositioning, 'enum', false, Object.values(SPINNER_POSITIONING));
 
       // check if the given id is valid
       const viewerId = prop.id || (<UuidGenerator>container.resolve(UuidGenerator)).create();
@@ -597,6 +599,7 @@ export class Api implements IApi {
           backgroundColor: branding.backgroundColor || '#393a45FF',
           busyModeSpinner: branding.busyModeSpinner === undefined ? this.#defaultSpinner : branding.busyModeSpinner,
           busyModeDisplay: branding.busyModeDisplay || BUSY_MODE_DISPLAY.SPINNER,
+          spinnerPositioning: branding.spinnerPositioning || SPINNER_POSITIONING.BOTTOM_RIGHT,
         }
       });
 

@@ -7,6 +7,7 @@ import {
 import {
   BUSY_MODE_DISPLAY,
   RENDERERTYPE,
+  SPINNER_POSITIONING,
   TEXTURE_ENCODING,
   TONE_MAPPING,
   VISIBILITYMODE,
@@ -86,7 +87,8 @@ export class Viewer implements IViewer {
       logo: string | null, 
       backgroundColor: string,
       busyModeSpinner: string,
-      busyModeDisplay: BUSY_MODE_DISPLAY
+      busyModeDisplay: BUSY_MODE_DISPLAY,
+      spinnerPositioning: SPINNER_POSITIONING
     } 
   }) {
     try {

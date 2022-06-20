@@ -1,6 +1,6 @@
 import { vec3 } from 'gl-matrix'
 import { CAMERATYPE } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { BUSY_MODE_DISPLAY, IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import {

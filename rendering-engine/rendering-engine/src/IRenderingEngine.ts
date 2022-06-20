@@ -41,6 +41,14 @@ export enum BUSY_MODE_DISPLAY {
   SPINNER = 'spinner'
 }
 
+export enum SPINNER_POSITIONING {
+  CENTER = 'center',
+  TOP_LEFT = 'top_left',
+  TOP_RIGHT = 'top_right',
+  BOTTOM_LEFT = 'bottom_left',
+  BOTTOM_RIGHT = 'bottom_right',
+}
+
 export interface IRenderingEngine {
   // #region Properties (2)
 

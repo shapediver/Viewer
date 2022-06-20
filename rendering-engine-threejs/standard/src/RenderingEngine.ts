@@ -17,6 +17,7 @@ import { Tree } from '@shapediver/viewer.shared.node-tree'
 import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import {
   BUSY_MODE_DISPLAY,
+  SPINNER_POSITIONING,
   IRenderingEngine,
   RENDERERTYPE,
   TEXTURE_ENCODING,
@@ -91,7 +92,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     logo: string | null,
     backgroundColor: string,
     busyModeSpinner: string,
-    busyModeDisplay: BUSY_MODE_DISPLAY
+    busyModeDisplay: BUSY_MODE_DISPLAY,
+    spinnerPositioning: SPINNER_POSITIONING
   };
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
@@ -147,7 +149,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         logo: string | null,
         backgroundColor: string,
         busyModeSpinner: string,
-        busyModeDisplay: BUSY_MODE_DISPLAY
+        busyModeDisplay: BUSY_MODE_DISPLAY,
+        spinnerPositioning: SPINNER_POSITIONING
       }
     }) {
     // THREE object has default Y, we change that (although it doesn't work everywhere)
@@ -295,6 +298,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     backgroundColor: string;
     busyModeSpinner: string;
     busyModeDisplay: BUSY_MODE_DISPLAY;
+    spinnerPositioning: SPINNER_POSITIONING
   } {
     return this._branding;
   }
