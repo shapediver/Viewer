@@ -8,6 +8,10 @@
 * __Commit:__ b937bacddc3b627a1e836e2886722d6fe8a1b344
 <!--- VERSION_END -->
 
+## Version 1.15.5 - `Oliver Twist`
+- multi select
+- spinner positioning
+
 ## Version 1.15.4 - `Olympus Has Fallen`
 - improved applySettings functionality
 
