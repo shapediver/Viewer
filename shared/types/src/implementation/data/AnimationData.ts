@@ -15,6 +15,7 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
     #started: boolean = false;
     #tracks: IAnimationTrack[];
     #reset: boolean = true;
+    #nodeIds: string[] = [];
 
     // #endregion Properties (8)
 
@@ -111,9 +112,12 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
         this.#animationTime = 0;
         this.#animate = true;
         this.#started = true;
+        this.#nodeIds = [];
 
         for (let i = 0; i < this.#tracks.length; i++) {
             const track = this.#tracks[i];
+            if(this.#nodeIds.includes(track.node.id)) continue;
+            this.#nodeIds.push(track.node.id)
             const idleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix');
             if (idleTransformation) {
                 track.previousMatrix = {
@@ -200,7 +204,7 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
                                 continue;
                         }
                     }
-                } else {
+                } else if(!this.#nodeIds.includes(track.node.id)) {
                     const idleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix');
                     if (idleTransformation) {
                         idleTransformation.matrix = mat4.create();

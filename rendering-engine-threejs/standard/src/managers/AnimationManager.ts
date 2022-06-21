@@ -53,6 +53,7 @@ export class AnimationManager implements IManager {
             for (let j = 0; j < animation.tracks.length; j++) {
                 const track = animation.tracks[j];
                 const id = animation.id + '_' + j;
+                if (currentAnimationDeltaTime < track.times[0] || currentAnimationDeltaTime > track.times[track.times.length - 1]) continue;
 
                 for (let k = 1; k < track.times.length; k++) {
                     if (currentAnimationDeltaTime < track.times[k] && currentAnimationDeltaTime > track.times[k - 1]) {

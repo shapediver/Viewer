@@ -130,7 +130,6 @@ export class TreeNode implements ITreeNode {
 
   public set transformations(value: ITransformation[]) {
     this.#transformations = value;
-    this.updateVersion();
   }
 
   public get transformedNodes(): {
