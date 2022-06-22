@@ -352,6 +352,9 @@ export class CreationControlCenter implements ICreationControlCenter {
           })
         }
       }
+      
+      // save the session
+      this.sessionEngines[sessionEngineId] = sessionEngine;
 
       this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionEngineId });
       this.#stateEngine.sessionEngines[sessionEngineId].initialized.resolve(true);
@@ -377,9 +380,6 @@ export class CreationControlCenter implements ICreationControlCenter {
       }
 
       await Promise.all(promises)
-
-      // save the session
-      this.sessionEngines[sessionEngineId] = sessionEngine;
 
       for (let r in this.renderingEngines)
         this.renderingEngines[r].update('CreationControlCenter.createSessionEngine')

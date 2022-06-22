@@ -36,6 +36,7 @@ import { EventResponseMapping } from './interfaces/events/EventResponseMapping'
 import { IDragEvent } from './interfaces/events/IDragEvent'
 import { IHoverEvent } from './interfaces/events/IHoverEvent'
 import { ISelectEvent } from './interfaces/events/ISelectEvent'
+import { IMultiSelectEvent } from './interfaces/events/IMultiSelectEvent'
 import { IBoneData } from './interfaces/data/IBoneData'
 import { BoneData } from './implementation/data/BoneData'
 import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
@@ -62,7 +63,7 @@ export {
 }
 
 export {
-  EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, ISceneEvent, ITaskEvent, TASK_TYPE
+  EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, IMultiSelectEvent, ISceneEvent, ITaskEvent, TASK_TYPE
 }
 
 export {
