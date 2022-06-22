@@ -28,61 +28,35 @@ const modelsSelect = <HTMLSelectElement>document.getElementById("models");
 const envMapsSelect = <HTMLSelectElement>document.getElementById("envMaps");
 const backgroundColorInput = <HTMLInputElement>document.getElementById("background");
 const environmentMapAsBackgroundInput = <HTMLInputElement>document.getElementById("environmentMapAsBackground");
-const transmissionInput = <HTMLInputElement>document.getElementById("transmission");
-const transmissionOption = <HTMLElement>document.getElementById("transmissionOption");
 
 let viewer: IViewer;
 
-transmissionInput.checked = false;
-transmissionInput.onchange = async () => {
-    const models = Object.keys(modelMaterials);
-    const id = uuidGenerator.create();
-    viewer.registerBusyMode(id)
-    await addGLTF(models[+modelsSelect.value]);
-    viewer.deregisterBusyMode(id)
-};
-
-const modelMaterials: {
+const modelIDs: {
     [key: string]: {
-        [key: string]: {
-            aoMap?: string,
-            alphaMap?: string,
-            map?: string,
-            normalMap?: string,
-            transmission?: number,
-            roughness?: number,
-            metalness?: number,
-            opacity?: number,
-        }
+        [key: string]: any
     }
 } = {
-    '28': {
+    '28_clear': {
         'Glass': {
-            aoMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/28/AmbientOcclusion.png',
-            alphaMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/28/AmbientOcclusion.png',
-            map: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/28/Color.png',
-            transmission: 0
+            alphaMode: MATERIAL_ALPHA.BLEND,
+            side: MATERIAL_SIDE.DOUBLE,
         }
-    },
-    '73': {
-        'Fabric 73': {
-            aoMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Ambient_Occlusion_73.png',
-            alphaMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Opacity_map_73_1.png',
-            // map: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Color_73.png',
-            // normalMap: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/73/Normal_73.png',
-            // roughness: 0.15,
-            // metalness: 0,
+    }, 
+    '28_opaque': {
+        'Glass': {
+            alphaMode: MATERIAL_ALPHA.BLEND,
+            side: MATERIAL_SIDE.DOUBLE,
         }
-    }
+    }, 
+    '73': {}
 }
 
 const addGLTF = async (id: string) => {
     const node = await dataEngine.loadContent({
         format: "gltf",
-        href: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/' + id + '/bocci_lights_3D_' + id + '.gltf'
+        href: 'https://viewer.shapediver.com/v3/demos/bocci/simple/models/' + id.substring(0,2) + '/bocci_lights_3D_' + id + '.gltf'
     });
 
-    const materials = modelMaterials[id];
 
     const getGeometries = async (node: TreeNode) => {
         for (let i = 0; i < node.data.length; i++) {
@@ -91,103 +65,18 @@ const addGLTF = async (id: string) => {
                 const materialData = <MaterialStandardData>geometryData.primitive.material;
                 if(!materialData) throw new Error('No material found.')
                 if(!materialData.name) throw new Error('No material name found.')
-                if(materials[materialData.name]) {
+                console.log(materialData.name)
 
-                    const map = materials[materialData.name].map;
-                    if(map !== undefined){
-                        materialData.map = (await materialEngine.loadMap(map)) || undefined;
-                        materialData.map = new MapData(
-                            materialData.map?.image!, 
-                            materialData.map?.wrapS, 
-                            materialData.map?.wrapT, 
-                            materialData.map?.minFilter, 
-                            materialData.map?.magFilter, 
-                            materialData.map?.center, 
-                            materialData.map?.color, 
-                            materialData.map?.offset,  
-                            materialData.map?.repeat, 
-                            materialData.map?.rotation, 
-                            false
-                        );
-                    }
+                const model = modelIDs[id];
+                const materialChange = model[materialData.name];
+                if(materialChange) 
+                    for(let m in materialChange) 
+                        (<any>materialData)[m] = materialChange[m];
 
-                    const normalMap = materials[materialData.name].normalMap;
-                    if (normalMap !== undefined) {
-                        materialData.normalMap = (await materialEngine.loadMap(normalMap)) || undefined;
-                        materialData.normalMap = new MapData(
-                            materialData.normalMap?.image!, 
-                            materialData.normalMap?.wrapS, 
-                            materialData.normalMap?.wrapT, 
-                            materialData.normalMap?.minFilter, 
-                            materialData.normalMap?.magFilter, 
-                            materialData.normalMap?.center, 
-                            materialData.normalMap?.color, 
-                            materialData.normalMap?.offset,  
-                            materialData.normalMap?.repeat, 
-                            materialData.normalMap?.rotation, 
-                            false
-                        );
-                    }
-
-                    const aoMap = materials[materialData.name].aoMap;
-                    if (aoMap !== undefined) {
-                        materialData.aoMap = (await materialEngine.loadMap(aoMap)) || undefined;
-                        materialData.aoMap = new MapData(
-                            materialData.aoMap?.image!, 
-                            materialData.aoMap?.wrapS, 
-                            materialData.aoMap?.wrapT, 
-                            materialData.aoMap?.minFilter, 
-                            materialData.aoMap?.magFilter, 
-                            materialData.aoMap?.center, 
-                            materialData.aoMap?.color, 
-                            materialData.aoMap?.offset,  
-                            materialData.aoMap?.repeat, 
-                            materialData.aoMap?.rotation, 
-                            false
-                        );
-                    }
-
-                    if(transmissionInput.checked) {
-
-                    } else {
-                        materialData.transmission = 0;
-
-                        const opacity = materials[materialData.name].opacity;
-                        if(opacity !== undefined) 
-                            materialData.opacity = opacity;
-
-                        const alphaMap = materials[materialData.name].alphaMap;
-                        if (alphaMap !== undefined) {
-                            materialData.alphaMap = (await materialEngine.loadMap(alphaMap)) || undefined;
-                            materialData.alphaMap = new MapData(
-                                materialData.alphaMap?.image!, 
-                                materialData.alphaMap?.wrapS, 
-                                materialData.alphaMap?.wrapT, 
-                                materialData.alphaMap?.minFilter, 
-                                materialData.alphaMap?.magFilter, 
-                                materialData.alphaMap?.center, 
-                                materialData.alphaMap?.color, 
-                                materialData.alphaMap?.offset,  
-                                materialData.alphaMap?.repeat, 
-                                materialData.alphaMap?.rotation, 
-                                false
-                            );
-                            materialData.alphaMode = MATERIAL_ALPHA.MASK
-                        }
-                    }
-                        
-                    const roughness = materials[materialData.name].roughness;
-                    if(roughness !== undefined)
-                        materialData.roughness = roughness;
-                        
-                    const metalness = materials[materialData.name].metalness;
-                    if(metalness !== undefined)
-                        materialData.metalness = metalness;
-
-                    materialData.updateVersion();
-                    geometryData.updateVersion();
-                    node.updateVersion();
-                }
+                materialData.updateVersion();
+                geometryData.updateVersion();
+                node.updateVersion();
+                
             }
         }
 
@@ -203,20 +92,15 @@ const addGLTF = async (id: string) => {
     api.update();
 
     const center = api.sceneTree.root.boundingBox.boundingSphere.center;    
-    await viewer.camera!.set(vec3.add(vec3.create(), center, [0, 6, -2]), vec3.add(vec3.create(), center, [0, 0, -2]), { duration: 0 });
+    await viewer.camera!.zoomTo(api.sceneTree.root.boundingBox);//vec3.add(vec3.create(), center, [0, 6, -2]), vec3.add(vec3.create(), center, [0, 0, -2]), { duration: 0 });
 };
 
 const createModelDropdown = () => {
-    const models = Object.keys(modelMaterials);
+    const models = Object.keys(modelIDs).sort();
+    console.log(models)
+    modelsSelect.value = models[0];
 
     modelsSelect.onchange = async () => {
-        if(models[+modelsSelect.value] === '28') {
-            transmissionInput.checked = false;
-            transmissionOption.style.visibility = 'visible'
-        } else {
-            transmissionInput.checked = true;
-            transmissionOption.style.visibility = 'hidden'
-        }
         const id = uuidGenerator.create();
         viewer.registerBusyMode(id)
         await addGLTF(models[+modelsSelect.value]);
@@ -234,7 +118,7 @@ const createModelDropdown = () => {
 
 
 const createEnvironmentMapDropdown = () => {
-    const envMaps = ['sepulchral_chapel_rotunda', 'ballroom', 'paul_lobe_haus', 'old_hall', 'leadenhall_market'];
+    const envMaps = ['photo_studio', 'sepulchral_chapel_rotunda', 'ballroom', 'paul_lobe_haus', 'old_hall', 'leadenhall_market'];
     envMapsSelect.onchange = async () => {
         api.addListener(EVENTTYPE.TASK.TASK_START, (e) => {
             const taskEvent = e as ITaskEvent;
@@ -267,7 +151,7 @@ const createEnvironmentMapDropdown = () => {
     viewer.ambientOcclusion = false;
     viewer.shadows = false;
 
-    viewer.environmentMap = "https://viewer.shapediver.com/v3/demos/bocci/simple/envMaps/sepulchral_chapel_rotunda_4k.hdr";
+    viewer.environmentMap = ENVIRONMENT_MAP.PHOTO_STUDIO;
     viewer.createLightScene();
 
     backgroundColorInput.onchange = () => viewer.clearColor = backgroundColorInput.value;
@@ -284,7 +168,7 @@ const createEnvironmentMapDropdown = () => {
         });
     }));
 
-    promises.push(addGLTF("28"));
+    promises.push(addGLTF("28_clear"));
     createModelDropdown();
     createEnvironmentMapDropdown();
 
