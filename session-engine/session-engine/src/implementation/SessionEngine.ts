@@ -666,8 +666,10 @@ export class SessionEngine implements ISessionEngine {
         const o = Object.assign({}, this._outputs);
         const of = Object.assign({}, this._outputsFreeze);
         try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of, cancelRequest);
+            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of);
             node.data.push(new SessionData(this._responseDto!));
+
+            if (cancelRequest()) return node;            
 
             if (this._automaticSceneUpdate) this._sceneTree.removeNode(this._node);
             this._node = node;
@@ -1106,7 +1108,7 @@ export class SessionEngine implements ISessionEngine {
             this._performanceEvaluator.startSection('sessionResponse');
             const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameters);
             this._performanceEvaluator.endSection('sessionResponse');
-            if (cancelRequest()) return new SessionTreeNode();
+            if (cancelRequest()) return new SessionTreeNode();            
             this.updateResponseDto(responseDto);
             return this.loadOutputs(cancelRequest);
         } catch (e) {

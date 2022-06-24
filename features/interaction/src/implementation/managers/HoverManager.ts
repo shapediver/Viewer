@@ -55,6 +55,17 @@ export class HoverManager extends AbstractInteractionManager {
         if (this.#node)
             this.deactivateNode(); 
     }
+    
+    public select(intersection: IIntersection) {
+        if(this.#node)
+            this.deactivateNode();
+        this.activateNode(intersection);
+    }
+
+    public deselect() {
+        if(this.#node)
+            this.deactivateNode();
+    }
 
     public onDown(ray: IRay, intersection: IIntersection[]): void { }
 
@@ -102,10 +113,11 @@ export class HoverManager extends AbstractInteractionManager {
         } else {
             this.#effectMaterialToken = undefined;
         }
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, { node: this.#node } as IHoverEvent);
 
         this.viewport.updateNode(this.#node);
         this.viewport.render();
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, { node: this.#node } as IHoverEvent);
     }
 
     /**
@@ -124,10 +136,12 @@ export class HoverManager extends AbstractInteractionManager {
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if (data) data.interactionStates['hover'] = false;
 
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, { node: this.#node } as IHoverEvent);
-
+        const node = this.#node;
+        
         this.#intersection = null;
         this.#node = null;
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, { node } as IHoverEvent);
     }
 
     // #endregion Private Methods (2)

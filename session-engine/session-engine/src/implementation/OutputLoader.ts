@@ -46,7 +46,7 @@ export class OutputLoader {
      * @param outputs the outputs to load
      * @returns promise with a scene graph node
      */
-    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }, cancelRequest: () => boolean = () => false): Promise<SessionTreeNode> {
+    public async loadOutputs(responseDto: ShapeDiverResponseDto, outputs: { [key: string]: ShapeDiverResponseOutput; }, outputsFreeze: { [key: string]: boolean; }): Promise<SessionTreeNode> {
         this._performanceEvaluator.startSection('outputLoading');
         const node = new SessionTreeNode(responseDto.model?.name);
         let currentNodes: { 
@@ -89,9 +89,6 @@ export class OutputLoader {
         // all promises are resolved, await in the next lines is just for structural purposes
         for(let i = 0; i < promises.length; i++) 
             promisesNodes[i].addChild(await promises[i])
-
-        // if another customization was requested, we cancel this one
-        if(cancelRequest()) return new SessionTreeNode(responseDto.model?.name);
 
         // here we assign all outputs just to the node and return it
         for (let outputID in outputs) {
