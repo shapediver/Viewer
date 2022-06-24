@@ -151,6 +151,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
   readonly #defaultLogo: string = 'https://viewer.shapediver.com/v3/graphics/logo_animated_breath.svg';
+  readonly #defaultLogoStatic: string = 'https://viewer.shapediver.com/v3/graphics/logo.png';
   readonly #defaultSpinner: string = 'https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg';
 
   #animations: AnimationData[] = [];
@@ -190,9 +191,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._sessionSettingsMode = prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST;
     this._sessionSettingsId = prop.sessionSettingsId;
     this._branding = {
-      logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
+      logo: branding.logo === undefined ? (this._systemInfo.isIOS ? this.#defaultLogoStatic : this.#defaultLogo) : branding.logo,
       backgroundColor: branding.backgroundColor || '#393a45FF',
-      busyModeSpinner: branding.busyModeSpinner === undefined ? this.#defaultSpinner : branding.busyModeSpinner,
+      busyModeSpinner: branding.busyModeSpinner === undefined ? (this._systemInfo.isIOS ? this.#defaultLogoStatic : this.#defaultSpinner) : branding.busyModeSpinner,
       busyModeDisplay: branding.busyModeDisplay || BUSY_MODE_DISPLAY.SPINNER,
       spinnerPositioning: branding.spinnerPositioning || SPINNER_POSITIONING.BOTTOM_RIGHT
     };
@@ -1029,7 +1030,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       a.href = file + (arScale === 'fixed' ? '.usdz_allowsContentScaling=0' : '.usdz')
       a.rel = 'ar';
       const img = document.createElement('img');
-      img.src = this.#defaultLogo;
+      img.src = this.#defaultLogoStatic;
       a.appendChild(img);
       a.click();
     } else {
