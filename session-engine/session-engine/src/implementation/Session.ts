@@ -196,6 +196,7 @@ export class Session implements ISession {
         this.checkAvailability('close');
 
         try {
+            this._httpClient.removeDataLoading(this._sessionId!)
             await this._sdk.session.close(this._sessionId!)
             this._closed = true;
             return true;
@@ -236,6 +237,13 @@ export class Session implements ISession {
             this._viewerSettings = this._responseDto.viewer?.config;
             this._sessionId = this._responseDto.sessionId;
             this._modelId = this._responseDto.model?.id;
+
+            this._httpClient.addDataLoading(this._sessionId!, {
+                getOutput: this._sdk.asset.getOutput.bind(this),
+                getTexture: this._sdk.asset.getTexture.bind(this),
+                getExport: this._sdk.asset.getExport.bind(this),
+                downloadTexture: this._sdk.asset.downloadImage.bind(this),
+            })
 
             if(!this._sessionId) 
                 throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a sessionId.`)
@@ -482,35 +490,6 @@ export class Session implements ISession {
             await this.handleError(LOGGINGTOPIC.SESSION, 'Session.customizeSession', e, retry);
             if(cancelRequest()) return new SessionTreeNode();
             return await this.customizeSession(parameters, cancelRequest, true);
-        }
-    }
-
-    public async loadData(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, retry = false): Promise<HttpResponse<ArrayBuffer>> {
-        this.checkAvailability();
-        try {
-            const dataKey = btoa(href);
-            if(this._dataCache[dataKey]) return await this._dataCache[dataKey];
-
-            if(href.startsWith('blob:') || href.startsWith('data:')) {
-                this._dataCache[dataKey] = this._httpClient.get(href, config);
-            } else {
-
-                this._dataCache[dataKey] = new Promise<HttpResponse<any>>(resolve => {
-                    this._sdk.asset.downloadImage(this._sessionId!, href).then((res) => {
-                        resolve({
-                            data: res[0],
-                            headers: {
-                                'content-type': res[1]
-                            }
-                        })
-                    });
-                });
-                
-            }
-            return await this._dataCache[dataKey];
-        } catch (e) {
-            await this.handleError(LOGGINGTOPIC.SESSION, 'Session.loadData', e, retry);
-            return await this.loadData(href, config, true);
         }
     }
 

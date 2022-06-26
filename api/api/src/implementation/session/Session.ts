@@ -109,7 +109,6 @@ export class Session implements ISession {
             this.#primarySessionRequest = properties.primarySession !== false;
             if (this.#stateEngine.primarySession && this.#stateEngine.primarySession.id === this.id) {
                 this.#primarySession = true;
-                this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
                 this.#logger.debug(LOGGINGTOPIC.SESSION, `Session(${this.id}): This is now the primary session.`);
 
                 this.#stateEngine.sessions[this.id].settingsRegistered.then(() => {
@@ -286,9 +285,6 @@ export class Session implements ISession {
             const closeResult = await this.#sessionEngine.close();
             if (this.#api.automaticUpdate) this.#sceneTree.removeNode(this.node);
             this.#api.update();
-
-            if (this.primarySession)
-                this.#httpClient.removeDataLoading()
 
             this.#settingsEngine.reset();
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CLOSED, { sessionId: this.id });
@@ -645,9 +641,6 @@ export class Session implements ISession {
             const eventLoading: ITaskEvent = { type: TASKTYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 0.5, status: 'Loading outputs' };
             this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventLoading);
 
-            if (this.primarySession)
-                this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
-
             if (loadOutputs) {
                 if (waitForOutputs) {
                     this.#node = await this.#sessionEngine.loadOutputs();
@@ -876,7 +869,6 @@ export class Session implements ISession {
                 await this.#stateEngine.sessions[this.id].initialized;
 
             this.#primarySession = true;
-            this.#httpClient.addDataLoading(this.#sessionEngine.loadData.bind(this.#sessionEngine))
             this.#stateEngine.sessions[this.id].primary = true;
             this.#settingsEngine.loadSettings(this.#sessionEngine.viewerSettings, this.id, this.primarySession);
             await new Promise<void>((resolve) => this.#stateEngine.sessions[this.id].settingsRegistered.then(() => { resolve(); }));
