@@ -22,7 +22,6 @@ export class MaterialEngine {
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
 
-    private _loadData?: (img: string) => Promise<HttpResponse<any>> = this._httpClient.loadData.bind(this._httpClient);;
     // #endregion Properties (3)
 
     // #region Constructors (1)
@@ -171,9 +170,9 @@ export class MaterialEngine {
         let image: HTMLImageElement;
         try {
             if (!id) {
-                image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!(url));
+                image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture(url));
             } else {
-                image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
+                image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture('https://viewer.shapediver.com/v2/materials/1024/' + id + '/' + url));
             }
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -185,7 +184,7 @@ export class MaterialEngine {
     public async loadMapWithProperties(texture: ITexture): Promise<MapData | null> {
         let image: HTMLImageElement;
         try {
-            image = <HTMLImageElement>await this._converter.responseToImage(await this._loadData!(texture.href!));
+            image = <HTMLImageElement>await this._converter.responseToImage(await this._httpClient.loadTexture(texture.href!));
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadMapWithProperties`, e);

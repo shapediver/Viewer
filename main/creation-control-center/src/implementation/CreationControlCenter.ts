@@ -106,11 +106,9 @@ export class CreationControlCenter implements ICreationControlCenter {
       }
 
       if (this.#firstSessionEngine === this.sessionEngines[id]) {
-        this.#httpClient.removeDataLoading()
         const engines = Object.values(this.sessionEngines).filter(s => s.id !== id);
         this.#firstSessionEngine = engines.length === 0 ? undefined : engines[0];
         if (this.#firstSessionEngine) {
-          this.#httpClient.addDataLoading(this.#firstSessionEngine.loadData.bind(this.#firstSessionEngine));
           let promises: StatePromise<boolean>[] = []
 
           for (let r in this.renderingEngines) {
@@ -364,10 +362,8 @@ export class CreationControlCenter implements ICreationControlCenter {
       const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
-      if (!this.#firstSessionEngine) {
+      if (!this.#firstSessionEngine) 
         this.#firstSessionEngine = sessionEngine;
-        this.#httpClient.addDataLoading(sessionEngine.loadData.bind(sessionEngine));
-      }
 
       let promises: StatePromise<boolean>[] = []
 
