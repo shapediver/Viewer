@@ -1,4 +1,4 @@
-import { vec3 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import { ICameraApi, ILightSceneApi, IAnimationData, BUSY_MODE_DISPLAY, TEXTURE_ENCODING, TONE_MAPPING, ISDTFOverview, ISDTFItemData, ISDTFAttributeVisualizationData, IDomEventListener, FLAG_TYPE, IOrthographicCameraApi, IPerspectiveCameraApi, ITreeNode, sceneTree } from "../..";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
@@ -455,7 +455,23 @@ export class ViewportApi implements IViewportApi {
             const error = new ShapeDiverViewerArError('Api.viewInAR: None of the sessions that are registered are capable of using the AR feature.');
             throw this.#logger.handleError(LOGGING_TOPIC.AR, 'Api.viewInAR', error, false);
         }
-        const blob = await this.#gltfConverter.convert(node || sceneTree.root, true);
+        const targetNode = node || sceneTree.root;
+
+        let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
+
+        // add scaling matrix to scene tree node
+        targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
+
+        // create the gltf
+        const blob = await this.#gltfConverter.convert(targetNode, true);
+
+        // remove scaling the matrix
+        for (let i = 0; i < targetNode.transformations.length; i++)
+            if (targetNode.transformations[i].id === 'ar_scaling')
+                targetNode.transformations.splice(i, 1);
+
+        this.update();
+
         const file = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
         return this.#renderingEngine.viewInAR(file)
     }
