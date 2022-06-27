@@ -614,10 +614,10 @@ export class SessionEngine implements ISessionEngine {
             this._modelId = this._responseDto.model?.id;
             
             this._httpClient.addDataLoading(this._sessionId!, {
-                getOutput: this._sdk.asset.getOutput.bind(this),
-                getTexture: this._sdk.asset.getTexture.bind(this),
-                getExport: this._sdk.asset.getExport.bind(this),
-                downloadTexture: this._sdk.asset.downloadImage.bind(this),
+                getOutput: this._sdk.asset.getOutput.bind(this._sdk.asset),
+                getTexture: this._sdk.asset.getTexture.bind(this._sdk.asset),
+                getExport: this._sdk.asset.getExport.bind(this._sdk.asset),
+                downloadTexture: this._sdk.asset.downloadImage.bind(this._sdk.asset),
             })
 
             if (!this._sessionId)
