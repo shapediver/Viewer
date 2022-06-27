@@ -2,10 +2,10 @@
 
 <!--- VERSION_START -->
 ## Version
-* __Version:__ 1.15.5
-* __Build date:__ 2022-06-20T17:58:23.028Z
+* __Version:__ 1.15.6
+* __Build date:__ 2022-06-27T09:48:14.122Z
 * __Branch:__ development
-* __Commit:__ f6c13ac95b93814558fb894abaa9a47ea067f504
+* __Commit:__ 58ef8564f8386bb66c6ee1a424227a54ed4e5386
 <!--- VERSION_END -->
 
 ## Version 1.15.6 - `The Other Guys`
