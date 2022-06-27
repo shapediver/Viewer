@@ -77,7 +77,7 @@ export class HttpClient {
         this._sessionLoading[sessionId] = callbacks;
     }
 
-    public async get(href: string, config?: AxiosRequestConfig | undefined, textureLoading: boolean = false): Promise<HttpResponse<any>> {
+    public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<any>> {
         const dataKey = btoa(href);
         if (dataKey in this._dataCache) return await this._dataCache[dataKey];
 
