@@ -77,7 +77,7 @@ export class HttpClient {
         this._sessionLoading[sessionId] = callbacks;
     }
 
-    public async get(href: string, config?: AxiosRequestConfig | undefined, textureLoading: boolean = false): Promise<HttpResponse<any>> {
+    public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<any>> {
         const dataKey = btoa(href);
         if (this._dataCache[dataKey]) return await this._dataCache[dataKey];
 
@@ -145,7 +145,6 @@ export class HttpClient {
                 } else {
                     // take first session to load a texture that is not session related
                     const sessionId = Object.keys(this._sessionLoading)[0];
-
                     this._dataCache[dataKey] = new Promise<HttpResponse<any>>(resolve => {
                         this._sessionLoading[sessionId].downloadTexture(sessionId, href).then((result) => {
                             resolve({
