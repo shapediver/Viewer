@@ -8,6 +8,10 @@
 * __Commit:__ f6c13ac95b93814558fb894abaa9a47ea067f504
 <!--- VERSION_END -->
 
+## Version 1.15.6 - `The Other Guys`
+- bugfix: animated spinner on iOS
+- implemented loading of data via geometry SDK
+
 ## Version 1.15.5 - `Oliver Twist`
 - multi select
 - spinner positioning
