@@ -10,7 +10,6 @@ export class TextureLoader {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
 
-    private _loadData: (img: string) => Promise<HttpResponse<any>> = this._httpClient.loadData.bind(this._httpClient);
     private _loaded: {
         [key: string]: HTMLImageElement
     } = {};
@@ -57,7 +56,7 @@ export class TextureLoader {
     
                 promises.push(
                     new Promise<void>(resolve => {
-                        this._loadData!(dataUri)
+                        this._httpClient.loadTexture(dataUri)
                             .then(response => {
                                 this._converter.responseToImage(response).then(img => {
                                     this._loaded[textureId] = img;
@@ -70,7 +69,7 @@ export class TextureLoader {
                 const url = DATA_URI_REGEX.test(image.uri!) || HTTPS_URI_REGEX.test(image.uri!) ? image.uri : `${this._baseUri}/${image.uri}`;
                 promises.push(
                     new Promise<void>(resolve => {
-                        this._loadData!(url!)
+                        this._httpClient.loadTexture(url!)
                             .then(response => {
                                 this._converter.responseToImage(response).then(img => {
                                     this._loaded[textureId] = img;

@@ -266,7 +266,7 @@ export class EnvironmentMapLoader implements ILoader {
     private async loadEnvironmentMap(name: string, url: string[], eventId: string) {
         return new Promise<void>(async (resolve, reject) => {
             if(name.endsWith('.hdr')) {
-                const response: HttpResponse<ArrayBuffer> = await this._httpClient.loadData(name);
+                const response: HttpResponse<ArrayBuffer> = await this._httpClient.loadTexture(name);
                 const arrayBufferView = new Uint8Array( response.data );
                 const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
                 new RGBELoader().load(URL.createObjectURL(blob), (texture) => {
@@ -280,7 +280,7 @@ export class EnvironmentMapLoader implements ILoader {
                 (error) =>  reject(error));
             } else {
                 const promises: Promise<HTMLImageElement>[] = [];
-                url.forEach(u => promises.push(this._httpClient.loadData(u).then(d => this._converter.responseToImage(d))));
+                url.forEach(u => promises.push(this._httpClient.loadTexture(u).then(d => this._converter.responseToImage(d))));
                 
                 new THREE.CubeTextureLoader().load(url,
                     (map: THREE.CubeTexture) => {

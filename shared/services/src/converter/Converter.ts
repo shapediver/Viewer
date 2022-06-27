@@ -92,10 +92,7 @@ export class Converter {
         let replacementPromises = [];
         let createImagePromise = async (uri: string) => {
             if (uri.length > 0) {
-                const response = await this._httpClient.loadData(
-                    uri,
-                    { responseType: 'arraybuffer' }
-                );
+                const response = await this._httpClient.loadTexture(uri);
                 let uInt8Array = new Uint8Array(response.data), i = uInt8Array.length;
                 let biStr = []; //new Array(i);
                 while (i--)
