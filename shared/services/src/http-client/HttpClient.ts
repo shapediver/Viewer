@@ -98,6 +98,7 @@ export class HttpClient {
                             })
 
                     });
+                    break;
 
                 case 'export':
                     this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>(resolve => {
@@ -113,6 +114,7 @@ export class HttpClient {
                             })
 
                     });
+                    break;
 
                 case 'texture':
                     this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>(resolve => {
@@ -128,6 +130,7 @@ export class HttpClient {
                             })
 
                     });
+                    break;
 
                 default:
                     this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
