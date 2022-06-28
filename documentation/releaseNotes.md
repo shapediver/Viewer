@@ -8,6 +8,9 @@
 * __Commit:__ 58ef8564f8386bb66c6ee1a424227a54ed4e5386
 <!--- VERSION_END -->
 
+## Version 1.15.7 - `Once Upon a Time in America`
+- implemented animation pivot option
+
 ## Version 1.15.6 - `The Other Guys`
 - bugfix: animated spinner on iOS
 - implemented loading of data via geometry SDK
