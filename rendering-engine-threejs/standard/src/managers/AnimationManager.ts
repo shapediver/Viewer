@@ -92,7 +92,12 @@ export class AnimationManager implements IManager {
                         }
 
                         if (track.path === 'rotation') {
-                            
+                            let pivotMatrix: mat4 | undefined, pivotMatrixInverse: mat4 | undefined;
+                            if(track.pivot) {
+                                pivotMatrix = mat4.fromTranslation(mat4.create(), vec3.fromValues(track.pivot[0], track.pivot[1], track.pivot[2]));
+                                pivotMatrixInverse = mat4.fromTranslation(mat4.create(), vec3.fromValues(-track.pivot[0], -track.pivot[1], -track.pivot[2]));
+                            }
+
                             let quaternion: quat;
                             if(track.interpolation === 'step') {
                                 quaternion = quat.fromValues(track.values[(k - 1) * 4 + 0], track.values[(k - 1) * 4 + 1], track.values[(k - 1) * 4 + 2], track.values[(k - 1) * 4 + 3]);
@@ -103,7 +108,13 @@ export class AnimationManager implements IManager {
                                     vec4.fromValues(track.values[(k) * 4 + 0], track.values[(k) * 4 + 1], track.values[(k) * 4 + 2], track.values[(k) * 4 + 3]),
                                     factor)
                             }
-                            rotationTransformation.matrix = mat4.fromQuat(mat4.create(), quaternion);
+
+                            const rotationMatrix = mat4.fromQuat(mat4.create(), quaternion);
+                            if(pivotMatrix && pivotMatrixInverse) {
+                                rotationTransformation.matrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), pivotMatrix, rotationMatrix), pivotMatrixInverse);
+                            } else {
+                                rotationTransformation.matrix = rotationMatrix;
+                            }
                         } else if (track.path === 'translation') {
                             let vector: vec3;
                             if(track.interpolation === 'step') {

@@ -8,6 +8,7 @@ export type AnimationTrack = {
     path: 'scale' | 'translation' | 'rotation';
     interpolation: 'linear' | 'step';
     previousMatrix?: ITransformation;
+    pivot?: vec3;
 }
 
 export class AnimationData extends AbstractTreeNodeData {
