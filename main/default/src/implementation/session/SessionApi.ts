@@ -235,6 +235,9 @@ export class SessionApi implements ISessionApi {
     }
 
     public async convertToGlTF(): Promise<Blob> {
+        for(let r in this.#creationControlCenter.renderingEngines)
+            this.#creationControlCenter.renderingEngines[r].update('Session.convertToGlTF');
+        
         const result = await this.#gltfConverter.convert(this.node, false);
         return new Blob([result], { type: 'application/octet-stream' });
     }

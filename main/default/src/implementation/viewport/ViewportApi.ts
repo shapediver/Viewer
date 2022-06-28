@@ -381,6 +381,7 @@ export class ViewportApi implements IViewportApi {
     }
 
     public async convertToGlTF(node: ITreeNode = sceneTree.root): Promise<Blob> {
+        this.update();
         const result = await this.#gltfConverter.convert(node, false, this.id);
         return new Blob([result], { type: 'application/octet-stream' });
     }
@@ -463,6 +464,7 @@ export class ViewportApi implements IViewportApi {
         targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
 
         // create the gltf
+        this.update();
         const blob = await this.#gltfConverter.convert(targetNode, true);
 
         // remove scaling the matrix
