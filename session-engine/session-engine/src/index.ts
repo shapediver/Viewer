@@ -10,7 +10,7 @@ import { Output } from './implementation/dto/Output'
 import { Parameter } from './implementation/dto/Parameter'
 import { IExport } from './interfaces/dto/IExport'
 import { IFileParameter } from './interfaces/dto/IFileParameter'
-import { IOutput, ShapeDiverResponseOutputContent } from './interfaces/dto/IOutput'
+import { IOutput, ShapeDiverResponseOutputChunk, ShapeDiverResponseOutputContent } from './interfaces/dto/IOutput'
 import { IParameter } from './interfaces/dto/IParameter'
 
 export {
@@ -18,7 +18,7 @@ export {
 }
 
 export {
-  ISessionEngine, SessionEngine, IOutput, Output, IParameter, Parameter, IFileParameter, FileParameter, IExport, Export, ShapeDiverResponseOutputContent
+  ISessionEngine, SessionEngine, IOutput, Output, IParameter, Parameter, IFileParameter, FileParameter, IExport, Export, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk
 }
 
 export {

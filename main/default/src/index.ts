@@ -25,7 +25,7 @@ import { IPointLightApi } from "./interfaces/viewport/lights/types/IPointLightAp
 import { ISpotLightApi } from "./interfaces/viewport/lights/types/ISpotLightApi";
 import { addListener, createSession, createViewport, loggingLevel, removeListener, sceneTree, sessions, showMessages, viewports } from "./main";
 import { IBox, ISphere, IGeometry } from "@shapediver/viewer.shared.math";
-import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, SessionData, SessionOutputData, ShapeDiverResponseOutputContent } from "@shapediver/viewer.session-engine.session-engine";
+import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, SessionData, SessionOutputData, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "@shapediver/viewer.session-engine.session-engine";
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine";
 import { GeometryEngine } from "@shapediver/viewer.data-engine.geometry-engine";
 import { MaterialEngine } from "@shapediver/viewer.data-engine.material-engine";
@@ -46,7 +46,7 @@ export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLigh
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData }
 export { FLAG_TYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, CAMERA_TYPE, LIGHT_TYPE, RENDERER_TYPE, VISIBILITY_MODE, ORTHOGRAPHIC_CAMERA_DIRECTION, TEXTURE_ENCODING, TONE_MAPPING, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, LOGGING_LEVEL, LOGGING_TOPIC, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING }
 export { TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK }
-export { IBox, ISphere, IGeometry, ITransformation, ShapeDiverResponseOutputContent, ISDObject, IDomEventListener, IEvent, IThreejsData, ThreejsData }
+export { IBox, ISphere, IGeometry, ITransformation, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, ISDObject, IDomEventListener, IEvent, IThreejsData, ThreejsData }
 export { EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, IMultiSelectEvent, ISceneEvent, ITaskEvent }
 export { IMaterialStandardData as IMaterialData, MaterialStandardData as MaterialData, IMaterialStandardDataProperties as MaterialDataProperties, IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMapData, MapData }
 export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData }

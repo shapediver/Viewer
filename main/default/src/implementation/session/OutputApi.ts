@@ -1,5 +1,5 @@
-import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutputChunk } from "@shapediver/api.geometry-api-dto-v2";
-import { IOutput, ShapeDiverResponseOutputContent } from "@shapediver/viewer.session-engine.session-engine";
+import { ShapeDiverResponseModelComputationStatus } from "@shapediver/api.geometry-api-dto-v2";
+import { IOutput, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "@shapediver/viewer.session-engine.session-engine";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";

@@ -1,8 +1,8 @@
-import { ShapeDiverResponseOutputChunk, ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput } from "@shapediver/sdk.geometry-api-sdk-v2";
+import { ShapeDiverResponseModelComputationStatus, ShapeDiverResponseOutput } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { container } from "tsyringe";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { InputValidator, UuidGenerator, LOGGING_TOPIC, ShapeDiverViewerError, ShapeDiverBackendError, Logger } from "@shapediver/viewer.shared.services";
-import { IOutput, ShapeDiverResponseOutputContent } from "../../interfaces/dto/IOutput";
+import { IOutput, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "../../interfaces/dto/IOutput";
 import { SessionEngine } from "../SessionEngine";
 
 export class Output implements IOutput {
@@ -169,6 +169,16 @@ export class Output implements IOutput {
   public updateOutput(newNode: TreeNode, oldNode: TreeNode) {
     const outputDef = this.#sessionEngine.outputs[this.id];
     this.updateOutputDefinition(outputDef);
+
+    // add chunk nodes
+    if (this.chunks && this.node) {
+      for (let i = 0; i < this.node.children.length; i++) {
+        for (let j = 0; j < this.chunks.length; j++) {
+          this.chunks[j].node = this.node.children[i].children.find(child => child.name === this.chunks![j].id);
+        }
+      }
+    }
+
     if (this.#updateCallback) this.#updateCallback(newNode, oldNode);
   }
 
