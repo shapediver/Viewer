@@ -13,6 +13,7 @@ import { ExportApi } from "./ExportApi";
 import { ParameterApi } from "./ParameterApi";
 import { FileParameterApi } from "./FileParameterApi";
 import { GLTFConverter } from "@shapediver/viewer.data-engine.gltf-converter";
+import { SessionApiData } from "./data/SessionApiData";
 
 export class SessionApi implements ISessionApi {
     // #region Properties (2)
@@ -34,6 +35,12 @@ export class SessionApi implements ISessionApi {
     constructor(sessionEngine: SessionEngine) {
         this.#sessionEngine = sessionEngine;
         if(!this.#sessionEngine.initialized) throw new Error();
+
+        this.#sessionEngine.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
+            if(newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
+                newNode.addData(new SessionApiData(this));
+        };
+        this.#sessionEngine.updateCallback(this.node, this.node)
 
         for(let o in this.#sessionEngine.outputs)
             this.#outputs[o] = new OutputApi(this.#sessionEngine.outputs[o]);
@@ -186,7 +193,11 @@ export class SessionApi implements ISessionApi {
         try {
             this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback: Updating updateCallback to ${value}.`);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback`, value, 'function', false);
-            this.#sessionEngine.updateCallback = value;
+            this.#sessionEngine.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
+                if(newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
+                    newNode.addData(new SessionApiData(this));
+                if(value) value(newNode, oldNode);
+            };
             this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback: updateCallback was updated to ${value}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;

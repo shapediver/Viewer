@@ -39,7 +39,7 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
     /**
      * The {@link node} corresponding to the output in the [scene tree]{@link ITree}.
      */
-    readonly node?: ITreeNode;
+    readonly node: ITreeNode;
 
     /**
      * The format of the items in the content array.

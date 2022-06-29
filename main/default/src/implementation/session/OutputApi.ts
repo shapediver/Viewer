@@ -4,6 +4,7 @@ import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 import { IOutputApi } from "../../interfaces/session/IOutputApi";
+import { OutputApiData } from "./data/OutputApiData";
 
 export class OutputApi implements IOutputApi {
     // #region Properties (3)
@@ -18,6 +19,11 @@ export class OutputApi implements IOutputApi {
 
     constructor(output: IOutput) {
         this.#output = output;
+        this.#output.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
+            if(newNode.data.findIndex(d => d instanceof OutputApiData) === -1)
+                newNode.addData(new OutputApiData(this));
+        };
+        this.#output.updateCallback(this.node, this.node)
     }
 
     // #endregion Constructors (1)
@@ -116,7 +122,7 @@ export class OutputApi implements IOutputApi {
         return this.#output.name;
     }
 
-    public get node(): ITreeNode | undefined {
+    public get node(): ITreeNode {
         return this.#output.node;
     }
 
@@ -172,7 +178,11 @@ export class OutputApi implements IOutputApi {
         try {
             this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback: Updating updateCallback to ${value}.`);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback`, value, 'function', false);
-            this.#output.updateCallback = value;
+            this.#output.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
+                if(newNode.data.findIndex(d => d instanceof OutputApiData) === -1)
+                    newNode.addData(new OutputApiData(this));
+                if(value) value(newNode, oldNode);
+            };
             this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback: updateCallback was updated to ${this.#output.updateCallback}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -187,10 +197,6 @@ export class OutputApi implements IOutputApi {
     // #endregion Public Accessors (27)
 
     // #region Public Methods (2)
-
-    public updateOutput(newNode: ITreeNode, oldNode: ITreeNode) {
-        this.#output.updateOutput(newNode, oldNode);
-    }
 
     public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[], preventUpdate: boolean = false): Promise<ITreeNode | undefined> {
         return this.#output.updateOutputContent(outputContent, preventUpdate);

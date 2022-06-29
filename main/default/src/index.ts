@@ -29,6 +29,10 @@ import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATI
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine";
 import { GeometryEngine } from "@shapediver/viewer.data-engine.geometry-engine";
 import { MaterialEngine } from "@shapediver/viewer.data-engine.material-engine";
+import { OutputApiData } from "./implementation/session/data/OutputApiData";
+import { SessionApiData } from "./implementation/session/data/SessionApiData";
+import { IOutputApiData } from "./interfaces/session/data/IOutputApiData";
+import { ISessionApiData } from "./interfaces/session/data/ISessionApiData";
 
 export {
     createViewport, createSession, addListener, removeListener,
@@ -51,3 +55,4 @@ export { ICustomData, CustomData, IBoneData, BoneData }
 export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard }
 export { DataEngine, GeometryEngine, MaterialEngine }
 export { ISessionData, SessionData, ISessionOutputData, SessionOutputData }
+export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData }

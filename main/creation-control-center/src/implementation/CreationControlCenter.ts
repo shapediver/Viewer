@@ -333,7 +333,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       if (properties.loadOutputs !== false) {
         if (properties.waitForOutputs !== false) {
-          await sessionEngine.loadOutputs();
+          await sessionEngine.updateOutputs();
           this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
           const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };
@@ -341,7 +341,7 @@ export class CreationControlCenter implements ICreationControlCenter {
           for (let r in this.renderingEngines)
             this.renderingEngines[r].update('CreationControlCenter.createSessionEngine.waitForOutputs=true')
         } else {
-          sessionEngine.loadOutputs().then(() => {
+          sessionEngine.updateOutputs().then(() => {
             this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_INITIAL_OUTPUTS_LOADED, { sessionId: sessionEngineId });
 
             const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_INITIAL_OUTPUTS_LOADED, id: eventId, progress: 1, status: 'Initial outputs loaded' };

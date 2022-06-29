@@ -118,8 +118,8 @@ export class Output implements IOutput {
     return this.#name;
   }
 
-  public get node(): ITreeNode | undefined {
-    return this.#sessionEngine.node.children.find(c => c.name === this.id);
+  public get node(): ITreeNode {
+    return this.#sessionEngine.node.children.find(c => c.name === this.id)!;
   }
 
   public get order(): number | undefined {

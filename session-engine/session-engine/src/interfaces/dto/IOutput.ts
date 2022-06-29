@@ -16,7 +16,7 @@ import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 export interface IOutput extends ShapeDiverResponseOutput {
     // #region Properties (3)
 
-    readonly node?: ITreeNode;
+    readonly node: ITreeNode;
 
     format: string[];
     freeze: boolean;
