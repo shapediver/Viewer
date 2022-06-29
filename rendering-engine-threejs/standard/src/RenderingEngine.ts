@@ -191,9 +191,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._sessionSettingsMode = prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST;
     this._sessionSettingsId = prop.sessionSettingsId;
     this._branding = {
-      logo: branding.logo === undefined ? (this._systemInfo.isIOS ? this.#defaultLogoStatic : this.#defaultLogo) : branding.logo,
+      logo: branding.logo === undefined ? this.#defaultLogo : branding.logo,
       backgroundColor: branding.backgroundColor || '#393a45FF',
-      busyModeSpinner: branding.busyModeSpinner === undefined ? (this._systemInfo.isIOS ? this.#defaultLogoStatic : this.#defaultSpinner) : branding.busyModeSpinner,
+      busyModeSpinner: branding.busyModeSpinner === undefined ? this.#defaultSpinner : branding.busyModeSpinner,
       busyModeDisplay: branding.busyModeDisplay || BUSY_MODE_DISPLAY.SPINNER,
       spinnerPositioning: branding.spinnerPositioning || SPINNER_POSITIONING.BOTTOM_RIGHT
     };

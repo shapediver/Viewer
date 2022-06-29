@@ -27,6 +27,7 @@
     "recursive-readdir-sync": "^1.0.6",
     "selenium-webdriver": "^4.1.1",
     "start-server-and-test": "^1.14.0",
+    "terser-webpack-plugin": "^5.3.3",
     "ts-jest": "^27.1.4",
     "ts-loader": "^8.4.0",
     "ts-node": "^10.7.0",
