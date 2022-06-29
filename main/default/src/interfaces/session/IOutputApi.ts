@@ -39,7 +39,7 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
     /**
      * The {@link node} corresponding to the output in the [scene tree]{@link ITree}.
      */
-    readonly node: ITreeNode;
+    readonly node?: ITreeNode;
 
     /**
      * The format of the items in the content array.
@@ -61,7 +61,7 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
      * due to an update of the output's content.
      * Provides the new scene tree node and the old one, so that data can be carried over.
      */
-    updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
+    updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null;
 
     // #endregion Properties (3)
 

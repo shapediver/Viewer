@@ -27,17 +27,17 @@ export interface ShapeDiverResponseOutputChunk extends ShapeDiverResponseOutputC
 export interface IOutput extends ShapeDiverResponseOutput {
     // #region Properties (3)
 
-    readonly node: ITreeNode;
+    readonly node?: ITreeNode;
 
     format: string[];
     freeze: boolean;
-    updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null;
+    updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null;
 
     // #endregion Properties (3)
 
     // #region Public Methods (1)
     
-    updateOutput(newNode: ITreeNode, oldNode: ITreeNode): void;
+    updateOutput(newNode?: ITreeNode, oldNode?: ITreeNode): void;
     updateOutputContent(content: ShapeDiverResponseOutputContent[], preventUpdate?: boolean): Promise<ITreeNode | undefined>;
     updateOutputDefinition(outputDef: ShapeDiverResponseOutput): void;
 

@@ -19,11 +19,11 @@ export class OutputApi implements IOutputApi {
 
     constructor(output: IOutput) {
         this.#output = output;
-        this.#output.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
-            if(newNode.data.findIndex(d => d instanceof OutputApiData) === -1)
+        this.#output.updateCallback = (newNode?: ITreeNode, oldNode?: ITreeNode) => {
+            if(newNode && newNode.data.findIndex(d => d instanceof OutputApiData) === -1)
                 newNode.addData(new OutputApiData(this));
         };
-        this.#output.updateCallback(this.node, this.node)
+        this.#output.updateCallback(this.node)
     }
 
     // #endregion Constructors (1)
@@ -122,7 +122,7 @@ export class OutputApi implements IOutputApi {
         return this.#output.name;
     }
 
-    public get node(): ITreeNode {
+    public get node(): ITreeNode | undefined {
         return this.#output.node;
     }
 
@@ -170,16 +170,16 @@ export class OutputApi implements IOutputApi {
         return this.#output.uid;
     }
 
-    public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
+    public get updateCallback(): ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null {
         return this.#output.updateCallback;
     }
 
-    public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+    public set updateCallback(value: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null) {
         try {
             this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback: Updating updateCallback to ${value}.`);
             this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback`, value, 'function', false);
-            this.#output.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
-                if(newNode.data.findIndex(d => d instanceof OutputApiData) === -1)
+            this.#output.updateCallback = (newNode?: ITreeNode, oldNode?: ITreeNode) => {
+                if(newNode && newNode.data.findIndex(d => d instanceof OutputApiData) === -1)
                     newNode.addData(new OutputApiData(this));
                 if(value) value(newNode, oldNode);
             };

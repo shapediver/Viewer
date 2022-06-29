@@ -581,7 +581,10 @@ describe('viewer / session', () => {
                 waitForOutputs: false
             });
             await new Promise<void>((resolve) => {
-                SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+                SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => {
+                    if(!SDV.sceneTree.root.boundingBox.isEmpty())
+                        resolve()
+                })
             })
             cb();
         }, shelfTicket);

@@ -30,7 +30,7 @@ export class Output implements IOutput {
   #status_computation?: ShapeDiverResponseModelComputationStatus;
   #tooltip?: string;
   #uid?: string;
-  #updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
+  #updateCallback: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null = null;
   #version: string;
 
   // #endregion Properties (23)
@@ -150,11 +150,11 @@ export class Output implements IOutput {
     return this.#uid;
   }
 
-  public get updateCallback(): ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null {
+  public get updateCallback(): ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null {
     return this.#updateCallback;
   }
 
-  public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+  public set updateCallback(value: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null) {
     this.#updateCallback = value;
   }
 
@@ -166,15 +166,15 @@ export class Output implements IOutput {
 
   // #region Public Methods (3)
 
-  public updateOutput(newNode: TreeNode, oldNode: TreeNode) {
+  public updateOutput(newNode?: TreeNode, oldNode?: TreeNode) {
     const outputDef = this.#sessionEngine.outputs[this.id];
     this.updateOutputDefinition(outputDef);
 
     // add chunk nodes
-    if (this.chunks && this.node) {
-      for (let i = 0; i < this.node.children.length; i++) {
+    if (this.chunks && newNode) {
+      for (let i = 0; i < newNode.children.length; i++) {
         for (let j = 0; j < this.chunks.length; j++) {
-          this.chunks[j].node = this.node.children[i].children.find(child => child.name === this.chunks![j].id);
+          this.chunks[j].node = newNode.children[i].children.find(child => child.name === this.chunks![j].id);
         }
       }
     }
