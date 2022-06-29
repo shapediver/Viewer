@@ -34,7 +34,9 @@ export class SessionApi implements ISessionApi {
 
     constructor(sessionEngine: SessionEngine) {
         this.#sessionEngine = sessionEngine;
-        if(!this.#sessionEngine.initialized) throw new Error();
+        if(!this.#sessionEngine.initialized)
+            this.#logger.error(LOGGING_TOPIC.SESSION, new Error('Session could not be initialized.'), undefined, true, true);
+        
 
         this.#sessionEngine.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
             if(newNode.data.findIndex(d => d instanceof SessionApiData) === -1)

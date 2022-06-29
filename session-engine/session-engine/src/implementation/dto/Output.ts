@@ -185,8 +185,7 @@ export class Output implements IOutput {
   public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[], preventUpdate: boolean = false): Promise<ITreeNode | undefined> {
     this.#sessionEngine.outputs[this.id].content = outputContent;
     this.#sessionEngine.outputs[this.id].version = this.#uuidGenerator.create();
-    // TODO
-    //if (!preventUpdate) await this.#sessionEngine.updateOutputs();
+    if (!preventUpdate) await this.#sessionEngine.updateOutputs();
     return this.node;
   }
 

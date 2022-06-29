@@ -269,7 +269,6 @@ export const createViewport = async (properties?: {
         inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Api.createViewer`, branding.spinnerPositioning, 'enum', false, Object.values(SPINNER_POSITIONING));
 
         prop.sessionSettingsMode = prop.sessionSettingsMode || SESSION_SETTINGS_MODE.FIRST;
-        //TODO proper type checking
 
         const renderingEngine = await creationControlCenter.createRenderingEngineThreeJs(prop);
 

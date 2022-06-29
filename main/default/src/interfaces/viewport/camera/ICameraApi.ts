@@ -93,7 +93,6 @@ export interface ICameraApi {
 
     // #region Public Methods (7)
 
-    // TODO
     /**
      * Let the camera follow a path along pairs of position and target.
      * 

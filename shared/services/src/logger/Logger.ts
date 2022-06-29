@@ -163,10 +163,11 @@ export class Logger {
             }
             throw e;
         } else if(e) {
-            // const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
-            // const viewerError = new ShapeDiverViewerUnknownError(messageProperty, e);
-            if(logToSentry) this.sentryError(topic, new Error(), "messageProperty");
-            throw new Error();
+            const error = <any>e;
+            const messageProperty = error.message ? error.message : `An unknown issue occurred in ${scope}.`;
+            const viewerError = new ShapeDiverViewerUnknownError(messageProperty, error);
+            if(logToSentry) this.sentryError(topic, viewerError, messageProperty);
+            throw viewerError;
         }
     }
 

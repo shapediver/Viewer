@@ -16,7 +16,6 @@ export class CreationControlCenter implements ICreationControlCenter {
   // #region Properties (10)
 
   readonly #eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
-  readonly #httpClient: HttpClient = <HttpClient>container.resolve(HttpClient);
   readonly #logger: Logger = <Logger>container.resolve(Logger);
   readonly #sceneTree: ITree = <ITree>container.resolve(Tree);
   readonly #stateEngine: StateEngine = <StateEngine>container.resolve(StateEngine);
@@ -185,20 +184,12 @@ export class CreationControlCenter implements ICreationControlCenter {
       container.registerInstance('renderingEngine', renderingEngine);
       this.renderingEngines[renderingEngineId] = renderingEngine;
 
-      // TODO camera
-
       const camera = renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.PERSPECTIVE);
       renderingEngine.cameraEngine.assignCamera(camera.id);
 
-      // this.stateEngine.primarySessionAvailable.then(() => {
-      //   this.stateEngine.primarySession?.settingsRegistered.then(() => {
-      //     if (this._closed) return;
-      //     this.applySettings()
-      //   })
-      // })
-
       if (properties.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL) {
-        if (!properties.sessionSettingsId) throw new Error();
+        if (!properties.sessionSettingsId) 
+          throw this.#logger.error(LOGGING_TOPIC.VIEWER, new Error('Session with sessionSettingsMode MANUAL needs to have a sessionSettingsId.'), undefined, true, true);
         const sessionSettingsId = properties.sessionSettingsId;
         if (this.sessionEngines[sessionSettingsId]) {
           this.assignSettings(renderingEngine, sessionSettingsId)
@@ -248,16 +239,6 @@ export class CreationControlCenter implements ICreationControlCenter {
           }
         }
       }
-
-      // TODO waiting for settings
-      //   if ((prop.visibility || VISIBILITY_MODE.SESSION) === VISIBILITY_MODE.SESSION && this.#stateEngine.primarySession && this.#stateEngine.primarySession.initialized.resolved === true) {
-      //     const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWER_CREATION, id: eventId, progress: 0.75, status: 'Waiting for primary session settings' };
-      //     this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventEnd);
-
-      //     await new Promise<void>(resolve => {
-      //       this.#stateEngine.renderingEngines[renderingEngineId].settingsAssigned.then(() => resolve())
-      //     })
-      //   }
 
       this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId: renderingEngineId });
       this.#stateEngine.renderingEngines[renderingEngineId].initialized.resolve(true);

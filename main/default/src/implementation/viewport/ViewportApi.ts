@@ -387,7 +387,6 @@ export class ViewportApi implements IViewportApi {
     }
 
     public createLightScene(properties?: { name?: string | undefined; standard?: boolean | undefined; }): ILightSceneApi {
-        // TODO input sanitation 
         const lightScene = this.#renderingEngine.lightEngine.createLightScene(properties || {});
         return this.#lightScenes[lightScene.id];
     }
