@@ -1,4 +1,5 @@
 import { ITransformation, ITreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
+import { vec3 } from "gl-matrix";
 
 export interface IAnimationTrack {
     // #region Properties (6)
@@ -7,6 +8,7 @@ export interface IAnimationTrack {
     node: ITreeNode,
     path: 'scale' | 'translation' | 'rotation';
     previousMatrix?: ITransformation;
+    pivot?: vec3;
     times: Float32Array | Uint8Array | Uint16Array | Int8Array | Int16Array | Uint32Array | number[];
     values: Float32Array | Uint8Array | Uint16Array | Int8Array | Int16Array | Uint32Array | number[];
 
