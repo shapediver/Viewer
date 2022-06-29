@@ -135,6 +135,13 @@ export interface ITreeNode {
     removeTransformation(transformation: ITransformation): boolean;
 
     /**
+     * Traverse this node and all it's children and executes the callback for all of them
+     * 
+     * @param callback 
+     */
+    traverse(callback: (node: ITreeNode) => void): void;
+
+    /**
      * Update the version
      */
     updateVersion(): void;

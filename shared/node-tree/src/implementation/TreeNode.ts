@@ -297,6 +297,13 @@ export class TreeNode implements ITreeNode {
     return true;
   }
 
+  public traverse(callback: (node: ITreeNode) => void): void {
+    callback(this);
+
+    for(let i = 0; i < this.children.length; i++)
+      this.children[i].traverse(callback);
+  }
+
   public updateVersion(): void {
     let node = <ITreeNode>this;
     while (node.parent) {
