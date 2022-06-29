@@ -1,12 +1,12 @@
 import "reflect-metadata"
-import { ISDObject, ITransformation, ITree, ITreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { TAG3D_JUSTIFICATION } from "@shapediver/viewer.data-engine.shared-types";
+import { ISDObject, ITransformation, ITree, Tree, ITreeNode, TreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
+import { IAnchorDataImage, IAnchorDataText, TAG3D_JUSTIFICATION } from "@shapediver/viewer.data-engine.shared-types";
 import { CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { LIGHT_TYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { RENDERER_TYPE, VISIBILITY_MODE, TEXTURE_ENCODING, TONE_MAPPING, FLAG_TYPE, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { MainEventTypes, EVENTTYPE, LOGGING_LEVEL, LOGGING_TOPIC, IDomEventListener, IEvent, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK } from "@shapediver/viewer.shared.services";
-import { PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, TASK_TYPE, ISDTFAttributeVisualizationData, ISDTFOverview, IMaterialData, IAnimationTrack, IMaterialDataProperties, IMapData, IAnimationData, ISDTFItemData, ISDTFAttributeData, ISDTFAttributesData, IViewerEvent, ICameraEvent, ISceneEvent, ISessionEvent, ITaskEvent, EventResponseMapping, IDragEvent, IHoverEvent, ISelectEvent, IMultiSelectEvent, AnimationData, MaterialStandardData, MaterialUnlitData, MaterialSpecularGlossinessData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
-import { ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, IThreejsData } from '@shapediver/viewer.rendering-engine-threejs.standard'
+import { PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, TASK_TYPE, ISDTFAttributeVisualizationData, ISDTFOverview, IMaterialData, IAnimationTrack, IMaterialDataProperties, IMapData, IAnimationData, ISDTFItemData, ISDTFAttributeData, ISDTFAttributesData, IViewerEvent, ICameraEvent, ISceneEvent, ISessionEvent, ITaskEvent, EventResponseMapping, IDragEvent, IHoverEvent, ISelectEvent, IMultiSelectEvent, AnimationData, MaterialStandardData, MaterialUnlitData, MaterialSpecularGlossinessData, SdtfPrimitiveTypeGuard, AttributeData, BoneData, CustomData, GeometryData, HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData, IAttributeData, IBoneData, ICustomData, IGeometryData, IHTMLElementAnchorData, IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, IMaterialUnlitDataProperties, IMaterialVariantsData, IPrimitiveData, ISDTFOverviewData, MapData, MaterialVariantsData, PrimitiveData, SDTFAttributeData, SDTFAttributesData, SDTFItemData, SDTFOverviewData } from "@shapediver/viewer.shared.types";
+import { ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, IThreejsData, ThreejsData } from '@shapediver/viewer.rendering-engine-threejs.standard'
 import { IExportApi } from "./interfaces/session/IExportApi";
 import { IFileParameterApi } from "./interfaces/session/IFileParameterApi";
 import { IOutputApi } from "./interfaces/session/IOutputApi";
@@ -25,7 +25,10 @@ import { IPointLightApi } from "./interfaces/viewport/lights/types/IPointLightAp
 import { ISpotLightApi } from "./interfaces/viewport/lights/types/ISpotLightApi";
 import { addListener, createSession, createViewport, loggingLevel, removeListener, sceneTree, sessions, showMessages, viewports } from "./main";
 import { IBox, ISphere, IGeometry } from "@shapediver/viewer.shared.math";
-import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, ShapeDiverResponseOutputContent } from "@shapediver/viewer.session-engine.session-engine";
+import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, SessionData, SessionOutputData, ShapeDiverResponseOutputContent } from "@shapediver/viewer.session-engine.session-engine";
+import { DataEngine } from "@shapediver/viewer.data-engine.data-engine";
+import { GeometryEngine } from "@shapediver/viewer.data-engine.geometry-engine";
+import { MaterialEngine } from "@shapediver/viewer.data-engine.material-engine";
 
 export {
     createViewport, createSession, addListener, removeListener,
@@ -36,13 +39,15 @@ export {
 
 export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi }
 export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, ILightSceneApi, IViewportApi }
-export { ITree, ITreeNode, ITreeNodeData }
+export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData }
 export { FLAG_TYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, CAMERA_TYPE, LIGHT_TYPE, RENDERER_TYPE, VISIBILITY_MODE, ORTHOGRAPHIC_CAMERA_DIRECTION, TEXTURE_ENCODING, TONE_MAPPING, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, LOGGING_LEVEL, LOGGING_TOPIC, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING }
-export { EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, IMultiSelectEvent, ISceneEvent, ITaskEvent, TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK }
-export { IBox, ISphere, IGeometry, ITransformation, IMaterialData, IMaterialDataProperties, IMapData, IAnimationTrack, ISDTFAttributeData, ISDTFAttributesData, ISDTFItemData, IAnimationData, ISDTFOverview, ShapeDiverResponseOutputContent, ISDObject, ISDTFAttributeVisualizationData, IDomEventListener, IEvent, IThreejsData, ISessionData, ISessionOutputData }
-
-export { 
-    AnimationData,
-    MaterialStandardData as MaterialData, MaterialStandardData, MaterialUnlitData, MaterialSpecularGlossinessData,
-    SdtfPrimitiveTypeGuard
-}
+export { TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK }
+export { IBox, ISphere, IGeometry, ITransformation, ShapeDiverResponseOutputContent, ISDObject, IDomEventListener, IEvent, IThreejsData, ThreejsData }
+export { EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, IMultiSelectEvent, ISceneEvent, ITaskEvent }
+export { IMaterialStandardData as IMaterialData, MaterialStandardData as MaterialData, IMaterialStandardDataProperties as MaterialDataProperties, IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMapData, MapData }
+export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData }
+export { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData }
+export { ICustomData, CustomData, IBoneData, BoneData }
+export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard }
+export { DataEngine, GeometryEngine, MaterialEngine }
+export { ISessionData, SessionData, ISessionOutputData, SessionOutputData }
