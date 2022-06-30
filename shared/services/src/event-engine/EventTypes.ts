@@ -12,6 +12,15 @@ export enum EVENTTYPE_SCENE {
     SCENE_BOUNDING_BOX_CHANGE = "scene.boundingBoxChange"
 }
 
+// VIEWER
+//     FRAMERATE
+//     RENDER_INFO
+//     RENDER_BEAUTY_START
+//     RENDER_BEAUTY_CANCEL
+//     RENDER_BEAUTY_END
+//     VISIBILITY_ON
+//     VISIBILITY_OFF
+
 export enum EVENTTYPE_VIEWER {
     BUSY_MODE_ON = "viewer.busy.on",
     BUSY_MODE_OFF = "viewer.busy.off",
@@ -43,44 +52,6 @@ export enum EVENTTYPE_INTERACTION {
     SELECT_ON = "interaction.select.on",
     SELECT_OFF = "interaction.select.off",
 }
-
-// export 
-//     available
-//     registered
-//     registeredBatch
-//     update
-//     status
-
-// parameters 
-//     registered
-//     registeredBatch
-//     update
-//     value_update
-
-// state 
-//     BUSY
-//     IDLE
-//     MESSAGE
-//     FAILED
-
-// VIEWER
-//     FRAMERATE
-//     RENDER_INFO
-//     RENDER_BEAUTY_START
-//     RENDER_BEAUTY_CANCEL
-//     RENDER_BEAUTY_END
-//     VISIBILITY_ON
-//     VISIBILITY_OFF
-
-// INTERACTION
-//     DRAG_START
-//     DRAG_MOVE
-//     DRAG_END
-//     HOVER_ON
-//     HOVER_OVER
-//     HOVER_OFF	
-//     SELECT_ON
-//     SELECT_OFF
 
 export const EVENTTYPE = { 
     CAMERA: EVENTTYPE_CAMERA, 

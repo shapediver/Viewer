@@ -40,14 +40,14 @@ export class ParameterApi<T> implements IParameterApi<T> {
     }
 
     public set displayname(value: string | undefined) {
+        const scope = 'displayname';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).displayname: Updating DisplayName to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).displayname`, value, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, value, 'string', false);
             this.#parameter.displayname = value;
-            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).displayname: DisplayName was updated to ${this.#parameter.displayname}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}: ${scope} was set to ${this.#parameter.displayname}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).displayname`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
         }
     }
 
@@ -68,14 +68,14 @@ export class ParameterApi<T> implements IParameterApi<T> {
     }
 
     public set hidden(value: boolean) {
+        const scope = 'hidden';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).hidden: Updating Hidden to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).hidden`, value, 'boolean');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, value, 'boolean');
             this.#parameter.hidden = value;
-            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).hidden: Hidden was updated to ${this.#parameter.hidden}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}: ${scope} was set to ${this.#parameter.hidden}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).hidden`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
         }
     }
 
@@ -100,14 +100,14 @@ export class ParameterApi<T> implements IParameterApi<T> {
     }
 
     public set order(value: number | undefined) {
+        const scope = 'order';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).order: Updating Order to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).order`, value, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, value, 'number', false);
             this.#parameter.order = value;
-            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).order: Order was updated to ${this.#parameter.order}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}: ${scope} was set to ${this.#parameter.order}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).order`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
         }
     }
 
@@ -116,13 +116,13 @@ export class ParameterApi<T> implements IParameterApi<T> {
     }
 
     public set sessionValue(value: T | string) {
+        const scope = 'sessionValue';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).sessionValue: Updating SessionValue to ${value}.`);
             this.#parameter.sessionValue = value;
-            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).sessionValue: SessionValue was updated to ${this.#parameter.value}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}: ${scope} was set to ${this.#parameter.value}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).sessionValue`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
         }
     }
 
@@ -135,14 +135,14 @@ export class ParameterApi<T> implements IParameterApi<T> {
     }
 
     public set tooltip(value: string | undefined) {
+        const scope = 'tooltip';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).tooltip: Updating tooltip to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).tooltip`, value, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, value, 'string', false);
             this.#parameter.tooltip = value;
-            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).tooltip: tooltip was updated to ${this.#parameter.tooltip}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}: ${scope} was set to ${this.#parameter.tooltip}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).tooltip`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
         }
     }
 
@@ -155,13 +155,13 @@ export class ParameterApi<T> implements IParameterApi<T> {
     }
 
     public set value(value: T | string) {
+        const scope = 'value';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).value: Updating Value to ${value}.`);
             this.#parameter.value = value;
-            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).value: Value was updated to ${this.#parameter.value}.`);
+            this.#logger.debug(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}: ${scope} was set to ${this.#parameter.value}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `Parameter(${this.#parameter.id}).value`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
         }
     }
 
@@ -174,19 +174,44 @@ export class ParameterApi<T> implements IParameterApi<T> {
     // #region Public Methods (4)
 
     public isValid(value: any, throwError?: boolean): boolean {
-        return this.#parameter.isValid(value, throwError);
+        const scope = 'isValid';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, throwError, 'boolean', false);
+            return this.#parameter.isValid(value, throwError);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
+        }
     }
 
     public resetToDefaultValue(): void {
-        return this.#parameter.resetToDefaultValue();
+        const scope = 'resetToDefaultValue';
+        try {
+            return this.#parameter.resetToDefaultValue();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
+        }
     }
 
     public resetToSessionValue(): void {
-        return this.#parameter.resetToSessionValue();
+        const scope = 'resetToSessionValue';
+        try {
+            return this.#parameter.resetToSessionValue();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
+        }
     }
 
     public stringify(): string {
-        return this.#parameter.stringify();
+        const scope = 'stringify';
+        try {
+            return this.#parameter.stringify();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.PARAMETER, `ParameterApi.${scope}`, e);
+        }
     }
 
     // #endregion Public Methods (4)

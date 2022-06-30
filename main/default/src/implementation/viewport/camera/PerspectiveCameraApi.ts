@@ -2,12 +2,16 @@ import { vec3, vec2 } from "gl-matrix";
 import { IPerspectiveCamera } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { IPerspectiveCameraApi } from "../../../interfaces/viewport/camera/IPerspectiveCameraApi";
 import { AbstractCameraApi } from "./AbstractCameraApi";
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { container } from "tsyringe";
 
 export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspectiveCameraApi {
     // #region Properties (1)
 
     readonly #camera: IPerspectiveCamera;
-
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    
     // #endregion Properties (1)
 
     // #region Constructors (1)
@@ -15,6 +19,7 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     constructor(camera: IPerspectiveCamera) {
         super(camera);
         this.#camera = camera;
+        this.scope = 'PerspectiveCameraApi';
     }
 
     // #endregion Constructors (1)
@@ -26,7 +31,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set autoRotationSpeed(value: number) {
-        this.#camera.controls.autoRotationSpeed = value;
+        const scope = 'autoRotationSpeed';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
+            this.#camera.controls.autoRotationSpeed = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get cubePositionRestriction(): { min: vec3; max: vec3; } {
@@ -34,7 +47,17 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set cubePositionRestriction(value: { min: vec3; max: vec3; }) {
-        this.#camera.controls.cubePositionRestriction = value;
+        const scope = 'cubePositionRestriction';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.min, 'vec3');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.max, 'vec3');
+            this.#camera.controls.cubePositionRestriction = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get cubeTargetRestriction(): { min: vec3; max: vec3; } {
@@ -42,7 +65,17 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set cubeTargetRestriction(value: { min: vec3; max: vec3; }) {
-        this.#camera.controls.cubeTargetRestriction = value;
+        const scope = 'cubeTargetRestriction';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.min, 'vec3');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.max, 'vec3');
+            this.#camera.controls.cubeTargetRestriction = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get damping(): number {
@@ -50,7 +83,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set damping(value: number) {
-        this.#camera.controls.damping = value;
+        const scope = 'damping';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
+            this.#camera.controls.damping = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get enableAutoRotation(): boolean {
@@ -58,7 +99,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set enableAutoRotation(value: boolean) {
-        this.#camera.controls.enableAutoRotation = value;
+        const scope = 'enableAutoRotation';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
+            this.#camera.controls.enableAutoRotation = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get enableKeyPan(): boolean {
@@ -66,7 +115,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set enableKeyPan(value: boolean) {
-        this.#camera.controls.enableKeyPan = value;
+        const scope = 'enableKeyPan';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
+            this.#camera.controls.enableKeyPan = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get enablePan(): boolean {
@@ -74,7 +131,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set enablePan(value: boolean) {
-        this.#camera.controls.enablePan = value;
+        const scope = 'enablePan';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
+            this.#camera.controls.enablePan = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get enableRotation(): boolean {
@@ -82,7 +147,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set enableRotation(value: boolean) {
-        this.#camera.controls.enableRotation = value;
+        const scope = 'enableRotation';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
+            this.#camera.controls.enableRotation = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get enableZoom(): boolean {
@@ -90,7 +163,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set enableZoom(value: boolean) {
-        this.#camera.controls.enableZoom = value;
+        const scope = 'enableZoom';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'boolean');
+            this.#camera.controls.enableZoom = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get fov(): number {
@@ -98,7 +179,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set fov(value: number) {
-        this.#camera.fov = value;
+        const scope = 'fov';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
+            this.#camera.fov = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get keyPanSpeed(): number {
@@ -106,7 +195,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set keyPanSpeed(value: number) {
-        this.#camera.controls.keyPanSpeed = value;
+        const scope = 'keyPanSpeed';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
+            this.#camera.controls.keyPanSpeed = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get movementSmoothness(): number {
@@ -114,7 +211,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set movementSmoothness(value: number) {
-        this.#camera.controls.movementSmoothness = value;
+        const scope = 'movementSmoothness';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
+            this.#camera.controls.movementSmoothness = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get panSpeed(): number {
@@ -122,7 +227,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set panSpeed(value: number) {
-        this.#camera.controls.panSpeed = value;
+        const scope = 'panSpeed';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
+            this.#camera.controls.panSpeed = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get rotationRestriction(): { minPolarAngle: number; maxPolarAngle: number; minAzimuthAngle: number; maxAzimuthAngle: number; } {
@@ -130,7 +243,19 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set rotationRestriction(value: { minPolarAngle: number; maxPolarAngle: number; minAzimuthAngle: number; maxAzimuthAngle: number; }) {
-        this.#camera.controls.rotationRestriction = value;
+        const scope = 'rotationRestriction';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.minAzimuthAngle, 'number');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.maxAzimuthAngle, 'number');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.minPolarAngle, 'number');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.maxPolarAngle, 'number');
+            this.#camera.controls.rotationRestriction = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get rotationSpeed(): number {
@@ -138,7 +263,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set rotationSpeed(value: number) {
-        this.#camera.controls.rotationSpeed = value;
+        const scope = 'rotationSpeed';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
+            this.#camera.controls.rotationSpeed = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get spherePositionRestriction(): { center: vec3; radius: number; } {
@@ -146,7 +279,17 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set spherePositionRestriction(value: { center: vec3; radius: number; }) {
-        this.#camera.controls.spherePositionRestriction = value;
+        const scope = 'spherePositionRestriction';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.center, 'vec3');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.radius, 'number');
+            this.#camera.controls.spherePositionRestriction = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get sphereTargetRestriction(): { center: vec3; radius: number; } {
@@ -154,7 +297,17 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set sphereTargetRestriction(value: { center: vec3; radius: number; }) {
-        this.#camera.controls.sphereTargetRestriction = value;
+        const scope = 'sphereTargetRestriction';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.center, 'vec3');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.radius, 'number');
+            this.#camera.controls.sphereTargetRestriction = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get zoomRestriction(): { minDistance: number; maxDistance: number; } {
@@ -162,7 +315,17 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set zoomRestriction(value: { minDistance: number; maxDistance: number; }) {
-        this.#camera.controls.zoomRestriction = value;
+        const scope = 'zoomRestriction';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.minDistance, 'number');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value.maxDistance, 'number');
+            this.#camera.controls.zoomRestriction = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get zoomSpeed(): number {
@@ -170,7 +333,15 @@ export class PerspectiveCameraApi extends AbstractCameraApi implements IPerspect
     }
 
     public set zoomSpeed(value: number) {
-        this.#camera.controls.zoomSpeed = value;
+        const scope = 'zoomSpeed';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, value, 'number');
+            this.#camera.controls.zoomSpeed = value;
+            this.#logger.debug(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, e);
+        }
     }
 
     // #endregion Public Accessors (38)

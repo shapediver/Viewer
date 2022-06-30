@@ -6,6 +6,14 @@ import { CAMERA_TYPE } from '../ICameraEngine'
 import { IBox } from '@shapediver/viewer.shared.math'
 import { SettingsEngine } from '@shapediver/viewer.shared.services'
 
+export interface ICameraOptions {
+    easing?: string | Function; 
+    duration?: number; 
+    default?: boolean; 
+    coordinates?: string; 
+    interpolation?: string | Function
+}
+
 export interface ICamera extends ITreeNodeData {
     // #region Properties (13)
 
@@ -33,11 +41,11 @@ export interface ICamera extends ITreeNodeData {
 
     // #region Public Methods (6)
 
-    animate(path: { position: vec3, target: vec3 }[], options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    animate(path: { position: vec3, target: vec3 }[], options?: ICameraOptions): Promise<boolean>;
     applySettings(settingsEngine: SettingsEngine): void;
-    reset(options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
-    set(position: vec3, target: vec3, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
-    zoomTo(zoomTarget?: IBox, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    reset(options?: ICameraOptions): Promise<boolean>;
+    set(position: vec3, target: vec3, options?: ICameraOptions): Promise<boolean>;
+    zoomTo(zoomTarget?: IBox, options?: ICameraOptions): Promise<boolean>;
     calculateZoomTo(zoomTarget?: IBox, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
     project(p: vec3): vec2;
     unproject(p: vec3): vec3;

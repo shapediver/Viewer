@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import { ISDObject, ITransformation, ITree, Tree, ITreeNode, TreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { IAnchorDataImage, IAnchorDataText, TAG3D_JUSTIFICATION } from "@shapediver/viewer.data-engine.shared-types";
-import { CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION } from "@shapediver/viewer.rendering-engine.camera-engine";
+import { CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, ICameraOptions } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { LIGHT_TYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { RENDERER_TYPE, VISIBILITY_MODE, TEXTURE_ENCODING, TONE_MAPPING, FLAG_TYPE, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { MainEventTypes, EVENTTYPE, LOGGING_LEVEL, LOGGING_TOPIC, IDomEventListener, IEvent, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWER, EVENTTYPE_INTERACTION, EVENTTYPE_TASK } from "@shapediver/viewer.shared.services";
@@ -51,7 +51,7 @@ export { EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragE
 export { IMaterialStandardData as IMaterialData, MaterialStandardData as MaterialData, IMaterialStandardDataProperties as MaterialDataProperties, IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMapData, MapData }
 export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData }
 export { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData }
-export { ICustomData, CustomData, IBoneData, BoneData }
+export { ICustomData, CustomData, IBoneData, BoneData, ICameraOptions }
 export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard }
 export { DataEngine, GeometryEngine, MaterialEngine }
 export { ISessionData, SessionData, ISessionOutputData, SessionOutputData }

@@ -1,6 +1,6 @@
 import { IBox } from '@shapediver/viewer.shared.math'
 import { mat4, vec2, vec3 } from 'gl-matrix'
-import { CAMERA_TYPE } from '@shapediver/viewer.rendering-engine.camera-engine'
+import { CAMERA_TYPE, ICameraOptions } from '@shapediver/viewer.rendering-engine.camera-engine'
 
 /**
  * The api for a camera, please see the definitions for the [perspective camera api]{@link IPerspectiveCameraApi} and the [orthographic camera api]{@link IOrthographicCameraApi} as this is just a shared interface for both.
@@ -96,13 +96,10 @@ export interface ICameraApi {
     /**
      * Let the camera follow a path along pairs of position and target.
      * 
-     * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
-     * MTOA: TODO
-     * 
      * @param path The defined path.
      * @param options Various options to be adjusted.
      */
-    animate(path: { position: vec3, target: vec3 }[], options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    animate(path: { position: vec3, target: vec3 }[], options?: ICameraOptions): Promise<boolean>;
     
     /**
      * Calculate the position and target which a call to {@link zoomTo} would result in.
@@ -128,28 +125,19 @@ export interface ICameraApi {
     /**
      * Reset / animate the camera to its default position and target.
      * 
-     * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
-     * MTOA: TODO
-     * 
      * @param options Various options to be adjusted.
      */
-    reset(options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    reset(options?: ICameraOptions): Promise<boolean>;
     
     /**
      * Set / animate the camera to a specific position and target.
      * 
-     * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
-     * MTOA: TODO
-     * 
      * @param options Various options to be adjusted.
      */
-    set(position: vec3, target: vec3, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    set(position: vec3, target: vec3, options?: ICameraOptions): Promise<boolean>;
     
     /**
      * Project a point on the screen to a point in the scene.
-     * 
-     * ATOM: Please add details. Does this a raycast and returns the first hit? What if no hit?
-     * MTOA: This is not a raycast, it is a simple projection. Not even looking at geometry.
      * 
      * @param p The point on the screen to project.
      */
@@ -158,13 +146,10 @@ export interface ICameraApi {
     /**
      * Zoom to a specific part of the scene, or the whole scene (default).
      * 
-     * ATOM: please document the options in detail. What about enums for easing and interpolation? What are the default options?
-     * MTOA: TODO
-     * 
      * @param zoomTarget The target to zoom to.
      * @param options Various options to be adjusted.
      */
-    zoomTo(zoomTarget?: IBox, options?: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function }): Promise<boolean>;
+    zoomTo(zoomTarget?: IBox, options?: ICameraOptions): Promise<boolean>;
 
     // #endregion Public Methods (7)
 }

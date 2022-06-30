@@ -31,6 +31,12 @@ export interface IViewportApi {
   // #region Properties (34)
 
   /**
+   * An array of all animations that are currently present in the parts of
+   * the scene tree relevant to this viewport.
+   */
+   readonly animations: IAnimationData[];
+
+  /**
    * The canvas that is used to render the viewport.
    */
   readonly canvas: HTMLCanvasElement;
@@ -60,6 +66,19 @@ export interface IViewportApi {
    * The [light scenes]{@link ILightSceneApi} of the viewport.
    */
   readonly lightScenes: { [key: string]: ILightSceneApi };
+
+  /**
+   * Optional identifier of the session to be used for loading / persisting settings of the viewport.
+   * This is ignored in case {@link sessionSettingsMode} is not {@link SESSION_SETTINGS_MODE.MANUAL}.
+   */
+  readonly sessionSettingsId?: string;
+
+  /**
+   * Allows to control which session to use for loading / persisting settings of the viewport. 
+   * (default: {@link SESSION_SETTINGS_MODE.FIRST}).
+   * @see {@link sessionSettingsId} 
+   */
+  readonly sessionSettingsMode?: SESSION_SETTINGS_MODE;
 
   /**
    * Option to enable / disable the AR (Augmented Reality) functionality for this viewport. (default: true)
@@ -106,12 +125,6 @@ export interface IViewportApi {
    * The ambient occlusion intensity.
    */
   ambientOcclusionIntensity: number;
-
-  /**
-   * An array of all animations that are currently present in the parts of
-   * the scene tree relevant to this viewport.
-   */
-  animations: IAnimationData[];
 
   /**
    * Option to enable / disable the automatic resizing of the viewport to changes of the {@link canvas}. (default: true)
@@ -195,19 +208,6 @@ export interface IViewportApi {
    * The point size that is used for rendering point data.
    */
   pointSize: number;
-
-  /**
-   * Optional identifier of the session to be used for loading / persisting settings of the viewport.
-   * This is ignored in case {@link sessionSettingsMode} is not {@link SESSION_SETTINGS_MODE.MANUAL}.
-   */
-  sessionSettingsId?: string;
-
-  /**
-   * Allows to control which session to use for loading / persisting settings of the viewport. 
-   * (default: {@link SESSION_SETTINGS_MODE.FIRST}).
-   * @see {@link sessionSettingsId} 
-   */
-  sessionSettingsMode?: SESSION_SETTINGS_MODE;
 
   /**
    * Option to enable / disable rendering of shadows. (default: true)

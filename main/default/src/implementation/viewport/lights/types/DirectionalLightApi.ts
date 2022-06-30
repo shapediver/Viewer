@@ -2,12 +2,16 @@ import { vec3 } from "gl-matrix";
 import { IDirectionalLight } from "@shapediver/viewer.rendering-engine.light-engine";
 import { IDirectionalLightApi } from "../../../../interfaces/viewport/lights/types/IDirectionalLightApi";
 import { AbstractLightApi } from "../AbstractLightApi";
+import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
+import { container } from "tsyringe";
 
 export class DirectionalLightApi extends AbstractLightApi implements IDirectionalLightApi {
     // #region Properties (15)
 
     readonly #light: IDirectionalLight;
-
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    
     // #endregion Properties (15)
 
     // #region Constructors (1)
@@ -15,6 +19,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
     constructor(light: IDirectionalLight) {
         super(light);
         this.#light = light;
+        this.scope = 'DirectionalLightApi';
     }
 
     // #endregion Constructors (1)
@@ -26,7 +31,15 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
     }
 
     public set castShadow(value: boolean) {
-        this.#light.castShadow = value;
+        const scope = 'castShadow';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'boolean');
+            this.#light.castShadow = value;
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get direction(): vec3 {
@@ -34,7 +47,15 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
     }
 
     public set direction(value: vec3) {
-        this.#light.direction = value;
+        const scope = 'direction';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
+            this.#light.direction = value;
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get shadowMapBias(): number {
@@ -42,7 +63,15 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
     }
 
     public set shadowMapBias(value: number) {
-        this.#light.shadowMapBias = value;
+        const scope = 'shadowMapBias';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
+            this.#light.shadowMapBias = value;
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
+        }
     }
 
     public get shadowMapResolution(): number {
@@ -50,7 +79,15 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
     }
 
     public set shadowMapResolution(value: number) {
-        this.#light.shadowMapResolution = value;
+        const scope = 'shadowMapResolution';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
+            this.#light.shadowMapResolution = value;
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
+        }
     }
 
     // #endregion Public Accessors (8)

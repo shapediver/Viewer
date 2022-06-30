@@ -59,14 +59,14 @@ export class OutputApi implements IOutputApi {
     }
 
     public set displayname(value: string | undefined) {
+        const scope = 'displayname';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).displayname: Updating DisplayName to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).displayname`, value, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, value, 'string', false);
             this.#output.displayname = value;
-            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).displayname: DisplayName was updated to ${this.#output.displayname}.`);
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}: ${scope} was updated to ${this.#output.displayname}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).displayname`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, e);
         }
     }
 
@@ -79,14 +79,14 @@ export class OutputApi implements IOutputApi {
     }
 
     public set freeze(value: boolean) {
+        const scope = 'freeze';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).freeze: Updating Freeze to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).freeze`, value, 'boolean');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, value, 'boolean');
             this.#output.freeze = value;
-            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).freeze: Freeze was updated to ${this.#output.freeze}.`);
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}: ${scope} was updated to ${this.#output.freeze}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).freeze`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, e);
         }
     }
 
@@ -95,14 +95,14 @@ export class OutputApi implements IOutputApi {
     }
 
     public set hidden(value: boolean) {
+        const scope = 'hidden';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).hidden: Updating Hidden to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).hidden`, value, 'boolean');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, value, 'boolean');
             this.#output.hidden = value;
-            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).hidden: Hidden was updated to ${this.#output.hidden}.`);
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}: ${scope} was updated to ${this.#output.hidden}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).hidden`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, e);
         }
     }
 
@@ -131,14 +131,14 @@ export class OutputApi implements IOutputApi {
     }
 
     public set order(value: number | undefined) {
+        const scope = 'order';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).order: Updating Order to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).order`, value, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, value, 'number', false);
             this.#output.order = value;
-            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).order: Order was updated to ${this.#output.order}.`);
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}: ${scope} was updated to ${this.#output.order}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).order`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, e);
         }
     }
 
@@ -155,14 +155,14 @@ export class OutputApi implements IOutputApi {
     }
 
     public set tooltip(value: string | undefined) {
+        const scope = 'tooltip';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).tooltip: Updating tooltip to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).tooltip`, value, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, value, 'string', false);
             this.#output.tooltip = value;
-            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).tooltip: tooltip was updated to ${this.#output.tooltip}.`);
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}: ${scope} was updated to ${this.#output.tooltip}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).tooltip`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, e);
         }
     }
 
@@ -175,18 +175,18 @@ export class OutputApi implements IOutputApi {
     }
 
     public set updateCallback(value: ((newNode?: ITreeNode, oldNode?: ITreeNode) => void) | null) {
+        const scope = 'updateCallback';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback: Updating updateCallback to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback`, value, 'function', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, value, 'function', false);
             this.#output.updateCallback = (newNode?: ITreeNode, oldNode?: ITreeNode) => {
                 if(newNode && newNode.data.findIndex(d => d instanceof OutputApiData) === -1)
                     newNode.addData(new OutputApiData(this));
                 if(value) value(newNode, oldNode);
             };
-            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback: updateCallback was updated to ${this.#output.updateCallback}.`);
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}: ${scope} was updated to ${this.#output.updateCallback}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Output(${this.#output.id}).updateCallback`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, e);
         }
     }
 
@@ -199,7 +199,15 @@ export class OutputApi implements IOutputApi {
     // #region Public Methods (2)
 
     public async updateOutputContent(outputContent: ShapeDiverResponseOutputContent[], preventUpdate: boolean = false): Promise<ITreeNode | undefined> {
-        return this.#output.updateOutputContent(outputContent, preventUpdate);
+        const scope = 'updateOutputContent';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, outputContent, 'array');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, preventUpdate, 'boolean');
+            return this.#output.updateOutputContent(outputContent, preventUpdate);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `OutputApi.${scope}`, e);
+        }
     }
 
     // #endregion Public Methods (2)

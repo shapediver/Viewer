@@ -68,14 +68,14 @@ export class SessionApi implements ISessionApi {
     }
 
     public set automaticSceneUpdate(value: boolean) {
+        const scope = 'automaticSceneUpdate';
         try {
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).automaticSceneUpdate: Updating to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).automaticSceneUpdate`, value, 'boolean');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, value, 'boolean');
             this.#sessionEngine.automaticSceneUpdate = value;
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).automaticSceneUpdate: was set to ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `SessionApi.${scope}: ${scope} was set to ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).automaticSceneUpdate`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
@@ -84,14 +84,14 @@ export class SessionApi implements ISessionApi {
     }
 
     public set commitParameters(value: boolean) {
+        const scope = 'commitParameters';
         try {
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitParameters: Updating to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitParameters`, value, 'boolean');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, value, 'boolean');
             this.#sessionEngine.settingsEngine.general.commitParameters = value;
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitParameters: was set to ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `SessionApi.${scope}: ${scope} was set to ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitParameters`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
@@ -100,14 +100,14 @@ export class SessionApi implements ISessionApi {
     }
 
     public set commitSettings(value: boolean) {
+        const scope = 'commitSettings';
         try {
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitSettings: Updating to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitSettings`, value, 'boolean');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, value, 'boolean');
             this.#sessionEngine.settingsEngine.general.commitSettings = value;
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitSettings: was set to ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `SessionApi.${scope}: ${scope} was set to ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).commitSettings`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
@@ -116,14 +116,14 @@ export class SessionApi implements ISessionApi {
     }
 
     public set customizeOnParameterChange(value: boolean) {
+        const scope = 'customizeOnParameterChange';
         try {
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customizeOnParameterChange: Updating to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customizeOnParameterChange`, value, 'boolean');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, value, 'boolean');
             this.#sessionEngine.customizeOnParameterChange = value;
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customizeOnParameterChange: was set to ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `SessionApi.${scope}: ${scope} was set to ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customizeOnParameterChange`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
@@ -132,14 +132,14 @@ export class SessionApi implements ISessionApi {
     }
 
     public set excludeViewports(value: string[]) {
+        const scope = 'excludeViewports';
         try {
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewports: Updating to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewports`, value, 'stringArray');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, value, 'stringArray');
             this.#sessionEngine.excludeViewports = value;
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewports: was set to ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `SessionApi.${scope}: ${scope} was set to ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).excludeViewports`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
@@ -160,14 +160,14 @@ export class SessionApi implements ISessionApi {
     }
 
     public set jwtToken(value: string | undefined) {
+        const scope = 'jwtToken';
         try {
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).bearerToken: Updating to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).bearerToken`, value, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, value, 'string', false);
             this.#sessionEngine.bearerToken = value;
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).bearerToken: was set to ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `SessionApi.${scope}: ${scope} was set to ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).bearerToken`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
@@ -192,18 +192,18 @@ export class SessionApi implements ISessionApi {
     }
 
     public set updateCallback(value: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null) {
+        const scope = 'updateCallback';
         try {
-            this.#logger.debugLow(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback: Updating updateCallback to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback`, value, 'function', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.OUTPUT, `SessionApi.${scope}`, value, 'function', false);
             this.#sessionEngine.updateCallback = (newNode: ITreeNode, oldNode: ITreeNode) => {
                 if(newNode.data.findIndex(d => d instanceof SessionApiData) === -1)
                     newNode.addData(new SessionApiData(this));
                 if(value) value(newNode, oldNode);
             };
-            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback: updateCallback was updated to ${value}.`);
+            this.#logger.debug(LOGGING_TOPIC.OUTPUT, `SessionApi.${scope}: ${scope} was updated to ${value}.`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `Session(${this.id}).updateCallback`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.OUTPUT, `SessionApi.${scope}`, e);
         }
     }
 
@@ -212,14 +212,14 @@ export class SessionApi implements ISessionApi {
     }
 
     public set refreshJwtToken(value: (() => Promise<string>) | undefined) {
+        const scope = 'refreshJwtToken';
         try {
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).refreshJwtToken: Updating to ${value}.`);
-            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `Session(${this.id}).refreshJwtToken`, value, 'function', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, value, 'function', false);
             this.#sessionEngine.refreshBearerToken = value;
-            this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).refreshJwtToken: was set to ${value}`);
+            this.#logger.debug(LOGGING_TOPIC.SESSION, `SessionApi.${scope}: ${scope} was set to ${value}`);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).refreshJwtToken`, e);
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
@@ -232,95 +232,243 @@ export class SessionApi implements ISessionApi {
     // #region Public Methods (21)
 
     public applySettings(response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined; } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; } | undefined; } | undefined; viewport?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } | undefined; }): Promise<void> {
-        return this.#creationControlCenter.applySettings(this.id, response, sections);
+        const scope = 'applySettings';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, response, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, sections, 'object', false);
+            return this.#creationControlCenter.applySettings(this.id, response, sections);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public canGoBack(): boolean {
-        return this.#sessionEngine.canGoBack();
+        const scope = 'canGoBack';
+        try {
+            return this.#sessionEngine.canGoBack();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public canGoForward(): boolean {
-        return this.#sessionEngine.canGoForward();
+        const scope = 'canGoForward';
+        try {
+            return this.#sessionEngine.canGoForward();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public async close(): Promise<void> {
-        return await this.#creationControlCenter.closeSessionEngine(this.id);
+        const scope = 'close';
+        try {
+            return await this.#creationControlCenter.closeSessionEngine(this.id);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public async convertToGlTF(): Promise<Blob> {
-        for(let r in this.#creationControlCenter.renderingEngines)
-            this.#creationControlCenter.renderingEngines[r].update('Session.convertToGlTF');
-        
-        const result = await this.#gltfConverter.convert(this.node, false);
-        return new Blob([result], { type: 'application/octet-stream' });
+        const scope = 'convertToGlTF';
+        try {
+            for(let r in this.#creationControlCenter.renderingEngines)
+                this.#creationControlCenter.renderingEngines[r].update('SessionApi.convertToGlTF');
+            
+            const result = await this.#gltfConverter.convert(this.node, false);
+            return new Blob([result], { type: 'application/octet-stream' });
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public customize(): Promise<ITreeNode> {
-        return this.#sessionEngine.customize();
+        const scope = 'customize';
+        try {
+            return this.#sessionEngine.customize();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
-        return this.#sessionEngine.customizeParallel(parameterValues);
+        const scope = 'customizeParallel';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, parameterValues, 'object');
+            for(let p in parameterValues)
+                this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, parameterValues[p], 'string');
+
+            return this.#sessionEngine.customizeParallel(parameterValues);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getExportById(id: string): IExportApi | null {
-        return this.#exports[id];
+        const scope = 'getExportById';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, id, 'string');
+            return this.#exports[id];
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getExportByName(name: string): IExportApi[] {
-        return Object.values(this.#exports).filter(e => e.name === name);
+        const scope = 'getExportByName';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, name, 'string');
+            return Object.values(this.#exports).filter(e => e.name === name);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getExportByType(type: string): IExportApi[] {
-        return Object.values(this.#exports).filter(e => e.type === type);
+        const scope = 'getExportByType';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, type, 'string');
+            return Object.values(this.#exports).filter(e => e.type === type);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getOutputByFormat(format: string): IOutputApi[] {
-        return Object.values(this.#outputs).filter(o => o.format.includes(format));
+        const scope = 'getOutputByFormat';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, format, 'string');
+            return Object.values(this.#outputs).filter(o => o.format.includes(format));
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getOutputById(id: string): IOutputApi | null {
-        return this.#outputs[id];
+        const scope = 'getOutputById';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, id, 'string');
+            return this.#outputs[id];
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getOutputByName(name: string): IOutputApi[] {
-        return Object.values(this.#outputs).filter(o => o.name === name);
+        const scope = 'getOutputByName';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, name, 'string');
+            return Object.values(this.#outputs).filter(o => o.name === name);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getParameterById(id: string): IParameterApi<any> | null {
-        return this.#parameters[id];
+        const scope = 'getParameterById';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, id, 'string');
+            return this.#parameters[id];
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getParameterByName(name: string): IParameterApi<any>[] {
-        return Object.values(this.#parameters).filter(p => p.name === name);
+        const scope = 'getParameterByName';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, name, 'string');
+            return Object.values(this.#parameters).filter(p => p.name === name);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public getParameterByType(type: string): IParameterApi<any>[] {
-        return Object.values(this.#parameters).filter(p => p.type === type);
+        const scope = 'getParameterByType';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, type, 'string');
+            return Object.values(this.#parameters).filter(p => p.type === type);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public goBack(): Promise<ITreeNode> {
-        return this.#sessionEngine.goBack();
+        const scope = 'goBack';
+        try {
+            return this.#sessionEngine.goBack();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public goForward(): Promise<ITreeNode> {
-        return this.#sessionEngine.goForward();
+        const scope = 'goForward';
+        try {
+            return this.#sessionEngine.goForward();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public saveDefaultParameterValues(): Promise<boolean> {
-        return this.#sessionEngine.saveDefaultParameterValues();
+        const scope = 'saveDefaultParameterValues';
+        try {
+            return this.#sessionEngine.saveDefaultParameterValues();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public saveSettings(viewportId?: string): Promise<boolean> {
-        return this.#creationControlCenter.saveSettings(this.id, viewportId);
+        const scope = 'saveDefaultParameterValues';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, viewportId, 'string', false);
+            return this.#creationControlCenter.saveSettings(this.id, viewportId);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public saveUiProperties(): Promise<boolean> {
-        return this.#sessionEngine.saveUiProperties();
+        const scope = 'saveUiProperties';
+        try {
+            return this.#sessionEngine.saveUiProperties();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     public updateOutputs(): Promise<ITreeNode> {
-        return this.#sessionEngine.updateOutputs();
+        const scope = 'updateOutputs';
+        try {
+            return this.#sessionEngine.updateOutputs();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
     }
 
     // #endregion Public Methods (21)

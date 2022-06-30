@@ -44,7 +44,7 @@ export interface IOutputApi extends ShapeDiverResponseOutput {
     /**
      * The format of the items in the content array.
      */
-    format: string[];
+    readonly format: string[];
 
     /**
      * The freeze flag. 

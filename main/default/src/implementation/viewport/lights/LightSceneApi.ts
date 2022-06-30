@@ -1,12 +1,10 @@
 import { vec3 } from "gl-matrix";
 import { IAmbientLight, IDirectionalLight, IHemisphereLight, ILightScene, IPointLight, ISpotLight, LIGHT_TYPE } from "@shapediver/viewer.rendering-engine.light-engine";
-import { ILightSceneApi } from "../../../interfaces/viewport/lights/ILightSceneApi";
 import { AmbientLightApi } from "./types/AmbientLightApi";
 import { DirectionalLightApi } from "./types/DirectionalLightApi";
 import { HemisphereLightApi } from "./types/HemisphereLightApi";
 import { PointLightApi } from "./types/PointLightApi";
 import { SpotLightApi } from "./types/SpotLightApi";
-import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
 import { ILightApi } from "../../../interfaces/viewport/lights/ILightApi";
 import { IAmbientLightApi } from "../../../interfaces/viewport/lights/types/IAmbientLightApi";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
@@ -14,13 +12,18 @@ import { ISpotLightApi } from "../../../interfaces/viewport/lights/types/ISpotLi
 import { IPointLightApi } from "../../../interfaces/viewport/lights/types/IPointLightApi";
 import { IHemisphereLightApi } from "../../../interfaces/viewport/lights/types/IHemisphereLightApi";
 import { IDirectionalLightApi } from "../../../interfaces/viewport/lights/types/IDirectionalLightApi";
+import { container } from "tsyringe";
+import { InputValidator, ShapeDiverViewerError, ShapeDiverBackendError, LOGGING_TOPIC, Logger } from "@shapediver/viewer.shared.services";
+import { ILightSceneApi } from "../../../interfaces/viewport/lights/ILightSceneApi";
 
 export class LightSceneApi implements ILightSceneApi {
     // #region Properties (15)
 
     readonly #lightScene: ILightScene;
     readonly #lights: { [key: string]: ILightApi; } = {};
-
+    readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #logger: Logger = <Logger>container.resolve(Logger);
+    
     // #endregion Properties (15)
 
     // #region Constructors (1)
@@ -72,10 +75,6 @@ export class LightSceneApi implements ILightSceneApi {
         return this.#lightScene.id;
     }
 
-    public set id(value: string) {
-        this.#lightScene.id = value;
-    }
-
     public get lights(): { [key: string]: ILightApi; } {
         return this.#lights;
     }
@@ -85,15 +84,19 @@ export class LightSceneApi implements ILightSceneApi {
     }
 
     public set name(value: string | undefined) {
-        this.#lightScene.name = value;
+        const scope = 'name';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, value, 'string', false);
+            this.#lightScene.name = value;
+            this.#logger.debug(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}: ${scope} was set to: ${value}`);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, e);
+        }
     }
 
     public get node(): ITreeNode {
         return this.#lightScene.node;
-    }
-
-    public set node(value: ITreeNode) {
-        this.#lightScene.node = value;
     }
 
     // #endregion Public Accessors (8)
@@ -101,28 +104,102 @@ export class LightSceneApi implements ILightSceneApi {
     // #region Public Methods (6)
 
     public addAmbientLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; id?: string | undefined; name?: string | undefined; }): IAmbientLightApi {
-        const light = this.#lightScene.addAmbientLight(properties);
-        return <IAmbientLightApi>this.#lights[light.id];
+        const scope = 'addAmbientLight';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
+            const prop = Object.assign({}, properties);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.intensity, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
+            const light = this.#lightScene.addAmbientLight(properties);
+            return <IAmbientLightApi>this.#lights[light.id];
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, e);
+        }
     }
 
     public addDirectionalLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; direction?: vec3 | undefined; castShadow?: boolean | undefined; shadowMapResolution?: number | undefined; shadowMapBias?: number | undefined; id?: string | undefined; name?: string | undefined; }): IDirectionalLightApi {
-        const light = this.#lightScene.addDirectionalLight(properties);
-        return <IDirectionalLightApi>this.#lights[light.id];
+        const scope = 'addDirectionalLight';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
+            const prop = Object.assign({}, properties);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.intensity, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.direction, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.castShadow, 'boolean', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.shadowMapResolution, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.shadowMapBias, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
+            const light = this.#lightScene.addDirectionalLight(properties);
+            return <IDirectionalLightApi>this.#lights[light.id];
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, e);
+        }
     }
 
     public addHemisphereLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; groundColor?: string | number | vec3 | undefined; id?: string | undefined; name?: string | undefined; }): IHemisphereLightApi {
-        const light = this.#lightScene.addHemisphereLight(properties);
-        return <IHemisphereLightApi>this.#lights[light.id];
+        const scope = 'addHemisphereLight';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
+            const prop = Object.assign({}, properties);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.intensity, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.groundColor, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
+            const light = this.#lightScene.addHemisphereLight(properties);
+            return <IHemisphereLightApi>this.#lights[light.id];
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, e);
+        }
     }
 
     public addPointLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; position?: vec3 | undefined; distance?: number | undefined; decay?: number | undefined; id?: string | undefined; name?: string | undefined; }): IPointLightApi {
-        const light = this.#lightScene.addPointLight(properties);
-        return <IPointLightApi>this.#lights[light.id];
+        const scope = 'addPointLight';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
+            const prop = Object.assign({}, properties);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.intensity, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.position, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.distance, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.decay, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
+            const light = this.#lightScene.addPointLight(properties);
+            return <IPointLightApi>this.#lights[light.id];
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, e);
+        }
     }
 
     public addSpotLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; position?: vec3 | undefined; target?: vec3 | undefined; distance?: number | undefined; decay?: number | undefined; angle?: number | undefined; penumbra?: number | undefined; id?: string | undefined; name?: string | undefined; }): ISpotLightApi {
-        const light = this.#lightScene.addSpotLight(properties);
-        return <ISpotLightApi>this.#lights[light.id];
+        const scope = 'addSpotLight';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
+            const prop = Object.assign({}, properties);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.color, 'color', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.intensity, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.position, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.target, 'vec3', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.distance, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.decay, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.angle, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.penumbra, 'number', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.id, 'string', false);
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, prop.name, 'string', false);
+            const light = this.#lightScene.addSpotLight(properties);
+            return <ISpotLightApi>this.#lights[light.id];
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, e);
+        }
     }
 
     public removeLight(id: string): boolean {

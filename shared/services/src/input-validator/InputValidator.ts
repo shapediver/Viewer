@@ -7,7 +7,7 @@ import { TypeChecker } from '../type-check/TypeChecker'
 export type Types = 'string' | 'boolean' | 'function' |
                     'HTMLCanvasElement' | 'enum' | 
                     'number' | 'factor' | 'positive' |
-                    'vec3' | 'mat4' | 'cubeMap' | 'stringArray' | 'object' | 'file' | 'color';
+                    'vec3' | 'mat4' | 'cubeMap' | 'array' | 'stringArray' | 'object' | 'file' | 'color';
 
 @singleton()
 export class InputValidator {
@@ -27,6 +27,9 @@ export class InputValidator {
         if (defined === false && typeof value === 'undefined') return true;
 
         switch (stringLiteral) {
+            case 'array':
+                if(Array.isArray(value)) return true;
+                break;
             case 'string':
                 if(this._typeChecker.isTypeOf(value, 'string')) return true;
                 break;

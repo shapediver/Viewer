@@ -19,7 +19,12 @@ export interface ILightSceneApi {
     /**
      * The id of the light scene.
      */
-    id: string;
+    readonly id: string;
+    
+    /**
+     * The node in which the lights are stored in the [scene tree]{@link ITree}.
+     */
+    readonly node: ITreeNode;
 
     /**
      * The collection of lights in the light scene.
@@ -30,11 +35,6 @@ export interface ILightSceneApi {
      * The name of the light scene.
      */
     name?: string
-
-    /**
-     * The node in which the lights are stored in the [scene tree]{@link ITree}.
-     */
-    node: ITreeNode;
 
     // #endregion Properties (4)
 

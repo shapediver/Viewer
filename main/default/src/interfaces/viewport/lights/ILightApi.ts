@@ -10,14 +10,19 @@ export interface ILightApi {
   // #region Properties (6)
 
   /**
+   * The id of the light.
+   */
+  readonly id: string;
+
+  /**
+   * The type of the light.
+   */
+  readonly type: LIGHT_TYPE;
+
+  /**
    * The color of the light.
    */
   color: string | number | vec3;
-
-  /**
-   * The id of the light.
-   */
-  id: string;
 
   /**
    * The intensity of the light.
@@ -39,11 +44,6 @@ export interface ILightApi {
    * MTOA: we might need it on the platform
    */
   order?: number;
-  
-  /**
-   * The type of the light.
-   */
-  type: LIGHT_TYPE;
 
   // #endregion Properties (6)
 }
