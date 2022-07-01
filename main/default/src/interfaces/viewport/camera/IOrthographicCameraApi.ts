@@ -8,10 +8,7 @@ import { ICameraApi } from './ICameraApi'
  */
 export interface IOrthographicCameraApi extends ICameraApi {
     /**
-     * The direction of the camera.
-     * 
-     * ATOM: can this be updated?
-     * MTOA: of course
+     * The direction of the camera. (default: ORTHOGRAPHIC_CAMERA_DIRECTION.TOP)
      */
     direction: ORTHOGRAPHIC_CAMERA_DIRECTION;
 
@@ -28,24 +25,17 @@ export interface IOrthographicCameraApi extends ICameraApi {
     enableKeyPan: boolean;
 
     /**
-     * Option to enable panning.
-     * 
-     * ATOM: Let's add a description of the controls, i.e. which mouse buttons have to be pressed, and how it works with touch events.
-     * MTOA: I'd rather not, currently we don't expose it, but we might make it possible to change the inputs.
+     * Option to enable panning. Panning can be done by pressing the right mouse button or three-finger touch events.
      */
     enablePan: boolean;
 
     /**
-     * Option to enable zooming.
-     * 
-     * ATOM: Let's add a description of the controls, i.e. which mouse buttons have to be pressed, and how it works with touch events.
-     * MTOA: I'd rather not, currently we don't expose it, but we might make it possible to change the inputs.
+     * Option to enable zooming. Zooming can be done with the mouse wheel or two-finger touch events.
      */
     enableZoom: boolean;
 
     /**
-     * The speed of the camera for key panning.
-     * MTOA: how key panning works?
+     * The speed of the camera for key panning. The higher this value, the faster you can pan.
      */
     keyPanSpeed: number;
 
@@ -56,18 +46,12 @@ export interface IOrthographicCameraApi extends ICameraApi {
     movementSmoothness: number;
 
     /**
-     * The speed of the camera for panning.
-     * 
-     * ATOM: Let's add details on how this works.
-     * MTOA: how panning works?
+     * The speed of the camera for panning. The higher this value, the faster you can pan.
      */
     panSpeed: number;
 
     /**
-     * The speed of the camera for zooming.
-     * 
-     * ATOM: Let's add details on how this works.
-     * MTOA: how zooming works?
+     * The speed of the camera for zooming. The higher this value, the faster you can zoom.
      */
     zoomSpeed: number;
 }

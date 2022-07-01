@@ -50,15 +50,13 @@ export interface ICameraApi {
 
     /**
      * The name of the camera.
-     * ATOM: What is the difference to id?
-     * MTOA: It's a name ;)
+     * Used by the platform.
      */
     name?: string;
 
     /**
      * Optional order property for the camera.
-     * ATOM: Please explain what this is used for.
-     * MTOA: This was implemented as we will need it on the platform.
+     * Used by the platform.
      */
     order?: number;
 

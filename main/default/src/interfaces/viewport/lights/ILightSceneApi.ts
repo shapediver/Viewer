@@ -43,7 +43,7 @@ export interface ILightSceneApi {
     /**
      * Create an ambient light and add it to the light scene.
      * 
-     * @param properties.color The color of the light. ATOM: Please explain (range etc) MTOA: what kind of range should there be?
+     * @param properties.color The color of the light.
      * @param properties.intensity The intensity of the light. (0-Infinity, default: 0.5)
      * @param properties.id The id of the light.
      * @param properties.name The name of the light.
@@ -64,7 +64,7 @@ export interface ILightSceneApi {
      * @param properties.name The name of the light.
      * @param properties.direction The direction of the light.
      * @param properties.castShadow Option for the light to cast shadows.
-     * @param properties.shadowMapResolution The resolution of the shadow map. ATOM: Please explain
+     * @param properties.shadowMapResolution The resolution of the shadow map. (default: 1024, has to be power of two)
      * @param properties.shadowMapBias The bias of the shadow map. For more info on the shadow bias, see [here](https://digitalrune.github.io/DigitalRune-Documentation/html/3f4d959e-9c98-4a97-8d85-7a73c26145d7.htm).
      */
     addDirectionalLight(properties: {

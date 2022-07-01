@@ -254,8 +254,6 @@ export interface IViewportApi {
    * 
    * Provide a callback that transforms a {@link ISDTFItemData} to a {@link ISDTFAttributeVisualizationData}.
    * The {@link ISDTFOverview} provides general information like min and max values for numbers or the available options for strings.
-   * 
-   * ATOM: I guess this will be partially updated as part of https://shapediver.atlassian.net/browse/SS-5174
    */
   visualizeAttributes: ((overview: ISDTFOverview, itemData?: ISDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
 
@@ -339,8 +337,6 @@ export interface IViewportApi {
   /**
    * Create the {@link ISDTFOverview} for the provided node.
    * If no node was provided, the scene root is used instead.
-   * 
-   * ATOM: I guess this will be partially updated as part of https://shapediver.atlassian.net/browse/SS-5174
    * 
    * @param node The node for which the overview is created.
    */
