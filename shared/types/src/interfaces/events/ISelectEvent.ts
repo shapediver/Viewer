@@ -1,7 +1,7 @@
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { IViewerEvent } from "./IViewerEvent";
+import { IViewportEvent } from "./IViewportEvent";
 
-export interface ISelectEvent extends IViewerEvent {
+export interface ISelectEvent extends IViewportEvent {
     // the selected node
     node: ITreeNode
 }

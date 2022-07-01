@@ -151,7 +151,7 @@ export class EnvironmentMapLoader implements ILoader {
             try { name = JSON.parse(name); } catch (e) {
                 this.notify(eventId, true);
                 const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map.', name);
-                throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
+                throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, error);
             }
 
         // deal with string or array, define names for loading and caching
@@ -162,7 +162,7 @@ export class EnvironmentMapLoader implements ILoader {
             if (name.length !== 6) {
                 this.notify(eventId, true);
                 const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, exactly 6 files are needed in the array.', name);
-                throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
+                throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, error);
             }
             name_internal = JSON.stringify(name, null, 0);
             name_caching = name_internal;
@@ -209,7 +209,7 @@ export class EnvironmentMapLoader implements ILoader {
                 else {
                     this.notify(eventId, true);
                     const error = new ShapeDiverViewerEnvironmentMapError('EnvironmentMapLoader.load: Was not able to load environment map, format not supported.', name);
-                    throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `EnvironmentMapLoader.load`, error);
+                    throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, error);
                 }
             } else {
                 url = name;
@@ -220,7 +220,7 @@ export class EnvironmentMapLoader implements ILoader {
         }
         catch (e) {
             this.notify(eventId, true);
-            throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `EnvironmentMapLoader.load`, e);
+            throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, e);
         }
     }
 

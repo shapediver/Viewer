@@ -7,7 +7,7 @@ export enum TASK_TYPE {
     SESSION_CREATION = 'session_creation',
     SESSION_INITIAL_OUTPUTS_LOADED = 'session_initial_outputs_loaded',
     SESSION_OUTPUTS_UPDATE = 'session_outputs_update',
-    VIEWER_CREATION = 'viewer_creation',
+    VIEWPORT_CREATION = 'viewer_creation',
     EXPORT_REQUEST = 'export_request',
 }
 

@@ -393,7 +393,7 @@ export class SceneTreeManager implements IManager {
             if (!this._stateEngine.renderingEngines[this._renderingEngine.id].boundingBoxCreated.resolved && !this._boundingBox.isEmpty())
                 this._stateEngine.renderingEngines[this._renderingEngine.id].boundingBoxCreated.resolve(true);
 
-            this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, { viewerId: this._renderingEngine.id, boundingBox: {
+            this._eventEngine.emitEvent(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, { viewportId: this._renderingEngine.id, boundingBox: {
                 min: vec3.clone(this._boundingBox.min),
                 max: vec3.clone(this._boundingBox.max),
             }});
@@ -440,14 +440,14 @@ export class SceneTreeManager implements IManager {
         if(this._renderingEngine.visualizeAttributes) {
             const userVisData = this._renderingEngine.visualizeAttributes(this._currentSDTFOverview, itemData);
             try {
-                this._inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer.visualizeAttributes`, userVisData, 'object', true);
-                this._inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `Viewer.visualizeAttributes`, userVisData.matrix, 'mat4', true)
+                this._inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `Viewer.visualizeAttributes`, userVisData, 'object', true);
+                this._inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `Viewer.visualizeAttributes`, userVisData.matrix, 'mat4', true)
                 visData.material = userVisData.material;
                 visData.matrix = visData.matrix;
             } catch(e) {
                 if(e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError)
                     throw e;
-                throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `Viewer.visualizeAttributes: Encountered an error while parsing the visualization data.`, e); 
+                throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `Viewer.visualizeAttributes: Encountered an error while parsing the visualization data.`, e); 
             }
         }
 

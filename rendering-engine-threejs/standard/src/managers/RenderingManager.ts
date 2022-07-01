@@ -224,7 +224,7 @@ export class RenderingManager implements IManager {
 
     public evaluateTextureUnitCount(value: number) {
         if(value > this._maxTextureUnits) {
-            this._logger.warn(LOGGING_TOPIC.VIEWER, `RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
+            this._logger.warn(LOGGING_TOPIC.VIEWPORT, `RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.`);
             this._renderingEngine.lightLoader.forceDisabledShadows = true;
             this._renderingEngine.update('RenderingManager.evaluateTextureUnitCount');
         } else {
@@ -240,12 +240,12 @@ export class RenderingManager implements IManager {
         try {
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_START, (e) => {
                 const viewerEvent = <ICameraEvent>e;
-                if (viewerEvent.viewerId === this._renderingEngine.id)
+                if (viewerEvent.viewportId === this._renderingEngine.id)
                     this.startRendering();
             })
             this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
                 const viewerEvent = <ICameraEvent>e;
-                if (viewerEvent.viewerId === this._renderingEngine.id)
+                if (viewerEvent.viewportId === this._renderingEngine.id)
                     this.stopRendering();
             })
 
@@ -398,7 +398,7 @@ export class RenderingManager implements IManager {
             this._renderingEngine.beautyRenderingManager.render(deltaTime, camera, width, height);
             // if the duration was long enough, disable the beauty rendering
             if (this._renderingEngine.beautyRenderingManager.beautyRenderingDurationActive >= this._renderingEngine.beautyRenderBlendingDuration) {
-                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, { viewerId: this._renderingEngine.id });
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, { viewportId: this._renderingEngine.id });
                 this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
                 this._activeRendering = false;
             } else {
@@ -409,7 +409,7 @@ export class RenderingManager implements IManager {
 
             // if the beauty rendering was active, disable it
             if (this._renderingEngine.beautyRenderingManager.beautyRenderingActive) {
-                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, { viewerId: this._renderingEngine.id });
+                this._eventEngine.emitEvent(EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, { viewportId: this._renderingEngine.id });
                 this._renderingEngine.beautyRenderingManager.deactivateBeautyRenderShaders();
                 this._activeRendering = false;
             }
@@ -469,10 +469,10 @@ export class RenderingManager implements IManager {
                 _gl = <WebGLRenderingContext>canvas.getContext('webgl2', props) || canvas.getContext('webgl', props) || canvas.getContext('experimental-webgl', props);
 
                 if (_gl !== null) {
-                    this._logger.warn(LOGGING_TOPIC.VIEWER, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
+                    this._logger.warn(LOGGING_TOPIC.VIEWPORT, 'RenderingLogic.createWebGLContext: We were unable to get a WebGL context using the requested attributes, falling back to default attributes.');
                 } else {
                     const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.');
-                    throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error, false);
+                    throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `RenderingLogic.createWebGLContext`, error, false);
                 }
             }
 
@@ -489,7 +489,7 @@ export class RenderingManager implements IManager {
                 const renderer = _gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                 if (renderer === "Google SwiftShader") {
                     this._usingSwiftShader = true;
-                    this._logger.warn(LOGGING_TOPIC.VIEWER, 'RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
+                    this._logger.warn(LOGGING_TOPIC.VIEWPORT, 'RenderingLogic.createWebGLContext: The current device is using Google SwiftShader, a CPU-based renderer. To achieve better rendering results, please enable GPU-rendering in your settings.');
                 }
             }
 
@@ -499,7 +499,7 @@ export class RenderingManager implements IManager {
             return _gl;
         } catch (e) {
             const error = new ShapeDiverViewerWebGLError('RenderingLogic.createWebGLContext: We were unable to get a WebGL context.', e);
-            throw this._logger.handleError(LOGGING_TOPIC.VIEWER, `RenderingLogic.createWebGLContext`, error, false);
+            throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `RenderingLogic.createWebGLContext`, error, false);
         }
     }
 

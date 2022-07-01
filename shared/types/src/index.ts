@@ -6,7 +6,7 @@ import {
 import { HTMLElementAnchorCustomData, HTMLElementAnchorData, HTMLElementAnchorImageData, HTMLElementAnchorTextData } from './implementation/data/HTMLElementAnchorData'
 import { SDTFItemData } from './implementation/sdtf/SDTFItemData'
 import { AnimationData } from './implementation/data/AnimationData'
-import { IViewerEvent } from './interfaces/events/IViewerEvent'
+import { IViewportEvent } from './interfaces/events/IViewportEvent'
 import { ISessionEvent } from './interfaces/events/ISessionEvent'
 import { ICameraEvent } from './interfaces/events/ICameraEvent'
 import { ISceneEvent } from './interfaces/events/ISceneEvent'
@@ -63,7 +63,7 @@ export {
 }
 
 export {
-  EventResponseMapping, IViewerEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, IMultiSelectEvent, ISceneEvent, ITaskEvent, TASK_TYPE
+  EventResponseMapping, IViewportEvent, ISessionEvent, ICameraEvent, IDragEvent, IHoverEvent, ISelectEvent, IMultiSelectEvent, ISceneEvent, ITaskEvent, TASK_TYPE
 }
 
 export {

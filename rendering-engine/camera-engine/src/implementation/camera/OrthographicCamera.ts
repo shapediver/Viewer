@@ -162,8 +162,8 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     }
 
     if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
-      if(this._viewerId) {
-          this._stateEngine.renderingEngines[this._viewerId].boundingBoxCreated.then(async () => {
+      if(this._viewportId) {
+          this._stateEngine.renderingEngines[this._viewportId].boundingBoxCreated.then(async () => {
           await this.zoomTo(undefined, { duration: 0 });
           this.defaultPosition = vec3.clone(this._controls.position);
           this.defaultTarget = vec3.clone(this._controls.target);
@@ -173,16 +173,16 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     (<OrthographicCameraControls>this._controls).applySettings(settingsEngine);
   }
 
-  public assignViewer(viewerId: string): void {
+  public assignViewer(viewportId: string): void {
     const renderingEngines = (<IRenderingEngine[]>container.resolveAll('renderingEngine'));
-    let renderingEngine: IRenderingEngine | undefined = renderingEngines.find(r => r.id === viewerId && r.closed === false);
+    let renderingEngine: IRenderingEngine | undefined = renderingEngines.find(r => r.id === viewportId && r.closed === false);
     if(!renderingEngine) {
-      const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with id ${viewerId} not found.`);
+      const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with id ${viewportId} not found.`);
       throw this._logger.handleError(LOGGING_TOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);
     }
 
-    this.assignViewerInternal(viewerId, renderingEngine.canvas);
-    this._controls.assignViewer(viewerId, renderingEngine.canvas);
+    this.assignViewerInternal(viewportId, renderingEngine.canvas);
+    this._controls.assignViewer(viewportId, renderingEngine.canvas);
 
     if (this._domEventListenerToken && this._domEventEngine)
       this._domEventEngine.removeDomEventListener(this._domEventListenerToken);
@@ -192,7 +192,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
     this.boundingBox = this._tree.root.boundingBox.clone();
       
-    this._stateEngine.renderingEngines[viewerId].boundingBoxCreated.then(async () => {
+    this._stateEngine.renderingEngines[viewportId].boundingBoxCreated.then(async () => {
       if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])
         await this.zoomTo(undefined, { duration: 0 });
     })

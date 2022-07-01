@@ -1,8 +1,8 @@
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { mat4 } from "gl-matrix";
-import { IViewerEvent } from "./IViewerEvent";
+import { IViewportEvent } from "./IViewportEvent";
 
-export interface IDragEvent extends IViewerEvent {
+export interface IDragEvent extends IViewportEvent {
     // the dragged node
     node: ITreeNode,
     // the applied matrix

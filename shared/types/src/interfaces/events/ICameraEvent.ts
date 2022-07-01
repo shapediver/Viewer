@@ -1,5 +1,5 @@
-import { IViewerEvent } from "./IViewerEvent";
+import { IViewportEvent } from "./IViewportEvent";
 
-export interface ICameraEvent extends IViewerEvent {
+export interface ICameraEvent extends IViewportEvent {
     cameraId: string,
 }

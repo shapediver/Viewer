@@ -1,6 +1,6 @@
 import { vec3 } from "gl-matrix";
-import { IViewerEvent } from "./IViewerEvent";
+import { IViewportEvent } from "./IViewportEvent";
 
-export interface ISceneEvent extends IViewerEvent {
+export interface ISceneEvent extends IViewportEvent {
     boundingBox: { min: vec3, max: vec3}
 }

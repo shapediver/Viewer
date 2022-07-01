@@ -364,12 +364,12 @@ export interface ISessionApi {
     saveUiProperties(): Promise<boolean>;
     
     /**
-     * Save the 3D viewer related settings of this session to the model hosted on the Geometry Backend.
+     * Save the 3D viewport related settings of this session to the model hosted on the Geometry Backend.
      * 
      * If a viewportId is provided, the settings of that viewport will be used for saving.
      * 
      * This call will throw an exception if the ticket and JWT do not grant the required permission to 
-     * save viewer settings for the model.
+     * save viewport settings for the model.
      *
      * @param viewportId The optional viewport id.
      */

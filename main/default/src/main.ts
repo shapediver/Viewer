@@ -247,7 +247,7 @@ export const createViewport = async (properties?: {
        busyModeSpinner?: string,
        /**
         * The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
-        * Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWER.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWER.BUSY_MODE_OFF} will be emitted.
+        * Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWPORT.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWPORT.BUSY_MODE_OFF} will be emitted.
         */
        busyModeDisplay?: BUSY_MODE_DISPLAY,
        /**
@@ -261,28 +261,28 @@ export const createViewport = async (properties?: {
     visibility?: VISIBILITY_MODE,
   }): Promise<IViewportApi> => {
     try {
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, 'createViewport', properties, 'object', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, 'createViewport', properties, 'object', false);
 
         const prop = Object.assign({}, properties);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, prop.canvas, 'HTMLCanvasElement', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, prop.id, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, prop.sessionSettingsId, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, prop.sessionSettingsMode, 'enum', false, Object.values(SESSION_SETTINGS_MODE));
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, prop.visibility, 'enum', false, Object.values(VISIBILITY_MODE));
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.canvas, 'HTMLCanvasElement', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.id, 'string', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.sessionSettingsId, 'string', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.sessionSettingsMode, 'enum', false, Object.values(SESSION_SETTINGS_MODE));
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, prop.visibility, 'enum', false, Object.values(VISIBILITY_MODE));
 
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, 'createViewport', prop.branding, 'object', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, 'createViewport', prop.branding, 'object', false);
         const branding = Object.assign({}, prop.branding);
-        if(branding.logo !== null) inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, branding.logo, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, branding.backgroundColor, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, branding.busyModeSpinner, 'string', false);
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
-        inputValidator.validateAndError(LOGGING_TOPIC.VIEWER, `createViewport`, branding.spinnerPositioning, 'enum', false, Object.values(SPINNER_POSITIONING));
+        if(branding.logo !== null) inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.logo, 'string', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.backgroundColor, 'string', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.busyModeSpinner, 'string', false);
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.busyModeDisplay, 'enum', false, Object.values(BUSY_MODE_DISPLAY));
+        inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `createViewport`, branding.spinnerPositioning, 'enum', false, Object.values(SPINNER_POSITIONING));
 
         prop.sessionSettingsMode = prop.sessionSettingsMode !== undefined ? prop.sessionSettingsMode : SESSION_SETTINGS_MODE.FIRST;
 
         if(prop.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && !prop.sessionSettingsId) {
             const error = new ShapeDiverViewerValidationError(`createViewport: Input could not be validated. sessionSettingsId has to point to a valid and created session when using SESSION_SETTINGS_MODE.MANUAL`, prop.sessionSettingsId, 'string');
-            throw logger.handleError(LOGGING_TOPIC.VIEWER, 'createViewport', error, false);
+            throw logger.handleError(LOGGING_TOPIC.VIEWPORT, 'createViewport', error, false);
         }
 
         const renderingEngine = await creationControlCenter.createRenderingEngineThreeJs(prop);

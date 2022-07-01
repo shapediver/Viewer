@@ -845,13 +845,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
         if (!currentBusyState) {
           this.busy = true;
           this._renderingManager.render();
-          this._eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_ON, { viewerId: this.id });
+          this._eventEngine.emitEvent(EVENTTYPE.VIEWPORT.BUSY_MODE_ON, { viewportId: this.id });
         }
       } else {
         if (currentBusyState) {
           this.busy = false;
           this._renderingManager.render();
-          this._eventEngine.emitEvent(EVENTTYPE.VIEWER.BUSY_MODE_OFF, { viewerId: this.id });
+          this._eventEngine.emitEvent(EVENTTYPE.VIEWPORT.BUSY_MODE_OFF, { viewportId: this.id });
         }
       }
     }

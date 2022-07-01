@@ -12,7 +12,7 @@ export enum EVENTTYPE_SCENE {
     SCENE_BOUNDING_BOX_CHANGE = "scene.boundingBoxChange"
 }
 
-// VIEWER
+// VIEWPORT
 //     FRAMERATE
 //     RENDER_INFO
 //     RENDER_BEAUTY_START
@@ -21,12 +21,12 @@ export enum EVENTTYPE_SCENE {
 //     VISIBILITY_ON
 //     VISIBILITY_OFF
 
-export enum EVENTTYPE_VIEWER {
+export enum EVENTTYPE_VIEWPORT {
     BUSY_MODE_ON = "viewer.busy.on",
     BUSY_MODE_OFF = "viewer.busy.off",
-    VIEWER_CREATED = "viewer.created",
-    VIEWER_UPDATED = "viewer.updated",
-    VIEWER_CLOSED = "viewer.closed"
+    VIEWPORT_CREATED = "viewer.created",
+    VIEWPORT_UPDATED = "viewer.updated",
+    VIEWPORT_CLOSED = "viewer.closed"
 }
 
 export enum EVENTTYPE_SESSION {
@@ -58,9 +58,9 @@ export const EVENTTYPE = {
     RENDERING: EVENTTYPE_RENDERING, 
     SCENE: EVENTTYPE_SCENE, 
     SESSION: EVENTTYPE_SESSION,
-    VIEWER: EVENTTYPE_VIEWER,
+    VIEWPORT: EVENTTYPE_VIEWPORT,
     INTERACTION: EVENTTYPE_INTERACTION,
     TASK: EVENTTYPE_TASK
 };
 
-export type MainEventTypes = typeof EVENTTYPE_CAMERA | typeof EVENTTYPE_RENDERING | typeof EVENTTYPE_SCENE | typeof EVENTTYPE_SESSION | typeof EVENTTYPE_VIEWER | typeof EVENTTYPE_INTERACTION | typeof EVENTTYPE_TASK;
+export type MainEventTypes = typeof EVENTTYPE_CAMERA | typeof EVENTTYPE_RENDERING | typeof EVENTTYPE_SCENE | typeof EVENTTYPE_SESSION | typeof EVENTTYPE_VIEWPORT | typeof EVENTTYPE_INTERACTION | typeof EVENTTYPE_TASK;

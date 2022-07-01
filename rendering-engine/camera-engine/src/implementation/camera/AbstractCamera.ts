@@ -41,7 +41,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     protected _boundingBox: IBox = new Box();
     protected _position: vec3 = vec3.create();
     protected _target: vec3 = vec3.create();
-    protected _viewerId?: string;
+    protected _viewportId?: string;
 
     protected abstract _controls: ICameraControls;
 
@@ -195,8 +195,8 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         return this._type;
     }
 
-    public get viewerId(): string | undefined {
-        return this._viewerId;
+    public get viewportId(): string | undefined {
+        return this._viewportId;
     }
 
     public get zoomExtentsFactor(): number {
@@ -254,7 +254,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     }
 
     public update(time: number): boolean {
-        if(this.useNodeData && this.node && this._viewerId) {
+        if(this.useNodeData && this.node && this._viewportId) {
             return true;
         } else {
             const { position, target } = this._controls.update(time);
@@ -278,7 +278,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     // #region Public Abstract Methods (5)
 
     abstract applySettings(settingsEngine?: SettingsEngine): void;
-    abstract assignViewer(viewerId: string): void;
+    abstract assignViewer(viewportId: string): void;
     abstract calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
     abstract project(p: vec3): vec2;
     abstract unproject(p: vec3): vec3;
@@ -287,8 +287,8 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Protected Methods (1)
 
-    protected assignViewerInternal(viewerId: string, canvas: HTMLCanvasElement) {
-        this._viewerId = viewerId;
+    protected assignViewerInternal(viewportId: string, canvas: HTMLCanvasElement) {
+        this._viewportId = viewportId;
         this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e: IEvent) => {
             if (this._autoAdjust === true)
                 this.zoomTo();

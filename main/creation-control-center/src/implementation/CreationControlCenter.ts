@@ -62,7 +62,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     try {
       if (!this.renderingEngines[id]) return;
 
-      this.#logger.debugLow(LOGGING_TOPIC.VIEWER, `Api.closeRenderingEngine: Closing viewer ${id}.`);
+      this.#logger.debugLow(LOGGING_TOPIC.VIEWPORT, `CreationControlCenter.closeRenderingEngine: Closing viewport ${id}.`);
       if (this.#stateEngine.renderingEngines[id].initialized.resolved === false)
         await new Promise<void>(resolve => { this.#stateEngine.renderingEngines[id].initialized.then(() => resolve()) })
 
@@ -71,17 +71,17 @@ export class CreationControlCenter implements ICreationControlCenter {
       this.#stateEngine.renderingEngines[id].initialized.reset();
 
       await this.renderingEngines[id].close();
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CLOSED, { viewerId: id });
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CLOSED, { viewportId: id });
 
       (<any>this.renderingEngines[id]) = undefined;
       delete this.renderingEngines[id];
       delete this.#stateEngine.renderingEngines[id];
 
-      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Viewer(${id}): Viewer closed.`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `CreationControlCenter.closeRenderingEngine: Viewport closed.`);
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.closeRenderingEngine', e);
+      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.closeRenderingEngine', e);
     }
   }
 
@@ -89,7 +89,7 @@ export class CreationControlCenter implements ICreationControlCenter {
     try {
       if (!this.sessionEngines[id]) return;
 
-      this.#logger.debugLow(LOGGING_TOPIC.SESSION, `Api.closeSession: Closing session ${id}.`);
+      this.#logger.debugLow(LOGGING_TOPIC.SESSION, `CreationControlCenter.closeSession: Closing session ${id}.`);
 
       if (this.#stateEngine.sessionEngines[id].initialized.resolved === false)
         await new Promise<void>(resolve => { this.#stateEngine.sessionEngines[id].initialized.then(() => resolve()) })
@@ -132,13 +132,13 @@ export class CreationControlCenter implements ICreationControlCenter {
       delete this.sessionEngines[id];
       delete this.#stateEngine.sessionEngines[id];
 
-      this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${id}): Session closed.`);
+      this.#logger.debug(LOGGING_TOPIC.SESSION, `CreationControlCenter.closeSessionEngine: Session closed.`);
       for (let r in this.renderingEngines)
         this.renderingEngines[r].update('CreationControlCenter.closeSessionEngine')
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.closeSession', e);
+      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.closeSession', e);
     }
   }
 
@@ -159,15 +159,15 @@ export class CreationControlCenter implements ICreationControlCenter {
     const eventId = this.#uuidGenerator.create();
     let renderingEngineId = properties.id || this.#uuidGenerator.create();
     try {
-      const eventStart: ITaskEvent = { type: TASK_TYPE.VIEWER_CREATION, id: eventId, progress: 0, status: 'Creating viewer' };
+      const eventStart: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0, status: 'Creating viewport' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
 
       // check if the given id is valid
       if (this.renderingEngines[renderingEngineId]) {
-        const eventClose: ITaskEvent = { type: TASK_TYPE.VIEWER_CREATION, id: eventId, progress: 0.1, status: 'Closing viewer with same id' };
+        const eventClose: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0.1, status: 'Closing viewport with same id' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
 
-        this.#logger.warn(LOGGING_TOPIC.SESSION, `Api.createViewer: Viewer with this id (${renderingEngineId}) already exists. Closing initial instance.`);
+        this.#logger.warn(LOGGING_TOPIC.SESSION, `CreationControlCenter.createViewport: Viewer with this id (${renderingEngineId}) already exists. Closing initial instance.`);
         await this.closeRenderingEngine(renderingEngineId);
       }
 
@@ -189,7 +189,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       if (properties.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL) {
         if (!properties.sessionSettingsId) 
-          throw this.#logger.error(LOGGING_TOPIC.VIEWER, new Error('Session with sessionSettingsMode MANUAL needs to have a sessionSettingsId.'), undefined, true, true);
+          throw this.#logger.error(LOGGING_TOPIC.VIEWPORT, new Error('Session with sessionSettingsMode MANUAL needs to have a sessionSettingsId.'), undefined, true, true);
         const sessionSettingsId = properties.sessionSettingsId;
         if (this.sessionEngines[sessionSettingsId]) {
           this.assignSettings(renderingEngine, sessionSettingsId)
@@ -214,7 +214,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         if (this.#sceneTree.root.boundingBox.isEmpty()) {
           this.#eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
             const event = e as EventResponseMapping[EVENTTYPE_SCENE.SCENE_BOUNDING_BOX_CHANGE];
-            if (event.viewerId === renderingEngine.id) {
+            if (event.viewportId === renderingEngine.id) {
               const boundingBox = new Box(event.boundingBox!.min, event.boundingBox!.max);
               if (boundingBox.isEmpty()) {
                 renderingEngine.show = false;
@@ -240,27 +240,27 @@ export class CreationControlCenter implements ICreationControlCenter {
         }
       }
 
-      this.#eventEngine.emitEvent(EVENTTYPE.VIEWER.VIEWER_CREATED, { viewerId: renderingEngineId });
+      this.#eventEngine.emitEvent(EVENTTYPE.VIEWPORT.VIEWPORT_CREATED, { viewportId: renderingEngineId });
       this.#stateEngine.renderingEngines[renderingEngineId].initialized.resolve(true);
 
-      this.#logger.debug(LOGGING_TOPIC.VIEWER, `Api.createViewer: Viewer(${renderingEngineId}) created.`);
+      this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `CreationControlCenter.createViewport: Viewport(${renderingEngineId}) created.`);
 
-      const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWER_CREATION, id: eventId, progress: 1, status: 'Viewer created' };
+      const eventEnd: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
 
       if (this.update) this.update(this.sessionEngines, this.renderingEngines);
       return <RenderingEngineThreeJs>this.renderingEngines[renderingEngineId];
     } catch (e) {
-      const eventCancel1: ITaskEvent = { type: TASK_TYPE.VIEWER_CREATION, id: eventId, progress: 0.9, status: 'Viewer created failed, closing viewer' };
+      const eventCancel1: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0.9, status: 'Viewport created failed, closing viewport' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventCancel1);
 
       try { await this.closeRenderingEngine(renderingEngineId); } catch { }
 
-      const eventCancel2: ITaskEvent = { type: TASK_TYPE.VIEWER_CREATION, id: eventId, progress: 1, status: 'Viewer created failed, exiting' };
+      const eventCancel2: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 1, status: 'Viewport created failed, exiting' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
 
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.createViewer', e);
+      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.createViewport', e);
     }
   }
 
@@ -286,7 +286,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         const eventClose: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.1, status: 'Closing session with same id' };
         this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_PROCESS, eventClose);
 
-        this.#logger.warn(LOGGING_TOPIC.SESSION, `Api.createSession: Session with this id (${sessionEngineId}) already exists. Closing initial instance.`);
+        this.#logger.warn(LOGGING_TOPIC.SESSION, `CreationControlCenter.createSession: Session with this id (${sessionEngineId}) already exists. Closing initial instance.`);
         await this.closeSessionEngine(sessionEngineId);
       }
 
@@ -338,7 +338,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       this.#eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CREATED, { sessionEngineId });
       this.#stateEngine.sessionEngines[sessionEngineId].initialized.resolve(true);
-      this.#logger.debug(LOGGING_TOPIC.SESSION, `Api.createSession: Session(${sessionEngine.id}) created.`);
+      this.#logger.debug(LOGGING_TOPIC.SESSION, `CreationControlCenter.createSession: Session(${sessionEngine.id}) created.`);
 
       const eventEnd: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 1, status: 'Session created' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
@@ -382,7 +382,7 @@ export class CreationControlCenter implements ICreationControlCenter {
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_CANCEL, eventCancel2);
 
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.createSession', e);
+      throw this.#logger.handleError(LOGGING_TOPIC.GENERAL, 'CreationControlCenter.createSession', e);
     }
   }
 

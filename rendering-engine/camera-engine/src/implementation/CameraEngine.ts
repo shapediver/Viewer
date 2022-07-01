@@ -56,7 +56,7 @@ export class CameraEngine implements ICameraEngine {
     constructor(private readonly _renderingEngine: IRenderingEngine, private readonly _canvas: HTMLCanvasElement) {
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
             const viewerEvent = <ISceneEvent>e;
-            if (viewerEvent.viewerId === this._renderingEngine.id) {
+            if (viewerEvent.viewportId === this._renderingEngine.id) {
                 this._boundingBox = new Box(viewerEvent.boundingBox!.min, viewerEvent.boundingBox!.max);
 
                 const cameras = this.cameras;
@@ -65,9 +65,9 @@ export class CameraEngine implements ICameraEngine {
             }
         });
 
-        this._eventEngine.addListener(EVENTTYPE.VIEWER.VIEWER_UPDATED, (e: IEvent) => {
+        this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, (e: IEvent) => {
             const viewerEvent = <ISceneEvent>e;
-            if (viewerEvent.viewerId === this._renderingEngine.id) {
+            if (viewerEvent.viewportId === this._renderingEngine.id) {
                 this.searchForNewCameras();
             }
         });
@@ -309,7 +309,7 @@ export class CameraEngine implements ICameraEngine {
             for(let i = 0; i < node.data.length; i++)
                 if((node.data[i] instanceof AbstractCamera) && !this._cameras[node.data[i].id]) {
                     const camera = <AbstractCamera>node.data[i];
-                    if(camera.viewerId === this._renderingEngine.id)
+                    if(camera.viewportId === this._renderingEngine.id)
                         this._cameras[camera.id] = camera;
                 }
 

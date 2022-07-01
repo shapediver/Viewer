@@ -42,7 +42,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
     };
     private _position: vec3 = vec3.create();
     private _target: vec3 = vec3.create();
-    private _viewerId?: string;
+    private _viewportId?: string;
 
     protected _cameraControlsEventDistribution!: ICameraControlsEventDistribution;
     protected _cameraLogic!: ICameraControlsLogic;
@@ -65,9 +65,9 @@ export class AbstractCameraControls implements ICameraControlsUsage {
 
     // #region Public Accessors (9)
 
-    public assignViewer(viewerId: string, canvas: HTMLCanvasElement) {
+    public assignViewer(viewportId: string, canvas: HTMLCanvasElement) {
         this._canvas = canvas;
-        this._viewerId = viewerId;
+        this._viewportId = viewportId;
     }
 
     public get cameraControlsEventDistribution(): ICameraControlsEventDistribution {
@@ -263,13 +263,13 @@ export class AbstractCameraControls implements ICameraControlsUsage {
 
         switch(true) {
             case oldMovement !== this._moving && this._moving === true:
-                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, { viewerId: this._viewerId, cameraId: this.camera.id });
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_START, { viewportId: this._viewportId, cameraId: this.camera.id });
                 break;
             case oldMovement !== this._moving && this._moving === false:
-                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, { viewerId: this._viewerId, cameraId: this.camera.id });
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_END, { viewportId: this._viewportId, cameraId: this.camera.id });
                 break;
             default: 
-                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, { viewerId: this._viewerId, cameraId: this.camera.id });
+                this._eventEngine.emitEvent(EVENTTYPE.CAMERA.CAMERA_MOVE, { viewportId: this._viewportId, cameraId: this.camera.id });
         }
         
         if (!this._moving) this._movingDuration = 0;

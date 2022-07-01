@@ -1,4 +1,4 @@
-import { EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_TASK, EVENTTYPE_VIEWER } from "@shapediver/viewer.shared.services";
+import { EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_TASK, EVENTTYPE_VIEWPORT } from "@shapediver/viewer.shared.services";
 import { ICameraEvent } from "./ICameraEvent";
 import { IDragEvent } from "./IDragEvent";
 import { IHoverEvent } from "./IHoverEvent";
@@ -6,19 +6,19 @@ import { ISceneEvent } from "./ISceneEvent";
 import { ISelectEvent } from "./ISelectEvent";
 import { ISessionEvent } from "./ISessionEvent";
 import { ITaskEvent } from "./ITaskEvent";
-import { IViewerEvent } from "./IViewerEvent";
+import { IViewportEvent } from "./IViewportEvent";
 
 export type EventResponseMapping = {
     [EVENTTYPE_CAMERA.CAMERA_START]: ICameraEvent,
     [EVENTTYPE_CAMERA.CAMERA_MOVE]: ICameraEvent,
     [EVENTTYPE_CAMERA.CAMERA_END]: ICameraEvent,
-    [EVENTTYPE_RENDERING.BEAUTY_RENDERING_FINISHED]: IViewerEvent,
+    [EVENTTYPE_RENDERING.BEAUTY_RENDERING_FINISHED]: IViewportEvent,
     [EVENTTYPE_SCENE.SCENE_BOUNDING_BOX_CHANGE]: ISceneEvent,
-    [EVENTTYPE_VIEWER.BUSY_MODE_ON]: IViewerEvent,
-    [EVENTTYPE_VIEWER.BUSY_MODE_OFF]: IViewerEvent,
-    [EVENTTYPE_VIEWER.VIEWER_CREATED]: IViewerEvent,
-    [EVENTTYPE_VIEWER.VIEWER_UPDATED]: IViewerEvent,
-    [EVENTTYPE_VIEWER.VIEWER_CLOSED]: IViewerEvent,
+    [EVENTTYPE_VIEWPORT.BUSY_MODE_ON]: IViewportEvent,
+    [EVENTTYPE_VIEWPORT.BUSY_MODE_OFF]: IViewportEvent,
+    [EVENTTYPE_VIEWPORT.VIEWPORT_CREATED]: IViewportEvent,
+    [EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED]: IViewportEvent,
+    [EVENTTYPE_VIEWPORT.VIEWPORT_CLOSED]: IViewportEvent,
     [EVENTTYPE_SESSION.SESSION_CREATED]: ISessionEvent,
     [EVENTTYPE_SESSION.SESSION_CUSTOMIZED]: ISessionEvent,
     [EVENTTYPE_SESSION.SESSION_CLOSED]: ISessionEvent,

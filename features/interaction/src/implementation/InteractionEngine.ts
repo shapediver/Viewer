@@ -121,7 +121,7 @@ export class InteractionEngine implements IInteractionEngine {
         const camera = this.#viewport.camera;
         if (!camera) {
             const error = new ShapeDiverViewerGeneralError('InteractionEngine.mouseEventToRay: No camera is defined for this viewer.');
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `InteractionEngine.mouseEventToRay`, error);
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `InteractionEngine.mouseEventToRay`, error);
         }
 
         let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -201,7 +201,7 @@ export class InteractionEngine implements IInteractionEngine {
         const camera = this.#viewport.camera;
         if (!camera) {
             const error = new ShapeDiverViewerGeneralError('InteractionEngine.touchToRay: No camera is defined for this viewer.');
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWER, `InteractionEngine.touchToRay`, error);
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `InteractionEngine.touchToRay`, error);
         }
 
         let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;

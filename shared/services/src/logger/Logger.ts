@@ -28,7 +28,7 @@ export enum LOGGING_TOPIC {
     PARAMETER = 'parameter',
     OUTPUT = 'output',
     SESSION = 'session',
-    VIEWER = 'viewer',
+    VIEWPORT = 'viewer',
     CAMERA = 'camera',
     LIGHT = 'light',
     CAMERA_CONTROL = 'camera_control',

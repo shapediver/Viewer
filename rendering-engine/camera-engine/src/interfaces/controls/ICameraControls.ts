@@ -23,7 +23,7 @@ export interface ICameraControls {
     applyTargetMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void;
     applyTargetVector(vector: vec3, manualInteraction?: boolean | undefined): void;
     applyUpMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void;
-    assignViewer(viewerId: string, canvas: HTMLCanvasElement):void;
+    assignViewer(viewportId: string, canvas: HTMLCanvasElement):void;
     getPositionWithManualUpdates(): vec3;
     getPositionWithUpdates(): vec3;
     getTargetWithManualUpdates(): vec3;

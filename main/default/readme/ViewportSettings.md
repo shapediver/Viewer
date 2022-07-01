@@ -35,7 +35,7 @@
 ### busyModeDisplay
 > The mode used to indicate that the viewport is busy. (default: BUSY_MODE_DISPLAY.SPINNER)
 >
-> Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWER.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWER.BUSY_MODE_OFF} will be emitted.
+> Whenever the busy mode gets toggled, the events {@link EVENTTYPE_VIEWPORT.BUSY_MODE_ON} and {@link EVENTTYPE_VIEWPORT.BUSY_MODE_OFF} will be emitted.
 
 ### clearAlpha
 > The clear alpha value of the viewport.

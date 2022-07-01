@@ -4,7 +4,7 @@ import { ShapeDiverResponseExport } from "@shapediver/sdk.geometry-api-sdk-v2";
  * The api for an export of a corresponding [session]{@link ISessionApi}.
  * 
  * Exports are used for outputting data which should not be visualized in the scene, 
- * or which should not be accessible via the viewer. 
+ * or which should not be accessible via the viewport. 
  * 
  * Exports are NOT computed as part of customizations (see {@link customize}). 
  * The export can be requested by calling its {@link request} method.
