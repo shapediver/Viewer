@@ -544,6 +544,7 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
+        // https://shapediver.atlassian.net/browse/SS-5408
         throw new Error('Method not implemented.')
     }
 

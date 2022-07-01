@@ -117,7 +117,6 @@ export interface IRenderingEngine {
 
   addFlag(flag: FLAG_TYPE): string;
   getScreenshot(type?: string, encoderOptions?: number): string;
-  init(): void;
   removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;

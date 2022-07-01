@@ -63,10 +63,6 @@ export class Tree implements ITree {
     return false;
   }
 
-  public convertSceneToGLTF(): Promise<Blob> {
-    throw new Error('Method not implemented.');
-  }
-
   public getNodeAtPath(path: string = this.root.getPath(), root: ITreeNode = this.#root): ITreeNode | null {
     if (root.name === path) 
       return root;

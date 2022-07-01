@@ -916,10 +916,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._renderingManager.getScreenshot(type, encoderOptions);
   }
 
-  public init(): void {
-    throw new Error('Method not implemented.')
-  }
-
   public removeFlag(token: string): boolean {
     let success = false;
     const Flags = Object.values(FLAG_TYPE);

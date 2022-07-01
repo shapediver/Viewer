@@ -28,13 +28,6 @@ export interface ITree {
     addNodeAtPath(node: ITreeNode, path?: string, root?: ITreeNode): boolean;
 
     /**
-     * Converts the whole scene (without the groundplane or grid) into a GlTF v2.
-     * 
-     * @returns
-     */
-    convertSceneToGLTF(): Promise<Blob>;
-
-    /**
      * Get the node at the provided path.
      * 
      * @param path 
