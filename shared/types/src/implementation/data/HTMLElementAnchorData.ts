@@ -16,7 +16,7 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData impleme
     #hideable: boolean = true;
     #intersectionTarget?: Box | string | string[];
     #location: vec3;
-    #viewers: string[] = [];
+    #viewports: string[] = [];
 
     // #endregion Properties (9)
 
@@ -34,7 +34,7 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData impleme
             data: IAnchorDataImage | IAnchorDataText | any,
             format: 'text' | 'image' | 'custom',
             hideable?: boolean,
-            viewers?: string[],
+            viewports?: string[],
             intersectionTarget?: Box | string | string[],
             id?: string,
         }
@@ -45,7 +45,7 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData impleme
         this.#data = properties.data;
         this.#format = properties.format;
         this.#hideable = properties.hideable === undefined ? true : properties.hideable;
-        this.#viewers = properties.viewers || [];
+        this.#viewports = properties.viewports || [];
         this.#intersectionTarget = properties.intersectionTarget;
 
         this.internalHtmlElement = <HTMLDivElement>document.createElement('div');
@@ -99,12 +99,12 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData impleme
         this.#location = value;
     }
 
-    public get viewers(): string[] {
-        return this.#viewers;
+    public get viewports(): string[] {
+        return this.#viewports;
     }
 
-    public set viewers(value: string[]) {
-        this.#viewers = value;
+    public set viewports(value: string[]) {
+        this.#viewports = value;
     }
 
     // #endregion Public Accessors (12)
@@ -113,7 +113,7 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData impleme
 
     public createViewerHtmlElement(viewer: string): HTMLDivElement | null {
         if (this.#viewerHtmlElement[viewer]) return this.#viewerHtmlElement[viewer];
-        if (this.viewers.includes(viewer) || this.viewers.length === 0) {
+        if (this.viewports.includes(viewer) || this.viewports.length === 0) {
             this.#viewerHtmlElement[viewer] = <HTMLDivElement>this.internalHtmlElement.cloneNode(true);
             this.create({ anchor: this, parent: this.#viewerHtmlElement[viewer] });
             return this.#viewerHtmlElement[viewer];
@@ -185,7 +185,7 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
             location: vec3,
             data: IAnchorDataText,
             hideable?: boolean,
-            viewers?: string[],
+            viewports?: string[],
             intersectionTarget?: Box | string | string[],
             id?: string,
         }) {
@@ -194,7 +194,7 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
             data: properties.data,
             format: 'text',
             hideable: properties.hideable,
-            viewers: properties.viewers,
+            viewports: properties.viewports,
             intersectionTarget: properties.intersectionTarget,
             id: properties.id,
         })
@@ -209,7 +209,7 @@ export class HTMLElementAnchorTextData extends HTMLElementAnchorData {
             location: this.location,
             data: this.data,
             hideable: this.hideable,
-            viewers: this.viewers,
+            viewports: this.viewports,
             intersectionTarget: this.intersectionTarget,
             id: this.id,
         });
@@ -251,7 +251,7 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
             location: vec3,
             data: IAnchorDataImage,
             hideable?: boolean,
-            viewers?: string[],
+            viewports?: string[],
             intersectionTarget?: Box | string | string[],
             id?: string,
         }) {
@@ -260,7 +260,7 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
             data: properties.data,
             format: 'image',
             hideable: properties.hideable,
-            viewers: properties.viewers,
+            viewports: properties.viewports,
             intersectionTarget: properties.intersectionTarget,
             id: properties.id,
         })
@@ -275,7 +275,7 @@ export class HTMLElementAnchorImageData extends HTMLElementAnchorData {
             location: this.location,
             data: this.data,
             hideable: this.hideable,
-            viewers: this.viewers,
+            viewports: this.viewports,
             intersectionTarget: this.intersectionTarget,
             id: this.id,
         });
@@ -316,7 +316,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
             location: vec3,
             data: any,
             hideable?: boolean,
-            viewers?: string[],
+            viewports?: string[],
             intersectionTarget?: Box | string | string[],
             id?: string,
             create: (properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) => void,
@@ -327,7 +327,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
             data: properties.data,
             format: 'custom',
             hideable: properties.hideable,
-            viewers: properties.viewers,
+            viewports: properties.viewports,
             intersectionTarget: properties.intersectionTarget,
             id: properties.id,
         })
@@ -353,7 +353,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
             location: this.location,
             data: this.data,
             hideable: this.hideable,
-            viewers: this.viewers,
+            viewports: this.viewports,
             intersectionTarget: this.intersectionTarget,
             id: this.id,
             create: this.#create,

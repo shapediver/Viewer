@@ -13,7 +13,7 @@ import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { AbstractTreeNodeData, ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ICameraControls } from '../../interfaces/controls/ICameraControls'
-import { ICamera } from '../../interfaces/camera/ICamera'
+import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera'
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
 import { AbstractCameraControls } from '../controls/AbstractCameraControls'
 
@@ -211,7 +211,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     // #region Public Methods (5)
 
-    public async animate(path: { position: vec3; target: vec3; }[], options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public async animate(path: { position: vec3; target: vec3; }[], options?: ICameraOptions): Promise<boolean> {
         if (path.length === 0) return Promise.resolve(false);
 
         if (!this._controls.isWithinRestrictions(path[path.length - 1].position, path[path.length - 1].target))
@@ -228,7 +228,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         return res;
     }
 
-    public reset(options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public reset(options?: ICameraOptions): Promise<boolean> {
         if ((this.defaultPosition[0] === 0 && this.defaultPosition[1] === 0 && this.defaultPosition[2] === 0) && (this.defaultTarget[0] === 0 && this.defaultTarget[1] === 0 && this.defaultTarget[2] === 0)) {
             return this.zoomTo(undefined, options);
         } else {
@@ -236,7 +236,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         }
     }
 
-    public async set(position: vec3, target: vec3, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public async set(position: vec3, target: vec3, options?: ICameraOptions): Promise<boolean> {
         if (!this._controls.isWithinRestrictions(position, target))
             return Promise.resolve(false);
 
@@ -268,7 +268,7 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
         }
     }
 
-    public zoomTo(zoomTarget?: Box, options?: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public zoomTo(zoomTarget?: Box, options?: ICameraOptions): Promise<boolean> {
         const { position, target } = this.calculateZoomTo(zoomTarget)
         return this.set(position, target, options);
     }

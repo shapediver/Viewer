@@ -7,11 +7,34 @@ import { IBox } from '@shapediver/viewer.shared.math'
 import { SettingsEngine } from '@shapediver/viewer.shared.services'
 
 export interface ICameraOptions {
-    easing?: string | Function; 
+    /**
+     * The easing type of the camera interpolation. (default: 'Quadratic.InOut')
+     */
+    easing?: 'Linear.None' | 
+    'Quadratic.In' | 'Quadratic.Out' | 'Quadratic.InOut' |
+    'Cubic.In' | 'Cubic.Out' | 'Cubic.InOut' |
+    'Quartic.In' | 'Quartic.Out' | 'Quartic.InOut' |
+    'Quintic.In' | 'Quintic.Out' | 'Quintic.InOut' |
+    'Sinusoidal.In' | 'Sinusoidal.Out' | 'Sinusoidal.InOut' |
+    'Exponential.In' | 'Exponential.Out' | 'Exponential.InOut' |
+    'Circular.In' | 'Circular.Out' | 'Circular.InOut' |
+    'Elastic.In' | 'Elastic.Out' | 'Elastic.InOut' |
+    'Back.In' | 'Back.Out' | 'Back.InOut' |
+    'Bounce.In' | 'Bounce.Out' | 'Bounce.InOut' |
+    Function; 
+    /**
+     * The duration of the camera movement. (default: cameraMovementDuration set in the settings)
+     * When set to 0, the camera is immediately updated to the specified position and target.
+     */
     duration?: number; 
-    default?: boolean; 
-    coordinates?: string; 
-    interpolation?: string | Function
+    /**
+     * The coordinate type of the camera interpolation. (default: 'cylindrical')
+     */
+    coordinates?: 'spherical' | 'linear' | 'cylindrical'; 
+    /**
+     * The interpolation type of the camera interpolation. (default: 'CatmullRom')
+     */
+    interpolation?: 'Linear' | 'Bezier' | 'CatmullRom' | Function
 }
 
 export interface ICamera extends ITreeNodeData {

@@ -1,5 +1,5 @@
 import { mat4, vec3 } from "gl-matrix";
-import { ICamera } from "../camera/ICamera";
+import { ICamera, ICameraOptions } from "../camera/ICamera";
 import { ICameraControlsEventDistribution } from "./ICameraControlsEventDistribution";
 
 export interface ICameraControls {
@@ -17,7 +17,7 @@ export interface ICameraControls {
 
     // #region Public Methods (15)
 
-    animate(path: { position: vec3, target: vec3 }[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean>;
+    animate(path: { position: vec3, target: vec3 }[], options: ICameraOptions): Promise<boolean>;
     applyPositionMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void;
     applyPositionVector(vector: vec3, manualInteraction?: boolean | undefined): void;
     applyTargetMatrix(matrix: mat4, manualInteraction?: boolean | undefined): void;

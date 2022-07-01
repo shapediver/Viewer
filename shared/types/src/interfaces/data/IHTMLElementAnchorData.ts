@@ -42,7 +42,7 @@ export interface IHTMLElementAnchorData extends ITreeNodeData {
     hideable: boolean;
     intersectionTarget: IBox | string | string[] | undefined;
     location: vec3;
-    viewers: string[];
+    viewports: string[];
 
     // #endregion Properties (6)
 

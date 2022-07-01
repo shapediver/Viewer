@@ -3,7 +3,7 @@ import { EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
-import { ICamera } from '../../interfaces/camera/ICamera'
+import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera'
 import { ICameraControlsUsage } from '../../interfaces/controls/ICameraControlsUsage'
 import { CameraInterpolationManager } from '../interpolation/CameraInterpolationManager'
 import { ICameraControlsEventDistribution } from '../../interfaces/controls/ICameraControlsEventDistribution'
@@ -127,7 +127,7 @@ export class AbstractCameraControls implements ICameraControlsUsage {
 
     // #region Public Methods (10)
 
-    public animate(path: { position: vec3, target: vec3 }[], options: { easing?: string | Function | undefined; duration?: number | undefined; default?: boolean | undefined; coordinates?: string | undefined; interpolation?: string | Function | undefined; }): Promise<boolean> {
+    public animate(path: { position: vec3, target: vec3 }[], options: ICameraOptions): Promise<boolean> {
         if(options && options.duration === 0) {
             this._position = path[path.length-1].position;
             this._target = path[path.length-1].target;

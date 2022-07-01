@@ -22,11 +22,11 @@ export enum EVENTTYPE_SCENE {
 //     VISIBILITY_OFF
 
 export enum EVENTTYPE_VIEWPORT {
-    BUSY_MODE_ON = "viewer.busy.on",
-    BUSY_MODE_OFF = "viewer.busy.off",
-    VIEWPORT_CREATED = "viewer.created",
-    VIEWPORT_UPDATED = "viewer.updated",
-    VIEWPORT_CLOSED = "viewer.closed"
+    BUSY_MODE_ON = "viewport.busy.on",
+    BUSY_MODE_OFF = "viewport.busy.off",
+    VIEWPORT_CREATED = "viewport.created",
+    VIEWPORT_UPDATED = "viewport.updated",
+    VIEWPORT_CLOSED = "viewport.closed"
 }
 
 export enum EVENTTYPE_SESSION {

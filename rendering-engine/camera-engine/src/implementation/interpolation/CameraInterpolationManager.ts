@@ -4,7 +4,7 @@ import { vec3 } from 'gl-matrix'
 import { CameraMultipleInterpolation } from './interpolationMethods/CameraMultipleInterpolation'
 import { CameraSphericalInterpolation } from './interpolationMethods/CameraSphericalInterpolation'
 import { ICameraControlsUsage } from '../../interfaces/controls/ICameraControlsUsage'
-import { ICamera } from '../../interfaces/camera/ICamera'
+import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera'
 import { CameraLinearInterpolation } from './interpolationMethods/CameraLinearInterpolation'
 import { CameraCylindricalInterpolation } from './interpolationMethods/CameraCylindricalInterpolation'
 import { ICameraInterpolation } from '../../interfaces/interpolation/ICameraInterpolation'
@@ -18,7 +18,7 @@ export class CameraInterpolationManager {
         private _tween!: TWEEN.Tween<{  delta: number }>;
         private _resolve!: Function;
 
-        constructor(options: {default: boolean, duration: number, easing: (amount: number) => number, coordinates: string, interpolation: Function }, cb: ICameraInterpolation, onComplete: Function) {
+        constructor(options: {duration: number, easing: (amount: number) => number, coordinates: string, interpolation: Function }, cb: ICameraInterpolation, onComplete: Function) {
             this._tween = new TWEEN.Tween(this._properties);
             this._tween.easing(options.easing);            
             this._tween.to({ delta: 1.0 }, options.duration);
@@ -71,7 +71,7 @@ export class CameraInterpolationManager {
     /**
      * cameraTween
      */
-    public interpolate(path: { position: vec3, target: vec3 }[], options: { easing?: string | Function; duration?: number; default?: boolean; coordinates?: string; interpolation?: string | Function; } = {}) : Promise<boolean> 
+    public interpolate(path: { position: vec3, target: vec3 }[], options: ICameraOptions = {}) : Promise<boolean> 
     {
 
         const newPath: { position: vec3, target: vec3 }[] = [];
@@ -120,7 +120,7 @@ export class CameraInterpolationManager {
         }
     }
 
-    private optionsParser(options: { default?: boolean, duration?: number, easing?: string|Function, coordinates?: string, interpolation?: string|Function} ): {default: boolean, duration: number, easing: (amount: number) => number, coordinates: string, interpolation: (v: number[], k: number) => number }
+    private optionsParser(options: ICameraOptions): {duration: number, easing: (amount: number) => number, coordinates: string, interpolation: (v: number[], k: number) => number }
     {
         let easing = TWEEN.Easing.Quartic.InOut;
         if(typeof options.easing === 'string') {
@@ -143,7 +143,6 @@ export class CameraInterpolationManager {
         }
 
         return {
-            default: options.default || false,
             duration: options.duration && options.duration >= 0 ? options.duration : 0,
             easing,
             coordinates: options.coordinates !== 'spherical' && options.coordinates !== 'linear' && options.coordinates !== 'cylindrical' ? 'cylindrical' : options.coordinates, 
