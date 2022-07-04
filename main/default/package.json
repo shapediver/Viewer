@@ -34,9 +34,9 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build": "bash ../../scripts/build.sh",
-    "build-watch": "bash ../../scripts/build-watch.sh",
-    "build-dep": "bash ../../scripts/build-dep.sh",
+    "build": "bash ../../scripts/building/build.sh",
+    "build-watch": "bash ../../scripts/building/build-watch.sh",
+    "build-dep": "bash ../../scripts/building/build-dep.sh",
     "build-current": "npm run build-dep",
     "doc": "typedoc"
   },
@@ -51,12 +51,12 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.24",
-    "@shapediver/viewer.main.creation-control-center": "1.14.14",
     "@shapediver/viewer.data-engine.data-engine": "1.14.14",
     "@shapediver/viewer.data-engine.geometry-engine": "1.14.14",
     "@shapediver/viewer.data-engine.gltf-converter": "1.14.14",
     "@shapediver/viewer.data-engine.material-engine": "1.14.14",
     "@shapediver/viewer.data-engine.shared-types": "1.14.14",
+    "@shapediver/viewer.main.creation-control-center": "1.14.14",
     "@shapediver/viewer.rendering-engine-threejs.standard": "1.14.14",
     "@shapediver/viewer.rendering-engine.camera-engine": "1.14.14",
     "@shapediver/viewer.rendering-engine.light-engine": "1.14.14",
@@ -68,7 +68,7 @@
     "@shapediver/viewer.shared.node-tree": "1.14.14",
     "@shapediver/viewer.shared.services": "1.14.14",
     "@shapediver/viewer.shared.types": "1.14.14",
-    "@shapediver/viewer.utils.mime-type": "0.0.13",
+    "@shapediver/viewer.utils.mime-type": "0.0.15",
     "gl-matrix": "3.3.0",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"

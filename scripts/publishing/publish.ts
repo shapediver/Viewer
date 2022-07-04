@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer } from './utils';
+import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer } from '../utils/utils';
 
 (async () => {
     try {
@@ -14,7 +14,6 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         let npm_publish_answer = await readAnswer('Publish to npm?\n');
         let npm_publish = (npm_publish_answer === 'yes' || npm_publish_answer === 'y');
 
-
         const changes = await execPromise(`git status --porcelain`);
         if(changes) {
             throw new Error(`Please stage and commit your files first.\n${changes}`);
@@ -22,6 +21,11 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
             console.log(changes);
         }
 
+        console.log('deploying tests...')
+        await execPromise(`npm run deploy-tests`)
+        console.log('starting tests...')
+        await execPromise(`npm run test-all`)
+        
         console.log('checking versioning...')
 
         /**

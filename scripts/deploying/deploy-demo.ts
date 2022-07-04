@@ -1,4 +1,4 @@
-import { deployToS3, execPromise, getDirectories, readAnswer, readAnswerOptions } from './utils';
+import { deployToS3, execPromise, getDirectories, readAnswer, readAnswerOptions } from '../utils/utils';
 
 (async () => {
     try {

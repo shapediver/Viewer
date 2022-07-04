@@ -22,10 +22,10 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build": "bash ../../scripts/build.sh",
-    "build-dep": "bash ../../scripts/build-dep.sh",
-    "build-dev": "bash ../../scripts/build-dev.sh",
-    "build-prod": "bash ../../scripts/build-prod.sh"
+    "build": "bash ../../scripts/building/build.sh",
+    "build-dep": "bash ../../scripts/building/build-dep.sh",
+    "build-dev": "bash ../../scripts/building/build-dev.sh",
+    "build-prod": "bash ../../scripts/building/build-prod.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"

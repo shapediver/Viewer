@@ -1,6 +1,6 @@
 module.exports = {
     entryPoints: ['./src/index.ts'],
-    out: 'docs',
+    out: '../../docs',
     exclude: [
         '**/__tests__/**/*',
         '**/tests/**/*'
@@ -13,4 +13,3 @@ module.exports = {
     excludePrivate: true,
     sort: ['required-first', 'kind', 'alphabetical'],
 }
-//    "doc": "s --theme minimal --name Viewer && cp -r api/api/images docs/images",

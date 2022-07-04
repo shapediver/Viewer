@@ -1,11 +1,11 @@
 import { container, singleton } from 'tsyringe'
-import { HTMLElementAnchorData, HTMLElementAnchorTextData, HTMLElementAnchorImageData } from '@shapediver/viewer.shared.types'
+import { HTMLElementAnchorData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, IAnchorDataText, IAnchorDataImage } from '@shapediver/viewer.shared.types'
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { Logger, LOGGING_TOPIC, Converter, ShapeDiverViewerDataProcessingError, InputValidator } from '@shapediver/viewer.shared.services'
 import { vec3, vec4 } from 'gl-matrix'
 import { Box } from '@shapediver/viewer.shared.math'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { IAnchor, IAnchorDataImage, IAnchorDataText, ITag2D } from '@shapediver/viewer.data-engine.shared-types'
+import { IAnchor, ITag2D } from '@shapediver/viewer.data-engine.shared-types'
 
 @singleton()
 export class HTMLElementAnchorEngine {
@@ -84,7 +84,7 @@ export class HTMLElementAnchorEngine {
                                 position
                             },
                             hideable: element.hideable,
-                            viewers: element.viewports,
+                            viewports: element.viewports,
                             intersectionTarget
                         }));
 
@@ -105,7 +105,7 @@ export class HTMLElementAnchorEngine {
                                 position
                             },
                             hideable: element.hideable,
-                            viewers: element.viewports,
+                            viewports: element.viewports,
                             intersectionTarget
                         }));
                     }

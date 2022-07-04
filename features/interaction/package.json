@@ -25,9 +25,9 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build": "bash ../../scripts/build.sh",
-    "build-watch": "bash ../../scripts/build-watch.sh",
-    "build-dep": "bash ../../scripts/build-dep.sh",
+    "build": "bash ../../scripts/building/build.sh",
+    "build-watch": "bash ../../scripts/building/build-watch.sh",
+    "build-dep": "bash ../../scripts/building/build-dep.sh",
     "build-current": "npm run build-dep"
   },
   "bugs": {

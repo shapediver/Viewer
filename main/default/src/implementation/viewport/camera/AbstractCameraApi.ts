@@ -18,7 +18,6 @@ export abstract class AbstractCameraApi implements ICameraApi {
         const prop = Object.assign({}, options);
         this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, prop.easing, 'string', false);
         this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, prop.duration, 'number', false);
-        this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, prop.default, 'string', false);
         this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, prop.coordinates, 'string', false);
         this.#inputValidator.validateAndError(LOGGING_TOPIC.CAMERA, `${this.scope}.${scope}`, prop.interpolation, 'string', false);
     }

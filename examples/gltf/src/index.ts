@@ -15,7 +15,7 @@ let currentNode: ITreeNode;
 let promise: Promise<void>;
 
 (async () => {
-    let viewer = await createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', branding: { logo: 'https://viewer.shapediver.com/v3/latest/api/images/gltf_monster.png', backgroundColor: 'rgb(3, 5, 49)' } });
+    let viewer = await createViewport({ canvas: <HTMLCanvasElement>document.getElementById('canvas'), id: 'myViewer', branding: { logo: 'https://viewer.shapediver.com/v3/graphics/gltf_monster.png', backgroundColor: 'rgb(3, 5, 49)' } });
     viewer.ambientOcclusion = false;
     viewer.shadows = false;
     viewer.physicallyCorrectLights = true;

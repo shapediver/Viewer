@@ -25,9 +25,9 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build": "bash ../../scripts/build.sh",
-    "build-watch": "bash ../../scripts/build-watch.sh",
-    "build-dep": "bash ../../scripts/build-dep.sh"
+    "build": "bash ../../scripts/building/build.sh",
+    "build-watch": "bash ../../scripts/building/build-watch.sh",
+    "build-dep": "bash ../../scripts/building/build-dep.sh"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"
@@ -40,10 +40,10 @@
   },
   "dependencies": {
     "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.24",
-    "@shapediver/viewer.shared.build-data": "1.14.14",
     "@shapediver/viewer.data-engine.data-engine": "1.14.14",
     "@shapediver/viewer.data-engine.shared-types": "1.14.14",
     "@shapediver/viewer.settings": "0.1.36",
+    "@shapediver/viewer.shared.build-data": "1.14.14",
     "@shapediver/viewer.shared.node-tree": "1.14.14",
     "@shapediver/viewer.shared.services": "1.14.14",
     "@shapediver/viewer.shared.types": "1.14.14",

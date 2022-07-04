@@ -41,8 +41,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist --force-local",
     "clean": "lerna clean --yes && rm -rf node_modules",
-    "doc": "ts-node ./scripts/doc.ts",
-    "init": "bash ./scripts/init.sh",
+    "init": "bash ./scripts/other/init.sh",
     "test": "lerna run test --concurrency 1 --stream --no-bail",
     "test-all": "lerna run test --concurrency 4 --stream --no-bail && npm run test-browserstack",
     "test-browserstack": "lerna run test-browserstack --stream --no-bail ",
@@ -50,16 +49,16 @@
     "build-watch": "lerna run build-watch --stream --parallel",
     "build-dep": "lerna run build-dep",
     "build-prod": "lerna run build-prod --stream",
-    "build-current": "lerna run build-current --stream",
-    "deploy": "ts-node ./scripts/deploy.ts",
-    "deploy-no-tests": "ts-node ./scripts/deploy-no-tests.ts",
-    "deploy-example": "ts-node ./scripts/deploy-example.ts",
-    "deploy-tests": "ts-node ./scripts/deploy-tests.ts",
-    "deploy-test": "ts-node ./scripts/deploy-test.ts",
+    "build-current": "lerna run build-current --stream --concurrency 1",
+    "publish": "ts-node ./scripts/publishing/publish.ts",
+    "publish-no-tests": "ts-node ./scripts/publishing/publish-no-tests.ts",
+    "deploy-example": "ts-node ./scripts/deploying/deploy-example.ts",
+    "deploy-cdn": "ts-node ./scripts/deploying/deploy-cdn.ts",
+    "deploy-doc-version": "ts-node ./scripts/deploying/deploy-doc-version.ts",
+    "deploy-test": "ts-node ./scripts/deploying/deploy-test.ts",
+    "deploy-tests": "ts-node ./scripts/deploying/deploy-tests.ts",
     "deploy-and-test": "npm run deploy-tests && npm run test",
-    "deploy-demo": "ts-node ./scripts/deploy-demo.ts",
-    "doc-releaseNotes": "typedoc --readme documentation/releaseNotes.md",
-    "doc-breakingChangesGuide": "typedoc --readme documentation/breakingChangesGuide.md",
-    "doc-main": "typedoc"
+    "deploy-demo": "ts-node ./scripts/deploying/deploy-demo.ts",
+    "doc": "cd ./main/default && npm run doc && cd ../.."
   }
 }

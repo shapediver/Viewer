@@ -1,14 +1,11 @@
 {
   "packages": [
-    "utils/*",
-    "node-tree/*",
     "shared/*",
     "data-engine/*",
     "session-engine/*",
     "examples/*",
     "rendering-engine/*",
     "rendering-engine-threejs/*",
-    "math/*",
     "tests/*",
     "features/*",
     "main/*"
