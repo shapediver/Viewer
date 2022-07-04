@@ -66,6 +66,10 @@ export class Output implements IOutput {
     return this.#content;
   }
 
+  public set content(value: ShapeDiverResponseOutputContent[] | undefined) {
+    this.#content = value;
+  }
+
   public get delay(): number | undefined {
     return this.#delay;
   }
@@ -160,6 +164,10 @@ export class Output implements IOutput {
 
   public get version(): string {
     return this.#version;
+  }
+
+  public set version(value: string) {
+    this.#version = value;
   }
 
   // #endregion Public Accessors (28)
