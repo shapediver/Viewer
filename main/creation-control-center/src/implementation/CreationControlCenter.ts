@@ -158,6 +158,7 @@ export class CreationControlCenter implements ICreationControlCenter {
   }): Promise<RenderingEngineThreeJs> {
     const eventId = this.#uuidGenerator.create();
     let renderingEngineId = properties.id || this.#uuidGenerator.create();
+    properties.id = renderingEngineId;
     try {
       const eventStart: ITaskEvent = { type: TASK_TYPE.VIEWPORT_CREATION, id: eventId, progress: 0, status: 'Creating viewport' };
       this.#eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
@@ -276,6 +277,7 @@ export class CreationControlCenter implements ICreationControlCenter {
   }): Promise<SessionEngine> {
     const eventId = this.#uuidGenerator.create();
     let sessionEngineId = properties.id || this.#uuidGenerator.create();
+    properties.id = sessionEngineId;
 
     try {
       const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0, status: 'Creating session' };
