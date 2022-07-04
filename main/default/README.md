@@ -15,7 +15,7 @@ The ShapeDiver Viewer consists of simple components that you can use in your own
 
 ### createSession
 
-The [session]()(TODO link to doc) is the component that connects to the ShapeDiver servers. This component is used to change [parameters]()(TODO link to doc), to create [exports]()(TODO link to doc) and to manage the [outputs]()(TODO link to doc). For more information on what all of these terms mean, please visit our [help desk page](https://help.shapediver.com/doc/Sessions.1841659905.html).
+The [session](./interfaces/ISessionApi.html) is the component that connects to the ShapeDiver servers. This component is used to change [parameters](./interfaces/IParameterApi.html), to create [exports](./interfaces/IExportApi.html) and to manage the [outputs](./interfaces/IOutputApi.html). For more information on what all of these terms mean, please visit our [help desk page](https://help.shapediver.com/doc/sessions).
 
 ```typescript
 import { createSession } from '@shapediver/viewer';
@@ -27,11 +27,11 @@ const session = await createSession({
 });
 ```
 
-Once a session is created, the initial outputs are already loaded (unless specified otherwise in the [method options]()(TODO link to doc)).
+Once a session is created, the initial outputs are already loaded (unless specified otherwise in the [method options](./modules.html#createSession)).
 
 ### createViewport
 
-The [viewport]()(TODO link to doc) is the component where the rendering takes place. To create it, a canvas is needed that is somewhere in your page. 
+The [viewport](./interfaces/IViewportApi.html) is the component where the rendering takes place. To create it, a canvas is needed that is somewhere in your page. 
 
 ```typescript
 import { createViewport } from '@shapediver/viewer';
@@ -44,4 +44,4 @@ const viewport = await createViewport({
 
 Once you created a viewport, you can see the logo. When nothing is in the scene yet, the logo is shown until there is something to render. 
 
-There are many options that you can already provide on initialization, please have a look at them [here]()(TODO link to doc).
+There are many options that you can already provide on initialization, please have a look at them [here](./modules.html#createViewport).
