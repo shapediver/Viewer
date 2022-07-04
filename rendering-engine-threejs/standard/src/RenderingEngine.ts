@@ -841,7 +841,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     // busy
     {
       const currentBusyState = this.busy;
-      if (this.stateEngine.renderingEngines[this.id].busy.length > 0) {
+      if (this.stateEngine.renderingEngines[this.id] && this.stateEngine.renderingEngines[this.id].busy.length > 0) {
         if (!currentBusyState) {
           this.busy = true;
           this._renderingManager.render();
