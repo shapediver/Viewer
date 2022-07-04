@@ -15,12 +15,12 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         let npm_publish = (npm_publish_answer === 'yes' || npm_publish_answer === 'y');
 
 
-        const changes = await execPromise(`git status --porcelain`);
-        if(changes) {
-            throw new Error(`Please stage and commit your files first.\n${changes}`);
-        } else {
-            console.log(changes);
-        }
+        // const changes = await execPromise(`git status --porcelain`);
+        // if(changes) {
+        //     throw new Error(`Please stage and commit your files first.\n${changes}`);
+        // } else {
+        //     console.log(changes);
+        // }
 
         console.log('checking versioning...')
 
