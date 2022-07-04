@@ -4,7 +4,7 @@ import {
   GeometryData,
   MATERIAL_ALPHA,
   MATERIAL_SIDE,
-  IMaterialData,
+  IMaterialAbstractData,
   PRIMITIVE_MODE,
   PrimitiveData,
   IPrimitiveData,
@@ -66,7 +66,7 @@ export class GeometryLoader implements ILoader {
      */
     public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): IBox {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
-            let materialData: IMaterialData | null;
+            let materialData: IMaterialAbstractData | null;
             if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
             } else if (geometry.primitive.effectMaterials.length > 0) {
@@ -101,7 +101,7 @@ export class GeometryLoader implements ILoader {
         } else {
             const threeGeometry = this.loadGeometry(geometry.primitive);
 
-            let materialData: IMaterialData | null;
+            let materialData: IMaterialAbstractData | null;
             if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
                 materialData = geometry.primitive.attributeMaterial;
             } else if (geometry.primitive.effectMaterials.length > 0) {

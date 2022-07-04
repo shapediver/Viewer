@@ -1,5 +1,5 @@
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from "../../interfaces/data/material/IMaterialData";
+import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from "../../interfaces/data/material/IMaterialAbstractData";
 import { IMaterialUnlitData, IMaterialUnlitDataProperties } from "../../interfaces/data/material/IMaterialUnlitData";
 import { AbstractMaterialData } from "./AbstractMaterialData";
 

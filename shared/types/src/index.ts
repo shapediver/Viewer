@@ -16,7 +16,7 @@ import { MapData } from './implementation/material/MapData'
 import { MaterialSpecularGlossinessData } from './implementation/material/MaterialSpecularGlossinessData'
 import { MaterialUnlitData } from './implementation/material/MaterialUnlitData'
 import { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData } from './interfaces/data/IHTMLElementAnchorData'
-import { IMaterialData, IMaterialDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from './interfaces/data/material/IMaterialData'
+import { IMaterialAbstractData, IMaterialAbstractDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from './interfaces/data/material/IMaterialAbstractData'
 import { IAttributeData, IGeometryData, IPrimitiveData, PRIMITIVE_MODE } from './interfaces/data/IGeometryData'
 import { TEXTURE_WRAPPING, TEXTURE_FILTERING, IMapData } from './interfaces/data/material/IMapData'
 import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties } from './interfaces/data/material/IMaterialSpecularGlossinessDataProperties'
@@ -44,7 +44,7 @@ import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives'
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
-  IMaterialData, IMaterialDataProperties, AbstractMaterialData,
+  IMaterialAbstractData, IMaterialAbstractDataProperties, AbstractMaterialData,
   IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, 
   IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, 
   IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING

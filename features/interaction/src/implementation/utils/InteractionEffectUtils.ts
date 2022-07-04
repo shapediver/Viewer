@@ -1,6 +1,6 @@
 import { container, singleton } from "tsyringe";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { GeometryData, IMaterialData } from "@shapediver/viewer.shared.types";
+import { GeometryData, IMaterialAbstractData } from "@shapediver/viewer.shared.types";
 import { UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IInteractionEffectUtils } from "../../interfaces/utils/IInteractionEffectUtils";
 
@@ -14,7 +14,7 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 
     // #region Public Methods (2)
 
-    public applyEffectMaterial(node: ITreeNode, material: IMaterialData): string {
+    public applyEffectMaterial(node: ITreeNode, material: IMaterialAbstractData): string {
         const token = this.#uuidGenerator.create();
 
         const applyEffect = (node: ITreeNode) => {

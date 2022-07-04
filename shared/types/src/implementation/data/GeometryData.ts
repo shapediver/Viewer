@@ -2,7 +2,7 @@ import { mat4, vec3 } from 'gl-matrix'
 import { AbstractTreeNodeData, ITreeNode, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { IAttributeData, IGeometryData, IPrimitiveData, PRIMITIVE_MODE } from '../../interfaces/data/IGeometryData';
-import { IMaterialData } from '../../interfaces/data/material/IMaterialData';
+import { IMaterialAbstractData } from '../../interfaces/data/material/IMaterialAbstractData';
 
 
 export class AttributeData extends AbstractTreeNodeData implements IAttributeData {
@@ -171,11 +171,11 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
 
   #boundingBox: Box = new Box();
   #indices: IAttributeData | null = null;
-  #material: IMaterialData | null = null;
-  #standardMaterial: IMaterialData | null = null;
-  #effectMaterials: { material: IMaterialData, token: string }[] = [];
-  #materialVariants: { material: IMaterialData, variant: number }[] = [];
-  #attributeMaterial: IMaterialData | null = null;
+  #material: IMaterialAbstractData | null = null;
+  #standardMaterial: IMaterialAbstractData | null = null;
+  #effectMaterials: { material: IMaterialAbstractData, token: string }[] = [];
+  #materialVariants: { material: IMaterialAbstractData, variant: number }[] = [];
+  #attributeMaterial: IMaterialAbstractData | null = null;
 
   // #endregion Properties (5)
 
@@ -193,8 +193,8 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     } = {},
     mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES,
     indices: IAttributeData | null = null,
-    material: IMaterialData | null = null,
-    attributeMaterial: IMaterialData | null = null,
+    material: IMaterialAbstractData | null = null,
+    attributeMaterial: IMaterialAbstractData | null = null,
   ) {
     super();
     this.#attributes = attributes;
@@ -236,35 +236,35 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     this.#indices = value
   }
 
-  public get standardMaterial(): IMaterialData | null {
+  public get standardMaterial(): IMaterialAbstractData | null {
     return this.#standardMaterial;
   }
 
-  public set standardMaterial(value: IMaterialData | null) {
+  public set standardMaterial(value: IMaterialAbstractData | null) {
     this.#standardMaterial = value;
   }
 
-  public get material(): IMaterialData | null {
+  public get material(): IMaterialAbstractData | null {
     return this.#material;
   }
 
-  public set material(value: IMaterialData | null) {
+  public set material(value: IMaterialAbstractData | null) {
     this.#material = value;
   }
 
-  public get effectMaterials(): { material: IMaterialData, token: string }[] {
+  public get effectMaterials(): { material: IMaterialAbstractData, token: string }[] {
     return this.#effectMaterials;
   }
 
-  public get materialVariants(): { material: IMaterialData, variant: number }[] {
+  public get materialVariants(): { material: IMaterialAbstractData, variant: number }[] {
     return this.#materialVariants;
   }
 
-  public get attributeMaterial(): IMaterialData | null {
+  public get attributeMaterial(): IMaterialAbstractData | null {
     return this.#attributeMaterial;
   }
 
-  public set attributeMaterial(value: IMaterialData | null) {
+  public set attributeMaterial(value: IMaterialAbstractData | null) {
     this.#attributeMaterial = value;
   }
 
@@ -285,7 +285,7 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     } = {};
     for (let attribute in this.#attributes)
       attributes[attribute] = <IAttributeData>this.#attributes[attribute].clone();
-    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <IMaterialData>this.#material?.clone(), <IMaterialData>this.#attributeMaterial?.clone());
+    return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <IMaterialAbstractData>this.#material?.clone(), <IMaterialAbstractData>this.#attributeMaterial?.clone());
   }
 
   // #endregion Public Methods (1)

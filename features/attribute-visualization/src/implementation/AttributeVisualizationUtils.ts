@@ -1,4 +1,4 @@
-import { IMaterialData, ISDTFAttributeVisualizationData, MaterialUnlitData } from "@shapediver/viewer.shared.types";
+import { IMaterialAbstractData, ISDTFAttributeVisualizationData, MaterialUnlitData } from "@shapediver/viewer.shared.types";
 import { mat4 } from "gl-matrix";
 import { ATTRIBUTE_VISUALIZATION } from "../interfaces/IAttribute";
 
@@ -11,7 +11,7 @@ const grayscaleVisualization = (factor: number): ISDTFAttributeVisualizationData
     }
 }
 
-const opacityVisualization = (factor: number, defaultMaterial?: IMaterialData): ISDTFAttributeVisualizationData => {
+const opacityVisualization = (factor: number, defaultMaterial?: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
     return {
         material: new MaterialUnlitData({color: defaultMaterial?.color || '#00fff7', opacity: factor}),
         matrix: mat4.create()
@@ -139,7 +139,7 @@ const hslVisualization = (factor: number): ISDTFAttributeVisualizationData => {
     }
 }
 
-const numberVisualization = (value: number, min: number, max: number, type: ATTRIBUTE_VISUALIZATION, defaultMaterial?: IMaterialData): ISDTFAttributeVisualizationData => {
+const numberVisualization = (value: number, min: number, max: number, type: ATTRIBUTE_VISUALIZATION, defaultMaterial?: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
     let factor = (value - min) / (max - min);
     factor = Math.min(1, Math.max(0, factor))
 
@@ -165,7 +165,7 @@ const numberVisualization = (value: number, min: number, max: number, type: ATTR
     }
 }
 
-const stringVisualization = (value: string, values: string[], type: ATTRIBUTE_VISUALIZATION, defaultMaterial?: IMaterialData): ISDTFAttributeVisualizationData => {
+const stringVisualization = (value: string, values: string[], type: ATTRIBUTE_VISUALIZATION, defaultMaterial?: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
     let factor = values.indexOf(value) / (values.length - 1);
     factor = Math.min(1, Math.max(0, factor))
     switch(type) {

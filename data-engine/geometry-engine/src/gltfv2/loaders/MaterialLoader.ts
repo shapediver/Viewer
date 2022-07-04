@@ -13,8 +13,8 @@ import {
   MaterialSpecularGlossinessData,
   MaterialStandardData,
   MaterialUnlitData,
-  IMaterialData,
-  IMaterialDataProperties,
+  IMaterialAbstractData,
+  IMaterialAbstractDataProperties,
   IMaterialSpecularGlossinessDataProperties,
   IMaterialStandardDataProperties,
   IMaterialUnlitDataProperties,
@@ -32,7 +32,7 @@ export class MaterialLoader {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _materialEngine: MaterialEngine = <MaterialEngine>container.resolve(MaterialEngine);
 
-    private _loaded: { [key: string]: IMaterialData } = {};
+    private _loaded: { [key: string]: IMaterialAbstractData } = {};
 
     // #endregion Properties (4)
 
@@ -44,7 +44,7 @@ export class MaterialLoader {
 
     // #region Public Methods (2)
 
-    public getMaterial(materialId: number): IMaterialData {
+    public getMaterial(materialId: number): IMaterialAbstractData {
         if (!this._content.materials) throw new Error('MaterialLoader.getMaterial: Materials not available.')
         if (!this._content.materials[materialId]) throw new Error('MaterialLoader.getMaterial: Material not available.')
         if (!this._loaded[materialId]) throw new Error('MaterialLoader.getMaterial: Material not loaded.')
@@ -61,7 +61,7 @@ export class MaterialLoader {
             const material: IGLTF_v2_Material = this._content.materials[materialId];
             const materialExtensions = material.extensions || {};
 
-            const materialDataProperties: IMaterialDataProperties = {};
+            const materialDataProperties: IMaterialAbstractDataProperties = {};
             if (material.name !== undefined) materialDataProperties.name = material.name;
 
             if (materialExtensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET]) {

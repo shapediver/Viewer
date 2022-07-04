@@ -5,7 +5,7 @@ import { mat4 } from "gl-matrix";
 import { container } from "tsyringe";
 import { Converter, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IAttributeVisualizationEngine } from "../interfaces/IAttributeVisualizationEngine";
-import { IMaterialData, ISDTFItemData, ISDTFOverview, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
+import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
 import { AttributeVisualizationUtils } from "./AttributeVisualizationUtils";
 
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
@@ -16,7 +16,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     readonly #viewport: IViewportApi;
 
     #attributes: IAttribute[] = [];
-    #defaultMaterial: IMaterialData = new MaterialUnlitData({ color: '#000000', opacity: 1 });
+    #defaultMaterial: IMaterialAbstractData = new MaterialUnlitData({ color: '#000000', opacity: 1 });
     #defaultLayer: ILayer = {
         color: '#000000',
         opacity: 1,
@@ -54,7 +54,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     // #region Public Accessors (3)
 
-    public get defaultMaterial(): IMaterialData {
+    public get defaultMaterial(): IMaterialAbstractData {
         return this.#defaultMaterial;
     }
 
@@ -84,7 +84,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         this.constructAttributeVisualization();
     }
 
-    public updateDefaultMaterial(material: IMaterialData) {
+    public updateDefaultMaterial(material: IMaterialAbstractData) {
         this.#defaultMaterial = material;
         this.constructAttributeVisualization();
     }
@@ -146,7 +146,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
             // early out, layer is not enabled
             if (layer.enabled === false) {
-                const mat = <IMaterialData>this.#defaultMaterial.clone();
+                const mat = <IMaterialAbstractData>this.#defaultMaterial.clone();
                 mat.opacity = 0;
                 return {
                     matrix: mat4.create(),
@@ -215,7 +215,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 }
 
                 // no attributes were found, return the default material adjusted by the layer opacity
-                const mat = <IMaterialData>this.#defaultMaterial.clone();
+                const mat = <IMaterialAbstractData>this.#defaultMaterial.clone();
                 mat.opacity *= layer.opacity;
                 return {
                     matrix: mat4.create(),

@@ -1,9 +1,9 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { IMapData } from '../../interfaces/data/material/IMapData';
-import { IMaterialData, IMaterialDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialData';
+import { IMaterialAbstractData, IMaterialAbstractDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
 
 
-export abstract class AbstractMaterialData extends AbstractTreeNodeData implements IMaterialData {
+export abstract class AbstractMaterialData extends AbstractTreeNodeData implements IMaterialAbstractData {
   // #region Properties (17)
 
   #alphaCutoff: number = 0;
@@ -36,7 +36,7 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
    * @param id the id
    */
   constructor(
-    properties?: IMaterialDataProperties,
+    properties?: IMaterialAbstractDataProperties,
     id?: string
   ) {
     super(id);
@@ -220,14 +220,14 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
   /**
    * Clones the scene graph data.
    */
-  public abstract clone(): IMaterialData;
+  public abstract clone(): IMaterialAbstractData;
 
   /**
    * Copy all properties of another material data object.
    * 
    * @param source 
    */
-  public abstract copy(source: IMaterialData): void;
+  public abstract copy(source: IMaterialAbstractData): void;
 
   // #endregion Public Abstract Methods (1)
 }

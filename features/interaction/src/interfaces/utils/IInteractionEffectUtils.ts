@@ -1,5 +1,5 @@
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
-import { IMaterialData } from "@shapediver/viewer.shared.types";
+import { IMaterialAbstractData } from "@shapediver/viewer.shared.types";
 
 export interface IInteractionEffectUtils {
     // #region Public Methods (2)
@@ -13,7 +13,7 @@ export interface IInteractionEffectUtils {
      * @param material 
      * @returns
      */
-    applyEffectMaterial(node: ITreeNode, material: IMaterialData): string;
+    applyEffectMaterial(node: ITreeNode, material: IMaterialAbstractData): string;
     /**
      * Remove an effect material with the token provided wen adding it.
      * 

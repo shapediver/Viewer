@@ -6,7 +6,7 @@ import {
   TEXTURE_WRAPPING,
   MATERIAL_ALPHA,
   PRIMITIVE_MODE,
-  IMaterialData,
+  IMaterialAbstractData,
   MaterialUnlitData,
   MaterialSpecularGlossinessData,
   MaterialStandardData,
@@ -205,7 +205,7 @@ export class MaterialLoader implements ILoader {
     public init(): void {}
 
     public getMaterialProperties(
-        materialData: IMaterialData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
+        materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
         type: MATERIAL_TYPE,
         materialSettings?: MaterialSettings
     ): {
@@ -495,7 +495,7 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        materialData: IMaterialData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
+        materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | null,
         materialSettings?: MaterialSettings
     ): THREE.Material {
 

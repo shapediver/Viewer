@@ -1,7 +1,7 @@
 import { IMapData } from "./IMapData";
-import { IMaterialData, IMaterialDataProperties } from "./IMaterialData";
+import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
 
-export interface IMaterialSpecularGlossinessDataProperties extends IMaterialDataProperties {
+export interface IMaterialSpecularGlossinessDataProperties extends IMaterialAbstractDataProperties {
     // #region Properties (5)
 
     glossiness?: number,
@@ -13,7 +13,7 @@ export interface IMaterialSpecularGlossinessDataProperties extends IMaterialData
     // #endregion Properties (5)
 };
 
-export interface IMaterialSpecularGlossinessData extends IMaterialData {
+export interface IMaterialSpecularGlossinessData extends IMaterialAbstractData {
     // #region Public Methods (2)
 
     glossiness: number,

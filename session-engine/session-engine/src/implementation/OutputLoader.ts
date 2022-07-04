@@ -1,5 +1,5 @@
 import { container } from 'tsyringe'
-import { IMaterialData, GeometryData, AbstractMaterialData } from '@shapediver/viewer.shared.types'
+import { IMaterialAbstractData, GeometryData, AbstractMaterialData } from '@shapediver/viewer.shared.types'
 import { DataEngine } from '@shapediver/viewer.data-engine.data-engine'
 import { ITreeNode, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
 
@@ -123,7 +123,7 @@ export class OutputLoader {
     // #region Private Methods (2)
 
     private assignMaterials(node: ITreeNode) {
-        const addMaterialToGeometry = (node: ITreeNode, material: IMaterialData) => {
+        const addMaterialToGeometry = (node: ITreeNode, material: IMaterialAbstractData) => {
             for (let i = 0; i < node.data.length; i++) {
                 if (node.data[i] instanceof GeometryData) {
                     const geometry = <GeometryData>node.data[i];
@@ -140,10 +140,10 @@ export class OutputLoader {
             }
         };
 
-        const getMaterialData = (node: ITreeNode, materials: IMaterialData[] = []): IMaterialData[] => {
+        const getMaterialData = (node: ITreeNode, materials: IMaterialAbstractData[] = []): IMaterialAbstractData[] => {
             for (let k = 0; k < node.data.length; k++) {
                 if (node.data[k] instanceof AbstractMaterialData) {
-                    const material = <IMaterialData>node.data[k];
+                    const material = <IMaterialAbstractData>node.data[k];
                     material.materialOutput = true;
                     materials.push(material);
                 }

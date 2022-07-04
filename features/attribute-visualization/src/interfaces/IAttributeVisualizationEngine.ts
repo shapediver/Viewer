@@ -1,11 +1,11 @@
-import { IMaterialData, ISDTFOverview } from "@shapediver/viewer.shared.types";
+import { IMaterialAbstractData, ISDTFOverview } from "@shapediver/viewer.shared.types";
 import { IAttribute } from "./IAttribute";
 import { ILayer } from "./ILayer";
 
 export interface IAttributeVisualizationEngine {
     // #region Properties (3)
 
-    readonly defaultMaterial: IMaterialData;
+    readonly defaultMaterial: IMaterialAbstractData;
     readonly layers: { [key: string]: ILayer };
     readonly overview: ISDTFOverview;
 
@@ -37,7 +37,7 @@ export interface IAttributeVisualizationEngine {
      * Update the default material that is used to visualize objects without attributes.
      * @param material 
      */
-    updateDefaultMaterial(material: IMaterialData): void;
+    updateDefaultMaterial(material: IMaterialAbstractData): void;
 
     /**
      * Update the layers, the opacity is multiplied with the attribute visualization opacity.

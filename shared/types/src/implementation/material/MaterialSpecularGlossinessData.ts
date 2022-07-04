@@ -1,6 +1,6 @@
 import { AbstractMaterialData } from './AbstractMaterialData';
 import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties } from '../../interfaces/data/material/IMaterialSpecularGlossinessDataProperties';
-import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialData';
+import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
 import { IMapData } from '../../interfaces/data/material/IMapData';
 
 export class MaterialSpecularGlossinessData extends AbstractMaterialData implements IMaterialSpecularGlossinessData {

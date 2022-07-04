@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import {
-IMaterialData,
+IMaterialAbstractData,
   IAnimationData,
   IGeometryData,
   IHTMLElementAnchorData,
@@ -430,7 +430,7 @@ export class SceneTreeManager implements IManager {
     private injectAttributeData(node: ITreeNode, data: ITreeNodeData) {
         const itemData = this.collectSDTFItemData(node);       
         let visData: {
-            material: IMaterialData,
+            material: IMaterialAbstractData,
             matrix: mat4
         } = {
             material: new MaterialStandardData({ color: '#00fff7', opacity: 1 }),

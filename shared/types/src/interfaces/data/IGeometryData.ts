@@ -1,6 +1,6 @@
 import { ITreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { IBox } from "@shapediver/viewer.shared.math";
-import { IMaterialData } from "./material/IMaterialData";
+import { IMaterialAbstractData } from "./material/IMaterialAbstractData";
 import { mat4 } from "gl-matrix";
 
 export enum PRIMITIVE_MODE {
@@ -48,13 +48,13 @@ export interface IPrimitiveData extends ITreeNodeData {
     };
     readonly mode: PRIMITIVE_MODE;
 
-    attributeMaterial: IMaterialData | null;
+    attributeMaterial: IMaterialAbstractData | null;
     boundingBox: IBox;
-    effectMaterials: { material: IMaterialData, token: string }[];
+    effectMaterials: { material: IMaterialAbstractData, token: string }[];
     indices: IAttributeData | null;
-    material: IMaterialData | null;
-    materialVariants: { material: IMaterialData, variant: number }[];
-    standardMaterial: IMaterialData | null;
+    material: IMaterialAbstractData | null;
+    materialVariants: { material: IMaterialAbstractData, variant: number }[];
+    standardMaterial: IMaterialAbstractData | null;
 
     // #endregion Properties (9)
 

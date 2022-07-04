@@ -18,7 +18,7 @@ export enum MATERIAL_SHADING {
     SMOOTH = 'smooth'
 }
 
-export interface IMaterialDataProperties {
+export interface IMaterialAbstractDataProperties {
     // #region Properties (17)
 
     alphaCutoff?: number,
@@ -42,7 +42,7 @@ export interface IMaterialDataProperties {
     // #endregion Properties (17)
 }
 
-export interface IMaterialData extends ITreeNodeData {
+export interface IMaterialAbstractData extends ITreeNodeData {
     // #region Properties (18)
 
     alphaCutoff: number,
@@ -68,8 +68,8 @@ export interface IMaterialData extends ITreeNodeData {
 
     // #region Public Methods (3)
 
-    clone(): IMaterialData;
-    copy(source: IMaterialData): void
+    clone(): IMaterialAbstractData;
+    copy(source: IMaterialAbstractData): void
     reset(): void
 
     // #endregion Public Methods (3)

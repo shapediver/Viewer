@@ -1,8 +1,8 @@
-import { IMaterialData, IMaterialDataProperties } from "./IMaterialData";
+import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
 
-export interface IMaterialUnlitDataProperties extends IMaterialDataProperties {};
+export interface IMaterialUnlitDataProperties extends IMaterialAbstractDataProperties {};
 
-export interface IMaterialUnlitData extends IMaterialData {
+export interface IMaterialUnlitData extends IMaterialAbstractData {
     // #region Public Methods (2)
 
     clone(): IMaterialUnlitData;

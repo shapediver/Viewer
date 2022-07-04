@@ -1,7 +1,7 @@
 import { IMapData } from "./IMapData";
-import { IMaterialData, IMaterialDataProperties } from "./IMaterialData";
+import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
 
-export interface IMaterialStandardDataProperties extends IMaterialDataProperties {
+export interface IMaterialStandardDataProperties extends IMaterialAbstractDataProperties {
     // #region Properties (29)
 
     attenuationColor?: string,
@@ -37,7 +37,7 @@ export interface IMaterialStandardDataProperties extends IMaterialDataProperties
     // #endregion Properties (29)
 };
 
-export interface IMaterialStandardData extends IMaterialData {
+export interface IMaterialStandardData extends IMaterialAbstractData {
     // #region Public Methods (2)
 
     attenuationColor: string,

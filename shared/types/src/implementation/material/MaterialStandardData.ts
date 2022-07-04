@@ -1,7 +1,7 @@
 import { AbstractMaterialData } from './AbstractMaterialData';
 import { IMaterialStandardData, IMaterialStandardDataProperties } from '../../interfaces/data/material/IMaterialStandardData';
 import { IMapData } from '../../interfaces/data/material/IMapData';
-import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialData';
+import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
 
 export class MaterialStandardData extends AbstractMaterialData implements IMaterialStandardData {
   // #region Properties (26)

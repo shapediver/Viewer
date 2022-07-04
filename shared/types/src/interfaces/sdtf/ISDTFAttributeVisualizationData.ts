@@ -1,7 +1,7 @@
 import { mat4 } from "gl-matrix";
-import { IMaterialData } from "../data/material/IMaterialData";
+import { IMaterialAbstractData } from "../data/material/IMaterialAbstractData";
 
 export interface ISDTFAttributeVisualizationData {
-    material: IMaterialData,
+    material: IMaterialAbstractData,
     matrix: mat4
 }

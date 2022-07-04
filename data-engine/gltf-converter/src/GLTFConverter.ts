@@ -31,7 +31,7 @@ import {
     PRIMITIVE_MODE,
     MaterialSpecularGlossinessData,
     MaterialUnlitData,
-    IMaterialData,
+    IMaterialAbstractData,
     IMapData,
     IPrimitiveData,
     IAttributeData,
@@ -632,7 +632,7 @@ export class GLTFConverter {
         return this._content.images.length - 1;
     }
 
-    private convertMaterial(data: IMaterialData, includeMaps = true): number {
+    private convertMaterial(data: IMaterialAbstractData, includeMaps = true): number {
         if (!this._content.materials) this._content.materials = [];
         const materialDef: IGLTF_v2_Material = {
             name: data.id,
