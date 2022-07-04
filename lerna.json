@@ -1,6 +1,5 @@
 {
   "packages": [
-    "utils/*",
     "shared/*",
     "data-engine/*",
     "session-engine/*",
