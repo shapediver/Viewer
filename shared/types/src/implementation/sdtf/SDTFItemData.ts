@@ -12,6 +12,7 @@ export class SDTFItemData extends AbstractTreeNodeData implements ISDTFItemData 
     #attributes: {
         [key: string]: ISDTFAttributeData
     } = {};
+    #resolvedValue: any;
 
     // #endregion Properties (3)
 
@@ -46,6 +47,12 @@ export class SDTFItemData extends AbstractTreeNodeData implements ISDTFItemData 
     }
 
     public get value(): any {
+        if(this.#value instanceof Function && !this.#resolvedValue) {
+            this.#resolvedValue = this.#value();
+            return this.#resolvedValue;
+        } else if(this.#value instanceof Function) {
+            return this.#resolvedValue;
+        }
         return this.#value;
     }
 

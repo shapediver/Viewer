@@ -183,6 +183,12 @@ export class SDTFEngine {
                 // create the data item and save it in the dictionary
                 const typeHint = attributes.entries[key].typeHint === undefined ? 'undefined' : attributes.entries[key].typeHint!.name;
                 data.attributes[key] = new SDTFAttributeData(typeHint, await attributes.entries[key].getContent());
+            } else {
+                // async data
+                const typeHint = attributes.entries[key].typeHint === undefined ? 'undefined' : attributes.entries[key].typeHint!.name;
+                data.attributes[key] = new SDTFAttributeData(typeHint, async () => { 
+                    return await attributes.entries[key].getContent(); 
+                });
             }
         }
         return data;
@@ -240,8 +246,15 @@ export class SDTFEngine {
         // create the typehint
         const typeHint = item.typeHint === undefined ? 'undefined' : item.typeHint!.name;
 
+        let itemData;
         // create the data and save it in the item node
-        const itemData = new SDTFItemData(typeHint, await item.getContent(), attributes?.attributes!)
+        if (SdtfPrimitiveTypeGuard.isBooleanType(typeHint) || SdtfPrimitiveTypeGuard.isColorType(typeHint) || SdtfPrimitiveTypeGuard.isNumberType(typeHint) || SdtfPrimitiveTypeGuard.isStringType(typeHint)) {
+            itemData = new SDTFItemData(typeHint, await item.getContent(), attributes?.attributes!)
+        } else {
+            itemData = new SDTFItemData(typeHint, async () => { 
+                return await item.getContent();
+            }, attributes?.attributes!);
+        }
         itemDef.data.push(itemData)
 
         return itemDef;

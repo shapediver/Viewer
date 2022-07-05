@@ -8,6 +8,8 @@ export class SDTFAttributeData implements ISDTFAttributeData {
     readonly #typeHint;
     readonly #value;
 
+    #resolvedValue: any;
+
     // #endregion Properties (2)
 
     // #region Constructors (1)
@@ -29,6 +31,13 @@ export class SDTFAttributeData implements ISDTFAttributeData {
     }
 
     public get value(): any {
+        if(this.#value instanceof Function && !this.#resolvedValue) {
+            this.#resolvedValue = this.#value();
+            return this.#resolvedValue;
+        } else if(this.#value instanceof Function) {
+            return this.#resolvedValue;
+        }
+
         return this.#value;
     }
 
