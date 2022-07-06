@@ -4,6 +4,7 @@ import { IPointLightApi } from "../../../../interfaces/viewport/lights/types/IPo
 import { AbstractLightApi } from "../AbstractLightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
+import { IViewportApi } from "../../../../interfaces/viewport/IViewportApi";
 
 export class PointLightApi extends AbstractLightApi implements IPointLightApi {
     // #region Properties (4)
@@ -11,16 +12,18 @@ export class PointLightApi extends AbstractLightApi implements IPointLightApi {
     readonly #light: IPointLight;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    
+    readonly #viewportApi: IViewportApi;
+
     // #endregion Properties (4)
 
     // #region Constructors (1)
 
-    constructor(light: IPointLight) {
-            super(light)
-            this.#light = light;
-            this.scope = 'PointLightApi';
-        }
+    constructor(viewportApi: IViewportApi, light: IPointLight) {
+        super(viewportApi, light)
+        this.#viewportApi = viewportApi;
+        this.#light = light;
+        this.scope = 'PointLightApi';
+    }
 
     // #endregion Constructors (1)
 
@@ -36,6 +39,7 @@ export class PointLightApi extends AbstractLightApi implements IPointLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.decay = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -52,6 +56,7 @@ export class PointLightApi extends AbstractLightApi implements IPointLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.distance = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -68,6 +73,7 @@ export class PointLightApi extends AbstractLightApi implements IPointLightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
             this.#light.position = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);

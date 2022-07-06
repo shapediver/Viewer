@@ -4,20 +4,23 @@ import { IDirectionalLightApi } from "../../../../interfaces/viewport/lights/typ
 import { AbstractLightApi } from "../AbstractLightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
+import { IViewportApi } from "../../../../interfaces/viewport/IViewportApi";
 
 export class DirectionalLightApi extends AbstractLightApi implements IDirectionalLightApi {
-    // #region Properties (15)
+    // #region Properties (4)
 
-    readonly #light: IDirectionalLight;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
+    readonly #light: IDirectionalLight;
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    
-    // #endregion Properties (15)
+    readonly #viewportApi: IViewportApi;
+
+    // #endregion Properties (4)
 
     // #region Constructors (1)
 
-    constructor(light: IDirectionalLight) {
-        super(light);
+    constructor(viewportApi: IViewportApi, light: IDirectionalLight) {
+        super(viewportApi, light)
+        this.#viewportApi = viewportApi;
         this.#light = light;
         this.scope = 'DirectionalLightApi';
     }
@@ -36,6 +39,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'boolean');
             this.#light.castShadow = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -52,6 +56,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'vec3');
             this.#light.direction = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -68,6 +73,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.shadowMapBias = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -84,6 +90,7 @@ export class DirectionalLightApi extends AbstractLightApi implements IDirectiona
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.shadowMapResolution = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);

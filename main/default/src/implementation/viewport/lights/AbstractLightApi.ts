@@ -3,6 +3,7 @@ import { ILight, LIGHT_TYPE } from "@shapediver/viewer.rendering-engine.light-en
 import { ILightApi } from "../../../interfaces/viewport/lights/ILightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
+import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
 
 export abstract class AbstractLightApi implements ILightApi {
     // #region Properties (15)
@@ -10,14 +11,16 @@ export abstract class AbstractLightApi implements ILightApi {
     readonly #light: ILight;
     readonly #inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
-    
+    readonly #viewportApi: IViewportApi;
+
     protected scope: string = 'AbstractLightApi';
 
     // #endregion Properties (15)
 
     // #region Constructors (1)
 
-    constructor(light: ILight) {
+    constructor(viewportApi: IViewportApi, light: ILight) {
+        this.#viewportApi = viewportApi;
         this.#light = light;
     }
 
@@ -35,6 +38,7 @@ export abstract class AbstractLightApi implements ILightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'color');
             this.#light.color = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -55,6 +59,7 @@ export abstract class AbstractLightApi implements ILightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number');
             this.#light.intensity = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -71,6 +76,7 @@ export abstract class AbstractLightApi implements ILightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'string', false);
             this.#light.name = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
@@ -87,6 +93,7 @@ export abstract class AbstractLightApi implements ILightApi {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'number', false);
             this.#light.order = value;
             this.#logger.debug(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}: ${scope} was set to: ${value}`);
+            this.#viewportApi.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, e);
