@@ -27,8 +27,8 @@ export class FileParameter extends Parameter<File | Blob | string> implements IF
     // #region Public Methods (1)
 
     public async upload() {
-        if (!this.value) return this.defval;
-        if (typeof this.value === 'string' && this.value.length === 36 && this.#uuidGenerator.validate(this.value)) return this.value;
+        if (this.value === undefined) return this.defval;
+        if (typeof this.value === 'string' && ((this.value.length === 36 && this.#uuidGenerator.validate(this.value)) || this.value === "")) return this.value;
 
         const data = new File(
             [
