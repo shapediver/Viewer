@@ -23,7 +23,7 @@ import { IDirectionalLightApi } from "./interfaces/viewport/lights/types/IDirect
 import { IHemisphereLightApi } from "./interfaces/viewport/lights/types/IHemisphereLightApi";
 import { IPointLightApi } from "./interfaces/viewport/lights/types/IPointLightApi";
 import { ISpotLightApi } from "./interfaces/viewport/lights/types/ISpotLightApi";
-import { addListener, createSession, createViewport, loggingLevel, removeListener, sceneTree, sessions, showMessages, viewports } from "./main";
+import { addListener, createSession, createViewport, generalOptions, IGeneralOptions, removeListener, sceneTree, sessions, viewports } from "./main";
 import { IBox, ISphere, IGeometry, Box, Sphere } from "@shapediver/viewer.shared.math";
 import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, SessionData, SessionOutputData, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "@shapediver/viewer.session-engine.session-engine";
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine";
@@ -38,10 +38,10 @@ export {
     createViewport, createSession, addListener, removeListener,
     sessions, viewports, 
     sceneTree,
-    loggingLevel, showMessages
+    generalOptions
 }
 
-export { IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi }
+export { IGeneralOptions, IExportApi, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi }
 export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, ILightSceneApi, IViewportApi }
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData }
 export { FLAG_TYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, CAMERA_TYPE, LIGHT_TYPE, RENDERER_TYPE, VISIBILITY_MODE, ORTHOGRAPHIC_CAMERA_DIRECTION, TEXTURE_ENCODING, TONE_MAPPING, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, LOGGING_LEVEL, LOGGING_TOPIC, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING }

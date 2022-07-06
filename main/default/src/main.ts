@@ -20,7 +20,19 @@ const inputValidator: InputValidator = <InputValidator>container.resolve(InputVa
 const logger: Logger = <Logger>container.resolve(Logger);
 const eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
-class ViewerOptions {
+export interface IGeneralOptions {
+    /**
+     * The logging level that is used.
+     */
+    loggingLevel: LOGGING_LEVEL;
+
+    /**
+     * Option to show/hide messages in the browser console.
+     */
+    showMessages: boolean;
+}
+
+class GeneralOptions {
     // #region Public Accessors (4)
 
     public get loggingLevel(): LOGGING_LEVEL {
@@ -56,7 +68,6 @@ class ViewerOptions {
     // #endregion Public Accessors (4)
 }
 
-const viewerOptions = new ViewerOptions();
 /**
  * Adds an event listener.
  * 
@@ -134,14 +145,11 @@ creationControlCenter.update = (
 }
 
 /**
- * The logging level that is used.
+ * General Viewer options that are used everywhere.
+ * - loggingLevel: The logging level that is used.
+ * - showMessages: Option to show/hide messages in the browser console.
  */
-export let loggingLevel: LOGGING_LEVEL = viewerOptions.loggingLevel;
-
-/**
- * Option to show/hide messages in the browser console.
- */
-export let showMessages: boolean = viewerOptions.showMessages;
+export const generalOptions: IGeneralOptions = new GeneralOptions();
 
 /**
  * Create and initialize a session with a model hosted on a 
