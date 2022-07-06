@@ -13,9 +13,7 @@ export class HttpClient {
 
     private _sessionLoading: {
         [key: string]: {
-            getOutput: (sessionId: string, assetData: string) => Promise<[ArrayBuffer, string]>,
-            getTexture: (sessionId: string, assetData: string) => Promise<[ArrayBuffer, string]>,
-            getExport: (sessionId: string, assetData: string) => Promise<[ArrayBuffer, string]>,
+            getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
             downloadTexture: (sessionId: string, url: string) => Promise<[ArrayBuffer, string]>,
         }
     } = {};
@@ -45,7 +43,7 @@ export class HttpClient {
 
     // #region Public Methods (7)
 
-    private loadingCriterion(href: string): { sessionId: string, assetData: string, type: 'output' | 'export' | 'texture' } | undefined {
+    private getSessionId(href: string): string | undefined {
         // searching for "/session/SESSION_ID/{'output' | 'export' | 'texture'}/ASSET_DATA"
         const parts = href.split('/');
         const sessionPartIndex = parts.indexOf('session');
@@ -55,23 +53,13 @@ export class HttpClient {
             const sessionId = parts[sessionPartIndex + 1];
             // no such session has been registered, should never happen
             if (!this._sessionLoading[sessionId]) return;
-
-            const type = parts[sessionPartIndex + 2];
-            // the type is not supported
-            if (type !== 'output' && type !== 'export' && type !== 'texture') return;
-
-            const assetData = parts[sessionPartIndex + 3];
-
-            return { sessionId, assetData, type };
+            return sessionId;
         }
-
         return;
     }
 
     public addDataLoading(sessionId: string, callbacks: {
-        getOutput: (sessionId: string, assetData: string) => Promise<[ArrayBuffer, string]>,
-        getTexture: (sessionId: string, assetData: string) => Promise<[ArrayBuffer, string]>,
-        getExport: (sessionId: string, assetData: string) => Promise<[ArrayBuffer, string]>,
+        getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
         downloadTexture: (sessionId: string, url: string) => Promise<[ArrayBuffer, string]>,
     }) {
         this._sessionLoading[sessionId] = callbacks;
@@ -80,88 +68,65 @@ export class HttpClient {
     public async get(href: string, config: AxiosRequestConfig = { responseType: 'arraybuffer' }, textureLoading: boolean = false): Promise<HttpResponse<any>> {
         const dataKey = btoa(href);
         if (dataKey in this._dataCache) return await this._dataCache[dataKey];
+        
+        // try to get sessionId from href
+        let sessionId = this.getSessionId(href);
 
-        const loadingInfo = this.loadingCriterion(href);
-        if (loadingInfo) {
-            switch (loadingInfo.type) {
-                case 'output':
-                    this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>(resolve => {
-                        this._sessionLoading[loadingInfo.sessionId]
-                            .getOutput(loadingInfo.sessionId, loadingInfo.assetData)
-                            .then(result => {
-                                resolve({
-                                    data: result[0],
-                                    headers: {
-                                        'content-type': result[1]
-                                    }
-                                })
-                            })
+        // if href does not have sessionId, use the first sesison, if available
+        if(!sessionId && Object.keys(this._sessionLoading).length > 0)
+            sessionId = Object.keys(this._sessionLoading)[0];
+        
+        // get the session loading functions, if available
+        let sessionLoading: { 
+            getAsset: (url: string) => Promise<[ArrayBuffer, string, string]>,
+            downloadTexture: (sessionId: string, url: string) => Promise<[ArrayBuffer, string]>,
+        } | undefined;
+        if(sessionId)
+            sessionLoading = this._sessionLoading[sessionId];
 
+        // separation texture vs everything else
+        if(textureLoading) {
+            // if we have a sessionId and the sessionLoading functions and the image is not a blob or data, we load it via the sdk
+            if(sessionLoading !== undefined && sessionId !== undefined && !href.startsWith('blob:') && !href.startsWith('data:')) {
+                // take first session to load a texture that is not session related
+                this._dataCache[dataKey] = new Promise<HttpResponse<any>>(resolve => {
+                    sessionLoading!.downloadTexture(sessionId!, href).then((result) => {
+                        resolve({
+                            data: result[0],
+                            headers: {
+                                'content-type': result[1]
+                            }
+                        })
                     });
-                    break;
-
-                case 'export':
-                    this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>(resolve => {
-                        this._sessionLoading[loadingInfo.sessionId]
-                            .getExport(loadingInfo.sessionId, loadingInfo.assetData)
-                            .then(result => {
-                                resolve({
-                                    data: result[0],
-                                    headers: {
-                                        'content-type': result[1]
-                                    }
-                                })
-                            })
-
-                    });
-                    break;
-
-                case 'texture':
-                    this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>(resolve => {
-                        this._sessionLoading[loadingInfo.sessionId]
-                            .getTexture(loadingInfo.sessionId, loadingInfo.assetData)
-                            .then(result => {
-                                resolve({
-                                    data: result[0],
-                                    headers: {
-                                        'content-type': result[1]
-                                    }
-                                })
-                            })
-
-                    });
-                    break;
-
-                default:
-                    this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
+                });
+            } else {
+                // we can load blobs and data urls directly
+                // or load it directly if we don't have a session
+                this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
             }
         } else {
-            // separation texture vs something else...
-            if(textureLoading) {
-                // we can load blobs and data urls directly
-                // if no session is registered, we have to load the texture directly
-                if(href.startsWith('blob:') || href.startsWith('data:') ||  Object.values(this._sessionLoading).length === 0) {
-                    this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
-                } else {
-                    // take first session to load a texture that is not session related
-                    const sessionId = Object.keys(this._sessionLoading)[0];
+            try{
+                // if there is no session to load from, we use the fallback option
+                if(!sessionLoading) throw new Error();
 
-                    this._dataCache[dataKey] = new Promise<HttpResponse<any>>(resolve => {
-                        this._sessionLoading[sessionId].downloadTexture(sessionId, href).then((result) => {
+                // all data links where we could somehow find a session to load it with
+                this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>(resolve => {
+                    sessionLoading!.getAsset(href)
+                        .then((result) => {
                             resolve({
                                 data: result[0],
                                 headers: {
                                     'content-type': result[1]
                                 }
                             })
-                        });
-                    });
-                }
-            } else {
+                        })
+                });
+            } catch(e) {
+                // if this fails, we just load it directly
                 this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
             }
         }
-
+        
         return this._dataCache[dataKey];
     }
 
