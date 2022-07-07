@@ -985,6 +985,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public update(id: string): void {
+    if(this.closed) return;
     this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     this._renderingManager.updateShadowMap();
     this.#animations = this.gatherAnimations();

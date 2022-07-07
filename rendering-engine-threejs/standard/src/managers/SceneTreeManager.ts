@@ -365,6 +365,7 @@ export class SceneTreeManager implements IManager {
     }
 
     public updateSceneTree(root: ITreeNode, lightEngine: LightEngine): void {
+        if(this._renderingEngine.closed) return;
         const oldBB = this._boundingBox.clone();
         this._boundingBox = new Box();
         this._renderingEngine.lightLoader.shadowMapCount = 0;
