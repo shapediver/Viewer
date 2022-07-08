@@ -105,12 +105,12 @@ export class HttpClient {
                 this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
             }
         } else {
-            try{
+            if(!sessionLoading) {
                 // if there is no session to load from, we use the fallback option
-                if(!sessionLoading) throw new Error();
-
+                this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
+            } else {
                 // all data links where we could somehow find a session to load it with
-                this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>(resolve => {
+                this._dataCache[dataKey] = new Promise<HttpResponse<ArrayBuffer>>((resolve, reject) => {
                     sessionLoading!.getAsset(href)
                         .then((result) => {
                             resolve({
@@ -120,10 +120,11 @@ export class HttpClient {
                                 }
                             })
                         })
+                        .catch((e) => {
+                            // if this fails, we just load it directly
+                            resolve(axios(href, Object.assign({ method: 'get' }, config)))
+                        })
                 });
-            } catch(e) {
-                // if this fails, we just load it directly
-                this._dataCache[dataKey] = axios(href, Object.assign({ method: 'get' }, config));
             }
         }
         
