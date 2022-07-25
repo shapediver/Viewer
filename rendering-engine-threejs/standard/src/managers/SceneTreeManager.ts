@@ -143,6 +143,9 @@ export class SceneTreeManager implements IManager {
             case data instanceof ThreejsData:
                 dataChild.SDtype = SD_DATA_TYPE.THREEJS;
                 dataChild.add(<SDData>(<ThreejsData>data).obj);
+
+                const bbThree = new THREE.Box3().setFromObject((<ThreejsData>data).obj);
+                node.boundingBox.union(new Box(vec3.fromValues(...bbThree.min.toArray()), vec3.fromValues(...bbThree.max.toArray())));
                 break;
             case data instanceof AbstractMaterialData:
                 dataChild.SDtype = SD_DATA_TYPE.MATERIAL;
