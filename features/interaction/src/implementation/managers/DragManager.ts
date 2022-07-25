@@ -151,7 +151,11 @@ export class DragManager extends AbstractInteractionManager {
         this.#tokenCameraFreeze = this.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
         this.#tokenContinuousRendering = this.viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
         this.#tokenContinuousShadowMapUpdate = this.viewport.addFlag(FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE);
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_START, { node: this.#node, matrix: transformationMatrix } as IDragEvent);
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_START, { 
+            node: this.#node, 
+            matrix: transformationMatrix,
+            intersectionPoint
+        } as IDragEvent);
     }
 
     // #endregion Public Methods (7)

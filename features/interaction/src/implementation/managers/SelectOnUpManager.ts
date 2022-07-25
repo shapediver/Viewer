@@ -112,7 +112,10 @@ export class SelectOnUpManager extends AbstractInteractionManager {
             this.#effectMaterialToken = undefined;
         }
         
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { node: this.#node } as ISelectEvent);
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { 
+            node: this.#node,
+            intersectionPoint: this.#intersection.point 
+        } as ISelectEvent);
 
         this.viewport.updateNode(this.#node);
         this.viewport.render();

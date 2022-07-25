@@ -124,7 +124,10 @@ export class SelectManager extends AbstractInteractionManager {
         this.viewport.updateNode(this.#node);
         this.viewport.render();
 
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { node: this.#node } as ISelectEvent);
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { 
+            node: this.#node,
+            intersectionPoint: this.#intersection.point
+        } as ISelectEvent);
     }
 
     /**

@@ -117,7 +117,10 @@ export class HoverManager extends AbstractInteractionManager {
         this.viewport.updateNode(this.#node);
         this.viewport.render();
 
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, { node: this.#node } as IHoverEvent);
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, { 
+            node: this.#node,
+            intersectionPoint: intersection.point
+        } as IHoverEvent);
     }
 
     /**

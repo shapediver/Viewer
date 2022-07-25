@@ -81,5 +81,6 @@ addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
 
     // create the selectionManager and add it
     attributeSelectManager = new SelectManager();
+    attributeSelectManager.deselectOnEmpty = false;
     attributeSelectManager.effectMaterial = new MaterialUnlitData({color: '#FFFF00'});
 })();

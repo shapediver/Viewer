@@ -97,7 +97,11 @@ export class MultiSelectManager extends AbstractInteractionManager {
         this.viewport.updateNode(intersection.node);
         this.viewport.render();
 
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { nodes: this.#nodes, node: intersection.node } as IMultiSelectEvent);
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { 
+            nodes: this.#nodes, 
+            node: intersection.node,
+            intersectionPoint: intersection.point
+        } as IMultiSelectEvent);
     }
 
     /**
