@@ -67,10 +67,10 @@ export class GeometryLoader implements ILoader {
     public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): IBox {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
             let materialData: IMaterialAbstractData | null;
-            if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-                materialData = geometry.primitive.attributeMaterial;
-            } else if (geometry.primitive.effectMaterials.length > 0) {
+            if (geometry.primitive.effectMaterials.length > 0) {
                 materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
+            } else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+                materialData = geometry.primitive.attributeMaterial;
             } else {
                 materialData = geometry.primitive.material;
             }
@@ -95,17 +95,17 @@ export class GeometryLoader implements ILoader {
                     o instanceof THREE.LineLoop ||
                     o instanceof THREE.Line ||
                     o instanceof THREE.Mesh)
-                    o.material = material;
+                        o.material = material;
             })
             parent.add(obj);
         } else {
             const threeGeometry = this.loadGeometry(geometry.primitive);
 
             let materialData: IMaterialAbstractData | null;
-            if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-                materialData = geometry.primitive.attributeMaterial;
-            } else if (geometry.primitive.effectMaterials.length > 0) {
+            if (geometry.primitive.effectMaterials.length > 0) {
                 materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
+            } else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+                materialData = geometry.primitive.attributeMaterial;
             } else {
                 materialData = geometry.primitive.material;
             }
