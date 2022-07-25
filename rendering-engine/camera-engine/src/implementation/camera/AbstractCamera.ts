@@ -214,9 +214,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     public async animate(path: { position: vec3; target: vec3; }[], options?: ICameraOptions): Promise<boolean> {
         if (path.length === 0) return Promise.resolve(false);
 
-        if (!this._controls.isWithinRestrictions(path[path.length - 1].position, path[path.length - 1].target))
-            return Promise.resolve(false);
-
         if (!options) options = {};
         options.duration = options.duration! >= 0 ? options.duration : this.cameraMovementDuration;
 
@@ -237,9 +234,6 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     }
 
     public async set(position: vec3, target: vec3, options?: ICameraOptions): Promise<boolean> {
-        if (!this._controls.isWithinRestrictions(position, target))
-            return Promise.resolve(false);
-
         if (!options) options = {};
         options.duration = options.duration! >= 0 ? options.duration : this.cameraMovementDuration;
 
