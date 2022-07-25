@@ -62,16 +62,6 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
 
         console.log(await execPromise(`npm whoami`));
 
-        if(npm_publish) {
-            console.log('publishing to npm...')
-            console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/`));
-        }
-
-        if(github_publish) {
-            console.log('publishing to github...')
-            console.log(await execPromise(`lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/`));
-        }
-        
         const prefix = 'v3/' + newVersion;
       
         if(npm_publish) {
@@ -92,6 +82,16 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
 
         await execPromise(`git tag -a viewer@${newVersion} -m "deployed viewer version ${newVersion}"`);
         await execPromise(`git push origin viewer@${newVersion}`);
+
+        if(npm_publish) {
+            console.log('publishing to npm...')
+            console.log(await execPromise(`npm run lerna-publish-npm`));
+        }
+
+        if(github_publish) {
+            console.log('publishing to github...')
+            console.log(await execPromise(`npm run lerna-publish-github`));
+        }
 
     } catch (e) {
         console.log(e)
