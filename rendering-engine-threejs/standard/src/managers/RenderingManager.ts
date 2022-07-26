@@ -351,6 +351,7 @@ export class RenderingManager implements IManager {
         if (states.showScene === false) {
             // toggle on logo
             this.toggleLogo(true);
+            this.toggleBusyMode(false);
             return;
         } else {
             this.toggleLogo(false);
