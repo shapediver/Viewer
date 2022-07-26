@@ -169,7 +169,7 @@ export class RenderingManager implements IManager {
         }
 
         spinnerDivElement.style.visibility = 'hidden';
-        canvas.parentElement?.appendChild(spinnerDivElement);
+        canvas.parentElement?.insertBefore(spinnerDivElement, canvas.parentElement?.firstChild);
 
         if(branding.busyModeSpinner) {
             const img = new Image();
