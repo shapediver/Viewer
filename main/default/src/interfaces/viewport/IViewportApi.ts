@@ -417,6 +417,13 @@ export interface IViewportApi {
   render(): void;
 
   /**
+   * Delete all current cameras and create our 7 default cameras.
+   * 
+   * A perspective one (default) and 6 orthographic ones (top, bottom, left, right, front, back).
+   */
+  resetToDefaultCameras(): void;
+
+  /**
    * If the {@link automaticResizing} is option is set to `false`, this function resizes the Viewport.
    * @param width The new width of the Viewport.
    * @param height The new height of the Viewport.
