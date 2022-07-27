@@ -45,24 +45,25 @@ export class MaterialEngine {
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
         }
 
-        const material = new MaterialStandardData();
-        node.data.push(material);
+        let material = new MaterialStandardData();
 
         if (content.data) {
+
             const data: IMaterialContentData = content.data;
+            let presetData: IMaterialContentDataV3 | undefined;
             if (data.materialpreset)
-                await this.loadPresetMaterial(data.materialpreset, material);
+                presetData = this.loadPresetMaterialDefinition(data.materialpreset);
 
             if (data.materialType && data.materialType !== 'standard') {
                 // gem material https://shapediver.atlassian.net/browse/SS-2514
             } else {
                 if (data.version) {
                     if (data.version === '1.0') {
-                        await this.loadMaterialV1(data, material);
+                        material = await this.loadMaterialV3(this.loadMaterialDefinitionV1(data, presetData));
                     } else if (data.version === '2.0') {
-                        await this.loadMaterialV2(data, material);
+                        material = await this.loadMaterialV3(this.loadMaterialDefinitionV2(data, presetData));
                     } else if (data.version === '3.0') {
-                        await this.loadMaterialV3(data, material);
+                        material = await this.loadMaterialV3(this.loadMaterialDefinitionV3(data, presetData));
                     } else {
                         const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: Material data version not supported.');
                         throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
@@ -73,6 +74,8 @@ export class MaterialEngine {
             const error = new ShapeDiverViewerDataProcessingError('MaterialEngine.loadContent: No material data was provided to material engine.');
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `MaterialEngine.loadContent`, error);
         }
+        
+        node.data.push(material);
         return node;
     }
 
@@ -80,72 +83,112 @@ export class MaterialEngine {
 
     // #region Private Methods (9)
 
-    private async assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, material: MaterialStandardData) {
-        if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture) {
-            const map = await this.loadMap(generalDefinition.transparencytexture, id.class);
-            if (map) material.alphaMap = map;
-        }
-        if (generalDefinition.hasOwnProperty('alphaThreshold') && !specificDefinition.hasOwnProperty('alphaThreshold')) material.alphaCutoff = generalDefinition.alphaThreshold!;
-        if (generalDefinition.bumptexture && !specificDefinition.bumptexture) {
-            const map = await this.loadMap(generalDefinition.bumptexture, id.class);
-            if (map) material.bumpMap = map;
-        }
-        if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude')) material.bumpScale = generalDefinition.bumpAmplitude!;
-        if (generalDefinition.color && !specificDefinition.color) material.color = this._converter.toColor(generalDefinition.color);
-        if (generalDefinition.bitmaptexture && !specificDefinition.bitmaptexture) {
-            const map = await this.loadMap(generalDefinition.bitmaptexture, id.class);
-            if (map) material.map = map;
-        }
-        if (generalDefinition.hasOwnProperty('metalness') && !specificDefinition.hasOwnProperty('metalness')) material.metalness = generalDefinition.metalness!;
-        if (generalDefinition.metalnesstexture && !specificDefinition.metalnesstexture) {
-            const map = await this.loadMap(generalDefinition.metalnesstexture, id.class);
-            if (map) material.metalnessMap = map;
-        }
-        if (generalDefinition.normaltexture && !specificDefinition.normaltexture) {
-            const map = await this.loadMap(generalDefinition.normaltexture, id.class);
-            if (map) material.normalMap = map;
-        }
-        if (generalDefinition.hasOwnProperty('transparency') && !specificDefinition.hasOwnProperty('transparency')) material.opacity = 1 - generalDefinition.transparency!;
-        if (generalDefinition.hasOwnProperty('roughness') && !specificDefinition.hasOwnProperty('roughness')) material.roughness = generalDefinition.roughness!;
-        if (generalDefinition.roughnesstexture && !specificDefinition.roughnesstexture) {
-            const map = await this.loadMap(generalDefinition.roughnesstexture, id.class);
-            if (map) material.roughnessMap = map;
-        }
-        if (generalDefinition.side && !specificDefinition.side) material.side = generalDefinition.side === 'front' ? MATERIAL_SIDE.FRONT : generalDefinition.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
+    private assignGeneralDefinition(id: { class: string, specific: string }, generalDefinition: IPresetMaterialDefinition, specificDefinition: IPresetMaterialDefinition, definition: IMaterialContentDataV3) {
+        const promises: Promise<MapData | null>[] = [];
+
+        if (generalDefinition.transparencytexture && !specificDefinition.transparencytexture)
+            definition.transparencytexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.transparencytexture
+            }
+
+        if (generalDefinition.hasOwnProperty('alphaThreshold') && !specificDefinition.hasOwnProperty('alphaThreshold'))
+            definition.alphaThreshold = generalDefinition.alphaThreshold;
+
+        if (generalDefinition.bumptexture && !specificDefinition.bumptexture) 
+            definition.bumptexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.bumptexture
+            }
+        
+        if (generalDefinition.hasOwnProperty('bumpAmplitude') && !specificDefinition.hasOwnProperty('bumpAmplitude')) 
+            definition.bumpAmplitude = generalDefinition.bumpAmplitude!;
+
+        if (generalDefinition.color && !specificDefinition.color) 
+            definition.color = generalDefinition.color;
+
+        if (generalDefinition.bitmaptexture && !specificDefinition.bitmaptexture)
+            definition.bitmaptexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.bitmaptexture
+            }
+        
+        if (generalDefinition.hasOwnProperty('metalness') && !specificDefinition.hasOwnProperty('metalness')) 
+            definition.metalness = generalDefinition.metalness!;
+        
+        if (generalDefinition.metalnesstexture && !specificDefinition.metalnesstexture)
+            definition.metalnesstexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.metalnesstexture
+            }
+       
+        if (generalDefinition.normaltexture && !specificDefinition.normaltexture)
+            definition.normaltexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.normaltexture
+            }
+
+        if (generalDefinition.hasOwnProperty('transparency') && !specificDefinition.hasOwnProperty('transparency')) 
+            definition.transparency = generalDefinition.transparency;
+            
+        if (generalDefinition.hasOwnProperty('roughness') && !specificDefinition.hasOwnProperty('roughness')) 
+            definition.roughness = generalDefinition.roughness!;
+
+        if (generalDefinition.roughnesstexture && !specificDefinition.roughnesstexture) 
+            definition.roughnesstexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + generalDefinition.roughnesstexture
+            }
+
+        if (generalDefinition.side && !specificDefinition.side) 
+            definition.side = generalDefinition.side;
     }
 
-    private async assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, material: MaterialStandardData) {
-        if (specificDefinition.transparencytexture) {
-            const map = await this.loadMap(specificDefinition.transparencytexture, id.class + '/' + id.specific);
-            if (map) material.alphaMap = map;
-        }
-        if (specificDefinition.hasOwnProperty('alphaThreshold')) material.alphaCutoff = specificDefinition.alphaThreshold!;
-        if (specificDefinition.bumptexture) {
-            const map = await this.loadMap(specificDefinition.bumptexture, id.class + '/' + id.specific);
-            if (map) material.bumpMap = map;
-        }
-        if (specificDefinition.hasOwnProperty('bumpAmplitude')) material.bumpScale = specificDefinition.bumpAmplitude!;
-        if (specificDefinition.color) material.color = this._converter.toColor(specificDefinition.color);
-        if (specificDefinition.bitmaptexture) {
-            const map = await this.loadMap(specificDefinition.bitmaptexture, id.class + '/' + id.specific);
-            if (map) material.map = map;
-        }
-        if (specificDefinition.hasOwnProperty('metalness')) material.metalness = specificDefinition.metalness!;
-        if (specificDefinition.metalnesstexture) {
-            const map = await this.loadMap(specificDefinition.metalnesstexture, id.class + '/' + id.specific);
-            if (map) material.metalnessMap = map;
-        }
-        if (specificDefinition.normaltexture) {
-            const map = await this.loadMap(specificDefinition.normaltexture, id.class + '/' + id.specific);
-            if (map) material.normalMap = map;
-        }
-        if (specificDefinition.hasOwnProperty('transparency')) material.opacity = 1 - specificDefinition.transparency!;
-        if (specificDefinition.hasOwnProperty('roughness')) material.roughness = specificDefinition.roughness!;
-        if (specificDefinition.roughnesstexture) {
-            const map = await this.loadMap(specificDefinition.roughnesstexture, id.class + '/' + id.specific);
-            if (map) material.roughnessMap = map;
-        }
-        if (specificDefinition.side) material.side = specificDefinition.side === 'front' ? MATERIAL_SIDE.FRONT : specificDefinition.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
+    private assignSpecificDefinition(id: { class: string, specific: string }, specificDefinition: IPresetMaterialDefinition, definition: IMaterialContentDataV3) {
+        if (specificDefinition.transparencytexture)
+            definition.transparencytexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.transparencytexture
+            }
+
+        if (specificDefinition.hasOwnProperty('alphaThreshold'))
+            definition.alphaThreshold = specificDefinition.alphaThreshold!;
+
+        if (specificDefinition.bumptexture)
+            definition.bumptexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.bumptexture
+            }
+
+        if (specificDefinition.hasOwnProperty('bumpAmplitude')) 
+            definition.bumpAmplitude = specificDefinition.bumpAmplitude!;
+
+        if (specificDefinition.color) 
+            definition.color = specificDefinition.color;
+
+        if (specificDefinition.bitmaptexture)
+            definition.bitmaptexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.bitmaptexture
+            }
+
+        if (specificDefinition.hasOwnProperty('metalness'))
+            definition.metalness = specificDefinition.metalness!;
+
+        if (specificDefinition.metalnesstexture)
+            definition.metalnesstexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.metalnesstexture
+            }
+            
+        if (specificDefinition.normaltexture)
+            definition.normaltexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.normaltexture
+            }
+
+        if (specificDefinition.hasOwnProperty('transparency')) 
+            definition.transparency = specificDefinition.transparency!;
+
+        if (specificDefinition.hasOwnProperty('roughness')) 
+            definition.roughness = specificDefinition.roughness!;
+
+        if (specificDefinition.roughnesstexture)
+            definition.roughnesstexture = {
+                href: 'https://viewer.shapediver.com/v2/materials/1024/' + id.class + '/' + id.specific + '/' + specificDefinition.roughnesstexture
+            }
+
+        if (specificDefinition.side) 
+            definition.side = specificDefinition.side;
     }
 
     private getClassAndSpecificId(id: number): { class: string, specific: string } {
@@ -199,99 +242,148 @@ export class MaterialEngine {
 
         return new MapData(image, wrapS, wrapT, TEXTURE_FILTERING.LINEAR_MIPMAP_LINEAR, TEXTURE_FILTERING.LINEAR, center, this._converter.toColor(color), offset, repeat, texture.rotation || 0);
     }
-
-    public async loadMaterialV1(data: IMaterialContentDataV1, material: MaterialStandardData) {
+    
+    public loadMaterialDefinitionV1(data: IMaterialContentDataV1, presetData: IMaterialContentDataV3 = {}): IMaterialContentDataV3 {
         // ambient is ignored
 
         if (data.color) {
-            material.color = this._converter.toColor(data.color);
+            presetData.color = data.color;
         } else if (data.diffuse) {
-            material.color = this._converter.toColor(data.diffuse);
+            presetData.color = data.diffuse;
         }
 
-        if (data.emission)
-            material.emissiveness = this._converter.toColor(data.emission);
+        // emission is ignored
 
         // specular is ignored
 
         if (data.shine || data.shine === 0) {
-            material.metalness = Math.min(1, data.shine);
-            material.roughness = 1 - (Math.min(1, data.shine));
+            presetData.metalness = Math.min(1, data.shine);
+            presetData.roughness = 1 - (Math.min(1, data.shine));
         }
 
         if (data.hasOwnProperty('transparency'))
-            material.opacity = 1 - data.transparency!;
+            presetData.transparency = data.transparency!;
 
-        if (data.bitmaptexture) {
-            const map = await this.loadMap(data.bitmaptexture);
-            if (map) material.map = map;
-        }
+        if (data.bitmaptexture)
+            presetData.bitmaptexture = {
+                href: data.bitmaptexture
+            }
 
-        if (data.bumptexture) {
-            const map = await this.loadMap(data.bumptexture);
-            if (map) material.bumpMap = map;
-        }
+        if (data.bumptexture)
+            presetData.bumptexture = {
+                href: data.bumptexture
+            } 
 
-        if (data.transparencytexture) {
-            const map = await this.loadMap(data.transparencytexture);
-            if (map) material.alphaMap = map;
-        }
+        if (data.transparencytexture)
+            presetData.transparencytexture = {
+                href: data.transparencytexture
+            }
+            
+        return presetData;
     }
-
-    public async loadMaterialV2(data: IMaterialContentDataV2, material: MaterialStandardData) {
+    
+    public loadMaterialDefinitionV2(data: IMaterialContentDataV2, presetData: IMaterialContentDataV3 = {}): IMaterialContentDataV3 {
         // ambient is ignored
 
         if (data.color)
-            material.color = this._converter.toColor(data.color);
+            presetData.color = data.color;
 
-        material.side = data.side === 'front' ? MATERIAL_SIDE.FRONT : data.side === 'back' ? MATERIAL_SIDE.BACK : MATERIAL_SIDE.DOUBLE;
+        presetData.side = data.side;
 
         if (data.metalness || data.metalness === 0)
-            material.metalness = data.metalness;
+            presetData.metalness = data.metalness;
 
         if (data.roughness || data.roughness === 0)
-            material.roughness = data.roughness;
+            presetData.roughness = data.roughness;
 
         if (data.hasOwnProperty('transparency'))
-            material.opacity = 1 - data.transparency!;
+            presetData.transparency = data.transparency!;
 
         if (data.alphaThreshold || data.alphaThreshold === 0)
-            material.alphaCutoff = data.alphaThreshold;
+            presetData.alphaThreshold = data.alphaThreshold;
 
-        if (data.bitmaptexture) {
-            const map = await this.loadMap(data.bitmaptexture);
-            if (map) material.map = map;
-        }
+        if (data.bitmaptexture)
+            presetData.bitmaptexture = {
+                href: data.bitmaptexture
+            }
 
-        if (data.metalnesstexture) {
-            const map = await this.loadMap(data.metalnesstexture);
-            if (map) material.metalnessMap = map;
-        }
+        if (data.metalnesstexture)
+            presetData.metalnesstexture = {
+                href: data.metalnesstexture
+            }
 
-        if (data.roughnesstexture) {
-            const map = await this.loadMap(data.roughnesstexture);
-            if (map) material.roughnessMap = map;
-        }
+        if (data.roughnesstexture)
+            presetData.roughnesstexture = {
+                href: data.roughnesstexture
+            }
 
-        if (data.bumptexture) {
-            const map = await this.loadMap(data.bumptexture);
-            if (map) material.bumpMap = map;
-        }
+        if (data.bumptexture)
+            presetData.bumptexture = {
+                href: data.bumptexture
+            }
 
-        if (data.normaltexture) {
-            const map = await this.loadMap(data.normaltexture);
-            if (map) material.normalMap = map;
-        }
+        if (data.normaltexture)
+            presetData.normaltexture = {
+                href: data.normaltexture
+            }
 
-        if (data.transparencytexture) {
-            const map = await this.loadMap(data.transparencytexture);
-            if (map) material.alphaMap = map;
-        }
-
-        // line material https://shapediver.atlassian.net/browse/SS-2272
+        if (data.transparencytexture)
+            presetData.transparencytexture = {
+                href: data.transparencytexture
+            }
+            
+        return presetData;
     }
 
-    public async loadMaterialV3(data: IMaterialContentDataV3, material: MaterialStandardData) {
+    public loadMaterialDefinitionV3(data: IMaterialContentDataV3, presetData: IMaterialContentDataV3 = {}): IMaterialContentDataV3 {
+        // ambient is ignored
+
+        if (data.color)
+            presetData.color = data.color;
+
+        presetData.side = data.side;
+
+        if (data.metalness || data.metalness === 0)
+            presetData.metalness = data.metalness;
+
+        if (data.roughness || data.roughness === 0)
+            presetData.roughness = data.roughness;
+
+        if (data.hasOwnProperty('transparency'))
+            presetData.transparency = data.transparency!;
+
+        if (data.alphaThreshold || data.alphaThreshold === 0)
+            presetData.alphaThreshold = data.alphaThreshold;
+
+        if (data.bumpAmplitude || data.bumpAmplitude === 0)
+            presetData.bumpAmplitude = data.bumpAmplitude;
+
+        if (data.bitmaptexture)
+            presetData.bitmaptexture = data.bitmaptexture;
+
+        if (data.metalnesstexture)
+            presetData.metalnesstexture = data.metalnesstexture;
+
+        if (data.roughnesstexture)
+            presetData.roughnesstexture = data.roughnesstexture;
+
+        if (data.bumptexture)
+            presetData.bumptexture = data.bumptexture;
+
+        if (data.normaltexture)
+            presetData.normaltexture = data.normaltexture;
+
+        if (data.transparencytexture)
+            presetData.transparencytexture = data.transparencytexture;
+
+        // line material https://shapediver.atlassian.net/browse/SS-2272
+
+        return presetData;
+    }
+
+    public async loadMaterialV3(data: IMaterialContentDataV3): Promise<MaterialStandardData> {
+        const material = new MaterialStandardData();
+        const promises: Promise<MapData | null>[] = [];
         // ambient is ignored
 
         if (data.color)
@@ -315,50 +407,79 @@ export class MaterialEngine {
             material.bumpScale = data.bumpAmplitude;
 
         if (data.bitmaptexture) {
-            const map = await this.loadMapWithProperties(data.bitmaptexture);
-            if (map) material.map = map;
+            promises.push(
+                this.loadMapWithProperties(data.bitmaptexture).then(map => {
+                    if (map) material.map = map;
+                    return map;
+                })
+            )
         }
 
         if (data.metalnesstexture) {
-            const map = await this.loadMapWithProperties(data.metalnesstexture);
-            if (map) material.metalnessMap = map;
+            promises.push(
+                this.loadMapWithProperties(data.metalnesstexture).then(map => {
+                    if (map) material.metalnessMap = map;
+                    return map;
+                })
+            )
         }
 
         if (data.roughnesstexture) {
-            const map = await this.loadMapWithProperties(data.roughnesstexture);
-            if (map) material.roughnessMap = map;
+            promises.push(
+                this.loadMapWithProperties(data.roughnesstexture).then(map => {
+                    if (map) material.roughnessMap = map;
+                    return map;
+                })
+            )
         }
 
         if (data.bumptexture) {
-            const map = await this.loadMapWithProperties(data.bumptexture);
-            if (map) material.bumpMap = map;
+            promises.push(
+                this.loadMapWithProperties(data.bumptexture).then(map => {
+                    if (map) material.bumpMap = map;
+                    return map;
+                })
+            )
         }
 
         if (data.normaltexture) {
-            const map = await this.loadMapWithProperties(data.normaltexture);
-            if (map) material.normalMap = map;
+            promises.push(
+                this.loadMapWithProperties(data.normaltexture).then(map => {
+                    if (map) material.normalMap = map;
+                    return map;
+                })
+            )
         }
 
         if (data.transparencytexture) {
-            const map = await this.loadMapWithProperties(data.transparencytexture);
-            if (map) material.alphaMap = map;
+            promises.push(
+                this.loadMapWithProperties(data.transparencytexture).then(map => {
+                    if (map) material.alphaMap = map;
+                    return map;
+                })
+            )
         }
 
         // line material https://shapediver.atlassian.net/browse/SS-2272
+        await Promise.all(promises);
+
+        return material;
     }
 
-    public async loadPresetMaterial(preset: number, material: MaterialStandardData) {
+    public loadPresetMaterialDefinition(preset: number): IMaterialContentDataV3 {
+        const definition: IMaterialContentDataV3 = {};
         const idStrings = this.getClassAndSpecificId(preset);
         if (materialDatabase[idStrings.class] && materialDatabase[idStrings.class][idStrings.specific]) {
-            await this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class][idStrings.specific], material);
-            await this.assignGeneralDefinition(idStrings, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class][idStrings.specific], material);
+            this.assignSpecificDefinition(idStrings, materialDatabase[idStrings.class][idStrings.specific], definition);
+            this.assignGeneralDefinition(idStrings, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class][idStrings.specific], definition);
         } else if (materialDatabase[idStrings.class] && materialDatabase[idStrings.class]['00']) {
-            await this.assignSpecificDefinition({ class: idStrings.class, specific: '00' }, materialDatabase[idStrings.class]['00'], material);
-            await this.assignGeneralDefinition({ class: idStrings.class, specific: '00' }, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class]['00'], material);
+            this.assignSpecificDefinition({ class: idStrings.class, specific: '00' }, materialDatabase[idStrings.class]['00'], definition);
+            this.assignGeneralDefinition({ class: idStrings.class, specific: '00' }, materialDatabase[idStrings.class].properties, materialDatabase[idStrings.class]['00'], definition);
         } else {
-            await this.assignSpecificDefinition({ class: '00', specific: '00' }, materialDatabase['00']['00'], material);
-            await this.assignGeneralDefinition({ class: '00', specific: '00' }, materialDatabase['00'].properties, materialDatabase['00']['00'], material);
+            this.assignSpecificDefinition({ class: '00', specific: '00' }, materialDatabase['00']['00'], definition);
+            this.assignGeneralDefinition({ class: '00', specific: '00' }, materialDatabase['00'].properties, materialDatabase['00']['00'], definition);
         }
+        return definition;
     }
 
     // #endregion Private Methods (9)
