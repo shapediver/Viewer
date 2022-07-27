@@ -850,6 +850,19 @@ export class ViewportApi implements IViewportApi {
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
         }
     }
+    
+    public resetToDefaultCameras(): void {
+        const scope = 'resetToDefaultCameras';
+        try {
+            for(let c in this.cameras)
+                this.#renderingEngine.cameraEngine.removeCamera(c);
+            this.#renderingEngine.cameraEngine.createDefaultCameras();
+            this.update();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
 
     public resize(width: number, height: number): void {
         const scope = 'resize';
