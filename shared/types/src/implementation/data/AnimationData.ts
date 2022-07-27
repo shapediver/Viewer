@@ -1,6 +1,7 @@
 import { AbstractTreeNodeData, ITransformation, ITreeNode, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { mat4, quat, vec3, vec4 } from 'gl-matrix';
 import { IAnimationData, IAnimationTrack } from '../../interfaces/data/IAnimationData';
+import { GeometryData } from './GeometryData';
 
 
 export class AnimationData extends AbstractTreeNodeData implements IAnimationData {
@@ -233,16 +234,16 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
                 const j = track.times.length - 1;
 
                 let translationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_translation');
-                if (!translationTransformation) {
+                if(!translationTransformation) {
                     translationTransformation = {
                         id: 'gltf_matrix_translation',
                         matrix: mat4.create()
                     }
                     track.node.transformations.push(translationTransformation)
                 }
-
+                
                 let rotationTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_rotation');
-                if (!rotationTransformation) {
+                if(!rotationTransformation) {
                     rotationTransformation = {
                         id: 'gltf_matrix_rotation',
                         matrix: mat4.create()
@@ -251,7 +252,7 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
                 }
 
                 let scaleTransformation = track.node.transformations.find(t => t.id === 'gltf_matrix_scale');
-                if (!scaleTransformation) {
+                if(!scaleTransformation) {
                     scaleTransformation = {
                         id: 'gltf_matrix_scale',
                         matrix: mat4.create()
@@ -259,23 +260,44 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
                     track.node.transformations.push(scaleTransformation)
                 }
 
-                switch (track.path) {
-                    case 'scale':
-                        let vectorScale: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
-                        scaleTransformation.matrix = mat4.fromScaling(mat4.create(), vectorScale);
-                        continue;
-                    case 'rotation':
-                        let quaternion: quat = quat.fromValues(track.values[j * 4 + 0], track.values[j * 4 + 1], track.values[j * 4 + 2], track.values[j * 4 + 3]);
-                        rotationTransformation.matrix = mat4.fromQuat(mat4.create(), quaternion);
-                        continue;
-                    case 'translation':
-                        let vectorTranslation: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
-                        translationTransformation.matrix = mat4.fromTranslation(mat4.create(), vectorTranslation);
-                        continue;
+                if (track.path === 'rotation') {
+                    let pivotMatrix: mat4 | undefined, pivotMatrixInverse: mat4 | undefined;
+                    if(track.pivot) {
+                        pivotMatrix = mat4.fromTranslation(mat4.create(), vec3.fromValues(track.pivot[0], track.pivot[1], track.pivot[2]));
+                        pivotMatrixInverse = mat4.fromTranslation(mat4.create(), vec3.fromValues(-track.pivot[0], -track.pivot[1], -track.pivot[2]));
+                    }
+
+                    let quaternion: quat = quat.fromValues(track.values[j * 4 + 0], track.values[j * 4 + 1], track.values[j * 4 + 2], track.values[j * 4 + 3]);
+                    const rotationMatrix = mat4.fromQuat(mat4.create(), quaternion);
+                    if(pivotMatrix && pivotMatrixInverse) {
+                        rotationTransformation.matrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), pivotMatrix, rotationMatrix), pivotMatrixInverse);
+                    } else {
+                        rotationTransformation.matrix = rotationMatrix;
+                    }
+                } else if (track.path === 'translation') {
+                    let vector: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
+                    translationTransformation.matrix = mat4.fromTranslation(mat4.create(), vector);
+                } else if (track.path === 'scale') {
+                    let vector: vec3 = vec3.fromValues(track.values[j * 3 + 0], track.values[j * 3 + 1], track.values[j * 3 + 2]);
+                    scaleTransformation.matrix = mat4.fromScaling(mat4.create(), vector);
+                } else if (track.path === 'weights') {
+                    let weights: number[] = [];
+                    const weightCount = track.values.length / track.times.length;
+
+                    for(let l = 0; l < weightCount; l++)
+                        weights.push(track.values[j * weightCount + l])
+                    
+                    const applyWeights = (node: ITreeNode) => {
+                        for(let l = 0; l < node.data.length; l++)
+                            if(node.data[l] instanceof GeometryData && (<GeometryData>node.data[l]).morphWeights.length === weightCount)
+                                (<GeometryData>node.data[l]).morphWeights = weights;
+
+                        for (let l = 0; l < node.children.length; l++)
+                            applyWeights(node.children[l])
+                    }
+                    applyWeights(track.node);
                 }
             }
-
-
         }
         this.#animationTime = -1;
         this.#started = false;
