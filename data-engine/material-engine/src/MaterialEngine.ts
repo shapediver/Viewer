@@ -482,5 +482,9 @@ export class MaterialEngine {
         return definition;
     }
 
+    public async loadPresetMaterial(preset: number): Promise<MaterialStandardData> {
+        return this.loadMaterialV3(this.loadPresetMaterialDefinition(preset));
+    }
+
     // #endregion Private Methods (9)
 }
