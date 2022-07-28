@@ -108,7 +108,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _lightLoader: LightLoader;
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
   private readonly _materialLoader: MaterialLoader;
-  private readonly _renderer: THREE.WebGLRenderer;
   private readonly _renderingManager: RenderingManager;
   private readonly _sceneTracingManager: SceneTracingManager;
   private readonly _sceneTreeManager: SceneTreeManager;
@@ -140,6 +139,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _groundPlaneVisibility: boolean = true;
   private _logoDivElement: HTMLDivElement;
   private _pointSize: number = 1.0;
+  private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
   private _sessionSettingsMode: SESSION_SETTINGS_MODE;
   private _settingsEngine?: SettingsEngine;
@@ -200,6 +200,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // creation of viewer essentials
     this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(prop.canvas));
+
+    this._canvas.canvasElement.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault();
+      // prevent three.js event
+      event.stopImmediatePropagation();
+      this.displayErrorMessage(`An error occurred, please reload the page. If this happens again, please let us know.`);
+      this.show = false;
+    }, false);
+
+    this._canvas.canvasElement.addEventListener('webglcontextrestored', (event) => {
+      event.preventDefault();
+      // prevent three.js event
+      event.stopImmediatePropagation();
+    }, false);
 
     // creation of the engines (all singleton engines were created already)
     this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
