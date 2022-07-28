@@ -2,6 +2,7 @@ import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILI
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
+import { ISettingsV3_1 } from "@shapediver/viewer.settings";
 
 export interface ICreationControlCenter {
   // #region Public Methods (4)
@@ -15,6 +16,8 @@ export interface ICreationControlCenter {
   ) => void;
 
   applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined; } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; } | undefined; } | undefined; viewport?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined;  environment?: boolean | undefined; general?: boolean | undefined; } | undefined; }): Promise<void>;
+  
+  applyViewportSettings(viewportId: string, settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
 
   closeSessionEngine(id: string): Promise<void>;
 
@@ -47,6 +50,8 @@ export interface ICreationControlCenter {
   }): Promise<RenderingEngineThreeJs>;
 
   getARSessionEngine(): SessionEngine | undefined;
+  
+  getViewportSettings(viewportId: string): ISettingsV3_1;
 
   saveSettings(sessionId: string, viewportId?: string): Promise<boolean>;
   

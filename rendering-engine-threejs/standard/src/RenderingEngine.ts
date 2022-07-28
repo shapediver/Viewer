@@ -757,35 +757,40 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return token;
   }
 
-  public applySettings(sections: {
-    ar?: boolean,
-    scene?: boolean,
-    camera?: boolean,
-    light?: boolean,
-    environment?: boolean,
-    general?: boolean
-  } = {
+  public applySettings(
+    sections: {
+      ar?: boolean,
+      scene?: boolean,
+      camera?: boolean,
+      light?: boolean,
+      environment?: boolean,
+      general?: boolean
+    } = {
       ar: true,
       scene: true,
       camera: true,
       light: true,
       environment: true,
       general: true
-    }) {
-    if (!this._settingsEngine) return;
+    },
+    settingsEngine?: SettingsEngine
+  ) {
+
+    settingsEngine = settingsEngine || this._settingsEngine
+    if (!settingsEngine) return;
 
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
       this._stateEngine.renderingEngines[this.id].environmentMapLoaded.then(() => {
-        if (!this._settingsEngine) return;
-        this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
-        this.clearAlpha = this._settingsEngine.environment.clearAlpha;
-        this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
+        if (!settingsEngine) return;
+        this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
+        this.clearAlpha = settingsEngine.environment.clearAlpha;
+        this.clearColor = this._converter.toColor(settingsEngine.environment.clearColor);
         this.applySyncSettings(sections)
       })
 
       // set it like this to not trigger the loading
-      this.environmentMap = this._settingsEngine.environment.map;
+      this.environmentMap = settingsEngine.environment.map;
     } else {
       this.applySyncSettings(sections)
     }
@@ -953,31 +958,33 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.render();
   }
 
-  public saveSettings() {
-    if (!this._settingsEngine) return;
-    (<LightEngine>this.lightEngine).saveSettings(this._settingsEngine);
-    (<CameraEngine>this.cameraEngine).saveSettings(this._settingsEngine);
+  public saveSettings(settingsEngine?: SettingsEngine) {
+    settingsEngine = settingsEngine || this._settingsEngine
+    if (!settingsEngine) return;
 
-    this._settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
-    this._settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
-    this._settingsEngine.environment.mapResolution = this.environmentMapResolution;
-    this._settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
-    this._settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
-    this._settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
-    this._settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
-    this._settingsEngine.environmentGeometry.gridColor = this.gridColor;
-    this._settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
-    this._settingsEngine.rendering.outputEncoding = this.outputEncoding;
-    this._settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
-    this._settingsEngine.rendering.textureEncoding = this.textureEncoding;
-    this._settingsEngine.rendering.toneMapping = this.toneMapping;
-    this._settingsEngine.rendering.toneMappingExposure = this.toneMappingExposure;
-    this._settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
-    this._settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
-    this._settingsEngine.environment.clearAlpha = this.clearAlpha;
-    this._settingsEngine.environment.clearColor = this.clearColor;
-    this._settingsEngine.general.pointSize = this.pointSize;
-    this._settingsEngine.rendering.shadows = this.shadows;
+    (<LightEngine>this.lightEngine).saveSettings(settingsEngine);
+    (<CameraEngine>this.cameraEngine).saveSettings(settingsEngine);
+
+    settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
+    settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
+    settingsEngine.environment.mapResolution = this.environmentMapResolution;
+    settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
+    settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
+    settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
+    settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
+    settingsEngine.environmentGeometry.gridColor = this.gridColor;
+    settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
+    settingsEngine.rendering.outputEncoding = this.outputEncoding;
+    settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
+    settingsEngine.rendering.textureEncoding = this.textureEncoding;
+    settingsEngine.rendering.toneMapping = this.toneMapping;
+    settingsEngine.rendering.toneMappingExposure = this.toneMappingExposure;
+    settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
+    settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
+    settingsEngine.environment.clearAlpha = this.clearAlpha;
+    settingsEngine.environment.clearColor = this.clearColor;
+    settingsEngine.general.pointSize = this.pointSize;
+    settingsEngine.rendering.shadows = this.shadows;
   }
 
   public startGatherAnimations(node: ITreeNode = this._tree.root) {

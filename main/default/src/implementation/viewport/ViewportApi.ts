@@ -18,6 +18,7 @@ import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { sceneTree } from "../../main";
 import { IOrthographicCameraApi } from "../../interfaces/viewport/camera/IOrthographicCameraApi";
 import { IPerspectiveCameraApi } from "../../interfaces/viewport/camera/IPerspectiveCameraApi";
+import { ISettingsV3_1 } from "@shapediver/viewer.settings";
 
 export class ViewportApi implements IViewportApi {
     // #region Properties (5)
@@ -669,6 +670,18 @@ export class ViewportApi implements IViewportApi {
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
         }
     }
+    
+    public applyViewportSettings(settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }) {
+        const scope = 'applyViewportSettings';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, settings, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, sections, 'object', false);
+            return this.#creationControlCenter.applyViewportSettings(this.id, settings, sections);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
+    }
 
     public async close(): Promise<void> {
         const scope = 'close';
@@ -786,6 +799,16 @@ export class ViewportApi implements IViewportApi {
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+    
+    public getViewportSettings(): ISettingsV3_1 {
+        const scope = 'getViewportSettings';
+        try {
+            return this.#creationControlCenter.getViewportSettings(this.id);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
