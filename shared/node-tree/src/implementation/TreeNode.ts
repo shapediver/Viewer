@@ -30,6 +30,10 @@ export class TreeNode implements ITreeNode {
   #restrictViewports: string[] = [];
 
   #visible: boolean = true;
+  #skinNode: boolean = false;
+  #bones: ITreeNode[] = [];
+  #boneInverses: mat4[] = [];
+  #originalId: string;
 
   // #endregion Properties (13)
 
@@ -55,6 +59,7 @@ export class TreeNode implements ITreeNode {
     this.#transformations = transformations;
 
     this.#id = this.#uuidGenerator.create();
+    this.#originalId = this.#id;
     this.#version = this.#uuidGenerator.create();
     this.#parent?.addChild(this);
   }
@@ -63,12 +68,39 @@ export class TreeNode implements ITreeNode {
 
   // #region Public Accessors (19)
 
+
+  public get bones(): ITreeNode[] {
+    return this.#bones;
+  }
+
+  public set bones(value: ITreeNode[]) {
+    this.#bones = value;
+    this.updateVersion();
+  }
+
+  public get boneInverses(): mat4[] {
+    return this.#boneInverses;
+  }
+
+  public set boneInverses(value: mat4[]) {
+    this.#boneInverses = value;
+    this.updateVersion();
+  }
+
   public get boundingBox(): IBox {
     return this.#boundingBox;
   }
 
   public get children(): ITreeNode[] {
     return this.#children;
+  }
+
+  public get originalId(): string {
+    return this.#originalId;
+  }
+
+  public set originalId(value: string) {
+    this.#originalId = value;
   }
 
   public get data(): ITreeNodeData[] {
@@ -121,6 +153,15 @@ export class TreeNode implements ITreeNode {
 
   public set restrictViewports(value: string[]) {
     this.#restrictViewports = value;
+    this.updateVersion();
+  }
+
+  public get skinNode(): boolean {
+    return this.#skinNode;
+  }
+
+  public set skinNode(value: boolean) {
+    this.#skinNode = value;
     this.updateVersion();
   }
 
@@ -199,6 +240,7 @@ export class TreeNode implements ITreeNode {
 
   public clone(): ITreeNode {
     const clone = new TreeNode(this.name);
+    clone.originalId = this.originalId;
     clone.visible = this.visible;
     for (let child of this.#children)
       clone.addChild(child.clone());
@@ -215,6 +257,7 @@ export class TreeNode implements ITreeNode {
 
   public cloneInstance(): ITreeNode {
     const clone = new TreeNode(this.name);
+    clone.originalId = this.originalId;
     clone.visible = this.visible;
     for (let child of this.#children)
       clone.addChild(child.cloneInstance());

@@ -33,6 +33,7 @@ import { OutputApiData } from "./implementation/session/data/OutputApiData";
 import { SessionApiData } from "./implementation/session/data/SessionApiData";
 import { IOutputApiData } from "./interfaces/session/data/IOutputApiData";
 import { ISessionApiData } from "./interfaces/session/data/ISessionApiData";
+import { NodeTreeUtils } from "@shapediver/viewer.shared.node-tree-utils";
 
 export {
     createViewport, createSession, addListener, removeListener,
@@ -56,3 +57,4 @@ export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData,
 export { DataEngine, GeometryEngine, MaterialEngine }
 export { ISessionData, SessionData, ISessionOutputData, SessionOutputData }
 export { ISessionApiData, SessionApiData, IOutputApiData, OutputApiData }
+export { NodeTreeUtils }

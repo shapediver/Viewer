@@ -300,8 +300,7 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
   #boundingBox: IBox = new Box();
   #renderOrder: number = 0;
   #morphWeights: number[] = [];
-  #bones: ITreeNode[] = [];
-  #boneInverses: mat4[] = [];
+  #skinNode: ITreeNode | undefined;
 
   // #endregion Properties (4)
 
@@ -318,17 +317,13 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
     primitive: IPrimitiveData,
     matrix: mat4 = mat4.create(),
     id?: string,
-    morphWeights: number[] = [],
-    bones: ITreeNode[] = [],
-    boneInverses: mat4[] = []
+    morphWeights: number[] = []
   ) {
     super(id);
     this.#primitive = primitive;
     this.#matrix = matrix;
     this.#boundingBox = this.primitive.boundingBox.clone();
     this.#morphWeights = morphWeights;
-    this.#bones = bones;
-    this.#boneInverses = boneInverses;
   }
 
   // #endregion Constructors (1)
@@ -363,20 +358,12 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
     this.#morphWeights = value
   }
 
-  public get bones(): ITreeNode[] {
-    return this.#bones;
+  public get skinNode(): ITreeNode | undefined {
+    return this.#skinNode;
   }
 
-  public set bones(value: ITreeNode[]) {
-    this.#bones = value
-  }
-
-  public get boneInverses(): mat4[] {
-    return this.#boneInverses;
-  }
-
-  public set boneInverses(value: mat4[]) {
-    this.#boneInverses = value
+  public set skinNode(value: ITreeNode | undefined) {
+    this.#skinNode = value;
   }
 
   // #endregion Public Accessors (5)
@@ -387,7 +374,7 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
    * Clones the scene graph data.
    */
   public clone(): IGeometryData {
-    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id, this.#morphWeights, this.#bones, this.#boneInverses);
+    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id, this.#morphWeights);
   }
 
   public intersect(origin: vec3, direction: vec3): number | null {

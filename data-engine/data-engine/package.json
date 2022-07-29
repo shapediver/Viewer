@@ -46,6 +46,7 @@
     "@shapediver/viewer.data-engine.sdtf-engine": "2.1.0",
     "@shapediver/viewer.data-engine.tag3d-engine": "2.1.0",
     "@shapediver/viewer.shared.node-tree": "2.1.0",
+    "@shapediver/viewer.shared.node-tree-utils": "2.1.0",
     "@shapediver/viewer.shared.services": "2.1.0",
     "@shapediver/viewer.shared.types": "2.1.0",
     "axios": "^0.21.1",

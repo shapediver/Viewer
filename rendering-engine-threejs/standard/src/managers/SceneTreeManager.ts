@@ -125,14 +125,14 @@ export class SceneTreeManager implements IManager {
                 const geometryData = <IGeometryData>data;
 
                 let skeleton;
-                if(geometryData.bones.length > 0) {
+                if(geometryData.skinNode) {
                     const bones: THREE.Bone[] = [];
-                    for(let i = 0; i < geometryData.bones.length; i++)
-                        bones.push(this.getBone(geometryData.bones[i]));
+                    for(let i = 0; i < geometryData.skinNode.bones.length; i++)
+                        bones.push(this.getBone(geometryData.skinNode.bones[i]));
 
                     const boneInverses: THREE.Matrix4[] = [];
-                    for(let i = 0; i < geometryData.boneInverses.length; i++)
-                        boneInverses.push(new THREE.Matrix4().fromArray(geometryData.boneInverses[i]));
+                    for(let i = 0; i < geometryData.skinNode.boneInverses.length; i++)
+                        boneInverses.push(new THREE.Matrix4().fromArray(geometryData.skinNode.boneInverses[i]));
 
                     skeleton = new THREE.Skeleton(bones, boneInverses)
                 }

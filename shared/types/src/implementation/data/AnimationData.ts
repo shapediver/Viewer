@@ -90,6 +90,10 @@ export class AnimationData extends AbstractTreeNodeData implements IAnimationDat
         return this.#tracks;
     }
 
+    public set tracks(value: IAnimationTrack[]) {
+        this.#tracks = value;
+    }
+
     // #endregion Public Accessors (9)
 
     // #region Public Methods (5)

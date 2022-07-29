@@ -66,6 +66,7 @@
     "@shapediver/viewer.shared.build-data": "2.1.0",
     "@shapediver/viewer.shared.math": "2.1.0",
     "@shapediver/viewer.shared.node-tree": "2.1.0",
+    "@shapediver/viewer.shared.node-tree-utils": "2.1.0",
     "@shapediver/viewer.shared.services": "2.1.0",
     "@shapediver/viewer.shared.types": "2.1.0",
     "@shapediver/viewer.utils.mime-type": "1.0.0",

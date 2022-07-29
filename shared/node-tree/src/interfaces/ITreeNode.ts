@@ -19,6 +19,7 @@ export interface ITreeNode {
     readonly data: ITreeNodeData[];
 
     readonly id: string;
+    readonly originalId: string;
     readonly name: string;
     readonly version: string;
     readonly parent?: ITreeNode;
@@ -36,6 +37,10 @@ export interface ITreeNode {
 
     transformations: ITransformation[];
     visible: boolean;
+
+    skinNode: boolean;
+    bones: ITreeNode[];
+    boneInverses: mat4[];
 
     // #endregion Properties (16)
 
