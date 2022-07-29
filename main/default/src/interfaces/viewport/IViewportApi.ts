@@ -32,10 +32,12 @@ export interface IViewportApi {
   // #region Properties (34)
 
   /**
-   * An array of all animations that are currently present in the parts of
+   * A dictionary of all animations that are currently present in the parts of
    * the scene tree relevant to this viewport.
    */
-   readonly animations: IAnimationData[];
+  readonly animations: {
+    [key: string]: IAnimationData
+  }
 
   /**
    * The canvas that is used to render the viewport.

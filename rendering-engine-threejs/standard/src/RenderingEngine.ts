@@ -53,6 +53,7 @@ import {
   SDTFOverviewData,
   ITaskEvent,
   TASK_TYPE,
+  IAnimationData,
 } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -154,7 +155,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   readonly #defaultLogoStatic: string = 'https://viewer.shapediver.com/v3/graphics/logo.png';
   readonly #defaultSpinner: string = 'https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg';
 
-  #animations: AnimationData[] = [];
+  #animations: {
+    [key: string]: IAnimationData
+  } = {};
   #flags: { [key: string]: string[] } = {
     [FLAG_TYPE.CAMERA_FREEZE]: [],
     [FLAG_TYPE.CONTINUOUS_RENDERING]: [],
@@ -292,7 +295,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._animationManager;
   }
 
-  public get animations(): AnimationData[] {
+  public get animations(): {
+    [key: string]: IAnimationData
+  } {
     return this.#animations;
   }
 
@@ -1002,14 +1007,40 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public startGatherAnimations(node: ITreeNode = this._tree.root) {
-    this.#animations = this.gatherAnimations();
+    this.#animations = {};
+
+    const animationArray = this.gatherAnimations();
+    const names = animationArray.map(a => a.name);
+    const animationDictionary: {
+      [key: string]: number
+    } = {};
+
+    for(let i = 0; i < animationArray.length; i++) {
+      const animationName = animationArray[i].name;
+      
+      const nameIndices = [];
+      for(let j = 0; j < names.length; j++)
+        if(animationName === names[j])
+          nameIndices.push(j);
+
+      let animationNameAdjusted = animationName;
+      // name adjustement if the name occurs multiple times
+      if(nameIndices.length > 1) {
+        animationNameAdjusted = animationName + '_' + nameIndices.indexOf(i);
+        // even further name adjustement if the name is even then the same after adjustements (probably will never happen)
+        while(names.includes(animationNameAdjusted))
+          animationNameAdjusted += "_0";
+      }
+      
+      this.#animations[animationNameAdjusted] = animationArray[i];
+    }
   }
 
   public update(id: string): void {
     if(this.closed) return;
     this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     this._renderingManager.updateShadowMap();
-    this.#animations = this.gatherAnimations();
+    this.startGatherAnimations();
     this._renderingManager.render();
 
     this._renderingManager.lastRootVersion = this._tree.root.version;

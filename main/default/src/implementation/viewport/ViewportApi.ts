@@ -120,7 +120,9 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
-    public get animations(): IAnimationData[] {
+    public get animations(): {
+        [key: string]: IAnimationData
+    } {
         return this.#renderingEngine.animations;
     }
 

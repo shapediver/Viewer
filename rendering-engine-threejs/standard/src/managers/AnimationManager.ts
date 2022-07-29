@@ -25,7 +25,7 @@ export class AnimationManager implements IManager {
     public init(): void {}
 
     public update(deltaTime: number): boolean {
-        const animations = this._renderingEngine.animations;
+        const animations = Object.values(this._renderingEngine.animations);
         let running = false;
 
         for (let i = 0; i < animations.length; i++) {
