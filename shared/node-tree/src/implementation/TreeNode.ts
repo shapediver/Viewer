@@ -222,19 +222,16 @@ export class TreeNode implements ITreeNode {
     if (child.parent)
       child.parent.removeChild(child);
     (<ITreeNode | undefined>child.parent) = this;
-    this.updateVersion();
     return true;
   }
 
   public addData(data: ITreeNodeData): boolean {
     this.#data.push(data);
-    this.updateVersion();
     return true;
   }
 
   public addTransformation(transformation: ITransformation): boolean {
     this.#transformations.push(transformation);
-    this.updateVersion();
     return true;
   }
 
@@ -320,7 +317,6 @@ export class TreeNode implements ITreeNode {
     if (index === -1) return false;
     this.#children.splice(index, 1);
     (<ITreeNode | undefined>child.parent) = undefined;
-    this.updateVersion();
     return true;
   }
 
@@ -328,7 +324,6 @@ export class TreeNode implements ITreeNode {
     const index = this.#data.indexOf(data);
     if (index === -1) return false;
     this.#data.splice(index, 1);
-    this.updateVersion();
     return true;
   }
 
@@ -336,7 +331,6 @@ export class TreeNode implements ITreeNode {
     const index = this.#transformations.indexOf(transformation);
     if (index === -1) return false;
     this.#transformations.splice(index, 1);
-    this.updateVersion();
     return true;
   }
 
