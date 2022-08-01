@@ -16,5 +16,4 @@ export interface ICameraEngine {
 
     activateCameraEvents(): void;
     deactivateCameraEvents(): void;
-    createDefaultCameras(): void;
 }
