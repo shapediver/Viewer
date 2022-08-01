@@ -179,7 +179,6 @@ export class MaterialLoader implements ILoader {
     }
 
     private assignTextureEncoding() {
-        console.log(this._materialCache, this._textureEncoding)
         for(let m in this._materialCache) {
             if(this._materialCache[m] instanceof THREE.MeshPhysicalMaterial || this._materialCache[m] instanceof THREE.MeshStandardMaterial) {
                 if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap) {
@@ -664,7 +663,6 @@ export class MaterialLoader implements ILoader {
     
     public set textureEncoding(value: THREE.TextureEncoding) {
         this._textureEncoding = value;
-        console.log('assignTextureEncoding')
         this.assignTextureEncoding();
     }
 
