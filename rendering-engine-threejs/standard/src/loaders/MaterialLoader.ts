@@ -179,12 +179,17 @@ export class MaterialLoader implements ILoader {
     }
 
     private assignTextureEncoding() {
+        console.log(this._materialCache, this._textureEncoding)
         for(let m in this._materialCache) {
             if(this._materialCache[m] instanceof THREE.MeshPhysicalMaterial || this._materialCache[m] instanceof THREE.MeshStandardMaterial) {
-                if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap)
+                if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap) {
                     (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap!.encoding = this._textureEncoding;
-                if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map)
+                    (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap!.needsUpdate = true;
+                }
+                if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map) {
                     (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map!.encoding = this._textureEncoding;
+                    (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map!.needsUpdate = true;
+                }
                 (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
             }
         }
@@ -659,6 +664,7 @@ export class MaterialLoader implements ILoader {
     
     public set textureEncoding(value: THREE.TextureEncoding) {
         this._textureEncoding = value;
+        console.log('assignTextureEncoding')
         this.assignTextureEncoding();
     }
 
