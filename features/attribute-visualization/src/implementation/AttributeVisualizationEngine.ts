@@ -86,7 +86,6 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     public updateAttributes(attributes: IAttribute[]) {
         this.#attributes = attributes;
-        this.createLayers();
         this.constructAttributeVisualization();
     }
 
@@ -116,7 +115,6 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     public updateLayers(layers: { [key: string]: ILayer }) {
         this.#layers = layers;
-        this.createLayers();
         this.constructAttributeVisualization();
     }
 
