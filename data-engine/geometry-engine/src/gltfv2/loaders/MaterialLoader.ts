@@ -66,10 +66,10 @@ export class MaterialLoader {
 
             if (materialExtensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET]) {
                 const materialPreset: ISHAPEDIVER_materials_preset = materialExtensions[GLTF_EXTENSIONS.SHAPEDIVER_MATERIALS_PRESET];
-                const materialData = new MaterialStandardData(materialDataProperties);
                 promises.push(
                     new Promise(async resolve => {
-                        await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset, materialData);
+                        const materialData = await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset);
+                        materialData.name = material.name;
                         materialData.color = this._converter.toColor(materialPreset.color);
                         this._loaded[materialId] = materialData;
                         resolve();

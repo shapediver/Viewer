@@ -1,7 +1,7 @@
 import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILITY_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { RenderingEngine, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
-import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, LOGGING_TOPIC, SettingsEngine, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { EventResponseMapping, ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
 import { container, singleton } from "tsyringe";
 import { ICreationControlCenter } from "../interfaces/ICreationControlCenter";
@@ -9,6 +9,7 @@ import { build_data } from '@shapediver/viewer.shared.build-data'
 import { Box } from "@shapediver/viewer.shared.math";
 import { ITree, Tree } from "@shapediver/viewer.shared.node-tree";
 import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
+import { ISettingsV3_1 } from "@shapediver/viewer.settings";
 
 @singleton()
 export class CreationControlCenter implements ICreationControlCenter {
@@ -54,6 +55,34 @@ export class CreationControlCenter implements ICreationControlCenter {
         this.renderingEngines[r].applySettings(sections.viewport);
       }
     }
+    return new Promise(resolve => Promise.all(promises).then(() => resolve()));
+  }
+
+  public getViewportSettings(viewportId: string): ISettingsV3_1 {
+    let renderingEngine = this.renderingEngines[viewportId];
+    if(!renderingEngine)
+      throw this.#logger.error(LOGGING_TOPIC.VIEWPORT, new Error('Viewport with id ' + viewportId + ' could not be found.'), undefined, true, false);
+
+    const settingsEngine: SettingsEngine = new SettingsEngine();
+    renderingEngine.saveSettings(settingsEngine);
+    return settingsEngine.convertToTargetVersion();
+  }
+
+  public applyViewportSettings(viewportId: string, settings: ISettingsV3_1, sections: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } = { ar: false, scene: false, camera: false, light: false, environment: false, general: false}): Promise<void> {
+    sections = sections || {};
+
+    const settingsEngine: SettingsEngine = new SettingsEngine();
+    settingsEngine.loadSettings(settings);
+
+    const promises: Promise<any>[] = [];
+    this.#stateEngine.renderingEngines[viewportId].settingsAssigned.reset();
+    promises.push(new Promise<void>(resolve => {
+      this.#stateEngine.renderingEngines[viewportId].settingsAssigned.then(() => {
+        resolve();
+      })
+    }));
+
+    this.renderingEngines[viewportId].applySettings(sections, settingsEngine);
     return new Promise(resolve => Promise.all(promises).then(() => resolve()));
   }
 
@@ -394,10 +423,9 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
-  public async saveSettings(sessionId: string, viewportId?: string): Promise<boolean> {
+  public createSettingsObject(sessionId: string, viewportId?: string): any {
     try {
       const session = this.sessionEngines[sessionId];
-      await session.saveUiProperties(false);
 
       session.settingsEngine.settings.build_version = build_data.build_version;
       session.settingsEngine.settings.build_date = build_data.build_date;
@@ -416,18 +444,30 @@ export class CreationControlCenter implements ICreationControlCenter {
         }
       }
 
-      if (renderingEngine) {
+      if (renderingEngine)
         renderingEngine.saveSettings();
-        const response = await session.saveSettings(session.settingsEngine.convertToTargetVersion());
-        if (response) {
-          this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings: Saved settings.`);
-        } else {
-          const error = new ShapeDiverViewerSessionError(`Session(${sessionId}).saveSettings: Could not save settings.`);
-          throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, error);
-        }
-        return response;
+        
+      return session.settingsEngine.convertToTargetVersion();
+    } catch (e) {
+      if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+      throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, e);
+    }
+  }
+
+  public async saveSettings(sessionId: string, viewportId?: string): Promise<boolean> {
+    try {
+      const session = this.sessionEngines[sessionId];
+      await session.saveUiProperties(false);
+
+      const settingsObject = this.createSettingsObject(sessionId, viewportId);
+      const response = await session.saveSettings(settingsObject);
+      if (response) {
+        this.#logger.debug(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings: Saved settings.`);
+      } else {
+        const error = new ShapeDiverViewerSessionError(`Session(${sessionId}).saveSettings: Could not save settings.`);
+        throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, error);
       }
-      return false;
+      return response;
     } catch (e) {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, e);

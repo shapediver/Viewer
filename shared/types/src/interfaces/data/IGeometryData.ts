@@ -71,11 +71,10 @@ export interface IGeometryData extends ITreeNodeData {
     readonly matrix: mat4;
     readonly primitive: IPrimitiveData;
 
-    boneInverses: mat4[];
-    bones: ITreeNode[];
     boundingBox: IBox;
     morphWeights: number[];
     renderOrder: number;
+    skinNode?: ITreeNode;
 
     // #endregion Properties (7)
 

@@ -34,6 +34,7 @@ import { AccessorLoader } from './loaders/AccessorLoader'
 import { TextureLoader } from './loaders/TextureLoader'
 import { MaterialLoader } from './loaders/MaterialLoader'
 import { GeometryLoader } from './loaders/GeometryLoader'
+import { NodeTreeUtils } from '@shapediver/viewer.shared.node-tree-utils'
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
@@ -141,17 +142,11 @@ export class GLTFLoader {
                             boneInverses.push(mat);
                         }
 
-                        const addBones = (node: ITreeNode) => {
-                            for (let j = 0; j < node.data.length; j++)
-                                if (node.data[j] instanceof GeometryData) {
-                                    (<GeometryData>node.data[j]).bones = bones;
-                                    (<GeometryData>node.data[j]).boneInverses = boneInverses;
-                                }
+                        skinNode.skinNode = true;
+                        skinNode.bones = bones;
+                        skinNode.boneInverses = boneInverses;
 
-                            for (let l = 0; l < node.children.length; l++)
-                                addBones(node.children[l])
-                        }
-                        addBones(skinNode);
+                        NodeTreeUtils.addBones(skinNode, skinNode);
                     }
                 }
             }

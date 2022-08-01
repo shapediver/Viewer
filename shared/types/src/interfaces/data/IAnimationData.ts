@@ -22,11 +22,11 @@ export interface IAnimationData extends ITreeNodeData {
     readonly duration: number;
     readonly name: string;
     readonly start: number;
-    readonly tracks: IAnimationTrack[];
 
     animationTime: number;
     repeat: boolean;
     reset: boolean;
+    tracks: IAnimationTrack[];
 
     // #endregion Properties (8)
 

@@ -5,7 +5,7 @@ import { mat4 } from "gl-matrix";
 import { container } from "tsyringe";
 import { Converter, EVENTTYPE, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { IAttributeVisualizationEngine } from "../interfaces/IAttributeVisualizationEngine";
-import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
+import { IMaterialAbstractData, ISDTFItemData, ISDTFOverview, MaterialStandardData, MaterialUnlitData, SdtfPrimitiveTypeGuard } from "@shapediver/viewer.shared.types";
 import { AttributeVisualizationUtils } from "./AttributeVisualizationUtils";
 
 export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
@@ -29,6 +29,8 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
     #listeners: {
         [key: string]: () => void
     } = {};
+    #visualizedMaterialType: 'unlit' | 'standard' = 'unlit';
+    #layerMaterialType: 'unlit' | 'standard' = 'unlit';
 
     // #endregion Properties (7)
 
@@ -66,6 +68,14 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
         return this.#layers;
     }
 
+    public get layerMaterialType(): 'unlit' | 'standard' {
+        return this.#layerMaterialType;
+    }
+
+    public get visualizedMaterialType(): 'unlit' | 'standard' {
+        return this.#visualizedMaterialType;
+    }
+
     public get overview(): ISDTFOverview {
         return this.#overview;
     }
@@ -81,11 +91,25 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     public updateDefaultLayer(layer: ILayer) {
         this.#defaultLayer = layer;
+        this.createLayers();
         this.constructAttributeVisualization();
     }
 
     public updateDefaultMaterial(material: IMaterialAbstractData) {
         this.#defaultMaterial = material;
+        this.createLayers();
+        this.constructAttributeVisualization();
+    }
+    
+    public updateLayerMaterialType(type: 'unlit' | 'standard') {
+        this.#layerMaterialType = type;
+        this.createLayers();
+        this.constructAttributeVisualization();
+    }
+
+    public updateVisualizedMaterialType(type: 'unlit' | 'standard') {
+        this.#visualizedMaterialType = type;
+        this.createLayers();
         this.constructAttributeVisualization();
     }
 
@@ -116,20 +140,36 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
             if (!itemData || !itemData.attributes) {
                 if (this.#attributes.length === 0) {
                     // return default layer material
-                    const material = new MaterialUnlitData({
-                        opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity : 0,
-                        color: this.#converter.toColor(this.#defaultLayer.color)
-                    });
+                    let material;
+                    if(this.#layerMaterialType === 'unlit') {
+                        material = new MaterialUnlitData({
+                            opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity : 0,
+                            color: this.#converter.toColor(this.#defaultLayer.color)
+                        });
+                    } else {
+                        material = new MaterialStandardData({
+                            opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity : 0,
+                            color: this.#converter.toColor(this.#defaultLayer.color)
+                        });
+                    }
                     return {
                         matrix: mat4.create(),
                         material
                     }
                 } else {
                     // return default layer material
-                    const material = new MaterialUnlitData({
-                        opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity * this.#defaultMaterial.opacity : 0,
-                        color: this.#converter.toColor(this.#defaultMaterial.color)
-                    });
+                    let material;
+                    if(this.#layerMaterialType === 'unlit') {
+                        material = new MaterialUnlitData({
+                            opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity * this.#defaultMaterial.opacity : 0,
+                            color: this.#converter.toColor(this.#defaultMaterial.color)
+                        });
+                    } else {
+                        material = new MaterialStandardData({
+                            opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity * this.#defaultMaterial.opacity : 0,
+                            color: this.#converter.toColor(this.#defaultMaterial.color)
+                        });
+                    }
                     return {
                         matrix: mat4.create(),
                         material
@@ -156,17 +196,26 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
             if (this.#attributes.length === 0) {
                 // no attributes are specified, we go into layer visualization mode
-                const material = new MaterialUnlitData({
-                    opacity: layer.opacity,
-                    color: this.#converter.toColor(layer.color)
-                });
+                let material;
+                if(this.#layerMaterialType === 'unlit') {
+                    material = new MaterialUnlitData({
+                        opacity: layer.opacity,
+                        color: this.#converter.toColor(layer.color)
+                    });
+                } else {
+                    material = new MaterialStandardData({
+                        opacity: layer.opacity,
+                        color: this.#converter.toColor(layer.color)
+                    });
+                }
+
                 return {
                     matrix: mat4.create(),
                     material
                 }
             } else {
                 // attributes are specified, we go into attribute visualization mode
-                const material = new MaterialUnlitData();
+                const material = this.#visualizedMaterialType === 'unlit' ? new MaterialUnlitData() : new MaterialStandardData();
                 for (let i = 0; i < this.#attributes.length; i++) {
                     const a = this.#attributes[i];
                     if (itemData.attributes[a.key] && itemData.attributes[a.key].typeHint === a.type) {
@@ -188,6 +237,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                                     (numberAttribute.min !== undefined ? numberAttribute.min : itemDataAttributeOverview.min)!,
                                     (numberAttribute.max !== undefined ? numberAttribute.max : itemDataAttributeOverview.max)!,
                                     numberAttribute.visualization,
+                                    this.#visualizedMaterialType,
                                     this.#defaultMaterial
                                 );
                                 numberVisualizationData.material.opacity *= layer.opacity;
@@ -198,7 +248,9 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                                     itemDataAttribute.value,
                                     stringAttribute.values || itemDataAttributeOverview.values,
                                     stringAttribute.visualization,
-                                    this.#defaultMaterial);
+                                    this.#visualizedMaterialType,
+                                    this.#defaultMaterial
+                                );
 
                                 stringVisualizationData.material.opacity *= layer.opacity;
                                 return stringVisualizationData;

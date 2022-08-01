@@ -1,6 +1,6 @@
 import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
-import { AnimationData, SDTFItemData, ISDTFOverview, ISDTFAttributeVisualizationData } from "@shapediver/viewer.shared.types";
+import { AnimationData, SDTFItemData, ISDTFOverview, ISDTFAttributeVisualizationData, IAnimationData } from "@shapediver/viewer.shared.types";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IRenderingEngineThreeJS extends IRenderingEngine {
@@ -8,7 +8,9 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 
     ambientOcclusion: boolean;
     ambientOcclusionIntensity: number;
-    animations: AnimationData[];
+    animations: {
+        [key: string]: IAnimationData
+    };
     beautyRenderBlendingDuration: number;
     beautyRenderDelay: number;
     clearAlpha: number;

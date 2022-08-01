@@ -13,6 +13,7 @@ import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
 import { ICameraApi } from './camera/ICameraApi'
 import { ILightSceneApi } from './lights/ILightSceneApi'
+import { ISettingsV3_1 } from '@shapediver/viewer.settings'
 
 /**
  * The api for viewports.
@@ -31,10 +32,12 @@ export interface IViewportApi {
   // #region Properties (34)
 
   /**
-   * An array of all animations that are currently present in the parts of
+   * A dictionary of all animations that are currently present in the parts of
    * the scene tree relevant to this viewport.
    */
-   readonly animations: IAnimationData[];
+  readonly animations: {
+    [key: string]: IAnimationData
+  }
 
   /**
    * The canvas that is used to render the viewport.
@@ -275,6 +278,15 @@ export interface IViewportApi {
   addFlag(flag: FLAG_TYPE): string;
 
   /**
+   * Apply the settings of a viewport manually. You can get the settings via {@link getViewportSettings}.
+   * You can choose which sections will be applied, by default they are all set to false.
+   * 
+   * @param settings 
+   * @param sections 
+   */
+  applyViewportSettings(settings: ISettingsV3_1, sections?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; }): Promise<void>;
+
+  /**
    * Assign the camera with the specified id to the viewport.
    * This will make the given camera the current one. 
    * 
@@ -362,6 +374,12 @@ export interface IViewportApi {
    * @param quality The quality of the screenshot, default is 1.
    */
   getScreenshot(type?: string, quality?: number): string;
+
+  /**
+   * Get the current settings object of this viewport.
+   * Can be re-applied at a later point with {@link applyViewportSettings}.
+   */
+  getViewportSettings(): ISettingsV3_1;
 
   /**
    * Remove the camera with the specified id and destroys it.

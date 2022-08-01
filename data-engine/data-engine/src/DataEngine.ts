@@ -4,12 +4,13 @@ import { GeometryEngine } from '@shapediver/viewer.data-engine.geometry-engine'
 import { MaterialEngine } from '@shapediver/viewer.data-engine.material-engine'
 import { SDTFEngine } from '@shapediver/viewer.data-engine.sdtf-engine'
 import { Tag3dEngine } from '@shapediver/viewer.data-engine.tag3d-engine'
-import { ITransformation, ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { HttpClient, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
+import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { HTMLElementAnchorEngine } from '@shapediver/viewer.data-engine.html-element-anchor-engine'
 
 import { mat4 } from 'gl-matrix'
 import { ShapeDiverResponseOutputContent } from '@shapediver/sdk.geometry-api-sdk-v2'
+import { NodeTreeUtils } from '@shapediver/viewer.shared.node-tree-utils'
 
 @singleton()
 export class DataEngine {
@@ -27,7 +28,7 @@ export class DataEngine {
     // #region Public Methods (1)
 
     public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
-        if(!content || (content && !content.format)) {
+        if (!content || (content && !content.format)) {
             const error = new ShapeDiverViewerDataProcessingError('DataEngine cannot load content.');
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `DataEngine.loadContent`, error);
         }
@@ -55,7 +56,7 @@ export class DataEngine {
                 for (let i = 0; i < content.transformations.length; i++) {
                     const t = content.transformations[i];
                     if (Array.isArray(t) && t.length === 16) {
-                        const nodeInstance = node.cloneInstance();
+                        const nodeInstance = node.clone();
                         nodeInstance.transformations = [{
                             id: 'content_' + i,
                             matrix: mat4.fromValues(t[0], t[1], t[2], t[3],
@@ -63,7 +64,9 @@ export class DataEngine {
                                 t[8], t[9], t[10], t[11],
                                 t[12], t[13], t[14], t[15])
                         }].concat(node.transformations);
+                        transformationNode.updateVersion()
                         transformationNode.addChild(nodeInstance)
+                        NodeTreeUtils.cloneSkinData(node, nodeInstance)
                     }
                 }
             } else {

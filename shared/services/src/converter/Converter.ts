@@ -285,13 +285,7 @@ export class Converter {
                 img.onload = () => resolve();
             })
             img.crossOrigin = "anonymous";
-
-            let data = <string>await new Promise((resolve, _) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(<string>reader.result);
-                reader.readAsDataURL(blob);
-            });
-            img.src = data;
+            img.src = URL.createObjectURL(blob);
             await promise;
             return img;
         }

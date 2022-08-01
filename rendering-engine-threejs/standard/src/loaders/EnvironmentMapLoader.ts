@@ -279,10 +279,17 @@ export class EnvironmentMapLoader implements ILoader {
                 () => {},
                 (error) =>  reject(error));
             } else {
-                const promises: Promise<HTMLImageElement>[] = [];
-                url.forEach(u => promises.push(this._httpClient.loadTexture(u).then(d => this._converter.responseToImage(d))));
+                const promises: Promise<HttpResponse<ArrayBuffer>>[] = [];
+                url.forEach(u => promises.push(this._httpClient.loadTexture(u)));
+                const responses = await Promise.all(promises);
+
+                const urls = responses.map(response => {
+                    const arrayBufferView = new Uint8Array( response.data );
+                    const blob = new Blob([ arrayBufferView ], { type: response.headers['content-type'] } );
+                    return URL.createObjectURL(blob);
+                });
                 
-                new THREE.CubeTextureLoader().load(url,
+                new THREE.CubeTextureLoader().load(urls,
                     (map: THREE.CubeTexture) => {
                         map.encoding = THREE.sRGBEncoding;
                         map.format = THREE.RGBAFormat;

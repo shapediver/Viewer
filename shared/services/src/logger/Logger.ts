@@ -143,7 +143,7 @@ export class Logger {
     
     public handleError(topic: LOGGING_TOPIC, scope: string, e: ShapeDiverBackendError | ShapeDiverViewerError | Error | unknown, logToSentry = true) {
         if (this.canLog(LOGGING_LEVEL.ERROR) && this.showMessages === true) 
-            console.error('(ERROR) ', e);
+            //console.error('(ERROR) ', e);
         if(e instanceof ShapeDiverRequestError) {
             const messageProperty = e && e.message ? e.message : `An unknown issue occurred in ${scope}.`;
             if(logToSentry) this.sentryError(topic, e, messageProperty);

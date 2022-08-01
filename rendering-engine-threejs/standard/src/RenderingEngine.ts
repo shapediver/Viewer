@@ -53,6 +53,7 @@ import {
   SDTFOverviewData,
   ITaskEvent,
   TASK_TYPE,
+  IAnimationData,
 } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -108,7 +109,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private readonly _lightLoader: LightLoader;
   private readonly _logger: Logger = <Logger>container.resolve(Logger);
   private readonly _materialLoader: MaterialLoader;
-  private readonly _renderer: THREE.WebGLRenderer;
   private readonly _renderingManager: RenderingManager;
   private readonly _sceneTracingManager: SceneTracingManager;
   private readonly _sceneTreeManager: SceneTreeManager;
@@ -140,6 +140,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _groundPlaneVisibility: boolean = true;
   private _logoDivElement: HTMLDivElement;
   private _pointSize: number = 1.0;
+  private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
   private _sessionSettingsMode: SESSION_SETTINGS_MODE;
   private _settingsEngine?: SettingsEngine;
@@ -154,7 +155,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   readonly #defaultLogoStatic: string = 'https://viewer.shapediver.com/v3/graphics/logo.png';
   readonly #defaultSpinner: string = 'https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg';
 
-  #animations: AnimationData[] = [];
+  #animations: {
+    [key: string]: IAnimationData
+  } = {};
   #flags: { [key: string]: string[] } = {
     [FLAG_TYPE.CAMERA_FREEZE]: [],
     [FLAG_TYPE.CONTINUOUS_RENDERING]: [],
@@ -200,6 +203,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     // creation of viewer essentials
     this._canvas = this._canvasEngine.getCanvas(this._canvasEngine.createCanvasObject(prop.canvas));
+
+    this._canvas.canvasElement.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault();
+      // prevent three.js event
+      event.stopImmediatePropagation();
+      this.displayErrorMessage(`An error occurred, please reload the page. If this happens again, please let us know.`);
+      this.show = false;
+    }, false);
+
+    this._canvas.canvasElement.addEventListener('webglcontextrestored', (event) => {
+      event.preventDefault();
+      // prevent three.js event
+      event.stopImmediatePropagation();
+    }, false);
 
     // creation of the engines (all singleton engines were created already)
     this._domEventEngine = new DomEventEngine(this._canvas.canvasElement);
@@ -278,7 +295,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._animationManager;
   }
 
-  public get animations(): AnimationData[] {
+  public get animations(): {
+    [key: string]: IAnimationData
+  } {
     return this.#animations;
   }
 
@@ -757,35 +776,40 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return token;
   }
 
-  public applySettings(sections: {
-    ar?: boolean,
-    scene?: boolean,
-    camera?: boolean,
-    light?: boolean,
-    environment?: boolean,
-    general?: boolean
-  } = {
+  public applySettings(
+    sections: {
+      ar?: boolean,
+      scene?: boolean,
+      camera?: boolean,
+      light?: boolean,
+      environment?: boolean,
+      general?: boolean
+    } = {
       ar: true,
       scene: true,
       camera: true,
       light: true,
       environment: true,
       general: true
-    }) {
-    if (!this._settingsEngine) return;
+    },
+    settingsEngine?: SettingsEngine
+  ) {
+
+    settingsEngine = settingsEngine || this._settingsEngine
+    if (!settingsEngine) return;
 
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
       this._stateEngine.renderingEngines[this.id].environmentMapLoaded.then(() => {
-        if (!this._settingsEngine) return;
-        this.environmentMapAsBackground = this._settingsEngine.environment.mapAsBackground;
-        this.clearAlpha = this._settingsEngine.environment.clearAlpha;
-        this.clearColor = this._converter.toColor(this._settingsEngine.environment.clearColor);
+        if (!settingsEngine) return;
+        this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
+        this.clearAlpha = settingsEngine.environment.clearAlpha;
+        this.clearColor = this._converter.toColor(settingsEngine.environment.clearColor);
         this.applySyncSettings(sections)
       })
 
       // set it like this to not trigger the loading
-      this.environmentMap = this._settingsEngine.environment.map;
+      this.environmentMap = settingsEngine.environment.map;
     } else {
       this.applySyncSettings(sections)
     }
@@ -953,42 +977,70 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.render();
   }
 
-  public saveSettings() {
-    if (!this._settingsEngine) return;
-    (<LightEngine>this.lightEngine).saveSettings(this._settingsEngine);
-    (<CameraEngine>this.cameraEngine).saveSettings(this._settingsEngine);
+  public saveSettings(settingsEngine?: SettingsEngine) {
+    settingsEngine = settingsEngine || this._settingsEngine
+    if (!settingsEngine) return;
 
-    this._settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
-    this._settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
-    this._settingsEngine.environment.mapResolution = this.environmentMapResolution;
-    this._settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
-    this._settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
-    this._settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
-    this._settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
-    this._settingsEngine.environmentGeometry.gridColor = this.gridColor;
-    this._settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
-    this._settingsEngine.rendering.outputEncoding = this.outputEncoding;
-    this._settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
-    this._settingsEngine.rendering.textureEncoding = this.textureEncoding;
-    this._settingsEngine.rendering.toneMapping = this.toneMapping;
-    this._settingsEngine.rendering.toneMappingExposure = this.toneMappingExposure;
-    this._settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
-    this._settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
-    this._settingsEngine.environment.clearAlpha = this.clearAlpha;
-    this._settingsEngine.environment.clearColor = this.clearColor;
-    this._settingsEngine.general.pointSize = this.pointSize;
-    this._settingsEngine.rendering.shadows = this.shadows;
+    (<LightEngine>this.lightEngine).saveSettings(settingsEngine);
+    (<CameraEngine>this.cameraEngine).saveSettings(settingsEngine);
+
+    settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
+    settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
+    settingsEngine.environment.mapResolution = this.environmentMapResolution;
+    settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
+    settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
+    settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
+    settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
+    settingsEngine.environmentGeometry.gridColor = this.gridColor;
+    settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
+    settingsEngine.rendering.outputEncoding = this.outputEncoding;
+    settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
+    settingsEngine.rendering.textureEncoding = this.textureEncoding;
+    settingsEngine.rendering.toneMapping = this.toneMapping;
+    settingsEngine.rendering.toneMappingExposure = this.toneMappingExposure;
+    settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
+    settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
+    settingsEngine.environment.clearAlpha = this.clearAlpha;
+    settingsEngine.environment.clearColor = this.clearColor;
+    settingsEngine.general.pointSize = this.pointSize;
+    settingsEngine.rendering.shadows = this.shadows;
   }
 
   public startGatherAnimations(node: ITreeNode = this._tree.root) {
-    this.#animations = this.gatherAnimations();
+    this.#animations = {};
+
+    const animationArray = this.gatherAnimations();
+    const names = animationArray.map(a => a.name);
+    const animationDictionary: {
+      [key: string]: number
+    } = {};
+
+    for(let i = 0; i < animationArray.length; i++) {
+      const animationName = animationArray[i].name;
+      
+      const nameIndices = [];
+      for(let j = 0; j < names.length; j++)
+        if(animationName === names[j])
+          nameIndices.push(j);
+
+      let animationNameAdjusted = animationName;
+      // name adjustement if the name occurs multiple times
+      if(nameIndices.length > 1) {
+        animationNameAdjusted = animationName + '_' + nameIndices.indexOf(i);
+        // even further name adjustement if the name is even then the same after adjustements (probably will never happen)
+        while(names.includes(animationNameAdjusted))
+          animationNameAdjusted += "_0";
+      }
+      
+      this.#animations[animationNameAdjusted] = animationArray[i];
+    }
   }
 
   public update(id: string): void {
     if(this.closed) return;
     this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     this._renderingManager.updateShadowMap();
-    this.#animations = this.gatherAnimations();
+    this.startGatherAnimations();
     this._renderingManager.render();
 
     this._renderingManager.lastRootVersion = this._tree.root.version;
