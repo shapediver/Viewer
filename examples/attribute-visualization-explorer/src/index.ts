@@ -69,8 +69,8 @@ addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
     });
     session = await createSession({
         ticket:
-            "0becbe99aa4c0ab77018d695c42bb9fcf17f7e5e67cd277c24fa8868fee85d910f50fe2be0af3baddb431b33dedb548e22aabe743074a2598f36eb70fd2876c727ec5ec456978be5546081be8d6443da1d66d1269d2236e362ace67fe9aa0a47ad11531b222960-46b2ea05fcd73affa12aeb88d0f25ab1",
-        modelViewUrl: "https://sdeuc1.eu-central-1.shapediver.com",
+            "9f1b67daa56999681c1603344dc03fd3a0e9bd91160394015a6bf32fd8611d3284d76f3023db1a3362759742a77d061f036b87a9105ff1b2ea341396ef9902836e2e6701f56c9ac89975416467e5272c3ca5b3ef49e9041d3cbcebb40c4991de27b6aedee0e477-48676bdd0ea4122e21ae74ed198a04d4",
+        modelViewUrl: "https://sddev2.eu-central-1.shapediver.com",
         id: "mySession"
     });
 
@@ -78,9 +78,14 @@ addListener(EVENTTYPE.INTERACTION.SELECT_ON, (e) => {
 
     // create the interactionEngine and provide it the viewport object
     interactionEngine = new InteractionEngine(viewport);
+    interactionEngine.intersectionOpacity = 0.1;
 
     // create the selectionManager and add it
     attributeSelectManager = new SelectManager();
     attributeSelectManager.deselectOnEmpty = false;
     attributeSelectManager.effectMaterial = new MaterialUnlitData({color: '#FFFF00'});
+    
+    attributeVisualizationEngine.layers['envelope'].opacity = 0;
+    attributeVisualizationEngine.layers['panels'].opacity = 0.1;
+    attributeVisualizationEngine.updateLayers(attributeVisualizationEngine.layers);
 })();

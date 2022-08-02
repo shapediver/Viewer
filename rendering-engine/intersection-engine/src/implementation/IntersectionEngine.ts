@@ -7,14 +7,23 @@ import { IIntersectionEngine } from "../interfaces/IIntersectionEngine";
 import { IIntersectionFilter } from "../interfaces/IIntersectionFilter";
 import { IRay } from "../interfaces/IRay";
 import { container, singleton } from "tsyringe";
+import { RENDERER_TYPE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 
 @singleton()
 export class IntersectionEngine implements IIntersectionEngine {
     private readonly _tree: ITree = <ITree>container.resolve(Tree);
 
-    intersect(ray: IRay, filterCriteria: IIntersectionFilter[] = [], root: ITreeNode = this._tree.root, viewerID?: string): IIntersection[] {
+    intersect(
+        ray: IRay, 
+        filterCriteria: IIntersectionFilter[] = [], 
+        intersectionOptions: { opacity: number, rendererType: RENDERER_TYPE } = { opacity: 0, rendererType: RENDERER_TYPE.STANDARD }, 
+        root: ITreeNode = this._tree.root, 
+        viewerID?: string
+    ): IIntersection[] {
         let intersections: IIntersection[] = [];
         const intersectNode = (node: ITreeNode) => {
+            if(node.visible === false) return;
+
             if(viewerID !== undefined) {
                 if(node.excludeViewports.includes(viewerID)) return;
                 if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(viewerID)) return;
@@ -22,7 +31,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 
             for (let i = 0; i < filterCriteria.length; i++) {
                 if (filterCriteria[i](node)) {
-                    const intersection = this.intersectNode(node, ray)
+                    const intersection = this.intersectNode(node, ray, intersectionOptions)
                     if (intersection) {
                         intersection.forEach(i => i.node = node);
                         intersections = intersections.concat(intersection);
@@ -131,7 +140,9 @@ export class IntersectionEngine implements IIntersectionEngine {
     }
 
 
-    private intersectNode(node: ITreeNode, rayIn: IRay): IIntersection[] | undefined {
+    private intersectNode(node: ITreeNode, rayIn: IRay, intersectionOptions: { opacity: number, rendererType: RENDERER_TYPE }): IIntersection[] | undefined {
+        if(node.visible === false) return;
+
         const inverseMatrix = mat4.invert(mat4.create(), node.worldMatrix);
         const ray = {
             origin: vec3.transformMat4(vec3.create(), rayIn.origin, inverseMatrix),
@@ -150,10 +161,27 @@ export class IntersectionEngine implements IIntersectionEngine {
             }
         }
 
+        // quick out if the material does not fit the intersection options
+        if(geometryData) {
+            let materialData: IMaterialAbstractData | null = null;
+            if (geometryData.primitive.effectMaterials.length > 0) {
+                materialData = geometryData.primitive.effectMaterials[geometryData.primitive.effectMaterials.length - 1].material
+            } else if (intersectionOptions.rendererType === RENDERER_TYPE.ATTRIBUTES) {
+                materialData = geometryData.primitive.attributeMaterial;
+            } else {
+                materialData = geometryData.primitive.material;
+            }
+
+            // if opacity <= intersectionOptions.opacity
+            if(materialData && materialData.opacity <= intersectionOptions.opacity)
+                return;
+        }
+
+
         if (!geometryData) {
             let intersections: IIntersection[] = [];
             for (let i = 0; i < node.children.length; i++) {
-                let intersection = this.intersectNode(node.children[i], rayIn);
+                let intersection = this.intersectNode(node.children[i], rayIn, intersectionOptions);
                 if (intersection)
                     intersections = intersections.concat(intersection);
             }

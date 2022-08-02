@@ -4,10 +4,10 @@ import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractio
 import { container } from "tsyringe";
 import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 import { IInteractionManager } from "../interfaces/IInteractionManager";
-import { IViewportApi, sceneTree } from "@shapediver/viewer";
+import { IViewportApi, RENDERER_TYPE, sceneTree } from "@shapediver/viewer";
 
 export class InteractionEngine implements IInteractionEngine {
-    // #region Properties (5)
+    // #region Properties (6)
 
     readonly #intersectionEngine: IntersectionEngine = <IntersectionEngine>container.resolve(IntersectionEngine);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
@@ -15,7 +15,9 @@ export class InteractionEngine implements IInteractionEngine {
     readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     readonly #viewport: IViewportApi;
 
-    // #endregion Properties (5)
+    #intersectionOpacity: number = 0;
+
+    // #endregion Properties (6)
 
     // #region Constructors (1)
 
@@ -26,7 +28,19 @@ export class InteractionEngine implements IInteractionEngine {
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (10)
+    // #region Public Accessors (2)
+
+    public get intersectionOpacity(): number {
+        return this.#intersectionOpacity
+    }
+
+    public set intersectionOpacity(value: number) {
+        this.#intersectionOpacity = value;
+    }
+
+    // #endregion Public Accessors (2)
+
+    // #region Public Methods (14)
 
     public addInteractionManager(manager: IInteractionManager): string {
         const token = this.#uuidGenerator.create();
@@ -43,24 +57,32 @@ export class InteractionEngine implements IInteractionEngine {
         this.onDown(ray);
     }
 
+    public onMouseEnd(event: MouseEvent): void {}
+
     public onMouseMove(event: MouseEvent): void {
         const ray = this.mouseEventToRay(event);
         this.onMove(ray);
     }
 
-    public onMouseEnd(event: MouseEvent): void {}
-    
-    public onMouseUp(event: WheelEvent): void {
-        const ray = this.mouseEventToRay(event);
-        this.onEnd(ray, INTERACTION_STATE.UP);
-    }
-    
     public onMouseOut(event: WheelEvent): void {
         const ray = this.mouseEventToRay(event);
         this.onEnd(ray, INTERACTION_STATE.OUT);
     }
 
+    public onMouseUp(event: WheelEvent): void {
+        const ray = this.mouseEventToRay(event);
+        this.onEnd(ray, INTERACTION_STATE.UP);
+    }
+
     public onMouseWheel(event: WheelEvent): void {}
+
+    public onTouchCancel(event: TouchEvent): void {
+        if ( event.touches.length > 1 ) return;
+        const touch = event.changedTouches[ 0 ];
+
+        const ray = this.touchToRay(touch);
+        this.onEnd(ray, INTERACTION_STATE.OUT);
+    }
 
     public onTouchEnd(event: TouchEvent): void {}
 
@@ -80,14 +102,6 @@ export class InteractionEngine implements IInteractionEngine {
         this.onDown(ray);
     }
 
-    public onTouchCancel(event: TouchEvent): void {
-        if ( event.touches.length > 1 ) return;
-        const touch = event.changedTouches[ 0 ];
-
-        const ray = this.touchToRay(touch);
-        this.onEnd(ray, INTERACTION_STATE.OUT);
-    }
-
     public onTouchUp(event: TouchEvent): void {
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
@@ -103,7 +117,7 @@ export class InteractionEngine implements IInteractionEngine {
         return true;
     }
 
-    // #endregion Public Methods (10)
+    // #endregion Public Methods (14)
 
     // #region Private Methods (5)
 
@@ -144,10 +158,10 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.DOWN));
 
-        const intersection = this.#intersectionEngine.intersect(ray, filters, sceneTree.root, this.#viewport.id) || [];
+        const intersections = this.#intersectionEngine.intersect(ray, filters, {opacity: this.#intersectionOpacity, rendererType: RENDERER_TYPE.ATTRIBUTES}, sceneTree.root, this.#viewport.id) || [];
 
         for(let m in this.#managers)
-            this.#managers[m].onDown(ray, intersection);
+            this.#managers[m].onDown(ray, intersections);
     }
 
     /**
@@ -164,10 +178,10 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
             
-        const intersection = this.#intersectionEngine.intersect(ray, filters, sceneTree.root, this.#viewport.id) || [];
+        const intersections = this.#intersectionEngine.intersect(ray, filters, {opacity: this.#intersectionOpacity, rendererType: RENDERER_TYPE.ATTRIBUTES}, sceneTree.root, this.#viewport.id) || [];
 
         for(let m in this.#managers)
-            this.#managers[m].onEnd(ray, intersection, endState);
+            this.#managers[m].onEnd(ray, intersections, endState);
     }
 
     /**
@@ -181,10 +195,10 @@ export class InteractionEngine implements IInteractionEngine {
         for(let m in this.#managers)
             filters.push(this.#managers[m].filter(INTERACTION_STATE.MOVE));
 
-        const intersection = this.#intersectionEngine.intersect(ray, filters, sceneTree.root, this.#viewport.id) || [];
+        const intersections = this.#intersectionEngine.intersect(ray, filters, {opacity: this.#intersectionOpacity, rendererType: RENDERER_TYPE.ATTRIBUTES}, sceneTree.root, this.#viewport.id) || [];
 
         for(let m in this.#managers)
-            this.#managers[m].onMove(ray, intersection);
+            this.#managers[m].onMove(ray, intersections);
     }
 
     /**

@@ -13,6 +13,14 @@ export interface IInteractionEngine extends IDomEventListener {
     // #region Public Methods (2)
 
     /**
+     * The opacity threshold that used to for intersection. (Default: 0)
+     * If the object is equal or below the threshold, it is not intersected anymore.
+     * 
+     * Example: If the value is set to 0.25, all objects that have an opacity of 0.25 or lower and not intersectable.
+     */
+    intersectionOpacity: number;
+
+    /**
      * Add a new interaction manager to the selection of interaction managers.
      * This manager will be fed with all onDown, onMove and onEnd events by the InteractionEngine.
      * The token that is return can be used to remove this interaction manager.
