@@ -6,6 +6,7 @@ import { EventResponseMapping, ITaskEvent, TASK_TYPE } from "@shapediver/viewer.
 import { container, singleton } from "tsyringe";
 import { ICreationControlCenter } from "../interfaces/ICreationControlCenter";
 import { build_data } from '@shapediver/viewer.shared.build-data'
+import { CAMERA_TYPE } from "@shapediver/viewer.rendering-engine.camera-engine"
 import { Box } from "@shapediver/viewer.shared.math";
 import { ITree, Tree } from "@shapediver/viewer.shared.node-tree";
 import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
@@ -213,7 +214,8 @@ export class CreationControlCenter implements ICreationControlCenter {
       container.registerInstance('renderingEngine', renderingEngine);
       this.renderingEngines[renderingEngineId] = renderingEngine;
 
-      renderingEngine.cameraEngine.createDefaultCameras();
+      const camera = renderingEngine.cameraEngine.createCamera(CAMERA_TYPE.PERSPECTIVE);
+      renderingEngine.cameraEngine.assignCamera(camera.id);
 
       if (properties.sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL) {
         if (!properties.sessionSettingsId) 

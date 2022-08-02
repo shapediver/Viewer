@@ -133,8 +133,9 @@ export class CameraEngine implements ICameraEngine {
                 this.assignCamera(settingsEngine.settings.camera.cameraId);
             }
         } else {
-            this.createDefaultCameras();
-            this.camera!.applySettings(settingsEngine);
+            const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'standard');
+            this.assignCamera(camera.id);
+            camera.applySettings(settingsEngine);
         }
 
         this._settingsApplied = true;
@@ -170,23 +171,6 @@ export class CameraEngine implements ICameraEngine {
         return camera;
     }
 
-    public createDefaultCameras(): void {
-        const topCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'top');
-        topCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
-        const bottomCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'bottom');
-        bottomCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM;
-        const leftCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'left');
-        leftCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT;
-        const rightCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'right');
-        rightCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT;
-        const frontCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'front');
-        frontCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT;
-        const backCamera = <OrthographicCamera>this.createCamera(CAMERA_TYPE.ORTHOGRAPHIC, 'back');
-        backCamera.direction = ORTHOGRAPHIC_CAMERA_DIRECTION.BACK;
-        const camera = this.createCamera(CAMERA_TYPE.PERSPECTIVE, 'perspective');
-        this.assignCamera(camera.id);
-    }
-
     public deactivateCameraEvents(): void {
         const cameras = this.cameras;
         for (let c in cameras)
@@ -208,106 +192,109 @@ export class CameraEngine implements ICameraEngine {
     }
 
     public saveSettings(settingsEngine: SettingsEngine) {
-        settingsEngine.settings.camera.cameraId = this._camera ? this._camera.id : 'perspective';
+        settingsEngine.settings.camera.cameraId = this._camera ? this._camera.id : 'standard';
         settingsEngine.settings.camera.cameras = {};
 
-        for (let c in this.cameras) {
-            const camera = this.cameras[c];
+        // TODO: once the platform is ready for it, save all cameras
+        // for (let c in this.cameras) {
+        if(!this._camera) 
+            return;
 
-            if (camera.type === CAMERA_TYPE.PERSPECTIVE) {
-                const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
-                settingsEngine.camera.cameras[camera.id] = {
-                    autoAdjust: camera.autoAdjust,
-                    cameraMovementDuration: camera.cameraMovementDuration,
-                    enableCameraControls: camera.enableCameraControls,
-                    revertAtMouseUp: camera.revertAtMouseUp,
-                    revertAtMouseUpDuration: camera.revertAtMouseUpDuration,
-                    zoomExtentsFactor: camera.zoomExtentsFactor,
-                    position: { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] },
-                    target: { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] },
-                    type: camera.type,
-                    fov: (<PerspectiveCamera>camera).fov,
-                    controls: {
-                        autoRotationSpeed: controls.autoRotationSpeed,
-                        damping: controls.damping,
-                        enableAutoRotation: controls.enableAutoRotation,
-                        enableKeyPan: controls.enableKeyPan,
-                        enablePan: controls.enablePan,
-                        enableRotation: controls.enableRotation,
-                        enableZoom: controls.enableZoom,
-                        input: controls.input,
-                        keyPanSpeed: controls.keyPanSpeed,
-                        movementSmoothness: controls.movementSmoothness,
-                        rotationSpeed: controls.rotationSpeed,
-                        panSpeed: controls.panSpeed,
-                        zoomSpeed: controls.zoomSpeed,
-                        restrictions: {
-                            position: {
-                                cube: {
-                                    min: { x: controls.cubePositionRestriction.min[0], y: controls.cubePositionRestriction.min[1], z: controls.cubePositionRestriction.min[2] },
-                                    max: { x: controls.cubePositionRestriction.max[0], y: controls.cubePositionRestriction.max[1], z: controls.cubePositionRestriction.max[2] },
-                                },
-                                sphere: {
-                                    center: { x: controls.spherePositionRestriction.center[0], y: controls.spherePositionRestriction.center[1], z: controls.spherePositionRestriction.center[2] },
-                                    radius: controls.spherePositionRestriction.radius,
-                                },
+        const camera = this._camera;
+
+        if (camera.type === CAMERA_TYPE.PERSPECTIVE) {
+            const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
+            settingsEngine.camera.cameras[camera.id] = {
+                autoAdjust: camera.autoAdjust,
+                cameraMovementDuration: camera.cameraMovementDuration,
+                enableCameraControls: camera.enableCameraControls,
+                revertAtMouseUp: camera.revertAtMouseUp,
+                revertAtMouseUpDuration: camera.revertAtMouseUpDuration,
+                zoomExtentsFactor: camera.zoomExtentsFactor,
+                position: { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] },
+                target: { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] },
+                type: camera.type,
+                fov: (<PerspectiveCamera>camera).fov,
+                controls: {
+                    autoRotationSpeed: controls.autoRotationSpeed,
+                    damping: controls.damping,
+                    enableAutoRotation: controls.enableAutoRotation,
+                    enableKeyPan: controls.enableKeyPan,
+                    enablePan: controls.enablePan,
+                    enableRotation: controls.enableRotation,
+                    enableZoom: controls.enableZoom,
+                    input: controls.input,
+                    keyPanSpeed: controls.keyPanSpeed,
+                    movementSmoothness: controls.movementSmoothness,
+                    rotationSpeed: controls.rotationSpeed,
+                    panSpeed: controls.panSpeed,
+                    zoomSpeed: controls.zoomSpeed,
+                    restrictions: {
+                        position: {
+                            cube: {
+                                min: { x: controls.cubePositionRestriction.min[0], y: controls.cubePositionRestriction.min[1], z: controls.cubePositionRestriction.min[2] },
+                                max: { x: controls.cubePositionRestriction.max[0], y: controls.cubePositionRestriction.max[1], z: controls.cubePositionRestriction.max[2] },
                             },
-                            target: {
-                                cube: {
-                                    min: { x: controls.cubeTargetRestriction.min[0], y: controls.cubeTargetRestriction.min[1], z: controls.cubeTargetRestriction.min[2] },
-                                    max: { x: controls.cubeTargetRestriction.max[0], y: controls.cubeTargetRestriction.max[1], z: controls.cubeTargetRestriction.max[2] },
-                                },
-                                sphere: {
-                                    center: { x: controls.sphereTargetRestriction.center[0], y: controls.sphereTargetRestriction.center[1], z: controls.sphereTargetRestriction.center[2] },
-                                    radius: controls.sphereTargetRestriction.radius,
-                                },
+                            sphere: {
+                                center: { x: controls.spherePositionRestriction.center[0], y: controls.spherePositionRestriction.center[1], z: controls.spherePositionRestriction.center[2] },
+                                radius: controls.spherePositionRestriction.radius,
                             },
-                            rotation: controls.rotationRestriction,
-                            zoom: controls.zoomRestriction,
-                        }
+                        },
+                        target: {
+                            cube: {
+                                min: { x: controls.cubeTargetRestriction.min[0], y: controls.cubeTargetRestriction.min[1], z: controls.cubeTargetRestriction.min[2] },
+                                max: { x: controls.cubeTargetRestriction.max[0], y: controls.cubeTargetRestriction.max[1], z: controls.cubeTargetRestriction.max[2] },
+                            },
+                            sphere: {
+                                center: { x: controls.sphereTargetRestriction.center[0], y: controls.sphereTargetRestriction.center[1], z: controls.sphereTargetRestriction.center[2] },
+                                radius: controls.sphereTargetRestriction.radius,
+                            },
+                        },
+                        rotation: controls.rotationRestriction,
+                        zoom: controls.zoomRestriction,
                     }
                 }
-    
-            } else {
-                if (settingsEngine.camera.cameras[camera.id]) {
-                    const previousDirection = settingsEngine.camera.cameras[camera.id].type;
-    
-                    // if the direction changed, but the default position & target did not, there is an issue
-                    if (previousDirection !== camera.type && (
-                        settingsEngine.camera.cameras[camera.id].position.x === camera.defaultPosition[0] &&
-                        settingsEngine.camera.cameras[camera.id].position.y === camera.defaultPosition[1] &&
-                        settingsEngine.camera.cameras[camera.id].position.z === camera.defaultPosition[2] &&
-                        settingsEngine.camera.cameras[camera.id].target.x === camera.defaultTarget[0] &&
-                        settingsEngine.camera.cameras[camera.id].target.y === camera.defaultTarget[1] &&
-                        settingsEngine.camera.cameras[camera.id].target.z === camera.defaultTarget[2]
-                    )) {
-                        camera.defaultPosition = vec3.clone(camera.position);
-                        camera.defaultTarget = vec3.clone(camera.target);
-                    }
+            }
+
+        } else {
+            if (settingsEngine.camera.cameras[camera.id]) {
+                const previousDirection = settingsEngine.camera.cameras[camera.id].type;
+
+                // if the direction changed, but the default position & target did not, there is an issue
+                if (previousDirection !== camera.type && (
+                    settingsEngine.camera.cameras[camera.id].position.x === camera.defaultPosition[0] &&
+                    settingsEngine.camera.cameras[camera.id].position.y === camera.defaultPosition[1] &&
+                    settingsEngine.camera.cameras[camera.id].position.z === camera.defaultPosition[2] &&
+                    settingsEngine.camera.cameras[camera.id].target.x === camera.defaultTarget[0] &&
+                    settingsEngine.camera.cameras[camera.id].target.y === camera.defaultTarget[1] &&
+                    settingsEngine.camera.cameras[camera.id].target.z === camera.defaultTarget[2]
+                )) {
+                    camera.defaultPosition = vec3.clone(camera.position);
+                    camera.defaultTarget = vec3.clone(camera.target);
                 }
-                const controls = <OrthographicCameraControls>(<OrthographicCamera>camera).controls;
-    
-                settingsEngine.camera.cameras[camera.id] = {
-                    autoAdjust: camera.autoAdjust,
-                    cameraMovementDuration: camera.cameraMovementDuration,
-                    enableCameraControls: camera.enableCameraControls,
-                    revertAtMouseUp: camera.revertAtMouseUp,
-                    revertAtMouseUpDuration: camera.revertAtMouseUpDuration,
-                    zoomExtentsFactor: camera.zoomExtentsFactor,
-                    position: { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] },
-                    target: { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] },
-                    type: (<OrthographicCamera>camera).direction,
-                    controls: {
-                        damping: controls.damping,
-                        enableKeyPan: controls.enableKeyPan,
-                        enablePan: controls.enablePan,
-                        enableZoom: controls.enableZoom,
-                        input: controls.input,
-                        keyPanSpeed: controls.keyPanSpeed,
-                        movementSmoothness: controls.movementSmoothness,
-                        panSpeed: controls.panSpeed,
-                        zoomSpeed: controls.zoomSpeed,
-                    }
+            }
+            const controls = <OrthographicCameraControls>(<OrthographicCamera>camera).controls;
+
+            settingsEngine.camera.cameras[camera.id] = {
+                autoAdjust: camera.autoAdjust,
+                cameraMovementDuration: camera.cameraMovementDuration,
+                enableCameraControls: camera.enableCameraControls,
+                revertAtMouseUp: camera.revertAtMouseUp,
+                revertAtMouseUpDuration: camera.revertAtMouseUpDuration,
+                zoomExtentsFactor: camera.zoomExtentsFactor,
+                position: { x: camera.defaultPosition[0], y: camera.defaultPosition[1], z: camera.defaultPosition[2] },
+                target: { x: camera.defaultTarget[0], y: camera.defaultTarget[1], z: camera.defaultTarget[2] },
+                type: (<OrthographicCamera>camera).direction,
+                controls: {
+                    damping: controls.damping,
+                    enableKeyPan: controls.enableKeyPan,
+                    enablePan: controls.enablePan,
+                    enableZoom: controls.enableZoom,
+                    input: controls.input,
+                    keyPanSpeed: controls.keyPanSpeed,
+                    movementSmoothness: controls.movementSmoothness,
+                    panSpeed: controls.panSpeed,
+                    zoomSpeed: controls.zoomSpeed,
                 }
             }
         }

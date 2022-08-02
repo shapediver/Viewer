@@ -91,13 +91,11 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
     public updateDefaultLayer(layer: ILayer) {
         this.#defaultLayer = layer;
-        this.createLayers();
         this.constructAttributeVisualization();
     }
 
     public updateDefaultMaterial(material: IMaterialAbstractData) {
         this.#defaultMaterial = material;
-        this.createLayers();
         this.constructAttributeVisualization();
     }
     
