@@ -917,7 +917,7 @@ export class ViewportApi implements IViewportApi {
     public async viewInAR(node?: ITreeNode): Promise<void> {
         const scope = 'viewInAR';
         try {
-            if (!(node instanceof TreeNode)) {
+            if (node && !(node instanceof TreeNode)) {
                 const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
                 throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
             }
