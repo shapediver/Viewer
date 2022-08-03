@@ -810,7 +810,15 @@ export class SessionEngine implements ISessionEngine {
 
     public async saveSettings(json: any, retry = false): Promise<boolean> {
         this.checkAvailability('configure', true);
+        
         try {
+            validate(json, '3.1')
+        } catch (e) {
+            const error = new ShapeDiverViewerSettingsError('Session.saveSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
+            throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
+        } 
+        
+        try {        
             await this._sdk.model.updateConfig(this._modelId!, json);
             return true;
         } catch (e) {
