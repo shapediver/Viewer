@@ -1,5 +1,5 @@
 import { vec3 } from "gl-matrix";
-import { Logger, LOGGING_TOPIC, UuidGenerator, ShapeDiverViewerGeneralError } from "@shapediver/viewer.shared.services";
+import { Logger, LOGGING_TOPIC, UuidGenerator, ShapeDiverViewerGeneralError, ShapeDiverViewerError, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
 import { IInteractionEngine, INTERACTION_STATE } from "../interfaces/IInteractionEngine";
 import { container } from "tsyringe";
 import { IIntersectionFilter, IntersectionEngine, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
@@ -9,6 +9,7 @@ import { IViewportApi, RENDERER_TYPE, sceneTree } from "@shapediver/viewer";
 export class InteractionEngine implements IInteractionEngine {
     // #region Properties (6)
 
+    readonly #canvasEventListenerToken: string;
     readonly #intersectionEngine: IntersectionEngine = <IntersectionEngine>container.resolve(IntersectionEngine);
     readonly #logger: Logger = <Logger>container.resolve(Logger);
     readonly #managers: { [key: string]: IInteractionManager } = {};
@@ -16,6 +17,7 @@ export class InteractionEngine implements IInteractionEngine {
     readonly #viewport: IViewportApi;
 
     #intersectionOpacity: number = 0;
+    #closed: boolean = false;
 
     // #endregion Properties (6)
 
@@ -23,7 +25,7 @@ export class InteractionEngine implements IInteractionEngine {
 
     constructor(viewport: IViewportApi) {
         this.#viewport = viewport;
-        this.#viewport.addCanvasEventListener(this);
+        this.#canvasEventListenerToken = this.#viewport.addCanvasEventListener(this);
     }
 
     // #endregion Constructors (1)
@@ -37,46 +39,69 @@ export class InteractionEngine implements IInteractionEngine {
     public set intersectionOpacity(value: number) {
         this.#intersectionOpacity = value;
     }
+    
+    public get managers(): { [key: string]: IInteractionManager } {
+        return this.#managers;
+    }
 
     // #endregion Public Accessors (2)
 
     // #region Public Methods (14)
 
+    public close(): void {
+        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.')
+        for(let m in this.#managers)
+            this.removeInteractionManager(m);
+        this.#viewport.removeCanvasEventListener(this.#canvasEventListenerToken);
+        this.#closed = true;
+    }
+
     public addInteractionManager(manager: IInteractionManager): string {
+        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.')
         const token = this.#uuidGenerator.create();
         this.#managers[token] = manager;
-        manager.viewport = this.#viewport;
-        manager.add();
+        manager.add(this.#viewport);
         return token;
     }
 
-    public onKeyDown(event: KeyboardEvent): void {}
+    public onKeyDown(event: KeyboardEvent): void {        
+        if(this.#closed) return;
+    }
 
     public onMouseDown(event: MouseEvent): void {
+        if(this.#closed) return;
         const ray = this.mouseEventToRay(event);
         this.onDown(ray);
     }
 
-    public onMouseEnd(event: MouseEvent): void {}
+    public onMouseEnd(event: MouseEvent): void {
+        if(this.#closed) return;
+    }
 
     public onMouseMove(event: MouseEvent): void {
+        if(this.#closed) return;
         const ray = this.mouseEventToRay(event);
         this.onMove(ray);
     }
 
     public onMouseOut(event: WheelEvent): void {
+        if(this.#closed) return;
         const ray = this.mouseEventToRay(event);
         this.onEnd(ray, INTERACTION_STATE.OUT);
     }
 
     public onMouseUp(event: WheelEvent): void {
+        if(this.#closed) return;
         const ray = this.mouseEventToRay(event);
         this.onEnd(ray, INTERACTION_STATE.UP);
     }
 
-    public onMouseWheel(event: WheelEvent): void {}
+    public onMouseWheel(event: WheelEvent): void {
+        if(this.#closed) return;
+    }
 
     public onTouchCancel(event: TouchEvent): void {
+        if(this.#closed) return;
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
 
@@ -84,9 +109,12 @@ export class InteractionEngine implements IInteractionEngine {
         this.onEnd(ray, INTERACTION_STATE.OUT);
     }
 
-    public onTouchEnd(event: TouchEvent): void {}
+    public onTouchEnd(event: TouchEvent): void {
+        if(this.#closed) return;
+    }
 
     public onTouchMove(event: TouchEvent): void {
+        if(this.#closed) return;
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
 
@@ -95,6 +123,7 @@ export class InteractionEngine implements IInteractionEngine {
     }
 
     public onTouchStart(event: TouchEvent): void {
+        if(this.#closed) return;
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
 
@@ -103,6 +132,7 @@ export class InteractionEngine implements IInteractionEngine {
     }
 
     public onTouchUp(event: TouchEvent): void {
+        if(this.#closed) return;
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
 
@@ -111,6 +141,7 @@ export class InteractionEngine implements IInteractionEngine {
     }
 
     public removeInteractionManager(token: string): boolean {
+        if(this.#closed) throw new ShapeDiverViewerInteractionError('The InteractionEngine has already been closed.')
         if(!this.#managers[token]) return false;
         this.#managers[token].remove();
         delete this.#managers[token];

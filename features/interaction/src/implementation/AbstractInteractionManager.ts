@@ -15,7 +15,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
     #dragConstraintUtils: IDragConstraintUtils = <DragConstraintUtils>container.resolve(DragConstraintUtils);
     #effectMaterial?: IMaterialAbstractData;
     #interactionEffectUtils: IInteractionEffectUtils = <InteractionEffectUtils>container.resolve(InteractionEffectUtils);
-    #viewport!: IViewportApi;
+    #viewport?: IViewportApi;
     abstract filter: IInteractionFilterOptions;
 
     // #endregion Properties (5)
@@ -46,11 +46,11 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
         this.#interactionEffectUtils = value;
     }
 
-    public get viewport(): IViewportApi {
+    public get viewport(): IViewportApi | undefined {
         return this.#viewport;
     }
 
-    public set viewport(value: IViewportApi) {
+    public set viewport(value: IViewportApi | undefined) {
         this.#viewport = value;
     }
 
@@ -58,7 +58,7 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     // #region Public Abstract Methods (3)
 
-    abstract add(): void;
+    abstract add(viewport: IViewportApi): void;
     abstract remove(): void;
     abstract onDown(ray: IRay, intersection: IIntersection[]): void;
     abstract onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;

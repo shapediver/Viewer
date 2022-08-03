@@ -6,6 +6,7 @@ export enum ShapeDiverViewerErrorType {
     DATA_PROCESSING_ERROR = 'SdDataProcessingError',
     ENVIRONMENT_MAP_ERROR = 'SdEnvironmentMapError',
     GENERAL_VIEWPORT_ERROR = 'SdGeneralViewerError',
+    INTERACTION_ERROR = 'SdInteractionError',
     LIGHT_ERROR = 'SdLightError',
     SESSION_ERROR = 'SdSessionError',
     SETTINGS_ERROR = 'SdSettingsError',

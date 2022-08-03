@@ -15,10 +15,11 @@ export interface IInteractionManager {
      * The filters can be set per {@link INTERACTION_STATE}.
      */
     filter: IInteractionFilterOptions;
+
     /**
      * The reference to the viewer.
      */
-    viewport: IViewportApi;
+    viewport?: IViewportApi;
 
     // #endregion Properties (2)
 
@@ -34,6 +35,7 @@ export interface IInteractionManager {
      * @param intersection 
      */
     onDown(ray: IRay, intersection: IIntersection[]): void;
+
     /**
      * For onEnd events (mouseUp, mouseOut and touchend) this method is called.
      * The mouse event is already translated into a ray, therefore it can be used independently of mouse or touch events.
@@ -44,6 +46,7 @@ export interface IInteractionManager {
      * @param intersection 
      */
     onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
+
     /**
      * For onMove events (mouseMove and touchmove) this method is called.
      * The mouse event is already translated into a ray, therefore it can be used independently of mouse or touch events.
@@ -56,7 +59,16 @@ export interface IInteractionManager {
      */
     onMove(ray: IRay, intersection: IIntersection[]): void;
 
-    add(): void;
+    /**
+     * Called internally when adding the interaction manager to an interaction engine. Here the viewport is set.
+     * 
+     * @param viewport 
+     */
+    add(viewport: IViewportApi): void;
+
+    /**
+     * Called internally to remove the viewport from the manager and to clean up.
+     */
     remove(): void;
 
     // #endregion Public Methods (3)

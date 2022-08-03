@@ -113,3 +113,11 @@ export class ShapeDiverViewerConnectionError extends ShapeDiverViewerError {
         super(ShapeDiverViewerErrorType.CONNECTION_ERROR, 'An error occurred while loading data.', message);
     }
 }
+
+export class ShapeDiverViewerInteractionError extends ShapeDiverViewerError {
+    constructor(
+        public readonly message: string
+    ) {
+        super(ShapeDiverViewerErrorType.INTERACTION_ERROR, 'An error occurred with interactions.', message);
+    }
+}

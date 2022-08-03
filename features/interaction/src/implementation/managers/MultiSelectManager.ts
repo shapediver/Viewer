@@ -4,9 +4,10 @@ import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
 import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
 import { InteractionData } from "../InteractionData";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
 import { IMultiSelectEvent } from "@shapediver/viewer.shared.types"
 import { container } from "tsyringe";
+import { IViewportApi } from "@shapediver/viewer";
 
 export class MultiSelectManager extends AbstractInteractionManager {
     // #region Properties (6)
@@ -43,16 +44,18 @@ export class MultiSelectManager extends AbstractInteractionManager {
 
     // #region Public Methods (3)
     
-    public add(): void {
-
+    public add(viewport: IViewportApi): void {
+        this.viewport = viewport;
     }
 
     public remove(): void {
         for (let i = 0; i < this.#nodes.length; i++)
             this.deactivateNode(this.#nodes[i]); 
+        this.viewport = undefined;
     }
 
     public onDown(ray: IRay, intersection: IIntersection[]): void {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.DOWN)(i.node))
 
         if(this.#nodes.length > 0) {
@@ -69,9 +72,13 @@ export class MultiSelectManager extends AbstractInteractionManager {
         }
     }
 
-    public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {}
+    public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    }
 
-    public onMove(ray: IRay, intersection: IIntersection[]): void {}
+    public onMove(ray: IRay, intersection: IIntersection[]): void {        
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    }
 
     // #endregion Public Methods (3)
 
@@ -84,6 +91,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private activateNode(intersection: IIntersection) {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#nodes.push(intersection.node);
         const data = <InteractionData>intersection.node.data.find(d => d instanceof InteractionData);
         if(data) data.interactionStates.select = true;
@@ -111,6 +119,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private deactivateNode(node: ITreeNode) {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const index = this.#nodes.indexOf(node);
         if(index === -1) return;
         

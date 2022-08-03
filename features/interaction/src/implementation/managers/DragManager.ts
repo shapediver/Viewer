@@ -2,7 +2,7 @@ import { IIntersection, IIntersectionFilter, IRay } from '@shapediver/viewer.ren
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { MATERIAL_ALPHA, MATERIAL_SIDE, MaterialStandardData, IDragEvent } from '@shapediver/viewer.shared.types'
 import { mat4, vec3 } from 'gl-matrix'
-import { EventEngine, EVENTTYPE, UuidGenerator } from '@shapediver/viewer.shared.services'
+import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError, UuidGenerator } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { FLAG_TYPE, IViewportApi } from '@shapediver/viewer'
 
@@ -64,12 +64,13 @@ export class DragManager extends AbstractInteractionManager {
 
     // #region Public Methods (7)
 
-    public add(): void {
-
+    public add(viewport: IViewportApi): void {
+        this.viewport = viewport;
     }
 
     public remove(): void {
         this.removeNode();
+        this.viewport = undefined;
     }
 
     public addDragConstraint(constraint: IDragConstraint): string {
@@ -80,16 +81,19 @@ export class DragManager extends AbstractInteractionManager {
     }
 
     public onDown(ray: IRay, intersection: IIntersection[]): void {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.DOWN)(i.node))
         if(intersections.length > 0) 
             this.setNode(intersections[0].node, intersections[0].distance, intersections[0].point, ray);
     }
 
     public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
-       this.removeNode();
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+        this.removeNode();
     }
 
     public onMove(ray: IRay, intersection: IIntersection[]): void {        
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(!this.#node) return;
 
         let transformationMatrix = this.dragConstraintUtils.intersect(this.#dragConstraints, this.viewport, this.#node!, ray);
@@ -113,6 +117,7 @@ export class DragManager extends AbstractInteractionManager {
      * @returns 
      */
     public removeNode() {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(!this.#node) return;
 
         const transformationMatrix = this.#node.transformations.find((t: ITransformation) => t.id === 'SD_drag_matrix')?.matrix;
@@ -140,6 +145,7 @@ export class DragManager extends AbstractInteractionManager {
      * @param ray 
      */
     public setNode(node: ITreeNode, distance: number = 0, intersectionPoint: vec3 = vec3.create(), ray: IRay = {origin: vec3.create(), direction: vec3.create()}) {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.activateNode({node, distance, point: intersectionPoint});
         this.#setupOptions = { viewport: this.viewport, node: this.#node!, ray, intersection: this.#intersection! };
         
@@ -169,6 +175,7 @@ export class DragManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private activateNode(intersection: IIntersection) {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
 
@@ -209,6 +216,7 @@ export class DragManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private deactivateNode() {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(this.#effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;

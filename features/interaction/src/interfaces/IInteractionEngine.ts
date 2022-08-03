@@ -13,6 +13,11 @@ export interface IInteractionEngine extends IDomEventListener {
     // #region Public Methods (2)
 
     /**
+     * All currently registered interaction managers with their token as a key.
+     */
+    readonly managers: { [key: string]: IInteractionManager };
+
+    /**
      * The opacity threshold that used to for intersection. (Default: 0)
      * If the object is equal or below the threshold, it is not intersected anymore.
      * 
@@ -36,6 +41,11 @@ export interface IInteractionEngine extends IDomEventListener {
      * @returns
      */
     removeInteractionManager(token: string): boolean;
+
+    /**
+     * Closes the interaction engine and removes all managers that where registered.
+     */
+    close(): void;
 
     // #endregion Public Methods (2)
 }

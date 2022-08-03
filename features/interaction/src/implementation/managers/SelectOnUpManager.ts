@@ -4,10 +4,11 @@ import { INTERACTION_STATE } from "../../interfaces/IInteractionEngine";
 import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager";
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
 import { InteractionData } from "../InteractionData";
-import { EventEngine, EVENTTYPE } from "@shapediver/viewer.shared.services";
+import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { ISelectEvent } from "@shapediver/viewer.shared.types";
+import { IViewportApi } from "@shapediver/viewer";
 
 export class SelectOnUpManager extends AbstractInteractionManager {
     // #region Properties (6)
@@ -55,18 +56,22 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 
     // #region Public Methods (3)
 
-    public add(): void {
-
+    public add(viewport: IViewportApi): void {
+        this.viewport = viewport;
     }
 
     public remove(): void {
         if (this.#node)
             this.deactivateNode(); 
+        this.viewport = undefined;
     }
 
-    public onDown(ray: IRay, intersection: IIntersection[]): void {}
+    public onDown(ray: IRay, intersection: IIntersection[]): void {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    }
 
     public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(endState === INTERACTION_STATE.UP) {
             const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.UP)(i.node))
 
@@ -89,7 +94,9 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         }
     }
 
-    public onMove(ray: IRay, intersection: IIntersection[]): void {}
+    public onMove(ray: IRay, intersection: IIntersection[]): void {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
+    }
 
     // #endregion Public Methods (3)
 
@@ -102,6 +109,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private activateNode(intersection: IIntersection) {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
@@ -128,6 +136,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
      * @param intersection 
      */
     private deactivateNode() {
+        if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(this.#effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
             this.#effectMaterialToken = undefined;

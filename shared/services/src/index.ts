@@ -14,7 +14,7 @@ import { UuidGenerator } from './uuid-generator/UuidGenerator'
 import { PerformanceEvaluator } from './performance-evaluator/PerformanceEvaluator'
 import { Logger, LOGGING_LEVEL, LOGGING_TOPIC } from './logger/Logger'
 import { StatePromise } from './state-engine/StatePromise'
-import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerGeneralError, ShapeDiverViewerWebGLError } from './logger/ShapeDiverViewerErrors'
+import { ShapeDiverViewerArError, ShapeDiverViewerCameraError, ShapeDiverViewerDataProcessingError, ShapeDiverViewerEnvironmentMapError, ShapeDiverViewerLightError, ShapeDiverViewerSessionError, ShapeDiverViewerSettingsError, ShapeDiverViewerUnknownError, ShapeDiverViewerValidationError, ShapeDiverViewerGeneralError, ShapeDiverViewerWebGLError, ShapeDiverViewerInteractionError } from './logger/ShapeDiverViewerErrors'
 import { ShapeDiverError as ShapeDiverBackendError } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ShapeDiverViewerError } from './logger/ShapeDiverError'
 import { HttpResponse } from './http-client/HttpResponse'
@@ -74,6 +74,7 @@ export {
     ShapeDiverViewerLightError,
     ShapeDiverViewerCameraError,
     ShapeDiverViewerValidationError,
+    ShapeDiverViewerInteractionError,
     ShapeDiverBackendError
 }
 
