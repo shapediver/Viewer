@@ -238,7 +238,7 @@ export interface ISessionApi {
      * 
      * @param force If force is set to true, the customization call will even be called if no parameters have changed. (Default: false)
      */
-    customize(force: boolean): Promise<ITreeNode>;
+    customize(force?: boolean): Promise<ITreeNode>;
 
     /**
      * Customize the session, parallel mode.
@@ -257,7 +257,7 @@ export interface ISessionApi {
      * @param parameterValues The set of parameter values to use. Map from parameter id to parameter value. The current value will be used for any parameter not specified.
      * @param force If force is set to true, the customization call will even be called if no parameters have changed. (Default: false)
      */
-    customizeParallel(parameterValues: { [key: string]: string }, force: boolean): Promise<ITreeNode>;
+    customizeParallel(parameterValues: { [key: string]: string }, force?: boolean): Promise<ITreeNode>;
 
     /**
      * Get an export definition by id.
