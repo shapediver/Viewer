@@ -390,10 +390,20 @@ export class SessionEngine implements ISessionEngine {
      * @param parameters the parameter set to update the session
      * @returns promise with a scene graph node
      */
-    public async customize(): Promise<ITreeNode> {
+    public async customize(force: boolean = false): Promise<ITreeNode> {
         const eventId = this._uuidGenerator.create();
         const customizationId = this._uuidGenerator.create();
         try {
+            // we check if something changed
+            if (force === false) {
+                let changes = false;
+                for (const parameterId in this.parameters)
+                    if (this.parameters[parameterId].sessionValue !== this.parameters[parameterId].value)
+                        changes = true;
+                if(changes === false)
+                    return this.node;
+            }
+
             const eventStart: ITaskEvent = { type: TASK_TYPE.SESSION_CUSTOMIZATION, id: eventId, progress: 0, data: { sessionId: this.id }, status: 'Customizing session' };
             this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, eventStart);
 
@@ -543,7 +553,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
+    public customizeParallel(parameterValues: { [key: string]: string }, force: boolean): Promise<ITreeNode> {
         // https://shapediver.atlassian.net/browse/SS-5408
         throw new Error('Method not implemented.')
     }

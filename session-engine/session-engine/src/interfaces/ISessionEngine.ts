@@ -103,8 +103,8 @@ export interface ISessionEngine {
   canGoBack(): boolean;
   canGoForward(): boolean;
   close(): Promise<void>;
-  customize(): Promise<ITreeNode>;
-  customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
+  customize(force: boolean): Promise<ITreeNode>;
+  customizeParallel(parameterValues: { [key: string]: string }, force: boolean): Promise<ITreeNode>;
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
   init(parameterValues?: {

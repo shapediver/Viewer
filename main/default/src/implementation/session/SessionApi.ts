@@ -287,24 +287,25 @@ export class SessionApi implements ISessionApi {
         }
     }
 
-    public customize(): Promise<ITreeNode> {
+    public customize(force: boolean = false): Promise<ITreeNode> {
         const scope = 'customize';
         try {
-            return this.#sessionEngine.customize();
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, force, 'boolean', false);
+            return this.#sessionEngine.customize(force);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
-    public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
+    public customizeParallel(parameterValues: { [key: string]: string; }, force: boolean = false): Promise<ITreeNode> {
         const scope = 'customizeParallel';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, parameterValues, 'object');
             for(let p in parameterValues)
                 this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, parameterValues[p], 'string');
 
-            return this.#sessionEngine.customizeParallel(parameterValues);
+            return this.#sessionEngine.customizeParallel(parameterValues, force);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
