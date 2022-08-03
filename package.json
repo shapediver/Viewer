@@ -59,7 +59,7 @@
     "deploy-tests": "ts-node ./scripts/deploying/deploy-tests.ts",
     "deploy-and-test": "npm run deploy-tests && npm run test",
     "deploy-demo": "ts-node ./scripts/deploying/deploy-demo.ts",
-    "doc": "cd ./main/default && npm run doc && cd ../..",
+    "doc": "lerna run doc",
     "lerna-publish-github": "lerna publish from-package --yes --no-private --force-publish --registry https://npm.pkg.github.com/",
     "lerna-publish-npm": "lerna publish from-package --yes --no-private --force-publish --registry https://registry.npmjs.org/"
   }

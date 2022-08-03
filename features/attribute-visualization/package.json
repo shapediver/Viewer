@@ -28,7 +28,8 @@
     "build": "bash ../../scripts/building/build.sh",
     "build-watch": "bash ../../scripts/building/build-watch.sh",
     "build-dep": "bash ../../scripts/building/build-dep.sh",
-    "build-current": "npm run build-dep"
+    "build-current": "npm run build-dep",
+    "doc": "typedoc"
   },
   "bugs": {
     "url": "https://github.com/shapediver/Viewer/issues"

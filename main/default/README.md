@@ -45,3 +45,8 @@ const viewport = await createViewport({
 Once you created a viewport, you can see the logo. When nothing is in the scene yet, the logo is shown until there is something to render. 
 
 There are many options that you can already provide on initialization, please have a look at them [here](./modules.html#createViewport).
+
+## Features
+
+- [`@shapediver/viewer.features.interaction`](./features/interaction)
+- [`@shapediver/viewer.features.attribute-visualization`](./features/attribute-visualization)

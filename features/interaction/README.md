@@ -1,3 +1,10 @@
 # `@shapediver/viewer.features.interaction`
 
-This package is part of the [`@shapediver/viewer`](https://www.npmjs.com/package/@shapediver/viewer), you can find all information [here](https://viewer.shapediver.com/v3/latest/api/index.html).
+This is the npm package for the ShapeDiver Viewer interaction features. 
+
+For more information on ShapeDiver, please visit our [homepage](https://shapediver.com/). If you need help, have a look at our [help desk](https://help.shapediver.com/doc/Viewer.1836580882.html).
+
+## Installation
+```
+npm install --save @shapediver/viewer.features.interaction
+```
