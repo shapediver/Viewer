@@ -162,12 +162,13 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     }
 
     if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2]) {
-      if(this._viewportId) {
-          this._stateEngine.renderingEngines[this._viewportId].boundingBoxCreated.then(async () => {
-          await this.zoomTo(undefined, { duration: 0 });
-          this.defaultPosition = vec3.clone(this._controls.position);
-          this.defaultTarget = vec3.clone(this._controls.target);
-        })
+      if (this._viewportId) {
+        this._stateEngine.renderingEngines[this._viewportId].boundingBoxCreated
+          .then(async () => {
+            await this.zoomTo(undefined, { duration: 0 });
+            this.defaultPosition = vec3.clone(this._controls.position);
+            this.defaultTarget = vec3.clone(this._controls.target);
+          })
       }
     }
     (<OrthographicCameraControls>this._controls).applySettings(settingsEngine);
@@ -202,7 +203,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
     return new OrthographicCamera(this.id);
   }
 
-  public calculateZoomTo(zoomTarget?: Box, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; } {
+  public calculateZoomTo(zoomTarget?: Box, startingPosition: vec3 = this.position, startingTarget: vec3 = this.target): { position: vec3; target: vec3; } {
     let box: IBox;
 
     // Part 1 - calculate the bounding box that we should zoom to
@@ -213,10 +214,12 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
       // specified Box
       box = zoomTarget.clone();
     }
+    
+    if (box.isEmpty()) return { position: vec3.create(), target: vec3.create() }
 
     const factor = 2 * box.boundingSphere.radius * this.zoomExtentsFactor;
-
     const center = vec3.clone(box.boundingSphere.center);
+
     switch (this._direction) {
       case ORTHOGRAPHIC_CAMERA_DIRECTION.TOP:
         return {
