@@ -19,7 +19,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
             return (node: ITreeNode) => {
                 for(let i = 0; i < node.data.length; i++) {
                     if(node.data[i] instanceof InteractionData) {
-                        if((<InteractionData>node.data[i]).interactionTypes['select'])
+                        if((<InteractionData>node.data[i]).interactionTypes.select)
                             return true;
                     }
                 }
@@ -86,7 +86,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
     private activateNode(intersection: IIntersection) {
         this.#nodes.push(intersection.node);
         const data = <InteractionData>intersection.node.data.find(d => d instanceof InteractionData);
-        if(data) data.interactionStates['select'] = true;
+        if(data) data.interactionStates.select = true;
         if(this.effectMaterial) {
             this.#effectMaterialTokens.push(this.interactionEffectUtils.applyEffectMaterial(intersection.node, this.effectMaterial))
         } else {
@@ -122,7 +122,7 @@ export class MultiSelectManager extends AbstractInteractionManager {
         this.viewport.updateNode(node);
         this.viewport.render();
         const data = <InteractionData>node.data.find(d => d instanceof InteractionData);
-        if(data) data.interactionStates['select'] = false;
+        if(data) data.interactionStates.select = false;
         
         this.#nodes.splice(index, 1);
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { nodes: this.#nodes, node: node } as IMultiSelectEvent);

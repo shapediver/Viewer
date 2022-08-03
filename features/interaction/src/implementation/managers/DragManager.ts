@@ -26,7 +26,7 @@ export class DragManager extends AbstractInteractionManager {
             return (node: ITreeNode) => {
                 for(let i = 0; i < node.data.length; i++) {
                     if(node.data[i] instanceof InteractionData) {
-                        if((<InteractionData>node.data[i]).interactionTypes['drag'])
+                        if((<InteractionData>node.data[i]).interactionTypes.drag)
                             return true;
                     }
                 }
@@ -177,7 +177,7 @@ export class DragManager extends AbstractInteractionManager {
         this.#nodeWorldMatrixInverse = mat4.invert(mat4.create(), this.#nodeWorldMatrix);
 
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if(data) data.interactionStates['drag'] = true;
+        if(data) data.interactionStates.drag = true;
         if(this.effectMaterial) {
             this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
         } else {
@@ -216,7 +216,7 @@ export class DragManager extends AbstractInteractionManager {
         this.viewport.updateNode(this.#node!);
         this.viewport.render();
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if(data) data.interactionStates['drag'] = false;
+        if(data) data.interactionStates.drag = false;
         this.#intersection = null;
         this.#node = null;
     }

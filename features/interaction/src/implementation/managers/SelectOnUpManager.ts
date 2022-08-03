@@ -21,7 +21,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
             return (node: ITreeNode) => {
                 for(let i = 0; i < node.data.length; i++) {
                     if(node.data[i] instanceof InteractionData) {
-                        if((<InteractionData>node.data[i]).interactionTypes['select'])
+                        if((<InteractionData>node.data[i]).interactionTypes.select)
                             return true;
                     }
                 }
@@ -105,7 +105,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if(data) data.interactionStates['select'] = true;
+        if(data) data.interactionStates.select = true;
         if(this.effectMaterial) {
             this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
         } else {
@@ -135,7 +135,7 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         this.viewport.updateNode(this.#node!);
         this.viewport.render();
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if(data) data.interactionStates['select'] = false;
+        if(data) data.interactionStates.select = false;
         
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { node: this.#node } as ISelectEvent);
 

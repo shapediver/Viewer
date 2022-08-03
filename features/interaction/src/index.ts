@@ -15,14 +15,14 @@ import { IInteractionFilterOptions, IInteractionManager } from "./interfaces/IIn
 import { InteractionData } from "./implementation/InteractionData";
 import { IDragConstraintUtils } from "./interfaces/utils/IDragConstraintUtils";
 import { IInteractionEffectUtils } from "./interfaces/utils/IInteractionEffectUtils";
-import { IInteractionData } from "./interfaces/IInteractionData";
+import { IInteractionData, IInteractionTypes } from "./interfaces/IInteractionData";
 
 export {
     IInteractionEngine, InteractionEngine, IInteractionManager, AbstractInteractionManager
 }
 
 export {
-    InteractionData, IInteractionData
+    InteractionData, IInteractionData, IInteractionTypes
 }
 
 export {

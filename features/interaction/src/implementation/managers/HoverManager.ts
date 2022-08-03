@@ -21,7 +21,7 @@ export class HoverManager extends AbstractInteractionManager {
             return (node: ITreeNode) => {
                 for (let i = 0; i < node.data.length; i++) {
                     if (node.data[i] instanceof InteractionData) {
-                        if ((<InteractionData>node.data[i]).interactionTypes['hover'])
+                        if ((<InteractionData>node.data[i]).interactionTypes.hover)
                             return true;
                     }
                 }
@@ -75,7 +75,7 @@ export class HoverManager extends AbstractInteractionManager {
         let intersections = intersection.filter(i => this.filter(INTERACTION_STATE.MOVE)(i.node))
         intersections = intersection.filter(i => {
             const data = <InteractionData>i.node.data.find(d => d instanceof InteractionData);
-            return !(data && data.interactionStates['drag'] === true);
+            return !(data && data.interactionStates.drag === true);
         })
 
         if (this.#node) {
@@ -107,7 +107,7 @@ export class HoverManager extends AbstractInteractionManager {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if (data) data.interactionStates['hover'] = true;
+        if (data) data.interactionStates.hover = true;
         if(this.effectMaterial) {
             this.#effectMaterialToken = this.interactionEffectUtils.applyEffectMaterial(this.#node, this.effectMaterial)
         } else {
@@ -137,7 +137,7 @@ export class HoverManager extends AbstractInteractionManager {
         this.viewport.updateNode(this.#node!);
         this.viewport.render();
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
-        if (data) data.interactionStates['hover'] = false;
+        if (data) data.interactionStates.hover = false;
 
         const node = this.#node;
         

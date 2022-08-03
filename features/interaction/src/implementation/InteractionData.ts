@@ -1,6 +1,6 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix';
-import { IInteractionData } from '../interfaces/IInteractionData';
+import { IInteractionData, IInteractionTypes } from '../interfaces/IInteractionData';
 
 export class InteractionData extends AbstractTreeNodeData implements IInteractionData  {
     // #region Properties (4)
@@ -13,8 +13,8 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
         }
     }[] = [];
     #dragOrigin?: vec3;
-    #interactionStates: { [key: string]: boolean; } = {};
-    #interactionTypes: { [key: string]: boolean; } = {};
+    #interactionStates: IInteractionTypes = {};
+    #interactionTypes: IInteractionTypes = {};
 
     // #endregion Properties (4)
 
@@ -27,9 +27,7 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
      * @param id the id
      */
     constructor(
-        interactionTypes: {
-            [key: string]: boolean
-        },
+        interactionTypes: IInteractionTypes,
         id?: string
     ) {
         super(id);
@@ -68,19 +66,19 @@ export class InteractionData extends AbstractTreeNodeData implements IInteractio
         this.#dragOrigin = value;
     }
 
-    public get interactionStates(): { [key: string]: boolean } {
+    public get interactionStates(): IInteractionTypes {
         return this.#interactionStates;
     }
 
-    public set interactionStates(value: { [key: string]: boolean }) {
+    public set interactionStates(value: IInteractionTypes) {
         this.#interactionStates = value;
     }
 
-    public get interactionTypes(): { [key: string]: boolean } {
+    public get interactionTypes(): IInteractionTypes {
         return this.#interactionTypes;
     }
 
-    public set interactionTypes(value: { [key: string]: boolean }) {
+    public set interactionTypes(value: IInteractionTypes) {
         this.#interactionTypes = value;
     }
 
