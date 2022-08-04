@@ -5,9 +5,9 @@ import { IInteractionFilterOptions } from "../../interfaces/IInteractionManager"
 import { AbstractInteractionManager } from "../AbstractInteractionManager";
 import { InteractionData } from "../InteractionData";
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
-import { IMultiSelectEvent } from "@shapediver/viewer.shared.types"
 import { container } from "tsyringe";
 import { IViewportApi } from "@shapediver/viewer";
+import { IMultiSelectEvent } from "../../interfaces/events/IMultiSelectEvent";
 
 export class MultiSelectManager extends AbstractInteractionManager {
     // #region Properties (6)
@@ -54,29 +54,45 @@ export class MultiSelectManager extends AbstractInteractionManager {
         this.viewport = undefined;
     }
 
-    public onDown(ray: IRay, intersection: IIntersection[]): void {
+    public select(intersection: IIntersection) {
+        if(this.#nodes.includes(intersection.node))
+            this.deactivateNode(intersection.node);
+        this.activateNode(intersection);
+    }
+
+    public deselect(node: ITreeNode) {
+        if(this.#nodes.includes(node))
+            this.deactivateNode(node);
+    }
+
+    public deselectAll() {
+        for (let i = 0; i < this.#nodes.length; i++)
+            this.deactivateNode(this.#nodes[i]); 
+    }
+
+    public onDown(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.DOWN)(i.node))
 
         if(this.#nodes.length > 0) {
             if(intersections.length > 0 && !this.#nodes.includes(intersections[0].node)) {
                 // case other node was clicked, deselect then select
-                this.activateNode(intersections[0]);
+                this.activateNode(intersections[0], event, ray);
             } else if(intersections.length > 0 && this.#nodes.includes(intersections[0].node)) {
                 // case same node was clicked, only deselect
-                this.deactivateNode(intersections[0].node);
+                this.deactivateNode(intersections[0].node, event);
             }
         } else if(intersections.length > 0) {
             // easy case, no node select, just select this one
-            this.activateNode(intersections[0]);
+            this.activateNode(intersections[0], event, ray);
         }
     }
 
-    public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
+    public onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
     }
 
-    public onMove(ray: IRay, intersection: IIntersection[]): void {        
+    public onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {        
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
     }
 
@@ -89,8 +105,10 @@ export class MultiSelectManager extends AbstractInteractionManager {
      * Set the according values, apply the effect and emit the event.
      * 
      * @param intersection 
+     * @param event 
+     * @param ray 
      */
-    private activateNode(intersection: IIntersection) {
+    private activateNode(intersection: IIntersection, event?: MouseEvent | TouchEvent, ray?: IRay) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#nodes.push(intersection.node);
         const data = <InteractionData>intersection.node.data.find(d => d instanceof InteractionData);
@@ -101,14 +119,15 @@ export class MultiSelectManager extends AbstractInteractionManager {
             this.#effectMaterialTokens.push(undefined);
         }
         
-
         this.viewport.updateNode(intersection.node);
         this.viewport.render();
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { 
             nodes: this.#nodes, 
             node: intersection.node,
-            intersectionPoint: intersection.point
+            intersectionPoint: intersection.point,
+            ray,
+            event
         } as IMultiSelectEvent);
     }
 
@@ -116,9 +135,9 @@ export class MultiSelectManager extends AbstractInteractionManager {
      * Utility function to make the node inactive.
      * Set the according values, remove the effect and emit the event.
      * 
-     * @param intersection 
+     * @param event
      */
-    private deactivateNode(node: ITreeNode) {
+    private deactivateNode(node: ITreeNode, event?: MouseEvent | TouchEvent) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         const index = this.#nodes.indexOf(node);
         if(index === -1) return;
@@ -134,7 +153,13 @@ export class MultiSelectManager extends AbstractInteractionManager {
         if(data) data.interactionStates.select = false;
         
         this.#nodes.splice(index, 1);
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { nodes: this.#nodes, node: node } as IMultiSelectEvent);
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, 
+            { 
+                nodes: this.#nodes, 
+                node: node,
+                event
+            } as IMultiSelectEvent
+        );
     }
 
     // #endregion Private Methods (2)

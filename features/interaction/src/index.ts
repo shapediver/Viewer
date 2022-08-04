@@ -16,6 +16,11 @@ import { InteractionData } from "./implementation/InteractionData";
 import { IDragConstraintUtils } from "./interfaces/utils/IDragConstraintUtils";
 import { IInteractionEffectUtils } from "./interfaces/utils/IInteractionEffectUtils";
 import { IInteractionData, IInteractionTypes } from "./interfaces/IInteractionData";
+import { IDragEvent } from "./interfaces/events/IDragEvent";
+import { IHoverEvent } from "./interfaces/events/IHoverEvent";
+import { IMultiSelectEvent } from "./interfaces/events/IMultiSelectEvent";
+import { ISelectEvent } from "./interfaces/events/ISelectEvent";
+import { InteractionEventResponseMapping } from "./interfaces/events/EventResponseMapping";
 
 export {
     IInteractionEngine, InteractionEngine, IInteractionManager, AbstractInteractionManager
@@ -39,4 +44,8 @@ export {
 
 export {
     CameraPlaneConstraint, LineConstraint, PlaneConstraint, PointConstraint
+}
+
+export {
+    ISelectEvent, IMultiSelectEvent, IDragEvent, IHoverEvent, InteractionEventResponseMapping
 }
