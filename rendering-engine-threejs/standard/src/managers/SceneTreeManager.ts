@@ -186,7 +186,7 @@ export class SceneTreeManager implements IManager {
             const nodeChild = node.children[i];
             if(!nodeChild) continue;
             const objChild = <SDNode>obj.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
-            this.updateNodeTransformations(nodeChild, objChild);
+            if(objChild) this.updateNodeTransformations(nodeChild, objChild);
         }
     }
     
@@ -199,14 +199,15 @@ export class SceneTreeManager implements IManager {
             if(node.data[i] instanceof GeometryData) {
                 const data: GeometryData = <GeometryData>node.data[i];
                 let dataChild = <SDData>obj.children.find(oc => (<SDData>oc).SDid === data.id && (<SDData>oc).SDversion === data.version);
-                dataChild.traverse(o => {
-                    if (o instanceof THREE.Points ||
-                        o instanceof THREE.LineSegments ||
-                        o instanceof THREE.LineLoop ||
-                        o instanceof THREE.Line ||
-                        o instanceof THREE.Mesh)
-                        o.morphTargetInfluences = data.morphWeights;
-                })
+                if(dataChild) 
+                    dataChild.traverse(o => {
+                        if (o instanceof THREE.Points ||
+                            o instanceof THREE.LineSegments ||
+                            o instanceof THREE.LineLoop ||
+                            o instanceof THREE.Line ||
+                            o instanceof THREE.Mesh)
+                            o.morphTargetInfluences = data.morphWeights;
+                    })
             }
         }
 
@@ -215,7 +216,7 @@ export class SceneTreeManager implements IManager {
             const nodeChild = node.children[i];
             if(!nodeChild) continue;
             const objChild = <SDNode>obj.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
-            this.updateMorphWeights(nodeChild, objChild);
+            if(objChild) this.updateMorphWeights(nodeChild, objChild);
         }
     }
     
@@ -259,7 +260,7 @@ export class SceneTreeManager implements IManager {
         for (let i = 0, len = node.children.length; i < len; i++) {
             const nodeChild = node.children[i];
             const objChild = <SDNode>convertedObject.children.find(oc => (<SDNode>oc).SDid === nodeChild.id);
-            this.updateNodeData(nodeChild, objChild);
+            if(objChild) this.updateNodeData(nodeChild, objChild);
 
             if(!nodeChild.boundingBox.isEmpty())
                 node.boundingBox.union(nodeChild.boundingBox);
@@ -426,7 +427,7 @@ export class SceneTreeManager implements IManager {
             out.merge(<SDTFOverviewData>node.data[i])
 
         for (let i = 0, len = node.children.length; i < len; i++)
-        out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
+            out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
 
         return out.overview;
       }
