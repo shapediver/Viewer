@@ -5,16 +5,16 @@ import { IDragConstraint } from "../utils/IDragConstraint";
 import { IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
 
 export interface IDragEvent extends IViewportEvent {
-    /** The node of the drag event. */
+    /** The node being dragged. */
     node: ITreeNode,
-    /** The applied matrix transformation matrix. */
+    /** The transformation matrix that is applied to the dragged node. */
     matrix: mat4,
-    /** The intersection point of the selection. Only provided on SELECT_ON. */
+    /** The intersection point of the ray with the node. Only provided on DRAG_START. */
     intersectionPoint?: vec3,
-    /** The ray of the selection process. Only provided on SELECT_ON and only if it was not a manual selection. */
+    /** The ray of the dragging process. Only provided on DRAG_START and DRAG_MOVE and only if it was not a manual dragging. */
     ray?: IRay,
-    /** The original event that triggered the selection. Only provided if it was not a manual selection. */
+    /** The original event that triggered the dragging. Only provided if it was not a manual dragging. */
     event?: MouseEvent | TouchEvent,
-    /** The optional drag constraint that was used in the drag event. */
+    /** The optional drag constraint that was applied. */
     dragConstraint?: IDragConstraint
 }

@@ -11,6 +11,9 @@ export interface IDragConstraintUtils {
      * Returns a matrix with the transformation of the node.
      * The selection of the drag constraint works by taking the one with the closest distance to the ray.
      * 
+     * It returns the dragConstraints that were used and the matrix that was calculated.
+     * If no dragConstraint was used, this entry is left empty.
+     * 
      * @param dragConstraints 
      * @param viewer 
      * @param node 
@@ -21,6 +24,9 @@ export interface IDragConstraintUtils {
     /**
      * Setup the provided drag constraints.
      * The drag origin is set here and a first computation of the matrix is done.
+     * 
+     * It returns the dragConstraints that were used and the matrix that was calculated.
+     * If no dragConstraint was used, this entry is left empty.
      * 
      * @param dragConstraints 
      * @param viewer 
