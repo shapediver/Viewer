@@ -1,7 +1,7 @@
 
 
 import * as SDV from '@shapediver/viewer'
-import { InteractionEngine, HoverManager, DragManager, PointConstraint, InteractionData, LineConstraint, PlaneConstraint } from '@shapediver/viewer.features.interaction'
+import { InteractionEngine, HoverManager, DragManager, PointConstraint, InteractionData, LineConstraint, PlaneConstraint, IDragEvent } from '@shapediver/viewer.features.interaction'
 import { mat4, quat, vec3 } from 'gl-matrix';
 (<any>window).SDV = SDV;
 
@@ -157,7 +157,7 @@ const activateInteractions = () => {
     updateInteractions({drag: true, hover: true});
 
     activateInteractionsToken.start = SDV.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_START, async (e) => {
-        const dragEvent = <SDV.IDragEvent>e;
+        const dragEvent = <IDragEvent>e;
 
         dragLineConstraintsIds.forEach(d => dragManager.removeDragConstraint(d))
 
@@ -176,7 +176,7 @@ const activateInteractions = () => {
         // once the movement has ended, we update the matrix in the parameter definition
         activateInteractionsToken.end = SDV.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
             dragLineConstraintsIds.forEach(d => dragManager.removeDragConstraint(d));
-            const dragEvent = <SDV.IDragEvent>e;
+            const dragEvent = <IDragEvent>e;
             // apply the matrix to the dragged item
             const number = dragEvent.node.getPath().substring(dragEvent.node.getPath().lastIndexOf('_') + 1, dragEvent.node.getPath().length);
             mat4.multiply(def.matrices[+number].translation, def.matrices[+number].translation, mat4.fromTranslation(mat4.create(), mat4.getTranslation(vec3.create(), dragEvent.matrix)));
@@ -251,7 +251,7 @@ const addShelf = async (def: ShelfDefinition) => {
 
     // once the movement has ended, we update the matrix in the parameter definition
     const tokenEnd = SDV.addListener(SDV.EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
-        const dragEvent = <SDV.IDragEvent>e;
+        const dragEvent = <IDragEvent>e;
         dragConstraintsIds.forEach(d => dragManager.removeDragConstraint(d))        
         def.matrices[def.matrices.length-1].translation = mat4.fromTranslation(mat4.create(), mat4.getTranslation(vec3.create(), dragEvent.matrix));
         def.matrices[def.matrices.length-1].rotation = mat4.fromQuat(mat4.create(), mat4.getRotation(quat.create(), dragEvent.matrix));
