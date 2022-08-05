@@ -31,10 +31,11 @@ export interface IInteractionManager {
      * An array of intersections is provided that is the result of an intersection with the ray and the scene with the applied filters.
      * (Note that filters of other InteractionManagers may also apply, therefore you need to sanitize the intersections in that case)
      * 
+     * @param event
      * @param ray 
      * @param intersection 
      */
-    onDown(ray: IRay, intersection: IIntersection[]): void;
+    onDown(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void;
 
     /**
      * For onEnd events (mouseUp, mouseOut and touchend) this method is called.
@@ -42,10 +43,12 @@ export interface IInteractionManager {
      * An array of intersections is provided that is the result of an intersection with the ray and the scene with the applied filters.
      * (Note that filters of other InteractionManagers may also apply, therefore you need to sanitize the intersections in that case)
      * 
+     * @param event
      * @param ray 
      * @param intersection 
+     * @param endState 
      */
-    onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
+    onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
 
     /**
      * For onMove events (mouseMove and touchmove) this method is called.
@@ -53,11 +56,11 @@ export interface IInteractionManager {
      * An array of intersections is provided that is the result of an intersection with the ray and the scene with the applied filters.
      * (Note that filters of other InteractionManagers may also apply, therefore you need to sanitize the intersections in that case)
      * 
+     * @param event
      * @param ray 
      * @param intersection 
-     * @param endState 
      */
-    onMove(ray: IRay, intersection: IIntersection[]): void;
+    onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void;
 
     /**
      * Called internally when adding the interaction manager to an interaction engine. Here the viewport is set.

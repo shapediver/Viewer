@@ -11,16 +11,22 @@ export interface IDragConstraintUtils {
      * Returns a matrix with the transformation of the node.
      * The selection of the drag constraint works by taking the one with the closest distance to the ray.
      * 
+     * It returns the dragConstraints that were used and the matrix that was calculated.
+     * If no dragConstraint was used, this entry is left empty.
+     * 
      * @param dragConstraints 
      * @param viewer 
      * @param node 
      * @param ray 
      * @returns
      */
-    intersect(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay): mat4;
+    intersect(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay): { dragConstraint?: IDragConstraint, matrix: mat4 };
     /**
      * Setup the provided drag constraints.
      * The drag origin is set here and a first computation of the matrix is done.
+     * 
+     * It returns the dragConstraints that were used and the matrix that was calculated.
+     * If no dragConstraint was used, this entry is left empty.
      * 
      * @param dragConstraints 
      * @param viewer 
@@ -29,7 +35,7 @@ export interface IDragConstraintUtils {
      * @param intersection 
      * @returns
      */
-    setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): mat4;
+    setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): { dragConstraint?: IDragConstraint, matrix: mat4 };
 
     // #endregion Public Methods (2)
 }

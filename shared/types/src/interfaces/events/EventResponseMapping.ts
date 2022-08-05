@@ -1,9 +1,6 @@
 import { EVENTTYPE_CAMERA, EVENTTYPE_INTERACTION, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_TASK, EVENTTYPE_VIEWPORT } from "@shapediver/viewer.shared.services";
 import { ICameraEvent } from "./ICameraEvent";
-import { IDragEvent } from "./IDragEvent";
-import { IHoverEvent } from "./IHoverEvent";
 import { ISceneEvent } from "./ISceneEvent";
-import { ISelectEvent } from "./ISelectEvent";
 import { ISessionEvent } from "./ISessionEvent";
 import { ITaskEvent } from "./ITaskEvent";
 import { IViewportEvent } from "./IViewportEvent";
@@ -26,12 +23,5 @@ export type EventResponseMapping = {
     [EVENTTYPE_TASK.TASK_START]: ITaskEvent,
     [EVENTTYPE_TASK.TASK_PROCESS]: ITaskEvent,
     [EVENTTYPE_TASK.TASK_END]: ITaskEvent,
-    [EVENTTYPE_TASK.TASK_CANCEL]: ITaskEvent,
-    [EVENTTYPE_INTERACTION.DRAG_START]: IDragEvent,
-    [EVENTTYPE_INTERACTION.DRAG_MOVE]: IDragEvent,
-    [EVENTTYPE_INTERACTION.DRAG_END]: IDragEvent,
-    [EVENTTYPE_INTERACTION.HOVER_ON]: IHoverEvent,
-    [EVENTTYPE_INTERACTION.HOVER_OFF]: IHoverEvent,
-    [EVENTTYPE_INTERACTION.SELECT_ON]: ISelectEvent,
-    [EVENTTYPE_INTERACTION.SELECT_OFF]: ISelectEvent,
+    [EVENTTYPE_TASK.TASK_CANCEL]: ITaskEvent
 }

@@ -7,8 +7,8 @@ import { InteractionData } from "../InteractionData";
 import { EventEngine, EVENTTYPE, ShapeDiverViewerInteractionError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { ISelectEvent } from "@shapediver/viewer.shared.types";
 import { IViewportApi } from "@shapediver/viewer";
+import { ISelectEvent } from "../../interfaces/events/ISelectEvent";
 
 export class SelectOnUpManager extends AbstractInteractionManager {
     // #region Properties (6)
@@ -66,11 +66,22 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         this.viewport = undefined;
     }
 
-    public onDown(ray: IRay, intersection: IIntersection[]): void {
+    public select(intersection: IIntersection) {
+        if(this.#node)
+            this.deactivateNode();
+        this.activateNode(intersection);
+    }
+
+    public deselect() {
+        if(this.#node)
+            this.deactivateNode();
+    }
+
+    public onDown(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
     }
 
-    public onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
+    public onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(endState === INTERACTION_STATE.UP) {
             const intersections = intersection.filter( i => this.filter(INTERACTION_STATE.UP)(i.node))
@@ -78,23 +89,23 @@ export class SelectOnUpManager extends AbstractInteractionManager {
             if(this.#node) {
                 if(intersections.length > 0 && intersection[0].node !== this.#node) {
                     // case other node was clicked, deselect then select
-                    this.deactivateNode();
-                    this.activateNode(intersections[0]);
+                    this.deactivateNode(event);
+                    this.activateNode(intersections[0], event, ray);
                 } else if(intersections.length > 0 && intersection[0].node === this.#node) {
                     // case same node was clicked, only deselect
-                    this.deactivateNode();
+                    this.deactivateNode(event);
                 } else if(intersections.length === 0 && this.#deselectOnEmpty) {
                     // case no node was clicked, only deselect when option is on
-                    this.deactivateNode();
+                    this.deactivateNode(event);
                 }
             } else if(intersections.length > 0) {
                 // easy case, no node select, just select this one
-                this.activateNode(intersections[0]);
+                this.activateNode(intersections[0], event, ray);
             } 
         }
     }
 
-    public onMove(ray: IRay, intersection: IIntersection[]): void {
+    public onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
     }
 
@@ -107,8 +118,10 @@ export class SelectOnUpManager extends AbstractInteractionManager {
      * Set the according values, apply the effect and emit the event.
      * 
      * @param intersection 
+     * @param event 
+     * @param ray 
      */
-    private activateNode(intersection: IIntersection) {
+    private activateNode(intersection: IIntersection, event?: MouseEvent | TouchEvent, ray?: IRay) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
@@ -120,22 +133,26 @@ export class SelectOnUpManager extends AbstractInteractionManager {
             this.#effectMaterialToken = undefined;
         }
         
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { 
-            node: this.#node,
-            intersectionPoint: this.#intersection.point 
-        } as ISelectEvent);
-
         this.viewport.updateNode(this.#node);
         this.viewport.render();
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON,
+            {
+                node: this.#node,
+                intersectionPoint: this.#intersection.point,
+                ray,
+                event
+            } as ISelectEvent
+        );
     }
 
     /**
      * Utility function to make the node inactive.
      * Set the according values, remove the effect and emit the event.
      * 
-     * @param intersection 
+     * @param event
      */
-    private deactivateNode() {
+    private deactivateNode(event?: MouseEvent | TouchEvent) {
         if(!this.viewport) throw new ShapeDiverViewerInteractionError('The interaction manager does not belong to an interaction engine. Please add it to one first.');
         if(this.#effectMaterialToken) {
             this.interactionEffectUtils.removeEffectMaterial(this.#node!, this.#effectMaterialToken);
@@ -146,10 +163,17 @@ export class SelectOnUpManager extends AbstractInteractionManager {
         const data = <InteractionData>this.#node!.data.find((d: ITreeNodeData) => d instanceof InteractionData);
         if(data) data.interactionStates.select = false;
         
-        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, { node: this.#node } as ISelectEvent);
+        const node = this.#node;
 
         this.#intersection = null;
         this.#node = null;
+
+        this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, 
+            { 
+                node,
+                event         
+            } as ISelectEvent
+        );
     }
 
     // #endregion Private Methods (2)
