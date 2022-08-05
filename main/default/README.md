@@ -48,5 +48,5 @@ There are many options that you can already provide on initialization, please ha
 
 ## Features
 
-- [`@shapediver/viewer.features.interaction`](./features/interaction)
-- [`@shapediver/viewer.features.attribute-visualization`](./features/attribute-visualization)
+- [`@shapediver/viewer.features.interaction`](./features/interaction/index.html)
+- [`@shapediver/viewer.features.attribute-visualization`](./features/attribute-visualization/index.html)
