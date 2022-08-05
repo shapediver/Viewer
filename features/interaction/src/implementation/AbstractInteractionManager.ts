@@ -60,9 +60,9 @@ export abstract class AbstractInteractionManager implements IInteractionManager 
 
     abstract add(viewport: IViewportApi): void;
     abstract remove(): void;
-    abstract onDown(ray: IRay, intersection: IIntersection[]): void;
-    abstract onEnd(ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
-    abstract onMove(ray: IRay, intersection: IIntersection[]): void;
+    abstract onDown(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void;
+    abstract onEnd(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[], endState: INTERACTION_STATE): void;
+    abstract onMove(event: MouseEvent | TouchEvent, ray: IRay, intersection: IIntersection[]): void;
 
     // #endregion Public Abstract Methods (3)
 }

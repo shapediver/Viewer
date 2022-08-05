@@ -1,5 +1,5 @@
-import { sceneTree, createSession, createViewport, ITreeNode, RENDERER_TYPE, SDTFItemData, addListener, EVENTTYPE, ISelectEvent, ISessionApi, IViewportApi, MaterialUnlitData } from "@shapediver/viewer";
-import { InteractionData, InteractionEngine, SelectManager } from "@shapediver/viewer.features.interaction";
+import { sceneTree, createSession, createViewport, ITreeNode, RENDERER_TYPE, SDTFItemData, addListener, EVENTTYPE, ISessionApi, IViewportApi, MaterialUnlitData } from "@shapediver/viewer";
+import { InteractionData, InteractionEngine, ISelectEvent, SelectManager } from "@shapediver/viewer.features.interaction";
 import { AttributeVisualizationEngine } from "@shapediver/viewer.features.attribute-visualization";
 import * as  SDV from "@shapediver/viewer";
 
