@@ -79,6 +79,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   public applySettings(settingsEngine: SettingsEngine) {
     const cameraSetting = <IPerspectiveCameraSettingsV3>settingsEngine.camera.cameras[this.id];
     if (cameraSetting) {
+      this.name = cameraSetting.name;
       this.autoAdjust = cameraSetting.autoAdjust;
       this.cameraMovementDuration = cameraSetting.cameraMovementDuration;
       this.enableCameraControls = cameraSetting.enableCameraControls;

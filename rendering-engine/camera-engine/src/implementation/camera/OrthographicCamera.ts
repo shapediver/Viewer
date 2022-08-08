@@ -145,6 +145,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   public applySettings(settingsEngine: SettingsEngine) {
     const cameraSetting = <IOrthographicCameraSettingsV3>settingsEngine.camera.cameras[this.id];
     if (cameraSetting) {
+      this.name = cameraSetting.name;
       this.autoAdjust = cameraSetting.autoAdjust;
       this.cameraMovementDuration = cameraSetting.cameraMovementDuration;
       this.enableCameraControls = cameraSetting.enableCameraControls;

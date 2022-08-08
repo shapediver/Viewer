@@ -217,6 +217,7 @@ export class CameraEngine implements ICameraEngine {
             if (camera.type === CAMERA_TYPE.PERSPECTIVE) {
                 const controls = <PerspectiveCameraControls>(<PerspectiveCamera>camera).controls;
                 settingsEngine.camera.cameras[camera.id] = {
+                    name: camera.name,
                     autoAdjust: camera.autoAdjust,
                     cameraMovementDuration: camera.cameraMovementDuration,
                     enableCameraControls: camera.enableCameraControls,
@@ -288,6 +289,7 @@ export class CameraEngine implements ICameraEngine {
                 const controls = <OrthographicCameraControls>(<OrthographicCamera>camera).controls;
     
                 settingsEngine.camera.cameras[camera.id] = {
+                    name: camera.name,
                     autoAdjust: camera.autoAdjust,
                     cameraMovementDuration: camera.cameraMovementDuration,
                     enableCameraControls: camera.enableCameraControls,
