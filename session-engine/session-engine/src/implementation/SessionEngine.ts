@@ -4,7 +4,7 @@ import { HttpClient, HttpResponse, PerformanceEvaluator, UuidGenerator, SystemIn
 import { OutputDelayException } from './OutputDelayException'
 import { OutputLoader } from './OutputLoader'
 import { SessionTreeNode } from './SessionTreeNode'
-import { ISessionEngine, PARAMETER_TYPE } from '../interfaces/ISessionEngine'
+import { ISessionEngine, ISettingsSections, PARAMETER_TYPE } from '../interfaces/ISessionEngine'
 import { SessionData } from './SessionData'
 import { create, ShapeDiverError as ShapeDiverBackendError, ShapeDiverResponseErrorType, ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto, ShapeDiverResponseError, ShapeDiverResponseExport, ShapeDiverResponseExportDefinitionType, ShapeDiverResponseOutput, ShapeDiverResponseParameter, ShapeDiverSdk, ShapeDiverSdkConfigType, ShapeDiverResponseModelComputationStatus } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { AxiosRequestConfig } from 'axios'
@@ -226,13 +226,7 @@ export class SessionEngine implements ISessionEngine {
 
     // #region Public Methods (22)
 
-    public applySettings(response: ShapeDiverResponseDto, sections?: {
-        session?: {
-            parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined } | undefined;
-            export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined } | undefined
-        } | undefined;
-        viewport?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined } | undefined
-    }) {
+    public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections) {
         try {
             sections = sections || {};
             if (sections.session === undefined) {
@@ -252,15 +246,15 @@ export class SessionEngine implements ISessionEngine {
             if ((<ShapeDiverResponseDto>response).viewer !== undefined) {
                 config = (<ShapeDiverResponseDto>response).viewer!.config;
             } else {
-                const error = new ShapeDiverViewerSettingsError('Api.applySettings: No config object available.');
-                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Api.applySettings', error);
+                const error = new ShapeDiverViewerSettingsError('Session.applySettings: No config object available.');
+                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
             }
 
             try {
                 validate(config)
             } catch (e) {
-                const error = new ShapeDiverViewerSettingsError('Api.applySettings: Was not able to validate config object.');
-                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Api.applySettings', error);
+                const error = new ShapeDiverViewerSettingsError('Session.applySettings: Was not able to validate config object.');
+                throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
             }
 
             const settings = <ISettingsV3_1>convert(config, '3.1');
@@ -355,7 +349,7 @@ export class SessionEngine implements ISessionEngine {
 
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
-            throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'Api.applySettings', e);
+            throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'Session.applySettings', e);
         }
     }
 
@@ -705,6 +699,33 @@ export class SessionEngine implements ISessionEngine {
         } catch (e) {
             await this.handleError(LOGGING_TOPIC.SESSION, 'Session.requestExport', e, retry);
             return await this.requestExport(exportId, parameters, maxWaitTime, true);
+        }
+    }
+
+    public resetSettings(sections?: ISettingsSections): void {
+        if (!this._responseDto) {
+            const error = new ShapeDiverViewerSessionError(`Session.resetSettings: responseDto not available.`);
+            throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.resetSettings', error);
+        }
+        try {
+            sections = sections || {};
+            if (sections.session === undefined) {
+                sections.session = {
+                    parameter: { displayname: true, order: true, hidden: true },
+                    export: { displayname: true, order: true, hidden: true }
+                };
+            }
+            if (sections.session.parameter === undefined)
+                sections.session.parameter = { displayname: true, order: true, hidden: true, value: true };
+            if (sections.session.export === undefined)
+                sections.session.export = { displayname: true, order: true, hidden: true };
+            if (sections.viewport === undefined)
+                sections.viewport = { ar: true, scene: true, camera: true, light: true, environment: true, general: true };
+
+            return this.applySettings(this._responseDto, sections);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this._logger.handleError(LOGGING_TOPIC.GENERAL, 'Session.resetSettings', e);
         }
     }
 

@@ -1,5 +1,6 @@
 import { ShapeDiverRequestGltfUploadQueryConversion, ShapeDiverResponseDto } from '@shapediver/sdk.geometry-api-sdk-v2'
-import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITree, ITreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ISettingsSections } from '@shapediver/viewer.session-engine.session-engine'
 
 import { IExportApi } from './IExportApi'
 import { IOutputApi } from './IOutputApi'
@@ -138,42 +139,7 @@ export interface ISessionApi {
      * @param response the ShapeDiverResponseDto of the model whose settings shall be applied
      * @param sections specify true for those parts of the settings that should be applied
      */
-    applySettings(response: ShapeDiverResponseDto, sections?: {
-        session?: {
-            parameter?: { 
-                /** Option to update the displayname of the parameters (default: false) */
-                displayname?: boolean, 
-                /** Option to update the order of the parameters (default: false) */
-                order?: boolean, 
-                /** Option to update the hidden state of the parameters (default: false) */
-                hidden?: boolean, 
-                /** Option to update the value of the parameters (default: false) */
-                value?: boolean 
-            },
-            export?: { 
-                /** Option to update the displayname of the exports (default: false) */
-                displayname?: boolean, 
-                /** Option to update the order of the exports (default: false) */
-                order?: boolean, 
-                /** Option to update the hidden state of the exports (default: false) */
-                hidden?: boolean 
-            }
-        },
-        viewport?: {
-            /** Option to update the ar settings (default: false) */
-            ar?: boolean,
-            /** Option to update the scene settings (default: false) */
-            scene?: boolean,
-            /** Option to update the camera settings (default: false) */
-            camera?: boolean,
-            /** Option to update the light settings (default: false) */
-            light?: boolean,
-            /** Option to update the environment settings (default: false) */
-            environment?: boolean
-            /** Option to update the general settings (default: false) */
-            general?: boolean
-        }
-    }): Promise<void>;
+    applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void>;
 
     /**
      * Check if the session's history allows to go back to a previous state of parameter values.
@@ -350,6 +316,20 @@ export interface ISessionApi {
      * @see {@link goForward}
      */
     goForward(): Promise<ITreeNode>;
+    
+    /**
+     * Reset the parameters to their stored default values and customize the scene.
+     * 
+     * @param force If force is set to true, the customization call will even be called if no parameters have changed. (Default: false)
+     */
+    resetParameterValues(force?: boolean): Promise<ITreeNode>;
+
+    /**
+     * Reset all or some settings of the current session and the viewports. 
+     * 
+     * @param sections specify false for those parts of the settings that should not be applied
+     */
+    resetSettings(sections?: ISettingsSections): Promise<void>;
 
     /**
      * Save the current state of parameter values of this session as the default parameter values of the model. 
