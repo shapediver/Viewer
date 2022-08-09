@@ -104,13 +104,14 @@ export interface ISessionEngine {
   canGoForward(): boolean;
   close(): Promise<void>;
   customize(force: boolean): Promise<ITreeNode>;
-  customizeParallel(parameterValues: { [key: string]: string }, force: boolean): Promise<ITreeNode>;
+  customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
   init(parameterValues?: {
     [key: string]: string;
   }): Promise<void>;
   loadOutputs(cancelRequest: () => boolean): Promise<ITreeNode>;
+  loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean): Promise<ITreeNode>;
   requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
   saveDefaultParameterValues(): Promise<boolean>;
   saveSettings(viewportId?: string): Promise<boolean>;

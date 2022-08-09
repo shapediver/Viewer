@@ -298,14 +298,14 @@ export class SessionApi implements ISessionApi {
         }
     }
 
-    public customizeParallel(parameterValues: { [key: string]: string; }, force: boolean = false): Promise<ITreeNode> {
+    public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
         const scope = 'customizeParallel';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, parameterValues, 'object');
             for(let p in parameterValues)
                 this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, parameterValues[p], 'string');
 
-            return this.#sessionEngine.customizeParallel(parameterValues, force);
+            return this.#sessionEngine.customizeParallel(parameterValues);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
