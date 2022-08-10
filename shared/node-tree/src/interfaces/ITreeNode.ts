@@ -73,7 +73,7 @@ export interface ITreeNode {
     clone(): ITreeNode;
 
     /**
-     * Clones this node and all its children.
+     * Clones this node and all its children. The data objects are not copied in this case.
      */
     cloneInstance(): ITreeNode;
 
