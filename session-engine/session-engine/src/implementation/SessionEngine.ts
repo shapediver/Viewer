@@ -561,7 +561,7 @@ export class SessionEngine implements ISessionEngine {
 
             // create a set of the current validated parameter values
             for (const parameterId in this.parameters)
-                parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? parameterValues[parameterId] : this.parameters[parameterId].stringify()
+                parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? (' ' + parameterValues[parameterId]).slice(1) : this.parameters[parameterId].stringify()
 
             const newNode = await this.customizeSession(parameterSet, () => false, true);
             newNode.excludeViewports = this._excludeViewports;
@@ -630,7 +630,12 @@ export class SessionEngine implements ISessionEngine {
 
         try {
             this._performanceEvaluator.startSection('sessionResponse');
-            this._responseDto = await this._sdk.session.init(this._ticket, parameterValues);
+
+            const parameterSet: { [key: string]: string } = {};
+            for (const parameterId in parameterValues)
+                parameterSet[parameterId] = (' ' + parameterValues[parameterId]).slice(1);
+
+            this._responseDto = await this._sdk.session.init(this._ticket, parameterSet);
             this._performanceEvaluator.endSection('sessionResponse');
 
             this._viewerSettings = this._responseDto.viewer?.config;
@@ -648,7 +653,7 @@ export class SessionEngine implements ISessionEngine {
             if (!this._modelId)
                 throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a model.id.`)
 
-            this.updateResponseDto(this._responseDto, parameterValues);
+            this.updateResponseDto(this._responseDto, parameterSet);
             this._initialized = true;
         } catch (e) {
             await this.handleError(LOGGING_TOPIC.SESSION, 'Session.init', e, retry);
@@ -770,7 +775,10 @@ export class SessionEngine implements ISessionEngine {
     public async requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number, retry = false): Promise<ShapeDiverResponseExport> {
         this.checkAvailability('export');
         try {
-            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters }, maxWaitTime)
+            const parameterSet: { [key: string]: string } = {};
+            for (const parameterId in parameters)
+                parameterSet[parameterId] = (' ' + parameters[parameterId]).slice(1);
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters: parameterSet }, maxWaitTime)
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
         } catch (e) {
