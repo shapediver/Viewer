@@ -565,7 +565,7 @@ export class SessionEngine implements ISessionEngine {
 
             const newNode = await this.customizeSession(parameterSet, () => false, true);
             newNode.excludeViewports = this._excludeViewports;
-            return newNode.clone();
+            return newNode;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize`, e);
