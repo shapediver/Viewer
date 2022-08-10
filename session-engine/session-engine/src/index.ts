@@ -1,5 +1,5 @@
 import { SessionEngine } from './implementation/SessionEngine'
-import { ISessionEngine, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from './interfaces/ISessionEngine'
+import { ISessionEngine, ISettingsSections, PARAMETER_TYPE, PARAMETER_VISUALIZATION } from './interfaces/ISessionEngine'
 import { SessionOutputData } from './implementation/SessionOutputData'
 import { SessionData } from './implementation/SessionData'
 import { ISessionData } from './interfaces/ISessionData'
@@ -14,7 +14,7 @@ import { IOutput, ShapeDiverResponseOutputChunk, ShapeDiverResponseOutputContent
 import { IParameter } from './interfaces/dto/IParameter'
 
 export {
-  ISessionData, SessionData, ISessionOutputData, SessionOutputData
+  ISessionData, SessionData, ISessionOutputData, SessionOutputData, ISettingsSections
 }
 
 export {
