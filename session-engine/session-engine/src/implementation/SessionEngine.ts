@@ -154,8 +154,8 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public set excludeViewports(value: string[]) {
-        this._excludeViewports = value;
-        this._node.excludeViewports = value;
+        this._excludeViewports = JSON.parse(JSON.stringify(value));
+        this._node.excludeViewports = JSON.parse(JSON.stringify(value));
     }
 
     public get exports(): { [key: string]: IExport; } {
@@ -526,7 +526,7 @@ export class SessionEngine implements ISessionEngine {
 
             this._warningCreator();
 
-            this.node.excludeViewports = this._excludeViewports;
+            this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
             for (let r in this._stateEngine.renderingEngines)
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
@@ -564,7 +564,7 @@ export class SessionEngine implements ISessionEngine {
                 parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? (' ' + parameterValues[parameterId]).slice(1) : this.parameters[parameterId].stringify()
 
             const newNode = await this.customizeSession(parameterSet, () => false, true);
-            newNode.excludeViewports = this._excludeViewports;
+            newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
             return newNode;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -741,7 +741,7 @@ export class SessionEngine implements ISessionEngine {
             this._node = node;
             if (this._automaticSceneUpdate) this._sceneTree.addNode(this._node);
 
-            this.node.excludeViewports = this._excludeViewports;
+            this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
             return node;
         }
@@ -1023,7 +1023,7 @@ export class SessionEngine implements ISessionEngine {
             this.exports[exportId].updateExport();
 
         this._warningCreator();
-        this.node.excludeViewports = this.excludeViewports;
+        this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
         for (let r in this._stateEngine.renderingEngines)
             if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
