@@ -3,6 +3,7 @@ import { mat4, vec3 } from "gl-matrix";
 import { IViewportEvent } from "@shapediver/viewer.shared.types";
 import { IDragConstraint } from "../utils/IDragConstraint";
 import { IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
+import { IInteractionManager } from "../IInteractionManager";
 
 export interface IDragEvent extends IViewportEvent {
     /** The node being dragged. */
@@ -16,5 +17,7 @@ export interface IDragEvent extends IViewportEvent {
     /** The original event that triggered the dragging. Only provided if it was not a manual dragging. */
     event?: MouseEvent | TouchEvent,
     /** The optional drag constraint that was applied. */
-    dragConstraint?: IDragConstraint
+    dragConstraint?: IDragConstraint,
+    /** The manager that emitted this event. */
+    manager: IInteractionManager
 }
