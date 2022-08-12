@@ -68,12 +68,15 @@ export interface ITreeNode {
     addTransformation(transformation: ITransformation): boolean;
 
     /**
-     * Clones this node and all its children.
+     * Clones this node and all its children. 
+     * The data objects like GeometryData, MaterialData, etc. are cloned as well. 
+     * Depending on the size of the node and the amount of children, this can therefore be relatively slow.
      */
     clone(): ITreeNode;
 
     /**
-     * Clones this node and all its children. The data objects are not copied in this case.
+     * Clones this node and all its children. 
+     * The data objects like GeometryData, MaterialData, etc. are not copied in this case.
      */
     cloneInstance(): ITreeNode;
 
