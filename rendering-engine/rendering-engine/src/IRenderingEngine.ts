@@ -121,10 +121,13 @@ export interface IRenderingEngine {
   addFlag(flag: FLAG_TYPE): string;
   convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; };
   getScreenshot(type?: string, encoderOptions?: number): string;
+  mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 };
   raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[]
   removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;
+  touchToRay(event: Touch): { origin: vec3, direction: vec3 };
+  touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 };
   update(id: string): void;
   viewInAR(file: string, options?: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean }): Promise<void>;
   viewableInAR(): boolean;

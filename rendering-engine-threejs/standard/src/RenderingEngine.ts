@@ -945,6 +945,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._renderingManager.getScreenshot(type, encoderOptions);
   }
 
+  public mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 } {
+    return this._sceneTracingManager.mouseEventToRay(event);
+  }
+
   public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[] {
     return this.sceneTracingManager.trace(origin, direction, root)
   }
@@ -1043,6 +1047,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       
       this.#animations[animationNameAdjusted] = animationArray[i];
     }
+  }
+  
+  public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
+    return this._sceneTracingManager.touchToRay(event);
+  }
+
+  public touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 } {
+    return this._sceneTracingManager.touchEventToRay(event);
   }
 
   public update(id: string): void {

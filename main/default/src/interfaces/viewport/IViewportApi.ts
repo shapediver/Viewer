@@ -96,27 +96,27 @@ export interface IViewportApi {
    * The unit system used by AR is meter, therefore this scaling factor needs to be chosen
    * such that scene coordinates are transformed to meters.
    * 
-   * @see arScale
-   * @see arTranslation
-   * @see arRotation
+   * @see {@link arScale}
+   * @see {@link arTranslation}
+   * @see {@link arRotation}
    */
   arScale: vec3;
   
   /**
    * The translation factor that is used when exporting the scene for AR (Augmented Reality). The unit system used by AR is meter.
    * 
-   * @see arScale
-   * @see arTranslation
-   * @see arRotation
+   * @see {@link arScale}
+   * @see {@link arTranslation}
+   * @see {@link arRotation}
    */
   arTranslation: vec3;
   
   /**
    * The rotation factor that is used when exporting the scene for AR (Augmented Reality). The unit system used by AR is meter.
    * 
-   * @see arScale
-   * @see arTranslation
-   * @see arRotation
+   * @see {@link arScale}
+   * @see {@link arTranslation}
+   * @see {@link arRotation}
    */
   arRotation: vec3;
 
@@ -199,7 +199,7 @@ export interface IViewportApi {
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
    * This is the texture that is rendered to the screen.
    * 
-   * @see textureEncoding
+   * @see {@link textureEncoding}
    */
   outputEncoding: TEXTURE_ENCODING;
 
@@ -233,7 +233,7 @@ export interface IViewportApi {
   /**
    * The encoding that is used for textures. (default: TEXTURE_ENCODING.SRGB)
    * 
-   * @see outputEncoding
+   * @see {@link outputEncoding}
    */
   textureEncoding: TEXTURE_ENCODING;
   
@@ -316,6 +316,11 @@ export interface IViewportApi {
    * Convert the given 3D position to different 2D coordinates of HTML Elements.
    * If the point is hidden by geometry, the hidden property will be set to true.
    * 
+   * The returned coordinates all have their origin in the top left corner of the element.
+   * For container, the position is relative to the canvas element.
+   * For client, the position is relative to the canvas element, including the results of {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect|getBoundingClientRect}.
+   * For page, the position is relative to the whole page.
+   * 
    * @param p 
    */
   convert3Dto2D(p: vec3): { container: vec2, client: vec2, page: vec2, hidden: boolean };
@@ -389,10 +394,23 @@ export interface IViewportApi {
    * Can be re-applied at a later point with {@link applyViewportSettings}.
    */
   getViewportSettings(): ISettingsV3_1;
+  
+  /**
+   * Calculate the ray that is created by the mouse event and the camera.
+   * 
+   * @see {@link touchToRay}
+   * @see {@link touchEventToRay}
+   * @param event 
+   * @returns 
+   */
+  mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 }
 
   /**
    * From the provided origin and direction, trace the ray through the scene.
    * The intersections with GeometryData will be returned including the corresponding nodes, sorted by their smallest distance.
+   * 
+   * If you want to raytrace the scene from an interaction with the the canvas, 
+   * please use {@link mouseEventToRay}, {@link touchEventToRay} or {@link touchToRay} to create a ray first.
    * 
    * An optional root node can be provided to intersect. Per default, the whole scene tree will be intersected.
    * 
@@ -450,6 +468,26 @@ export interface IViewportApi {
    * @param height The new height of the Viewport.
    */
   resize(width: number, height: number): void;
+
+  /**
+   * Create the ray that is created by the touch and the camera.
+   * 
+   * @see {@link mouseEventToRay}
+   * @see {@link touchEventToRay}
+   * @param event 
+   * @returns 
+   */
+  touchToRay(event: Touch): { origin: vec3, direction: vec3 }
+
+  /**
+   * Create the ray that is created by the touch event and the camera.
+   * 
+   * @see {@link mouseEventToRay}
+   * @see {@link touchToRay}
+   * @param event 
+   * @returns 
+   */
+  touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 }
 
   /**
    * Update the viewport with the current changes of the complete scene tree.

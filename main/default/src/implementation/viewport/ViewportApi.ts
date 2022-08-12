@@ -825,6 +825,16 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
+    public mouseEventToRay(event: MouseEvent): { origin: vec3; direction: vec3; } {
+        const scope = 'mouseEventToRay';
+        try {
+            return this.#renderingEngine.mouseEventToRay(event);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
+    }
+
     public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[] {
         const scope = 'raytraceScene';
         try {
@@ -922,6 +932,26 @@ export class ViewportApi implements IViewportApi {
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
+    public touchToRay(event: Touch): { origin: vec3; direction: vec3; } {
+        const scope = 'touchToRay';
+        try {
+            return this.#renderingEngine.touchToRay(event);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
+    }
+
+    public touchEventToRay(event: TouchEvent): { origin: vec3; direction: vec3; } {
+        const scope = 'touchEventToRay';
+        try {
+            return this.#renderingEngine.touchEventToRay(event);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 
