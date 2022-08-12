@@ -54,6 +54,7 @@ import {
   ITaskEvent,
   TASK_TYPE,
   IAnimationData,
+  IGeometryData,
 } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -815,6 +816,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
   }
 
+  public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
+    return this.sceneTracingManager.convert3Dto2D(p)
+  }
+
   public async close(): Promise<void> {
     this._closed = true;
     this._lightEngine.close();
@@ -940,6 +945,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._renderingManager.getScreenshot(type, encoderOptions);
   }
 
+  public mouseEventToRay(event: MouseEvent): { origin: vec3, direction: vec3 } {
+    return this._sceneTracingManager.mouseEventToRay(event);
+  }
+
+  public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[] {
+    return this.sceneTracingManager.trace(origin, direction, root)
+  }
+
   public removeFlag(token: string): boolean {
     let success = false;
     const Flags = Object.values(FLAG_TYPE);
@@ -1034,6 +1047,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       
       this.#animations[animationNameAdjusted] = animationArray[i];
     }
+  }
+  
+  public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
+    return this._sceneTracingManager.touchToRay(event);
+  }
+
+  public touchEventToRay(event: TouchEvent): { origin: vec3, direction: vec3 } {
+    return this._sceneTracingManager.touchEventToRay(event);
   }
 
   public update(id: string): void {

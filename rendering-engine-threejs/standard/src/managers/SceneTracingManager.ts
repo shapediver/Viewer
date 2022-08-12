@@ -18,7 +18,7 @@ export class SceneTracingManager implements IManager {
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) {}
+    constructor(private readonly _renderingEngine: RenderingEngine) { }
 
     // #endregion Constructors (1)
 
@@ -32,7 +32,7 @@ export class SceneTracingManager implements IManager {
             height = this._renderingEngine.canvas.height;
 
         const camera = this._renderingEngine.cameraEngine.camera;
-        if (!camera){
+        if (!camera) {
             const error = new ShapeDiverViewerGeneralError('SceneTracingManager.convert3Dto2D: No camera is defined for this viewer.');
             throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'SceneTracingManager.convert3Dto2D', error);
         }
@@ -56,21 +56,21 @@ export class SceneTracingManager implements IManager {
         };
     }
 
-    public init(): void {}
+    public init(): void { }
 
     public trace(origin: vec3, direction: vec3, root: ITreeNode = this._tree.root) {
-        const tracingData: { distance: number, data: GeometryData }[] = [];
-        const trace = (root: ITreeNode) => {
-            if(root.excludeViewports.includes(this._renderingEngine.id)) return;
-            if(root.restrictViewports.length > 0 && !root.restrictViewports.includes(this._renderingEngine.id)) return;
+        const tracingData: { distance: number, node: ITreeNode, data: GeometryData }[] = [];
+        const trace = (node: ITreeNode) => {
+            if (node.excludeViewports.includes(this._renderingEngine.id)) return;
+            if (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
-            for (let i = 0; i < root.data.length; i++)
-                if (root.data[i] instanceof GeometryData) {
-                    const dist = (<GeometryData>root.data[i]).intersect(origin, direction);
-                    if (dist) tracingData.push({ distance: dist, data: <GeometryData>root.data[i] })
+            for (let i = 0; i < node.data.length; i++)
+                if (node.data[i] instanceof GeometryData) {
+                    const dist = (<GeometryData>node.data[i]).intersect(origin, direction);
+                    if (dist) tracingData.push({ distance: dist, node, data: <GeometryData>node.data[i] })
                 }
-            for (let i = 0; i < root.children.length; i++)
-                trace(root.children[i]);
+            for (let i = 0; i < node.children.length; i++)
+                trace(node.children[i]);
         }
         trace(root);
 
@@ -78,6 +78,90 @@ export class SceneTracingManager implements IManager {
             return a.distance - b.distance;
         })
         return tracingData;
+    }
+
+    /**
+     * Calculate the ray that is created by the mouse event and the camera.
+     * 
+     * @param event 
+     * @returns 
+     */
+    public mouseEventToRay(event: MouseEvent): {
+        origin: vec3,
+        direction: vec3
+    } {
+        const rect = this._renderingEngine.canvas.getBoundingClientRect();
+        const camera = this._renderingEngine.cameraEngine.camera;
+        if (!camera) {
+            const error = new ShapeDiverViewerGeneralError('SceneTracingManager.mouseEventToRay: No camera is defined for this viewer.');
+            throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `SceneTracingManager.mouseEventToRay`, error);
+        }
+
+        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        let origin = vec3.clone(camera.position);
+        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
+
+        return { origin, direction };
+    }
+
+    /**
+     * Create the ray that is created by the touch event and the camera.
+     * 
+     * @param event 
+     * @returns 
+     */
+    public touchEventToRay(event: TouchEvent): {
+        origin: vec3,
+        direction: vec3
+    } {
+        if (event.touches.length > 1) {
+            const error = new ShapeDiverViewerGeneralError('SceneTracingManager.touchEventToRay: No touches in this event.');
+            throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `SceneTracingManager.touchEventToRay`, error);
+        }
+        const touch = event.changedTouches[0];
+
+        const rect = this._renderingEngine.canvas.getBoundingClientRect();
+        const camera = this._renderingEngine.cameraEngine.camera;
+        if (!camera) {
+            const error = new ShapeDiverViewerGeneralError('SceneTracingManager.touchEventToRay: No camera is defined for this viewer.');
+            throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `SceneTracingManager.touchEventToRay`, error);
+        }
+
+        let _mouse_x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+        let _mouse_y = - ((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+        let origin = vec3.clone(camera.position);
+        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
+
+        return { origin, direction };
+    }
+
+    /**
+     * Create the ray that is created by the touch event and the camera.
+     * 
+     * @param event 
+     * @returns 
+     */
+    public touchToRay(event: Touch): {
+        origin: vec3,
+        direction: vec3
+    } {
+        const rect = this._renderingEngine.canvas.getBoundingClientRect();
+        const camera = this._renderingEngine.cameraEngine.camera;
+        if (!camera) {
+            const error = new ShapeDiverViewerGeneralError('SceneTracingManager.touchToRay: No camera is defined for this viewer.');
+            throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `SceneTracingManager.touchToRay`, error);
+        }
+
+        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        let origin = vec3.clone(camera.position);
+        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
+
+        return { origin, direction };
     }
 
     // #endregion Public Methods (3)

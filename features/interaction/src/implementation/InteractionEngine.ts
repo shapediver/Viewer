@@ -70,7 +70,7 @@ export class InteractionEngine implements IInteractionEngine {
 
     public onMouseDown(event: MouseEvent): void {
         if(this.#closed) return;
-        const ray = this.mouseEventToRay(event);
+        const ray = this.#viewport.mouseEventToRay(event);
         this.onDown(event, ray);
     }
 
@@ -80,19 +80,19 @@ export class InteractionEngine implements IInteractionEngine {
 
     public onMouseMove(event: MouseEvent): void {
         if(this.#closed) return;
-        const ray = this.mouseEventToRay(event);
+        const ray = this.#viewport.mouseEventToRay(event);
         this.onMove(event, ray);
     }
 
     public onMouseOut(event: WheelEvent): void {
         if(this.#closed) return;
-        const ray = this.mouseEventToRay(event);
+        const ray = this.#viewport.mouseEventToRay(event);
         this.onEnd(event, ray, INTERACTION_STATE.OUT);
     }
 
     public onMouseUp(event: WheelEvent): void {
         if(this.#closed) return;
-        const ray = this.mouseEventToRay(event);
+        const ray = this.#viewport.mouseEventToRay(event);
         this.onEnd(event, ray, INTERACTION_STATE.UP);
     }
 
@@ -105,7 +105,7 @@ export class InteractionEngine implements IInteractionEngine {
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
 
-        const ray = this.touchToRay(touch);
+        const ray = this.#viewport.touchToRay(touch);
         this.onEnd(event, ray, INTERACTION_STATE.OUT);
     }
 
@@ -118,7 +118,7 @@ export class InteractionEngine implements IInteractionEngine {
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
 
-        const ray = this.touchToRay(touch);
+        const ray = this.#viewport.touchToRay(touch);
         this.onMove(event, ray);
     }
 
@@ -127,7 +127,7 @@ export class InteractionEngine implements IInteractionEngine {
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
 
-        const ray = this.touchToRay(touch);
+        const ray = this.#viewport.touchToRay(touch);
         this.onDown(event, ray);
     }
 
@@ -136,7 +136,7 @@ export class InteractionEngine implements IInteractionEngine {
         if ( event.touches.length > 1 ) return;
         const touch = event.changedTouches[ 0 ];
 
-        const ray = this.touchToRay(touch);
+        const ray = this.#viewport.touchToRay(touch);
         this.onEnd(event, ray, INTERACTION_STATE.UP);
     }
 
@@ -151,32 +151,6 @@ export class InteractionEngine implements IInteractionEngine {
     // #endregion Public Methods (14)
 
     // #region Private Methods (5)
-
-    /**
-     * Calculate the ray that is created by the mouse event and the camera.
-     * 
-     * @param event 
-     * @returns 
-     */
-    private mouseEventToRay(event: MouseEvent): {
-        origin: vec3,
-        direction: vec3
-    } {
-        const rect = this.#viewport.canvas.getBoundingClientRect();
-        const camera = this.#viewport.camera;
-        if (!camera) {
-            const error = new ShapeDiverViewerGeneralError('InteractionEngine.mouseEventToRay: No camera is defined for this viewer.');
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `InteractionEngine.mouseEventToRay`, error);
-        }
-
-        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        let origin = vec3.clone(camera.position);
-        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
-
-        return { origin, direction };
-    }
 
     /**
      * Apply all filters for the intersection of the scene.
@@ -230,32 +204,6 @@ export class InteractionEngine implements IInteractionEngine {
 
         for(let m in this.#managers)
             this.#managers[m].onMove(event, ray, intersections);
-    }
-
-    /**
-     * Create the ray that is created by the touch event and the camera.
-     * 
-     * @param event 
-     * @returns 
-     */
-    private touchToRay(event: Touch): {
-        origin: vec3,
-        direction: vec3
-    } {
-        const rect = this.#viewport.canvas.getBoundingClientRect();
-        const camera = this.#viewport.camera;
-        if (!camera) {
-            const error = new ShapeDiverViewerGeneralError('InteractionEngine.touchToRay: No camera is defined for this viewer.');
-            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `InteractionEngine.touchToRay`, error);
-        }
-
-        let _mouse_x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        let origin = vec3.clone(camera.position);
-        let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
-
-        return { origin, direction };
     }
 
     // #endregion Private Methods (5)
