@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 import { TEXTURE_ENCODING, TONE_MAPPING, BUSY_MODE_DISPLAY, FLAG_TYPE, SESSION_SETTINGS_MODE, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 import { IDomEventListener } from '@shapediver/viewer.shared.services'
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
@@ -8,6 +8,7 @@ import {
   SDTFItemData,
   ISDTFOverview,
   ISDTFItemData,
+  IGeometryData,
 } from '@shapediver/viewer.shared.types'
 import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
@@ -312,6 +313,14 @@ export interface IViewportApi {
   close(): Promise<void>;
 
   /**
+   * Convert the given 3D position to different 2D coordinates of HTML Elements.
+   * If the point is hidden by geometry, the hidden property will be set to true.
+   * 
+   * @param p 
+   */
+  convert3Dto2D(p: vec3): { container: vec2, client: vec2, page: vec2, hidden: boolean };
+
+  /**
    * Convert the current visible elements (or just from the node specified) in the viewport into a glTF file.
    * 
    * The gound plane and grid will not be included, as well as additionally added data that was added to the scene other than through a {@link GeometryData} property.
@@ -380,6 +389,18 @@ export interface IViewportApi {
    * Can be re-applied at a later point with {@link applyViewportSettings}.
    */
   getViewportSettings(): ISettingsV3_1;
+
+  /**
+   * From the provided origin and direction, trace the ray through the scene.
+   * The intersections with GeometryData will be returned including the corresponding nodes, sorted by their smallest distance.
+   * 
+   * An optional root node can be provided to intersect. Per default, the whole scene tree will be intersected.
+   * 
+   * @param origin 
+   * @param direction 
+   * @param root 
+   */
+  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData }[]; 
 
   /**
    * Remove the camera with the specified id and destroys it.

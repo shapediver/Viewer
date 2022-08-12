@@ -54,6 +54,7 @@ import {
   ITaskEvent,
   TASK_TYPE,
   IAnimationData,
+  IGeometryData,
 } from '@shapediver/viewer.shared.types'
 import { TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { GeometryData } from '@shapediver/viewer.shared.types'
@@ -815,6 +816,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
   }
 
+  public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
+    return this.sceneTracingManager.convert3Dto2D(p)
+  }
+
   public async close(): Promise<void> {
     this._closed = true;
     this._lightEngine.close();
@@ -938,6 +943,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public getScreenshot(type?: string, encoderOptions?: number): string {
     return this._renderingManager.getScreenshot(type, encoderOptions);
+  }
+
+  public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[] {
+    return this.sceneTracingManager.trace(origin, direction, root)
   }
 
   public removeFlag(token: string): boolean {

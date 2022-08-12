@@ -1,4 +1,7 @@
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 import { DomEventEngine, SettingsEngine } from '@shapediver/viewer.shared.services'
+import { IGeometryData } from '@shapediver/viewer.shared.types';
+import { vec2, vec3 } from 'gl-matrix';
 
 export enum RENDERER_TYPE {
   /** The standard rendering engine */
@@ -116,7 +119,9 @@ export interface IRenderingEngine {
   // #region Public Methods (7)
 
   addFlag(flag: FLAG_TYPE): string;
+  convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; };
   getScreenshot(type?: string, encoderOptions?: number): string;
+  raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[]
   removeFlag(token: string): boolean;
   reset(): void;
   resize(width: number, height: number): void;

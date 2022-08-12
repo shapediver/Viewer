@@ -59,18 +59,18 @@ export class SceneTracingManager implements IManager {
     public init(): void {}
 
     public trace(origin: vec3, direction: vec3, root: ITreeNode = this._tree.root) {
-        const tracingData: { distance: number, data: GeometryData }[] = [];
-        const trace = (root: ITreeNode) => {
-            if(root.excludeViewports.includes(this._renderingEngine.id)) return;
-            if(root.restrictViewports.length > 0 && !root.restrictViewports.includes(this._renderingEngine.id)) return;
+        const tracingData: { distance: number, node: ITreeNode, data: GeometryData }[] = [];
+        const trace = (node: ITreeNode) => {
+            if(node.excludeViewports.includes(this._renderingEngine.id)) return;
+            if(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
-            for (let i = 0; i < root.data.length; i++)
-                if (root.data[i] instanceof GeometryData) {
-                    const dist = (<GeometryData>root.data[i]).intersect(origin, direction);
-                    if (dist) tracingData.push({ distance: dist, data: <GeometryData>root.data[i] })
+            for (let i = 0; i < node.data.length; i++)
+                if (node.data[i] instanceof GeometryData) {
+                    const dist = (<GeometryData>node.data[i]).intersect(origin, direction);
+                    if (dist) tracingData.push({ distance: dist, node, data: <GeometryData>node.data[i] })
                 }
-            for (let i = 0; i < root.children.length; i++)
-                trace(root.children[i]);
+            for (let i = 0; i < node.children.length; i++)
+                trace(node.children[i]);
         }
         trace(root);
 
