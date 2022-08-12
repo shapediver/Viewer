@@ -129,10 +129,12 @@ export class HoverManager extends AbstractInteractionManager {
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_ON, 
             {
+                viewportId: this.viewport.id,
                 node: this.#node,
                 intersectionPoint: this.#intersection.point,
                 ray,
-                event
+                event,
+                manager: this
             } as IHoverEvent
         );
     }
@@ -161,8 +163,10 @@ export class HoverManager extends AbstractInteractionManager {
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.HOVER_OFF, 
             { 
+                viewportId: this.viewport.id,
                 node: node,
-                event
+                event,
+                manager: this
             } as IHoverEvent
         );
     }

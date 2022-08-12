@@ -123,11 +123,13 @@ export class MultiSelectManager extends AbstractInteractionManager {
         this.viewport.render();
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON, { 
+            viewportId: this.viewport.id,
             nodes: this.#nodes, 
             node: intersection.node,
             intersectionPoint: intersection.point,
             ray,
-            event
+            event,
+            manager: this
         } as IMultiSelectEvent);
     }
 
@@ -155,9 +157,11 @@ export class MultiSelectManager extends AbstractInteractionManager {
         this.#nodes.splice(index, 1);
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, 
             { 
+                viewportId: this.viewport.id,
                 nodes: this.#nodes, 
                 node: node,
-                event
+                event,
+                manager: this
             } as IMultiSelectEvent
         );
     }
