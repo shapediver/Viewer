@@ -114,7 +114,7 @@ export interface ICameraApi {
     calculateZoomTo(zoomTarget?: IBox, startingPosition?: vec3, startingTarget?: vec3): { position: vec3; target: vec3; };
     
     /**
-     * Project a point in the scene to a point on the screen.
+     * Projects the vector from world space into the camera's normalized device coordinate (NDC) space.
      * 
      * @param p The point in the scene to project.
      */
@@ -135,7 +135,7 @@ export interface ICameraApi {
     set(position: vec3, target: vec3, options?: ICameraOptions): Promise<boolean>;
     
     /**
-     * Project a point on the screen to a point in the scene.
+     * Projects the vector from the camera's normalized device coordinate (NDC) space into world space.
      * 
      * @param p The point on the screen to project.
      */
