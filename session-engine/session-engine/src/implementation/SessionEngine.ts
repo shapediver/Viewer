@@ -154,8 +154,8 @@ export class SessionEngine implements ISessionEngine {
     }
 
     public set excludeViewports(value: string[]) {
-        this._excludeViewports = value;
-        this._node.excludeViewports = value;
+        this._excludeViewports = JSON.parse(JSON.stringify(value));
+        this._node.excludeViewports = JSON.parse(JSON.stringify(value));
     }
 
     public get exports(): { [key: string]: IExport; } {
@@ -520,7 +520,7 @@ export class SessionEngine implements ISessionEngine {
 
             this._warningCreator();
 
-            this.node.excludeViewports = this._excludeViewports;
+            this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
             for (let r in this._stateEngine.renderingEngines)
                 if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
@@ -547,9 +547,23 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public customizeParallel(parameterValues: { [key: string]: string }, force: boolean): Promise<ITreeNode> {
-        // https://shapediver.atlassian.net/browse/SS-5408
-        throw new Error('Method not implemented.')
+    public async customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode> {
+        try {
+            const parameterSet: {
+                [key: string]: string
+            } = {};
+
+            // create a set of the current validated parameter values
+            for (const parameterId in this.parameters)
+                parameterSet[parameterId] = parameterValues[parameterId] !== undefined ? (' ' + parameterValues[parameterId]).slice(1) : this.parameters[parameterId].stringify()
+
+            const newNode = await this.customizeSession(parameterSet, () => false, true);
+            newNode.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
+            return newNode;
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this._logger.handleError(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize`, e);
+        }
     }
 
     public async goBack(): Promise<ITreeNode> {
@@ -610,7 +624,12 @@ export class SessionEngine implements ISessionEngine {
 
         try {
             this._performanceEvaluator.startSection('sessionResponse');
-            this._responseDto = await this._sdk.session.init(this._ticket, parameterValues);
+
+            const parameterSet: { [key: string]: string } = {};
+            for (const parameterId in parameterValues)
+                parameterSet[parameterId] = (' ' + parameterValues[parameterId]).slice(1);
+
+            this._responseDto = await this._sdk.session.init(this._ticket, parameterSet);
             this._performanceEvaluator.endSection('sessionResponse');
 
             this._viewerSettings = this._responseDto.viewer?.config;
@@ -628,11 +647,68 @@ export class SessionEngine implements ISessionEngine {
             if (!this._modelId)
                 throw new ShapeDiverViewerSessionError(`Session.init: Initialization of session failed. ResponseDto did not have a model.id.`)
 
-            this.updateResponseDto(this._responseDto, parameterValues);
+            this.updateResponseDto(this._responseDto, parameterSet);
             this._initialized = true;
         } catch (e) {
             await this.handleError(LOGGING_TOPIC.SESSION, 'Session.init', e, retry);
             return await this.init(parameterValues, true);
+        }
+    }
+
+    
+    /**
+     * Load the outputs and return the scene graph node of the result.
+     * In case the outputs have a delay property, another customization request with the parameter set is sent.
+     * 
+     * @param parameters the parameter set to update the session 
+     * @param outputs the outputs to load
+     * @returns promise with a scene graph node
+     */
+     public async loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean = () => false, retry = false): Promise<ISessionTreeNode> {
+        this.checkAvailability();
+
+        let outputs: {
+            [key: string]: IOutput;
+        } = {}
+        let outputsFreeze: {
+            [key: string]: boolean;
+        } = {}
+        
+        for (let outputId in responseDto.outputs) {
+            responseDto.outputs[outputId].id = outputId;
+            if (this.outputsFreeze[outputId] === undefined) outputsFreeze[outputId] = false;
+            outputs[outputId] = new Output(<ShapeDiverResponseOutput>responseDto.outputs[outputId], this);
+        }
+
+        try {
+            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', outputs, outputsFreeze);
+            node.data.push(new SessionData(responseDto));      
+            return node;
+        }
+        catch (e) {
+            if (e instanceof OutputDelayException) {
+                await this.timeout(e.delay);
+            } else {
+                await this.handleError(LOGGING_TOPIC.SESSION, 'Session.loadOutputsParallel', e, retry);
+                if (cancelRequest()) return new SessionTreeNode();
+                return await this.loadOutputsParallel(responseDto, cancelRequest, true);
+            }
+
+            if (cancelRequest()) return new SessionTreeNode();
+            let outputMapping: { [key: string]: string } = {};
+            for (let output in outputs)
+                outputMapping[output] = outputs[output].version;
+
+            try {
+                const responseDto = await this._sdk.output.getCache(this._sessionId!, outputMapping);
+                if (cancelRequest()) return new SessionTreeNode();
+                this.updateResponseDto(responseDto);
+                return await this.loadOutputsParallel(responseDto, cancelRequest);
+            } catch (e) {
+                await this.handleError(LOGGING_TOPIC.SESSION, 'Session.loadOutputsParallel', e, retry);
+                if (cancelRequest()) return new SessionTreeNode();
+                return await this.loadOutputsParallel(responseDto, cancelRequest, true);
+            }
         }
     }
 
@@ -650,7 +726,7 @@ export class SessionEngine implements ISessionEngine {
         const o = Object.assign({}, this._outputs);
         const of = Object.assign({}, this._outputsFreeze);
         try {
-            const node = await this._outputLoader.loadOutputs(this._responseDto!, o, of);
+            const node = await this._outputLoader.loadOutputs(this._responseDto!.model?.name || 'model', o, of);
             node.data.push(new SessionData(this._responseDto!));
 
             if (cancelRequest()) return node;            
@@ -659,7 +735,7 @@ export class SessionEngine implements ISessionEngine {
             this._node = node;
             if (this._automaticSceneUpdate) this._sceneTree.addNode(this._node);
 
-            this.node.excludeViewports = this._excludeViewports;
+            this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
             return node;
         }
@@ -693,7 +769,10 @@ export class SessionEngine implements ISessionEngine {
     public async requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number, retry = false): Promise<ShapeDiverResponseExport> {
         this.checkAvailability('export');
         try {
-            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters }, maxWaitTime)
+            const parameterSet: { [key: string]: string } = {};
+            for (const parameterId in parameters)
+                parameterSet[parameterId] = (' ' + parameters[parameterId]).slice(1);
+            const responseDto = await this._sdk.utils.submitAndWaitForExport(this._sdk, this._sessionId!, { exports: { id: exportId }, parameters: parameterSet }, maxWaitTime)
             this.updateResponseDto(responseDto);
             return this.exports[exportId];
         } catch (e) {
@@ -965,7 +1044,7 @@ export class SessionEngine implements ISessionEngine {
             this.exports[exportId].updateExport();
 
         this._warningCreator();
-        this.node.excludeViewports = this.excludeViewports;
+        this.node.excludeViewports = JSON.parse(JSON.stringify(this._excludeViewports));
 
         for (let r in this._stateEngine.renderingEngines)
             if (this._stateEngine.renderingEngines[r].busy.includes(customizationId))
@@ -1121,19 +1200,19 @@ export class SessionEngine implements ISessionEngine {
         return this.customizeSession(this._parameterValues, cancelRequest);
     }
 
-    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, retry = false): Promise<ISessionTreeNode> {
+    private async customizeSession(parameters: { [key: string]: string }, cancelRequest: () => boolean, parallel = false, retry = false): Promise<ISessionTreeNode> {
         this.checkAvailability('customize');
         try {
             this._performanceEvaluator.startSection('sessionResponse');
             const responseDto = await this._sdk.utils.submitAndWaitForCustomization(this._sdk, this._sessionId!, parameters);
             this._performanceEvaluator.endSection('sessionResponse');
             if (cancelRequest()) return new SessionTreeNode();            
-            this.updateResponseDto(responseDto);
-            return this.loadOutputs(cancelRequest);
+            if (parallel === false) this.updateResponseDto(responseDto);
+            return parallel === false ? this.loadOutputs(cancelRequest) : this.loadOutputsParallel(responseDto, cancelRequest);
         } catch (e) {
             await this.handleError(LOGGING_TOPIC.SESSION, 'Session.customizeSession', e, retry);
             if (cancelRequest()) return new SessionTreeNode();
-            return await this.customizeSession(parameters, cancelRequest, true);
+            return await this.customizeSession(parameters, cancelRequest, parallel, true);
         }
     }
 
