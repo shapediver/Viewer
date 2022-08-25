@@ -1,14 +1,15 @@
 import * as THREE from 'three'
 import {
-  AttributeData,
-  GeometryData,
-  MATERIAL_ALPHA,
-  MATERIAL_SIDE,
-  IMaterialAbstractData,
-  PRIMITIVE_MODE,
-  PrimitiveData,
-  IPrimitiveData,
-  IAttributeData,
+    AttributeData,
+    GeometryData,
+    MATERIAL_ALPHA,
+    MATERIAL_SIDE,
+    IMaterialAbstractData,
+    PRIMITIVE_MODE,
+    PrimitiveData,
+    IPrimitiveData,
+    IAttributeData,
+    MaterialGemData,
 } from '@shapediver/viewer.shared.types'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
@@ -21,6 +22,8 @@ import { ILoader } from '../interfaces/ILoader'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
 import { SDData } from '../types/SDData'
 import { MaterialSettings } from './MaterialLoader'
+import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial'
+import { mat4, mat3, vec3 } from 'gl-matrix'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (3)
@@ -41,6 +44,10 @@ export class GeometryLoader implements ILoader {
         }
     } = {};
     private _logger: Logger = <Logger>container.resolve(Logger);
+    private _gemSphericalMapsCache: {
+        [key: string]: THREE.CubeTexture
+    } = {};
+    private _gemNormalMaterial?: THREE.ShaderMaterial;
 
     // #endregion Properties (3)
 
@@ -85,6 +92,24 @@ export class GeometryLoader implements ILoader {
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
             }
 
+            if (materialData instanceof MaterialGemData) {
+                const gemMaterialData = <MaterialGemData>materialData;
+                if (!threeGeometry.boundingSphere) threeGeometry.computeBoundingSphere();
+
+                let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
+
+                let center = threeGeometry.boundingSphere!.center,
+                    radius = threeGeometry.boundingSphere!.radius;
+
+                gemMaterialData.side = MATERIAL_SIDE.FRONT;
+
+                gemMaterialData.inverseModelMatrix = mat4.fromValues(...parent.matrixWorld.toArray());
+                gemMaterialData.inverseTransposeModelMatrix = mat3.normalFromMat4(mat3.create(), mat4.transpose(mat4.create(), mat4.invert(mat4.create(), mat4.clone(gemMaterialData.inverseModelMatrix))));
+                gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
+                gemMaterialData.radius = radius;
+                (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
+            }
+
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
             const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj.clone();
@@ -95,7 +120,7 @@ export class GeometryLoader implements ILoader {
                     o instanceof THREE.LineLoop ||
                     o instanceof THREE.Line ||
                     o instanceof THREE.Mesh)
-                        o.material = material;
+                    o.material = material;
             })
             parent.add(obj);
         } else {
@@ -119,6 +144,24 @@ export class GeometryLoader implements ILoader {
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
             }
 
+            if (materialData instanceof MaterialGemData) {
+                const gemMaterialData = <MaterialGemData>materialData;
+                if (!threeGeometry.boundingSphere) threeGeometry.computeBoundingSphere();
+
+                let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
+
+                let center = threeGeometry.boundingSphere!.center,
+                    radius = threeGeometry.boundingSphere!.radius;
+
+                gemMaterialData.side = MATERIAL_SIDE.FRONT;
+
+                gemMaterialData.inverseModelMatrix = mat4.fromValues(...parent.matrixWorld.toArray());
+                gemMaterialData.inverseTransposeModelMatrix = mat3.normalFromMat4(mat3.create(), mat4.transpose(mat4.create(), mat4.invert(mat4.create(), mat4.clone(gemMaterialData.inverseModelMatrix))));
+                gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
+                gemMaterialData.radius = radius;
+                (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
+            }
+
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
             const obj = new SDData(geometry.id, geometry.version);
@@ -136,7 +179,7 @@ export class GeometryLoader implements ILoader {
             const attributeName = this.getAttributeName(attributeId);
 
             if (attributeId === 'NORMAL')
-                if(this.checkNormals(primitive, attributeId, buffer, geometry))
+                if (this.checkNormals(primitive, attributeId, buffer, geometry))
                     continue;
 
             geometry.setAttribute(attributeName, buffer)
@@ -145,10 +188,10 @@ export class GeometryLoader implements ILoader {
                 geometry.setIndex(new THREE.BufferAttribute(primitive.indices!.array, primitive.indices!.itemSize));
 
             const morphAttributeData = primitive.attributes[attributeId].morphAttributeData;
-            if(morphAttributeData.length > 0) {
+            if (morphAttributeData.length > 0) {
                 geometry.morphTargetsRelative = true;
                 const buffers: (THREE.BufferAttribute | THREE.InterleavedBufferAttribute)[] = [];
-                for(let i = 0; i < morphAttributeData.length; i++)
+                for (let i = 0; i < morphAttributeData.length; i++)
                     buffers.push(this.loadAttribute(morphAttributeData[i], attributeId));
                 geometry.morphAttributes[attributeName] = buffers;
 
@@ -157,14 +200,14 @@ export class GeometryLoader implements ILoader {
             // we copy the uv coordinates into the second set of uv coordinates if there are none
             // this allows for the usage of AO and light maps that share this coordinate set
             const attributeIdUV2 = 'TEXCOORD_1', attributeNameUV2 = 'uv2';
-            if(attributeName === 'uv' && !primitive.attributes[attributeIdUV2]) {
+            if (attributeName === 'uv' && !primitive.attributes[attributeIdUV2]) {
                 geometry.setAttribute(attributeNameUV2, buffer)
 
                 const morphAttributeData = primitive.attributes[attributeId].morphAttributeData;
-                if(morphAttributeData.length > 0) {
+                if (morphAttributeData.length > 0) {
                     geometry.morphTargetsRelative = true;
                     const buffers: (THREE.BufferAttribute | THREE.InterleavedBufferAttribute)[] = [];
-                    for(let i = 0; i < morphAttributeData.length; i++)
+                    for (let i = 0; i < morphAttributeData.length; i++)
                         buffers.push(this.loadAttribute(morphAttributeData[i], attributeId));
                     geometry.morphAttributes[attributeNameUV2] = buffers;
                 }
@@ -185,22 +228,22 @@ export class GeometryLoader implements ILoader {
     private checkNormals(primitive: IPrimitiveData, attributeId: string, buffer: THREE.InterleavedBufferAttribute | THREE.BufferAttribute, geometry: THREE.BufferGeometry): boolean {
         let blnNormalsOk = false;
         for (let index = 0; index < 10; ++index) {
-          if (Math.abs(buffer.array[index * 3]) > 0.001) {
-            blnNormalsOk = true;
-            break;
-          }
-          if (
-            Math.abs(buffer.array[index * 3 + 1]) > 0.001
-          ) {
-            blnNormalsOk = true;
-            break;
-          }
-          if (
-            Math.abs(buffer.array[index * 3 + 2]) > 0.001
-          ) {
-            blnNormalsOk = true;
-            break;
-          }
+            if (Math.abs(buffer.array[index * 3]) > 0.001) {
+                blnNormalsOk = true;
+                break;
+            }
+            if (
+                Math.abs(buffer.array[index * 3 + 1]) > 0.001
+            ) {
+                blnNormalsOk = true;
+                break;
+            }
+            if (
+                Math.abs(buffer.array[index * 3 + 2]) > 0.001
+            ) {
+                blnNormalsOk = true;
+                break;
+            }
         }
         if (!blnNormalsOk) {
             geometry.computeVertexNormals();
@@ -208,7 +251,7 @@ export class GeometryLoader implements ILoader {
 
             // store the computed normals in the attribute data
             primitive.attributes[attributeId] = new AttributeData(
-                new Float32Array(computedNormalAttribute.array), 
+                new Float32Array(computedNormalAttribute.array),
                 computedNormalAttribute.itemSize,
                 0,
                 0,
@@ -273,6 +316,94 @@ export class GeometryLoader implements ILoader {
         return newGeometry;
     }
 
+    private createCubeNormalMap(geometryData: GeometryData, geometry: THREE.BufferGeometry, resolution = 1024) {
+        if (this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version])
+            return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
+
+        let gemScene = new THREE.Scene();
+        let gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
+        gemCubeCameraRenderTarget.texture.generateMipmaps = false;
+        gemCubeCameraRenderTarget.texture.minFilter = THREE.NearestFilter;
+        gemCubeCameraRenderTarget.texture.magFilter = THREE.NearestFilter;
+        gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
+        let gemCubeCamera = new THREE.CubeCamera(0.001, 10000, gemCubeCameraRenderTarget);
+        gemScene.add(gemCubeCamera);
+
+        if (!this._gemNormalMaterial) {
+            let _normalShader = {
+                defines: {},
+                uniforms: THREE.UniformsUtils.merge([
+                    THREE.UniformsLib.common]),
+                vertexShader: `
+                varying vec3 vNormal;
+
+                void main() {
+                  vNormal = normal;
+                  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+                }
+                `,
+                fragmentShader: `
+                varying highp vec3 vNormal;
+
+                float decodeFloat(float f) {
+                    float r = mod(f, 1.0/255.0);
+                    return /*r > 0.5/256.0 ? f + (1.0/256.0) - r : */f - r;
+                }
+                
+                vec3 decodeVec3(vec3 v) {
+                    return vec3(decodeFloat(v.x), decodeFloat(v.y), decodeFloat(v.z));
+                }
+                
+                float signEncoding(vec3 v) {
+                    float code = 1.0;
+                     if(v.x < 0.0 && v.y < 0.0 && v.z < 0.0) {
+                        code = 0.0;
+                    } else if (v.x < 0.0 && v.y < 0.0) {
+                        code = 2.0/256.0;
+                    } else if (v.x < 0.0 && v.z < 0.0) {
+                        code = 4.0/256.0;
+                    } else if (v.y < 0.0 && v.z < 0.0) {
+                        code = 6.0/256.0;
+                    } else if (v.x < 0.0) {
+                        code = 8.0/256.0;
+                    } else if (v.y < 0.0) {
+                        code = 10.0/256.0;
+                    } else if (v.z < 0.0) {
+                        code = 12.0/256.0;
+                    }
+                    return code;
+                }
+                
+                void main() {
+                    vec3 n = normalize(vNormal);
+                    gl_FragColor = vec4(decodeVec3(abs(n)), signEncoding(n));
+                }
+                `
+            };
+
+            this._gemNormalMaterial = new THREE.ShaderMaterial({
+                uniforms: THREE.UniformsUtils.clone(_normalShader.uniforms),
+                defines: _normalShader.defines,
+                vertexShader: _normalShader.vertexShader,
+                fragmentShader: _normalShader.fragmentShader
+            });
+
+            this._gemNormalMaterial.blending = THREE.NoBlending;
+            this._gemNormalMaterial.side = THREE.DoubleSide;
+            gemScene.overrideMaterial = this._gemNormalMaterial;
+        }
+
+        let mesh = new THREE.Mesh(geometry.clone(), this._gemNormalMaterial);
+        mesh.geometry.center();
+        gemScene.add(mesh);
+
+        gemCubeCamera.update(this._renderingEngine.renderer, gemScene);
+        gemScene.remove(mesh);
+
+        this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version] = gemCubeCamera.renderTarget.texture;
+        return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
+    }
+
     private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings, skeleton?: THREE.Skeleton) {
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
             obj.add(new THREE.Points(threeGeometry, material));
@@ -287,7 +418,7 @@ export class GeometryLoader implements ILoader {
             if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
                 bufferGeometry = this.convertToTriangleMode(bufferGeometry, geometry.primitive.mode);
 
-            if(skeleton) {
+            if (skeleton) {
                 const skinnedMesh = new THREE.SkinnedMesh(bufferGeometry, material);
                 skinnedMesh.bind(skeleton, skinnedMesh.matrixWorld);
 
