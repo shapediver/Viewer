@@ -122,6 +122,14 @@ export class GeometryLoader implements ILoader {
                     o instanceof THREE.Mesh)
                     o.material = material;
             })
+
+            obj.children.forEach(m => m.castShadow = true);
+            if(material instanceof GemMaterial) {
+                obj.children.forEach(m => m.receiveShadow = false);
+            } else {
+                obj.children.forEach(m => m.receiveShadow = true);
+            }
+
             parent.add(obj);
         } else {
             const threeGeometry = this.loadGeometry(geometry.primitive);
@@ -163,9 +171,18 @@ export class GeometryLoader implements ILoader {
             }
 
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
+            console.log(material)
 
             const obj = new SDData(geometry.id, geometry.version);
             this.createMesh(obj, geometry, threeGeometry, material, materialSettings, skeleton);
+
+            obj.children.forEach(m => m.castShadow = true);
+            if(material instanceof GemMaterial) {
+                obj.children.forEach(m => m.receiveShadow = false);
+            } else {
+                obj.children.forEach(m => m.receiveShadow = true);
+            }
+
             parent.add(obj);
         }
 
@@ -444,8 +461,6 @@ export class GeometryLoader implements ILoader {
                     obj.add(new THREE.Mesh(bufferGeometry, material));
                 }
             }
-            obj.children.forEach(m => m.castShadow = true);
-            obj.children.forEach(m => m.receiveShadow = true);
         } else {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.load`, error);

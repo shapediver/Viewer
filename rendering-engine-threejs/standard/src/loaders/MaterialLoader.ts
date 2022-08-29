@@ -421,6 +421,9 @@ export class MaterialLoader implements ILoader {
 
             gemProperties.tracingOpacity = materialData.tracingOpacity;
 
+            gemProperties.roughness = 0;
+            gemProperties.metalness = 1;
+
             gemProperties.inverseModelMatrix = new THREE.Matrix4();
             gemProperties.inverseTransposeModelMatrix = new THREE.Matrix3().getNormalMatrix(gemProperties.inverseModelMatrix.clone().invert().transpose());
         

@@ -66,8 +66,6 @@ export const frag = `
 #ifdef USE_IMPURITYMAP
 	uniform sampler2D impurityMap:
 #endif
-
-#define DEPTH 5
 // CUSTOM END
 
 uniform vec3 diffuse;
@@ -288,7 +286,6 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
         #endif
     #endif
 
-
     #if defined( RE_IndirectDiffuse )
         RE_IndirectDiffuse( irradiance, currentGeometry, material, rLight );
     #endif
@@ -297,14 +294,24 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
     #endif
 
 	if(depth >= 0) {
-		float frac = float(depth) / float(DEPTH);
-		rLight.indirectSpecular *= (1.0-frac) * colorTransferBegin + frac * colorTransferEnd;
+		float frac = float(depth) / float(TRACING_DEPTH);
+		vec3 colorTransfer = (1.0-frac) * colorTransferBegin + frac * colorTransferEnd;
+		rLight.indirectSpecular *= colorTransfer;
 	}
 
 	vec3 color = rLight.indirectSpecular + rLight.directSpecular + rLight.indirectDiffuse + rLight.directDiffuse;
-	color = pow(color, vec3(1.0/gamma)); // gamma
-	color.rgb = ((color.rgb - 0.5) * max(contrast, 0.0)) + 0.5; // contrast
-	color += vec3(brightness, brightness, brightness); // brightness
+
+	// gamma
+	color = pow(color, vec3(1.0/gamma)); 
+
+	// contrast
+	color.rgb = ((color.rgb - 0.5) * max(contrast, 0.0)) + 0.5; 
+
+	// brightness
+	color.r = min(max(color.r + brightness, 0.0), 1.0);
+	color.g = min(max(color.g + brightness, 0.0), 1.0);
+	color.b = min(max(color.b + brightness, 0.0), 1.0);
+
 	return color;
 }
 
@@ -431,9 +438,10 @@ void main() {
 	r_0_outside = r_0_outside*r_0_outside;
 	float initialProbability = r_0_outside + (1.0 - r_0_outside)*pow(1.0 - cos_theta_0, 5.0);
 
-				
 	outgoingLight2 = vec4(calculateReflectedLight(frag_position, frag_normal_normalized, initialDirection, material, -1), 1.0);
-	if(DEPTH > 0) 
+	// gl_FragColor = outgoingLight2;
+	// return;
+	if(TRACING_DEPTH > 0) 
 		outgoingLight2 *= initialProbability;
 		
 	vec3 tempColor;
@@ -461,14 +469,14 @@ void main() {
 				//return;
 			#endif
 			
-			// if(0 == DEPTH) {
+			// if(0 == TRACING_DEPTH) {
 			// 	gl_FragColor = vec4(0.5 * newNormal + 0.5, 1.0);
 			// 	return;
 			// }
 
 			tempColor = vec3(0.0);
 			#pragma unroll_loop_start
-			for(int i = 0; i < DEPTH; i++) {
+			for(int i = 0; i < TRACING_DEPTH; i++) {
 				// small position correction to avoid artefacts
 				newPosition = newPosition - lookUpVector * 1e-6;
 				newPosition = raySphereIntersection(newPosition, newDirection);
@@ -489,12 +497,12 @@ void main() {
 
 				vec3 refracted = refract(newDirection, newNormal*-1.0, 1.0/refractionIndex);
 				tempColor += probability * currentProbability * calculateReflectedLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
-				if(i+1 == DEPTH)
+				if(i+1 == TRACING_DEPTH)
 					tempColor += (1.0 - probability) * currentProbability * calculateReflectedLight(newPosition, newNormal, newDirection, material, i);
 
 				newDirection = reflect(newDirection, newNormal);
 
-				// if(i+1 == DEPTH) {
+				// if(i+1 == TRACING_DEPTH) {
 				// 	gl_FragColor = vec4(0.5 * newNormal + 0.5, 1.0);
 				// 	return;
 				// }
@@ -516,7 +524,7 @@ void main() {
 		}	
 		#pragma unroll_loop_end
 
-	if(DEPTH > 0)
+	if(TRACING_DEPTH > 0)
 		outgoingLight2.rgb += (1.0 - initialProbability) * tempColor;
 
 	float alpha = (1.0 - initialProbability) + initialProbability*tracingOpacity;
