@@ -1,3 +1,61 @@
+export const vert = `
+#define STANDARD
+varying vec3 vViewPosition;
+#ifdef USE_TRANSMISSION
+	varying vec3 vWorldPosition;
+#endif
+#include <common>
+#include <uv_pars_vertex>
+#include <uv2_pars_vertex>
+#include <displacementmap_pars_vertex>
+#include <color_pars_vertex>
+#include <fog_pars_vertex>
+#include <normal_pars_vertex>
+#include <morphtarget_pars_vertex>
+#include <skinning_pars_vertex>
+#include <shadowmap_pars_vertex>
+#include <logdepthbuf_pars_vertex>
+#include <clipping_planes_pars_vertex>
+
+// CUSTOM START
+varying vec3 frag_position;
+varying vec3 frag_normal;
+// CUSTOM END
+
+void main() {
+	#include <uv_vertex>
+	#include <uv2_vertex>
+	#include <color_vertex>
+	#include <morphcolor_vertex>
+	#include <beginnormal_vertex>
+	#include <morphnormal_vertex>
+	#include <skinbase_vertex>
+	#include <skinnormal_vertex>
+	#include <defaultnormal_vertex>
+	#include <normal_vertex>
+	#include <begin_vertex>
+	#include <morphtarget_vertex>
+	#include <skinning_vertex>
+	#include <displacementmap_vertex>
+	#include <project_vertex>
+	#include <logdepthbuf_vertex>
+	#include <clipping_planes_vertex>
+	vViewPosition = - mvPosition.xyz;
+	#include <worldpos_vertex>
+	#include <shadowmap_vertex>
+	#include <fog_vertex>
+    #ifdef USE_TRANSMISSION
+        vWorldPosition = worldPosition.xyz;
+    #endif
+
+    // CUSTOM START
+    frag_position = position;
+    frag_normal = objectNormal;
+    // CUSTOM END
+}
+`;
+
+export const frag = `
 #define STANDARD
 #ifdef PHYSICAL
 	#define IOR
@@ -109,6 +167,20 @@ uniform float contrast;
 uniform float brightness;
 uniform float dispersion;
 uniform float tracingOpacity;
+
+
+vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const in float roughness ) {
+	#if defined( ENVMAP_TYPE_CUBE_UV )
+		vec3 reflectVec = reflect( - viewDir, normal );
+		// Mixing the reflection with the normal is more accurate and keeps rough objects from gathering light from behind their tangent plane.
+		reflectVec = normalize( mix( reflectVec, normal, roughness * roughness) );
+		reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
+		vec4 envMapColor = textureCubeUV( envMap, reflectVec, roughness );
+		return min(envMapColor.rgb * envMapIntensity, vec3(1.0));
+	#else
+		return vec3( 0.0 );
+	#endif
+}
 
 vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalMaterial material, int depth) {
 	
@@ -222,9 +294,9 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
         #endif
     #endif
     #if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
-        radiance += getIBLRadiance( currentGeometry.viewDir, currentGeometry.normal, material.roughness );
+        radiance += getIBLRadianceVariation( currentGeometry.viewDir, currentGeometry.normal, material.roughness );
         #ifdef USE_CLEARCOAT
-            clearcoatRadiance += getIBLRadiance( currentGeometry.viewDir, currentGeometry.clearcoatNormal, material.clearcoatRoughness );
+            clearcoatRadiance += getIBLRadianceVariation( currentGeometry.viewDir, currentGeometry.clearcoatNormal, material.clearcoatRoughness );
         #endif
     #endif
 
@@ -480,3 +552,5 @@ void main() {
 	#include <premultiplied_alpha_fragment>
 	#include <dithering_fragment>
 }
+
+`
