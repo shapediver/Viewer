@@ -997,15 +997,26 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     (<LightEngine>this.lightEngine).saveSettings(settingsEngine);
     (<CameraEngine>this.cameraEngine).saveSettings(settingsEngine);
 
-    settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
-    settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
+    settingsEngine.ar.enable = this.enableAR;
+
     settingsEngine.environment.mapResolution = this.environmentMapResolution;
     settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
     settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
-    settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
-    settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
+    settingsEngine.environment.clearAlpha = this.clearAlpha;
+    settingsEngine.environment.clearColor = this.clearColor;
+
+    settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
+    settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
     settingsEngine.environmentGeometry.gridColor = this.gridColor;
     settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
+
+    settingsEngine.general.pointSize = this.pointSize;
+    settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
+    settingsEngine.general.transformation.translation = { x: this.arTranslation[0], y: this.arTranslation[1], z: this.arTranslation[2] };
+    settingsEngine.general.transformation.scale = { x: this.arScale[0], y: this.arScale[1], z: this.arScale[2] };
+
+    settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
+    settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
     settingsEngine.rendering.outputEncoding = this.outputEncoding;
     settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
     settingsEngine.rendering.textureEncoding = this.textureEncoding;
@@ -1013,10 +1024,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.rendering.toneMappingExposure = this.toneMappingExposure;
     settingsEngine.rendering.beautyRenderBlendingDuration = this.beautyRenderBlendingDuration;
     settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
-    settingsEngine.environment.clearAlpha = this.clearAlpha;
-    settingsEngine.environment.clearColor = this.clearColor;
-    settingsEngine.general.pointSize = this.pointSize;
     settingsEngine.rendering.shadows = this.shadows;
+    
   }
 
   public startGatherAnimations(node: ITreeNode = this._tree.root) {
