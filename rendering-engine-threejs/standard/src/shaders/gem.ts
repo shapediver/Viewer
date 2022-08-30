@@ -311,6 +311,7 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
 		float frac = float(depth) / float(TRACING_DEPTH);
 		vec3 colorTransfer = (1.0-frac) * colorTransferBegin + frac * colorTransferEnd;
 		rLight.indirectSpecular *= colorTransfer;
+		rLight.directSpecular *= colorTransfer;
 	}
 
 	vec3 color = rLight.indirectSpecular + rLight.directSpecular + rLight.indirectDiffuse + rLight.directDiffuse;
