@@ -400,8 +400,13 @@ export class MaterialLoader implements ILoader {
 
             gemProperties.impurityScale = materialData.impurityScale;
 
-            gemProperties.colorTransferBegin = new THREE.Color(this._converter.toThreeJsColorInput(materialData.colorTransferBegin));
-            gemProperties.colorTransferEnd = new THREE.Color(this._converter.toThreeJsColorInput(materialData.colorTransferEnd));
+            if (materialData.colorTransferBegin !== undefined) {
+                gemProperties.colorTransferBegin = new THREE.Color(this._converter.toThreeJsColorInput(materialData.colorTransferBegin));
+            }
+
+            if (materialData.colorTransferEnd !== undefined) {
+                gemProperties.colorTransferEnd = new THREE.Color(this._converter.toThreeJsColorInput(materialData.colorTransferEnd));
+            }
 
             gemProperties.center = new THREE.Vector3(materialData.center[0], materialData.center[1], materialData.center[2]);
 
@@ -423,6 +428,9 @@ export class MaterialLoader implements ILoader {
 
             gemProperties.roughness = 0;
             gemProperties.metalness = 1;
+            
+            gemProperties.transparent = true;
+            gemProperties.opacity = 1.0;
 
             gemProperties.inverseModelMatrix = new THREE.Matrix4();
             gemProperties.inverseTransposeModelMatrix = new THREE.Matrix3().getNormalMatrix(gemProperties.inverseModelMatrix.clone().invert().transpose());

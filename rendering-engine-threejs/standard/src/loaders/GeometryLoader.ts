@@ -171,7 +171,6 @@ export class GeometryLoader implements ILoader {
             }
 
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
-            console.log(material)
 
             const obj = new SDData(geometry.id, geometry.version);
             this.createMesh(obj, geometry, threeGeometry, material, materialSettings, skeleton);
