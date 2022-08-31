@@ -64,7 +64,7 @@ export const frag = `
 
 // CUSTOM START
 #ifdef USE_IMPURITYMAP
-	uniform sampler2D impurityMap:
+	uniform sampler2D impurityMap;
 #endif
 // CUSTOM END
 
@@ -157,7 +157,6 @@ uniform mat4 modelMatrix;
 uniform mat4 inverseModelMatrix;
 uniform mat3 inverseTransposeModelMatrix;
 
-uniform samplerCube impurityMap;
 uniform float impurityScale;
 uniform vec3 colorTransferBegin;
 uniform vec3 colorTransferEnd;
@@ -351,9 +350,9 @@ vec3 normalLookUp(vec3 dir) {
 	}
 }
 
-#ifdef USE_IMPURITY_MAP
+#ifdef USE_IMPURITYMAP
 	float impurityLookUp(vec3 dir) {
-		vec3 c = textureCube(impurityMap, dir).rgb;
+		vec3 c = textureCube(impurityMap, dir.xy).rgb;
 		return (c.x + c.y + c.z) / 3.0;
 	}
 #endif
@@ -477,11 +476,11 @@ void main() {
 
 			float currentProbability = 1.0;
 
-			#ifdef USE_IMPURITY_MAP
+			#ifdef USE_IMPURITYMAP
 				float impurityProbability = impurityLookUp(lookUpVector);
 				currentProbability -= impurityProbability * impurityScale;
-				//gl_FragColor = vec4(vec3(impurityProbability), 1.0);
-				//return;
+				// gl_FragColor = vec4(vec3(impurityProbability), 1.0);
+				// return;
 			#endif
 			
 			// if(0 == TRACING_DEPTH) {
