@@ -180,6 +180,17 @@ const createInitialUi = () => {
     ], menuLeft);
 
     createCustomUi([
+        <ISliderElement>{
+            name: 'Auto Rotation Speed',
+            type: 'slider',
+            min: -10,
+            max: 10,
+            step: 0.1,            
+            value: (<SDV.IPerspectiveCameraApi>viewport.camera).autoRotationSpeed,
+            callback: (value: string) => { 
+                (<SDV.IPerspectiveCameraApi>viewport.camera).autoRotationSpeed = +value;
+            }
+        },
         <IDropdownElement>{
             name: 'Presets',
             type: 'dropdown',

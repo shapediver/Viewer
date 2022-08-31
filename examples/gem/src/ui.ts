@@ -18,7 +18,7 @@ let gemDefinition: IGemMaterialProperties = {
 }
 
 export interface IUiElement {
-    key: keyof IGemMaterialProperties,
+    key?: keyof IGemMaterialProperties,
     name: string,
     type: string,
     tooltip?: string,
@@ -29,7 +29,8 @@ export interface ISliderElement extends IUiElement {
     type: 'slider',
     min: number,
     max: number,
-    step: number
+    step: number,
+    value: number
 }
 export interface IDropdownElement extends IUiElement {
     type: 'dropdown',
@@ -37,7 +38,8 @@ export interface IDropdownElement extends IUiElement {
     value: string
 }
 export interface IStringElement extends IUiElement {
-    type: 'string'
+    type: 'string',
+    value: string
 }
 
 export const updateCustomUi = (dev: IGemMaterialProperties, parent: HTMLDivElement) => {
@@ -73,7 +75,8 @@ export const createCustomUi = (elements: IUiElement[], parent: HTMLDivElement) =
         if(menuElement.tooltip)
             paramDiv.setAttribute('title', menuElement.tooltip)
             
-        paramDiv.setAttribute('name', menuElement.key)
+        if(menuElement.key)
+            paramDiv.setAttribute('name', menuElement.key)
         paramDiv.setAttribute('type', menuElement.type)
         const label = document.createElement("label");
         const valueLabel = document.createElement("label");
@@ -99,9 +102,10 @@ export const createCustomUi = (elements: IUiElement[], parent: HTMLDivElement) =
             inputElement.setAttribute("min", sliderElement.min + '');
             inputElement.setAttribute("max", sliderElement.max + '');
             inputElement.setAttribute("step", sliderElement.step + '');
-            inputElement.setAttribute("value", (<number>gemDefinition[menuElement.key]) + '');
+            const value = menuElement.key ? (<number>gemDefinition[menuElement.key]) : sliderElement.value;
+            inputElement.setAttribute("value", value + '');
 
-            valueLabel.innerHTML = (<number>gemDefinition[menuElement.key]) + '';
+            valueLabel.innerHTML = value + '';
             inputElement.classList.value = "w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700";
             label.classList.value = "mt-2 text-sm font-medium text-gray-900 dark:text-gray-300";
             valueLabel.classList.value = "mt-2 text-sm font-medium text-gray-900 dark:text-gray-300";
@@ -113,7 +117,8 @@ export const createCustomUi = (elements: IUiElement[], parent: HTMLDivElement) =
 
             inputElement.onchange = () => {
                 valueLabel.innerHTML = inputElement!.value + '';
-                (<number>gemDefinition[menuElement.key]) = +inputElement!.value;
+                if(menuElement.key)
+                    (<number>gemDefinition[menuElement.key]) = +inputElement!.value;
                 updateGemMaterial(gemDefinition)
                 if (menuElement.callback)
                     menuElement.callback(inputElement!.value);
@@ -152,7 +157,8 @@ export const createCustomUi = (elements: IUiElement[], parent: HTMLDivElement) =
             inputElement = document.createElement("input");
             inputElement.setAttribute('name', 'inputElement')
             inputElement.setAttribute("type", "text");
-            inputElement.setAttribute("value", (<string>gemDefinition[menuElement.key]) === undefined ? '' : (<string>gemDefinition[menuElement.key]));
+            const value = menuElement.key ? (<string>gemDefinition[menuElement.key]) : (<IStringElement>menuElement).value;
+            inputElement.setAttribute("value", value === undefined ? '' : value);
             inputElement.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
             label.classList.value = "block mb-2 mt-2 text-sm font-medium text-gray-900 dark:text-gray-300";
 
@@ -160,7 +166,8 @@ export const createCustomUi = (elements: IUiElement[], parent: HTMLDivElement) =
             paramDiv.appendChild(inputElement);
 
             inputElement.onchange = () => {
-                (<string>gemDefinition[menuElement.key]) = inputElement!.value;
+                if(menuElement.key)
+                    (<string>gemDefinition[menuElement.key]) = inputElement!.value;
                 updateGemMaterial(gemDefinition)
                 if (menuElement.callback)
                     menuElement.callback(inputElement!.value);
