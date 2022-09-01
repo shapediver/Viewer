@@ -104,11 +104,13 @@ export class DragManager extends AbstractInteractionManager {
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_MOVE,
             {
+                viewportId: this.viewport.id,
                 node: this.#node,
                 matrix: transformationMatrix,
                 ray,
                 event,
-                dragConstraint: transformation.dragConstraint
+                dragConstraint: transformation.dragConstraint,
+                manager: this
             } as IDragEvent
         );
     }
@@ -130,9 +132,11 @@ export class DragManager extends AbstractInteractionManager {
 
         const transformationMatrix = this.#node.transformations.find((t: ITransformation) => t.id === 'SD_drag_matrix')?.matrix;
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_END, {
+            viewportId: this.viewport.id,
             node: this.#node,
             matrix: transformationMatrix,
-            event
+            event,
+            manager: this
         } as IDragEvent);
         this.#setupOptions = null;
 
@@ -171,12 +175,14 @@ export class DragManager extends AbstractInteractionManager {
         this.#tokenContinuousRendering = this.viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
         this.#tokenContinuousShadowMapUpdate = this.viewport.addFlag(FLAG_TYPE.CONTINUOUS_SHADOW_MAP_UPDATE);
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.DRAG_START, { 
+            viewportId: this.viewport.id,
             node: this.#node, 
             matrix: transformationMatrix,
             intersectionPoint,
             ray,
             event,
-            dragConstraint: transformation.dragConstraint
+            dragConstraint: transformation.dragConstraint,
+            manager: this
         } as IDragEvent);
     }
 

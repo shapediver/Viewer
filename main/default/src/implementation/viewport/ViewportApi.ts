@@ -1,4 +1,4 @@
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, vec2, vec3 } from "gl-matrix";
 import { RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
 import { IViewportApi } from "../../interfaces/viewport/IViewportApi";
 import { container } from "tsyringe";
@@ -13,7 +13,7 @@ import { GLTFConverter } from "@shapediver/viewer.data-engine.gltf-converter";
 import { ShapeDiverRequestGltfUploadQueryConversion } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { ICameraApi } from "../../interfaces/viewport/camera/ICameraApi";
 import { ILightSceneApi } from "../../interfaces/viewport/lights/ILightSceneApi";
-import { IAnimationData, ISDTFAttributeVisualizationData, ISDTFItemData, ISDTFOverview } from "@shapediver/viewer.shared.types";
+import { IAnimationData, IGeometryData, ISDTFAttributeVisualizationData, ISDTFItemData, ISDTFOverview } from "@shapediver/viewer.shared.types";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { sceneTree } from "../../main";
 import { IOrthographicCameraApi } from "../../interfaces/viewport/camera/IOrthographicCameraApi";
@@ -695,6 +695,17 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
+    public convert3Dto2D(p: vec3): { container: vec2; client: vec2; page: vec2; hidden: boolean; } {
+        const scope = 'convert3Dto2D';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, p, 'vec3');
+            return this.#renderingEngine.convert3Dto2D(p);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
     public async convertToGlTF(node: ITreeNode = sceneTree.root): Promise<Blob> {
         const scope = 'convertToGlTF';
         try {
@@ -814,6 +825,28 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
+    public mouseEventToRay(event: MouseEvent): { origin: vec3; direction: vec3; } {
+        const scope = 'mouseEventToRay';
+        try {
+            return this.#renderingEngine.mouseEventToRay(event);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
+    }
+
+    public raytraceScene(origin: vec3, direction: vec3, root?: ITreeNode): { distance: number, node: ITreeNode, data: IGeometryData; }[] {
+        const scope = 'raytraceScene';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, origin, 'vec3');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, direction, 'vec3');
+            return this.#renderingEngine.raytraceScene(origin, direction, root);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
     public removeCamera(id: string): boolean {
         const scope = 'removeCamera';
         try {
@@ -899,6 +932,26 @@ export class ViewportApi implements IViewportApi {
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
+    public touchToRay(event: Touch): { origin: vec3; direction: vec3; } {
+        const scope = 'touchToRay';
+        try {
+            return this.#renderingEngine.touchToRay(event);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
+    }
+
+    public touchEventToRay(event: TouchEvent): { origin: vec3; direction: vec3; } {
+        const scope = 'touchEventToRay';
+        try {
+            return this.#renderingEngine.touchEventToRay(event);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
         }
     }
 

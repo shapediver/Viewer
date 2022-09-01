@@ -138,10 +138,12 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_ON,
             {
+                viewportId: this.viewport.id,
                 node: this.#node,
                 intersectionPoint: this.#intersection.point,
                 ray,
-                event
+                event,
+                manager: this
             } as ISelectEvent
         );
     }
@@ -170,8 +172,10 @@ export class SelectOnUpManager extends AbstractInteractionManager {
 
         this.#eventEngine.emitEvent(EVENTTYPE.INTERACTION.SELECT_OFF, 
             { 
+                viewportId: this.viewport.id,
                 node,
-                event         
+                event,
+                manager: this         
             } as ISelectEvent
         );
     }
