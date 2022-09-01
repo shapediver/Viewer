@@ -216,6 +216,7 @@ export class RenderingManager implements IManager {
         renderer.shadowMap.needsUpdate = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.shadowMap.autoUpdate = false;
+        renderer.localClippingEnabled = true;
         renderer.setSize(canvas.width, canvas.height);
         renderer.setClearColor(new THREE.Color('#ffffff'), 1);
         this._maxTextureUnits = renderer.getContext().getParameter(renderer.getContext().MAX_TEXTURE_IMAGE_UNITS);
