@@ -37,12 +37,15 @@ import { IBoneData } from './interfaces/data/IBoneData'
 import { BoneData } from './implementation/data/BoneData'
 import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
 import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives'
+import { MaterialGemData } from './implementation/material/MaterialGemData'
+import { IMaterialGemData, IMaterialGemDataProperties } from './interfaces/data/material/IMaterialGemDataProperties'
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
   IMaterialAbstractData, IMaterialAbstractDataProperties, AbstractMaterialData,
   IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, 
   IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, 
+  IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, 
   IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
 }
 
