@@ -39,11 +39,14 @@ import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
 import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives'
 import { MaterialGemData } from './implementation/material/MaterialGemData'
 import { IMaterialGemData, IMaterialGemDataProperties } from './interfaces/data/material/IMaterialGemDataProperties'
+import { MaterialShadowData } from './implementation/material/MaterialShadowData'
+import { IMaterialShadowData, IMaterialShadowDataProperties } from './interfaces/data/material/IMaterialShadowData'
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
   IMaterialAbstractData, IMaterialAbstractDataProperties, AbstractMaterialData,
   IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, 
+  IMaterialShadowData, MaterialShadowData, IMaterialShadowDataProperties, 
   IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, 
   IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, 
   IMapData, MapData, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING
