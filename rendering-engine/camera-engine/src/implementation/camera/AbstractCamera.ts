@@ -20,6 +20,7 @@ import { AbstractCameraControls } from '../controls/AbstractCameraControls'
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
     // #region Properties (23)
 
+    private _active: boolean = false;
     private _autoAdjust: boolean = false;
     private _cameraMovementDuration: number = 800;
     private _defaultPosition: vec3 = vec3.create();
@@ -56,6 +57,14 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
     // #endregion Constructors (1)
 
     // #region Public Accessors (39)
+
+    public get active(): boolean {
+        return this._active;
+    }
+
+    public set active(value: boolean) {
+        this._active = value;
+    }
 
     public get autoAdjust(): boolean {
         return this._autoAdjust;

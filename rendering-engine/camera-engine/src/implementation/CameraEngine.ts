@@ -144,7 +144,12 @@ export class CameraEngine implements ICameraEngine {
     public assignCamera(id: string): boolean {
         const camera = this.cameras[id];
         if (!camera) return false;
+
+        for (let c in this.cameras)
+            this.cameras[c].active = false;
+
         this._camera = camera;
+        this._camera.active = true;
         return true;
     }
 
