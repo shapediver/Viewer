@@ -54,5 +54,5 @@ There are many options that you can already provide on initialization, please ha
     
 - __Attribute Visualization__: [`@shapediver/viewer.features.attribute-visualization`](./features/attribute-visualization/index.html)
 
-    To visualize the attributes of objects, please use our interaction feature package.
+    To visualize the attributes of objects, please use our attribute visualization feature package.
 
