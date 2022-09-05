@@ -48,5 +48,11 @@ There are many options that you can already provide on initialization, please ha
 
 ## Features
 
-- [`@shapediver/viewer.features.interaction`](./features/interaction/index.html)
-- [`@shapediver/viewer.features.attribute-visualization`](./features/attribute-visualization/index.html)
+- __Interaction__: [`@shapediver/viewer.features.interaction`](./features/interaction/index.html)
+
+    To select, drag and hover objects, please use our interaction feature package.
+    
+- __Attribute Visualization__: [`@shapediver/viewer.features.attribute-visualization`](./features/attribute-visualization/index.html)
+
+    To visualize the attributes of objects, please use our attribute visualization feature package.
+

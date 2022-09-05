@@ -59,6 +59,44 @@ export enum PARAMETER_VISUALIZATION {
   DIAL = 'dial',
   TEXT = 'text'
 }
+
+export interface ISettingsSections {
+  session?: {
+      parameter?: { 
+          /** Option to update the displayname of the parameters (default: false) */
+          displayname?: boolean, 
+          /** Option to update the order of the parameters (default: false) */
+          order?: boolean, 
+          /** Option to update the hidden state of the parameters (default: false) */
+          hidden?: boolean, 
+          /** Option to update the value of the parameters (default: false) */
+          value?: boolean 
+      },
+      export?: { 
+          /** Option to update the displayname of the exports (default: false) */
+          displayname?: boolean, 
+          /** Option to update the order of the exports (default: false) */
+          order?: boolean, 
+          /** Option to update the hidden state of the exports (default: false) */
+          hidden?: boolean 
+      }
+  },
+  viewport?: {
+      /** Option to update the ar settings (default: false) */
+      ar?: boolean,
+      /** Option to update the scene settings (default: false) */
+      scene?: boolean,
+      /** Option to update the camera settings (default: false) */
+      camera?: boolean,
+      /** Option to update the light settings (default: false) */
+      light?: boolean,
+      /** Option to update the environment settings (default: false) */
+      environment?: boolean
+      /** Option to update the general settings (default: false) */
+      general?: boolean
+  }
+};
+
 export interface ISessionEngine {
   // #region Properties (11)
 
@@ -79,39 +117,19 @@ export interface ISessionEngine {
 
   // #region Public Methods (18)
 
-  applySettings(response: ShapeDiverResponseDto, sections?: {
-    session?: {
-      parameter?: {
-        displayname?: boolean,
-        order?: boolean,
-        hidden?: boolean,
-        value?: boolean
-      },
-      export?: {
-        displayname?: boolean,
-        order?: boolean,
-        hidden?: boolean
-      }
-    },
-    viewport?: {
-      scene?: boolean,
-      camera?: boolean,
-      light?: boolean,
-      environment?: boolean
-    }
-  }): void;
+  applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): void;
   canGoBack(): boolean;
   canGoForward(): boolean;
   close(): Promise<void>;
   customize(force: boolean): Promise<ITreeNode>;
-  customizeParallel(parameterValues: { [key: string]: string }, force: boolean): Promise<ITreeNode>;
+  customizeParallel(parameterValues: { [key: string]: string }): Promise<ITreeNode>;
   goBack(): Promise<ITreeNode>;
   goForward(): Promise<ITreeNode>;
-  init(parameterValues?: {
-    [key: string]: string;
-  }): Promise<void>;
+  init(parameterValues?: { [key: string]: string; }): Promise<void>;
   loadOutputs(cancelRequest: () => boolean): Promise<ITreeNode>;
+  loadOutputsParallel(responseDto: ShapeDiverResponseDto, cancelRequest: () => boolean): Promise<ITreeNode>;
   requestExport(exportId: string, parameters: { [key: string]: string }, maxWaitTime: number): Promise<ShapeDiverResponseExport>;
+  resetSettings(sections?: ISettingsSections): void;
   saveDefaultParameterValues(): Promise<boolean>;
   saveSettings(viewportId?: string): Promise<boolean>;
   saveUiProperties(): Promise<boolean>;

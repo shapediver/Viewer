@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html class="dark">
+
+<head>
+    <title>ShapeDiver</title>
+    <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.7/dist/flowbite.min.css" />
+    <style>
+        input[type=range]::-webkit-slider-thumb {
+        background: #e5e7eb;
+        }
+        input[type=range]::-moz-range-thumb {
+        background: #e5e7eb;
+        }
+        input[type=range]::-ms-thumb {
+        background: #e5e7eb;
+        }
+    </style>
+</head>
+
+<body style="background: #666;">
+    <div style="width: 100%; height: 100%; display: flex; position: absolute; left: 0%; top: 0%; overflow: hidden;" >
+        <div style="width: 100%; height: 100%; display: flex; position: absolute; left: 0%; top: 0%">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div id="menu-left"  style="width: 15rem; margin: 5px; position: absolute; left: 0%; top: 0%">
+        </div>
+
+        <div id="menu-right" style="width: 15rem; margin: 5px; position: absolute; left: calc(100% - 15rem - 10px); top: 0%">
+        </div>
+    </div>
+    <script type="module" src="./bundle.js"></script>
+    <script src="https://unpkg.com/flowbite@1.4.7/dist/flowbite.js"></script>
+</body>
+
+</html>

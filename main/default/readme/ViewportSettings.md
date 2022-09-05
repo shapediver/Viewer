@@ -72,6 +72,12 @@
 ### groundPlaneVisibility
 > Option to enable / disable the ground plane. (default: true)
 
+### groundPlaneShadowColor
+> The color of the ground plane shadow.
+
+### groundPlaneShadowVisibility
+> Option to enable / disable the ground plane shadow. (default: false)
+
 ### outputEncoding
 > The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
 > 

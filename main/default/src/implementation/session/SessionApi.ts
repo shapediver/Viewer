@@ -1,5 +1,5 @@
 import { ShapeDiverResponseDto } from "@shapediver/api.geometry-api-dto-v2";
-import { FileParameter, IParameter, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
+import { FileParameter, IParameter, ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { container } from "tsyringe";
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 import { ICreationControlCenter, CreationControlCenter } from "@shapediver/viewer.main.creation-control-center";
@@ -58,7 +58,6 @@ export class SessionApi implements ISessionApi {
             }
         }
     }
-
     // #endregion Constructors (1)
 
     // #region Public Accessors (26)
@@ -231,7 +230,7 @@ export class SessionApi implements ISessionApi {
 
     // #region Public Methods (21)
 
-    public applySettings(response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined; } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; } | undefined; } | undefined; viewport?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } | undefined; }): Promise<void> {
+    public applySettings(response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
         const scope = 'applySettings';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, response, 'object');
@@ -298,14 +297,14 @@ export class SessionApi implements ISessionApi {
         }
     }
 
-    public customizeParallel(parameterValues: { [key: string]: string; }, force: boolean = false): Promise<ITreeNode> {
+    public customizeParallel(parameterValues: { [key: string]: string; }): Promise<ITreeNode> {
         const scope = 'customizeParallel';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, parameterValues, 'object');
             for(let p in parameterValues)
                 this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, parameterValues[p], 'string');
 
-            return this.#sessionEngine.customizeParallel(parameterValues, force);
+            return this.#sessionEngine.customizeParallel(parameterValues);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
@@ -425,6 +424,30 @@ export class SessionApi implements ISessionApi {
         const scope = 'goForward';
         try {
             return this.#sessionEngine.goForward();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
+    }
+    
+    public resetParameterValues(force: boolean = false): Promise<ITreeNode> {
+        const scope = 'resetParameterValues';
+        try {
+            for(let p in this.parameters)
+                this.parameters[p].value = this.parameters[p].defval;
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, force, 'boolean', false);
+            return this.#sessionEngine.customize(force);
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);
+        }
+    }
+
+    public resetSettings(sections?: ISettingsSections): Promise<void> {
+        const scope = 'applySettings';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, sections, 'object', false);
+            return this.#creationControlCenter.resetSettings(this.id, sections);
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `SessionApi.${scope}`, e);

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { MATERIAL_SIDE, MaterialStandardData, ISceneEvent } from '@shapediver/viewer.shared.types'
+import { MATERIAL_SIDE, MaterialStandardData, ISceneEvent, MaterialShadowData } from '@shapediver/viewer.shared.types'
 import { vec3 } from 'gl-matrix'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
@@ -19,8 +19,11 @@ export class EnvironmentGeometryManager implements IManager {
     private _grid!: THREE.GridHelper;
     private _gridObject!: SDData;
     private _groundPlane!: THREE.Mesh;
+    private _groundPlaneShadow!: THREE.Mesh;
     private _groundPlaneObject!: SDData;
+    private _groundPlaneShadowObject!: SDData;
     private _groundPlaneColor: string = '#d3d3d3ff';
+    private _groundPlaneShadowColor: string = '#000000ff';
     private _gridColor: string = '#44444426';
 
     private _initialized: boolean = false;
@@ -42,6 +45,7 @@ export class EnvironmentGeometryManager implements IManager {
                 let bs = bb.boundingSphere;
                 if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
                 if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+                if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
             }
         })
     }
@@ -71,12 +75,25 @@ export class EnvironmentGeometryManager implements IManager {
         this.assignGroundPlaneColor(value);
     }
 
+    public get groundPlaneShadowColor(): string {
+        return this._groundPlaneShadowColor;
+    } 
+    
+    public set groundPlaneShadowColor(value: string) {
+        this._groundPlaneShadowColor = value;
+        this.assignGroundPlaneShadowColor(value);
+    }
+
     public get grid(): THREE.GridHelper {
         return this._grid;
     }
 
     public get groundPlane(): THREE.Mesh {
         return this._groundPlane;
+    }
+
+    public get groundPlaneShadow(): THREE.Mesh {
+        return this._groundPlaneShadow;
     }
 
     // #endregion Public Accessors (2)
@@ -90,11 +107,12 @@ export class EnvironmentGeometryManager implements IManager {
         (<THREE.MeshPhysicalMaterial>this._groundPlane.material).color = new THREE.Color(this._converter.toThreeJsColorInput(color));
         (<THREE.MeshPhysicalMaterial>this._groundPlane.material).needsUpdate = true;
     }    
-    
-    public assignGroundPlaneEnvironmentIntensity(intensity: number) {
-        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).envMapIntensity = intensity;
-        (<THREE.MeshPhysicalMaterial>this._groundPlane.material).needsUpdate = true;
-    }
+
+    public assignGroundPlaneShadowColor(color: string) {
+        (<THREE.ShadowMaterial>this._groundPlaneShadow.material).opacity = this._converter.toAlpha(color);
+        (<THREE.ShadowMaterial>this._groundPlaneShadow.material).color = new THREE.Color(this._converter.toThreeJsColorInput(color));
+        (<THREE.ShadowMaterial>this._groundPlaneShadow.material).needsUpdate = true;
+    } 
 
     public changeSceneExtents(bb: IBox) {
         if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
@@ -142,11 +160,13 @@ export class EnvironmentGeometryManager implements IManager {
         this._gridObject.add(this._grid);
 
         this._groundPlane.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
+        this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
 
         let eps = 0.005;
         let bs = bb.boundingSphere;
         this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
         this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+        this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
     }
 
     public init(): void {
@@ -164,7 +184,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._gridObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._gridObject);
 
-        this._groundPlaneObject = new SDData('grid', '');
+        this._groundPlaneObject = new SDData('groundPlane', '');
         let mat = new MaterialStandardData();
         mat.color = this._groundPlaneColor;
         mat.side = MATERIAL_SIDE.FRONT;
@@ -178,9 +198,21 @@ export class EnvironmentGeometryManager implements IManager {
         this._groundPlaneObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._groundPlaneObject);
 
+        this._groundPlaneShadowObject = new SDData('groundPlaneShadow', '');
+        let matShadow = new MaterialShadowData();
+        matShadow.color = this._groundPlaneShadowColor;
+        matShadow.opacity = this._converter.toAlpha(this._groundPlaneShadowColor);
+        this._groundPlaneShadow = new THREE.Mesh(new THREE.PlaneGeometry(), this._renderingEngine.materialLoader.load(matShadow));
+        this._groundPlaneShadow.receiveShadow = true;
+        this._groundPlaneShadow.visible = this._renderingEngine.groundPlaneShadowVisibility;
+        this._groundPlaneShadowObject.add(this._groundPlaneShadow);
+        this._groundPlaneShadowObject.userData.ambientOcclusion = false;
+        this._environmentGeometryObject.add(this._groundPlaneShadowObject);
+
         let eps = 0.005;
         this._grid.position.set(0, 0, -eps);
         this._groundPlane.position.set(0, 0, -eps);
+        this._groundPlaneShadow.position.set(0, 0, -eps);
     }
 
     // #endregion Public Methods (2)

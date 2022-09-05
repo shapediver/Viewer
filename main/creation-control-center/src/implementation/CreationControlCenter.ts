@@ -1,6 +1,6 @@
 import { BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING, VISIBILITY_MODE } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { RenderingEngine, RenderingEngine as RenderingEngineThreeJs } from "@shapediver/viewer.rendering-engine-threejs.standard";
-import { SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
+import { ISettingsSections, SessionEngine } from "@shapediver/viewer.session-engine.session-engine";
 import { EventEngine, EVENTTYPE, EVENTTYPE_SCENE, HttpClient, InputValidator, Logger, LOGGING_TOPIC, SettingsEngine, ShapeDiverBackendError, ShapeDiverViewerError, ShapeDiverViewerSessionError, StateEngine, StatePromise, UuidGenerator } from "@shapediver/viewer.shared.services";
 import { EventResponseMapping, ITaskEvent, TASK_TYPE } from "@shapediver/viewer.shared.types";
 import { container, singleton } from "tsyringe";
@@ -33,7 +33,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
   // #region Public Methods (6)
 
-  public applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: { session?: { parameter?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; value?: boolean | undefined; } | undefined; export?: { displayname?: boolean | undefined; order?: boolean | undefined; hidden?: boolean | undefined; } | undefined; } | undefined; viewport?: { ar?: boolean | undefined; scene?: boolean | undefined; camera?: boolean | undefined; light?: boolean | undefined; environment?: boolean | undefined; general?: boolean | undefined; } | undefined; }): Promise<void> {
+  public applySettings(sessionId: string, response: ShapeDiverResponseDto, sections?: ISettingsSections): Promise<void> {
     sections = sections || {};
     this.sessionEngines[sessionId].applySettings(response, sections);
 
@@ -452,6 +452,31 @@ export class CreationControlCenter implements ICreationControlCenter {
       if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
       throw this.#logger.handleError(LOGGING_TOPIC.SESSION, `Session(${sessionId}).saveSettings`, e);
     }
+  }
+
+  resetSettings(sessionId: string, sections?: ISettingsSections): Promise<void> {
+    sections = sections || {};
+    this.sessionEngines[sessionId].resetSettings(sections);
+
+    const promises: Promise<any>[] = [];
+
+    if (sections.session && sections.session.parameter && sections.session.parameter.value)
+      promises.push(this.sessionEngines[sessionId].customize());
+
+    for (let r in this.renderingEngines) {
+      if ((this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST && this.#firstSessionEngine && sessionId === this.#firstSessionEngine.id) ||
+        (this.renderingEngines[r].sessionSettingsMode === SESSION_SETTINGS_MODE.MANUAL && sessionId === this.renderingEngines[r].sessionSettingsId)) {
+        this.#stateEngine.renderingEngines[r].settingsAssigned.reset();
+        promises.push(new Promise<void>(resolve => {
+          this.#stateEngine.renderingEngines[r].settingsAssigned.then(() => {
+            resolve();
+          })
+        }));
+
+        this.renderingEngines[r].applySettings(sections.viewport);
+      }
+    }
+    return new Promise(resolve => Promise.all(promises).then(() => resolve()));
   }
 
   public async saveSettings(sessionId: string, viewportId?: string): Promise<boolean> {

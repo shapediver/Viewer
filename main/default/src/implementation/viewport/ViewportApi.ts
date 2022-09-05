@@ -410,6 +410,40 @@ export class ViewportApi implements IViewportApi {
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
         }
     }
+    
+    public get groundPlaneShadowColor(): string | number | vec3 {
+        return this.#renderingEngine.groundPlaneShadowColor;
+    }
+
+    public set groundPlaneShadowColor(value: string | number | vec3) {
+        const scope = 'groundPlaneShadowColor';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
+            this.#renderingEngine.groundPlaneShadowColor = this.#converter.toColor(value);
+            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
+            this.update();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
+    public get groundPlaneShadowVisibility(): boolean {
+        return this.#renderingEngine.groundPlaneShadowVisibility;
+    }
+
+    public set groundPlaneShadowVisibility(value: boolean) {
+        const scope = 'groundPlaneShadowVisibility';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
+            this.#renderingEngine.groundPlaneShadowVisibility = value;
+            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
+            this.update();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
 
     public get id(): string {
         return this.#renderingEngine.id;

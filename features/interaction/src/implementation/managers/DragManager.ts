@@ -169,6 +169,7 @@ export class DragManager extends AbstractInteractionManager {
         let transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
         
         this.applyTransformation(this.#node!, transformationMatrix);
+        this.viewport.updateNode(this.#node!);
 
         this.#tokenCameraFreeze = this.viewport.addFlag(FLAG_TYPE.CAMERA_FREEZE);
         this.#tokenContinuousRendering = this.viewport.addFlag(FLAG_TYPE.CONTINUOUS_RENDERING);
