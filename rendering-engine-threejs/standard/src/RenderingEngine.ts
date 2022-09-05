@@ -139,6 +139,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _environmentMapResolution: string = '1024';
   private _gridVisibility: boolean = true;
   private _groundPlaneVisibility: boolean = true;
+  private _groundPlaneShadowVisibility: boolean = false;
   private _logoDivElement: HTMLDivElement;
   private _pointSize: number = 1.0;
   private _renderer: THREE.WebGLRenderer;
@@ -514,6 +515,23 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set groundPlaneVisibility(value: boolean) {
     if (this._environmentGeometryManager.groundPlane) this._environmentGeometryManager.groundPlane.visible = value;
     this._groundPlaneVisibility = value;
+  }
+
+  public get groundPlaneShadowColor(): string {
+    return this._environmentGeometryManager.groundPlaneShadowColor;
+  }
+
+  public set groundPlaneShadowColor(value: string) {
+    this._environmentGeometryManager.groundPlaneShadowColor = value;
+  }
+
+  public get groundPlaneShadowVisibility(): boolean {
+    return this._groundPlaneShadowVisibility;
+  }
+
+  public set groundPlaneShadowVisibility(value: boolean) {
+    if (this._environmentGeometryManager.groundPlaneShadow) this._environmentGeometryManager.groundPlaneShadow.visible = value;
+    this._groundPlaneShadowVisibility = value;
   }
 
   public get htmlElementAnchorLoader(): HTMLElementAnchorLoader {
@@ -1007,8 +1025,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
+    //settingsEngine.environmentGeometry.groundPlaneShadowVisibility = this.groundPlaneShadowVisibility;
     settingsEngine.environmentGeometry.gridColor = this.gridColor;
     settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
+    //settingsEngine.environmentGeometry.groundPlaneShadowColor = this.groundPlaneShadowColor;
 
     settingsEngine.general.pointSize = this.pointSize;
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
@@ -1171,6 +1191,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
       this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
       this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
+      // this.groundPlaneShadowColor = this._settingsEngine.environmentGeometry.groundPlaneShadowColor;
+      // this.groundPlaneShadowVisibility = this._settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
 
       this.shadows = this._settingsEngine.rendering.shadows;
       this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;

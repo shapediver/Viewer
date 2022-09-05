@@ -196,6 +196,16 @@ export interface IViewportApi {
   groundPlaneVisibility: boolean;
 
   /**
+   * The color of the ground plane shadow.
+   */
+  groundPlaneShadowColor: string | number | vec3;
+
+  /**
+   * Option to enable / disable the ground plane shadow. (default: false)
+   */
+  groundPlaneShadowVisibility: boolean;
+
+  /**
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
    * This is the texture that is rendered to the screen.
    * 

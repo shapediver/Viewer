@@ -23,6 +23,8 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     gridVisibility: boolean;
     groundPlaneColor: string | number | vec3; 
     groundPlaneVisibility: boolean;
+    groundPlaneShadowColor: string | number | vec3; 
+    groundPlaneShadowVisibility: boolean;
     lightSceneId: string;
     outputEncoding: TEXTURE_ENCODING; 
     physicallyCorrectLights: boolean;
