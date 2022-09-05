@@ -31,6 +31,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     }
 
     public onDown(event: MouseEvent | TouchEvent): void {
+        if(this._controls.camera.active === false) return;
         let { x, y } = this.convertInput(event);
 
         let input = window.TouchEvent && event instanceof TouchEvent ? (event as TouchEvent).touches.length : (event as MouseEvent).button;
@@ -55,6 +56,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     }
 
     public onKey(event: KeyboardEvent): void {
+        if(this._controls.camera.active === false) return;
         if (this._controls.enableKeyPan) {
             switch (event.keyCode) {
                 case this._controls.input.keys.up:
@@ -89,34 +91,45 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     }
 
     public onKeyDown(event: KeyboardEvent): void {
+        if(this._controls.camera.active === false) return;
         if(!this._activeEvents) return;
         this.onKey(event)
     }
 
     public onMouseDown(event: MouseEvent): void {
+        if(this._controls.camera.active === false) return;
         if(!this._activeEvents) return;
         this.onDown(event);
     }
 
     public onMouseMove(event: MouseEvent): void {
+        if(this._controls.camera.active === false) return;
         if(!this._activeEvents) return;
         this.onMove(event);
     }
 
     public onMouseEnd(event: MouseEvent): void {
+        if(this._controls.camera.active === false) return;
         if(!this._activeEvents) return;
         this.onUp(event);
     }
     
-    public onMouseUp(event: WheelEvent): void {}
-    public onMouseOut(event: WheelEvent): void {}
+    public onMouseUp(event: WheelEvent): void {
+        if(this._controls.camera.active === false) return;
+    }
+
+    public onMouseOut(event: WheelEvent): void {
+        if(this._controls.camera.active === false) return;
+    }
 
     public onMouseWheel(event: WheelEvent): void {
+        if(this._controls.camera.active === false) return;
         if(!this._activeEvents) return;
         this.onWheel(event);
     }
 
     public onMove(event: MouseEvent | TouchEvent): void {
+        if(this._controls.camera.active === false) return;
         let { x, y } = this.convertInput(event);
 
         if (this._controls.enablePan && this._active.pan)
@@ -133,29 +146,39 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
     }
 
     public onTouchEnd(event: TouchEvent): void {
+        if(this._controls.camera.active === false) return;
         if(!this._activeEvents) return;
         this.onUp(event);
     }
 
     public onTouchMove(event: TouchEvent): void {
+        if(this._controls.camera.active === false) return;
         if(!this._activeEvents) return;
         this.onMove(event);
     }
 
     public onTouchStart(event: TouchEvent): void {
+        if(this._controls.camera.active === false) return;
         if(!this._activeEvents) return;
         this.onDown(event);
     }
 
-    public onTouchCancel(event: TouchEvent): void {}
-    public onTouchUp(event: TouchEvent): void {}
+    public onTouchCancel(event: TouchEvent): void {
+        if(this._controls.camera.active === false) return;
+    }
+
+    public onTouchUp(event: TouchEvent): void {
+        if(this._controls.camera.active === false) return;
+    }
 
     public onUp(event: MouseEvent | TouchEvent): void {
+        if(this._controls.camera.active === false) return;
         this._active.zoom = false;
         this._active.pan = false;
     }
 
     public onWheel(event: WheelEvent): void {
+        if(this._controls.camera.active === false) return;
         if (!this._controls.enableZoom) return;
         let delta = 0;
         if (event.deltaY !== undefined) {

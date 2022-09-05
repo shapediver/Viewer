@@ -44,6 +44,7 @@ export interface ICamera extends ITreeNodeData {
     readonly id: string;
     readonly type: CAMERA_TYPE;
 
+    active: boolean;
     autoAdjust: boolean;
     boundingBox: IBox;
     cameraMovementDuration: number;
