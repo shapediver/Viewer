@@ -13,12 +13,24 @@ import { ViewportApi } from './implementation/viewport/ViewportApi';
 import { SessionEngine } from '@shapediver/viewer.session-engine.session-engine';
 import { SessionApi } from './implementation/session/SessionApi';
 import { RenderingEngine as RenderingEngineThreeJs } from '@shapediver/viewer.rendering-engine-threejs.standard';
+import { build_data } from '@shapediver/viewer.shared.build-data';
 
 
 const creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
 const inputValidator: InputValidator = <InputValidator>container.resolve(InputValidator);
 const logger: Logger = <Logger>container.resolve(Logger);
 const eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
+
+console.log(`Powered by:
+   _____  __                         ____   _                   
+  / ___/ / /_   ____ _ ____   ___   / __ \\ (_)_   __ ___   _____
+  \\__ \\ / __ \\ / __ '// __ \\ / _ \\ / / / // /| | / // _ \\ / ___/
+ ___/ // / / // /_/ // /_/ //  __// /_/ // / | |/ //  __// /    
+/____//_/ /_/ \\__,_// .___/ \\___//_____//_/  |___/ \\___//_/     
+                   /_/                                          
+ShapeDiver Viewer Version: ${build_data.build_version}
+Visit us at https://shapediver.com/ and find out more!
+`);
 
 export interface IGeneralOptions {
     /**
