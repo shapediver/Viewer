@@ -1,16 +1,29 @@
 
+import { createSession, createViewport, sceneTree } from '@shapediver/viewer';
+import { GLTFConverter } from '@shapediver/viewer.data-engine.gltf-converter';
+import { mat4 } from 'gl-matrix';
+import { container } from 'tsyringe';
 import * as SDV from '@shapediver/viewer';
 
 (<any>window).SDV = SDV;
+const gltfConverter: GLTFConverter = <GLTFConverter>container.resolve(GLTFConverter);
 
 (async () => {
-    let viewport = await SDV.createViewport({
+    let viewport = await createViewport({
         id: 'myViewport',
         canvas: <HTMLCanvasElement>document.getElementById('canvas')
     })
-    let session = await SDV.createSession({
+    let session = await createSession({
         id: 'mySession',
-        ticket: '436f71c116379fa4afffebef5d2f08e8815cb1c0e60ecf5402d743db4b947fa4a73d3d133912af11fcf54bb504c072f9776db8a886ad169035bb9133137e109ce4aea160629b0393251d22d4162317e3acc8e9d39ad8d57037c97b16f87d21a30ce706ee5a9c55-f245c0b5a314f6859406b74b0b432944',
-        modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com'
+        ticket: '5e1bfd1dbf8a12d5e02342f86d8d34337b7eabf13c8e5acaf79ac293531987bd11a275461b048b250869c6f39a259467282be9b39c147706e4ee419a0149d609422e89a45e6945fe4f510941a166052292c6c8d68e154a912a990e62d5d51f557d66e6d284e011-816b094631de72d00d960f0de90c0206',
+        modelViewUrl: 'https://nsc006.us-east-1.shapediver.com'
     })
+
+    
+        let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), [0.001, 0.001,0.001]);
+        session.node.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
+        session.node.updateVersion()
+        viewport.update()
+
+        viewport.camera?.zoomTo()
 })();

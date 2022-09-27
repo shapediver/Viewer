@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { vec2, vec3, vec4 } from 'gl-matrix'
+import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import {
   AbstractCamera,
@@ -74,6 +74,7 @@ import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
 import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 import { AnimationManager } from './managers/AnimationManager'
+import { ARButton } from './three/ARButton'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (61)
@@ -271,6 +272,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.environmentMap = 'photo_studio';
       this.ambientOcclusion = false;
     }
+
+
+    this.renderer.xr.enabled = true;
+    document.body.appendChild( ARButton.createButton( this.renderer ) );
   }
 
   // #endregion Constructors (1)

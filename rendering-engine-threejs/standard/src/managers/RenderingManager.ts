@@ -63,12 +63,15 @@ export class RenderingManager implements IManager {
     private _stats: any;
     private _usingSwiftShader: boolean = false;
     private _width: number = 0;
+    private readonly _clock = new THREE.Clock();
 
     // #endregion Properties (20)
 
     // #region Constructors (1)
 
-    constructor(private readonly _renderingEngine: RenderingEngine) { }
+    constructor(private readonly _renderingEngine: RenderingEngine) {
+        this._clock.getDelta();
+    }
 
     // #endregion Constructors (1)
 
@@ -297,7 +300,7 @@ export class RenderingManager implements IManager {
     }
 
     public start() {
-        this.animate(0);
+        this._renderingEngine.renderer.setAnimationLoop(() => this.animate());
         this.startAndStopRendering();
     }
 
@@ -309,15 +312,30 @@ export class RenderingManager implements IManager {
 
     // #region Private Methods (10)
 
-    private animate(time: number): void {
+    private animate(): void {
         // animation loop - part 1: initial discarding
         if (this._renderingEngine.closed || this._noWebGL) return;
 
+
+        // // animation loop - part 2: requesting and timings
+
+        // const time =this._clock.getDelta();
+
+        // // requestAnimationFrame((time: number) => this.animate(time));
+        // TWEEN.update(time);
+        // const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
+        // this._lastTime = time;
+
+
         // animation loop - part 2: requesting and timings
-        requestAnimationFrame((time: number) => this.animate(time));
-        TWEEN.update(time);
+        // in seconds? wtf
+        const time = this._clock.getElapsedTime() * 1000;
         const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
+        TWEEN.update(time);
+
+        this._renderingEngine.evaluateFlagState();
+
 
         this._renderingEngine.evaluateFlagState();
 
@@ -356,6 +374,17 @@ export class RenderingManager implements IManager {
             return;
         } else {
             this.toggleLogo(false);
+        }
+
+        if(this._renderingEngine.renderer.xr.isPresenting) {
+
+            this._renderingEngine.groundPlaneVisibility = false;
+            this._renderingEngine.gridVisibility = false;
+
+            this._renderingEngine.renderer.setClearColor(new THREE.Color('#ffffff'), 0);
+            const camera = this._renderingEngine.cameraManager.adjustCamera(aspect);
+            this._renderingEngine.renderer.render((<SceneTreeManager>this._renderingEngine.sceneTreeManager).scene, camera);
+            return;
         }
 
         // animation loop - part 6: the scene is shown, but there is no active rendering happening

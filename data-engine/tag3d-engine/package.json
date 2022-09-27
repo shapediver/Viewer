@@ -46,7 +46,7 @@
     "@shapediver/viewer.shared.types": "2.3.1",
     "axios": "^0.21.1",
     "gl-matrix": "3.3.0",
-    "three": "^0.141.0",
+    "three": "^0.144.0",
     "tsyringe": "^4.5.0"
   },
   "gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
