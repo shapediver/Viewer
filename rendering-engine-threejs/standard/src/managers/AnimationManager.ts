@@ -129,6 +129,12 @@ export class AnimationManager implements IManager {
                             }
                             translationTransformation.matrix = mat4.fromTranslation(mat4.create(), vector);
                         } else if (track.path === 'scale') {
+                            let pivotMatrix: mat4 | undefined, pivotMatrixInverse: mat4 | undefined;
+                            if(track.pivot) {
+                                pivotMatrix = mat4.fromTranslation(mat4.create(), vec3.fromValues(track.pivot[0], track.pivot[1], track.pivot[2]));
+                                pivotMatrixInverse = mat4.fromTranslation(mat4.create(), vec3.fromValues(-track.pivot[0], -track.pivot[1], -track.pivot[2]));
+                            }
+
                             let vector: vec3;
                             if(track.interpolation === 'step') {
                                 vector = vec3.fromValues(track.values[(k - 1) * 3 + 0], track.values[(k - 1) * 3 + 1], track.values[(k - 1) * 3 + 2]);
@@ -139,7 +145,13 @@ export class AnimationManager implements IManager {
                                     vec3.fromValues(track.values[(k) * 3 + 0], track.values[(k) * 3 + 1], track.values[(k) * 3 + 2]),
                                     factor)
                             }
-                            scaleTransformation.matrix = mat4.fromScaling(mat4.create(), vector);
+                            
+                            const scalingMatrix = mat4.fromScaling(mat4.create(), vector);
+                            if(pivotMatrix && pivotMatrixInverse) {
+                                scaleTransformation.matrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), pivotMatrix, scalingMatrix), pivotMatrixInverse);
+                            } else {
+                                scaleTransformation.matrix = scalingMatrix;
+                            }
                         } else if (track.path === 'weights') {
                             let weights: number[] = [];
                             const weightCount = track.values.length / track.times.length;

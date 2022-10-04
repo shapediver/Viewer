@@ -149,6 +149,21 @@ export class SceneTracingManager implements IManager {
         let _mouse_y = - ((touch.clientY - rect.top) / rect.height) * 2 + 1;
 
         let origin = vec3.clone(camera.position);
+        if(camera instanceof OrthographicCamera) {
+            if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.TOP) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x*camera.right, _mouse_y*camera.top, 0))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x*camera.left, _mouse_y*camera.top, 0))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x*camera.left, _mouse_y*camera.top))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x*camera.right, _mouse_y*camera.top))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x*camera.right, 0, _mouse_y*camera.top))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BACK) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x*camera.left, 0, _mouse_y*camera.top))
+            }
+        }
         let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
 
         return { origin, direction };
@@ -175,6 +190,21 @@ export class SceneTracingManager implements IManager {
         let _mouse_y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         let origin = vec3.clone(camera.position);
+        if(camera instanceof OrthographicCamera) {
+            if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.TOP) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x*camera.right, _mouse_y*camera.top, 0))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BOTTOM) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x*camera.left, _mouse_y*camera.top, 0))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.LEFT) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x*camera.left, _mouse_y*camera.top))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.RIGHT) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(0, _mouse_x*camera.right, _mouse_y*camera.top))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.FRONT) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x*camera.right, 0, _mouse_y*camera.top))
+            } else if(camera.direction == ORTHOGRAPHIC_CAMERA_DIRECTION.BACK) {
+                origin = vec3.add(vec3.create(), camera.position, vec3.fromValues(_mouse_x*camera.left, 0, _mouse_y*camera.top))
+            }
+        }
         let direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), camera.unproject(vec3.fromValues(_mouse_x, _mouse_y, 0.5)), origin));
 
         return { origin, direction };

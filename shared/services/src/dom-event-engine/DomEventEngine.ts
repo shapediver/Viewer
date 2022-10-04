@@ -145,7 +145,7 @@ export class DomEventEngine {
 
         if (allowedListeners.touchstart !== undefined && this._allowListeners.touchstart !== allowedListeners.touchstart) {
             if (allowedListeners.touchstart) {
-                window.addEventListener("touchstart", this._onTouchStart);
+                window.addEventListener("touchstart", this._onTouchStart, { passive: false });
             } else {
                 window.removeEventListener("touchstart", this._onTouchStart);
             }
@@ -154,7 +154,7 @@ export class DomEventEngine {
 
         if (allowedListeners.touchmove !== undefined && this._allowListeners.touchmove !== allowedListeners.touchmove) {
             if (allowedListeners.touchmove) {
-                window.addEventListener("touchmove", this._onTouchMove);
+                window.addEventListener("touchmove", this._onTouchMove, { passive: false });
             } else {
                 window.removeEventListener("touchmove", this._onTouchMove);
             }
@@ -163,7 +163,7 @@ export class DomEventEngine {
 
         if (allowedListeners.touchend !== undefined && this._allowListeners.touchend !== allowedListeners.touchend) {
             if (allowedListeners.touchend) {
-                window.addEventListener("touchend", this._onTouchUp);
+                window.addEventListener("touchend", this._onTouchUp, { passive: false });
             } else {
                 window.removeEventListener("touchend", this._onTouchUp);
             }
@@ -172,7 +172,7 @@ export class DomEventEngine {
 
         if (allowedListeners.touchcancel !== undefined && this._allowListeners.touchcancel !== allowedListeners.touchcancel) {
             if (allowedListeners.touchcancel) {
-                window.addEventListener("touchcancel", this._onTouchCancel);
+                window.addEventListener("touchcancel", this._onTouchCancel, { passive: false });
             } else {
                 window.removeEventListener("touchcancel", this._onTouchCancel);
             }
@@ -228,10 +228,10 @@ export class DomEventEngine {
         this._canvas.addEventListener("mouseup", this._onMouseUp);
         this._canvas.addEventListener("mouseout", this._onMouseOut);
 
-        window.addEventListener("touchstart", this._onTouchStart);
-        window.addEventListener("touchmove", this._onTouchMove);
-        window.addEventListener("touchend", this._onTouchUp);
-        window.addEventListener("touchcancel", this._onTouchCancel);
+        window.addEventListener("touchstart", this._onTouchStart, { passive: false });
+        window.addEventListener("touchmove", this._onTouchMove, { passive: false });
+        window.addEventListener("touchend", this._onTouchUp, { passive: false });
+        window.addEventListener("touchcancel", this._onTouchCancel, { passive: false });
 
         window.addEventListener("keydown", this._onKeyDown);
         window.addEventListener("mousemove", this._onKeyDownMousePositionHelper);
@@ -282,7 +282,7 @@ export class DomEventEngine {
     }
 
     private onTouchUp(event: TouchEvent): void {
-        if (event.composedPath().includes(this._canvas)) {
+        if (event.composedPath().includes(this._canvas.parentElement!)) {
             event.preventDefault();
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchUp(event));
@@ -291,7 +291,7 @@ export class DomEventEngine {
     }
 
     private onTouchCancel(event: TouchEvent): void {
-        if (event.composedPath().includes(this._canvas)) {
+        if (event.composedPath().includes(this._canvas.parentElement!)) {
             event.preventDefault();
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchCancel(event));
@@ -300,7 +300,7 @@ export class DomEventEngine {
     }
 
     private onTouchMove(event: TouchEvent): void {
-        if (event.composedPath().includes(this._canvas)) {
+        if (event.composedPath().includes(this._canvas.parentElement!)) {
             event.preventDefault();
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event))
@@ -308,7 +308,7 @@ export class DomEventEngine {
     }
 
     private onTouchStart(event: TouchEvent): void {
-        if (event.composedPath().includes(this._canvas)) {
+        if (event.composedPath().includes(this._canvas.parentElement!)) {
             event.preventDefault();
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchStart(event));
