@@ -1,7 +1,6 @@
 import { mat4 } from 'gl-matrix'
 import { IBox } from '@shapediver/viewer.shared.math'
 import { ITreeNodeData } from './ITreeNodeData'
-import { ISDObject } from './ISDObject'
 
 export interface ITransformation {
     // #region Properties (2)
@@ -28,9 +27,6 @@ export interface ITreeNode {
     readonly worldMatrix: mat4;
 
     readonly boundingBox: IBox;
-    readonly transformedNodes: {
-        [key: string]: ISDObject
-    };
 
     excludeViewports: string[];
     restrictViewports: string[];

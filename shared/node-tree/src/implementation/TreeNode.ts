@@ -5,7 +5,6 @@ import { Box, IBox } from '@shapediver/viewer.shared.math'
 
 import { ITransformation, ITreeNode } from '../interfaces/ITreeNode'
 import { ITreeNodeData } from '../interfaces/ITreeNodeData'
-import { ISDObject } from '../interfaces/ISDObject'
 
 export class TreeNode implements ITreeNode {
   // #region Properties (13)
@@ -22,10 +21,6 @@ export class TreeNode implements ITreeNode {
   #parent?: ITreeNode;
 
   readonly #boundingBox: IBox = new Box();
-  readonly #transformedNodes: {
-    [key: string]: ISDObject
-  } = {};
-
   #excludeViewports: string[] = [];
   #restrictViewports: string[] = [];
 
@@ -171,12 +166,6 @@ export class TreeNode implements ITreeNode {
 
   public set transformations(value: ITransformation[]) {
     this.#transformations = value;
-  }
-
-  public get transformedNodes(): {
-    [key: string]: ISDObject
-  } {
-    return this.#transformedNodes;
   }
 
   public get version(): string {

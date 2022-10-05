@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import { ISDObject, ITransformation, ITree, Tree, ITreeNode, TreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
+import { ITransformation, ITree, Tree, ITreeNode, TreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, ITexture, TAG3D_JUSTIFICATION } from "@shapediver/viewer.data-engine.shared-types";
 import { CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, ICameraOptions } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { LIGHT_TYPE } from "@shapediver/viewer.rendering-engine.light-engine";
@@ -47,7 +47,7 @@ export { ICameraApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLigh
 export { ITree, Tree, ITreeNode, TreeNode, ITreeNodeData }
 export { FLAG_TYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION, CAMERA_TYPE, LIGHT_TYPE, RENDERER_TYPE, VISIBILITY_MODE, ORTHOGRAPHIC_CAMERA_DIRECTION, TEXTURE_ENCODING, TONE_MAPPING, ENVIRONMENT_MAP, ENVIRONMENT_MAP_CUBE, LOGGING_LEVEL, LOGGING_TOPIC, PRIMITIVE_MODE, MATERIAL_SIDE, MATERIAL_ALPHA, MATERIAL_SHADING, TEXTURE_WRAPPING, TEXTURE_FILTERING, SDTF_TYPEHINT, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING }
 export { TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_TASK }
-export { IBox, Box, ISphere, Sphere, IGeometry, ITransformation, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, ISDObject, IDomEventListener, IEvent, IThreejsData, ThreejsData }
+export { IBox, Box, ISphere, Sphere, IGeometry, ITransformation, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, IDomEventListener, IEvent, IThreejsData, ThreejsData }
 export { EventResponseMapping, IViewportEvent, ISessionEvent, ICameraEvent, ISceneEvent, ITaskEvent }
 export { IMaterialAbstractData, IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, IMapData, MapData, ITexture, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3 }
 export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData }
