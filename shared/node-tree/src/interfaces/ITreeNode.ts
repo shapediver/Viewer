@@ -11,17 +11,17 @@ export interface ITransformation {
     // #endregion Properties (2)
 }
 
-export interface ITreeNode {
+export interface ITreeNode<T extends ITreeNode<any>> {
     // #region Properties (16)
 
-    readonly children: ITreeNode[];
+    readonly children: T[];
     readonly data: ITreeNodeData[];
 
     readonly id: string;
     readonly originalId: string;
     readonly name: string;
     readonly version: string;
-    readonly parent?: ITreeNode;
+    readonly parent?: T;
 
     readonly nodeMatrix: mat4;
     readonly worldMatrix: mat4;
@@ -35,7 +35,7 @@ export interface ITreeNode {
     visible: boolean;
 
     skinNode: boolean;
-    bones: ITreeNode[];
+    bones: T[];
     boneInverses: mat4[];
 
     // #endregion Properties (16)
@@ -47,7 +47,7 @@ export interface ITreeNode {
      * 
      * @param child the child to add
      */
-    addChild(child: ITreeNode): boolean;
+    addChild(child: T): boolean;
 
     /**
      * Add a data item to node.
@@ -68,18 +68,18 @@ export interface ITreeNode {
      * The data objects like GeometryData, MaterialData, etc. are cloned as well. 
      * Depending on the size of the node and the amount of children, this can therefore be relatively slow.
      */
-    clone(): ITreeNode;
+    clone(): T;
 
     /**
      * Clones this node and all its children. 
      * The data objects like GeometryData, MaterialData, etc. are not copied in this case.
      */
-    cloneInstance(): ITreeNode;
+    cloneInstance(): T;
 
     /**
      * Returns the child with the specified id
     */
-    getChild(id: string): ITreeNode | undefined;
+    getChild(id: string): T | undefined;
 
     /**
      * Returns the data item with the specified id
@@ -101,7 +101,7 @@ export interface ITreeNode {
      * 
      * @param child the child to check
      */
-    hasChild(child: ITreeNode): boolean;
+    hasChild(child: T): boolean;
 
     /**
      * Check for existence of a data item of this node.
@@ -122,7 +122,7 @@ export interface ITreeNode {
      * 
      * @param child the child to remove
      */
-    removeChild(child: ITreeNode): boolean;
+    removeChild(child: T): boolean;
 
     /**
      * Remove a data item from this node.
@@ -143,7 +143,7 @@ export interface ITreeNode {
      * 
      * @param callback 
      */
-    traverse(callback: (node: ITreeNode) => void): void;
+    traverse(callback: (node: T) => void): void;
 
     /**
      * Update the version

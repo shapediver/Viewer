@@ -13,7 +13,6 @@ import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { Converter } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { SDData } from '../types/SDData'
 
 export class LightLoader implements ILoader {
 
@@ -33,7 +32,7 @@ export class LightLoader implements ILoader {
 
     public init(): void {}
 
-    public load(light: AbstractLight, dataChild: SDData) {
+    public load(light: AbstractLight, dataChild: THREE.Object3D) {
         let threeLight: THREE.Light | null = dataChild.children[0] instanceof THREE.Light ? <THREE.Light>dataChild.children[0] : null;
         if (light instanceof AmbientLight) {
             if(!threeLight) {
@@ -116,7 +115,7 @@ export class LightLoader implements ILoader {
         }
     }
 
-    public adjustToBoundingBox(light: AbstractLight, dataChild: SDData, boundingBox: IBox) {
+    public adjustToBoundingBox(light: AbstractLight, dataChild: THREE.Object3D, boundingBox: IBox) {
         let threeLight: THREE.Light = <THREE.Light>dataChild.children[0];
 
         if (light instanceof DirectionalLight) {

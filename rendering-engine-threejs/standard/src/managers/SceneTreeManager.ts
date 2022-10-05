@@ -111,7 +111,7 @@ export class SceneTreeManager implements IManager {
         return bone!;
     }
 
-    private createObject(id: string, version: string) {
+    public createObject(id: string, version: string) {
         const obj = new THREE.Object3D();
         obj.userData.SDid = id;
         obj.userData.SDversion = version;
@@ -310,7 +310,7 @@ export class SceneTreeManager implements IManager {
 
             if (!objChild) {
                 const newChild = this.createObject(nodeChild.id, nodeChild.version);
-                // nodeChild.transformedNodes[this._renderingEngine.id] = newChild; // TODO
+                nodeChild.threeJsObject[this._renderingEngine.id] = newChild;
                 convertedObject.add(newChild);
                 this.updateNodeHierarchy(nodeChild, newChild);
             } else if (objChild.userData.SDversion !== nodeChild.version) {
@@ -374,7 +374,7 @@ export class SceneTreeManager implements IManager {
 
             if (!objChild) {
                 const newChild = this.createObject(nodeChild.id, nodeChild.version);
-                // nodeChild.transformedNodes[this._renderingEngine.id] = newChild; // TODO
+                nodeChild.threeJsObject[this._renderingEngine.id] = newChild;
                 convertedObject.add(newChild);
                 this.updateNode(nodeChild, newChild);
             } else if (objChild.userData.SDversion !== nodeChild.version) {
@@ -402,7 +402,7 @@ export class SceneTreeManager implements IManager {
 
         if (!this._mainNode) {
             this._mainNode = this.createObject(root.id, root.version);
-            // root.transformedNodes[this._renderingEngine.id] = this._mainNode; // TODO
+            root.threeJsObject[this._renderingEngine.id] = this._mainNode;
             this._scene.add(this._mainNode);
         }
 

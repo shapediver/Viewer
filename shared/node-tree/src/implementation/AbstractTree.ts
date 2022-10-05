@@ -1,26 +1,24 @@
-import { singleton } from 'tsyringe'
 import { ITree } from '../interfaces/ITree';
 import { ITreeNode } from '../interfaces/ITreeNode';
 
-import { TreeNode } from './TreeNode'
-
-@singleton()
-export class Tree implements ITree {
+export abstract class AbstractTree<T extends ITreeNode<any>> implements ITree<T> {
   // #region Properties (1)
 
-  readonly #root = new TreeNode('root');
+  readonly #root: T;
 
   // #endregion Properties (1)
 
   // #region Constructors (1)
 
-  constructor() { }
+  constructor(root: T) {
+    this.#root = root;
+  }
 
   // #endregion Constructors (1)
 
   // #region Public Accessors (1)
 
-  public get root(): ITreeNode {
+  public get root(): T {
     return this.#root;
   }
 
@@ -28,7 +26,7 @@ export class Tree implements ITree {
 
   // #region Public Methods (6)
 
-  public addNode(node: ITreeNode, parent: ITreeNode = this.#root, root: ITreeNode = this.#root): boolean {
+  public addNode(node: T, parent: T = this.#root, root: T = this.#root): boolean {
     if (root === parent) {
       root.addChild(node);
       return true;
@@ -43,7 +41,7 @@ export class Tree implements ITree {
     return false;
   }
 
-  public addNodeAtPath(node: ITreeNode, path: string = this.root.getPath(), root: ITreeNode = this.#root): boolean {
+  public addNodeAtPath(node: T, path: string = this.root.getPath(), root: T = this.#root): boolean {
     if (root.name === path) {
       root.addChild(node);
       return true;
@@ -63,7 +61,7 @@ export class Tree implements ITree {
     return false;
   }
 
-  public getNodeAtPath(path: string = this.root.getPath(), root: ITreeNode = this.#root): ITreeNode | null {
+  public getNodeAtPath(path: string = this.root.getPath(), root: T = this.#root): T | null {
     if (root.name === path) 
       return root;
 
@@ -80,7 +78,7 @@ export class Tree implements ITree {
     return null;
   }
 
-  public removeNode(node: ITreeNode, root: ITreeNode = this.#root): boolean {
+  public removeNode(node: T, root: T = this.#root): boolean {
     if (root.hasChild(node)) {
       root.removeChild(node);
       return true;
@@ -96,7 +94,7 @@ export class Tree implements ITree {
     return false;
   }
 
-  public removeNodeAtPath(path: string, root: ITreeNode = this.#root): boolean {
+  public removeNodeAtPath(path: string, root: T = this.#root): boolean {
     if (root.name === path) {
       root.parent?.removeChild(root);
       return true;

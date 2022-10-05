@@ -2,27 +2,23 @@ import * as THREE from 'three'
 import {
     AttributeData,
     GeometryData,
-    MATERIAL_ALPHA,
     MATERIAL_SIDE,
     IMaterialAbstractData,
     PRIMITIVE_MODE,
-    PrimitiveData,
     IPrimitiveData,
     IAttributeData,
     MaterialGemData,
 } from '@shapediver/viewer.shared.types'
-import { Box, IBox } from '@shapediver/viewer.shared.math'
+import { IBox } from '@shapediver/viewer.shared.math'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
-import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
-import { SDData } from '../types/SDData'
 import { MaterialSettings } from './MaterialLoader'
-import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial'
+import { GemMaterial } from '../materials/GemMaterial'
 import { mat4, mat3, vec3 } from 'gl-matrix'
 
 export class GeometryLoader implements ILoader {
@@ -31,7 +27,7 @@ export class GeometryLoader implements ILoader {
     private _counter: number = 0;
     private _geometryCache: {
         [key: string]: {
-            obj: SDData,
+            obj: THREE.Object3D,
             threeGeometry: THREE.BufferGeometry,
             materialSettings: {
                 mode: PRIMITIVE_MODE,
@@ -71,7 +67,7 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): IBox {
+    public load(geometry: GeometryData, parent: THREE.Object3D, skeleton?: THREE.Skeleton): IBox {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
             let materialData: IMaterialAbstractData | null;
             if (geometry.primitive.effectMaterials.length > 0) {
@@ -172,7 +168,7 @@ export class GeometryLoader implements ILoader {
 
             const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
 
-            const obj = new SDData(geometry.id, geometry.version);
+            const obj = this._renderingEngine.sceneTreeManager.createObject(geometry.id, geometry.version);
             this.createMesh(obj, geometry, threeGeometry, material, materialSettings, skeleton);
 
             obj.children.forEach(m => m.castShadow = true);
@@ -420,7 +416,7 @@ export class GeometryLoader implements ILoader {
         return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
     }
 
-    private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings, skeleton?: THREE.Skeleton) {
+    private createMesh(obj: THREE.Object3D, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings, skeleton?: THREE.Skeleton) {
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
             obj.add(new THREE.Points(threeGeometry, material));
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {

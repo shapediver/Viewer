@@ -9,8 +9,6 @@ import {
 
 import { IManager } from '../interfaces/IManager'
 import { RenderingEngine } from '../RenderingEngine'
-import { SDNode } from '../types/SDNode'
-import { SDData } from '../types/SDData'
 
 export class CameraManager implements IManager {
     // #region Properties (2)
@@ -35,7 +33,7 @@ export class CameraManager implements IManager {
 
     }
 
-    public load(camera: AbstractCamera, dataChild: SDData) {
+    public load(camera: AbstractCamera, dataChild: THREE.Object3D) {
         let threeCamera: THREE.Camera | null = dataChild.children[0] instanceof THREE.Camera ? <THREE.Camera>dataChild.children[0] : null;
 
         if(camera instanceof PerspectiveCamera) {
@@ -81,8 +79,8 @@ export class CameraManager implements IManager {
 
         const camera = this._renderingEngine.cameraEngine.camera!;
         if(camera.useNodeData) {
-            const sdCameraNode = <SDNode>camera.node!.transformedNodes[this._renderingEngine.id];
-            const sdCameraData = <SDData>sdCameraNode.children[0];
+            const sdCameraNode = camera.node!.threeJsObject[this._renderingEngine.id];
+            const sdCameraData = sdCameraNode.children[0];
             cameraThree = <THREE.Camera>sdCameraData.children[0];
         } else {
             if (this._renderingEngine.cameraEngine.camera!.type === CAMERA_TYPE.ORTHOGRAPHIC) {

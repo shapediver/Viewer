@@ -1006,7 +1006,7 @@ export class ViewportApi implements IViewportApi {
                 const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
                 throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
             }
-            this.#renderingEngine.sceneTreeManager.updateNode(node, node.transformedNodes[this.id]);
+            this.#renderingEngine.sceneTreeManager.updateNode(node, node.threeJsObject[this.id]);
             this.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
