@@ -673,7 +673,6 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, flag, 'enum', true, Object.values(FLAG_TYPE));
             const token = this.#renderingEngine.addFlag(flag);
-            this.update();
             return token;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -899,7 +898,6 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, token, 'string');
             const check = this.#renderingEngine.domEventEngine.removeDomEventListener(token);
-            this.update();
             return check;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -912,7 +910,6 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, token, 'string');
             const check = this.#renderingEngine.removeFlag(token)
-            this.update();
             return check;
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
@@ -1007,7 +1004,6 @@ export class ViewportApi implements IViewportApi {
                 throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
             }
             this.#renderingEngine.sceneTreeManager.updateNode(node, node.transformedNodes[this.id]);
-            this.update();
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
