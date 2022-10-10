@@ -11,7 +11,7 @@
     "@types/selenium-webdriver": "^4.0.19",
     "aws-sdk": "^2.1121.0",
     "chargebee-typescript": "^2.8.0",
-    "chromedriver": "^103.0.0",
+    "chromedriver": "^106.0.1",
     "chromium": "^3.0.3",
     "http-server": "^14.1.0",
     "jest": "^27.5.1",
