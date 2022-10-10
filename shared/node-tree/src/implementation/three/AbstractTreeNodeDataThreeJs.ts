@@ -8,12 +8,4 @@ export abstract class AbstractTreeNodeDataThreeJs extends AbstractTreeNodeData<I
     public get threeJsObject(): { [key: string]: THREE.Object3D | THREE.BufferGeometry | THREE.Material | undefined } {
         return this.#threeJsObject;
     }
-
-    public get updateCallbackThreeJsObject(): ((newObj: THREE.Object3D | THREE.BufferGeometry | THREE.Material | undefined, oldObj: THREE.Object3D | THREE.BufferGeometry | THREE.Material | undefined, viewport: string) => void) | null {
-        return this.#updateCallbackThreeJsObject;
-    }
-
-    public set updateCallbackThreeJsObject(value: ((newObj: THREE.Object3D | THREE.BufferGeometry | THREE.Material | undefined, oldObj: THREE.Object3D | THREE.BufferGeometry | THREE.Material | undefined, viewport: string) => void) | null) {
-        this.#updateCallbackThreeJsObject = value;
-    }
 }

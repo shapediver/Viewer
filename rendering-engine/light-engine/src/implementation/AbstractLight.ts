@@ -8,13 +8,13 @@ import { ILight, LIGHT_TYPE } from '../interface/ILight'
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
     // #region Properties (6)
 
-    private readonly _type: LIGHT_TYPE;
+    readonly #type: LIGHT_TYPE;
 
-    private _color: string;
-    private _intensity: number;
-    private _name?: string;
-    private _order?: number;
-    private _useNodeData: boolean = false;
+    #color: string;
+    #intensity: number;
+    #name?: string;
+    #order?: number;
+    #useNodeData: boolean = false;
 
     protected readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
@@ -31,11 +31,11 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
         id?: string
     }) {
         super(properties.id);
-        this._color = properties.color;
-        this._intensity = properties.intensity;
-        this._type = properties.type;
-        this._name = properties.name;
-        this._order = properties.order;
+        this.#color = properties.color;
+        this.#intensity = properties.intensity;
+        this.#type = properties.type;
+        this.#name = properties.name;
+        this.#order = properties.order;
     }
 
     // #endregion Constructors (1)
@@ -43,51 +43,51 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     // #region Public Accessors (9)
 
     public get color(): string {
-        return this._color;
+        return this.#color;
     }
 
     public set color(value: string) {
-        this._color = value;
+        this.#color = value;
         this.updateVersion();
     }
 
     public get intensity(): number {
-        return this._intensity;
+        return this.#intensity;
     }
 
     public set intensity(value: number) {
-        this._intensity = value;
+        this.#intensity = value;
         this.updateVersion();
     }
 
     public get name(): string | undefined {
-        return this._name;
+        return this.#name;
     }
 
     public set name(value: string | undefined) {
-        this._name = value;
+        this.#name = value;
         this.updateVersion();
     }
 
     public get order(): number | undefined {
-        return this._order;
+        return this.#order;
     }
 
     public set order(value: number | undefined) {
-        this._order = value;
+        this.#order = value;
         this.updateVersion();
     }
 
     public get type(): LIGHT_TYPE {
-        return this._type;
+        return this.#type;
     }
 
     public set useNodeData(value: boolean) {
-        this._useNodeData = value;
+        this.#useNodeData = value;
     }
 
     public get useNodeData(): boolean {
-        return this._useNodeData;
+        return this.#useNodeData;
     }
 
     // #endregion Public Accessors (9)

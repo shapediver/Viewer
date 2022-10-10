@@ -7,7 +7,7 @@ import { AbstractLight } from '../AbstractLight'
 export class AmbientLight extends AbstractLight implements IAmbientLight {
     // #region Properties (1)
 
-    private _threeJsObject: { [key: string]: THREE.AmbientLight } = {};
+    #threeJsObject: { [key: string]: THREE.AmbientLight } = {};
 
     // #endregion Properties (1)
 
@@ -35,7 +35,7 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
     // #region Public Accessors (1)
 
     public get threeJsObject(): { [key: string]: THREE.AmbientLight } {
-        return this._threeJsObject;
+        return this.#threeJsObject;
     }
 
     // #endregion Public Accessors (1)

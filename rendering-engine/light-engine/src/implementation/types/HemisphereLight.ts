@@ -8,8 +8,8 @@ import { AbstractLight } from '../AbstractLight'
 export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     // #region Properties (1)
 
-    private _groundColor: string = '#ffffff';
-    private _threeJsObject: { [key: string]: THREE.HemisphereLight } = {};
+    #groundColor: string = '#ffffff';
+    #threeJsObject: { [key: string]: THREE.HemisphereLight } = {};
 
     // #endregion Properties (1)
 
@@ -32,7 +32,7 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
             id: properties.id
         });
 
-        if (properties.groundColor) this._groundColor = properties.groundColor;
+        if (properties.groundColor) this.#groundColor = properties.groundColor;
     }
 
     // #endregion Constructors (1)
@@ -40,16 +40,16 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     // #region Public Accessors (2)
 
     public get groundColor(): string {
-        return this._groundColor;
+        return this.#groundColor;
     }
 
     public set groundColor(value: string) {
-        this._groundColor = value;
+        this.#groundColor = value;
         this.updateVersion();
     }
 
     public get threeJsObject(): { [key: string]: THREE.HemisphereLight } {
-        return this._threeJsObject;
+        return this.#threeJsObject;
     }
 
     // #endregion Public Accessors (2)

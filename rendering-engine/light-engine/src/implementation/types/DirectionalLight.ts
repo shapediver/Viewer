@@ -8,11 +8,11 @@ import { AbstractLight } from '../AbstractLight'
 export class DirectionalLight extends AbstractLight implements IDirectionalLight {
     // #region Properties (4)
 
-    private _castShadow: boolean = false;
-    private _direction: vec3 = vec3.fromValues(-1, 0, 1);
-    private _shadowMapBias: number = -0.003;
-    private _shadowMapResolution: number = 1024;
-    private _threeJsObject: { [key: string]: THREE.DirectionalLight } = {};
+    #castShadow: boolean = false;
+    #direction: vec3 = vec3.fromValues(-1, 0, 1);
+    #shadowMapBias: number = -0.003;
+    #shadowMapResolution: number = 1024;
+    #threeJsObject: { [key: string]: THREE.DirectionalLight } = {};
 
     // #endregion Properties (4)
 
@@ -38,10 +38,10 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
             id: properties.id
         });
 
-        if(properties.direction) this._direction = properties.direction;
-        if(properties.castShadow) this._castShadow = properties.castShadow;
-        if(properties.shadowMapResolution) this._shadowMapResolution = properties.shadowMapResolution;
-        if(properties.shadowMapBias) this._shadowMapBias = properties.shadowMapBias;
+        if(properties.direction) this.#direction = properties.direction;
+        if(properties.castShadow) this.#castShadow = properties.castShadow;
+        if(properties.shadowMapResolution) this.#shadowMapResolution = properties.shadowMapResolution;
+        if(properties.shadowMapBias) this.#shadowMapBias = properties.shadowMapBias;
     }
 
     // #endregion Constructors (1)
@@ -49,43 +49,43 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     // #region Public Accessors (8)
 
     public get castShadow(): boolean {
-        return this._castShadow;
+        return this.#castShadow;
     }
 
     public set castShadow(value: boolean) {
-        this._castShadow = value;
+        this.#castShadow = value;
         this.updateVersion();
     }
 
     public get direction(): vec3 {
-        return this._direction;
+        return this.#direction;
     }
 
     public set direction(value: vec3) {
-        this._direction = value;
+        this.#direction = value;
         this.updateVersion();
     }
 
     public get shadowMapBias(): number {
-        return this._shadowMapBias;
+        return this.#shadowMapBias;
     }
 
     public set shadowMapBias(value: number) {
-        this._shadowMapBias = value;
+        this.#shadowMapBias = value;
         this.updateVersion();
     }
 
     public get shadowMapResolution(): number {
-        return this._shadowMapResolution;
+        return this.#shadowMapResolution;
     }
 
     public set shadowMapResolution(value: number) {
-        this._shadowMapResolution = value;
+        this.#shadowMapResolution = value;
         this.updateVersion();
     }
 
     public get threeJsObject(): { [key: string]: THREE.DirectionalLight } {
-        return this._threeJsObject;
+        return this.#threeJsObject;
     }
 
     // #endregion Public Accessors (8)
