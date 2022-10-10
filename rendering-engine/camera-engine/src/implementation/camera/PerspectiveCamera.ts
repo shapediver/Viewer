@@ -34,6 +34,7 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
   private _aspect: number | undefined;
   private _fov: number = 60;
+  private _threeJsObject: { [key: string]: THREE.PerspectiveCamera } = {};
 
   // #endregion Properties (3)
 
@@ -70,6 +71,10 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
 
   public set fov(value: number) {
     this._fov = value;
+  }
+
+  public get threeJsObject(): { [key: string]: THREE.PerspectiveCamera } {
+    return this._threeJsObject;
   }
 
   // #endregion Public Accessors (4)

@@ -1,10 +1,7 @@
 import * as THREE from 'three'
 import {
 IMaterialAbstractData,
-  IAnimationData,
   IGeometryData,
-  IHTMLElementAnchorData,
-  IMaterialStandardData,
   SDTFOverviewData,
   SDTFItemData,
   GeometryData,
@@ -12,10 +9,9 @@ IMaterialAbstractData,
   HTMLElementAnchorData,
   AnimationData,
   MaterialStandardData,
-  ISDTFOverview,
-  BoneData
+  ISDTFOverview
 } from '@shapediver/viewer.shared.types'
-import { ITree, ITreeNode, ITreeNodeData, Tree, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { ITree, ITreeNode, ITreeNodeData, Tree } from '@shapediver/viewer.shared.node-tree'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import {
   Converter,
@@ -29,16 +25,14 @@ import {
   StateEngine,
 } from '@shapediver/viewer.shared.services'
 import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
-import { mat4, quat, vec3 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { ThreejsData } from '../types/ThreejsData'
 import { RenderingEngine } from '../RenderingEngine'
 import { IManager } from '../interfaces/IManager'
-import { Bone } from 'three'
 import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { runInThisContext } from 'vm'
 
 export enum SD_DATA_TYPE {
     GEOMETRY = 'geometry',
@@ -310,7 +304,10 @@ export class SceneTreeManager implements IManager {
 
             if (!objChild) {
                 const newChild = this.createObject(nodeChild.id, nodeChild.version);
+                const oldChild = nodeChild.threeJsObject[this._renderingEngine.id];
                 nodeChild.threeJsObject[this._renderingEngine.id] = newChild;
+                if(nodeChild.updateCallbackThreeJsObject) 
+                    nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id)
                 convertedObject.add(newChild);
                 this.updateNodeHierarchy(nodeChild, newChild);
             } else if (objChild.userData.SDversion !== nodeChild.version) {
@@ -344,7 +341,7 @@ export class SceneTreeManager implements IManager {
 
         // remove all data items that do not exist anymore
         const dataIds = node.data.map(d => d.id);
-        const dataToRemove = convertedObject.children.filter(oc => oc.userData.SDtype !== undefined ? !(dataIds.includes(oc.userData.SDid)) : false);
+        const dataToRemove = convertedObject.children.filter(oc => oc.userData.SDtype !== undefined ? !dataIds.includes(oc.userData.SDid) : false);
         dataToRemove.forEach(dTR => {
             this.removeData(dTR)
             convertedObject.remove(dTR);
@@ -374,7 +371,10 @@ export class SceneTreeManager implements IManager {
 
             if (!objChild) {
                 const newChild = this.createObject(nodeChild.id, nodeChild.version);
+                const oldChild = nodeChild.threeJsObject[this._renderingEngine.id];
                 nodeChild.threeJsObject[this._renderingEngine.id] = newChild;
+                if(nodeChild.updateCallbackThreeJsObject) 
+                    nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id)
                 convertedObject.add(newChild);
                 this.updateNode(nodeChild, newChild);
             } else if (objChild.userData.SDversion !== nodeChild.version) {
@@ -402,7 +402,10 @@ export class SceneTreeManager implements IManager {
 
         if (!this._mainNode) {
             this._mainNode = this.createObject(root.id, root.version);
+            const oldObj = root.threeJsObject[this._renderingEngine.id];
             root.threeJsObject[this._renderingEngine.id] = this._mainNode;
+            if(root.updateCallbackThreeJsObject) 
+                root.updateCallbackThreeJsObject(this._mainNode, oldObj, this._renderingEngine.id)
             this._scene.add(this._mainNode);
         }
 

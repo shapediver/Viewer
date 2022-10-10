@@ -1,6 +1,7 @@
 import { ITreeNode } from "./ITreeNode";
+import { ITreeNodeData } from "./ITreeNodeData";
 
-export interface ITree<T extends ITreeNode<any>> {
+export interface ITree<T extends ITreeNode<any, ITreeNodeData<any>>> {
     // #region Properties (1)
 
     readonly root: T;

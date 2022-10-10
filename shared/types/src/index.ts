@@ -33,8 +33,6 @@ import { ISDTFAttributesData, ISDTFAttributeData } from './interfaces/sdtf/ISDTF
 import { ISDTFItemData } from './interfaces/sdtf/ISDTFItemData'
 import { ISDTFAttributeVisualizationData } from './interfaces/sdtf/ISDTFAttributeVisualizationData'
 import { EventResponseMapping } from './interfaces/events/EventResponseMapping'
-import { IBoneData } from './interfaces/data/IBoneData'
-import { BoneData } from './implementation/data/BoneData'
 import { SdtfTypeHintName } from '@shapediver/sdk.sdtf-v1'
 import { SdtfPrimitiveTypeGuard } from '@shapediver/sdk.sdtf-primitives'
 import { MaterialGemData } from './implementation/material/MaterialGemData'
@@ -61,7 +59,7 @@ export {
 }
 
 export {
-  ICustomData, CustomData, IBoneData, BoneData
+  ICustomData, CustomData
 }
 
 export {

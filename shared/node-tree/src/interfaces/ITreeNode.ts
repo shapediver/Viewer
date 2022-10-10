@@ -11,11 +11,11 @@ export interface ITransformation {
     // #endregion Properties (2)
 }
 
-export interface ITreeNode<T extends ITreeNode<any>> {
+export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U extends ITreeNodeData<any>> {
     // #region Properties (16)
 
     readonly children: T[];
-    readonly data: ITreeNodeData[];
+    readonly data: U[];
 
     readonly id: string;
     readonly originalId: string;
@@ -54,7 +54,7 @@ export interface ITreeNode<T extends ITreeNode<any>> {
      * 
      * @param data the data to add
      */
-    addData(data: ITreeNodeData): boolean;
+    addData(data: U): boolean;
 
     /**
      * Add a transformation to this node.
@@ -84,7 +84,7 @@ export interface ITreeNode<T extends ITreeNode<any>> {
     /**
      * Returns the data item with the specified id
     */
-    getData(id: string): ITreeNodeData | undefined;
+    getData(id: string): U | undefined;
 
     /**
      * Returns the transformation with the specified id
@@ -108,7 +108,7 @@ export interface ITreeNode<T extends ITreeNode<any>> {
      * 
      * @param data the data item to check
      */
-    hasData(data: ITreeNodeData): boolean;
+    hasData(data: U): boolean;
 
     /**
      * Check for existence of a transformation of this node.
@@ -129,7 +129,7 @@ export interface ITreeNode<T extends ITreeNode<any>> {
      * 
      * @param data the data to remove
      */
-    removeData(data: ITreeNodeData): boolean;
+    removeData(data: U): boolean;
 
     /**
      * Remove a transformation from this node.

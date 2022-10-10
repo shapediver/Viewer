@@ -14,6 +14,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   private _penumbra: number = 0.5;
   private _position: vec3 = vec3.fromValues(-1, 0, 1);
   private _target: vec3 = vec3.fromValues(0, 0, 0);
+  private _threeJsObject: { [key: string]: THREE.SpotLight } = {};
 
   // #endregion Properties (6)
 
@@ -104,6 +105,10 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   public set target(value: vec3) {
     this._target = value;
     this.updateVersion();
+  }
+
+  public get threeJsObject(): { [key: string]: THREE.SpotLight } {
+      return this._threeJsObject;
   }
 
   // #endregion Public Accessors (12)

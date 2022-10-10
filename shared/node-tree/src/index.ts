@@ -1,10 +1,10 @@
-import { ITreeNodeData } from './interfaces/ITreeNodeData'
-import { AbstractTreeNodeData } from './implementation/AbstractTreeNodeData'
 import { ITransformation } from './interfaces/ITreeNode'
 import { TreeNodeThreeJs } from './implementation/three/TreeNodeThreejs'
 import { ITreeNodeThreeJs } from './interfaces/three/ITreeNodeThreeJs'
 import { Tree } from './implementation/three/Tree'
 import { ITreeThreeJs } from './interfaces/three/ITreeThreeJs'
+import { ITreeNodeDataThreeJs } from './interfaces/three/ITreeNodeDataThreeJs'
+import { AbstractTreeNodeDataThreeJs } from './implementation/three/AbstractTreeNodeDataThreeJs'
 
 export {
     ITreeThreeJs as ITree, Tree
@@ -15,6 +15,5 @@ export {
 }
 
 export {
-    ITreeNodeData,
-    AbstractTreeNodeData
+    ITreeNodeDataThreeJs as ITreeNodeData, AbstractTreeNodeDataThreeJs as AbstractTreeNodeData
 }

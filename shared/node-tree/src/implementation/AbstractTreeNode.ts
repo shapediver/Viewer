@@ -6,13 +6,13 @@ import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { ITransformation, ITreeNode } from '../interfaces/ITreeNode'
 import { ITreeNodeData } from '../interfaces/ITreeNodeData'
 
-export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITreeNode<T> {
+export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U extends ITreeNodeData<any>> implements ITreeNode<T, U> {
   // #region Properties (13)
 
   readonly #uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
   readonly #children: T[] = [];
-  readonly #data: ITreeNodeData[] = [];
+  readonly #data: U[] = [];
   #transformations: ITransformation[] = [];
 
   readonly #id: string;
@@ -45,7 +45,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITre
   constructor(
     name: string = 'node',
     parent?: T,
-    data: ITreeNodeData[] = [],
+    data: U[] = [],
     transformations: ITransformation[] = []
   ) {
     this.#name = name.replace(/\./g, "_");
@@ -98,7 +98,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITre
     this.#originalId = value;
   }
 
-  public get data(): ITreeNodeData[] {
+  public get data(): U[] {
     return this.#data;
   }
 
@@ -195,7 +195,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITre
     for (let transform of this.#transformations)
       mat4.multiply(matrix, matrix, transform.matrix);
 
-    let node: AbstractTreeNode<any> = this;
+    let node: AbstractTreeNode<any, any> = this;
     while (node.parent) {
       mat4.multiply(matrix, node.parent.nodeMatrix, matrix);
       node = node.parent;
@@ -214,11 +214,11 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITre
     this.#children.push(child);
     if (child.parent)
       child.parent.removeChild(child);
-    (<AbstractTreeNode<any>>child.parent) = this;
+    (<AbstractTreeNode<any, any>>child.parent) = this;
     return true;
   }
 
-  public addData(data: ITreeNodeData): boolean {
+  public addData(data: U): boolean {
     this.#data.push(data);
     return true;
   }
@@ -271,7 +271,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITre
     return;
   }
 
-  public getData(id: string): ITreeNodeData | undefined {
+  public getData(id: string): U | undefined {
     for (let i = 0; i < this.#data.length; i++)
       if (this.#data[i].id === id)
         return this.#data[i];
@@ -299,7 +299,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITre
     return this.#children.includes(child);
   }
 
-  public hasData(data: ITreeNodeData): boolean {
+  public hasData(data: U): boolean {
     return this.#data.includes(data);
   }
 
@@ -315,7 +315,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITre
     return true;
   }
 
-  public removeData(data: ITreeNodeData): boolean {
+  public removeData(data: U): boolean {
     const index = this.#data.indexOf(data);
     if (index === -1) return false;
     this.#data.splice(index, 1);
@@ -337,7 +337,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any>> implements ITre
   }
 
   public updateVersion(): void {
-    let node = <AbstractTreeNode<any>>this;
+    let node = <AbstractTreeNode<any, any>>this;
     while (node.parent) {
       node = node.parent;
       (<any>node.version) = this.#uuidGenerator.create();

@@ -35,6 +35,7 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   private _left: number = 100;
   private _right: number = 100;
   private _top: number = 100;
+  private _threeJsObject: { [key: string]: THREE.OrthographicCamera } = {};
   private _up: vec3 = vec3.fromValues(0, 1, 0);
   protected _controls: IOrthographicCameraControls;
 
@@ -136,6 +137,10 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
 
   public set up(value: vec3) {
     this._up = value;
+  }
+
+  public get threeJsObject(): { [key: string]: THREE.OrthographicCamera } {
+    return this._threeJsObject;
   }
 
   // #endregion Public Accessors (12)

@@ -1,6 +1,6 @@
-export interface ITreeNodeData {
+export interface ITreeNodeData<T extends ITreeNodeData<any>> {
   id: string;
   version: string;
   updateVersion(): void;
-  clone(): ITreeNodeData;
+  clone(): T;
 }

@@ -1,7 +1,8 @@
 import { ITree } from '../interfaces/ITree';
 import { ITreeNode } from '../interfaces/ITreeNode';
+import { ITreeNodeData } from '../interfaces/ITreeNodeData';
 
-export abstract class AbstractTree<T extends ITreeNode<any>> implements ITree<T> {
+export abstract class AbstractTree<T extends ITreeNode<any, ITreeNodeData<any>>> implements ITree<T> {
   // #region Properties (1)
 
   readonly #root: T;

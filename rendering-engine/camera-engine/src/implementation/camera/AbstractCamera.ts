@@ -1,7 +1,6 @@
 import * as detectIt from 'detect-it'
-import { mat4, quat, vec2, vec3 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 import {
-    DomEventEngine,
     EventEngine,
     EVENTTYPE,
     IEvent,
@@ -10,12 +9,11 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
-import { AbstractTreeNodeData, ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
+import { AbstractTreeNodeData, ITreeNode } from '@shapediver/viewer.shared.node-tree'
 
 import { ICameraControls } from '../../interfaces/controls/ICameraControls'
 import { ICamera, ICameraOptions } from '../../interfaces/camera/ICamera'
 import { CAMERA_TYPE } from '../../interfaces/ICameraEngine'
-import { AbstractCameraControls } from '../controls/AbstractCameraControls'
 
 export abstract class AbstractCamera extends AbstractTreeNodeData implements ICamera {
     // #region Properties (23)

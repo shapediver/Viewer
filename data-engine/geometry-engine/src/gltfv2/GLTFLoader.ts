@@ -17,8 +17,7 @@ import {
   AttributeData,
   GeometryData,
   MaterialVariantsData,
-  PrimitiveData,
-  BoneData
+  PrimitiveData
 } from '@shapediver/viewer.shared.types'
 import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 import {
@@ -128,7 +127,6 @@ export class GLTFLoader {
                         const boneInverses: mat4[] = [];
 
                         for (let j = 0; j < skinDef.joints.length; j++) {
-                            this._nodes[skinDef.joints[j]].data.push(new BoneData())
                             bones.push(this._nodes[skinDef.joints[j]]);
 
                             let mat = mat4.create();

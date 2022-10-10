@@ -12,6 +12,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     private _direction: vec3 = vec3.fromValues(-1, 0, 1);
     private _shadowMapBias: number = -0.003;
     private _shadowMapResolution: number = 1024;
+    private _threeJsObject: { [key: string]: THREE.DirectionalLight } = {};
 
     // #endregion Properties (4)
 
@@ -81,6 +82,10 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     public set shadowMapResolution(value: number) {
         this._shadowMapResolution = value;
         this.updateVersion();
+    }
+
+    public get threeJsObject(): { [key: string]: THREE.DirectionalLight } {
+        return this._threeJsObject;
     }
 
     // #endregion Public Accessors (8)

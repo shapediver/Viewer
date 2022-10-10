@@ -62,7 +62,8 @@ export interface IMaterialAbstractData extends ITreeNodeData {
     normalScale: number,
     opacity: number,
     shading: MATERIAL_SHADING,
-    side: MATERIAL_SIDE
+    side: MATERIAL_SIDE,
+    threeJsObject: { [key: string]: THREE.Material };
 
     // #endregion Properties (18)
 

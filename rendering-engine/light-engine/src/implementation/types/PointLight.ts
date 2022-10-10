@@ -11,6 +11,7 @@ export class PointLight extends AbstractLight implements IPointLight {
   private _decay: number = 2;
   private _distance: number = 0;
   private _position: vec3 = vec3.fromValues(0, 0, 0);
+  private _threeJsObject: { [key: string]: THREE.PointLight } = {};
 
   // #endregion Properties (3)
 
@@ -68,6 +69,10 @@ export class PointLight extends AbstractLight implements IPointLight {
   public set position(value: vec3) {
     this._position = value;
     this.updateVersion();
+  }
+
+  public get threeJsObject(): { [key: string]: THREE.PointLight } {
+      return this._threeJsObject;
   }
 
   // #endregion Public Accessors (6)

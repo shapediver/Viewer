@@ -9,6 +9,7 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     // #region Properties (1)
 
     private _groundColor: string = '#ffffff';
+    private _threeJsObject: { [key: string]: THREE.HemisphereLight } = {};
 
     // #endregion Properties (1)
 
@@ -45,6 +46,10 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     public set groundColor(value: string) {
         this._groundColor = value;
         this.updateVersion();
+    }
+
+    public get threeJsObject(): { [key: string]: THREE.HemisphereLight } {
+        return this._threeJsObject;
     }
 
     // #endregion Public Accessors (2)
