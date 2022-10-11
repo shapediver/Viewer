@@ -4,6 +4,9 @@ import { ITreeNodeData } from "./ITreeNodeData";
 export interface ITree<T extends ITreeNode<any, ITreeNodeData<any>>> {
     // #region Properties (1)
 
+    /**
+     * The root of the tree.
+     */
     readonly root: T;
 
     // #endregion Properties (1)
