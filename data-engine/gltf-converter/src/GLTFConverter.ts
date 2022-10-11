@@ -519,7 +519,11 @@ export class GLTFConverter {
                 materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessRoughnessMap) };
             } else if ((standardMaterialData.metalnessMap || standardMaterialData.roughnessMap) && includeMaps) {
                 this._promises.push(new Promise<void>(async resolve => {
-                    const imageData = await combineTextures(undefined, standardMaterialData.roughnessMap!.image, standardMaterialData.metalnessMap!.image);
+                    const imageData = await combineTextures(
+                        undefined, 
+                        standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined, 
+                        standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
+                    );
                     const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
                     materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(new MapData(imageData, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.flipY)) }
                     resolve();
