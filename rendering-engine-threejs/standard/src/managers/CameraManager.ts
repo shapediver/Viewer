@@ -9,6 +9,7 @@ import {
 
 import { IManager } from '../interfaces/IManager'
 import { RenderingEngine } from '../RenderingEngine'
+import { SDData } from '../objects/SDData'
 
 export class CameraManager implements IManager {
     // #region Constructors (1)
@@ -26,7 +27,7 @@ export class CameraManager implements IManager {
 
     }
 
-    public load(camera: AbstractCamera, dataChild?: THREE.Object3D) {
+    public load(camera: AbstractCamera, dataChild?: SDData) {
         let threeCamera: THREE.Camera | null = dataChild && dataChild.children[0] instanceof THREE.Camera ? <THREE.Camera>dataChild.children[0] : null;
 
         if(camera instanceof PerspectiveCamera) {

@@ -9,15 +9,13 @@ import {
   UuidGenerator,
 } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { IGLTF_v2, IGLTF_v2_Primitive } from '@shapediver/viewer.data-engine.shared-types'
+import { IGLTF_v2 } from '@shapediver/viewer.data-engine.shared-types'
 import { mat4, vec3, vec4 } from 'gl-matrix'
 import {
   AnimationData,
   IAnimationTrack,
   AttributeData,
-  GeometryData,
-  MaterialVariantsData,
-  PrimitiveData
+  BoneData
 } from '@shapediver/viewer.shared.types'
 import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 import {
@@ -127,6 +125,7 @@ export class GLTFLoader {
                         const boneInverses: mat4[] = [];
 
                         for (let j = 0; j < skinDef.joints.length; j++) {
+                            this._nodes[skinDef.joints[j]].data.push(new BoneData())
                             bones.push(this._nodes[skinDef.joints[j]]);
 
                             let mat = mat4.create();

@@ -7,19 +7,21 @@ import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.ser
 import { RenderingEngine } from '..'
 import { IManager } from '../interfaces/IManager'
 import { container } from 'tsyringe'
+import { SDData } from '../objects/SDData'
+import { SDObject } from '../objects/SDObject'
 
 export class EnvironmentGeometryManager implements IManager {
     // #region Properties (5)
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
-    private _environmentGeometryObject!: THREE.Object3D;
+    private _environmentGeometryObject!: SDObject;
     private _grid!: THREE.GridHelper;
-    private _gridObject!: THREE.Object3D;
+    private _gridObject!: SDData;
     private _groundPlane!: THREE.Mesh;
     private _groundPlaneShadow!: THREE.Mesh;
-    private _groundPlaneObject!: THREE.Object3D;
-    private _groundPlaneShadowObject!: THREE.Object3D;
+    private _groundPlaneObject!: SDData;
+    private _groundPlaneShadowObject!: SDData;
     private _groundPlaneColor: string = '#d3d3d3ff';
     private _groundPlaneShadowColor: string = '#000000ff';
     private _gridColor: string = '#44444426';
@@ -168,10 +170,10 @@ export class EnvironmentGeometryManager implements IManager {
     }
 
     public init(): void {
-        this._environmentGeometryObject = this._renderingEngine.sceneTreeManager.createObject('environmentGeometry', '');
+        this._environmentGeometryObject = new SDObject('environmentGeometry', '');
         this._renderingEngine.sceneTreeManager.scene.add(this._environmentGeometryObject);
         
-        this._gridObject = this._renderingEngine.sceneTreeManager.createObject('grid', '');
+        this._gridObject = new SDData('grid', '');
         this._grid = new THREE.GridHelper();
         (<THREE.LineBasicMaterial>this._grid.material).opacity = this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
         (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
@@ -182,7 +184,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._gridObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._gridObject);
 
-        this._groundPlaneObject = this._renderingEngine.sceneTreeManager.createObject('groundPlane', '');
+        this._groundPlaneObject = new SDData('groundPlane', '');
         let mat = new MaterialStandardData();
         mat.color = this._groundPlaneColor;
         mat.side = MATERIAL_SIDE.FRONT;
@@ -196,7 +198,7 @@ export class EnvironmentGeometryManager implements IManager {
         this._groundPlaneObject.userData.ambientOcclusion = false;
         this._environmentGeometryObject.add(this._groundPlaneObject);
 
-        this._groundPlaneShadowObject = this._renderingEngine.sceneTreeManager.createObject('groundPlaneShadow', '');
+        this._groundPlaneShadowObject = new SDData('groundPlaneShadow', '');
         let matShadow = new MaterialShadowData();
         matShadow.color = this._groundPlaneShadowColor;
         matShadow.opacity = this._converter.toAlpha(this._groundPlaneShadowColor);
