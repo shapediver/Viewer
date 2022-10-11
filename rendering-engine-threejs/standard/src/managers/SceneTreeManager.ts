@@ -308,7 +308,7 @@ export class SceneTreeManager implements IManager {
      * @param node the scene graph node
      * @param obj the current type object
      */
-    public updateNode(node: ITreeNode, obj: ISDObject) {
+    public updateNode(node: ITreeNode, obj: THREE.Object3D) {
         const convertedObject = <SDObject>obj;
 
         // if this node specifically excludes the current viewer, skip it and all descendants
