@@ -555,7 +555,7 @@ export class GLTFConverter {
     private convertNode(node: ITreeNode): number {
         if (!this._content.nodes) this._content.nodes = [];
         const nodeDef: IGLTF_v2_Node = {
-            name: node.name,
+            name: this._convertForAR ? this._uuidGenerator.create() : node.name,
         };
 
         if (node.transformations.length > 0) {

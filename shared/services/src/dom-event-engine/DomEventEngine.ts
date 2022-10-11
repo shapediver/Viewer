@@ -283,7 +283,6 @@ export class DomEventEngine {
 
     private onTouchUp(event: TouchEvent): void {
         if (event.composedPath().includes(this._canvas.parentElement!)) {
-            event.preventDefault();
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchUp(event));
             Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
@@ -292,7 +291,6 @@ export class DomEventEngine {
 
     private onTouchCancel(event: TouchEvent): void {
         if (event.composedPath().includes(this._canvas.parentElement!)) {
-            event.preventDefault();
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchCancel(event));
             Object.values(this._domEventListeners).forEach(e => e.onTouchEnd(event));
@@ -301,7 +299,6 @@ export class DomEventEngine {
 
     private onTouchMove(event: TouchEvent): void {
         if (event.composedPath().includes(this._canvas.parentElement!)) {
-            event.preventDefault();
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchMove(event))
         }
@@ -309,7 +306,6 @@ export class DomEventEngine {
 
     private onTouchStart(event: TouchEvent): void {
         if (event.composedPath().includes(this._canvas.parentElement!)) {
-            event.preventDefault();
             event.stopPropagation();
             Object.values(this._domEventListeners).forEach(e => e.onTouchStart(event));
         }
