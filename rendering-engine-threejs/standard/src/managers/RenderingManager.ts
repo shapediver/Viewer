@@ -370,10 +370,14 @@ export class RenderingManager implements IManager {
         this.toggleBusyMode(states.busyMode);
 
         // animation loop - part 8: calculate the current size
-        this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
-        this._renderingEngine.renderer.domElement.style.width = width + 'px';
-        this._renderingEngine.renderer.domElement.style.height = height + 'px';
-        this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
+        const currentSize = new THREE.Vector2();
+        this._renderingEngine.renderer.getSize(currentSize);
+        if(!currentSize.equals(new THREE.Vector2(adjustedWidth, adjustedHeight))) {
+            this._renderingEngine.renderer.setSize(adjustedWidth, adjustedHeight);
+            this._renderingEngine.renderer.domElement.style.width = width + 'px';
+            this._renderingEngine.renderer.domElement.style.height = height + 'px';
+            this._renderingEngine.materialLoader.assignPointSize(this._renderingEngine.pointSize);
+        }
 
         // animation loop - part 9: adjust the camera (the rendering state would be false if we didn't have a camera)
         const camera = this._renderingEngine.cameraManager.adjustCamera(aspect);

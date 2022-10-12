@@ -10,6 +10,7 @@ import {
     IPrimitiveData,
     IAttributeData,
     MaterialGemData,
+    MaterialStandardData,
 } from '@shapediver/viewer.shared.types'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
@@ -28,6 +29,8 @@ import { mat4, mat3, vec3 } from 'gl-matrix'
 export class GeometryLoader implements ILoader {
     // #region Properties (3)
 
+    private readonly _defaultColor: string = '#00fff7';
+    
     private _counter: number = 0;
     private _geometryCache: {
         [key: string]: {
@@ -73,13 +76,13 @@ export class GeometryLoader implements ILoader {
      */
     public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): IBox {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
-            let materialData: IMaterialAbstractData | null;
+            let incomingMaterialData: IMaterialAbstractData | null;
             if (geometry.primitive.effectMaterials.length > 0) {
-                materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
+                incomingMaterialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
             } else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-                materialData = geometry.primitive.attributeMaterial;
+                incomingMaterialData = geometry.primitive.attributeMaterial;
             } else {
-                materialData = geometry.primitive.material;
+                incomingMaterialData = geometry.primitive.material;
             }
 
             const threeGeometry = this._geometryCache[geometry.id + '_' + geometry.version].threeGeometry.clone();
@@ -90,6 +93,13 @@ export class GeometryLoader implements ILoader {
                 useFlatShading: threeGeometry.attributes.normal === undefined,
                 useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
+            }
+
+            let materialData: IMaterialAbstractData;
+            if(!incomingMaterialData) {
+                materialData = new MaterialStandardData({color: materialSettings.useVertexColors ? '#d3d3d3' : this._defaultColor, side: MATERIAL_SIDE.DOUBLE})
+            } else {
+                materialData = incomingMaterialData;
             }
 
             if (materialData instanceof MaterialGemData) {
@@ -134,13 +144,13 @@ export class GeometryLoader implements ILoader {
         } else {
             const threeGeometry = this.loadGeometry(geometry.primitive);
 
-            let materialData: IMaterialAbstractData | null;
+            let incomingMaterialData: IMaterialAbstractData | null;
             if (geometry.primitive.effectMaterials.length > 0) {
-                materialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
+                incomingMaterialData = geometry.primitive.effectMaterials[geometry.primitive.effectMaterials.length - 1].material
             } else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-                materialData = geometry.primitive.attributeMaterial;
+                incomingMaterialData = geometry.primitive.attributeMaterial;
             } else {
-                materialData = geometry.primitive.material;
+                incomingMaterialData = geometry.primitive.material;
             }
 
             const materialSettings = {
@@ -150,6 +160,13 @@ export class GeometryLoader implements ILoader {
                 useFlatShading: threeGeometry.attributes.normal === undefined,
                 useMorphTargets: Object.keys(threeGeometry.morphAttributes).length > 0,
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
+            }
+
+            let materialData: IMaterialAbstractData;
+            if(!incomingMaterialData) {
+                materialData = new MaterialStandardData({color: materialSettings.useVertexColors ? '#d3d3d3' : this._defaultColor, side: MATERIAL_SIDE.DOUBLE})
+            } else {
+                materialData = incomingMaterialData;
             }
 
             if (materialData instanceof MaterialGemData) {
