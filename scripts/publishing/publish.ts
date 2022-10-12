@@ -77,6 +77,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
             for(let i = 0; i < examples.length; i++) {
                 console.log('deploying example ' + (i+1) + '/' + examples.length + '...')
                 const example = examples[i];
+                if(example === "main-pages") continue;
                 console.log(await execPromise('cd examples/' + example + ' && npm run build-prod && cd ../..'));
                 deployToS3('examples/' + example + '/dist-prod', example, prefix, true)
             }
