@@ -8,9 +8,10 @@ import { AbstractLight } from '../AbstractLight'
 export class PointLight extends AbstractLight implements IPointLight {
   // #region Properties (3)
 
-  private _decay: number = 2;
-  private _distance: number = 0;
-  private _position: vec3 = vec3.fromValues(0, 0, 0);
+  #decay: number = 2;
+  #distance: number = 0;
+  #position: vec3 = vec3.fromValues(0, 0, 0);
+  #threeJsObject: { [key: string]: THREE.PointLight } = {};
 
   // #endregion Properties (3)
 
@@ -34,9 +35,9 @@ export class PointLight extends AbstractLight implements IPointLight {
       order: properties.order,
       id: properties.id
     });
-    if (properties.position) this._position = properties.position;
-    if (properties.distance) this._distance = properties.distance;
-    if (properties.decay) this._decay = properties.decay;
+    if (properties.position) this.#position = properties.position;
+    if (properties.distance) this.#distance = properties.distance;
+    if (properties.decay) this.#decay = properties.decay;
   }
 
   // #endregion Constructors (1)
@@ -44,30 +45,34 @@ export class PointLight extends AbstractLight implements IPointLight {
   // #region Public Accessors (6)
 
   public get decay(): number {
-    return this._decay;
+    return this.#decay;
   }
 
   public set decay(value: number) {
-    this._decay = value;
+    this.#decay = value;
     this.updateVersion();
   }
 
   public get distance(): number {
-    return this._distance;
+    return this.#distance;
   }
 
   public set distance(value: number) {
-    this._distance = value;
+    this.#distance = value;
     this.updateVersion();
   }
 
   public get position(): vec3 {
-    return this._position;
+    return this.#position;
   }
 
   public set position(value: vec3) {
-    this._position = value;
+    this.#position = value;
     this.updateVersion();
+  }
+
+  public get threeJsObject(): { [key: string]: THREE.PointLight } {
+      return this.#threeJsObject;
   }
 
   // #endregion Public Accessors (6)

@@ -2,28 +2,26 @@ import * as THREE from 'three'
 import {
     AttributeData,
     GeometryData,
-    MATERIAL_ALPHA,
     MATERIAL_SIDE,
     IMaterialAbstractData,
     PRIMITIVE_MODE,
-    PrimitiveData,
     IPrimitiveData,
     IAttributeData,
     MaterialGemData,
 } from '@shapediver/viewer.shared.types'
-import { Box, IBox } from '@shapediver/viewer.shared.math'
+import { IBox } from '@shapediver/viewer.shared.math'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 import { RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
-import { SDNode } from '../types/SDNode'
 import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { SpecularGlossinessMaterial } from '../materials/SpecularGlossinessMaterial'
-import { SDData } from '../types/SDData'
 import { MaterialSettings } from './MaterialLoader'
-import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial'
+import { GemMaterial } from '../materials/GemMaterial'
 import { mat4, mat3, vec3 } from 'gl-matrix'
+import { SDData } from '../objects/SDData'
+import { SDObject } from '../objects/SDObject'
 
 export class GeometryLoader implements ILoader {
     // #region Properties (3)
@@ -71,7 +69,7 @@ export class GeometryLoader implements ILoader {
      * @param geometry the geometry data
      * @returns the geometry object
      */
-    public load(geometry: GeometryData, parent: SDNode, skeleton?: THREE.Skeleton): IBox {
+    public load(geometry: GeometryData, parent: SDObject, skeleton?: THREE.Skeleton): IBox {
         if (this._geometryCache[geometry.id + '_' + geometry.version]) {
             let materialData: IMaterialAbstractData | null;
             if (geometry.primitive.effectMaterials.length > 0) {
@@ -229,6 +227,7 @@ export class GeometryLoader implements ILoader {
                 }
             }
         }
+        primitive.threeJsObject[this._renderingEngine.id] = geometry;
         return geometry;
     }
 
@@ -422,13 +421,21 @@ export class GeometryLoader implements ILoader {
 
     private createMesh(obj: SDData, geometry: GeometryData, threeGeometry: THREE.BufferGeometry, material: THREE.Material, materialSettings: MaterialSettings, skeleton?: THREE.Skeleton) {
         if (geometry.primitive.mode === PRIMITIVE_MODE.POINTS) {
-            obj.add(new THREE.Points(threeGeometry, material));
+            const points = new THREE.Points(threeGeometry, material);
+            geometry.threeJsObject[this._renderingEngine.id] = points;
+            obj.add(points);
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINES) {
-            obj.add(new THREE.LineSegments(threeGeometry, material));
+            const lineSegments = new THREE.LineSegments(threeGeometry, material);
+            geometry.threeJsObject[this._renderingEngine.id] = lineSegments;
+            obj.add(lineSegments);
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_LOOP) {
-            obj.add(new THREE.LineLoop(threeGeometry, material));
+            const lineLoop = new THREE.LineLoop(threeGeometry, material);
+            geometry.threeJsObject[this._renderingEngine.id] = lineLoop;
+            obj.add(lineLoop);
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.LINE_STRIP) {
-            obj.add(new THREE.Line(threeGeometry, material));
+            const line = new THREE.Line(threeGeometry, material);
+            geometry.threeJsObject[this._renderingEngine.id] = line;
+            obj.add(line);
         } else if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLES || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN) {
             let bufferGeometry = threeGeometry;
             if (geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_STRIP || geometry.primitive.mode === PRIMITIVE_MODE.TRIANGLE_FAN)
@@ -436,6 +443,7 @@ export class GeometryLoader implements ILoader {
 
             if (skeleton) {
                 const skinnedMesh = new THREE.SkinnedMesh(bufferGeometry, material);
+                geometry.threeJsObject[this._renderingEngine.id] = skinnedMesh;
                 skinnedMesh.bind(skeleton, skinnedMesh.matrixWorld);
 
                 if (bufferGeometry.attributes.skinWeight.normalized)
@@ -447,17 +455,26 @@ export class GeometryLoader implements ILoader {
                 if (material.opacity < 1 || (<THREE.MeshPhysicalMaterial | SpecularGlossinessMaterial>material).alphaMap) {
                     const side = material.side;
                     if (side === THREE.DoubleSide) {
+                        const baseMesh = new THREE.Mesh();
+                        baseMesh.userData.transparencyPlaceholder = true;
+                        geometry.threeJsObject[this._renderingEngine.id] = baseMesh;
+                        obj.add(baseMesh);
+
                         const materialBack = material.clone();
                         materialBack.side = THREE.BackSide;
-                        obj.add(new THREE.Mesh(bufferGeometry, materialBack));
+                        baseMesh.add(new THREE.Mesh(bufferGeometry, materialBack));
                         const materialFront = material.clone();
                         materialFront.side = THREE.FrontSide;
-                        obj.add(new THREE.Mesh(bufferGeometry, materialFront));
+                        baseMesh.add(new THREE.Mesh(bufferGeometry, materialFront));
                     } else {
-                        obj.add(new THREE.Mesh(bufferGeometry, material));
+                        const mesh = new THREE.Mesh(bufferGeometry, material);
+                        geometry.threeJsObject[this._renderingEngine.id] = mesh;
+                        obj.add(mesh);
                     }
                 } else {
-                    obj.add(new THREE.Mesh(bufferGeometry, material));
+                    const mesh = new THREE.Mesh(bufferGeometry, material);
+                    geometry.threeJsObject[this._renderingEngine.id] = mesh;
+                    obj.add(mesh);
                 }
             }
         } else {
@@ -466,15 +483,16 @@ export class GeometryLoader implements ILoader {
         }
 
         obj.children.forEach(m => {
-            (<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0], geometry.boundingBox.min[1], geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0], geometry.boundingBox.max[1], geometry.boundingBox.max[2]));
-            (<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
-            (<THREE.Mesh>m).geometry.userData = {
-                SDid: geometry.id,
-                SDversion: geometry.version
-            };
-            m.renderOrder = geometry.renderOrder;
-            (<THREE.Mesh>m).morphTargetInfluences = geometry.morphWeights;
-            obj.add(m)
+            if(m.userData.transparencyPlaceholder !== true) {
+                (<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0], geometry.boundingBox.min[1], geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0], geometry.boundingBox.max[1], geometry.boundingBox.max[2]));
+                (<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
+                (<THREE.Mesh>m).geometry.userData = {
+                    SDid: geometry.id,
+                    SDversion: geometry.version
+                };
+                m.renderOrder = geometry.renderOrder;
+                (<THREE.Mesh>m).morphTargetInfluences = geometry.morphWeights;
+            }
         });
 
         this._geometryCache[geometry.id + '_' + geometry.version] = { obj, threeGeometry, materialSettings };

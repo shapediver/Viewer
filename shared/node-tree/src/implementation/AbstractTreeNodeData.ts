@@ -3,7 +3,7 @@ import { UuidGenerator, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared
 
 import { ITreeNodeData } from '../interfaces/ITreeNodeData'
 
-export abstract class AbstractTreeNodeData implements ITreeNodeData {
+export abstract class AbstractTreeNodeData<T extends ITreeNodeData<any>> implements ITreeNodeData<T> {
   // #region Properties (3)
 
   #version: string;
@@ -56,7 +56,10 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
   /**
    * Clones the tree node data.
    */
-  public abstract clone(): ITreeNodeData;
+  public clone(): T {
+    const clone = new (<any>this.constructor);
+    return clone;
+  };
 
   // #endregion Public Abstract Methods (1)
 }

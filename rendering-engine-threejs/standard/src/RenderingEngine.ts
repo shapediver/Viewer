@@ -1,25 +1,16 @@
 import * as THREE from 'three'
-import { vec2, vec3, vec4 } from 'gl-matrix'
+import { vec2, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import {
-  AbstractCamera,
   CameraEngine,
-  CAMERA_TYPE,
-  ICameraEngine,
-  ORTHOGRAPHIC_CAMERA_DIRECTION,
-  OrthographicCamera,
-  OrthographicCameraControls,
-  PerspectiveCamera,
-  PerspectiveCameraControls,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
-import { Canvas, CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
+import { CanvasEngine, ICanvas } from '@shapediver/viewer.rendering-engine.canvas-engine'
 import { ITree, ITreeNode, Tree } from '@shapediver/viewer.shared.node-tree'
-import { ILightEngine, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
+import { LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import {
   BUSY_MODE_DISPLAY,
   FLAG_TYPE,
   SPINNER_POSITIONING,
-  IRenderingEngine,
   RENDERER_TYPE,
   SESSION_SETTINGS_MODE,
   TEXTURE_ENCODING,
@@ -31,7 +22,6 @@ import {
   DomEventEngine,
   EventEngine,
   EVENTTYPE,
-  IEvent,
   Logger,
   LOGGING_TOPIC,
   SettingsEngine,
@@ -42,12 +32,8 @@ import {
 } from '@shapediver/viewer.shared.services'
 import {
   AnimationData,
-  ISceneEvent,
-  MATERIAL_SIDE,
-  MaterialStandardData,
   ISDTFOverviewData,
   ISDTFAttributeVisualizationData,
-  SDTFItemData,
   ISDTFOverview,
   ISDTFItemData,
   SDTFOverviewData,
@@ -56,12 +42,8 @@ import {
   IAnimationData,
   IGeometryData,
 } from '@shapediver/viewer.shared.types'
-import { TreeNode } from '@shapediver/viewer.shared.node-tree'
-import { GeometryData } from '@shapediver/viewer.shared.types'
-import { Box } from '@shapediver/viewer.shared.math'
 
 import { SceneTreeManager } from './managers/SceneTreeManager'
-import { SDNode } from './types/SDNode'
 import { RenderingManager } from './managers/RenderingManager'
 import { MaterialLoader } from './loaders/MaterialLoader'
 import { EnvironmentMapLoader } from './loaders/EnvironmentMapLoader'

@@ -6,16 +6,16 @@ import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.ser
 
 import { RenderingEngine } from '..'
 import { IManager } from '../interfaces/IManager'
-import { SDNode } from '../types/SDNode'
 import { container } from 'tsyringe'
-import { SDData } from '../types/SDData'
+import { SDData } from '../objects/SDData'
+import { SDObject } from '../objects/SDObject'
 
 export class EnvironmentGeometryManager implements IManager {
     // #region Properties (5)
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
 
-    private _environmentGeometryObject!: SDNode;
+    private _environmentGeometryObject!: SDObject;
     private _grid!: THREE.GridHelper;
     private _gridObject!: SDData;
     private _groundPlane!: THREE.Mesh;
@@ -170,7 +170,7 @@ export class EnvironmentGeometryManager implements IManager {
     }
 
     public init(): void {
-        this._environmentGeometryObject = new SDNode('environmentGeometry', '');
+        this._environmentGeometryObject = new SDObject('environmentGeometry', '');
         this._renderingEngine.sceneTreeManager.scene.add(this._environmentGeometryObject);
         
         this._gridObject = new SDData('grid', '');
