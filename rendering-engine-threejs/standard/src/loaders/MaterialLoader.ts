@@ -570,7 +570,7 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | null,
+        materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData,
         materialSettings?: MaterialSettings
     ): THREE.Material {
 
@@ -584,7 +584,7 @@ export class MaterialLoader implements ILoader {
             type = MATERIAL_TYPE.MESH;
         }
 
-        if(materialData && this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) 
+        if(this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) 
             return this._materialCache[materialData.id + '_' + materialData.version + '_' + type];
 
         let {properties, mapCount} = this.getMaterialProperties(materialData, type, materialSettings);
@@ -627,20 +627,18 @@ export class MaterialLoader implements ILoader {
             
         if (materialSettings && materialSettings.useVertexColors) material.vertexColors = true;
 
-        if(materialData) {
-            material.userData = {
-                SDid: materialData.id,
-                SDversion: materialData.version
-            }
+        material.userData = {
+            SDid: materialData.id,
+            SDversion: materialData.version
         }
         
-        if(materialData && this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) {
+        if(this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) {
             this._materialCache[materialData.id + '_' + materialData.version + '_' + type].copy(material)
             return this._materialCache[materialData.id + '_' + materialData.version + '_' + type];
         }
 
         material.needsUpdate = true;
-        if(materialData) this._materialCache[materialData.id + '_' + materialData.version + '_' + type] = material;
+        this._materialCache[materialData.id + '_' + materialData.version + '_' + type] = material;
 
         return material;
     }
