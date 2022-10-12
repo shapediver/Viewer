@@ -353,7 +353,7 @@ export interface IViewportApi {
    * 
    * @param node Optional node to display in AR. (default: scene tree)
    * @param qrCode Option to receive a QR Code instead of a link (default: true)
-   * @param fallbackUrl Optional fallback url if the link was opened by an unsupported device or an error occurred. If none was provided, the user will be redericted to shapediver.com/app
+   * @param fallbackUrl Optional fallback url if the link was opened by an unsupported device or an error occurred. If none was provided, the user will be redirected to shapediver.com/app
    */
   createArSessionLink(node?: ITreeNode, qrCode?: boolean, fallbackUrl?: string): Promise<string>;
 
