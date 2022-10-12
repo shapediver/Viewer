@@ -19,6 +19,8 @@ import { sceneTree } from "../../main";
 import { IOrthographicCameraApi } from "../../interfaces/viewport/camera/IOrthographicCameraApi";
 import { IPerspectiveCameraApi } from "../../interfaces/viewport/camera/IPerspectiveCameraApi";
 import { ISettingsV3_1 } from "@shapediver/viewer.settings";
+import { build_data } from "@shapediver/viewer.shared.build-data";
+import * as QRCode from "qrcode";
 
 export class ViewportApi implements IViewportApi {
     // #region Properties (5)
@@ -410,7 +412,7 @@ export class ViewportApi implements IViewportApi {
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
         }
     }
-    
+
     public get groundPlaneShadowColor(): string | number | vec3 {
         return this.#renderingEngine.groundPlaneShadowColor;
     }
@@ -847,7 +849,7 @@ export class ViewportApi implements IViewportApi {
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
         }
     }
-    
+
     public getViewportSettings(): ISettingsV3_1 {
         const scope = 'getViewportSettings';
         try {
@@ -939,7 +941,7 @@ export class ViewportApi implements IViewportApi {
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
         }
     }
-    
+
     public resetToDefaultCameras(): void {
         const scope = 'resetToDefaultCameras';
         try {
@@ -1010,6 +1012,81 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
+    public async createArSessionLink(node?: ITreeNode, qrCode: boolean = true, fallbackUrl?: string): Promise<string> {
+        const scope = 'createArSessionLink';
+        try {
+            if (node && !(node instanceof TreeNode)) {
+                const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
+                throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
+            }
+            const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
+            if (!arSessionEngine) {
+                const error = new ShapeDiverViewerArError('Api.createArSessionLink: None of the sessions that are registered are capable of using the AR feature.');
+                throw this.#logger.handleError(LOGGING_TOPIC.AR, 'Api.createArSessionLink', error, false);
+            }
+            const targetNode = node || sceneTree.root;
+
+            let scalingMatrix: mat4 = mat4.fromScaling(mat4.create(), this.arScale);
+
+            // add scaling matrix to scene tree node
+            targetNode.transformations.push({ id: 'ar_scaling', matrix: scalingMatrix })
+
+            // create the gltf
+            this.update();
+            const blob = await this.#gltfConverter.convert(targetNode, true);
+
+            // remove scaling the matrix
+            for (let i = 0; i < targetNode.transformations.length; i++)
+                if (targetNode.transformations[i].id === 'ar_scaling')
+                    targetNode.transformations.splice(i, 1);
+
+            this.update();
+
+            const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), ShapeDiverRequestGltfUploadQueryConversion.SCENE);
+
+            const backends: {
+                [key:string]: string
+            } = {
+                "sddev3": "https://sddev3.eu-central-1.shapediver.com",
+                "sddev2": "https://sddev2.eu-central-1.shapediver.com",
+                "sddev": "https://sddev.eu-central-1.shapediver.com",
+                "sdtest": "https://sdtest.us-east-1.shapediver.com",
+                "sdeuc1": "https://sdeuc1.eu-central-1.shapediver.com",
+                "sdr7euc1": "https://sdr7euc1.eu-central-1.shapediver.com",
+                "sduse1": "https://model-view.shapediver.com",
+            }
+
+            let backendIdentifier = Object.keys(backends).find((key: string) => backends[key] === arSessionEngine.modelViewUrl);
+            if(!backendIdentifier) {
+                const modelViewUrl = arSessionEngine.modelViewUrl;
+                backendIdentifier = modelViewUrl.replace("https://", "").replace(".shapediver.com", "");
+            }
+
+            let fallbackQueryParameter = fallbackUrl ? `fb=${fallbackUrl}&` : "";
+
+            const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${backendIdentifier}&id=${response.gltf!.sceneId}`;
+
+            if (qrCode === false) {
+                return link;
+            } else {
+                let qrCodeLink = await new Promise<string>(resolve => {
+                    QRCode.toDataURL(link,
+                        (error: Error | null | undefined, url: string) => {
+                            resolve(url)
+                        }
+                    )
+                })
+                return qrCodeLink;
+            }
+
+
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
+
     public async viewInAR(node?: ITreeNode): Promise<void> {
         const scope = 'viewInAR';
         try {
@@ -1040,8 +1117,8 @@ export class ViewportApi implements IViewportApi {
 
             this.update();
 
-            const file = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
-            return this.#renderingEngine.viewInAR(file)
+            const response = await arSessionEngine.uploadGLTF(new Blob([blob], { type: 'application/octet-stream' }), this.#systemInfo.isIOS ? ShapeDiverRequestGltfUploadQueryConversion.USDZ : ShapeDiverRequestGltfUploadQueryConversion.NONE);
+            return this.#renderingEngine.viewInAR(response.gltf!.href)
         } catch (e) {
             if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
             throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);

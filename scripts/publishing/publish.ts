@@ -83,6 +83,7 @@ import { execPromise, deployToS3, getDirectories, readAnswerOptions, readAnswer 
         }
             
         deployToS3('examples/cdn/dist-prod', undefined, prefix, true)
+        deployToS3('examples/main-pages', undefined, prefix, true)
 
         await execPromise(`git tag -a viewer@${newVersion} -m "deployed viewer version ${newVersion}"`);
         await execPromise(`git push origin viewer@${newVersion}`);
