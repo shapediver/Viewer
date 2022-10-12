@@ -1017,12 +1017,12 @@ export class ViewportApi implements IViewportApi {
         try {
             if (node && !(node instanceof TreeNode)) {
                 const error = new ShapeDiverViewerValidationError(`${scope}: Input could not be validated. ${node} is not of type node.`, node, 'node');
-                throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'InputValidator.validateAndError', error, false);
+                throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, 'ViewportApi.validateAndError', error, false);
             }
             const arSessionEngine = this.#creationControlCenter.getARSessionEngine();
             if (!arSessionEngine) {
-                const error = new ShapeDiverViewerArError('Api.createArSessionLink: None of the sessions that are registered are capable of using the AR feature.');
-                throw this.#logger.handleError(LOGGING_TOPIC.AR, 'Api.createArSessionLink', error, false);
+                const error = new ShapeDiverViewerArError('ViewportApi.createArSessionLink: None of the sessions that are registered are capable of using the AR feature.');
+                throw this.#logger.handleError(LOGGING_TOPIC.AR, 'ViewportApi.createArSessionLink', error, false);
             }
             const targetNode = node || sceneTree.root;
 
@@ -1062,10 +1062,15 @@ export class ViewportApi implements IViewportApi {
                 backendIdentifier = modelViewUrl.replace("https://", "").replace(".shapediver.com", "");
             }
 
-            let fallbackQueryParameter = fallbackUrl ? `fb=${fallbackUrl}&` : "";
+            let fallbackQueryParameter = fallbackUrl ? `fb=${encodeURIComponent(fallbackUrl)}&` : "";
 
-            const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${backendIdentifier}&id=${response.gltf!.sceneId}`;
+            if(!response.gltf || !response.gltf.sceneId) {
+                const error = new ShapeDiverViewerArError('ViewportApi.createArSessionLink: There was an unexpected error with the ar scene response. Please contact us if this happens again.');
+                throw this.#logger.handleError(LOGGING_TOPIC.AR, 'ViewportApi.createArSessionLink', error, false);            
+            }
+            let sceneId = response.gltf!.sceneId!;
 
+            const link = `https://viewer.shapediver.com/v3/${build_data.build_version.replace('3.', '')}/ar.html?${fallbackQueryParameter}b=${encodeURIComponent(backendIdentifier)}&id=${encodeURIComponent(sceneId)}`;
             if (qrCode === false) {
                 return link;
             } else {

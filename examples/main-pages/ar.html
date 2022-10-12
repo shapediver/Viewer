@@ -23,9 +23,9 @@
         const params = new Proxy(new URLSearchParams(window.location.search), {
             get: (searchParams, prop) => searchParams.get(prop),
         });
-        let sceneId = params.id;
-        let backend = params.b;
-        let fallbackUrl = params.fb || "https://shapediver.com/app/";
+        let sceneId = decodeURIComponent(params.id);
+        let backend = decodeURIComponent(params.b);
+        let fallbackUrl = decodeURIComponent(params.fb) || "https://shapediver.com/app/";
 
 
         const backends = {
