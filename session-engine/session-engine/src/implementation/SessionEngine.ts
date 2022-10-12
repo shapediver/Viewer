@@ -1079,7 +1079,7 @@ export class SessionEngine implements ISessionEngine {
         }
     }
 
-    public async uploadGLTF(blob: Blob, conversion: ShapeDiverRequestGltfUploadQueryConversion = ShapeDiverRequestGltfUploadQueryConversion.NONE, retry = false): Promise<string> {
+    public async uploadGLTF(blob: Blob, conversion: ShapeDiverRequestGltfUploadQueryConversion = ShapeDiverRequestGltfUploadQueryConversion.NONE, retry = false): Promise<ShapeDiverResponseDto> {
         this.checkAvailability('gltf-upload');
         try {
             const responseDto = await this._sdk.gltf.upload(this._sessionId!, await blob.arrayBuffer(), 'model/gltf-binary', conversion);
@@ -1087,7 +1087,7 @@ export class SessionEngine implements ISessionEngine {
                 const error = new ShapeDiverViewerSessionError(`Session.uploadGLTF: Upload reply has not the required format.`);
                 throw this._logger.handleError(LOGGING_TOPIC.SESSION, 'Session.uploadGLTF', error);
             }
-            return responseDto.gltf.href;
+            return responseDto;
         } catch (e) {
             await this.handleError(LOGGING_TOPIC.SESSION, 'Session.uploadGLTF', e, retry);
             return await this.uploadGLTF(blob, conversion, true);

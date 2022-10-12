@@ -135,7 +135,7 @@ export interface ISessionEngine {
   saveUiProperties(): Promise<boolean>;
   updateOutputs(): Promise<ITreeNode>;
   uploadFile(parameterId: string, data: File, type: string): Promise<string>;
-  uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<string>;
+  uploadGLTF(blob: Blob, conversion?: ShapeDiverRequestGltfUploadQueryConversion): Promise<ShapeDiverResponseDto>;
 
   // #endregion Public Methods (18)
 }

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ShapeDiver</title>
+</head>
+
+<body>
+    <script>
+        const isIOS = () => {
+            return [
+                'iPad Simulator',
+                'iPhone Simulator',
+                'iPod Simulator',
+                'iPad',
+                'iPhone',
+                'iPod'
+            ].includes(navigator.platform)
+                // iPad on iOS 13 detection
+                || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+        }
+
+        const params = new Proxy(new URLSearchParams(window.location.search), {
+            get: (searchParams, prop) => searchParams.get(prop),
+        });
+        let sceneId = decodeURIComponent(params.id);
+        let backend = decodeURIComponent(params.b);
+        let fallbackUrl = decodeURIComponent(params.fb) || "https://shapediver.com/app/";
+
+
+        const backends = {
+            "sddev3": "https://sddev3.eu-central-1.shapediver.com",
+            "sddev2": "https://sddev2.eu-central-1.shapediver.com",
+            "sddev": "https://sddev.eu-central-1.shapediver.com",
+            "sdtest": "https://sdtest.us-east-1.shapediver.com",
+            "sdeuc1": "https://sdeuc1.eu-central-1.shapediver.com",
+            "sdr7euc1": "https://sdr7euc1.eu-central-1.shapediver.com",
+            "sduse1": "https://model-view.shapediver.com",
+        }
+
+        if(!backend) {
+            window.location.assign(fallbackUrl);
+        } else {
+            if(backend.startsWith("https://")) {
+                // do nothing, we use this as a backend
+            } else if(Object.keys(backends).includes(backend)) {
+                // if the alias of the backend fits, use it
+                backend = backends[backend];
+            } else if(backend.replace(/[^.]/g, "").length === 1) {
+                // if there is one dot in the backend identifier we construct a modelViewUrl link
+                backend = `https://${backend}.shapediver.com`
+            } else {
+                // nothing else works, therefore we fail
+                window.location.assign(fallbackUrl);
+            }
+        }
+
+
+
+        console.log(sceneId, backend, fallbackUrl)
+
+        if (!fallbackUrl.startsWith("http"))
+            fallbackUrl = "https://" + fallbackUrl;
+
+        if (!sceneId || !backend)
+            window.location.assign(fallbackUrl);
+
+        let file = backend + "/api/v2/ar-scene/" + sceneId;
+
+        if (/Android|iPhone/i.test(navigator.userAgent)) {
+
+            if (isIOS()) {
+                file += "/usdz";
+                // create the link and click it
+                const a = document.createElement('a');
+                a.href = file + '.usdz';
+                a.rel = 'ar';
+                const img = document.createElement('img');
+                img.src = "https://viewer.shapediver.com/v3/graphics/logo.png"
+                a.appendChild(img);
+                a.click();
+            } else {
+                file += "/gltf";
+                const a = document.createElement('a');
+                a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=true&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${fallbackUrl};end;`
+                a.click();
+            }
+
+        } else {
+            window.location.assign(fallbackUrl);
+        }
+    </script>
+</body>
+
+</html>
