@@ -13,7 +13,7 @@ import { RenderingEngine } from '../RenderingEngine'
 import { ILoader } from '../interfaces/ILoader'
 import { Converter } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
-import { SDData } from '../types/SDData'
+import { SDData } from '../objects/SDData'
 
 export class LightLoader implements ILoader {
 
@@ -38,6 +38,7 @@ export class LightLoader implements ILoader {
         if (light instanceof AmbientLight) {
             if(!threeLight) {
                 threeLight = new THREE.AmbientLight();
+                (<AmbientLight>light).threeJsObject[this._renderingEngine.id] = <THREE.AmbientLight>threeLight;
                 dataChild.add(threeLight);
             }
             const threeAmbientLight = <THREE.AmbientLight>threeLight;
@@ -51,6 +52,7 @@ export class LightLoader implements ILoader {
                 threeLight = new THREE.DirectionalLight();
                 dataChild.add(threeLight);
                 dataChild.add((<THREE.DirectionalLight>threeLight).target);
+                (<DirectionalLight>light).threeJsObject[this._renderingEngine.id] = <THREE.DirectionalLight>threeLight;
             }
             const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
 
@@ -67,6 +69,7 @@ export class LightLoader implements ILoader {
             if(!threeLight) {
                 threeLight = new THREE.HemisphereLight();
                 dataChild.add(threeLight);
+                (<HemisphereLight>light).threeJsObject[this._renderingEngine.id] = <THREE.HemisphereLight>threeLight;
             }
             const threeHemisphereLight = <THREE.HemisphereLight>threeLight;
 
@@ -79,6 +82,7 @@ export class LightLoader implements ILoader {
             if(!threeLight) {
                 threeLight = new THREE.PointLight();
                 dataChild.add(threeLight);
+                (<PointLight>light).threeJsObject[this._renderingEngine.id] = <THREE.PointLight>threeLight;
             }
             const threePointLight = <THREE.PointLight>threeLight;
 
@@ -101,6 +105,7 @@ export class LightLoader implements ILoader {
                 );
                 dataChild.add(threeLight);
                 dataChild.add((<THREE.SpotLight>threeLight).target);
+                (<SpotLight>light).threeJsObject[this._renderingEngine.id] = <THREE.SpotLight>threeLight;
             }
             const threeSpotLight = <THREE.SpotLight>threeLight;
 

@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { mat4 } from 'gl-matrix'
-import { ISDObject } from '@shapediver/viewer.shared.node-tree';
+import { ISDObject } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
-export class SDBone extends THREE.Bone implements ISDObject {
+export class SDObject extends THREE.Object3D implements ISDObject {
     // #region Constructors (1)
 
     #SDid: string;

@@ -8,12 +8,13 @@ import { AbstractLight } from '../AbstractLight'
 export class SpotLight extends AbstractLight implements ISpotLight {
   // #region Properties (6)
 
-  private _angle: number = Math.PI / 4.0;
-  private _decay: number = 1;
-  private _distance: number = 0;
-  private _penumbra: number = 0.5;
-  private _position: vec3 = vec3.fromValues(-1, 0, 1);
-  private _target: vec3 = vec3.fromValues(0, 0, 0);
+  #angle: number = Math.PI / 4.0;
+  #decay: number = 1;
+  #distance: number = 0;
+  #penumbra: number = 0.5;
+  #position: vec3 = vec3.fromValues(-1, 0, 1);
+  #target: vec3 = vec3.fromValues(0, 0, 0);
+  #threeJsObject: { [key: string]: THREE.SpotLight } = {};
 
   // #endregion Properties (6)
 
@@ -40,12 +41,12 @@ export class SpotLight extends AbstractLight implements ISpotLight {
       order: properties.order,
       id: properties.id
     });
-    if (properties.position) this._position = properties.position;
-    if (properties.target) this._target = properties.target;
-    if (properties.distance) this._distance = properties.distance;
-    if (properties.decay) this._decay = properties.decay;
-    if (properties.angle) this._angle = properties.angle;
-    if (properties.penumbra) this._penumbra = properties.penumbra;
+    if (properties.position) this.#position = properties.position;
+    if (properties.target) this.#target = properties.target;
+    if (properties.distance) this.#distance = properties.distance;
+    if (properties.decay) this.#decay = properties.decay;
+    if (properties.angle) this.#angle = properties.angle;
+    if (properties.penumbra) this.#penumbra = properties.penumbra;
   }
 
   // #endregion Constructors (1)
@@ -53,57 +54,61 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   // #region Public Accessors (12)
 
   public get angle(): number {
-    return this._angle;
+    return this.#angle;
   }
 
   public set angle(value: number) {
-    this._angle = value;
+    this.#angle = value;
     this.updateVersion();
   }
 
   public get decay(): number {
-    return this._decay;
+    return this.#decay;
   }
 
   public set decay(value: number) {
-    this._decay = value;
+    this.#decay = value;
     this.updateVersion();
   }
 
   public get distance(): number {
-    return this._distance;
+    return this.#distance;
   }
 
   public set distance(value: number) {
-    this._distance = value;
+    this.#distance = value;
     this.updateVersion();
   }
 
   public get penumbra(): number {
-    return this._penumbra;
+    return this.#penumbra;
   }
 
   public set penumbra(value: number) {
-    this._penumbra = value;
+    this.#penumbra = value;
     this.updateVersion();
   }
 
   public get position(): vec3 {
-    return this._position;
+    return this.#position;
   }
 
   public set position(value: vec3) {
-    this._position = value;
+    this.#position = value;
     this.updateVersion();
   }
 
   public get target(): vec3 {
-    return this._target;
+    return this.#target;
   }
 
   public set target(value: vec3) {
-    this._target = value;
+    this.#target = value;
     this.updateVersion();
+  }
+
+  public get threeJsObject(): { [key: string]: THREE.SpotLight } {
+      return this.#threeJsObject;
   }
 
   // #endregion Public Accessors (12)

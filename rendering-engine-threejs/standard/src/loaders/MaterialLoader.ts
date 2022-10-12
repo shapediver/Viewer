@@ -631,6 +631,9 @@ export class MaterialLoader implements ILoader {
             SDid: materialData.id,
             SDversion: materialData.version
         }
+
+        if(materialData) 
+            materialData.threeJsObject[this._renderingEngine.id] = material;
         
         if(this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) {
             this._materialCache[materialData.id + '_' + materialData.version + '_' + type].copy(material)

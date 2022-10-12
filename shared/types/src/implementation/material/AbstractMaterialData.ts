@@ -24,6 +24,7 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
   #opacity = 1.0;
   #shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH;
   #side: MATERIAL_SIDE = MATERIAL_SIDE.DOUBLE;
+  #threeJsObject: { [key: string]: THREE.Material } = {};
 
   // #endregion Properties (17)
 
@@ -206,6 +207,10 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
 
   public set side(value: MATERIAL_SIDE) {
     this.#side = value;
+  }
+  
+  public get threeJsObject(): { [key: string]: THREE.Material } {
+    return this.#threeJsObject;
   }
 
   // #endregion Public Accessors (34)

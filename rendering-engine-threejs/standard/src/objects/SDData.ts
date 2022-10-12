@@ -1,4 +1,4 @@
-import { SDNode } from './SDNode';
+import { SDObject } from './SDObject';
 
 export enum SD_DATA_TYPE {
     GEOMETRY = 'geometry',
@@ -12,7 +12,7 @@ export enum SD_DATA_TYPE {
     CUSTOM = 'custom'
 }
 
-export class SDData extends SDNode {
+export class SDData extends SDObject {
     // #region Properties (1)
 
     #SDtype: SD_DATA_TYPE = SD_DATA_TYPE.CUSTOM;

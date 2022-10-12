@@ -176,6 +176,7 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
   #effectMaterials: { material: IMaterialAbstractData, token: string }[] = [];
   #materialVariants: { material: IMaterialAbstractData, variant: number }[] = [];
   #attributeMaterial: IMaterialAbstractData | null = null;
+  #threeJsObject: { [key: string]: THREE.BufferGeometry } = {};
 
   // #endregion Properties (5)
 
@@ -271,6 +272,10 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
   public get mode(): PRIMITIVE_MODE {
     return this.#mode;
   }
+  
+  public get threeJsObject(): { [key: string]: THREE.BufferGeometry } {
+    return this.#threeJsObject;
+  }
 
   // #endregion Public Accessors (7)
 
@@ -301,6 +306,7 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
   #renderOrder: number = 0;
   #morphWeights: number[] = [];
   #skinNode: ITreeNode | undefined;
+  #threeJsObject: { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } = {};
 
   // #endregion Properties (4)
 
@@ -364,6 +370,10 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
 
   public set skinNode(value: ITreeNode | undefined) {
     this.#skinNode = value;
+  }
+  
+  public get threeJsObject(): { [key: string]: THREE.Mesh | THREE.Points | THREE.LineSegments | THREE.LineLoop | THREE.Line } {
+    return this.#threeJsObject;
   }
 
   // #endregion Public Accessors (5)
