@@ -7,6 +7,10 @@ import { IPlane, Plane } from "@shapediver/viewer.shared.math";
 import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
+/**
+ * The plane constraint is used for dragging and allows to specify a plane on which an object can be dragged.
+ * The rotation is applied to the object if the point constraint was activated.
+ */
 export class PlaneConstraint implements IDragConstraint {
     // #region Properties (5)
 

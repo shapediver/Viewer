@@ -6,6 +6,11 @@ import { IViewportApi } from "@shapediver/viewer";
 import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
+/**
+ * The line constraint is used for dragging and allows to specify a line on which an object can be dragged.
+ * The radius defines in which distance this constraint becomes active.
+ * The rotation is applied to the object if the point constraint was activated.
+ */
 export class LineConstraint implements IDragConstraint {
     // #region Properties (7)
 

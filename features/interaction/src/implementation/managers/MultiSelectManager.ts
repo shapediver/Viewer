@@ -54,17 +54,31 @@ export class MultiSelectManager extends AbstractInteractionManager {
         this.viewport = undefined;
     }
 
+    /**
+     * Select a node.
+     * The point and distance of the intersection can be freely chosen and are provided in the event callbacks.
+     * 
+     * @param intersection 
+     */
     public select(intersection: IIntersection) {
         if(this.#nodes.includes(intersection.node))
             this.deactivateNode(intersection.node);
         this.activateNode(intersection);
     }
 
+    /**
+     * Deselect a specific node.
+     * 
+     * @param node 
+     */
     public deselect(node: ITreeNode) {
         if(this.#nodes.includes(node))
             this.deactivateNode(node);
     }
 
+    /**
+     * Deselect all nodes.
+     */
     public deselectAll() {
         for (let i = 0; i < this.#nodes.length; i++)
             this.deactivateNode(this.#nodes[i]); 

@@ -1,6 +1,13 @@
 import { ITreeNode } from "@shapediver/viewer.shared.node-tree";
 import { GeometryData, AnimationData } from "@shapediver/viewer.shared.types";
 
+/**
+ * Check if a bone is contained in the hierarchy.
+ * 
+ * @param bone 
+ * @param node 
+ * @returns 
+ */
 const hasBoneInHierarchy = (bone: ITreeNode, node: ITreeNode): boolean => {
     if (bone === node) return true;
 
@@ -11,6 +18,13 @@ const hasBoneInHierarchy = (bone: ITreeNode, node: ITreeNode): boolean => {
     return false;
 }
 
+/**
+ * Find the node with the specified original ID.
+ * 
+ * @param node 
+ * @param originalId 
+ * @returns 
+ */
 const findNodeWithOriginalId = (node: ITreeNode, originalId: string): ITreeNode | undefined => {
     if (node.originalId === originalId) return node;
 
@@ -22,6 +36,12 @@ const findNodeWithOriginalId = (node: ITreeNode, originalId: string): ITreeNode 
     return;
 }
 
+/**
+ * Helper function to add the bones of a skin to the nodes.
+ * 
+ * @param node 
+ * @param skin 
+ */
 const addBones = (node: ITreeNode, skin: ITreeNode) => {
     for (let j = 0; j < node.data.length; j++)
         if (node.data[j] instanceof GeometryData)

@@ -10,6 +10,16 @@ import { IDragConstraintUtils } from "../../interfaces/utils/IDragConstraintUtil
 export class DragConstraintUtils implements IDragConstraintUtils {
     // #region Public Methods (2)
 
+    /**
+     * Intersect the drag constraints with the provided ray.
+     * Returns a transformation matrix with the closest drag constraint.
+     * 
+     * @param dragConstraints 
+     * @param viewport 
+     * @param node 
+     * @param ray 
+     * @returns 
+     */
     public intersect(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay): { dragConstraint?: IDragConstraint, matrix: mat4 } {
         const dragConstraintResults: { distance: number, transformation: mat4, dragConstraint: IDragConstraint }[] = [];
         for(let d in dragConstraints) {
@@ -25,6 +35,17 @@ export class DragConstraintUtils implements IDragConstraintUtils {
         }
     }
 
+    /**
+     * Setup the drag constraints. This function is called whenever a drag event starts.
+     * Returns a transformation matrix with the closest drag constraint.
+     * 
+     * @param dragConstraints 
+     * @param viewport 
+     * @param node 
+     * @param ray 
+     * @param intersection 
+     * @returns 
+     */
     public setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): { dragConstraint?: IDragConstraint, matrix: mat4 } {
         const dragConstraintResults: { distance: number, transformation: mat4, dragConstraint: IDragConstraint }[] = [];
         for(let d in dragConstraints) {

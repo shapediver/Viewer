@@ -7,6 +7,10 @@ import { IPlane, Plane } from "@shapediver/viewer.shared.math";
 import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
+/**
+ * The camera plane constraint is used for dragging and allows to specify that the dragging happens on a plane that is created on the origin of the node as a parallel to the camera plane.
+ * The rotation is applied to the object if the point constraint was activated.
+ */
 export class CameraPlaneConstraint implements IDragConstraint {
     // #region Properties (3)
 

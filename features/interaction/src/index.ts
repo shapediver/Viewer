@@ -21,6 +21,8 @@ import { IHoverEvent } from "./interfaces/events/IHoverEvent";
 import { IMultiSelectEvent } from "./interfaces/events/IMultiSelectEvent";
 import { ISelectEvent } from "./interfaces/events/ISelectEvent";
 import { InteractionEventResponseMapping } from "./interfaces/events/EventResponseMapping";
+import { IAmbientLightApi, ICameraApi, IDirectionalLightApi, IHemisphereLightApi, ILightApi, ILightSceneApi, IOrthographicCameraApi, IPerspectiveCameraApi, IPointLightApi, ISpotLightApi, IViewportApi } from "@shapediver/viewer";
+import { IRay, IIntersectionFilter, IIntersection } from "@shapediver/viewer.rendering-engine.intersection-engine";
 
 export {
     IInteractionEngine, InteractionEngine, IInteractionManager, AbstractInteractionManager
@@ -48,4 +50,8 @@ export {
 
 export {
     ISelectEvent, IMultiSelectEvent, IDragEvent, IHoverEvent, InteractionEventResponseMapping
+}
+
+export {
+    IRay, IViewportApi, ICameraApi, ILightSceneApi, IOrthographicCameraApi, IPerspectiveCameraApi, IAmbientLightApi, IDirectionalLightApi, IHemisphereLightApi, IPointLightApi, ISpotLightApi, ILightApi, IIntersectionFilter, IIntersection
 }

@@ -5,8 +5,12 @@ import { mat4, vec3 } from "gl-matrix";
 import { IViewportApi } from "@shapediver/viewer";
 import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
-import { container } from "tsyringe";
 
+/**
+ * The point constraint is used for dragging and allows to specify the position where an object can be dragged to.
+ * The radius defines in which distance this constraint becomes active.
+ * The rotation is applied to the object if the point constraint was activated.
+ */
 export class PointConstraint implements IDragConstraint {
     // #region Properties (4)
 
