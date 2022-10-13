@@ -25,8 +25,8 @@
         });
         let sceneId = decodeURIComponent(params.id);
         let backend = decodeURIComponent(params.b);
-        let fallbackUrl = decodeURIComponent(params.fb) || "https://shapediver.com/app/";
-
+        let fallbackUrl = decodeURIComponent(params.fb);
+        fallbackUrl = fallbackUrl === "null" ? "https://shapediver.com/app/" : fallbackUrl;
 
         const backends = {
             "sddev3": "https://sddev3.eu-central-1.shapediver.com",
@@ -55,10 +55,6 @@
             }
         }
 
-
-
-        console.log(sceneId, backend, fallbackUrl)
-
         if (!fallbackUrl.startsWith("http"))
             fallbackUrl = "https://" + fallbackUrl;
 
@@ -73,7 +69,7 @@
                 file += "/usdz";
                 // create the link and click it
                 const a = document.createElement('a');
-                a.href = file + '.usdz';
+                a.href = file;
                 a.rel = 'ar';
                 const img = document.createElement('img');
                 img.src = "https://viewer.shapediver.com/v3/graphics/logo.png"
