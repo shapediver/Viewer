@@ -8,8 +8,8 @@ import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
 /**
- * The camera plane constraint is used for dragging and allows to specify that the dragging happens on a plane that is created on the origin of the node as a parallel to the camera plane.
- * The rotation is applied to the object if the point constraint was activated.
+ * The camera plane constraint is used for dragging and allows to specify that the dragging happens on a plane parallel to the camera plane that passes through the origin of the node being dragged.
+ * The rotation is applied to the node that is being dragged if this constraint was activated.
  */
 export class CameraPlaneConstraint implements IDragConstraint {
     // #region Properties (3)
@@ -22,6 +22,9 @@ export class CameraPlaneConstraint implements IDragConstraint {
 
     // #region Constructors (1)
 
+    /**
+     * @param _rotation the rotation that is applied to the node if the drag contraint becomes active
+     */
     constructor(
         _rotation?: {
             axis: vec3,

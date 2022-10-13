@@ -9,7 +9,7 @@ import { calculateDragMatrix } from "./DragConstraintsHelper";
 
 /**
  * The plane constraint is used for dragging and allows to specify a plane on which an object can be dragged.
- * The rotation is applied to the object if the point constraint was activated.
+ * The rotation is applied to the node that is being dragged if this constraint was activated.
  */
 export class PlaneConstraint implements IDragConstraint {
     // #region Properties (5)
@@ -27,6 +27,11 @@ export class PlaneConstraint implements IDragConstraint {
 
     // #region Constructors (1)
 
+    /**
+     * @param _normal the normal vector of the plane
+     * @param _coplanarPoint a coplanar point on the plane 
+     * @param _rotation the rotation that is applied to the node if the drag contraint becomes active
+     */
     constructor(
         _normal: vec3,
         _coplanarPoint?: vec3,

@@ -7,9 +7,9 @@ import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
 /**
- * The line constraint is used for dragging and allows to specify a line on which an object can be dragged.
+ * The line constraint is used for dragging and allows the specification of a line along which objects can be dragged.
  * The radius defines in which distance this constraint becomes active.
- * The rotation is applied to the object if the point constraint was activated.
+ * The rotation is applied to the node that is being dragged if this constraint was activated.
  */
 export class LineConstraint implements IDragConstraint {
     // #region Properties (7)
@@ -29,6 +29,12 @@ export class LineConstraint implements IDragConstraint {
 
     // #region Constructors (1)
 
+    /**
+     * @param _point1 the start point of the line
+     * @param _point2 the end point of the line
+     * @param _radius the radius in which the line is considered
+     * @param _rotation the rotation that is applied to the node if the drag contraint becomes active
+     */
     constructor(
         _point1: vec3,
         _point2: vec3,

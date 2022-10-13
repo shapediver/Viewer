@@ -9,7 +9,7 @@ import { calculateDragMatrix } from "./DragConstraintsHelper";
 /**
  * The point constraint is used for dragging and allows to specify the position where an object can be dragged to.
  * The radius defines in which distance this constraint becomes active.
- * The rotation is applied to the object if the point constraint was activated.
+ * The rotation is applied to the node that is being dragged if this constraint was activated.
  */
 export class PointConstraint implements IDragConstraint {
     // #region Properties (4)
@@ -26,6 +26,11 @@ export class PointConstraint implements IDragConstraint {
 
     // #region Constructors (1)
 
+    /**
+     * @param _point the point
+     * @param _radius the radius in which the point is considered
+     * @param _rotation the rotation that is applied to the node if the drag contraint becomes active
+     */
     constructor(
         _point: vec3, 
         _radius: number = 0,
