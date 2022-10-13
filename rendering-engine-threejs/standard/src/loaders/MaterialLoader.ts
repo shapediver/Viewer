@@ -13,6 +13,7 @@ import {
   MaterialStandardData,
   IMapData,
   MaterialShadowData,
+  GeometryData,
 } from '@shapediver/viewer.shared.types'
 import { vec4 } from 'gl-matrix'
 
@@ -570,9 +571,12 @@ export class MaterialLoader implements ILoader {
      * @returns the material object
      */
     public load(
-        materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData,
+        incomingData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | GeometryData,
         materialSettings?: MaterialSettings
     ): THREE.Material {
+        let materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | null = null;
+        if(!(incomingData instanceof GeometryData)) 
+            materialData = incomingData;
 
         // evaluate which type of material properties we are constructing
         let type: MATERIAL_TYPE;
@@ -584,8 +588,8 @@ export class MaterialLoader implements ILoader {
             type = MATERIAL_TYPE.MESH;
         }
 
-        if(this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) 
-            return this._materialCache[materialData.id + '_' + materialData.version + '_' + type];
+        if(this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) 
+            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type];
 
         let {properties, mapCount} = this.getMaterialProperties(materialData, type, materialSettings);
         this.maxMapCount = Math.max(this.maxMapCount, mapCount);
@@ -628,20 +632,20 @@ export class MaterialLoader implements ILoader {
         if (materialSettings && materialSettings.useVertexColors) material.vertexColors = true;
 
         material.userData = {
-            SDid: materialData.id,
-            SDversion: materialData.version
+            SDid: incomingData.id,
+            SDversion: incomingData.version
         }
 
         if(materialData) 
             materialData.threeJsObject[this._renderingEngine.id] = material;
         
-        if(this._materialCache[materialData.id + '_' + materialData.version + '_' + type]) {
-            this._materialCache[materialData.id + '_' + materialData.version + '_' + type].copy(material)
-            return this._materialCache[materialData.id + '_' + materialData.version + '_' + type];
+        if(this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) {
+            this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].copy(material)
+            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type];
         }
 
         material.needsUpdate = true;
-        this._materialCache[materialData.id + '_' + materialData.version + '_' + type] = material;
+        this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type] = material;
 
         return material;
     }

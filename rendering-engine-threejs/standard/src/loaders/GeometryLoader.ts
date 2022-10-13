@@ -93,15 +93,8 @@ export class GeometryLoader implements ILoader {
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
             }
 
-            let materialData: IMaterialAbstractData;
-            if(!incomingMaterialData) {
-                materialData = new MaterialStandardData({color: materialSettings.useVertexColors ? '#d3d3d3' : this._defaultColor, side: MATERIAL_SIDE.DOUBLE})
-            } else {
-                materialData = incomingMaterialData;
-            }
-
-            if (materialData instanceof MaterialGemData) {
-                const gemMaterialData = <MaterialGemData>materialData;
+            if (incomingMaterialData instanceof MaterialGemData) {
+                const gemMaterialData = <MaterialGemData>incomingMaterialData;
                 if (!threeGeometry.boundingSphere) threeGeometry.computeBoundingSphere();
 
                 let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
@@ -118,7 +111,7 @@ export class GeometryLoader implements ILoader {
                 (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
             }
 
-            const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
+            const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
 
             const obj = this._geometryCache[geometry.id + '_' + geometry.version].obj.clone();
             obj.traverse(o => {
@@ -160,15 +153,8 @@ export class GeometryLoader implements ILoader {
                 useMorphNormals: Object.keys(threeGeometry.morphAttributes).length > 0 && threeGeometry.morphAttributes.normal !== undefined
             }
 
-            let materialData: IMaterialAbstractData;
-            if(!incomingMaterialData) {
-                materialData = new MaterialStandardData({color: materialSettings.useVertexColors ? '#d3d3d3' : this._defaultColor, side: MATERIAL_SIDE.DOUBLE})
-            } else {
-                materialData = incomingMaterialData;
-            }
-
-            if (materialData instanceof MaterialGemData) {
-                const gemMaterialData = <MaterialGemData>materialData;
+            if (incomingMaterialData instanceof MaterialGemData) {
+                const gemMaterialData = <MaterialGemData>incomingMaterialData;
                 if (!threeGeometry.boundingSphere) threeGeometry.computeBoundingSphere();
 
                 let sphericalNormalMap = this.createCubeNormalMap(geometry, threeGeometry);
@@ -185,7 +171,7 @@ export class GeometryLoader implements ILoader {
                 (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
             }
 
-            const material = this._renderingEngine.materialLoader.load(materialData, materialSettings);
+            const material = this._renderingEngine.materialLoader.load(incomingMaterialData || geometry, materialSettings);
 
             const obj = new SDData(geometry.id, geometry.version);
             this.createMesh(obj, geometry, threeGeometry, material, materialSettings, skeleton);
