@@ -31,7 +31,7 @@ export class PlaneConstraint implements IDragConstraint {
     /**
      * @param _normal the normal vector of the plane
      * @param _coplanarPoint a coplanar point on the plane 
-     * @param _rotation the rotation that is applied to the node if the drag contraint becomes active
+     * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag contraint becomes active
      */
     constructor(
         _normal: vec3,

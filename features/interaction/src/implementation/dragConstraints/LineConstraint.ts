@@ -34,7 +34,7 @@ export class LineConstraint implements IDragConstraint {
      * @param _point1 the start point of the line
      * @param _point2 the end point of the line
      * @param _radius the radius in which the line is considered
-     * @param _rotation the rotation that is applied to the node if the drag contraint becomes active
+     * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag contraint becomes active
      */
     constructor(
         _point1: vec3,

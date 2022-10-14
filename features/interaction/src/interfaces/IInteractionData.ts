@@ -34,7 +34,7 @@ export interface IInteractionData extends ITreeNodeData {
      * The drag anchors can be defined as various points in space that will be transformed according to the node matrix that this data item belongs to.
      * These anchors are used when an object is being dragged instead of the {@link dragOrigin} or the default, the intersection with the node.
      * 
-     * The optional rotation is being applied to the node if the specified drag anchor has been used.
+     * The optional rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) is being applied to the node if the specified drag anchor has been used.
      */
     dragAnchors: {
         position: vec3,

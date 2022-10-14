@@ -30,7 +30,7 @@ export class PointConstraint implements IDragConstraint {
     /**
      * @param _point the point
      * @param _radius the radius in which the point is considered
-     * @param _rotation the rotation that is applied to the node if the drag contraint becomes active
+     * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag contraint becomes active
      */
     constructor(
         _point: vec3, 
