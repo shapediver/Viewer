@@ -9,7 +9,8 @@ import { calculateDragMatrix } from "./DragConstraintsHelper";
 
 /**
  * The plane constraint is used for dragging and allows to specify a plane on which an object can be dragged.
- * The rotation is applied to the node that is being dragged if this constraint was activated.
+ * The transformation and optional rotation of this constraint get applied to the node if it is the constraint with the closest distance to the ray that was used for the drag event.
+ * As this is a difficult topic, please visit our [help desk section on interactions](https://help.shapediver.com/doc/interactions-part-1) where we go through the process of setting everything up with examples.
  */
 export class PlaneConstraint implements IDragConstraint {
     // #region Properties (5)

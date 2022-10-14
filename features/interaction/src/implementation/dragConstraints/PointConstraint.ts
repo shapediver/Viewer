@@ -8,8 +8,9 @@ import { calculateDragMatrix } from "./DragConstraintsHelper";
 
 /**
  * The point constraint is used for dragging and allows to specify the position where an object can be dragged to.
- * The radius defines in which distance this constraint becomes active.
- * The rotation is applied to the node that is being dragged if this constraint was activated.
+ * The radius defines in which distance this constraint is being considered to be chosen from the constraints defined.
+ * The transformation and optional rotation of this constraint get applied to the node if it is the constraint with the closest distance to the ray that was used for the drag event.
+ * As this is a difficult topic, please visit our [help desk section on interactions](https://help.shapediver.com/doc/interactions-part-1) where we go through the process of setting everything up with examples.
  */
 export class PointConstraint implements IDragConstraint {
     // #region Properties (4)
