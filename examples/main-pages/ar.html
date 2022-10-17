@@ -20,6 +20,17 @@
                 || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
         }
 
+        const existsArSession = (url, callback) => {
+            var http = new XMLHttpRequest();
+            http.open('HEAD', url);
+            http.onreadystatechange = function () {
+                if (this.readyState == this.DONE) {
+                    callback(this.status === 200);
+                }
+            };
+            http.send();
+        }
+
         const params = new Proxy(new URLSearchParams(window.location.search), {
             get: (searchParams, prop) => searchParams.get(prop),
         });
@@ -38,15 +49,15 @@
             "sduse1": "https://model-view.shapediver.com",
         }
 
-        if(!backend) {
+        if (!backend) {
             window.location.assign(fallbackUrl);
         } else {
-            if(backend.startsWith("https://")) {
+            if (backend.startsWith("https://")) {
                 // do nothing, we use this as a backend
-            } else if(Object.keys(backends).includes(backend)) {
+            } else if (Object.keys(backends).includes(backend)) {
                 // if the alias of the backend fits, use it
                 backend = backends[backend];
-            } else if(backend.replace(/[^.]/g, "").length === 1) {
+            } else if (backend.replace(/[^.]/g, "").length === 1) {
                 // if there is one dot in the backend identifier we construct a modelViewUrl link
                 backend = `https://${backend}.shapediver.com`
             } else {
@@ -61,30 +72,37 @@
         if (!sceneId || !backend)
             window.location.assign(fallbackUrl);
 
-        let file = backend + "/api/v2/ar-scene/" + sceneId;
+        new Promise(resolve => {
+            existsArSession(backend + "/api/v2/ar-scene/" + sceneId, resolve)
+        }).then((result) => {
+            let file = backend + "/api/v2/ar-scene/" + sceneId;
 
-        if (/Android|iPhone/i.test(navigator.userAgent)) {
+            if (/Android|iPhone/i.test(navigator.userAgent) && result === true) {
 
-            if (isIOS()) {
-                file += "/usdz";
-                // create the link and click it
-                const a = document.createElement('a');
-                a.href = file;
-                a.rel = 'ar';
-                const img = document.createElement('img');
-                img.src = "https://viewer.shapediver.com/v3/graphics/logo.png"
-                a.appendChild(img);
-                a.click();
+                if (isIOS()) {
+                    file += "/usdz";
+                    // create the link and click it
+                    const a = document.createElement('a');
+                    a.href = file;
+                    a.rel = 'ar';
+                    const img = document.createElement('img');
+                    img.src = "https://viewer.shapediver.com/v3/graphics/logo.png"
+                    a.appendChild(img);
+                    a.click();
+                } else {
+                    file += "/gltf";
+                    const a = document.createElement('a');
+                    a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=true&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${fallbackUrl};end;`
+                    a.click();
+                }
+
             } else {
-                file += "/gltf";
-                const a = document.createElement('a');
-                a.href = `intent://arvr.google.com/scene-viewer/1.0?resizable=true&file=${file}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${fallbackUrl};end;`
-                a.click();
+                window.location.assign(fallbackUrl);
             }
-
-        } else {
+        }).catch(() => {
             window.location.assign(fallbackUrl);
-        }
+        })
+
     </script>
 </body>
 
