@@ -30,9 +30,9 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   private _domEventListenerToken?: string;
   private _domEventEngine?: DomEventEngine;
 
-  private _bottom: number = 100;
+  private _bottom: number = -100;
   private _direction: ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
-  private _left: number = 100;
+  private _left: number = -100;
   private _right: number = 100;
   private _top: number = 100;
   private _up: vec3 = vec3.fromValues(0, 1, 0);
