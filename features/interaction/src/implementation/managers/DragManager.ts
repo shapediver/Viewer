@@ -73,6 +73,13 @@ export class DragManager extends AbstractInteractionManager {
         this.viewport = undefined;
     }
 
+    /**
+     * Add a new drag constraint.
+     * Returns a token that is used for removing the drag constraint via {@link removeDragConstraint}.
+     * 
+     * @param constraint 
+     * @returns 
+     */
     public addDragConstraint(constraint: IDragConstraint): string {
         const token = this.#uuidGenerator.create();
         this.#dragConstraints[token] = constraint;
@@ -115,6 +122,12 @@ export class DragManager extends AbstractInteractionManager {
         );
     }
 
+    /**
+     * Remove the drag constraint that was added via {@link removeDragConstraint}.
+     * 
+     * @param token 
+     * @returns 
+     */
     public removeDragConstraint(token: string): boolean {
         if(!this.#dragConstraints[token]) return false;
         delete this.#dragConstraints[token];
@@ -254,7 +267,6 @@ export class DragManager extends AbstractInteractionManager {
     private removeTransformation(node: ITreeNode) {
         const index = node.transformations.findIndex((t: ITransformation) => t.id === 'SD_drag_matrix');
         if(index !== -1) node.removeTransformation(node.transformations[index]);
-
     }
 
     // #endregion Private Methods (4)

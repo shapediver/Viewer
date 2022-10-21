@@ -25,7 +25,7 @@ import { IPointLightApi } from "./interfaces/viewport/lights/types/IPointLightAp
 import { ISpotLightApi } from "./interfaces/viewport/lights/types/ISpotLightApi";
 import { addListener, createSession, createViewport, generalOptions, IGeneralOptions, removeListener, sceneTree, sessions, viewports } from "./main";
 import { IBox, ISphere, IGeometry, Box, Sphere } from "@shapediver/viewer.shared.math";
-import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, SessionData, SessionOutputData, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk } from "@shapediver/viewer.session-engine.session-engine";
+import { ISessionData, ISessionOutputData, PARAMETER_TYPE, PARAMETER_VISUALIZATION, SessionData, SessionOutputData, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, ISettingsSections } from "@shapediver/viewer.session-engine.session-engine";
 import { ShapeDiverResponseOutput, ShapeDiverResponseOutputContent as ShapeDiverResponseOutputContentBackend, ShapeDiverResponseOutputChunk as ShapeDiverResponseOutputChunkBackend } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { DataEngine } from "@shapediver/viewer.data-engine.data-engine";
 import { GeometryEngine } from "@shapediver/viewer.data-engine.geometry-engine";
@@ -50,7 +50,7 @@ export { FLAG_TYPE, PARAMETER_TYPE, PARAMETER_VISUALIZATION, TAG3D_JUSTIFICATION
 export { TASK_TYPE, MainEventTypes, EVENTTYPE, EVENTTYPE_CAMERA, EVENTTYPE_RENDERING, EVENTTYPE_SCENE, EVENTTYPE_SESSION, EVENTTYPE_VIEWPORT, EVENTTYPE_INTERACTION, EVENTTYPE_TASK }
 export { IBox, Box, ISphere, Sphere, IGeometry, ITransformation, ShapeDiverResponseOutput, ShapeDiverResponseOutputContentBackend, ShapeDiverResponseOutputChunkBackend, ShapeDiverResponseOutputContent, ShapeDiverResponseOutputChunk, IDomEventListener, IEvent, IThreejsData, ThreejsData }
 
-export { EventResponseMapping, IViewportEvent, ISessionEvent, ICameraEvent, ISceneEvent, ITaskEvent }
+export { EventResponseMapping, IViewportEvent, ISessionEvent, ICameraEvent, ISceneEvent, ITaskEvent, ISettingsSections }
 export { IMaterialAbstractData, IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, IMapData, MapData, ITexture, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3 }
 export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData }
 export { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData }

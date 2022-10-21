@@ -1,6 +1,8 @@
 import { IIntersection, IIntersectionFilter, IRay } from "@shapediver/viewer.rendering-engine.intersection-engine";
-import { IViewportApi } from "@shapediver/viewer";
+import { IMaterialAbstractData, IViewportApi } from "@shapediver/viewer";
 import { INTERACTION_STATE } from "./IInteractionEngine";
+import { IDragConstraintUtils } from "./utils/IDragConstraintUtils";
+import { IInteractionEffectUtils } from "./utils/IInteractionEffectUtils";
 
 export type IInteractionFilterOptions = {
     (interactionState: INTERACTION_STATE): IIntersectionFilter;
@@ -8,6 +10,22 @@ export type IInteractionFilterOptions = {
 
 export interface IInteractionManager {
     // #region Properties (2)
+
+    /**
+     * The material that is applied to the node once the effect (selection, hovering or dragging) is active.
+     * If no effect material is applied, the material will not be changed.
+     */
+    effectMaterial?: IMaterialAbstractData;
+
+    /**
+     * Drag constraint utils that are automatically assigned by the {@link AbstractInteractionManager}.
+     */
+    dragConstraintUtils: IDragConstraintUtils;
+
+    /**
+     * Effect utils that are automatically assigned by the {@link AbstractInteractionManager}.
+     */
+    interactionEffectUtils: IInteractionEffectUtils;
 
     /**
      * A filter that is applied during the intersection process.

@@ -7,6 +7,11 @@ import { IPlane, Plane } from "@shapediver/viewer.shared.math";
 import { InteractionData } from "../InteractionData";
 import { calculateDragMatrix } from "./DragConstraintsHelper";
 
+/**
+ * The camera plane constraint is used for dragging and allows to specify that the dragging happens on a plane parallel to the camera plane that passes through the origin of the node being dragged.
+ * The transformation and optional rotation of this constraint get applied to the node if it is the constraint with the closest distance to the ray that was used for the drag event.
+ * As this is a difficult topic, please visit our [help desk section on interactions](https://help.shapediver.com/doc/interactions-part-1) where we go through the process of setting everything up with examples.
+ */
 export class CameraPlaneConstraint implements IDragConstraint {
     // #region Properties (3)
 
@@ -18,6 +23,9 @@ export class CameraPlaneConstraint implements IDragConstraint {
 
     // #region Constructors (1)
 
+    /**
+     * @param _rotation the rotation in [axis-angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) that is applied to the node if the drag contraint becomes active
+     */
     constructor(
         _rotation?: {
             axis: vec3,
