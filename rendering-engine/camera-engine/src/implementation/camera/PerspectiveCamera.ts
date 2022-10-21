@@ -23,17 +23,18 @@ import { IPerspectiveCameraControls } from '../../interfaces/controls/IPerspecti
 export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCamera {
   // #region Properties (3)
 
-  private readonly _converter: Converter = <Converter>container.resolve(Converter);
-  private readonly _logger: Logger = <Logger>container.resolve(Logger);
-  private readonly _tree: ITree = <ITree>container.resolve(Tree);
+  readonly #converter: Converter = <Converter>container.resolve(Converter);
+  readonly #logger: Logger = <Logger>container.resolve(Logger);
+  readonly #tree: ITree = <ITree>container.resolve(Tree);
 
   protected _controls: IPerspectiveCameraControls;
 
-  private _domEventListenerToken?: string;
-  private _domEventEngine?: DomEventEngine;
+  #domEventListenerToken?: string;
+  #domEventEngine?: DomEventEngine;
 
-  private _aspect: number | undefined;
-  private _fov: number = 60;
+  #aspect: number | undefined;
+  #fov: number = 60;
+  #threeJsObject: { [key: string]: THREE.PerspectiveCamera } = {};
 
   // #endregion Properties (3)
 
@@ -49,11 +50,11 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   // #region Public Accessors (4)
 
   public get aspect(): number | undefined {
-    return this._aspect;
+    return this.#aspect;
   }
 
   public set aspect(value: number | undefined) {
-    this._aspect = value;
+    this.#aspect = value;
   }
 
   public get controls(): IPerspectiveCameraControls {
@@ -65,11 +66,15 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
   }
 
   public get fov(): number {
-    return this._fov;
+    return this.#fov;
   }
 
   public set fov(value: number) {
-    this._fov = value;
+    this.#fov = value;
+  }
+
+  public get threeJsObject(): { [key: string]: THREE.PerspectiveCamera } {
+    return this.#threeJsObject;
   }
 
   // #endregion Public Accessors (4)
@@ -87,8 +92,8 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
       this.revertAtMouseUpDuration = cameraSetting.revertAtMouseUpDuration;
       this.zoomExtentsFactor = cameraSetting.zoomExtentsFactor;
 
-      let position = this._converter.toVec3(cameraSetting.position);
-      let target = this._converter.toVec3(cameraSetting.target);
+      let position = this.#converter.toVec3(cameraSetting.position);
+      let target = this.#converter.toVec3(cameraSetting.target);
       this.defaultPosition = vec3.clone(position);
       this.defaultTarget = vec3.clone(target);
 
@@ -114,19 +119,19 @@ export class PerspectiveCamera extends AbstractCamera implements IPerspectiveCam
     let renderingEngine: IRenderingEngine | undefined = renderingEngines.find(r => r.id === viewportId && r.closed === false);
     if(!renderingEngine) {
       const error = new ShapeDiverViewerCameraError(`OrthographicCamera(${this.id}).assignViewer: Viewer with id ${viewportId} not found.`);
-      throw this._logger.handleError(LOGGING_TOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);
+      throw this.#logger.handleError(LOGGING_TOPIC.CAMERA, `OrthographicCamera(${this.id}).assignViewer`, error);
     }
 
     this.assignViewerInternal(viewportId, renderingEngine.canvas);
     this._controls.assignViewer(viewportId, renderingEngine.canvas);
 
-    if (this._domEventListenerToken && this._domEventEngine)
-      this._domEventEngine.removeDomEventListener(this._domEventListenerToken);
+    if (this.#domEventListenerToken && this.#domEventEngine)
+      this.#domEventEngine.removeDomEventListener(this.#domEventListenerToken);
 
-    this._domEventEngine = renderingEngine.domEventEngine;
-    this._domEventListenerToken = this._domEventEngine.addDomEventListener((<PerspectiveCameraControls>this._controls).cameraControlsEventDistribution);
+    this.#domEventEngine = renderingEngine.domEventEngine;
+    this.#domEventListenerToken = this.#domEventEngine.addDomEventListener((<PerspectiveCameraControls>this._controls).cameraControlsEventDistribution);
 
-    this.boundingBox = this._tree.root.boundingBox.clone();
+    this.boundingBox = this.#tree.root.boundingBox.clone();
 
     this._stateEngine.renderingEngines[viewportId].boundingBoxCreated.then(async () => {
       if (this.position[0] === this.target[0] && this.position[1] === this.target[1] && this.position[2] === this.target[2])

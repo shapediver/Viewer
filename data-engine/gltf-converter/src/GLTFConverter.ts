@@ -38,7 +38,7 @@ import {
     IAnimationData,
     IGeometryData,
 } from '@shapediver/viewer.shared.types'
-import * as THREE from 'three'
+import { combineTextures } from "@shapediver/viewer.utils.texture-unifier"
 
 export enum GLTF_EXTENSIONS {
     KHR_BINARY_GLTF = 'KHR_binary_glTF',
@@ -56,10 +56,6 @@ export class GLTFConverter {
         0, 0, -1, 0,
         0, 1, 0, 0,
         0, 0, 0, 1);
-    private readonly _mergeShader: THREE.ShaderMaterial;
-    private readonly _quadCamera: THREE.OrthographicCamera;
-    private readonly _quadScene: THREE.Scene;
-    private readonly _renderer: THREE.WebGLRenderer;
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
 
     private _animations: IAnimationData[] = [];
@@ -89,87 +85,7 @@ export class GLTFConverter {
 
     // #region Constructors (1)
 
-    constructor() {
-        this._mergeShader = new THREE.ShaderMaterial({
-            uniforms: {
-                tRed: { value: null },
-                activeRed: { value: false },
-                defaultRed: { value: 1.0 },
-                tGreen: { value: null },
-                activeGreen: { value: false },
-                defaultGreen: { value: 1.0 },
-                tBlue: { value: null },
-                activeBlue: { value: false },
-                defaultBlue: { value: 1.0 },
-            },
-            vertexShader: `// @author Michael Oppitz 
-
-            uniform sampler2D tRed;
-            uniform bool activeRed;
-            uniform float defaultRed;
-            
-            uniform sampler2D tGreen;		
-            uniform bool activeGreen;
-            uniform float defaultGreen;
-            
-            uniform sampler2D tBlue;		
-            uniform bool activeBlue;
-            uniform float defaultBlue;
-
-            varying vec2 vUv;
-            
-            void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-            }`,
-            fragmentShader: `// @author Michael Oppitz 
-
-            uniform sampler2D tRed;
-            uniform bool activeRed;
-            uniform float defaultRed;
-            
-            uniform sampler2D tGreen;		
-            uniform bool activeGreen;
-            uniform float defaultGreen;
-            
-            uniform sampler2D tBlue;		
-            uniform bool activeBlue;
-            uniform float defaultBlue;
-            
-            varying vec2 vUv;
-            
-            void main() {
-                vec4 outColor = vec4(0.0, 0.0, 0.0, 1.0);
-
-                if(activeRed == true) {
-                    outColor.r = texture2D(tRed, vUv).r;
-                } else {
-                    outColor.r = defaultRed;
-                }
-            
-                if(activeGreen == true) {
-                    outColor.g = texture2D(tGreen, vUv).g;
-                } else {
-                    outColor.g = defaultGreen;
-                }
-            
-                if(activeBlue == true) {
-                    outColor.b = texture2D(tBlue, vUv).b;
-                } else {
-                    outColor.b = defaultBlue;
-                }
-            
-                gl_FragColor = outColor;
-            }`
-        });
-
-        this._quadCamera = new THREE.OrthographicCamera(- 1, 1, 1, - 1, 0, 1);
-        this._quadScene = new THREE.Scene();
-        const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this._mergeShader);
-        this._quadScene.add(quad);
-
-        this._renderer = new THREE.WebGLRenderer();
-    }
+    constructor() { }
 
     // #endregion Constructors (1)
 
@@ -299,84 +215,6 @@ export class GLTFConverter {
     // #endregion Public Methods (1)
 
     // #region Private Methods (18)
-
-    private async combineTextures(red?: IMapData, green?: IMapData, blue?: IMapData): Promise<MapData> {
-        if (!red && !green && !blue)
-            throw new Error('No maps supplied.')
-
-        let width = 0, height = 0;
-        const textures = [red, green, blue];
-        for (let t of textures) {
-            if (t) {
-                if (width === 0 && height === 0) {
-                    width = t.image.width;
-                    height = t.image.height;
-                } else if (t.image.width !== width && t.image.height !== height) {
-                    throw new Error('Maps have different sizes. Combining not supported.')
-                }
-            }
-        }
-
-        if (red) {
-            const redTexture = new THREE.Texture(red.image);
-            redTexture.needsUpdate = true;
-            this._mergeShader.uniforms.tRed.value = redTexture;
-            this._mergeShader.uniforms.activeRed.value = true;
-        } else {
-            this._mergeShader.uniforms.activeRed.value = false;
-        }
-
-        if (green) {
-            const greenTexture = new THREE.Texture(green.image);
-            greenTexture.needsUpdate = true;
-            this._mergeShader.uniforms.tGreen.value = greenTexture;
-            this._mergeShader.uniforms.activeGreen.value = true;
-        } else {
-            this._mergeShader.uniforms.activeGreen.value = false;
-        }
-
-        if (blue) {
-            const blueTexture = new THREE.Texture(blue.image);
-            blueTexture.needsUpdate = true;
-            this._mergeShader.uniforms.tBlue.value = blueTexture;
-            this._mergeShader.uniforms.activeBlue.value = true;
-        } else {
-            this._mergeShader.uniforms.activeBlue.value = false;
-        }
-
-        // The different render targets that are used by the passes
-        const renderTarget = new THREE.WebGLRenderTarget(width, height, {
-            minFilter: THREE.LinearFilter,
-            magFilter: THREE.LinearFilter,
-            format: THREE.RGBAFormat
-        });
-        renderTarget.texture.name = 'target.rt';
-        this._renderer.setRenderTarget(renderTarget)
-
-        this._renderer.render(this._quadScene, this._quadCamera);
-
-        const buffer = new Uint8ClampedArray(4 * width * height);
-        this._renderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, buffer)
-
-        let imageData = new ImageData(buffer, width, height);
-        var canvas = document.createElement('canvas');
-        var ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
-        canvas.width = imageData.width;
-        canvas.height = imageData.height;
-        ctx.putImageData(imageData, 0, 0);
-
-        const image = new Image();
-        const promise = new Promise<void>(resolve => {
-            image.onload = () => resolve();
-        })
-        image.crossOrigin = "anonymous";
-        image.src = canvas.toDataURL("image/jpeg", 1.0);
-
-        await promise;
-
-        const m = (red || green || blue)!;
-        return new MapData(image, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.flipY);
-    }
 
     private convertAccessor(data: IAttributeData): number {
         if (!this._content.accessors) this._content.accessors = [];
@@ -681,8 +519,13 @@ export class GLTFConverter {
                 materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(standardMaterialData.metalnessRoughnessMap) };
             } else if ((standardMaterialData.metalnessMap || standardMaterialData.roughnessMap) && includeMaps) {
                 this._promises.push(new Promise<void>(async resolve => {
-                    const mapData = await this.combineTextures(undefined, standardMaterialData.roughnessMap, standardMaterialData.metalnessMap);
-                    materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(mapData) }
+                    const imageData = await combineTextures(
+                        undefined, 
+                        standardMaterialData.roughnessMap ? standardMaterialData.roughnessMap.image : undefined, 
+                        standardMaterialData.metalnessMap ? standardMaterialData.metalnessMap.image : undefined
+                    );
+                    const m = (standardMaterialData.roughnessMap! || standardMaterialData.metalnessMap!)!;
+                    materialDef.pbrMetallicRoughness!.metallicRoughnessTexture = { index: this.convertTexture(new MapData(imageData, m.wrapS, m.wrapT, m.minFilter, m.magFilter, m.center, m.color, m.offset, m.repeat, m.rotation, m.flipY)) }
                     resolve();
                 }))
             }

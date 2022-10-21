@@ -42,7 +42,7 @@
     "@ctrl/tinycolor": "^3.4.0",
     "@sentry/browser": "^6.7.2",
     "@sentry/tracing": "^6.7.2",
-    "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.26",
+    "@shapediver/sdk.geometry-api-sdk-v2": "^1.1.0",
     "@shapediver/viewer.settings": "0.1.36",
     "@shapediver/viewer.shared.build-data": "2.3.5",
     "@types/dompurify": "^2.3.1",

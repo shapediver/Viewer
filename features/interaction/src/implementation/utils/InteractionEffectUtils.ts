@@ -14,6 +14,13 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
 
     // #region Public Methods (2)
 
+    /**
+     * Apply the effect material to the node and all descendents.
+     * 
+     * @param node 
+     * @param material 
+     * @returns 
+     */
     public applyEffectMaterial(node: ITreeNode, material: IMaterialAbstractData): string {
         const token = this.#uuidGenerator.create();
 
@@ -34,6 +41,12 @@ export class InteractionEffectUtils implements IInteractionEffectUtils {
         return token;
     }
 
+    /**
+     * Remove the effect material with the specified token from the node and all descendents.
+     * 
+     * @param node 
+     * @param token 
+     */
     public removeEffectMaterial(node: ITreeNode, token: string) {
         const removeEffect = (node: ITreeNode) => {
             for (let i = 0; i < node.data.length; i++) {

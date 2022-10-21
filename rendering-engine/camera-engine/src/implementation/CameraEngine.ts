@@ -36,6 +36,7 @@ export class CameraEngine implements ICameraEngine {
     private readonly _camerasDomEventListenerToken: {
         [key: string]: string
     } = {};
+    private readonly _cameraNode: ITreeNode = new TreeNode('cameras');
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _settingsEngine: SettingsEngine = <SettingsEngine>container.resolve(SettingsEngine);
@@ -54,6 +55,9 @@ export class CameraEngine implements ICameraEngine {
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: IRenderingEngine, private readonly _canvas: HTMLCanvasElement) {
+        this._tree.root.addChild(this._cameraNode);
+        this._cameraNode.restrictViewports = [this._renderingEngine.id];
+        
         this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e: IEvent) => {
             const viewerEvent = <ISceneEvent>e;
             if (viewerEvent.viewportId === this._renderingEngine.id) {
@@ -171,6 +175,7 @@ export class CameraEngine implements ICameraEngine {
             camera.zoomTo(undefined, { duration: 0 });
         }
 
+        this._cameraNode.addData(camera);
         if(this._update) this._update();
         return camera;
     }
@@ -208,6 +213,7 @@ export class CameraEngine implements ICameraEngine {
 
         delete cameras[id];
         delete this._camerasDomEventListenerToken[id];
+        this._cameraNode.removeData(camera);
         if(this._update) this._update();
         return true;
     }

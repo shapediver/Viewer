@@ -1,0 +1,45 @@
+{
+  "name": "@shapediver/viewer.utils.demo-helper",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "Michael Oppitz <michael@shapediver.com>",
+  "license": "polyform-noncommercial-1.0.0",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "dist",
+    "src",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shapediver/Viewer.git"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "bash ../../scripts/building/build.sh",
+    "build-watch": "bash ../../scripts/building/build-watch.sh",
+    "build-dep": "bash ../../scripts/building/build-dep.sh"
+  },
+  "bugs": {
+    "url": "https://github.com/shapediver/Viewer/issues"
+  },
+  "homepage": "https://github.com/shapediver/Viewer#readme",
+  "typings": "dist/index.d.ts",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "dependencies": {
+    "@shapediver/viewer": "*"
+  },
+  "gitHead": "88482edc91c0025b176c3c61de9d3a7f80386564"
+}

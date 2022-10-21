@@ -143,9 +143,11 @@ export interface ISessionApi {
 
     /**
      * Check if the session's history allows to go back to a previous state of parameter values.
+     * The session history is recorded whenever {@link customize} is called.
      * 
      * A further state of parameter values is recorded whenever a successful _customization_ happens.
      * 
+     * @see {@link customize}
      * @see {@link canGoBack}
      * @see {@link canGoForward}
      * @see {@link goBack}
@@ -155,9 +157,11 @@ export interface ISessionApi {
 
     /**
      * Check if the session's history allows to go forward to a next state of parameter values.
-     * 
+     * The session history is recorded whenever {@link customize} is called.
+     *
      * A further state of parameter values is recorded whenever a successful _customization_ happens.
      *
+     * @see {@link customize}
      * @see {@link canGoBack}
      * @see {@link canGoForward}
      * @see {@link goBack}
@@ -298,7 +302,9 @@ export interface ISessionApi {
 
     /**
      * Go back to the previous recorded state of parameter values.
+     * The session history is recorded whenever {@link customize} is called.
      * 
+     * @see {@link customize}
      * @see {@link canGoBack}
      * @see {@link canGoForward}
      * @see {@link goBack}
@@ -308,7 +314,9 @@ export interface ISessionApi {
 
     /**
      * Go forward to the next recorded state of parameter values.
+     * The session history is recorded whenever {@link customize} is called.
      * 
+     * @see {@link customize}
      * @see {@link canGoBack}
      * @see {@link canGoForward}
      * @see {@link goBack}

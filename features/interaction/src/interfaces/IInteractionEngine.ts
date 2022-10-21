@@ -2,10 +2,15 @@ import { IDomEventListener } from "@shapediver/viewer.shared.services";
 import { IInteractionManager } from "./IInteractionManager";
 
 export enum INTERACTION_STATE {
+    /** The event enum for mousedown and touchstart. */
     DOWN = 'down',
+    /** The event enum for mousemove and touchmove. */
     MOVE = 'move',
+    /** The event enum for mouseup, mouseout, touchcancel and touchup. */
     END = 'end',
+    /** The event enum for mouseout and touchcancel. */
     OUT = 'out',
+    /** The event enum for mouseup and touchup. */
     UP = 'up'
 }
 

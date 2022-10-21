@@ -330,7 +330,22 @@ export class Parameter<T> implements IParameter<T> {
                 }
                 return <string>this.value;
             case this.type === PARAMETER_TYPE.EVEN || this.type === PARAMETER_TYPE.FLOAT || this.type === PARAMETER_TYPE.INT || this.type === PARAMETER_TYPE.ODD:
-                return typeof this.value === 'string' ? this.value : (<number><unknown>this.value) + '';
+                if(typeof this.value === 'string') {
+                    // cast to number and round to decimalplaces if they exist
+                    if (this.decimalplaces || this.decimalplaces === 0) {
+                        const number = +this.value;
+                        return number.toFixed(this.#decimalplaces);
+                    } else {
+                        return this.value;
+                    }
+                } else {
+                    // round to decimalplaces if they exist
+                    if (this.decimalplaces || this.decimalplaces === 0) {
+                        return (<number><unknown>this.value).toFixed(this.#decimalplaces);
+                    } else {
+                        return (<number><unknown>this.value) + '';
+                    }
+                }
             default:
                 return <string>this.value;
         }

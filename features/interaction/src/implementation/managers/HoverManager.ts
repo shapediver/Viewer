@@ -58,12 +58,21 @@ export class HoverManager extends AbstractInteractionManager {
         this.viewport = undefined;
     }
     
+    /**
+     * Select a node for hovering.
+     * The point and distance of the intersection can be freely chosen and are provided in the event callbacks.
+     * 
+     * @param intersection 
+     */
     public select(intersection: IIntersection) {
         if(this.#node)
             this.deactivateNode();
         this.activateNode(intersection);
     }
 
+    /**
+     * Deselect the current node.
+     */
     public deselect() {
         if(this.#node)
             this.deactivateNode();

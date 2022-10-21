@@ -345,6 +345,19 @@ export interface IViewportApi {
   convertToGlTF(node?: ITreeNode): Promise<Blob>;
 
   /**
+   * Create a link / QRCode that can be opened by mobile devices to display in AR.
+   * 
+   * As some models might have a different scale then the AR apps (meters), the scaling can be chosen freely {@link arScale}.
+   * 
+   * Internally, the scene will first be converted into a glTF. This glTF will be uploaded to our backend and converted into a USDZ to be able to start AR on iOS and Android.
+   * 
+   * @param node Optional node to display in AR. (default: scene tree)
+   * @param qrCode Option to receive a QR Code instead of a link (default: true)
+   * @param fallbackUrl Optional fallback url if the link was opened by an unsupported device or an error occurred. If none was provided, the user will be redirected to shapediver.com/app
+   */
+  createArSessionLink(node?: ITreeNode, qrCode?: boolean, fallbackUrl?: string): Promise<string>;
+
+  /**
    * Create a new light scene.
    * An id can be provided. If not, a unique id will be created.
    * If the standard option is chosen, the default lights will be added from the start.

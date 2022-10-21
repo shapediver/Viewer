@@ -50,7 +50,8 @@
     "testEnvironment": "jsdom"
   },
   "dependencies": {
-    "@shapediver/sdk.geometry-api-sdk-v2": "^1.0.26",
+    "@types/qrcode": "^1.5.0",
+    "@shapediver/sdk.geometry-api-sdk-v2": "^1.1.0",
     "@shapediver/viewer.data-engine.data-engine": "2.3.5",
     "@shapediver/viewer.data-engine.geometry-engine": "2.3.5",
     "@shapediver/viewer.data-engine.gltf-converter": "2.3.5",
@@ -71,6 +72,7 @@
     "@shapediver/viewer.shared.types": "2.3.5",
     "@shapediver/viewer.utils.mime-type": "1.0.0",
     "gl-matrix": "3.3.0",
+    "qrcode": "^1.5.0",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.5.0"
   },
