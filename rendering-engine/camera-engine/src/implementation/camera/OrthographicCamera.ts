@@ -30,9 +30,9 @@ export class OrthographicCamera extends AbstractCamera implements IOrthographicC
   #domEventListenerToken?: string;
   #domEventEngine?: DomEventEngine;
 
-  #bottom: number = 100;
+  #bottom: number = -100;
   #direction: ORTHOGRAPHIC_CAMERA_DIRECTION = ORTHOGRAPHIC_CAMERA_DIRECTION.TOP;
-  #left: number = 100;
+  #left: number = -100;
   #right: number = 100;
   #top: number = 100;
   #threeJsObject: { [key: string]: THREE.OrthographicCamera } = {};

@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.shared.services",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -44,7 +44,7 @@
     "@sentry/tracing": "^6.7.2",
     "@shapediver/sdk.geometry-api-sdk-v2": "^1.1.0",
     "@shapediver/viewer.settings": "0.1.36",
-    "@shapediver/viewer.shared.build-data": "2.3.4",
+    "@shapediver/viewer.shared.build-data": "2.3.5",
     "@types/dompurify": "^2.3.1",
     "@types/ua-parser-js": "^0.7.36",
     "@types/uuid": "^8.3.0",
