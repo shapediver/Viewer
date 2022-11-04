@@ -596,7 +596,7 @@ export class MaterialLoader implements ILoader {
 
         let material: THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.MeshBasicMaterial | THREE.MeshPhysicalMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.ShadowMaterial;
         if(type === MATERIAL_TYPE.POINT) {
-            material = new THREE.PointsMaterial(properties);
+            material = new THREE.PointsMaterial(Object.assign(properties, { size: this._pointSize }));
         } else if(type === MATERIAL_TYPE.LINE) {
             material = new THREE.LineBasicMaterial(properties);
         } else {
