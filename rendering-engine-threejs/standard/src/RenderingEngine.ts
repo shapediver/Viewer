@@ -1078,6 +1078,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.lastRootVersion = this._tree.root.version;
   }
 
+  public updateEnvironmentGeometry(): void {
+    this._environmentGeometryManager.updateEnvironmentGeometryPosition();
+  }
+
   public async viewInAR(file: string, options: { arScale?: 'auto' | 'fixed', arPlacement?: 'floor' | 'wall', xrEnvironment?: boolean } = { arScale: 'auto', arPlacement: 'floor', xrEnvironment: false }): Promise<void> {
     const eventId = this._uuidGenerator.create();
     const event: ITaskEvent = { type: TASK_TYPE.AR_LOADING, id: eventId, progress: 0, status: 'Loading AR scene' };

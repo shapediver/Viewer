@@ -292,6 +292,11 @@ export class CreationControlCenter implements ICreationControlCenter {
     }
   }
 
+  public updateViewports() {
+    for (let r in this.renderingEngines)
+      this.renderingEngines[r].update('CreationControlCenter.updateViewports')
+  }
+
   public async createSessionEngine(properties: {
     ticket: string,
     modelViewUrl: string,
@@ -334,6 +339,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         buildVersion: build_data.build_version,
         buildDate: build_data.build_date,
         bearerToken: properties.jwtToken,
+        updateViewports: () => { this.updateViewports () }
       });
 
       const eventInit: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session' };

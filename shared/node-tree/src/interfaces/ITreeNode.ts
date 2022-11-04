@@ -19,6 +19,12 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      */
     readonly boundingBox: IBox;
     /**
+     * The bounding box of this tree node for each viewport.
+     * As there can be properties where tree nodes are excluded from the viewport, the bounding boxes may be different per viewport.
+     * The {@link boundingBox} property can be used as the general bounding box without any viewport specific exclusions.
+     */
+     readonly boundingBoxViewport: { [key: string]: IBox };
+    /**
      * The children of this tree node. Can be added and remove via {@link addChild} and {@link removeChild}. 
      */
     readonly children: T[];

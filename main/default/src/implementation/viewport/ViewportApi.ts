@@ -1012,6 +1012,16 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
+    public updateEnvironmentGeometry(): void {
+        const scope = 'updateEnvironmentGeometry';
+        try {
+            this.#renderingEngine.updateEnvironmentGeometry();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
     public async createArSessionLink(node?: ITreeNode, qrCode: boolean = true, fallbackUrl?: string): Promise<string> {
         const scope = 'createArSessionLink';
         try {
