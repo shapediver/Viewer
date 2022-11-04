@@ -27,7 +27,7 @@ export class DataEngine {
 
     // #region Public Methods (1)
 
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, jwtToken?: string): Promise<ITreeNode> {
         if (!content || (content && !content.format)) {
             const error = new ShapeDiverViewerDataProcessingError('DataEngine cannot load content.');
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `DataEngine.loadContent`, error);
@@ -45,7 +45,7 @@ export class DataEngine {
             } else if (content.format === 'tag3d') {
                 node = await this._tag3dEngine.loadContent(content);
             } else if (content.format === 'sdtf') {
-                node = await this._sdtfEngine.loadContent(content);
+                node = await this._sdtfEngine.loadContent(content, jwtToken);
             } else {
                 node = new TreeNode('custom');
                 node.data.push(new CustomData({ ...content }));
