@@ -159,11 +159,7 @@ export class LightEngine implements ILightEngine {
                 this._lightScenes[ls.id] = ls;
             }
         } 
-        // this can only be the case if the settings were empty, therefore we assign the new light scene
-        else {    
-            const ls = <LightScene>this.createLightScene({ name: 'standard', standard: true });
-            this._lightScenes[ls.id] = ls;
-        }
+
         if(this._update) this._update();
     }
 
@@ -236,7 +232,7 @@ export class LightEngine implements ILightEngine {
     }
 
     public saveSettings(settingsEngine: SettingsEngine) {
-        settingsEngine.light.lightSceneId = this.lightScene ? this.lightScene.id : 'standard';
+        settingsEngine.light.lightSceneId = this.lightScene ? this.lightScene.id : undefined;
         
         const converted: ILightSceneSettingsV3 = {};
         for(let lightSceneId in this._lightScenes) {
