@@ -206,6 +206,11 @@ export interface IViewportApi {
   groundPlaneShadowVisibility: boolean;
 
   /**
+   * Option to enable / disable lights. (default: true)
+   */
+  lights: boolean;
+
+  /**
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
    * This is the texture that is rendered to the screen.
    * 
