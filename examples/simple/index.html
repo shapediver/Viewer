@@ -1,15 +1,47 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Deckpad</title>
+    <!-- NOTE UI: stylsheet for flowbite -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/flowbite@1.4.7/dist/flowbite.min.css"
+    />
+  </head>
 
-<head>
-    <title>ShapeDiver</title>
-</head>
+  <!-- NOTE UI: This color should be the same as in the index.ts file (brandingColor and clearColor).  -->
 
-<body>
-    <div style="width: 100%; height: 100%; display: flex; position: absolute; left: 0%; top: 0%">
-        <canvas id="canvas"></canvas>
+  <body style="background: #3e547d;">
+    <!-- The viewer div with the canvas. -->
+    <div
+      style="
+        width: 100%;
+        height: 100%;
+        display: flex;
+        position: absolute;
+        left: 0%;
+        top: 0%;
+      "
+    >
+      <canvas id="canvas"></canvas>
     </div>
+    <!-- The stages div is used to visualize the icons of the stages and the arrows inbetween. -->
+    <div
+      id="stages"
+      style="
+        position: relative;
+        width: 100%;
+        height: 10%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    ></div>
+    <!-- The main div is used by every stage to add items. -->
+    <div id="main-div"></div>
+    <!-- script for connection to index file -->
     <script type="module" src="./bundle.js"></script>
-</body>
-
+    <!-- NOTE UI: script for flowbite -->
+    <script src="https://unpkg.com/flowbite@1.4.7/dist/flowbite.js"></script>
+  </body>
 </html>
