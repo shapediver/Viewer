@@ -46,10 +46,10 @@ export class DragConstraintUtils implements IDragConstraintUtils {
      * @param intersection 
      * @returns 
      */
-    public setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): { dragConstraint?: IDragConstraint, matrix: mat4 } {
+    public setup(dragConstraints: { [key: string]: IDragConstraint }, viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { dragConstraint?: IDragConstraint, matrix: mat4 } {
         const dragConstraintResults: { distance: number, transformation: mat4, dragConstraint: IDragConstraint }[] = [];
         for(let d in dragConstraints) {
-            const res = dragConstraints[d].setup(viewport, node, ray, intersection);
+            const res = dragConstraints[d].setup(viewport, node, ray, intersection, previousDragMatrix);
             if(res) dragConstraintResults.push(Object.assign({ dragConstraint: dragConstraints[d] }, res));
         }
 
