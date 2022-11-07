@@ -3,8 +3,13 @@ import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from "../../interface
 import { IMaterialUnlitData, IMaterialUnlitDataProperties } from "../../interfaces/data/material/IMaterialUnlitData";
 import { AbstractMaterialData } from "./AbstractMaterialData";
 
-
 export class MaterialUnlitData extends AbstractMaterialData implements IMaterialUnlitData {
+    // #region Properties (1)
+
+    #envMap?: string | string[];
+
+    // #endregion Properties (1)
+
     // #region Constructors (1)
 
     /**
@@ -19,31 +24,24 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
     ) {
         super(properties, id);
         if (!properties) return;
+        if (properties.envMap !== undefined) this.envMap = properties.envMap;
     }
 
     // #endregion Constructors (1)
 
-    // #region Public Methods (1)
+    // #region Public Accessors (2)
 
-    public reset(): void {
-        this.alphaCutoff = 0;
-        this.alphaMap = undefined;
-        this.alphaMode = MATERIAL_ALPHA.OPAQUE;
-        this.aoMap = undefined;
-        this.aoMapIntensity = 1.0;
-        this.bumpMap = undefined;
-        this.bumpScale = 1.0;
-        this.color = '#ffffff';
-        this.emissiveMap = undefined;
-        this.emissiveness = '#000000';
-        this.materialOutput = false;
-        this.map = undefined;
-        this.normalMap = undefined;
-        this.normalScale = 1.0;
-        this.opacity = 1.0;
-        this.shading = MATERIAL_SHADING.SMOOTH;
-        this.side = MATERIAL_SIDE.DOUBLE;  
+    public get envMap(): string | string[] | undefined {
+        return this.#envMap;
     }
+
+    public set envMap(value: string | string[] | undefined) {
+        this.#envMap = value;
+    }
+
+    // #endregion Public Accessors (2)
+
+    // #region Public Methods (3)
 
     public clone(): IMaterialUnlitData {
         return new MaterialUnlitData({
@@ -64,6 +62,7 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
             normalScale: this.normalScale,
             opacity: this.opacity,
             side: this.side,
+            envMap: this.envMap
         }, this.id);
     }
 
@@ -85,7 +84,29 @@ export class MaterialUnlitData extends AbstractMaterialData implements IMaterial
         this.opacity = source.opacity;
         this.shading = source.shading;
         this.side = source.side;
+        this.envMap = source.envMap;
     }
 
-    // #endregion Public Methods (1)
+    public reset(): void {
+        this.alphaCutoff = 0;
+        this.alphaMap = undefined;
+        this.alphaMode = MATERIAL_ALPHA.OPAQUE;
+        this.aoMap = undefined;
+        this.aoMapIntensity = 1.0;
+        this.bumpMap = undefined;
+        this.bumpScale = 1.0;
+        this.color = '#ffffff';
+        this.emissiveMap = undefined;
+        this.emissiveness = '#000000';
+        this.materialOutput = false;
+        this.map = undefined;
+        this.normalMap = undefined;
+        this.normalScale = 1.0;
+        this.opacity = 1.0;
+        this.shading = MATERIAL_SHADING.SMOOTH;
+        this.side = MATERIAL_SIDE.DOUBLE;
+        this.envMap = undefined;
+    }
+
+    // #endregion Public Methods (3)
 }

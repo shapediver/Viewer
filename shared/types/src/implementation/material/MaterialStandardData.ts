@@ -16,6 +16,7 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
   #displacementMap?: IMapData;
   #displacementScale: number = 1;
   #displacementBias: number = 0;
+  #envMap?: string | string[];
   #ior: number = 1.5;
   #metalness = 1.0;
   #metalnessMap?: IMapData;
@@ -81,6 +82,7 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
     if (properties.specularColorMap !== undefined) this.specularColorMap = properties.specularColorMap;
     if (properties.specularIntensity !== undefined) this.specularIntensity = properties.specularIntensity;
     if (properties.specularIntensityMap !== undefined) this.specularIntensityMap = properties.specularIntensityMap;
+    if (properties.envMap !== undefined) this.envMap = properties.envMap;
   }
 
   // #endregion Constructors (1)
@@ -165,6 +167,14 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
 
   public set displacementBias(value: number) {
     this.#displacementBias = value;
+  }
+  
+  public get envMap(): string | string[] | undefined {
+    return this.#envMap;
+  }
+
+  public set envMap(value: string | string[] | undefined) {
+    this.#envMap = value;
   }
 
   public get ior(): number {
@@ -352,6 +362,7 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
     this.displacementMap = undefined;
     this.displacementScale = 1;
     this.displacementBias = 0;
+    this.envMap = undefined;
     this.ior = 1;
     this.metalness = 0;
     this.metalnessMap = undefined;
@@ -405,6 +416,7 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
       displacementMap: this.displacementMap,
       displacementScale: this.displacementScale,
       displacementBias: this.displacementBias,
+      envMap: this.envMap,
       ior: this.ior,
       transmission: this.transmission,
       transmissionMap: this.transmissionMap,
@@ -453,6 +465,7 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
     this.displacementMap = source.displacementMap;
     this.displacementScale = source.displacementScale;
     this.displacementBias = source.displacementBias;
+    this.envMap = source.envMap;
     this.ior = source.ior;
     this.metalness = source.metalness;
     this.metalnessMap = source.metalnessMap;

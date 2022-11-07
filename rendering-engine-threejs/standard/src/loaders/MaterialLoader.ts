@@ -49,7 +49,12 @@ export class MaterialLoader implements ILoader {
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _defaultColor: string = '#00fff7';
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
-    private _materialCache: { [key:string]: (THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial)} = {};
+    private _materialCache: {
+        [key: string]: {
+            materialData: IMaterialAbstractData | MaterialUnlitData | MaterialSpecularGlossinessData | MaterialStandardData | MaterialGemData | MaterialShadowData | null,
+            material: (THREE.Material | THREE.MeshPhysicalMaterial | THREE.MeshBasicMaterial | THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.ShadowMaterial)
+        }
+    } = {};
 
     private _blending: number = 0.0;
     private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
@@ -157,14 +162,26 @@ export class MaterialLoader implements ILoader {
         this._envMap = e;
         this._envMapType = type;
         for(let m in this._materialCache) {
-            if((this._materialCache[m] instanceof THREE.MeshPhysicalMaterial || this._materialCache[m] instanceof THREE.MeshStandardMaterial)) {
-                (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).envMap = e;
-                (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
-                for(let d in (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).defines) {
+            if((this._materialCache[m].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[m].material instanceof THREE.MeshStandardMaterial || this._materialCache[m].material instanceof THREE.MeshBasicMaterial)) {
+                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>this._materialCache[m].material;
+                if (this._materialCache[m].materialData &&
+                    (
+                        this._materialCache[m].materialData instanceof MaterialStandardData ||
+                        this._materialCache[m].materialData instanceof MaterialGemData ||
+                        this._materialCache[m].materialData instanceof MaterialSpecularGlossinessData ||
+                        this._materialCache[m].materialData instanceof MaterialUnlitData
+                    ) &&
+                    (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
+                ) continue;
+
+                material.envMap = e;
+                material.needsUpdate = true;
+                for(let d in material.defines) {
                     if(d.startsWith('ENVMAP_TYPE_'))
-                        delete (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).defines[d];
+                        delete material.defines[d];
                 }
-                (<THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m]).defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
+                if(material.defines)
+                    material.defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
             }
         }
     }
@@ -175,25 +192,26 @@ export class MaterialLoader implements ILoader {
         this._height = height;
         this._pointSize = p * (this._height/1080);
         for(let m in this._materialCache) {
-            if(this._materialCache[m] instanceof THREE.PointsMaterial) {
-                (<THREE.PointsMaterial>this._materialCache[m]).size = this._pointSize;
-                (<THREE.PointsMaterial>this._materialCache[m]).needsUpdate = true;
+            if(this._materialCache[m].material instanceof THREE.PointsMaterial) {
+                (<THREE.PointsMaterial>this._materialCache[m].material).size = this._pointSize;
+                (<THREE.PointsMaterial>this._materialCache[m].material).needsUpdate = true;
             }
         }
     }
 
     private assignTextureEncoding() {
         for(let m in this._materialCache) {
-            if(this._materialCache[m] instanceof THREE.MeshPhysicalMaterial || this._materialCache[m] instanceof THREE.MeshStandardMaterial) {
-                if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap) {
-                    (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap!.encoding = this._textureEncoding;
-                    (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).emissiveMap!.needsUpdate = true;
+            if(this._materialCache[m].material instanceof THREE.MeshPhysicalMaterial || this._materialCache[m].material instanceof THREE.MeshStandardMaterial) {
+                const material: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial = <THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial>this._materialCache[m].material;
+                if(material.emissiveMap) {
+                    material.emissiveMap!.encoding = this._textureEncoding;
+                    material.emissiveMap!.needsUpdate = true;
                 }
-                if((<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map) {
-                    (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map!.encoding = this._textureEncoding;
-                    (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).map!.needsUpdate = true;
+                if(material.map) {
+                    material.map!.encoding = this._textureEncoding;
+                    material.map!.needsUpdate = true;
                 }
-                (<THREE.MeshPhysicalMaterial| THREE.MeshStandardMaterial>this._materialCache[m]).needsUpdate = true;
+                material.needsUpdate = true;
             }
         }
     }
@@ -283,7 +301,7 @@ export class MaterialLoader implements ILoader {
 
         /**
          * 
-         * Second exit, the unlit material
+         * Second exit, the shadow material
          * 
          */
 
@@ -589,7 +607,7 @@ export class MaterialLoader implements ILoader {
         }
 
         if(this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) 
-            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type];
+            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material;
 
         let {properties, mapCount} = this.getMaterialProperties(materialData, type, materialSettings);
         this.maxMapCount = Math.max(this.maxMapCount, mapCount);
@@ -631,6 +649,27 @@ export class MaterialLoader implements ILoader {
             
         if (materialSettings && materialSettings.useVertexColors) material.vertexColors = true;
 
+        if (materialData instanceof MaterialStandardData || materialData instanceof MaterialGemData || materialData instanceof MaterialSpecularGlossinessData || materialData instanceof MaterialUnlitData) {
+            if(materialData.envMap !== undefined) {
+                const envMapInput = (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>materialData).envMap;
+                if (envMapInput !== undefined) {
+                    this._renderingEngine.environmentMapLoader.loadEnvMap(envMapInput).then(envMapResult => {
+                        (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap = envMapResult.map;
+
+                        const envMapType = (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
+                        for(let d in material.defines) {
+                            if(d.startsWith('ENVMAP_TYPE_'))
+                                delete material.defines[d];
+                        }
+                        if(material.defines)
+                            material.defines['ENVMAP_TYPE_'+envMapType.toUpperCase()] = '';
+
+                        material.needsUpdate = true;
+                    });
+                }
+            }
+        }
+
         material.userData = {
             SDid: incomingData.id,
             SDversion: incomingData.version
@@ -640,28 +679,31 @@ export class MaterialLoader implements ILoader {
             materialData.threeJsObject[this._renderingEngine.id] = material;
         
         if(this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type]) {
-            this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].copy(material)
-            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type];
+            this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material.copy(material)
+            return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material;
         }
 
         material.needsUpdate = true;
-        this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type] = material;
+        this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type] = {
+            material,
+            materialData
+        };
 
         return material;
     }
 
     public updateMaterials(): void {
         for(let m in this._materialCache)
-            this._materialCache[m].needsUpdate = true;
+            this._materialCache[m].material.needsUpdate = true;
     }
 
     public updateSoftShadow(lightSizeUV: number, blending: number) {
         this._lightSizeUV = lightSizeUV;
         this._blending = blending;
         for(let m in this._materialCache) {
-            if(this._materialCache[m].userData.shader) {
-                this._materialCache[m].userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
-                this._materialCache[m].userData.shader.uniforms.blending.value = blending;
+            if(this._materialCache[m].material.userData.shader) {
+                this._materialCache[m].material.userData.shader.uniforms.lightSizeUV.value = lightSizeUV;
+                this._materialCache[m].material.userData.shader.uniforms.blending.value = blending;
             }
         }
     }

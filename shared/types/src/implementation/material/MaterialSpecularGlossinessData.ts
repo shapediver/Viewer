@@ -11,6 +11,7 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
     #specular: string = '#ffffff';
     #specularGlossinessMap?: IMapData;
     #specularMap?: IMapData;
+    #envMap?: string | string[];
 
     // #endregion Properties (5)
 
@@ -33,11 +34,21 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
         if (properties.specularGlossinessMap !== undefined) this.specularGlossinessMap = properties.specularGlossinessMap;
         if (properties.specularMap !== undefined) this.specularMap = properties.specularMap;
         if (properties.glossinessMap !== undefined) this.glossinessMap = properties.glossinessMap;
+        if (properties.envMap !== undefined) this.envMap = properties.envMap;
     }
 
     // #endregion Constructors (1)
 
     // #region Public Accessors (10)
+
+
+    public get envMap(): string | string[] | undefined {
+        return this.#envMap;
+    }
+
+    public set envMap(value: string | string[] | undefined) {
+        this.#envMap = value;
+    }
 
     public get glossiness(): number {
         return this.#glossiness;
@@ -107,6 +118,7 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
             specularGlossinessMap: this.specularGlossinessMap,
             glossiness: this.glossiness,
             glossinessMap: this.glossinessMap,
+            envMap: this.envMap,
         }, this.id);
     }
 
@@ -128,12 +140,13 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
         this.opacity = source.opacity;
         this.shading = source.shading;
         this.side = source.side;
-        
+
         this.glossiness = source.glossiness;
         this.specular = source.specular;
         this.specularGlossinessMap = source.specularGlossinessMap;
         this.specularMap = source.specularMap;
         this.glossinessMap = source.glossinessMap;
+        this.envMap = source.envMap;
     }
 
     public reset(): void {
@@ -154,12 +167,13 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
         this.opacity = 1.0;
         this.shading = MATERIAL_SHADING.SMOOTH;
         this.side = MATERIAL_SIDE.DOUBLE;
-        
+
         this.glossiness = 1;
         this.specular = '#ffffff';
         this.specularGlossinessMap = undefined;
         this.specularMap = undefined;
         this.glossinessMap = undefined;
+        this.envMap = undefined;
     }
 
     // #endregion Public Methods (3)
