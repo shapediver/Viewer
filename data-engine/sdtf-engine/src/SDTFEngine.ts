@@ -30,7 +30,7 @@ export class SDTFEngine {
      * @param content the geometry content
      * @returns the scene graph node 
      */
-    public async loadContent(content: ShapeDiverResponseOutputContent): Promise<ITreeNode> {
+    public async loadContent(content: ShapeDiverResponseOutputContent, jwtToken?: string): Promise<ITreeNode> {
         const node = new TreeNode('sdtf');
 
         // We have to be safe and check if the content is a valid SDTF file
@@ -40,7 +40,7 @@ export class SDTFEngine {
         }
 
         // create the sdtf sdk
-        const sdk = await create();
+        const sdk = jwtToken ? await create({ authToken: jwtToken }) : await create();
         // crete the sdtf parser
         const parser = sdk.createParser();
         // parse the file

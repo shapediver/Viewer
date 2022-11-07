@@ -9,6 +9,7 @@ import { SessionOutputData } from './SessionOutputData'
 import { PerformanceEvaluator } from '@shapediver/viewer.shared.services'
 import { ShapeDiverResponseDto, ShapeDiverResponseOutput } from '@shapediver/sdk.geometry-api-sdk-v2'
 import { ISessionTreeNode } from '../interfaces/ISessionTreeNode'
+import { ISessionEngine } from '../interfaces/ISessionEngine'
 
 export class OutputLoader {
     // #region Properties (3)
@@ -33,7 +34,7 @@ export class OutputLoader {
      * 
      * @param _session the session for this output loader
      */
-    constructor() {}
+    constructor(private readonly _sessionEngine: ISessionEngine) {}
 
     // #endregion Constructors (1)
 
@@ -72,7 +73,7 @@ export class OutputLoader {
                 currentNodes[outputID][outputs[outputID].version].data.push(new SessionOutputData(outputs[outputID]));
                 if(outputs[outputID].content) {
                     for (let i = 0, len = outputs[outputID].content!.length; i < len; i++) {
-                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i]))
+                        promises.push(this._dataEngine.loadContent(outputs[outputID].content![i], this._sessionEngine.bearerToken))
                         promisesNodes.push(currentNodes[outputID][outputs[outputID].version])
                     }
                 }
