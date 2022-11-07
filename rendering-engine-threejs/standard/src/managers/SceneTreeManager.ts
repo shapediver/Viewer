@@ -162,7 +162,7 @@ export class SceneTreeManager implements IManager {
                 break;
             case data instanceof HTMLElementAnchorData:
                 dataChild.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
-                this._renderingEngine.htmlElementAnchorLoader.load(<HTMLElementAnchorData>data);
+                this._renderingEngine.htmlElementAnchorLoader.load(node, <HTMLElementAnchorData>data);
                 break;
             case data instanceof AnimationData:
                 dataChild.SDtype = SD_DATA_TYPE.ANIMATION;

@@ -135,10 +135,11 @@ export abstract class HTMLElementAnchorData extends AbstractTreeNodeData impleme
         container: vec2, 
         client: vec2, 
         scale: vec2, 
-        hidden: boolean
+        hidden: boolean,
+        visible: boolean
     }) {
         properties.htmlElement.style.display = '';
-        if (this.hideable && properties.hidden) properties.htmlElement.style.display = 'none';
+        if ((this.hideable && properties.hidden) || properties.visible === false) properties.htmlElement.style.display = 'none';
 
         let x, y;
 
@@ -305,7 +306,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
     // #region Properties (1)
 
     readonly #create: (properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) => void;
-    readonly #update: (properties: { anchor: HTMLElementAnchorData, htmlElement: HTMLDivElement, page: vec2, container: vec2, client: vec2, scale: vec2, hidden: boolean }) => void;
+    readonly #update: (properties: { anchor: HTMLElementAnchorData, htmlElement: HTMLDivElement, page: vec2, container: vec2, client: vec2, scale: vec2, hidden: boolean, visible: boolean }) => void;
 
     // #endregion Properties (1)
 
@@ -320,7 +321,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
             intersectionTarget?: Box | string | string[],
             id?: string,
             create: (properties: { anchor: HTMLElementAnchorData, parent: HTMLDivElement }) => void,
-            update: (properties: { anchor: HTMLElementAnchorData, htmlElement: HTMLDivElement, page: vec2, container: vec2, client: vec2, scale: vec2, hidden: boolean }) => void
+            update: (properties: { anchor: HTMLElementAnchorData, htmlElement: HTMLDivElement, page: vec2, container: vec2, client: vec2, scale: vec2, hidden: boolean, visible: boolean }) => void
         }) {
         super({
             location: properties.location,
@@ -342,7 +343,7 @@ export class HTMLElementAnchorCustomData extends HTMLElementAnchorData {
         this.#create(properties)
     }
 
-    public update(properties: { anchor: HTMLElementAnchorData, htmlElement: HTMLDivElement, page: vec2, container: vec2, client: vec2, scale: vec2, hidden: boolean }) {
+    public update(properties: { anchor: HTMLElementAnchorData, htmlElement: HTMLDivElement, page: vec2, container: vec2, client: vec2, scale: vec2, hidden: boolean, visible: boolean }) {
         this.#update(properties)
     }
 

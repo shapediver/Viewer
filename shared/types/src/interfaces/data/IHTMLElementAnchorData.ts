@@ -59,7 +59,8 @@ export interface IHTMLElementAnchorData extends ITreeNodeData {
         container: vec2,
         client: vec2,
         scale: vec2,
-        hidden: boolean
+        hidden: boolean,
+        visible: boolean
     }): void;
 
     // #endregion Public Methods (5)
