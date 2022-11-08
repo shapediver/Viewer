@@ -83,7 +83,7 @@ export class DragManager extends AbstractInteractionManager {
     public addDragConstraint(constraint: IDragConstraint): string {
         const token = this.#uuidGenerator.create();
         this.#dragConstraints[token] = constraint;
-        if(this.#setupOptions) constraint.setup(this.#setupOptions.viewport, this.#setupOptions.node, this.#setupOptions.ray, this.#setupOptions.intersection);
+        if(this.#setupOptions) constraint.setup(this.#setupOptions.viewport, this.#setupOptions.node, this.#setupOptions.ray, this.#setupOptions.intersection, this.#previousDragMatrix);
         return token;
     }
 
@@ -178,7 +178,7 @@ export class DragManager extends AbstractInteractionManager {
         this.activateNode({node, distance, point: intersectionPoint});
         this.#setupOptions = { viewport: this.viewport, node: this.#node!, ray, intersection: this.#intersection! };
         
-        let transformation = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!);
+        let transformation = this.dragConstraintUtils.setup(this.#dragConstraints, this.viewport, this.#node!, ray, this.#intersection!, this.#previousDragMatrix);
         let transformationMatrix = mat4.multiply(mat4.create(), mat4.multiply(mat4.create(), this.#nodeWorldMatrixInverse, transformation.matrix), this.#nodeWorldMatrix)
         
         this.applyTransformation(this.#node!, transformationMatrix);
@@ -214,7 +214,7 @@ export class DragManager extends AbstractInteractionManager {
         this.#intersection = intersection;
         this.#node = this.#intersection.node;
 
-        this.removeTransformation(this.#node)
+        this.#previousDragMatrix = this.removeTransformation(this.#node)
         this.#nodeWorldMatrix = this.#node.worldMatrix;
         this.#nodeWorldMatrixInverse = mat4.invert(mat4.create(), this.#nodeWorldMatrix);
 
@@ -264,9 +264,14 @@ export class DragManager extends AbstractInteractionManager {
         this.#node = null;
     }
 
-    private removeTransformation(node: ITreeNode) {
+    private removeTransformation(node: ITreeNode): mat4 {
         const index = node.transformations.findIndex((t: ITransformation) => t.id === 'SD_drag_matrix');
-        if(index !== -1) node.removeTransformation(node.transformations[index]);
+        if(index !== -1) {
+            const matrix = mat4.clone(node.transformations[index].matrix);
+            node.removeTransformation(node.transformations[index]);
+            return matrix;
+        } 
+        return mat4.create();
     }
 
     // #endregion Private Methods (4)
