@@ -39,7 +39,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
         });
 
         if(properties.direction) this.#direction = properties.direction;
-        if(properties.castShadow) this.#castShadow = properties.castShadow;
+        if(properties.castShadow !== undefined) this.#castShadow = properties.castShadow;
         if(properties.shadowMapResolution) this.#shadowMapResolution = properties.shadowMapResolution;
         if(properties.shadowMapBias) this.#shadowMapBias = properties.shadowMapBias;
     }
