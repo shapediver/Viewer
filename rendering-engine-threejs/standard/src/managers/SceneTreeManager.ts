@@ -330,6 +330,105 @@ export class SceneTreeManager implements IManager {
             node.boundingBoxViewport[this._renderingEngine.id].applyMatrix(node.nodeMatrix);
     }
 
+    
+    public updateNodeData(node: ITreeNode, obj: ISDObject) {
+        const convertedObject = <SDObject>obj;
+
+        // reset the general bounding box of the current node
+        // it will be recomputed in the following steps
+        node.boundingBox.reset();
+
+        // create the specific BB if it doesn't exist yet
+        if(!node.boundingBoxViewport[this._renderingEngine.id]) 
+            node.boundingBoxViewport[this._renderingEngine.id] = new Box();
+
+        // reset the specific bounding box of the current node
+        // it will be recomputed in the following steps
+        node.boundingBoxViewport[this._renderingEngine.id].reset();
+
+        // remove all data items that do not exist anymore
+        const dataIds = node.data.map(d => d.id);
+        const dataToRemove = convertedObject.children.filter(oc => oc instanceof SDData ? !(dataIds.includes(oc.SDid)) : false);
+        dataToRemove.forEach(dTR => {
+            this.removeData(<SDData>dTR)
+            convertedObject.remove(dTR);
+        })
+
+        // remove all child nodes in the transformed object that do not exist anymore
+        // the filter goes also through the data items as they were already added
+        const nodeIds = node.children.filter(d => !d.excludeViewports.includes(this._renderingEngine.id)).map(d => d.id);
+        const childrenToRemove = convertedObject.children.filter(oc => oc instanceof SDObject ? !nodeIds.includes(oc.SDid) : false);
+        childrenToRemove.forEach(cTR => {
+            cTR.traverse((o) => {
+                if (o instanceof SDData)
+                    this.removeData(o);
+            })
+            convertedObject.remove(cTR);
+        });
+
+        // convert all data items of the current node
+        // old versions will be replaced by new ones
+        for (let i = 0, len = node.data.length; i < len; i++)
+            this.updateData(node, convertedObject, node.data[i]);
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            const objChild = <SDObject>convertedObject.children.find(oc => (<SDObject>oc).SDid === nodeChild.id);
+            if (objChild) this.updateNodeData(nodeChild, objChild);
+
+            // adjust the general BB
+            if (!nodeChild.boundingBox.isEmpty())
+                node.boundingBox.union(nodeChild.boundingBox);
+
+            // adjust the specific BB
+            if (nodeChild.boundingBoxViewport[this._renderingEngine.id] && !nodeChild.boundingBoxViewport[this._renderingEngine.id].isEmpty()) {
+                // only do this if the node is
+                // 1. visible
+                // 2. no included in the "excludeViewports"
+                // 3. if there are "restrictViewports", it needs to be in them
+                if(node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id))) {
+                    node.boundingBoxViewport[this._renderingEngine.id].union(nodeChild.boundingBoxViewport[this._renderingEngine.id]);
+                }
+            }
+        }
+        
+        // apply matrix to general BB
+        if (!node.boundingBox.isEmpty())
+            node.boundingBox.applyMatrix(node.nodeMatrix);
+
+        // apply matrix to specific BB
+        if (!node.boundingBoxViewport[this._renderingEngine.id].isEmpty())
+            node.boundingBoxViewport[this._renderingEngine.id].applyMatrix(node.nodeMatrix);
+    }
+
+    public updateNodeHierarchy(node: ITreeNode = this._tree.root, obj: ISDObject = this._mainNode) {
+        const convertedObject = <SDObject>obj;
+
+        // add new children and update the ones that have a different version
+        for (let i = 0, len = node.children.length; i < len; i++) {
+            const nodeChild = node.children[i];
+            const objChild = <SDObject>convertedObject.children.find(oc => (<SDObject>oc).SDid === nodeChild.id);
+
+            if (!objChild) {
+                const newChild = node.data.find(d => d instanceof BoneData) ? new SDBone(nodeChild.id, nodeChild.version) : new SDObject(nodeChild.id, nodeChild.version);
+                const oldChild = nodeChild.threeJsObject[this._renderingEngine.id];
+                nodeChild.threeJsObject[this._renderingEngine.id] = newChild;
+                if(nodeChild.updateCallbackThreeJsObject) 
+                    nodeChild.updateCallbackThreeJsObject(newChild, oldChild, this._renderingEngine.id)
+                convertedObject.add(newChild);
+                this.updateNodeHierarchy(nodeChild, newChild);
+            } else if (objChild.SDversion !== nodeChild.version) {
+                // if the version is different, update the child
+                this.updateNodeHierarchy(nodeChild, objChild);
+                objChild.SDversion = nodeChild.version;
+            }
+        }
+
+        convertedObject.visible = node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id));
+        convertedObject.applyTransformation(node.nodeMatrix);
+    }
+
     public updateSceneTree(root: ITreeNode, lightEngine: LightEngine): void {
         if (this._renderingEngine.closed) return;
         const oldBB = this._boundingBox.clone();
@@ -348,7 +447,8 @@ export class SceneTreeManager implements IManager {
         this._boundingBoxSensitiveData = [];
 
         this._currentSDTFOverview = this.createSDTFOverview();
-        this.updateNode(root, this._mainNode);
+        this.updateNodeHierarchy(root, this._mainNode);
+        this.updateNodeData(root, this._mainNode);
         this._boundingBox = root.boundingBoxViewport[this._renderingEngine.id].clone();
 
         for (let i = 0; i < this._boundingBoxSensitiveData.length; i++)
