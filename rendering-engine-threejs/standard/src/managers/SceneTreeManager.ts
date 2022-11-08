@@ -195,8 +195,6 @@ export class SceneTreeManager implements IManager {
 
     public updateNodeTransformations(node: ITreeNode = this._tree.root, obj: SDObject = this._mainNode) {
         if (!node || !obj) return;
-        // if (node.excludeViewports.includes(this._renderingEngine.id)) return;
-        // if (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
         obj.visible = node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id));
         obj.applyTransformation(node.nodeMatrix);
@@ -212,8 +210,6 @@ export class SceneTreeManager implements IManager {
 
     public updateMorphWeights(node: ITreeNode = this._tree.root, obj: SDObject = this._mainNode) {
         if (!node || !obj) return;
-        // if (node.excludeViewports.includes(this._renderingEngine.id)) return;
-        // if (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
         for (let i = 0, len = node.data.length; i < len; i++) {
             if (node.data[i] instanceof GeometryData) {
@@ -249,10 +245,6 @@ export class SceneTreeManager implements IManager {
      */
     public updateNode(node: ITreeNode, obj: THREE.Object3D) {
         const convertedObject = <SDObject>obj;
-
-        // // if this node specifically excludes the current viewer, skip it and all descendants
-        // if (node.excludeViewports.includes(this._renderingEngine.id)) return;
-        // if (node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id)) return;
 
         // reset the general bounding box of the current node
         // it will be recomputed in the following steps
