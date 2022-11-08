@@ -28,7 +28,7 @@ console.log(`Powered by:
  ___/ // / / // /_/ // /_/ //  __// /_/ // / | |/ //  __// /    
 /____//_/ /_/ \\__,_// .___/ \\___//_____//_/  |___/ \\___//_/     
                    /_/                                          
-ShapeDiver Viewer Version: ${build_data.build_version}
+ShapeDiver Viewer 3, Version ${build_data.build_version.replace('3.', '')}
 Visit us at https://shapediver.com/ and find out more!
 `);
 
