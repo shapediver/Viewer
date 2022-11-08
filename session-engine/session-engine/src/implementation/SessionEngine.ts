@@ -70,6 +70,7 @@ export class SessionEngine implements ISessionEngine {
     private _sdk: ShapeDiverSdk;
     private _sessionId?: string;
     private _updateCallback: ((newNode: ITreeNode, oldNode: ITreeNode) => void) | null = null;
+    private _updateViewports: () => void;
     private _viewerSettings?: object;
 
     #customizationProcess!: string;
@@ -95,12 +96,13 @@ export class SessionEngine implements ISessionEngine {
      * Can be use to initialize a session with the ticket and modelViewUrl and returns a scene graph node with the result.
      * Can be use to customize the session with updated parameters to get the updated scene graph node.
      */
-    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string, excludeViewports?: string[] }) {
+    constructor(properties: { id: string, ticket: string, modelViewUrl: string, buildVersion: string, buildDate: string, bearerToken?: string, excludeViewports?: string[], updateViewports: () => void }) {
         this._id = properties.id;
         this._node = new TreeNode(properties.id);
         this._ticket = properties.ticket;
         this._modelViewUrl = properties.modelViewUrl;
         this._excludeViewports = properties.excludeViewports || [];
+        this._updateViewports = properties.updateViewports;
         this._bearerToken = properties.bearerToken;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
@@ -527,6 +529,8 @@ export class SessionEngine implements ISessionEngine {
                     this._stateEngine.renderingEngines[r].busy.splice(this._stateEngine.renderingEngines[r].busy.indexOf(customizationId), 1);
 
             this._logger.debug(LOGGING_TOPIC.SESSION, `Session(${this.id}).customize: Session customized.`);
+
+            this._updateViewports();
 
             this._eventEngine.emitEvent(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, { sessionId: this.id });
 

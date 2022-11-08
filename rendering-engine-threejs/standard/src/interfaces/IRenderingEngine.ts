@@ -34,5 +34,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     toneMapping: TONE_MAPPING; 
     toneMappingExposure: number; 
 
+    updateEnvironmentGeometry(): void;
+
     // #endregion Properties (17)
 }

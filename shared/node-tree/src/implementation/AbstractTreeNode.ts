@@ -21,6 +21,7 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
   #parent?: T;
 
   readonly #boundingBox: IBox = new Box();
+  readonly #boundingBoxViewport: { [key: string]: IBox } = {};
   #excludeViewports: string[] = [];
   #restrictViewports: string[] = [];
 
@@ -84,6 +85,10 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
 
   public get boundingBox(): IBox {
     return this.#boundingBox;
+  }
+
+  public get boundingBoxViewport(): { [key: string]: IBox } {
+    return this.#boundingBoxViewport;
   }
 
   public get children(): T[] {

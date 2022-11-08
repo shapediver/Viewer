@@ -525,6 +525,14 @@ export interface IViewportApi {
   update(): void;
 
   /**
+   * Update the position of the environment geometry (grid, groundplane, etc) to the current viewport bounding box.
+   * Internally, this functions is called whenever a session is customized, 
+   * but if you manually change parts of the scene, it might get necessary to call this function.
+   * Make sure to call {@link update} before, to apply the last changes.
+   */
+  updateEnvironmentGeometry(): void;
+
+  /**
    * Update the viewport with the current changes of given scene tree node and its descendants.
    * This carries out preparations for rendering. Call it after doing 
    * direct changes to the scene tree. 

@@ -34,19 +34,7 @@ export class EnvironmentGeometryManager implements IManager {
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
         this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e) => {
-            const bb = new Box(this._renderingEngine.sceneTreeManager.boundingBox.min, this._renderingEngine.sceneTreeManager.boundingBox.max);
-
-            if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
-
-            if(!this._initialized) {
-                this.changeSceneExtents(bb)
-            } else {
-                let eps = 0.005;
-                let bs = bb.boundingSphere;
-                if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-                if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-                if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
-            }
+            this.updateEnvironmentGeometryPosition();
         })
     }
 
@@ -213,6 +201,21 @@ export class EnvironmentGeometryManager implements IManager {
         this._grid.position.set(0, 0, -eps);
         this._groundPlane.position.set(0, 0, -eps);
         this._groundPlaneShadow.position.set(0, 0, -eps);
+    }
+
+    public updateEnvironmentGeometryPosition(): void {
+        const bb = new Box(this._renderingEngine.sceneTreeManager.boundingBox.min, this._renderingEngine.sceneTreeManager.boundingBox.max);
+        if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
+
+        if(!this._initialized) {
+            this.changeSceneExtents(bb)
+        } else {
+            let eps = 0.005;
+            let bs = bb.boundingSphere;
+            if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+            if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+            if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
+        }
     }
 
     // #endregion Public Methods (2)
