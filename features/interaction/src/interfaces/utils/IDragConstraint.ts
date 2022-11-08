@@ -24,8 +24,9 @@ export interface IDragConstraint {
      * @param node 
      * @param ray 
      * @param intersection 
+     * @param previousDragMatrix 
      */
-    setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection): { distance: number, transformation: mat4 } | undefined;
+    setup(viewport: IViewportApi, node: ITreeNode, ray: IRay, intersection: IIntersection, previousDragMatrix: mat4): { distance: number, transformation: mat4 } | undefined;
 
     // #endregion Public Methods (2)
 }

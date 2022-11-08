@@ -206,6 +206,11 @@ export interface IViewportApi {
   groundPlaneShadowVisibility: boolean;
 
   /**
+   * Option to enable / disable lights. (default: true)
+   */
+  lights: boolean;
+
+  /**
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
    * This is the texture that is rendered to the screen.
    * 
@@ -518,6 +523,14 @@ export interface IViewportApi {
    * direct changes to the scene tree. 
    */
   update(): void;
+
+  /**
+   * Update the position of the environment geometry (grid, groundplane, etc) to the current viewport bounding box.
+   * Internally, this functions is called whenever a session is customized, 
+   * but if you manually change parts of the scene, it might get necessary to call this function.
+   * Make sure to call {@link update} before, to apply the last changes.
+   */
+  updateEnvironmentGeometry(): void;
 
   /**
    * Update the viewport with the current changes of given scene tree node and its descendants.

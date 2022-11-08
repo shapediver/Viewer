@@ -8,7 +8,7 @@ import { AbstractLight } from '../AbstractLight'
 export class DirectionalLight extends AbstractLight implements IDirectionalLight {
     // #region Properties (4)
 
-    #castShadow: boolean = false;
+    #castShadow: boolean = true;
     #direction: vec3 = vec3.fromValues(-1, 0, 1);
     #shadowMapBias: number = -0.003;
     #shadowMapResolution: number = 1024;
@@ -31,7 +31,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     }) {
         super({
             color: properties.color || '#ffffff', 
-            intensity: properties.intensity !== undefined ? properties.intensity : 0.5, 
+            intensity: properties.intensity !== undefined ? properties.intensity : 1, 
             type: LIGHT_TYPE.DIRECTIONAL,
             name: properties.name,
             order: properties.order,
@@ -39,7 +39,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
         });
 
         if(properties.direction) this.#direction = properties.direction;
-        if(properties.castShadow) this.#castShadow = properties.castShadow;
+        if(properties.castShadow !== undefined) this.#castShadow = properties.castShadow;
         if(properties.shadowMapResolution) this.#shadowMapResolution = properties.shadowMapResolution;
         if(properties.shadowMapBias) this.#shadowMapBias = properties.shadowMapBias;
     }

@@ -3,47 +3,53 @@ import { IMapData } from "./IMapData";
 import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
 
 export interface IMaterialGemDataProperties extends IMaterialAbstractDataProperties {
-    // #region Properties (5)
+    // #region Properties (17)
 
-    refractionIndex?: number;
-    impurityMap?: IMapData;
-    impurityScale?: number;
+    brightness?: number;
+    center?: vec3;
     colorTransferBegin?: string;
     colorTransferEnd?: string;
-    center?: vec3;
-    radius?: number;
-    sphericalNormalMap?: IMapData;
-    gamma?: number;
     contrast?: number;
-    brightness?: number;
     dispersion?: number;
-    tracingDepth?: number;
-    tracingOpacity?: number;
+    envMap?: string | string[];
+    gamma?: number;
+    impurityMap?: IMapData;
+    impurityScale?: number;
     inverseModelMatrix?: mat4;
     inverseTransposeModelMatrix?: mat3;
+    radius?: number;
+    refractionIndex?: number;
+    sphericalNormalMap?: IMapData;
+    tracingDepth?: number;
+    tracingOpacity?: number;
 
-    // #endregion Properties (5)
+    // #endregion Properties (17)
 };
 
 export interface IMaterialGemData extends IMaterialAbstractData {
-    // #region Public Methods (2)
+    // #region Properties (17)
 
-    refractionIndex?: number;
-    impurityMap?: IMapData;
-    impurityScale?: number;
+    brightness?: number;
+    center?: vec3;
     colorTransferBegin?: string;
     colorTransferEnd?: string;
-    center?: vec3;
-    radius?: number;
-    sphericalNormalMap?: IMapData;
-    gamma?: number;
     contrast?: number;
-    brightness?: number;
     dispersion?: number;
-    tracingDepth?: number;
-    tracingOpacity?: number;
+    envMap?: string | string[];
+    gamma?: number;
+    impurityMap?: IMapData;
+    impurityScale?: number;
     inverseModelMatrix?: mat4;
     inverseTransposeModelMatrix?: mat3;
+    radius?: number;
+    refractionIndex?: number;
+    sphericalNormalMap?: IMapData;
+    tracingDepth?: number;
+    tracingOpacity?: number;
+
+    // #endregion Properties (17)
+
+    // #region Public Methods (2)
 
     clone(): IMaterialGemData;
     copy(source: IMaterialGemData): void;

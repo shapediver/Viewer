@@ -9,7 +9,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   // #region Properties (6)
 
   #angle: number = Math.PI / 4.0;
-  #decay: number = 1;
+  #decay: number = 0;
   #distance: number = 0;
   #penumbra: number = 0.5;
   #position: vec3 = vec3.fromValues(-1, 0, 1);
@@ -35,7 +35,7 @@ export class SpotLight extends AbstractLight implements ISpotLight {
   }) {
     super({
       color: properties.color || '#ffffff',
-      intensity: properties.intensity !== undefined ? properties.intensity : 0.5,
+      intensity: properties.intensity !== undefined ? properties.intensity : 1,
       type: LIGHT_TYPE.SPOT,
       name: properties.name,
       order: properties.order,

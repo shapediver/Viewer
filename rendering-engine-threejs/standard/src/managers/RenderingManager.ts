@@ -390,6 +390,19 @@ export class RenderingManager implements IManager {
         const enabled = this._renderingEngine.renderer.shadowMap.enabled;
         this._renderingEngine.renderer.shadowMap.enabled = this._renderingEngine.usingSwiftShader || this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES ? false : this._renderingEngine.shadows;
         if (enabled !== this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.materialLoader.updateMaterials()
+
+        let threeJsLightObject, oldLightVisibility = true;
+        // enable / disable lights
+        if(this._renderingEngine.lights === false) {
+            const ls = this._renderingEngine.lightEngine.lightScene;
+            if(ls) {
+                threeJsLightObject = ls.node.threeJsObject[this._renderingEngine.id];
+                if(threeJsLightObject) {
+                    oldLightVisibility = threeJsLightObject.visible;
+                    threeJsLightObject.visible = false;
+                }
+            }
+        }
         
         // update shadowMap if need
         if(states.updateShadowMap && this._renderingEngine.renderer.shadowMap.enabled) this._renderingEngine.renderer.shadowMap.needsUpdate = true;
@@ -420,6 +433,11 @@ export class RenderingManager implements IManager {
                 this._activeRendering = false;
             }
         }
+
+        // reset the visibility of the threeJs light object
+        if(threeJsLightObject)
+            threeJsLightObject.visible = oldLightVisibility;
+
         this._stats.end();
     }
 

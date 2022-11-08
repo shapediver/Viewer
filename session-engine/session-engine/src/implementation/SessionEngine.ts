@@ -104,7 +104,7 @@ export class SessionEngine implements ISessionEngine {
         this._bearerToken = properties.bearerToken;
         this._headers['X-ShapeDiver-BuildDate'] = properties.buildDate;
         this._headers['X-ShapeDiver-BuildVersion'] = properties.buildVersion;
-        this._outputLoader = new OutputLoader();
+        this._outputLoader = new OutputLoader(this);
 
         this._sdk = create(this._modelViewUrl, this._bearerToken);
         this._sdk.setConfigurationValue(ShapeDiverSdkConfigType.REQUEST_HEADERS, this._headers);

@@ -1,14 +1,19 @@
 import { HTMLElementAnchorData } from '@shapediver/viewer.shared.types'
 import { vec2, vec3 } from 'gl-matrix'
+import { ITreeNode } from '@shapediver/viewer.shared.node-tree';
 
 import { ILoader } from '../interfaces/ILoader'
 import { RenderingEngine } from '../RenderingEngine'
+import nodeCluster from 'node:cluster';
 
 export class HTMLElementAnchorLoader implements ILoader {
     // #region Properties (2)
 
     private readonly _htmlElements: {
-        [key: string]: HTMLElementAnchorData
+        [key: string]: {
+            anchor: HTMLElementAnchorData,
+            node: ITreeNode
+        }
     } = {};
     private readonly _parentDiv: HTMLDivElement;
 
@@ -43,13 +48,21 @@ export class HTMLElementAnchorLoader implements ILoader {
 
     public adjustPositions(scaleWidth: number, scaleHeight: number): void {
         for (let anchorId in this._htmlElements) {
-            const anchor = this._htmlElements[anchorId];
+            const anchor = this._htmlElements[anchorId].anchor;
             const { page, container, client, hidden } = this._renderingEngine.sceneTracingManager.convert3Dto2D(vec3.clone(anchor.location));
             
             const htmlElement = anchor.createViewerHtmlElement(this._renderingEngine.id);
             if (!htmlElement) continue;
     
-            anchor.update({ anchor, htmlElement, page, container, client, scale: vec2.fromValues(scaleWidth, scaleHeight), hidden });
+            let node = this._htmlElements[anchorId].node;
+
+            let visible = node.visible;
+            while(node.parent) {
+                node = node.parent;
+                visible = node.visible && visible;
+            }
+
+            anchor.update({ anchor, htmlElement, page, container, client, scale: vec2.fromValues(scaleWidth, scaleHeight), hidden, visible });
         }
     }
 
@@ -57,15 +70,18 @@ export class HTMLElementAnchorLoader implements ILoader {
         this._renderingEngine.canvas.parentNode?.appendChild(this._parentDiv);
     }
 
-    public load(anchor: HTMLElementAnchorData): void {
+    public load(node: ITreeNode, anchor: HTMLElementAnchorData): void {
         const htmlElement = anchor.createViewerHtmlElement(this._renderingEngine.id);
         if (!htmlElement) return;
         this._parentDiv.appendChild(htmlElement);
-        this._htmlElements[anchor.id + '_' + anchor.version] = anchor;
+        this._htmlElements[anchor.id + '_' + anchor.version] = {
+            node,
+            anchor
+        };
     }
 
     public removeData(id: string, version: string) {
-        const anchor = this._htmlElements[id + '_' + version];
+        const anchor = this._htmlElements[id + '_' + version].anchor;
         if (anchor && anchor.getViewerHtmlElement(this._renderingEngine.id)) {
             this._parentDiv.removeChild(anchor.getViewerHtmlElement(this._renderingEngine.id)!);
             delete this._htmlElements[id + '_' + version]

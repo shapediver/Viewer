@@ -333,7 +333,7 @@ export class CreationControlCenter implements ICreationControlCenter {
         excludeViewports: properties.excludeViewports,
         buildVersion: build_data.build_version,
         buildDate: build_data.build_date,
-        bearerToken: properties.jwtToken,
+        bearerToken: properties.jwtToken
       });
 
       const eventInit: ITaskEvent = { type: TASK_TYPE.SESSION_CREATION, id: eventId, progress: 0.25, status: 'Initializing session' };

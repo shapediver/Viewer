@@ -1,89 +1,100 @@
 import { IMapData, MapData } from "@shapediver/viewer";
 import * as THREE from "three"
 
-const mergeShader = new THREE.ShaderMaterial({
-    uniforms: {
-        tRed: { value: null },
-        activeRed: { value: false },
-        defaultRed: { value: 1.0 },
-        tGreen: { value: null },
-        activeGreen: { value: false },
-        defaultGreen: { value: 1.0 },
-        tBlue: { value: null },
-        activeBlue: { value: false },
-        defaultBlue: { value: 1.0 },
-    },
-    vertexShader: `// @author Michael Oppitz 
+let mergeShader: THREE.ShaderMaterial;
+let quadCamera: THREE.OrthographicCamera;
+let quadScene: THREE.Scene;
+let quad: THREE.Mesh;
+let renderer: THREE.WebGLRenderer;
 
-    uniform sampler2D tRed;
-    uniform bool activeRed;
-    uniform float defaultRed;
+const createThreeJsUtils = () => {
+    mergeShader = new THREE.ShaderMaterial({
+        uniforms: {
+            tRed: { value: null },
+            activeRed: { value: false },
+            defaultRed: { value: 1.0 },
+            tGreen: { value: null },
+            activeGreen: { value: false },
+            defaultGreen: { value: 1.0 },
+            tBlue: { value: null },
+            activeBlue: { value: false },
+            defaultBlue: { value: 1.0 },
+        },
+        vertexShader: `// @author Michael Oppitz 
     
-    uniform sampler2D tGreen;		
-    uniform bool activeGreen;
-    uniform float defaultGreen;
+        uniform sampler2D tRed;
+        uniform bool activeRed;
+        uniform float defaultRed;
+        
+        uniform sampler2D tGreen;		
+        uniform bool activeGreen;
+        uniform float defaultGreen;
+        
+        uniform sampler2D tBlue;		
+        uniform bool activeBlue;
+        uniform float defaultBlue;
     
-    uniform sampler2D tBlue;		
-    uniform bool activeBlue;
-    uniform float defaultBlue;
-
-    varying vec2 vUv;
+        varying vec2 vUv;
+        
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }`,
+        fragmentShader: `// @author Michael Oppitz 
     
-    void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-    }`,
-    fragmentShader: `// @author Michael Oppitz 
-
-    uniform sampler2D tRed;
-    uniform bool activeRed;
-    uniform float defaultRed;
+        uniform sampler2D tRed;
+        uniform bool activeRed;
+        uniform float defaultRed;
+        
+        uniform sampler2D tGreen;		
+        uniform bool activeGreen;
+        uniform float defaultGreen;
+        
+        uniform sampler2D tBlue;		
+        uniform bool activeBlue;
+        uniform float defaultBlue;
+        
+        varying vec2 vUv;
+        
+        void main() {
+            vec4 outColor = vec4(0.0, 0.0, 0.0, 1.0);
     
-    uniform sampler2D tGreen;		
-    uniform bool activeGreen;
-    uniform float defaultGreen;
+            if(activeRed == true) {
+                outColor.r = texture2D(tRed, vUv).r;
+            } else {
+                outColor.r = defaultRed;
+            }
+        
+            if(activeGreen == true) {
+                outColor.g = texture2D(tGreen, vUv).g;
+            } else {
+                outColor.g = defaultGreen;
+            }
+        
+            if(activeBlue == true) {
+                outColor.b = texture2D(tBlue, vUv).b;
+            } else {
+                outColor.b = defaultBlue;
+            }
+        
+            gl_FragColor = outColor;
+        }`
+    });
     
-    uniform sampler2D tBlue;		
-    uniform bool activeBlue;
-    uniform float defaultBlue;
+    quadCamera = new THREE.OrthographicCamera(- 1, 1, 1, - 1, 0, 1);
+    quadScene = new THREE.Scene();
+    quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mergeShader);
+    quadScene.add(quad);
     
-    varying vec2 vUv;
-    
-    void main() {
-        vec4 outColor = vec4(0.0, 0.0, 0.0, 1.0);
-
-        if(activeRed == true) {
-            outColor.r = texture2D(tRed, vUv).r;
-        } else {
-            outColor.r = defaultRed;
-        }
-    
-        if(activeGreen == true) {
-            outColor.g = texture2D(tGreen, vUv).g;
-        } else {
-            outColor.g = defaultGreen;
-        }
-    
-        if(activeBlue == true) {
-            outColor.b = texture2D(tBlue, vUv).b;
-        } else {
-            outColor.b = defaultBlue;
-        }
-    
-        gl_FragColor = outColor;
-    }`
-});
-
-const quadCamera = new THREE.OrthographicCamera(- 1, 1, 1, - 1, 0, 1);
-const quadScene = new THREE.Scene();
-const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mergeShader);
-quadScene.add(quad);
-
-const renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer();
+}
 
 export const combineTextures = async (red?: HTMLImageElement, green?: HTMLImageElement, blue?: HTMLImageElement): Promise<HTMLImageElement> => {
     if (!red && !green && !blue)
         throw new Error('No maps supplied.')
+
+    if(!renderer)
+        createThreeJsUtils()
 
     let width = 0, height = 0;
     const textures = [red, green, blue];

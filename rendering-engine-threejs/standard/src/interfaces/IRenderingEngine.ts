@@ -25,6 +25,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     groundPlaneVisibility: boolean;
     groundPlaneShadowColor: string | number | vec3; 
     groundPlaneShadowVisibility: boolean;
+    lights: boolean;
     lightSceneId: string;
     outputEncoding: TEXTURE_ENCODING; 
     physicallyCorrectLights: boolean;
@@ -32,6 +33,8 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     textureEncoding: TEXTURE_ENCODING; 
     toneMapping: TONE_MAPPING; 
     toneMappingExposure: number; 
+
+    updateEnvironmentGeometry(): void;
 
     // #endregion Properties (17)
 }

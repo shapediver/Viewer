@@ -22,7 +22,7 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
     }) {
         super({
             color: properties.color || '#ffffff', 
-            intensity: properties.intensity !== undefined ? properties.intensity : 0.5, 
+            intensity: properties.intensity !== undefined ? properties.intensity : 1, 
             type: LIGHT_TYPE.AMBIENT,
             name: properties.name,
             order: properties.order,
