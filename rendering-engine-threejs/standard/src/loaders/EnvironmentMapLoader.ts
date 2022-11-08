@@ -132,16 +132,23 @@ export class EnvironmentMapLoader implements ILoader {
         }
     }
 
-    public async load(name: string | string[]): Promise<boolean> {
-        const eventId = this._uuidGenerator.create();
+    public async loadEnvMap(name: string | string[], eId?: string): Promise<{
+        name: string,
+        map: THREE.CubeTexture | THREE.Texture | null,
+        type: ENVIRONMENT_MAP_TYPE
+    }> {
+        const eventId = eId || this._uuidGenerator.create();
         const event: ITaskEvent = { type: TASK_TYPE.ENVIRONMENT_MAP_LOADING, id: eventId, data: { input: name }, progress: 0, status: `Loading EnvironmentMap` };
         this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_START, event);
         
         const name_original = name;
         if (name === 'none') {
             this._environmentMapNameInternal = name;
-            this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.NONE, eventId);
-            return true;
+            return {
+                name: name,
+                map: this._environmentMaps[name],
+                type: ENVIRONMENT_MAP_TYPE.NONE
+            };
         };
 
         let name_internal: string, name_caching: string, url: string[];
@@ -172,8 +179,11 @@ export class EnvironmentMapLoader implements ILoader {
         // check if environment map is already cached
         for (let environmentMap in this._environmentMaps)
             if (environmentMap === name_caching) {
-                this.assignEnvironmentMap(environmentMap, this._environmentMaps[environmentMap] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR, eventId);
-                return true;
+                return {
+                    name: environmentMap,
+                    map: this._environmentMaps[environmentMap],
+                    type: this._environmentMaps[environmentMap] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
+                };
             }
 
         try {
@@ -188,7 +198,11 @@ export class EnvironmentMapLoader implements ILoader {
 
                     this._environmentMapHDR.push(url_hdr)
                     await this.loadEnvironmentMap(url_hdr, [], eventId);
-                    return Promise.resolve(true);
+                    return {
+                        name: url_hdr,
+                        map: this._environmentMaps[url_hdr],
+                        type: this._environmentMaps[url_hdr] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
+                    };
                 } else if (this._environmentMapNamesJPG.indexOf(name_internal) >= 0) {
                     // found in list of available environment maps with file type jpg
                     for (i = 0; i < this._environmentMapFilenames.length; i++)
@@ -197,7 +211,11 @@ export class EnvironmentMapLoader implements ILoader {
                     if (name.endsWith('.hdr')) {
                         this._environmentMapHDR.push(name)
                         await this.loadEnvironmentMap(name, [], eventId);
-                        return Promise.resolve(true);
+                        return {
+                            name: name,
+                            map: this._environmentMaps[name],
+                            type: this._environmentMaps[name] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
+                        };
                     } else {
                         if (!name.endsWith('/'))
                         name += '/';
@@ -216,12 +234,23 @@ export class EnvironmentMapLoader implements ILoader {
             }
 
             await this.loadEnvironmentMap(name_caching, url, eventId);
-            return Promise.resolve(true);
+            return {
+                name: name_caching,
+                map: this._environmentMaps[name_caching],
+                type: this._environmentMaps[name_caching] instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR
+            };
         }
         catch (e) {
             this.notify(eventId, true);
             throw this._logger.handleError(LOGGING_TOPIC.VIEWPORT, `EnvironmentMapLoader.load`, e);
         }
+    }
+
+    public async load(name: string | string[]): Promise<boolean> {
+        const eventId = this._uuidGenerator.create();
+        const res = await this.loadEnvMap(name, eventId);
+        this.assignEnvironmentMap(res.name, res.type, eventId);
+        return Promise.resolve(true);
     }
 
     public getEnvironmentMapImageUrl(name: string | string[]): string {
@@ -273,7 +302,6 @@ export class EnvironmentMapLoader implements ILoader {
                     const map = this._pmremGenerator.fromEquirectangular(texture).texture;
                     this._pmremGenerator.dispose();
                     this._environmentMaps[name] = map;
-                    this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.HDR, eventId);
                     resolve();
                 },
                 () => {},
@@ -295,7 +323,6 @@ export class EnvironmentMapLoader implements ILoader {
                         map.format = THREE.RGBAFormat;
                         map.mapping = THREE.CubeReflectionMapping;
                         this._environmentMaps[name] = map;
-                        this.assignEnvironmentMap(name, ENVIRONMENT_MAP_TYPE.LDR, eventId);
                         resolve();
                     },
                     () => {},

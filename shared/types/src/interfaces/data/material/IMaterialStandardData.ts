@@ -2,7 +2,7 @@ import { IMapData } from "./IMapData";
 import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
 
 export interface IMaterialStandardDataProperties extends IMaterialAbstractDataProperties {
-    // #region Properties (29)
+    // #region Properties (30)
 
     attenuationColor?: string,
     attenuationDistance?: number;
@@ -14,6 +14,7 @@ export interface IMaterialStandardDataProperties extends IMaterialAbstractDataPr
     displacementBias?: number;
     displacementMap?: IMapData;
     displacementScale?: number;
+    envMap?: string | string[];
     ior?: number;
     metalness?: number,
     metalnessMap?: IMapData,
@@ -34,11 +35,11 @@ export interface IMaterialStandardDataProperties extends IMaterialAbstractDataPr
     transmission?: number;
     transmissionMap?: IMapData;
 
-    // #endregion Properties (29)
+    // #endregion Properties (30)
 };
 
 export interface IMaterialStandardData extends IMaterialAbstractData {
-    // #region Public Methods (2)
+    // #region Properties (30)
 
     attenuationColor: string,
     attenuationDistance: number;
@@ -50,6 +51,7 @@ export interface IMaterialStandardData extends IMaterialAbstractData {
     displacementBias: number;
     displacementMap?: IMapData;
     displacementScale: number;
+    envMap?: string | string[];
     ior: number;
     metalness: number,
     metalnessMap?: IMapData,
@@ -69,6 +71,10 @@ export interface IMaterialStandardData extends IMaterialAbstractData {
     thicknessMap?: IMapData;
     transmission: number;
     transmissionMap?: IMapData;
+
+    // #endregion Properties (30)
+
+    // #region Public Methods (2)
 
     clone(): IMaterialStandardData;
     copy(source: IMaterialStandardData): void;

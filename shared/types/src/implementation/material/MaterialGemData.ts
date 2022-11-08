@@ -24,6 +24,7 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
     #tracingOpacity: number = 0;
     #inverseModelMatrix: mat4 = mat4.create();
     #inverseTransposeModelMatrix: mat3 = mat3.create();
+    #envMap?: string | string[];
 
     // #endregion Properties (5)
 
@@ -58,6 +59,7 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         if (properties.tracingOpacity !== undefined) this.tracingOpacity = properties.tracingOpacity;
         if (properties.inverseModelMatrix !== undefined) this.inverseModelMatrix = properties.inverseModelMatrix;
         if (properties.inverseTransposeModelMatrix !== undefined) this.inverseTransposeModelMatrix = properties.inverseTransposeModelMatrix;
+        if (properties.envMap !== undefined) this.envMap = properties.envMap;
     }
 
     // #endregion Constructors (1)
@@ -191,6 +193,14 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
     public set inverseTransposeModelMatrix(value: mat3) {
         this.#inverseTransposeModelMatrix = value;
     }
+  
+    public get envMap(): string | string[] | undefined {
+      return this.#envMap;
+    }
+  
+    public set envMap(value: string | string[] | undefined) {
+      this.#envMap = value;
+    }
 
     // #endregion Public Accessors (10)
 
@@ -231,6 +241,7 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
             tracingOpacity: this.tracingOpacity,
             inverseModelMatrix: this.inverseModelMatrix,
             inverseTransposeModelMatrix: this.inverseTransposeModelMatrix,
+            envMap: this.envMap,
         }, this.id);
     }
 
@@ -269,6 +280,7 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.tracingOpacity = this.tracingOpacity;
         this.inverseModelMatrix = this.inverseModelMatrix;
         this.inverseTransposeModelMatrix = this.inverseTransposeModelMatrix;
+        this.envMap = source.envMap;
     }
 
     public reset(): void {
@@ -306,6 +318,7 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.tracingOpacity = 0;
         this.inverseModelMatrix = mat4.create();
         this.inverseTransposeModelMatrix = mat3.create();
+        this.envMap = undefined;
     }
 
     // #endregion Public Methods (3)
