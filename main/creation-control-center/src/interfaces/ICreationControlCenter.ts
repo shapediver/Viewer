@@ -26,7 +26,6 @@ export interface ICreationControlCenter {
   getViewportSettings(viewportId: string): ISettingsV3_1;
   resetSettings(sessionId: string, sections?: ISettingsSections): Promise<void>;
   saveSettings(sessionId: string, viewportId?: string): Promise<boolean>;
-  updateViewports(): void;
 
   // #endregion Public Methods (10)
 }
