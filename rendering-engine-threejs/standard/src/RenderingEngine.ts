@@ -122,6 +122,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _gridVisibility: boolean = true;
   private _groundPlaneVisibility: boolean = true;
   private _groundPlaneShadowVisibility: boolean = false;
+  private _lights: boolean = true;
   private _logoDivElement: HTMLDivElement;
   private _pointSize: number = 1.0;
   private _renderer: THREE.WebGLRenderer;
@@ -530,6 +531,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get lightLoader(): LightLoader {
     return this._lightLoader;
+  }
+
+  public get lights(): boolean {
+    return this._lights;
+  }
+
+  public set lights(value: boolean) {
+    this._lights = value;
   }
 
   public get lightScene(): string {

@@ -451,6 +451,23 @@ export class ViewportApi implements IViewportApi {
         return this.#renderingEngine.id;
     }
 
+    public get lights(): boolean {
+        return this.#renderingEngine.lights;
+    }
+
+    public set lights(value: boolean) {
+        const scope = 'lights';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
+            this.#renderingEngine.lights = value;
+            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
+            this.update();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
     public get lightScene(): ILightSceneApi | null {
         if (!this.#renderingEngine.lightEngine.lightScene) return null;
         return this.#lightScenes[this.#renderingEngine.lightEngine.lightScene.id];
