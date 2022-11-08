@@ -8,7 +8,7 @@ import { AbstractLight } from '../AbstractLight'
 export class PointLight extends AbstractLight implements IPointLight {
   // #region Properties (3)
 
-  #decay: number = 2;
+  #decay: number = 0;
   #distance: number = 0;
   #position: vec3 = vec3.fromValues(0, 0, 0);
   #threeJsObject: { [key: string]: THREE.PointLight } = {};
@@ -29,7 +29,7 @@ export class PointLight extends AbstractLight implements IPointLight {
   }) {
     super({
       color: properties.color || '#ffffff',
-      intensity: properties.intensity !== undefined ? properties.intensity : 0.5,
+      intensity: properties.intensity !== undefined ? properties.intensity : 1,
       type: LIGHT_TYPE.POINT,
       name: properties.name,
       order: properties.order,

@@ -8,7 +8,7 @@ import { AbstractLight } from '../AbstractLight'
 export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     // #region Properties (1)
 
-    #groundColor: string = '#ffffff';
+    #groundColor: string = '#000000';
     #threeJsObject: { [key: string]: THREE.HemisphereLight } = {};
 
     // #endregion Properties (1)
@@ -25,7 +25,7 @@ export class HemisphereLight extends AbstractLight implements IHemisphereLight {
     }) {
         super({
             color: properties.color || '#ffffff',
-            intensity: properties.intensity !== undefined ? properties.intensity : 0.5,
+            intensity: properties.intensity !== undefined ? properties.intensity : 1,
             type: LIGHT_TYPE.HEMISPHERE,
             name: properties.name,
             order: properties.order,
