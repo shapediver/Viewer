@@ -49,6 +49,9 @@ export class GeometryLoader implements ILoader {
         [key: string]: THREE.CubeTexture
     } = {};
     private _gemNormalMaterial?: THREE.ShaderMaterial;
+    private _gemCubeCameraRenderTarget?: THREE.WebGLCubeRenderTarget;
+    private _gemScene?: THREE.Scene;
+    private _gemCubeCamera?: THREE.CubeCamera
 
     // #endregion Properties (3)
 
@@ -338,14 +341,16 @@ export class GeometryLoader implements ILoader {
         if (this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version])
             return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
 
-        let gemScene = new THREE.Scene();
-        let gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
-        gemCubeCameraRenderTarget.texture.generateMipmaps = false;
-        gemCubeCameraRenderTarget.texture.minFilter = THREE.NearestFilter;
-        gemCubeCameraRenderTarget.texture.magFilter = THREE.NearestFilter;
-        gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
-        let gemCubeCamera = new THREE.CubeCamera(0.001, 10000, gemCubeCameraRenderTarget);
-        gemScene.add(gemCubeCamera);
+        if(!this._gemScene) {
+            this._gemScene = new THREE.Scene();
+            this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
+            this._gemCubeCameraRenderTarget.texture.generateMipmaps = false;
+            this._gemCubeCameraRenderTarget.texture.minFilter = THREE.NearestFilter;
+            this._gemCubeCameraRenderTarget.texture.magFilter = THREE.NearestFilter;
+            this._gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
+            this._gemCubeCamera = new THREE.CubeCamera(0.001, 10000, this._gemCubeCameraRenderTarget);
+            this._gemScene.add(this._gemCubeCamera);
+        }
 
         if (!this._gemNormalMaterial) {
             let _normalShader = {
@@ -408,17 +413,17 @@ export class GeometryLoader implements ILoader {
 
             this._gemNormalMaterial.blending = THREE.NoBlending;
             this._gemNormalMaterial.side = THREE.DoubleSide;
-            gemScene.overrideMaterial = this._gemNormalMaterial;
+            this._gemScene.overrideMaterial = this._gemNormalMaterial;
         }
 
         let mesh = new THREE.Mesh(geometry.clone(), this._gemNormalMaterial);
         mesh.geometry.center();
-        gemScene.add(mesh);
+        this._gemScene.add(mesh);
 
-        gemCubeCamera.update(this._renderingEngine.renderer, gemScene);
-        gemScene.remove(mesh);
+        this._gemCubeCamera!.update(this._renderingEngine.renderer, this._gemScene);
+        this._gemScene.remove(mesh);
 
-        this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version] = gemCubeCamera.renderTarget.texture;
+        this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version] = this._gemCubeCamera!.renderTarget.texture;
         return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
     }
 
