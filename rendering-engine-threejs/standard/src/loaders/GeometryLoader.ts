@@ -454,39 +454,17 @@ export class GeometryLoader implements ILoader {
 
                 obj.add(skinnedMesh);
             } else {
-
-                if (material.opacity < 1 || (<THREE.MeshPhysicalMaterial | SpecularGlossinessMaterial>material).alphaMap) {
-                    const side = material.side;
-                    if (side === THREE.DoubleSide) {
-                        const baseMesh = new THREE.Mesh();
-                        baseMesh.userData.transparencyPlaceholder = true;
-                        geometry.threeJsObject[this._renderingEngine.id] = baseMesh;
-                        obj.add(baseMesh);
-
-                        const materialBack = material.clone();
-                        materialBack.side = THREE.BackSide;
-                        baseMesh.add(new THREE.Mesh(bufferGeometry, materialBack));
-                        const materialFront = material.clone();
-                        materialFront.side = THREE.FrontSide;
-                        baseMesh.add(new THREE.Mesh(bufferGeometry, materialFront));
-                    } else {
-                        const mesh = new THREE.Mesh(bufferGeometry, material);
-                        geometry.threeJsObject[this._renderingEngine.id] = mesh;
-                        obj.add(mesh);
-                    }
-                } else {
-                    const mesh = new THREE.Mesh(bufferGeometry, material);
-                    geometry.threeJsObject[this._renderingEngine.id] = mesh;
-                    obj.add(mesh);
-                }
+                const mesh = new THREE.Mesh(bufferGeometry, material);
+                geometry.threeJsObject[this._renderingEngine.id] = mesh;
+                obj.add(mesh);
             }
         } else {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.load`, error);
         }
 
-        obj.children.forEach(m => {
-            if(m.userData.transparencyPlaceholder !== true) {
+        obj.traverse(m => {
+            if(m instanceof THREE.Mesh && m.userData.transparencyPlaceholder !== true) {
                 (<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0], geometry.boundingBox.min[1], geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0], geometry.boundingBox.max[1], geometry.boundingBox.max[2]));
                 (<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
                 (<THREE.Mesh>m).geometry.userData = {
