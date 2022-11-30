@@ -22,8 +22,6 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
     #dispersion: number = 0;
     #tracingDepth: number = 5;
     #tracingOpacity: number = 0;
-    #inverseModelMatrix: mat4 = mat4.create();
-    #inverseTransposeModelMatrix: mat3 = mat3.create();
     #envMap?: string | string[];
 
     // #endregion Properties (5)
@@ -57,8 +55,6 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         if (properties.brightness !== undefined) this.brightness = properties.brightness;
         if (properties.dispersion !== undefined) this.dispersion = properties.dispersion;
         if (properties.tracingOpacity !== undefined) this.tracingOpacity = properties.tracingOpacity;
-        if (properties.inverseModelMatrix !== undefined) this.inverseModelMatrix = properties.inverseModelMatrix;
-        if (properties.inverseTransposeModelMatrix !== undefined) this.inverseTransposeModelMatrix = properties.inverseTransposeModelMatrix;
         if (properties.envMap !== undefined) this.envMap = properties.envMap;
     }
 
@@ -177,22 +173,6 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
     public set tracingOpacity(value: number) {
         this.#tracingOpacity = value;
     }
-
-    public get inverseModelMatrix(): mat4 {
-        return this.#inverseModelMatrix;
-    }
-
-    public set inverseModelMatrix(value: mat4) {
-        this.#inverseModelMatrix = value;
-    }
-
-    public get inverseTransposeModelMatrix(): mat3 {
-        return this.#inverseTransposeModelMatrix;
-    }
-
-    public set inverseTransposeModelMatrix(value: mat3) {
-        this.#inverseTransposeModelMatrix = value;
-    }
   
     public get envMap(): string | string[] | undefined {
       return this.#envMap;
@@ -239,8 +219,6 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
             brightness: this.brightness,
             dispersion: this.dispersion,
             tracingOpacity: this.tracingOpacity,
-            inverseModelMatrix: this.inverseModelMatrix,
-            inverseTransposeModelMatrix: this.inverseTransposeModelMatrix,
             envMap: this.envMap,
         }, this.id);
     }
@@ -278,8 +256,6 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.brightness = this.brightness;
         this.dispersion = this.dispersion;
         this.tracingOpacity = this.tracingOpacity;
-        this.inverseModelMatrix = this.inverseModelMatrix;
-        this.inverseTransposeModelMatrix = this.inverseTransposeModelMatrix;
         this.envMap = source.envMap;
     }
 
@@ -316,8 +292,6 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.dispersion = 0;
         this.tracingDepth = 5;
         this.tracingOpacity = 0;
-        this.inverseModelMatrix = mat4.create();
-        this.inverseTransposeModelMatrix = mat3.create();
         this.envMap = undefined;
     }
 
