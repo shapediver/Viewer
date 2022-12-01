@@ -39,7 +39,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/sdk.sdtf-v1": "1.1.1",
+    "@shapediver/sdk.sdtf-v1": "1.2.1",
     "@shapediver/viewer.shared.math": "2.5.1",
     "@shapediver/viewer.shared.node-tree": "2.5.1",
     "@shapediver/viewer.shared.services": "2.5.1",
