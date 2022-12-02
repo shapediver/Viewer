@@ -107,8 +107,6 @@ export class GeometryLoader implements ILoader {
 
                 gemMaterialData.side = MATERIAL_SIDE.FRONT;
 
-                gemMaterialData.inverseModelMatrix = mat4.fromValues(...parent.matrixWorld.toArray());
-                gemMaterialData.inverseTransposeModelMatrix = mat3.normalFromMat4(mat3.create(), mat4.transpose(mat4.create(), mat4.invert(mat4.create(), mat4.clone(gemMaterialData.inverseModelMatrix))));
                 gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
                 gemMaterialData.radius = radius;
                 (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
@@ -167,8 +165,6 @@ export class GeometryLoader implements ILoader {
 
                 gemMaterialData.side = MATERIAL_SIDE.FRONT;
 
-                gemMaterialData.inverseModelMatrix = mat4.fromValues(...parent.matrixWorld.toArray());
-                gemMaterialData.inverseTransposeModelMatrix = mat3.normalFromMat4(mat3.create(), mat4.transpose(mat4.create(), mat4.invert(mat4.create(), mat4.clone(gemMaterialData.inverseModelMatrix))));
                 gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
                 gemMaterialData.radius = radius;
                 (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;

@@ -18,8 +18,6 @@ export interface GemMaterialParameters extends THREE.MeshPhysicalMaterialParamet
     dispersion?: number | undefined;
     tracingDepth?: number | undefined;
     tracingOpacity?: number | undefined;
-    inverseModelMatrix?: THREE.Matrix4 | undefined;
-    inverseTransposeModelMatrix?: THREE.Matrix3 | undefined;
 
     // #endregion Properties (4)
 }
@@ -43,8 +41,6 @@ export class GemMaterial extends THREE.MeshPhysicalMaterial {
     public brightness: number = 0.0;
     public dispersion: number = 0.0;
     public tracingOpacity: number = 0.0;
-    public inverseModelMatrix: THREE.Matrix4 = new THREE.Matrix4();
-    public inverseTransposeModelMatrix: THREE.Matrix3 = new THREE.Matrix3();
 
     // #endregion Properties (1)
 
@@ -69,9 +65,7 @@ export class GemMaterial extends THREE.MeshPhysicalMaterial {
             contrast: { value: 1.0 },
             brightness: { value: 0.0 },
             dispersion: { value: 0.0 },
-            tracingOpacity: { value: 0.0 },
-            inverseModelMatrix: {value: new THREE.Matrix4()},
-            inverseTransposeModelMatrix: {value: new THREE.Matrix3()},
+            tracingOpacity: { value: 0.0 }
         };
 
         (<any>this)._extraUniforms = uniforms;
@@ -221,22 +215,6 @@ export class GemMaterial extends THREE.MeshPhysicalMaterial {
                 set: function (v) {
                     uniforms.tracingOpacity.value = v;
                 }
-            },
-            inverseModelMatrix: {
-                get: function () {
-                    return uniforms.inverseModelMatrix.value;
-                },
-                set: function (v) {
-                    uniforms.inverseModelMatrix.value = v;
-                }
-            },
-            inverseTransposeModelMatrix: {
-                get: function () {
-                    return uniforms.inverseTransposeModelMatrix.value;
-                },
-                set: function (v) {
-                    uniforms.inverseTransposeModelMatrix.value = v;
-                }
             }
         });
 
@@ -254,8 +232,6 @@ export class GemMaterial extends THREE.MeshPhysicalMaterial {
         this.brightness = params.brightness || 0;
         this.dispersion = params.dispersion || 0;
         this.tracingOpacity = params.tracingOpacity || 0;
-        this.inverseModelMatrix = params.inverseModelMatrix || new THREE.Matrix4();
-        this.inverseTransposeModelMatrix = params.inverseTransposeModelMatrix || new THREE.Matrix3();
 
         this.setValues(params);
     }
@@ -281,8 +257,6 @@ export class GemMaterial extends THREE.MeshPhysicalMaterial {
         this.brightness = (<any>source).brightness;
         this.dispersion = (<any>source).dispersion;
         this.tracingOpacity = (<any>source).tracingOpacity;
-        this.inverseModelMatrix = (<any>source).inverseModelMatrix;
-        this.inverseTransposeModelMatrix = (<any>source).inverseTransposeModelMatrix;
         
         return this;
     }

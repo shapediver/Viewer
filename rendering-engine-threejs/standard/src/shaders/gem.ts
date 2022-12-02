@@ -154,8 +154,6 @@ uniform float radius;
 uniform samplerCube sphericalNormalMap;
 uniform mat3 normalMatrix;
 uniform mat4 modelMatrix;
-uniform mat4 inverseModelMatrix;
-uniform mat3 inverseTransposeModelMatrix;
 
 uniform float impurityScale;
 uniform vec3 colorTransferBegin;
@@ -185,6 +183,7 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
 	
 	GeometricContext currentGeometry;
 	currentGeometry.position = (modelMatrix * vec4(position, 1.0)).xyz;
+	mat3 inverseTransposeModelMatrix = mat3(transpose(inverse(modelMatrix)));
 	currentGeometry.normal = normalize(inverseTransposeModelMatrix * normal);
 	currentGeometry.viewDir = normalize(inverseTransposeModelMatrix * -viewDir);
 
@@ -441,7 +440,9 @@ void main() {
 
     // CUSTOM START
     
-	vec3 initialDirection = normalize( frag_position - (inverseModelMatrix*vec4(cameraPosition,1.0)).xyz );
+	mat4 inverseMM = inverse( modelMatrix );
+    
+	vec3 initialDirection = normalize( frag_position - (inverseMM*vec4(cameraPosition,1.0)).xyz );
 
 	vec4 outgoingLight2;
 	float r_0 = (1.0-refractionIndex)/(1.0+refractionIndex);

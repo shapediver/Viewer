@@ -461,9 +461,6 @@ export class MaterialLoader implements ILoader {
             gemProperties.transparent = true;
             gemProperties.opacity = 1.0;
 
-            gemProperties.inverseModelMatrix = new THREE.Matrix4();
-            gemProperties.inverseTransposeModelMatrix = new THREE.Matrix3().getNormalMatrix(gemProperties.inverseModelMatrix.clone().invert().transpose());
-        
             gemProperties.side = THREE.FrontSide;
 
             return { properties: gemProperties, mapCount };
