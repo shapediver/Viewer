@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
 import * as ShapeDiverViewer from '@shapediver/viewer'
 
 import { createDriver, screenshotCompare } from '../../general/src/setup'
-import { sddev2, sdeuc1, sdtest } from '../../general/src/models'
+import { sddev2, sdeuc1, sdr7euc1, sdtest } from '../../general/src/models'
 
 require('chromedriver');
 let driver: webdriver.WebDriver;
@@ -23,7 +23,7 @@ describe('device testing', () => {
         await driver.quit();
     })
 
-    for (let modelDescription of [/*sddev2, sdtest, */sdeuc1]) {
+    for (let modelDescription of [/*sddev2, sdtest, */sdeuc1, sdr7euc1]) {
         const backend = modelDescription.backend;
 
         for (let model in modelDescription.models) {
