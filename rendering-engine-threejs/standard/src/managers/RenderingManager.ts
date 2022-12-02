@@ -451,13 +451,14 @@ export class RenderingManager implements IManager {
         const aspect = width / height;
         let adjustedWidth = width,
             adjustedHeight = height;
-        if (width > 1920 || height > 1080) {
-            if ((width - 1920) / aspect > (height - 1080)) {
-                adjustedWidth = 1920;
-                adjustedHeight = 1920 / aspect;
+
+        if (width > this._renderingEngine.maximumRenderingSize.width || height > this._renderingEngine.maximumRenderingSize.height) {
+            if ((width - this._renderingEngine.maximumRenderingSize.width) / aspect > (height - this._renderingEngine.maximumRenderingSize.height)) {
+                adjustedWidth = this._renderingEngine.maximumRenderingSize.width;
+                adjustedHeight = this._renderingEngine.maximumRenderingSize.width / aspect;
             } else {
-                adjustedWidth = 1080 * aspect;
-                adjustedHeight = 1080;
+                adjustedWidth = this._renderingEngine.maximumRenderingSize.height * aspect;
+                adjustedHeight = this._renderingEngine.maximumRenderingSize.height;
             }
         }
         return {

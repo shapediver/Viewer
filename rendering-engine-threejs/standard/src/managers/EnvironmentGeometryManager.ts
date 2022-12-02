@@ -23,7 +23,7 @@ export class EnvironmentGeometryManager implements IManager {
     private _groundPlaneObject!: SDData;
     private _groundPlaneShadowObject!: SDData;
     private _groundPlaneColor: string = '#d3d3d3ff';
-    private _groundPlaneShadowColor: string = '#000000ff';
+    private _groundPlaneShadowColor: string = '#d3d3d3ff';
     private _gridColor: string = '#44444426';
 
     private _initialized: boolean = false;

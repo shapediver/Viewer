@@ -8,6 +8,7 @@ import { sdeuc1 } from '../../general/src/models'
 require('chromedriver');
 
 const shelfTicket = sdeuc1.models['Shelf'].ticket;
+const materialPresetsTicket = sdeuc1.models['Material Presets'].ticket;
 
 let driver: webdriver.WebDriver;
 let name = 'lights_tests';
@@ -187,5 +188,75 @@ describe('device testing', () => {
             cb(Object.keys(viewer.lightScenes).length);
         }, shelfTicket);
         await screenshotCompare(await driver.takeScreenshot(), name + '/soloSpotLight');
+    });
+
+    test(name + '_disable', async () => {
+        const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        }, shelfTicket);
+        await screenshotCompare(await driver.takeScreenshot(), name + '/default');
+
+        const r2: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            viewer.lights = false;
+            await new Promise<void>((resolve) => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, async () => resolve())
+            })
+            cb();
+        }, shelfTicket);
+        await screenshotCompare(await driver.takeScreenshot(), name + '/disabled');
+    });
+
+    test(name + '_envMap_NONE', async () => {
+        const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+        
+            viewer.lights = false;
+            viewer.environmentMap = 'none';
+            
+            await new Promise<void>(resolve => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.TASK.TASK_END, (e) => {
+                    const taskEvent = e as any;
+                    if(taskEvent.type === (<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING)
+                    resolve();
+                });
+            })
+            cb();
+        }, materialPresetsTicket);
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMap_none');
+    });
+
+    test(name + '_envMap_NULL', async () => {
+        const r: any = await driver.executeAsyncScript(async (ticket: string, cb: any) => {
+            const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+            let viewer = await SDV.createViewport({ id: 'myViewer', canvas: <HTMLCanvasElement>document.getElementById('canvas') })
+            let session = await SDV.createSession({ ticket, modelViewUrl: 'https://sdeuc1.eu-central-1.shapediver.com' });
+        
+            viewer.lights = false;
+            viewer.environmentMap = 'null';
+            
+            await new Promise<void>(resolve => {
+                SDV.addListener((<any>window).SDV.EVENTTYPE.TASK.TASK_END, (e) => {
+                    const taskEvent = e as any;
+                    if(taskEvent.type === (<any>window).SDV.TASK_TYPE.ENVIRONMENT_MAP_LOADING)
+                    resolve();
+                });
+            })
+            cb();
+        }, materialPresetsTicket);
+        await screenshotCompare(await driver.takeScreenshot(), name + '/envMap_null');
     });
 });

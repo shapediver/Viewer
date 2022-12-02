@@ -27,6 +27,10 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     groundPlaneShadowVisibility: boolean;
     lights: boolean;
     lightSceneId: string;
+    maximumRenderingSize: {
+        width: number,
+        height: number
+    }
     outputEncoding: TEXTURE_ENCODING; 
     physicallyCorrectLights: boolean;
     shadows: boolean;
