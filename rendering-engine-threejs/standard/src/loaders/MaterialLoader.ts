@@ -261,7 +261,6 @@ export class MaterialLoader implements ILoader {
         if(materialData.opacity !== undefined){
             generalProperties.opacity = materialData.opacity;
             generalProperties.transparent = generalProperties.opacity < 1;
-            generalProperties.depthWrite = !(generalProperties.opacity < 1);
         }
             
         if(materialData.alphaMode === MATERIAL_ALPHA.BLEND) {
