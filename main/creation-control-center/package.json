@@ -43,7 +43,7 @@
     "@shapediver/viewer.rendering-engine.camera-engine": "2.5.1",
     "@shapediver/viewer.rendering-engine.rendering-engine": "2.5.1",
     "@shapediver/viewer.session-engine.session-engine": "2.5.1",
-    "@shapediver/viewer.settings": "0.1.36",
+    "@shapediver/viewer.settings": "0.1.37",
     "@shapediver/viewer.shared.build-data": "2.5.1",
     "@shapediver/viewer.shared.math": "2.5.1",
     "@shapediver/viewer.shared.node-tree": "2.5.1",

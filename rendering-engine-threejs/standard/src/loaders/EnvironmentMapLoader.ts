@@ -58,10 +58,16 @@ export enum ENVIRONMENT_MAP {
     WIDE_STREET = 'wide_street',
 }
 
+export enum ENVIRONMENT_MAP_EMPTY {
+    NONE = 'none',
+    NULL = 'null'
+}
+
 export enum ENVIRONMENT_MAP_TYPE {
     LDR = 'ldr',
     HDR = 'hdr',
-    NONE = 'none'
+    NONE = 'none',
+    NULL = 'null'
 }
 
 export class EnvironmentMapLoader implements ILoader {
@@ -83,11 +89,11 @@ export class EnvironmentMapLoader implements ILoader {
     private readonly _uuidGenerator: UuidGenerator = <UuidGenerator>container.resolve(UuidGenerator);
     private _pmremGenerator!: THREE.PMREMGenerator;
 
-    private _environmentMapName: string = 'none';
-    private _environmentMapNameInternal: string = 'none';
+    private _environmentMapName: string = 'null';
+    private _environmentMapNameInternal: string = 'null';
     private _isHDRMap: boolean = false;
     private _textureEncoding: THREE.TextureEncoding = THREE.sRGBEncoding;
-    private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NONE;
+    private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
 
     // #endregion Properties (8)
 
@@ -112,6 +118,7 @@ export class EnvironmentMapLoader implements ILoader {
     // #region Public Methods (2)
 
     public init(): void {
+        this._environmentMaps['null'] = null;
         this._environmentMaps['none'] = null;
             
         this._pmremGenerator = new THREE.PMREMGenerator(this._renderingEngine.renderer);
@@ -148,6 +155,15 @@ export class EnvironmentMapLoader implements ILoader {
                 name: name,
                 map: this._environmentMaps[name],
                 type: ENVIRONMENT_MAP_TYPE.NONE
+            };
+        };
+
+        if (name === 'null') {
+            this._environmentMapNameInternal = name;
+            return {
+                name: name,
+                map: this._environmentMaps[name],
+                type: ENVIRONMENT_MAP_TYPE.NULL
             };
         };
 
