@@ -190,6 +190,12 @@ export interface ITreeNode<T extends ITreeNode<any, ITreeNodeData<any>>, U exten
      */
     traverse(callback: (node: T) => void): void;
     /**
+     * Traverse this node and all it's children and executes the callback for all  data items of them
+     * 
+     * @param callback 
+     */
+    traverseData(callback: (data: U) => void): void;
+    /**
      * Update the version.
      */
     updateVersion(): void;
