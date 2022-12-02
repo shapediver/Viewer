@@ -211,6 +211,12 @@ export interface IViewportApi {
   lights: boolean;
 
   /**
+   * The maximum size of the renderings. The renderings will be upscaled to the actual resolution if these values are lower than the resolution of the canvas.
+   * This setting exists, as for higher resolutions the performance can drop due to the rendering effort. (default: { width: 1920, height: 1080 })
+   */
+  maximumRenderingSize: { width: number, height: number };
+
+  /**
    * The encoding that is used for the output texture. (default: TEXTURE_ENCODING.SRGB)
    * This is the texture that is rendered to the screen.
    * 

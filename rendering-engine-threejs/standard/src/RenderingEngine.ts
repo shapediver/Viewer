@@ -124,6 +124,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _groundPlaneShadowVisibility: boolean = false;
   private _lights: boolean = true;
   private _logoDivElement: HTMLDivElement;
+  private _maximumRenderingSize: { width: number; height: number } = { width: 1920, height: 1080 };
   private _pointSize: number = 1.0;
   private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
@@ -555,6 +556,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get materialLoader(): MaterialLoader {
     return this._materialLoader;
+  }
+
+  public get maximumRenderingSize(): {
+    width: number,
+    height: number
+  } {
+    return this._maximumRenderingSize;
+  }
+
+  public set maximumRenderingSize(value: {
+    width: number,
+    height: number
+  }) {
+    this._maximumRenderingSize = value;
   }
 
   public get minimalRendering(): boolean {

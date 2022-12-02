@@ -476,6 +476,31 @@ export class ViewportApi implements IViewportApi {
     public get lightScenes(): { [key: string]: ILightSceneApi; } {
         return this.#lightScenes;
     }
+    
+    public get maximumRenderingSize(): {
+        width: number,
+        height: number
+    } {
+        return this.#renderingEngine.maximumRenderingSize;
+    }
+
+    public set maximumRenderingSize(value: {
+        width: number,
+        height: number
+    }) {
+        const scope = 'maximumRenderingSize';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `SessionApi.${scope}`, value, 'object');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `SessionApi.${scope}`, value.width, 'number');
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `SessionApi.${scope}`, value.height, 'number');
+            this.#renderingEngine.maximumRenderingSize = value;
+            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
+            this.update();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
 
     public get outputEncoding(): TEXTURE_ENCODING {
         return this.#renderingEngine.outputEncoding;
