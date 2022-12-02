@@ -15,8 +15,6 @@ export interface IMaterialGemDataProperties extends IMaterialAbstractDataPropert
     gamma?: number;
     impurityMap?: IMapData;
     impurityScale?: number;
-    inverseModelMatrix?: mat4;
-    inverseTransposeModelMatrix?: mat3;
     radius?: number;
     refractionIndex?: number;
     sphericalNormalMap?: IMapData;
@@ -39,8 +37,6 @@ export interface IMaterialGemData extends IMaterialAbstractData {
     gamma?: number;
     impurityMap?: IMapData;
     impurityScale?: number;
-    inverseModelMatrix?: mat4;
-    inverseTransposeModelMatrix?: mat3;
     radius?: number;
     refractionIndex?: number;
     sphericalNormalMap?: IMapData;

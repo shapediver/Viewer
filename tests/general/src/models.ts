@@ -9,6 +9,17 @@ interface IModelDescription {
     }
 }
 
+export const sdr7euc1: IModelDescription = {
+    name: 'sdr7euc1',
+    backend: 'https://sdr7euc1.eu-central-1.shapediver.com',
+    models: {
+        'La Modula': {
+            ticket: 'c2881a729f89a2b53fdd3a3baf10b402d37213b04b05cdc595b3dd3ed772060dca1db41d9da8b4dff62cc5c8b2757441581ce9a2144e261cc4f7296a45e7e2a3e65a4d3c00b90ab61c6612734ae0e6a1f760f4061d26bf146c5e3aaf5a854a2a91d1cca9328597-3025199a939048bb6970cd09ec5a405d',
+            slug: '22-10-27-lamodula-jg-3'
+        }
+    }
+}
+
 export const sdeuc1: IModelDescription = {
     name: 'sdeuc1',
     backend: 'https://sdeuc1.eu-central-1.shapediver.com',
@@ -116,6 +127,10 @@ export const sdeuc1: IModelDescription = {
         'Inputs and Outputs': {
             ticket: '9e351f8c9105c10b8bd007d0bd093d65795e0985905336887ecb9e416b44d2cc6ae85d41b1e8d5adeabdcdc2af6141e7e4c46c7e8360e6f3ab5b3d6b19d9030a7dc4cb350b1ed7f320997b91549288fbb81e7531f266df0a9f6554da60de6d373dfcc3dfe2c847-cad3944e0a3f6254b2384292e9587515',
             slug: 'exampleallsupportedinputsandoutputsandexports-3'
+        },
+        'Tray': {
+            ticket: '570fd745cbef54fe5fefb02a4f6b4bbb317acf82a840c1b6ee47f519bb87288689f917771826fda807f680a473b8f8d606b93e71ca132e413e9ecfa0488f402c6bf7b0b06566cc2c5bcd3916753e900dcd353a6dbe631574543ec1caa5f4e9c304c65a5d1c7fc2-7f9949d9defd2710dde57a1ea103c918',
+            slug: 'transporttray-for-landingpage-3-2'
         }
     }
 }

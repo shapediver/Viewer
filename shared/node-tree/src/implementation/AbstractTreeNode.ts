@@ -341,6 +341,14 @@ export abstract class AbstractTreeNode<T extends ITreeNode<any, ITreeNodeData<an
       this.children[i].traverse(callback);
   }
 
+  public traverseData(callback: (node: U) => void): void {
+    for(let j = 0; j < this.data.length; j++)
+      callback(<U>this.data[j]);
+
+    for(let i = 0; i < this.children.length; i++)
+      this.children[i].traverseData(<(data: ITreeNodeData<any>) => void>callback);
+  }
+
   public updateVersion(): void {
     let node = <AbstractTreeNode<any, any>>this;
     while (node.parent) {

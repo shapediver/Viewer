@@ -63,7 +63,7 @@ export class MaterialLoader implements ILoader {
     private _pointSize: number = 1.0;
     private _textureEncoding: THREE.TextureEncoding = THREE.sRGBEncoding;
     private _maxMapCount: number = 0;
-    private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NONE;
+    private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
 
     // #endregion Properties (8)
 
@@ -146,9 +146,11 @@ export class MaterialLoader implements ILoader {
             var index = THREE.ShaderChunk.lights_fragment_maps.lastIndexOf('#endif');
             THREE.ShaderChunk.lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.substring(0, index) +
             `#else
-                vec3 reflectVec = reflect( -geometry.viewDir, geometry.normal );
-                reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
-                radiance += (vec3((reflectVec.z + 1.0) / 2.0) + 0.5) / 1.5;
+                #ifdef ENVMAP_TYPE_NONE
+                    vec3 reflectVec = reflect( -geometry.viewDir, geometry.normal );
+                    reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
+                    radiance += (vec3((reflectVec.z + 1.0) / 2.0) + 0.5) / 1.5;
+                #endif
             #endif
             ` + THREE.ShaderChunk.lights_fragment_maps.substring(index + '#endif'.length);
         }
@@ -261,7 +263,6 @@ export class MaterialLoader implements ILoader {
         if(materialData.opacity !== undefined){
             generalProperties.opacity = materialData.opacity;
             generalProperties.transparent = generalProperties.opacity < 1;
-            generalProperties.depthWrite = !(generalProperties.opacity < 1);
         }
             
         if(materialData.alphaMode === MATERIAL_ALPHA.BLEND) {
@@ -462,9 +463,6 @@ export class MaterialLoader implements ILoader {
             gemProperties.transparent = true;
             gemProperties.opacity = 1.0;
 
-            gemProperties.inverseModelMatrix = new THREE.Matrix4();
-            gemProperties.inverseTransposeModelMatrix = new THREE.Matrix3().getNormalMatrix(gemProperties.inverseModelMatrix.clone().invert().transpose());
-        
             gemProperties.side = THREE.FrontSide;
 
             return { properties: gemProperties, mapCount };

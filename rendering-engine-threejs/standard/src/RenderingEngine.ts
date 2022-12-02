@@ -116,7 +116,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   // viewer global vars
   private _closed: boolean = false;
   private _enableAR: boolean = true;
-  private _environmentMap: string | string[] = 'none';
+  private _environmentMap: string | string[] = 'null';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
   private _gridVisibility: boolean = true;
@@ -124,6 +124,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _groundPlaneShadowVisibility: boolean = false;
   private _lights: boolean = true;
   private _logoDivElement: HTMLDivElement;
+  private _maximumRenderingSize: { width: number; height: number } = { width: 1920, height: 1080 };
   private _pointSize: number = 1.0;
   private _renderer: THREE.WebGLRenderer;
   private _sessionSettingsId?: string;
@@ -555,6 +556,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public get materialLoader(): MaterialLoader {
     return this._materialLoader;
+  }
+
+  public get maximumRenderingSize(): {
+    width: number,
+    height: number
+  } {
+    return this._maximumRenderingSize;
+  }
+
+  public set maximumRenderingSize(value: {
+    width: number,
+    height: number
+  }) {
+    this._maximumRenderingSize = value;
   }
 
   public get minimalRendering(): boolean {
@@ -1016,10 +1031,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
-    //settingsEngine.environmentGeometry.groundPlaneShadowVisibility = this.groundPlaneShadowVisibility;
+    settingsEngine.environmentGeometry.groundPlaneShadowVisibility = this.groundPlaneShadowVisibility;
     settingsEngine.environmentGeometry.gridColor = this.gridColor;
     settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
-    //settingsEngine.environmentGeometry.groundPlaneShadowColor = this.groundPlaneShadowColor;
+    settingsEngine.environmentGeometry.groundPlaneShadowColor = this.groundPlaneShadowColor;
 
     settingsEngine.general.pointSize = this.pointSize;
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
@@ -1028,6 +1043,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
     settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
+    settingsEngine.rendering.lights = this.lights;
     settingsEngine.rendering.outputEncoding = this.outputEncoding;
     settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
     settingsEngine.rendering.textureEncoding = this.textureEncoding;
@@ -1186,11 +1202,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.gridVisibility = this._settingsEngine.environmentGeometry.gridVisibility;
       this.groundPlaneColor = this._settingsEngine.environmentGeometry.groundPlaneColor;
       this.groundPlaneVisibility = this._settingsEngine.environmentGeometry.groundPlaneVisibility;
-      // this.groundPlaneShadowColor = this._settingsEngine.environmentGeometry.groundPlaneShadowColor;
-      // this.groundPlaneShadowVisibility = this._settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
+      this.groundPlaneShadowColor = this._settingsEngine.environmentGeometry.groundPlaneShadowColor;
+      this.groundPlaneShadowVisibility = this._settingsEngine.environmentGeometry.groundPlaneShadowVisibility;
 
       this.shadows = this._settingsEngine.rendering.shadows;
       this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
+      this.lights = this._settingsEngine.rendering.lights;
 
       this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
       this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;

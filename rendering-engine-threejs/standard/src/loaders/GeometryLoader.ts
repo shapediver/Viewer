@@ -49,6 +49,9 @@ export class GeometryLoader implements ILoader {
         [key: string]: THREE.CubeTexture
     } = {};
     private _gemNormalMaterial?: THREE.ShaderMaterial;
+    private _gemCubeCameraRenderTarget?: THREE.WebGLCubeRenderTarget;
+    private _gemScene?: THREE.Scene;
+    private _gemCubeCamera?: THREE.CubeCamera
 
     // #endregion Properties (3)
 
@@ -104,8 +107,6 @@ export class GeometryLoader implements ILoader {
 
                 gemMaterialData.side = MATERIAL_SIDE.FRONT;
 
-                gemMaterialData.inverseModelMatrix = mat4.fromValues(...parent.matrixWorld.toArray());
-                gemMaterialData.inverseTransposeModelMatrix = mat3.normalFromMat4(mat3.create(), mat4.transpose(mat4.create(), mat4.invert(mat4.create(), mat4.clone(gemMaterialData.inverseModelMatrix))));
                 gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
                 gemMaterialData.radius = radius;
                 (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
@@ -164,8 +165,6 @@ export class GeometryLoader implements ILoader {
 
                 gemMaterialData.side = MATERIAL_SIDE.FRONT;
 
-                gemMaterialData.inverseModelMatrix = mat4.fromValues(...parent.matrixWorld.toArray());
-                gemMaterialData.inverseTransposeModelMatrix = mat3.normalFromMat4(mat3.create(), mat4.transpose(mat4.create(), mat4.invert(mat4.create(), mat4.clone(gemMaterialData.inverseModelMatrix))));
                 gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
                 gemMaterialData.radius = radius;
                 (<any>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
@@ -338,14 +337,16 @@ export class GeometryLoader implements ILoader {
         if (this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version])
             return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
 
-        let gemScene = new THREE.Scene();
-        let gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
-        gemCubeCameraRenderTarget.texture.generateMipmaps = false;
-        gemCubeCameraRenderTarget.texture.minFilter = THREE.NearestFilter;
-        gemCubeCameraRenderTarget.texture.magFilter = THREE.NearestFilter;
-        gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
-        let gemCubeCamera = new THREE.CubeCamera(0.001, 10000, gemCubeCameraRenderTarget);
-        gemScene.add(gemCubeCamera);
+        if(!this._gemScene) {
+            this._gemScene = new THREE.Scene();
+            this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, { format: THREE.RGBAFormat, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter })
+            this._gemCubeCameraRenderTarget.texture.generateMipmaps = false;
+            this._gemCubeCameraRenderTarget.texture.minFilter = THREE.NearestFilter;
+            this._gemCubeCameraRenderTarget.texture.magFilter = THREE.NearestFilter;
+            this._gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
+            this._gemCubeCamera = new THREE.CubeCamera(0.001, 10000, this._gemCubeCameraRenderTarget);
+            this._gemScene.add(this._gemCubeCamera);
+        }
 
         if (!this._gemNormalMaterial) {
             let _normalShader = {
@@ -408,17 +409,17 @@ export class GeometryLoader implements ILoader {
 
             this._gemNormalMaterial.blending = THREE.NoBlending;
             this._gemNormalMaterial.side = THREE.DoubleSide;
-            gemScene.overrideMaterial = this._gemNormalMaterial;
+            this._gemScene.overrideMaterial = this._gemNormalMaterial;
         }
 
         let mesh = new THREE.Mesh(geometry.clone(), this._gemNormalMaterial);
         mesh.geometry.center();
-        gemScene.add(mesh);
+        this._gemScene.add(mesh);
 
-        gemCubeCamera.update(this._renderingEngine.renderer, gemScene);
-        gemScene.remove(mesh);
+        this._gemCubeCamera!.update(this._renderingEngine.renderer, this._gemScene);
+        this._gemScene.remove(mesh);
 
-        this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version] = gemCubeCamera.renderTarget.texture;
+        this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version] = this._gemCubeCamera!.renderTarget.texture;
         return this._gemSphericalMapsCache[geometryData.id + '_' + geometryData.version];
     }
 
@@ -454,39 +455,17 @@ export class GeometryLoader implements ILoader {
 
                 obj.add(skinnedMesh);
             } else {
-
-                if (material.opacity < 1 || (<THREE.MeshPhysicalMaterial | SpecularGlossinessMaterial>material).alphaMap) {
-                    const side = material.side;
-                    if (side === THREE.DoubleSide) {
-                        const baseMesh = new THREE.Mesh();
-                        baseMesh.userData.transparencyPlaceholder = true;
-                        geometry.threeJsObject[this._renderingEngine.id] = baseMesh;
-                        obj.add(baseMesh);
-
-                        const materialBack = material.clone();
-                        materialBack.side = THREE.BackSide;
-                        baseMesh.add(new THREE.Mesh(bufferGeometry, materialBack));
-                        const materialFront = material.clone();
-                        materialFront.side = THREE.FrontSide;
-                        baseMesh.add(new THREE.Mesh(bufferGeometry, materialFront));
-                    } else {
-                        const mesh = new THREE.Mesh(bufferGeometry, material);
-                        geometry.threeJsObject[this._renderingEngine.id] = mesh;
-                        obj.add(mesh);
-                    }
-                } else {
-                    const mesh = new THREE.Mesh(bufferGeometry, material);
-                    geometry.threeJsObject[this._renderingEngine.id] = mesh;
-                    obj.add(mesh);
-                }
+                const mesh = new THREE.Mesh(bufferGeometry, material);
+                geometry.threeJsObject[this._renderingEngine.id] = mesh;
+                obj.add(mesh);
             }
         } else {
             const error = new ShapeDiverViewerDataProcessingError(`GeometryLoader.load: Unrecognized primitive mode ${geometry.primitive.mode}.`);
             throw this._logger.handleError(LOGGING_TOPIC.DATA_PROCESSING, `GeometryLoader.load`, error);
         }
 
-        obj.children.forEach(m => {
-            if(m.userData.transparencyPlaceholder !== true) {
+        obj.traverse(m => {
+            if(m instanceof THREE.Mesh && m.userData.transparencyPlaceholder !== true) {
                 (<THREE.Mesh>m).geometry.boundingBox = new THREE.Box3(new THREE.Vector3(geometry.boundingBox.min[0], geometry.boundingBox.min[1], geometry.boundingBox.min[2]), new THREE.Vector3(geometry.boundingBox.max[0], geometry.boundingBox.max[1], geometry.boundingBox.max[2]));
                 (<THREE.Mesh>m).geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(geometry.boundingBox.boundingSphere.center[0], geometry.boundingBox.boundingSphere.center[1], geometry.boundingBox.boundingSphere.center[2]), geometry.boundingBox.boundingSphere.radius);
                 (<THREE.Mesh>m).geometry.userData = {
