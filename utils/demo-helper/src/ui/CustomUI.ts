@@ -78,10 +78,10 @@
         sliderInputElement.classList.value = "w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700";
         sliderInputElement.setAttribute("name", "inputElement");
         sliderInputElement.setAttribute("type", "range");
-        sliderInputElement.setAttribute("min", sliderElement.min !== undefined ? sliderElement.min + "" : sliderElement.min + "");
-        sliderInputElement.setAttribute("max", sliderElement.max !== undefined ? sliderElement.max + "" : sliderElement.max + "");
         sliderInputElement.setAttribute("value", sliderElement.value + "");
         sliderInputElement.setAttribute("step", sliderElement.step + "");
+        sliderInputElement.setAttribute("min", sliderElement.min !== undefined ? sliderElement.min + "" : sliderElement.min + "");
+        sliderInputElement.setAttribute("max", sliderElement.max !== undefined ? sliderElement.max + "" : sliderElement.max + "");
         paramDiv.appendChild(sliderInputElement);
 
         // the callbacks
