@@ -257,7 +257,7 @@ export class SessionEngine implements ISessionEngine {
                 throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
             }
 
-            const settings = <ISettingsV3_1>convert(config, '3.1');
+            const settings = <ISettingsV3_1>convert(config, '3.2');
 
             const exportMappingUid: { [key: string]: string | undefined } = {};
             if (sections.session.export.displayname || sections.session.export.order || sections.session.export.hidden)
@@ -912,7 +912,7 @@ export class SessionEngine implements ISessionEngine {
         this.checkAvailability('configure', true);
         
         try {
-            validate(json, '3.1')
+            validate(json, '3.2')
         } catch (e) {
             const error = new ShapeDiverViewerSettingsError('Session.saveSettings: Settings could not be validated. ' + (<Error>e).message, <Error>e);
             throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, 'Session.applySettings', error);
