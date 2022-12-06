@@ -219,15 +219,16 @@ export class LightEngine implements ILightEngine {
             return false;
         }
 
-        if(this._lightScene && this._lightScene.id === id)
+        if(this._lightScene && this._lightScene.id === id) {
             (<any>this._lightScene) = undefined;
+
+            while (this._lightNode.children.length > 0)
+                this._lightNode.removeChild(this._lightNode.children[0]);
+            this._lightNode.updateVersion();
+        }
         delete this._lightScenes[id];
 
-        while(this._lightNode.children.length > 0)
-            this._lightNode.removeChild(this._lightNode.children[0]);
-        this._lightNode.updateVersion();
-
-        if(this._update) this._update();
+        if (this._update) this._update();
         return true;
     }
 
