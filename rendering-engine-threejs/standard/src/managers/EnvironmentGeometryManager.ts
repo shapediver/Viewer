@@ -33,7 +33,7 @@ export class EnvironmentGeometryManager implements IManager {
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
-        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e) => {
+        this._eventEngine.addListener(EVENTTYPE.SCENE.SCENE_BOUNDING_BOX_CHANGE, (e) => {
             this.updateEnvironmentGeometryPosition();
         })
     }
