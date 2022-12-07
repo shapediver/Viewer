@@ -16,7 +16,7 @@ export class Converter {
      * @param color 
      * @param defColor 
      */
-    public toHex8Color(color: any, defColorString: string = '#00fff7'): string {
+    public toHex8Color(color: any, defColorString: string = '#199b9b'): string {
         const c = this.toColor(color, defColorString);
         const tColor = new TinyColor(c);
         const cH8 = tColor.toHex8String();
@@ -173,7 +173,7 @@ export class Converter {
      * @param color 
      * @param defColor 
      */
-    public toColor(color: any, defColorString: string = '#00fff7'): string {
+    public toColor(color: any, defColorString: string = '#199b9b'): string {
         if (!color || color === 'default') return defColorString;
 
         if (color.constructor === Float32Array)

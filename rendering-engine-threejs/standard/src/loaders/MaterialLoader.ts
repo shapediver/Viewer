@@ -47,7 +47,7 @@ export class MaterialLoader implements ILoader {
     // #region Properties (8)
 
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
-    private readonly _defaultColor: string = '#00fff7';
+    private readonly _defaultColor: string = '#199b9b';
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private _materialCache: {
         [key: string]: {

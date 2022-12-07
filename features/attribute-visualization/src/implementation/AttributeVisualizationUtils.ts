@@ -13,7 +13,7 @@ const grayscaleVisualization = (factor: number, materialType: 'unlit' | 'standar
 
 const opacityVisualization = (factor: number, materialType: 'unlit' | 'standard', defaultMaterial?: IMaterialAbstractData): ISDTFAttributeVisualizationData => {
     return {
-        material: materialType === 'unlit' ? new MaterialUnlitData({color: defaultMaterial?.color || '#00fff7', opacity: factor}) : new MaterialStandardData({color: defaultMaterial?.color || '#00fff7', opacity: factor}),
+        material: materialType === 'unlit' ? new MaterialUnlitData({color: defaultMaterial?.color || '#199b9b', opacity: factor}) : new MaterialStandardData({color: defaultMaterial?.color || '#199b9b', opacity: factor}),
         matrix: mat4.create()
     }
 }
