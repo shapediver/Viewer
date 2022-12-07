@@ -251,6 +251,8 @@ export class MaterialLoader implements ILoader {
             if(materialSettings !== undefined && materialSettings.useVertexColors)
                 generalProperties.color = new THREE.Color('#d3d3d3');
             generalProperties.side = THREE.DoubleSide;
+            if(!(type === MATERIAL_TYPE.POINT || type === MATERIAL_TYPE.LINE)) 
+                (<THREE.MeshPhysicalMaterialParameters>generalProperties).envMap = this._envMap;
             return { properties: generalProperties, mapCount };
         }
 
