@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import { ITransformation, ITree, Tree, ITreeNode, TreeNode, ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
-import { IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, ITexture, TAG3D_JUSTIFICATION } from "@shapediver/viewer.data-engine.shared-types";
+import { IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3, ITag2D, ITag3D, ITexture, TAG3D_JUSTIFICATION } from "@shapediver/viewer.data-engine.shared-types";
 import { CAMERA_TYPE, ORTHOGRAPHIC_CAMERA_DIRECTION, ICameraOptions } from "@shapediver/viewer.rendering-engine.camera-engine";
 import { LIGHT_TYPE } from "@shapediver/viewer.rendering-engine.light-engine";
 import { RENDERER_TYPE, VISIBILITY_MODE, TEXTURE_ENCODING, TONE_MAPPING, FLAG_TYPE, BUSY_MODE_DISPLAY, SESSION_SETTINGS_MODE, SPINNER_POSITIONING } from "@shapediver/viewer.rendering-engine.rendering-engine";
@@ -53,7 +53,7 @@ export { IBox, Box, ISphere, Sphere, IGeometry, ITransformation, ShapeDiverRespo
 export { EventResponseMapping, IViewportEvent, ISessionEvent, ICameraEvent, ISceneEvent, ITaskEvent, ISettingsSections }
 export { IMaterialAbstractData, IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, IMaterialUnlitData, MaterialUnlitData, IMaterialUnlitDataProperties, IMaterialSpecularGlossinessData, MaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties, IMaterialGemData, MaterialGemData, IMaterialGemDataProperties, IMapData, MapData, ITexture, IMaterialContentDataV1, IMaterialContentDataV2, IMaterialContentDataV3 }
 export { IAnimationData, AnimationData, IAnimationTrack, IGeometryData, IAttributeData, IPrimitiveData, IMaterialVariantsData, GeometryData, AttributeData, PrimitiveData, MaterialVariantsData }
-export { IAnchorDataImage, IAnchorDataText, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData }
+export { IAnchorDataImage, IAnchorDataText, ITag2D, ITag3D, IHTMLElementAnchorData, HTMLElementAnchorCustomData, HTMLElementAnchorTextData, HTMLElementAnchorImageData, HTMLElementAnchorData }
 export { ICustomData, CustomData, ICameraOptions }
 export { ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData, SdtfPrimitiveTypeGuard }
 export { DataEngine, GeometryEngine, MaterialEngine }
