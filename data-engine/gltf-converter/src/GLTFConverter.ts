@@ -63,7 +63,7 @@ export class GLTFConverter {
     private _byteOffset: number = 0;
     private _content: IGLTF_v2 = {
         asset: {
-            copyright: '2021 (c) ShapeDiver',
+            copyright: '2023 (c) ShapeDiver',
             generator: 'ShapeDiverViewer@' + build_data.build_version,
             version: '2.0',
             extensions: {}
@@ -749,7 +749,7 @@ export class GLTFConverter {
         this._byteOffset = 0;
         this._content = {
             asset: {
-                copyright: '2021 (c) ShapeDiver',
+                copyright: '2023 (c) ShapeDiver',
                 generator: 'ShapeDiverViewer@' + build_data.build_version,
                 version: '2.0',
                 extensions: {}
