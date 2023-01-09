@@ -4,8 +4,8 @@ import { GeometryData } from '@shapediver/viewer.shared.types'
 import { container } from 'tsyringe'
 import { AbstractCamera, OrthographicCamera, ORTHOGRAPHIC_CAMERA_DIRECTION } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { Logger, LOGGING_TOPIC, ShapeDiverViewerGeneralError } from '@shapediver/viewer.shared.services'
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
-import { IManager } from '../interfaces/IManager'
 import { RenderingEngine } from '../RenderingEngine'
 
 export class SceneTracingManager implements IManager {

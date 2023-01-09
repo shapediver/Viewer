@@ -7,9 +7,9 @@ import {
   PerspectiveCamera,
 } from '@shapediver/viewer.rendering-engine.camera-engine'
 
-import { IManager } from '../interfaces/IManager'
 import { RenderingEngine } from '../RenderingEngine'
 import { SDData } from '../objects/SDData'
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class CameraManager implements IManager {
     // #region Constructors (1)
