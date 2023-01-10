@@ -7,7 +7,7 @@ export class ShapeDiverViewerUnknownError extends ShapeDiverViewerError {
         public readonly errorObject: Error | unknown
     ) {
         super(ShapeDiverViewerErrorType.UNKNOWN, 'An unknown error occurred.', message);
-        Error.captureStackTrace(this, ShapeDiverViewerUnknownError)
+        if(Error.captureStackTrace !== undefined) Error.captureStackTrace(this, ShapeDiverViewerUnknownError)
     }
 }
 
