@@ -220,13 +220,13 @@ export class CreationControlCenter implements ICreationControlCenter {
           throw this.#logger.error(LOGGING_TOPIC.VIEWPORT, new Error('Session with sessionSettingsMode MANUAL needs to have a sessionSettingsId.'), undefined, true, true);
         const sessionSettingsId = properties.sessionSettingsId;
         if (this.sessionEngines[sessionSettingsId]) {
-          this.assignSettings(renderingEngine, sessionSettingsId)
+          await this.assignSettings(renderingEngine, sessionSettingsId)
         } else {
           // in createSession
         }
       } else if (properties.sessionSettingsMode === SESSION_SETTINGS_MODE.FIRST) {
         if (this.#firstSessionEngine) {
-          this.assignSettings(renderingEngine, this.#firstSessionEngine.id)
+          await this.assignSettings(renderingEngine, this.#firstSessionEngine.id)
         } else {
           // in createSession
         }
@@ -503,15 +503,18 @@ export class CreationControlCenter implements ICreationControlCenter {
 
   // #region Private Methods (1)
 
-  private assignSettings(renderingEngine: RenderingEngineThreeJs, sessionId: string) {
+  private async assignSettings(renderingEngine: RenderingEngineThreeJs, sessionId: string) {
     if (this.#stateEngine.sessionEngines[sessionId].initialized.resolved === true) {
       // immediate
       renderingEngine.settingsEngine = this.sessionEngines[sessionId].settingsEngine;
-      renderingEngine.applySettings()
+      await renderingEngine.applySettings()
     } else {
-      this.#stateEngine.sessionEngines[sessionId].initialized.then(() => {
-        renderingEngine.settingsEngine = this.sessionEngines[sessionId].settingsEngine;
-        renderingEngine.applySettings()
+      await new Promise<void>(resolve => {
+        this.#stateEngine.sessionEngines[sessionId].initialized.then(async () => {
+          renderingEngine.settingsEngine = this.sessionEngines[sessionId].settingsEngine;
+          await renderingEngine.applySettings()
+          resolve();
+        })
       })
     }
   }

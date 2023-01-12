@@ -801,7 +801,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return token;
   }
 
-  public applySettings(
+  public async applySettings(
     sections: {
       ar?: boolean,
       scene?: boolean,
@@ -818,23 +818,26 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       general: true
     },
     settingsEngine?: SettingsEngine
-  ) {
+  ): Promise<void> {
 
     settingsEngine = settingsEngine || this._settingsEngine
     if (!settingsEngine) return;
 
     if (sections.environment) {
       // as the environment map is the only thing that needs time to load, load it first
-      this._stateEngine.renderingEngines[this.id].environmentMapLoaded.then(() => {
-        if (!settingsEngine) return;
-        this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
-        this.clearAlpha = settingsEngine.environment.clearAlpha;
-        this.clearColor = this._converter.toColor(settingsEngine.environment.clearColor);
-        this.applySyncSettings(sections)
+      await new Promise<void>(resolve => {
+        this._stateEngine.renderingEngines[this.id].environmentMapLoaded.then(() => {
+          if (!settingsEngine) return;
+          this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
+          this.clearAlpha = settingsEngine.environment.clearAlpha;
+          this.clearColor = this._converter.toColor(settingsEngine.environment.clearColor);
+          this.applySyncSettings(sections);
+          resolve();
+        })
+        
+        // set it like this to not trigger the loading
+        this.environmentMap = settingsEngine!.environment.map;
       })
-
-      // set it like this to not trigger the loading
-      this.environmentMap = settingsEngine.environment.map;
     } else {
       this.applySyncSettings(sections)
     }
