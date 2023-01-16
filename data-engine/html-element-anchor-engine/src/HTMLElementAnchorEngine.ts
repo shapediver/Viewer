@@ -39,7 +39,7 @@ export class HTMLElementAnchorEngine {
                     const cleanedText = this._inputValidator.sanitize(element.text);
                     node.data.push(new HTMLElementAnchorTextData({
                         location: this._converter.toVec3(element.location),
-                        data: { color: this._converter.toColor(element.color, '#000000'), text: cleanedText }
+                        data: { color: this._converter.toHexColor(element.color, '#000000'), text: cleanedText }
                     }))
                 });
             } else if (content.format === 'anchor') {
@@ -77,7 +77,7 @@ export class HTMLElementAnchorEngine {
                         node.data.push(new HTMLElementAnchorTextData({
                             location: this._converter.toVec3(element.location),
                             data: {
-                                color: this._converter.toColor(textData.color, '#000000'),
+                                color: this._converter.toHexColor(textData.color, '#000000'),
                                 text: cleanedText,
                                 hidden: textData.hidden,
                                 textAlign: textData.textAlign,

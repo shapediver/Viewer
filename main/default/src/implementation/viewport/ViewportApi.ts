@@ -179,15 +179,15 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
-    public get automaticColorSpaceAdaption(): boolean {
-        return this.#renderingEngine.automaticColorSpaceAdaption;
+    public get automaticColorAdjustment(): boolean {
+        return this.#renderingEngine.automaticColorAdjustment;
     }
 
-    public set automaticColorSpaceAdaption(value: boolean) {
-        const scope = 'automaticColorSpaceAdaption';
+    public set automaticColorAdjustment(value: boolean) {
+        const scope = 'automaticColorAdjustment';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
-            this.#renderingEngine.automaticColorSpaceAdaption = value;
+            this.#renderingEngine.automaticColorAdjustment = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -285,7 +285,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'clearColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.clearColor = this.#converter.toColor(value);
+            this.#renderingEngine.clearColor = this.#converter.toHexColor(value);
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -370,7 +370,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'gridColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.gridColor = this.#converter.toColor(value);
+            this.#renderingEngine.gridColor = this.#converter.toHexColor(value);
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -404,7 +404,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'groundPlaneColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.groundPlaneColor = this.#converter.toColor(value);
+            this.#renderingEngine.groundPlaneColor = this.#converter.toHexColor(value);
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -438,7 +438,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'groundPlaneShadowColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.groundPlaneShadowColor = this.#converter.toColor(value);
+            this.#renderingEngine.groundPlaneShadowColor = this.#converter.toHexColor(value);
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {

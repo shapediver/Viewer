@@ -107,7 +107,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _arRotation: vec3 = vec3.create();
   private _arScale: vec3 = vec3.fromValues(1, 1, 1);
   private _arTranslation: vec3 = vec3.create();
-  private _automaticColorSpaceAdaption: boolean = true;
+  private _automaticColorAdjustment: boolean = true;
   private _automaticResizing: boolean = true;
   private _beautyRenderBlendingDuration: number = 1500;
   private _beautyRenderDelay: number = 50;
@@ -313,12 +313,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._arTranslation = value;
   }
 
-  public get automaticColorSpaceAdaption(): boolean {
-    return this._automaticColorSpaceAdaption;
+  public get automaticColorAdjustment(): boolean {
+    return this._automaticColorAdjustment;
   }
 
-  public set automaticColorSpaceAdaption(value: boolean) {
-    this._automaticColorSpaceAdaption = value;
+  public set automaticColorAdjustment(value: boolean) {
+    this._automaticColorAdjustment = value;
   }
 
   public get automaticResizing(): boolean {
@@ -840,7 +840,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           if (!settingsEngine) return;
           this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
           this.clearAlpha = settingsEngine.environment.clearAlpha;
-          this.clearColor = this._converter.toColor(settingsEngine.environment.clearColor);
+          this.clearColor = this._converter.toHexColor(settingsEngine.environment.clearColor);
           this.applySyncSettings(sections);
           resolve();
         })
@@ -882,12 +882,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return out.overview;
   }
 
-  public createThreeJsColor(color: string): THREE.Color {
+  public createThreeJsColor(color: Color): THREE.Color {
     console.log(color)
     const threeJsColor = new THREE.Color(this._converter.toThreeJsColorInput(color));
 
-    if(this.automaticColorSpaceAdaption === true)
-      threeJsColor.convertSRGBToLinear();
+    // if(this.automaticColorAdjustment === true)
+    //   threeJsColor.convertSRGBToLinear();
 
 
     // make own three.js color class with extension
@@ -1053,7 +1053,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
     settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
     settingsEngine.environment.clearAlpha = this.clearAlpha;
-    settingsEngine.environment.clearColor = this.clearColor;
+    settingsEngine.environment.clearColor = this._converter.toHexColor(this.clearColor);
 
     settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
@@ -1069,6 +1069,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
     settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
+    settingsEngine.rendering.automaticColorAdjustment = this.automaticColorAdjustment;
     settingsEngine.rendering.lights = this.lights;
     settingsEngine.rendering.outputEncoding = this.outputEncoding;
     settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
@@ -1235,6 +1236,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
       this.lights = this._settingsEngine.rendering.lights;
 
+      this.automaticColorAdjustment = this._settingsEngine.rendering.automaticColorAdjustment;
       this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
       this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
       this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;

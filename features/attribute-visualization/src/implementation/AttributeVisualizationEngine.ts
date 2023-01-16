@@ -142,12 +142,12 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                     if(this.#layerMaterialType === 'unlit') {
                         material = new MaterialUnlitData({
                             opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity : 0,
-                            color: this.#converter.toColor(this.#defaultLayer.color)
+                            color: this.#converter.toHexColor(this.#defaultLayer.color)
                         });
                     } else {
                         material = new MaterialStandardData({
                             opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity : 0,
-                            color: this.#converter.toColor(this.#defaultLayer.color)
+                            color: this.#converter.toHexColor(this.#defaultLayer.color)
                         });
                     }
                     return {
@@ -160,12 +160,12 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                     if(this.#layerMaterialType === 'unlit') {
                         material = new MaterialUnlitData({
                             opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity * this.#defaultMaterial.opacity : 0,
-                            color: this.#converter.toColor(this.#defaultMaterial.color)
+                            color: this.#converter.toHexColor(this.#defaultMaterial.color)
                         });
                     } else {
                         material = new MaterialStandardData({
                             opacity: this.#defaultLayer.enabled ? this.#defaultLayer.opacity * this.#defaultMaterial.opacity : 0,
-                            color: this.#converter.toColor(this.#defaultMaterial.color)
+                            color: this.#converter.toHexColor(this.#defaultMaterial.color)
                         });
                     }
                     return {
@@ -198,12 +198,12 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                 if(this.#layerMaterialType === 'unlit') {
                     material = new MaterialUnlitData({
                         opacity: layer.opacity,
-                        color: this.#converter.toColor(layer.color)
+                        color: this.#converter.toHexColor(layer.color)
                     });
                 } else {
                     material = new MaterialStandardData({
                         opacity: layer.opacity,
-                        color: this.#converter.toColor(layer.color)
+                        color: this.#converter.toHexColor(layer.color)
                     });
                 }
 
@@ -222,7 +222,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
 
                         switch (true) {
                             case SdtfPrimitiveTypeGuard.isColorType(a.type):
-                                material.color = this.#converter.toColor('rgb(' + itemDataAttribute.value + ')');
+                                material.color = this.#converter.toHexColor('rgb(' + itemDataAttribute.value + ')');
                                 material.opacity *= layer.opacity;
                                 return {
                                     matrix: mat4.create(),
@@ -254,7 +254,7 @@ export class AttributeVisualizationEngine implements IAttributeVisualizationEngi
                                 return stringVisualizationData;
                             default:
                                 const defaultAttribute = <IDefaultAttribute>a;
-                                material.color = this.#converter.toColor(defaultAttribute.color);
+                                material.color = this.#converter.toHexColor(defaultAttribute.color);
                                 material.opacity *= layer.opacity;
                                 return {
                                     matrix: mat4.create(),

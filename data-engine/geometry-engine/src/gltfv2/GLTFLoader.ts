@@ -307,7 +307,7 @@ export class GLTFLoader {
 
         let color = '#ffffffff';
         if (lightDef.color !== undefined)
-            color = this._converter.toColor([lightDef.color[0] * 255, lightDef.color[1] * 255, lightDef.color[2] * 255]);
+            color = this._converter.toHexColor([lightDef.color[0] * 255, lightDef.color[1] * 255, lightDef.color[2] * 255]);
 
         const range = lightDef.range !== undefined ? lightDef.range : 0;
 
