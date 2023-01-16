@@ -1,4 +1,4 @@
-import { IAnchorDataImage, IAnchorDataText } from "@shapediver/viewer.shared.types";
+import { Color, IAnchorDataImage, IAnchorDataText } from "@shapediver/viewer.shared.types";
 
 export enum TAG3D_JUSTIFICATION {
     TOP_LEFT = 'TL',
@@ -15,7 +15,7 @@ export enum TAG3D_JUSTIFICATION {
 export interface ITag3D {
     // #region Properties (6)
 
-    color: string,
+    color: Color,
     justification: TAG3D_JUSTIFICATION,
     location: {
         normal: { X: number, Y: number, Z: number },
@@ -33,7 +33,7 @@ export interface ITag3D {
 export interface ITag2D {
     // #region Properties (4)
 
-    color: any,
+    color: Color,
     location: { X: number, Y: number, Z: number }
 
     text: string,

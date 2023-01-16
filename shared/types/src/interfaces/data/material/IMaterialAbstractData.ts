@@ -1,4 +1,5 @@
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
+import { Color } from "../../../types";
 import { IMapData } from "./IMapData";
 
 export enum MATERIAL_SIDE {
@@ -28,9 +29,9 @@ export interface IMaterialAbstractDataProperties {
     aoMapIntensity?: number,
     bumpMap?: IMapData,
     bumpScale?: number,
-    color?: string,
+    color?: Color,
     emissiveMap?: IMapData,
-    emissiveness?: string,
+    emissiveness?: Color,
     map?: IMapData,
     name?: string,
     normalMap?: IMapData,
@@ -52,9 +53,9 @@ export interface IMaterialAbstractData extends ITreeNodeData {
     aoMapIntensity: number,
     bumpMap?: IMapData,
     bumpScale: number,
-    color: string,
+    color: Color,
     emissiveMap?: IMapData,
-    emissiveness: string,
+    emissiveness: Color,
     map?: IMapData,
     materialOutput: boolean;
     name?: string,

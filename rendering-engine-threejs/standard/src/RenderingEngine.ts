@@ -41,6 +41,7 @@ import {
   TASK_TYPE,
   IAnimationData,
   IGeometryData,
+  Color,
 } from '@shapediver/viewer.shared.types'
 
 import { SceneTreeManager } from './managers/SceneTreeManager'
@@ -113,7 +114,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _busy: boolean = false;
   private _busyModeDisplay: BUSY_MODE_DISPLAY = BUSY_MODE_DISPLAY.SPINNER;
   private _clearAlpha: number = 1.0;
-  private _clearColor: string = '#ffffff';
+  private _clearColor: Color = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
   private _enableAR: boolean = true;
@@ -398,11 +399,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._clearAlpha = value;
   }
 
-  public get clearColor(): string {
+  public get clearColor(): Color {
     return this._clearColor;
   }
 
-  public set clearColor(value: string) {
+  public set clearColor(value: Color) {
     this._clearColor = value;
   }
 
@@ -882,10 +883,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public createThreeJsColor(color: string): THREE.Color {
+    console.log(color)
     const threeJsColor = new THREE.Color(this._converter.toThreeJsColorInput(color));
 
-    if(this.outputEncoding === TEXTURE_ENCODING.SRGB && this.automaticColorSpaceAdaption === true)
-      threeJsColor.convertSRGBToLinear()
+    if(this.automaticColorSpaceAdaption === true)
+      threeJsColor.convertSRGBToLinear();
+
+
+    // make own three.js color class with extension
 
     return threeJsColor;
   }

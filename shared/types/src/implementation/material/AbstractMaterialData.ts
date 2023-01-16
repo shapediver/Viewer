@@ -1,6 +1,7 @@
 import { AbstractTreeNodeData, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { IMapData } from '../../interfaces/data/material/IMapData';
 import { IMaterialAbstractData, IMaterialAbstractDataProperties, MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
+import { Color } from '../../types';
 
 
 export abstract class AbstractMaterialData extends AbstractTreeNodeData implements IMaterialAbstractData {
@@ -13,9 +14,9 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
   #aoMapIntensity: number = 1.0;
   #bumpMap?: IMapData;
   #bumpScale: number = 1.0;
-  #color: string = '#ffffff';
+  #color: Color = '#ffffff';
   #emissiveMap?: IMapData;
-  #emissiveness: string = '#000000';
+  #emissiveness: Color = '#000000';
   #materialOutput: boolean = false;
   #map?: IMapData;
   #name?: string;
@@ -121,11 +122,11 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
     this.#bumpScale = value;
   }
 
-  public get color(): string {
+  public get color(): Color {
     return this.#color;
   }
 
-  public set color(value: string) {
+  public set color(value: Color) {
     this.#color = value;
   }
 
@@ -137,11 +138,11 @@ export abstract class AbstractMaterialData extends AbstractTreeNodeData implemen
     this.#emissiveMap = value;
   }
 
-  public get emissiveness(): string {
+  public get emissiveness(): Color {
     return this.#emissiveness;
   }
 
-  public set emissiveness(value: string) {
+  public set emissiveness(value: Color) {
     this.#emissiveness = value;
   }
 

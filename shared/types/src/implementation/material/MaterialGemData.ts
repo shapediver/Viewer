@@ -3,6 +3,7 @@ import { IMaterialGemData, IMaterialGemDataProperties } from '../../interfaces/d
 import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
 import { IMapData } from '../../interfaces/data/material/IMapData';
 import { mat3, mat4, vec3 } from 'gl-matrix';
+import { Color } from '../../types';
 
 export class MaterialGemData extends AbstractMaterialData implements IMaterialGemData {
     // #region Properties (5)
@@ -11,8 +12,8 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
     #refractionIndex: number = 2.4;
     #impurityMap?: IMapData;
     #impurityScale: number = 1.0;
-    #colorTransferBegin: string = '#ffffff';
-    #colorTransferEnd: string = '#ffffff';
+    #colorTransferBegin: Color = '#ffffff';
+    #colorTransferEnd: Color = '#ffffff';
     #center: vec3 = vec3.create();
     #radius: number = 1;
     #sphericalNormalMap?: IMapData;
@@ -86,19 +87,19 @@ export class MaterialGemData extends AbstractMaterialData implements IMaterialGe
         this.#impurityScale = value;
     }
 
-    public get colorTransferBegin(): string {
+    public get colorTransferBegin(): Color {
         return this.#colorTransferBegin;
     }
 
-    public set colorTransferBegin(value: string) {
+    public set colorTransferBegin(value: Color) {
         this.#colorTransferBegin = value;
     }
 
-    public get colorTransferEnd(): string {
+    public get colorTransferEnd(): Color {
         return this.#colorTransferEnd;
     }
 
-    public set colorTransferEnd(value: string) {
+    public set colorTransferEnd(value: Color) {
         this.#colorTransferEnd = value;
     }
 

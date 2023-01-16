@@ -2,13 +2,14 @@ import { AbstractMaterialData } from './AbstractMaterialData';
 import { IMaterialSpecularGlossinessData, IMaterialSpecularGlossinessDataProperties } from '../../interfaces/data/material/IMaterialSpecularGlossinessDataProperties';
 import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
 import { IMapData } from '../../interfaces/data/material/IMapData';
+import { Color } from '../../types';
 
 export class MaterialSpecularGlossinessData extends AbstractMaterialData implements IMaterialSpecularGlossinessData {
     // #region Properties (5)
 
     #glossiness: number = 1;
     #glossinessMap?: IMapData;
-    #specular: string = '#ffffff';
+    #specular: Color = '#ffffff';
     #specularGlossinessMap?: IMapData;
     #specularMap?: IMapData;
     #envMap?: string | string[];
@@ -66,11 +67,11 @@ export class MaterialSpecularGlossinessData extends AbstractMaterialData impleme
         this.#glossinessMap = value;
     }
 
-    public get specular(): string {
+    public get specular(): Color {
         return this.#specular;
     }
 
-    public set specular(value: string) {
+    public set specular(value: Color) {
         this.#specular = value;
     }
 

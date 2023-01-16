@@ -410,7 +410,7 @@ export class RenderingManager implements IManager {
         // enable / disable the background
         this._renderingEngine.sceneTreeManager.scene.background = this._renderingEngine.environmentMapAsBackground ? this._renderingEngine.environmentMapLoader.environmentMap : null;
         // set the background color / alpha
-        this._renderingEngine.renderer.setClearColor(new THREE.Color(this._converter.toThreeJsColorInput(this._renderingEngine.clearColor)), this._renderingEngine.clearAlpha);
+        this._renderingEngine.renderer.setClearColor(this._renderingEngine.createThreeJsColor(this._renderingEngine.clearColor), this._renderingEngine.clearAlpha);
 
         // animation loop - part 12: actual rendering separation
         if (states.beautyRendering === true) {

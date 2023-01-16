@@ -4,13 +4,14 @@ import { AbstractTreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { container } from 'tsyringe'
 
 import { ILight, LIGHT_TYPE } from '../interface/ILight'
+import { Color } from '@shapediver/viewer.shared.types'
 
 export abstract class AbstractLight extends AbstractTreeNodeData implements ILight {
     // #region Properties (6)
 
     readonly #type: LIGHT_TYPE;
 
-    #color: string;
+    #color: Color;
     #intensity: number;
     #name?: string;
     #order?: number;
@@ -23,7 +24,7 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
     // #region Constructors (1)
 
     constructor(properties: {
-        color: string,
+        color: Color,
         intensity: number,
         type: LIGHT_TYPE,
         name?: string,
@@ -42,11 +43,11 @@ export abstract class AbstractLight extends AbstractTreeNodeData implements ILig
 
     // #region Public Accessors (9)
 
-    public get color(): string {
+    public get color(): Color {
         return this.#color;
     }
 
-    public set color(value: string) {
+    public set color(value: Color) {
         this.#color = value;
         this.updateVersion();
     }

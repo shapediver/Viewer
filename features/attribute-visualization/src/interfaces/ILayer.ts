@@ -1,11 +1,11 @@
-import { vec3 } from "gl-matrix";
+import { Color } from "@shapediver/viewer.shared.types";
 
 export interface ILayer {
     // #region Properties (2)
 
     enabled: boolean;
     opacity: number;
-    color: string | vec3 | number[]
+    color: Color
 
     // #endregion Properties (2)
 }

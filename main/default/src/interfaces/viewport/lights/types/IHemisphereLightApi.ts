@@ -1,4 +1,5 @@
 import { vec3 } from 'gl-matrix'
+import { Color } from '@shapediver/viewer.shared.types'
 
 import { ILightApi } from '../ILightApi'
 
@@ -12,7 +13,7 @@ export interface IHemisphereLightApi extends ILightApi {
     /**
      * The ground color of the light.
      */
-    groundColor: string | number | vec3;
+    groundColor: Color;
 
     // #endregion Properties (1)
 }
