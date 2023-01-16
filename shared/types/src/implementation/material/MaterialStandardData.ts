@@ -8,7 +8,7 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
   // #region Properties (26)
 
   #attenuationColor: Color = '#ffffff';
-  #attenuationDistance = 0.0;
+  #attenuationDistance = Infinity;
   #clearcoat: number = 0;
   #clearcoatMap?: IMapData;
   #clearcoatNormalMap?: IMapData;
@@ -354,7 +354,7 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
     this.side = MATERIAL_SIDE.DOUBLE;
     
     this.attenuationColor = '#ffffff';
-    this.attenuationDistance = 1;
+    this.attenuationDistance = Infinity;
     this.clearcoat = 0;
     this.clearcoatMap = undefined;
     this.clearcoatNormalMap = undefined;
