@@ -179,6 +179,23 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
+    public get automaticColorSpaceAdaption(): boolean {
+        return this.#renderingEngine.automaticColorSpaceAdaption;
+    }
+
+    public set automaticColorSpaceAdaption(value: boolean) {
+        const scope = 'automaticColorSpaceAdaption';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
+            this.#renderingEngine.automaticColorSpaceAdaption = value;
+            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
+            this.update();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
     public get automaticResizing(): boolean {
         return this.#renderingEngine.automaticResizing;
     }

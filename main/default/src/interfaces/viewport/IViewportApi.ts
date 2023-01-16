@@ -131,6 +131,11 @@ export interface IViewportApi {
   ambientOcclusionIntensity: number;
 
   /**
+   * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
+   */
+  automaticColorSpaceAdaption: boolean;
+
+  /**
    * Option to enable / disable the automatic resizing of the viewport to changes of the {@link canvas}. (default: true)
    */
   automaticResizing: boolean;

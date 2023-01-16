@@ -106,6 +106,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _arRotation: vec3 = vec3.create();
   private _arScale: vec3 = vec3.fromValues(1, 1, 1);
   private _arTranslation: vec3 = vec3.create();
+  private _automaticColorSpaceAdaption: boolean = true;
   private _automaticResizing: boolean = true;
   private _beautyRenderBlendingDuration: number = 1500;
   private _beautyRenderDelay: number = 50;
@@ -309,6 +310,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set arTranslation(value: vec3) {
     this._arTranslation = value;
+  }
+
+  public get automaticColorSpaceAdaption(): boolean {
+    return this._automaticColorSpaceAdaption;
+  }
+
+  public set automaticColorSpaceAdaption(value: boolean) {
+    this._automaticColorSpaceAdaption = value;
   }
 
   public get automaticResizing(): boolean {
@@ -870,6 +879,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
 
     return out.overview;
+  }
+
+  public createThreeJsColor(color: string): THREE.Color {
+    const threeJsColor = new THREE.Color(this._converter.toThreeJsColorInput(color));
+
+    if(this.outputEncoding === TEXTURE_ENCODING.SRGB && this.automaticColorSpaceAdaption === true)
+      threeJsColor.convertSRGBToLinear()
+
+    return threeJsColor;
   }
 
   public displayErrorMessage(message: string) {

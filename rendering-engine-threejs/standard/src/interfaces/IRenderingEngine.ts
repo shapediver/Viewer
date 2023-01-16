@@ -37,6 +37,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     textureEncoding: TEXTURE_ENCODING; 
     toneMapping: TONE_MAPPING; 
     toneMappingExposure: number; 
+    automaticColorSpaceAdaption: boolean;
 
     updateEnvironmentGeometry(): void;
 
