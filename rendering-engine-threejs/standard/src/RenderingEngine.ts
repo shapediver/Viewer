@@ -887,7 +887,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     const threeJsColor = new THREE.Color(this._converter.toThreeJsColorInput(color));
 
     // if(this.automaticColorAdjustment === true)
-    //   threeJsColor.convertSRGBToLinear();
+       threeJsColor.convertSRGBToLinear();
 
 
     // make own three.js color class with extension
