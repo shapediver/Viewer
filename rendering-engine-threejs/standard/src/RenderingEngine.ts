@@ -57,6 +57,7 @@ import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
 import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 import { AnimationManager } from './managers/AnimationManager'
+import { SDColor } from './objects/SDColor'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (61)
@@ -88,6 +89,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     busyModeDisplay: BUSY_MODE_DISPLAY,
     spinnerPositioning: SPINNER_POSITIONING
   };
+  private readonly _colorCache: SDColor[] = [];
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
@@ -318,7 +320,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public set automaticColorAdjustment(value: boolean) {
+    if(this._automaticColorAdjustment === value) return;
     this._automaticColorAdjustment = value;
+    this._colorCache.forEach(c => c.colorCorrection(value));
+    this._materialLoader.assignColorCorrection(value);
   }
 
   public get automaticResizing(): boolean {
@@ -883,16 +888,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public createThreeJsColor(color: Color): THREE.Color {
-    console.log(color)
-    const threeJsColor = new THREE.Color(this._converter.toThreeJsColorInput(color));
-
-    // if(this.automaticColorAdjustment === true)
-       threeJsColor.convertSRGBToLinear();
-
-
-    // make own three.js color class with extension
-
-    return threeJsColor;
+    const sdColor = new SDColor(this._converter.toThreeJsColorInput(color));
+    sdColor.colorCorrection(this.automaticColorAdjustment);
+    this._colorCache.push(sdColor)
+    return sdColor;
   }
 
   public displayErrorMessage(message: string) {

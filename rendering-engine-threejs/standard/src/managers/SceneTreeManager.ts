@@ -67,7 +67,7 @@ export class SceneTreeManager implements IManager {
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
-        this._scene.background = new THREE.Color('#ffffff');
+        this._scene.background = this._renderingEngine.createThreeJsColor('#ffffff');
     }
 
     // #endregion Constructors (1)

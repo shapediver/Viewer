@@ -218,7 +218,7 @@ export class RenderingManager implements IManager {
         renderer.shadowMap.autoUpdate = false;
         renderer.localClippingEnabled = true;
         renderer.setSize(canvas.width, canvas.height);
-        renderer.setClearColor(new THREE.Color('#ffffff'), 1);
+        renderer.setClearColor(this._renderingEngine.createThreeJsColor('#ffffff'), 1);
         this._maxTextureUnits = renderer.getContext().getParameter(renderer.getContext().MAX_TEXTURE_IMAGE_UNITS);
         return renderer
     }

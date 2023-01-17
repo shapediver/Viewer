@@ -27,6 +27,7 @@ import { Converter, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError }
 import { container } from 'tsyringe'
 import { ENVIRONMENT_MAP_TYPE } from './EnvironmentMapLoader'
 import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial'
+import { SDColor } from '../objects/SDColor'
 
 export enum MATERIAL_TYPE {
     POINT = 'point',
@@ -215,6 +216,36 @@ export class MaterialLoader implements ILoader {
                 }
                 material.needsUpdate = true;
             }
+        }
+    }
+
+    public assignColorCorrection(value: boolean) {
+        function convertColor (c: THREE.Color | SDColor | undefined, toggle: boolean) {
+            if(!c) return;
+            if(c instanceof SDColor) {
+                c.colorCorrection(toggle);
+            } else if(c instanceof THREE.Color) {
+                if (c && toggle == true) {
+                    c.convertSRGBToLinear();
+                } else {
+                    c.convertLinearToSRGB();
+                }
+            }
+        }
+
+        for (let m in this._materialCache) {
+            const material: any = this._materialCache[m].material;
+
+            convertColor(material.color, value);
+            convertColor(material.specular, value);
+            convertColor(material.emissive, value);
+            convertColor(material.colorTransferBegin, value);
+            convertColor(material.colorTransferEnd, value);
+            convertColor(material.attenuationColor, value);
+            convertColor(material.sheencolor, value);
+            convertColor(material.specularColor, value);
+
+            material.needsUpdate = true;
         }
     }
 
