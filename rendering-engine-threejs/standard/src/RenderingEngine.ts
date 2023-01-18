@@ -416,6 +416,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._closed;
   }
 
+  public get colorCache(): SDColor[] {
+    return this._colorCache;
+  }
+
   public get continuousRendering(): boolean {
     return this._renderingManager.continuousRendering;
   }
@@ -482,11 +486,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._geometryLoader;
   }
 
-  public get gridColor(): string {
+  public get gridColor(): Color {
     return this._environmentGeometryManager.gridColor;
   }
 
-  public set gridColor(value: string) {
+  public set gridColor(value: Color) {
     this._environmentGeometryManager.gridColor = value;
   }
 
@@ -499,11 +503,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._gridVisibility = value;
   }
 
-  public get groundPlaneColor(): string {
+  public get groundPlaneColor(): Color {
     return this._environmentGeometryManager.groundPlaneColor;
   }
 
-  public set groundPlaneColor(value: string) {
+  public set groundPlaneColor(value: Color) {
     this._environmentGeometryManager.groundPlaneColor = value;
   }
 
@@ -516,11 +520,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._groundPlaneVisibility = value;
   }
 
-  public get groundPlaneShadowColor(): string {
+  public get groundPlaneShadowColor(): Color {
     return this._environmentGeometryManager.groundPlaneShadowColor;
   }
 
-  public set groundPlaneShadowColor(value: string) {
+  public set groundPlaneShadowColor(value: Color) {
     this._environmentGeometryManager.groundPlaneShadowColor = value;
   }
 
@@ -888,7 +892,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   }
 
   public createThreeJsColor(color: Color): THREE.Color {
-    const sdColor = new SDColor(this._converter.toThreeJsColorInput(color));
+    const sdColor = new SDColor(this._converter.toThreeJsColorInput(color), color);
     sdColor.colorCorrection(this.automaticColorAdjustment);
     this._colorCache.push(sdColor)
     return sdColor;
@@ -1057,9 +1061,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
     settingsEngine.environmentGeometry.groundPlaneShadowVisibility = this.groundPlaneShadowVisibility;
-    settingsEngine.environmentGeometry.gridColor = this.gridColor;
-    settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
-    settingsEngine.environmentGeometry.groundPlaneShadowColor = this.groundPlaneShadowColor;
+    settingsEngine.environmentGeometry.gridColor = this._converter.toHexColor(this.gridColor);
+    settingsEngine.environmentGeometry.groundPlaneColor = this._converter.toHexColor(this.groundPlaneColor);
+    settingsEngine.environmentGeometry.groundPlaneShadowColor = this._converter.toHexColor(this.groundPlaneShadowColor);
 
     settingsEngine.general.pointSize = this.pointSize;
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };

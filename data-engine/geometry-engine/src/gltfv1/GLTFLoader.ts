@@ -195,7 +195,7 @@ export class GLTFLoader {
             materialData.color = '#d3d3d3';
             if (values.hasOwnProperty('diffuse') && Array.isArray(values.diffuse)) {
                 const diffuseScaled = (<number[]>values.diffuse).map(element => element *= 255.0);
-                materialData.color = this._converter.toHexColor(diffuseScaled);
+                materialData.color = diffuseScaled;
                 materialData.opacity = Math.max(0.0, Math.min(values.diffuse[3], 1.0));
             } else if(values.hasOwnProperty('diffuse')) {
                 this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value diffuse was set for a material, but is not supported in that type.')
@@ -203,11 +203,11 @@ export class GLTFLoader {
             
             if (!values.hasOwnProperty('diffuse') && values.hasOwnProperty('ambient')) {
                 const ambientScaled = (<number[]>values.ambient).map(element => element *= 255.0);
-                materialData.color = this._converter.toHexColor(ambientScaled);
+                materialData.color = ambientScaled;
             }
 
             if (values.hasOwnProperty('emission') && Array.isArray(values.emission)) {
-                materialData.emissiveness = this._converter.toHexColor(values.emission);
+                materialData.emissiveness = values.emission;
             } else if (values.hasOwnProperty('emission')) {
                 this._logger.warn(LOGGING_TOPIC.DATA_PROCESSING, 'GLTFLoader.loadMaterial: The value emission was set for a material, but is not supported in that type.')
             }

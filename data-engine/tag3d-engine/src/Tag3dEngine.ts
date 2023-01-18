@@ -58,7 +58,6 @@ export class Tag3dEngine {
                 const tag3dInfo: ITag3D = content.data[i];
                 tag3dInfo.size = tag3dInfo.size ? +tag3dInfo.size : 1;
                 tag3dInfo.text = tag3dInfo.text || '';
-                tag3dInfo.color = this._converter.toHexColor(tag3dInfo.color);
 
                 const tagLines = tag3dInfo.text.split(/\r\n|\r|\n/g);
                 let lineArray = [];

@@ -285,7 +285,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'clearColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.clearColor = this.#converter.toHexColor(value);
+            this.#renderingEngine.clearColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -370,7 +370,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'gridColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.gridColor = this.#converter.toHexColor(value);
+            this.#renderingEngine.gridColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -404,7 +404,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'groundPlaneColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.groundPlaneColor = this.#converter.toHexColor(value);
+            this.#renderingEngine.groundPlaneColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -438,7 +438,7 @@ export class ViewportApi implements IViewportApi {
         const scope = 'groundPlaneShadowColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.groundPlaneShadowColor = this.#converter.toHexColor(value);
+            this.#renderingEngine.groundPlaneShadowColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {

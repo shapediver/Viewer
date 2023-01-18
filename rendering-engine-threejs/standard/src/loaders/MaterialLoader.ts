@@ -220,15 +220,21 @@ export class MaterialLoader implements ILoader {
     }
 
     public assignColorCorrection(value: boolean) {
-        function convertColor (c: THREE.Color | SDColor | undefined, toggle: boolean) {
+        const convertColor = (c: THREE.Color | SDColor | undefined, toggle: boolean): THREE.Color | SDColor | undefined => {
             if(!c) return;
+
             if(c instanceof SDColor) {
                 c.colorCorrection(toggle);
-            } else if(c instanceof THREE.Color) {
-                if (c && toggle == true) {
-                    c.convertSRGBToLinear();
+                return c;
+            } else {
+                const sdColor = this._renderingEngine.colorCache.find(color => color.equals(c));
+                if(sdColor) {
+                    sdColor.colorCorrection(toggle);
+                    return sdColor;
                 } else {
-                    c.convertLinearToSRGB();
+                    // some colors may not have been set by us, but have been set automatically
+                    // in this case we expect the color to be linear either way and therefore omit a color correction
+                    return c;
                 }
             }
         }
@@ -236,14 +242,14 @@ export class MaterialLoader implements ILoader {
         for (let m in this._materialCache) {
             const material: any = this._materialCache[m].material;
 
-            convertColor(material.color, value);
-            convertColor(material.specular, value);
-            convertColor(material.emissive, value);
-            convertColor(material.colorTransferBegin, value);
-            convertColor(material.colorTransferEnd, value);
-            convertColor(material.attenuationColor, value);
-            convertColor(material.sheencolor, value);
-            convertColor(material.specularColor, value);
+            material.color = convertColor(material.color, value);
+            material.specular = convertColor(material.specular, value);
+            material.emissive = convertColor(material.emissive, value);
+            material.colorTransferBegin = convertColor(material.colorTransferBegin, value);
+            material.colorTransferEnd = convertColor(material.colorTransferEnd, value);
+            material.attenuationColor = convertColor(material.attenuationColor, value);
+            material.sheencolor = convertColor(material.sheencolor, value);
+            material.specularColor = convertColor(material.specularColor, value);
 
             material.needsUpdate = true;
         }

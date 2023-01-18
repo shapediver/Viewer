@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { MATERIAL_SIDE, MaterialStandardData, ISceneEvent, MaterialShadowData } from '@shapediver/viewer.shared.types'
+import { MATERIAL_SIDE, MaterialStandardData, ISceneEvent, MaterialShadowData, Color } from '@shapediver/viewer.shared.types'
 import { vec3 } from 'gl-matrix'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
@@ -22,9 +22,9 @@ export class EnvironmentGeometryManager implements IManager {
     private _groundPlaneShadow!: THREE.Mesh;
     private _groundPlaneObject!: SDData;
     private _groundPlaneShadowObject!: SDData;
-    private _groundPlaneColor: string = '#d3d3d3ff';
-    private _groundPlaneShadowColor: string = '#d3d3d3ff';
-    private _gridColor: string = '#44444426';
+    private _groundPlaneColor: Color = '#d3d3d3ff';
+    private _groundPlaneShadowColor: Color = '#d3d3d3ff';
+    private _gridColor: Color = '#44444426';
 
     private _initialized: boolean = false;
 
@@ -42,32 +42,32 @@ export class EnvironmentGeometryManager implements IManager {
 
     // #region Public Accessors (2)
 
-    public get gridColor(): string {
+    public get gridColor(): Color {
         return this._gridColor;
     } 
     
-    public set gridColor(value: string) {
+    public set gridColor(value: Color) {
         this._gridColor = value;
-        (<THREE.LineBasicMaterial>this._grid.material).opacity = this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).opacity = typeof this._gridColor == 'string' && this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
         (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
         (<THREE.LineBasicMaterial>this._grid.material).color = this._renderingEngine.createThreeJsColor(this._gridColor);
         (<THREE.LineBasicMaterial>this._grid.material).needsUpdate = true;
     }
 
-    public get groundPlaneColor(): string {
+    public get groundPlaneColor(): Color {
         return this._groundPlaneColor;
     } 
     
-    public set groundPlaneColor(value: string) {
+    public set groundPlaneColor(value: Color) {
         this._groundPlaneColor = value;
         this.assignGroundPlaneColor(value);
     }
 
-    public get groundPlaneShadowColor(): string {
+    public get groundPlaneShadowColor(): Color {
         return this._groundPlaneShadowColor;
     } 
     
-    public set groundPlaneShadowColor(value: string) {
+    public set groundPlaneShadowColor(value: Color) {
         this._groundPlaneShadowColor = value;
         this.assignGroundPlaneShadowColor(value);
     }
@@ -88,7 +88,7 @@ export class EnvironmentGeometryManager implements IManager {
 
     // #region Public Methods (2)
 
-    public assignGroundPlaneColor(color: string) {
+    public assignGroundPlaneColor(color: Color) {
         (<THREE.MeshPhysicalMaterial>this._groundPlane.material).opacity = this._converter.toAlpha(color);
         (<THREE.MeshPhysicalMaterial>this._groundPlane.material).transparent = (<THREE.MeshPhysicalMaterial>this._groundPlane.material).opacity !== 1;
         (<THREE.MeshPhysicalMaterial>this._groundPlane.material).depthWrite = !(<THREE.MeshPhysicalMaterial>this._groundPlane.material).transparent;
@@ -96,7 +96,7 @@ export class EnvironmentGeometryManager implements IManager {
         (<THREE.MeshPhysicalMaterial>this._groundPlane.material).needsUpdate = true;
     }    
 
-    public assignGroundPlaneShadowColor(color: string) {
+    public assignGroundPlaneShadowColor(color: Color) {
         (<THREE.ShadowMaterial>this._groundPlaneShadow.material).opacity = this._converter.toAlpha(color);
         (<THREE.ShadowMaterial>this._groundPlaneShadow.material).color = this._renderingEngine.createThreeJsColor(color);
         (<THREE.ShadowMaterial>this._groundPlaneShadow.material).needsUpdate = true;
@@ -140,7 +140,7 @@ export class EnvironmentGeometryManager implements IManager {
 
         this._gridObject.remove(this._grid);
         this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
-        (<THREE.LineBasicMaterial>this._grid.material).opacity = this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).opacity = typeof this._gridColor == 'string' && this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
         (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
         (<THREE.LineBasicMaterial>this._grid.material).color = this._renderingEngine.createThreeJsColor(this._gridColor);
         this._grid.rotateX(Math.PI / 2);
@@ -163,7 +163,7 @@ export class EnvironmentGeometryManager implements IManager {
         
         this._gridObject = new SDData('grid', '');
         this._grid = new THREE.GridHelper();
-        (<THREE.LineBasicMaterial>this._grid.material).opacity = this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
+        (<THREE.LineBasicMaterial>this._grid.material).opacity = typeof this._gridColor == 'string' && this._gridColor.length <= 8 ? 0.15 : this._converter.toAlpha(this._gridColor);
         (<THREE.LineBasicMaterial>this._grid.material).transparent = (<THREE.LineBasicMaterial>this._grid.material).opacity !== 1;
         (<THREE.LineBasicMaterial>this._grid.material).color = this._renderingEngine.createThreeJsColor(this._gridColor);
         this._grid.rotateX(Math.PI / 2);
