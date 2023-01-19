@@ -7,18 +7,20 @@ import {
     EVENTTYPE_INTERACTION,
     IEvent,
     ORTHOGRAPHIC_CAMERA_DIRECTION,
-    VISIBILITY_MODE,
-    IFileParameterApi
+    VISIBILITY_MODE
 } from "@shapediver/viewer";
 import {
     InteractionEngine,
     DragManager,
     InteractionData,
-    PlaneConstraint
+    PlaneConstraint,
+    IDragEvent
 } from "@shapediver/viewer.features.interaction";
-import { createMenu, outputNames, positionAdjustementCallback, ringBoundaryBB, setOutputRestrictions, textureBoundaryBB, updateBB } from "./utilities";
+import { createMenu, outputNames, setOutputRestrictions } from "./utilities";
 
 import * as SDV from "@shapediver/viewer"
+import { updateTextureDraggingData, texturePositionAdjustementCallback } from "./utilitiesTextureDragging";
+import { holePositionAdjustementCallback, updateHoleDraggingData } from "./utilitiesHoleDragging";
 
 (<any>window).SDV = SDV;
 
@@ -50,7 +52,7 @@ import * as SDV from "@shapediver/viewer"
         get: (searchParams, prop) => searchParams.get(<string>prop),
     });
     let ticket = decodeURIComponent((<any>params).ticket);
-    ticket = ticket === "null" ? "59fd4e1c733f89001a2b432cdaf6544a5fa5092ab6d8e1273deb811ce59e03414edf41de717c038657e9d0ec0cc8d93c270e7f4abe9607ff3cec64edfaab511276d5cd44feb5c4247e14f1d3d29991138a2f10f8e276253842bb8fac50b62c2f30971c3acbd04c-c6f1337fa6d0c30bb3dd769aa4a0b095" : ticket;
+    ticket = ticket === "null" ? "ac41cf8b7d0d526e03ee87a4147b60b35e3801b36a31004f5cc890d9b670ca41f25f3197206226f50cbd9ef6bbe188c7caf8124c3a3fc9dd7419b39c4dd52b434768feeacf37db9e47c4cad2cac0822bdd3eaae1a939994acaded9c3344d6cab98b8ee2e22349b-10ce07eaa74f54503d3c0a672255367a" : ticket;
 
     // create the session
     const session = await createSession({
@@ -66,14 +68,12 @@ import * as SDV from "@shapediver/viewer"
      *  - We read the parameters into variables.
      *  - We store all needed outputs into a dictionary.
      *  - We set the viewport restrictions for the outputs.
-     *  - We create a menu to be able to adjust the texture_rotation, TS (texture scale), texture_import.
+     *  - We create a menu to be able to adjust the parameters.
      */
 
     // read out the two parameters that are going to be used in this example
-    const textureRotationParameter = session.getParameterByName('texture_rotation')[0];
-    const textureMoveParameter = session.getParameterByName('texture_move')[0];
-    const textureScaleParameter = session.getParameterByName('TS')[0];
-    const textureImportParameter = session.getParameterByName('texture_import')[0];
+    const texturePositionParameter = session.getParameterByName('texture_position')[0];
+    const holePositionParameter = session.getParameterByName('hole_position')[0];
 
     // storage of the outputs as defined by Edwin
     // see the list of outputs in the utilities file the variable "outputNames"
@@ -94,7 +94,7 @@ import * as SDV from "@shapediver/viewer"
     setOutputRestrictions(outputs, textureViewport, ringViewport);
 
     // create a menu that makes the adjustment of the texture rotation, texture scale and texture import possible
-    createMenu(session, textureRotationParameter, textureScaleParameter, <IFileParameterApi>textureImportParameter, textureMoveParameter)
+    createMenu(session)
 
     /**
      * INTERACTION SETUP
@@ -122,19 +122,33 @@ import * as SDV from "@shapediver/viewer"
     // use the token to remove the constraint again (removeDragConstraint)
     const token = dragManager.addDragConstraint(planeConstraint);
 
-    // here we add the InteractionData to the 2d_texture output node
+    // here we add the InteractionData to the texture output node
     // we use the updateCallback for this to always add it again once it has been updated
     // as there was previously already an updateCallback set in setOutputRestrictions, we call it again here to keep that behavior as well
-    const interactionData = new InteractionData({ drag: true });
-    const originalUpdateCallback = outputs["2d_texture"].updateCallback;
-    outputs["2d_texture"].updateCallback = (newNode?: ITreeNode, oldNode?: ITreeNode) => {
-        if(originalUpdateCallback)
-            originalUpdateCallback(newNode, oldNode)
+    const interactionDataTexture = new InteractionData({ drag: true });
+    const originalTextureUpdateCallback = outputs["texture"].updateCallback;
+    outputs["texture"].updateCallback = (newNode?: ITreeNode, oldNode?: ITreeNode) => {
+        if(originalTextureUpdateCallback)
+            originalTextureUpdateCallback(newNode, oldNode)
         if (newNode) 
-            newNode.data.push(interactionData);
+            newNode.data.push(interactionDataTexture);
     };
     // we call it once in the beginning to initially assign the InteractionData
-    outputs["2d_texture"].updateCallback!(outputs["2d_texture"].node);
+    outputs["texture"].updateCallback!(outputs["texture"].node);
+
+    // here we add the InteractionData to the hole output node
+    // we use the updateCallback for this to always add it again once it has been updated
+    // as there was previously already an updateCallback set in setOutputRestrictions, we call it again here to keep that behavior as well
+    const interactionDataHole = new InteractionData({ drag: true });
+    const originalHoleUpdateCallback = outputs["hole"].updateCallback;
+    outputs["hole"].updateCallback = (newNode?: ITreeNode, oldNode?: ITreeNode) => {
+        if(originalHoleUpdateCallback)
+            originalHoleUpdateCallback(newNode, oldNode)
+        if (newNode) 
+            newNode.data.push(interactionDataHole);
+    };
+    // we call it once in the beginning to initially assign the InteractionData
+    outputs["hole"].updateCallback!(outputs["hole"].node);
 
     /**
      * INTERACTION EVENT LISTENERS
@@ -144,30 +158,47 @@ import * as SDV from "@shapediver/viewer"
     
     // the DRAG_START listener
     const dragStartListenerToken = addListener(EVENTTYPE_INTERACTION.DRAG_START, (e: IEvent) => {
-        // whenever the dragging start, adjust the bounding boxes with the current values
-        // these bounding boxes are used to check if the texture is within the specified area
-        updateBB(outputs);
+        const outputData = (e as IDragEvent).node.data.find(d => d instanceof SDV.OutputApiData);
+        if((outputData as SDV.OutputApiData).api.id === outputs["texture"].id) {
+            // whenever the dragging start, adjust the bounding boxes with the current values
+            // these bounding boxes are used to check if the texture is within the specified area
+            updateTextureDraggingData(outputs);
+        } else if((outputData as SDV.OutputApiData).api.id === outputs["hole"].id){
+            // whenever the dragging start, adjust the bounding box and the boundary points with the current values
+            // these values are used to check if the hole is within the specified area
+            updateHoleDraggingData(outputs);
+        }
     });
 
     // the DRAG_MOVE listener
     const dragMoveListenerToken = addListener(EVENTTYPE_INTERACTION.DRAG_MOVE, (e: IEvent) => {
-        // whenever the texture was move, see if it is within the specified area, and if not, restrict it
-        positionAdjustementCallback(e);
+        const outputData = (e as IDragEvent).node.data.find(d => d instanceof SDV.OutputApiData);
+        if((outputData as SDV.OutputApiData).api.id === outputs["texture"].id) {
+            // whenever the texture was moved, see if it is within the specified area, and if not, restrict it
+            texturePositionAdjustementCallback(e);
+        } else if((outputData as SDV.OutputApiData).api.id === outputs["hole"].id){
+            // whenever the hole was moved, see if it is within the specified area, and if not, restrict it
+            holePositionAdjustementCallback(e);
+        }
     });
 
     // the DRAG_END listener
     const dragEndListenerToken = addListener(EVENTTYPE_INTERACTION.DRAG_END, async (e: IEvent) => {
-        // when the dragging ends, restrict the texture position for a last time
-        const matrix = positionAdjustementCallback(e);
-        // create a BB that is transformed by the current dragging
-        const draggedTextureBoundaryBB = textureBoundaryBB
-            .clone()
-            .applyMatrix(matrix);
-        // read out the center of the dragged texture BB
-        const center = draggedTextureBoundaryBB.boundingSphere.center;
-        // apply the position to the move parameters and customize the scene
-        textureMoveParameter.value = `[${center[0]}, ${center[2]}]`;
-        await session.customize();
+        const outputData = (e as IDragEvent).node.data.find(d => d instanceof SDV.OutputApiData);
+        if((outputData as SDV.OutputApiData).api.id === outputs["texture"].id) {
+            // when the dragging ends, restrict the texture position for a last time
+            const p = texturePositionAdjustementCallback(e);
+            // apply the position to the position parameters and customize the scene
+            texturePositionParameter.value = `[${p[0]}, ${p[2]}]`;
+            await session.customize();
+        } else if((outputData as SDV.OutputApiData).api.id === outputs["hole"].id){
+            // when the dragging ends, restrict the hole position for a last time
+            const p = holePositionAdjustementCallback(e);
+            // apply the position to the position parameters and customize the scene
+            holePositionParameter.value = `[${p[0]}, ${p[2]}]`;
+            await session.customize();
+        }
+
     });
 
     // once everything has been initialize, show the viewports

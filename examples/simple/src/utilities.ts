@@ -1,81 +1,81 @@
-import { mat4, vec3 } from "gl-matrix";
-import { Box, IEvent, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ITreeNode, IViewportApi, PARAMETER_TYPE } from "@shapediver/viewer";
-import { IDragEvent } from "@shapediver/viewer.features.interaction";
+import { IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ITreeNode, IViewportApi, PARAMETER_TYPE } from "@shapediver/viewer";
 
 /** 
  * The outputs that were provided me by Edwin that should exist in this model.
  */
 export const outputNames = [
-    "2d_ring_boundary",
-    "2d_texture_boundary",
-    "2d_ring",
-    "2d_texture",
-    "G_A_Flächen",
-    "G_A_Linien",
-    "G_A_Vermassung",
-    "G_B_2"
+    "boundary_rectangle",
+    "texture_rectangle",
+    "boundary",
+    "texture",
+    "G_B_2",
+    "hole",
+    "boundary_pnts",
+    "hole_rectangle"
 ];
 
 /**
  * The outputs that are used when displaying the ring.
  */
 export const ringDisplayOutputNames = [
-    "G_A_Flächen",
-    "G_A_Linien",
-    "G_A_Vermassung",
     "G_B_2"
 ];
 
-// the BB of the current texture boundary
-export let textureBoundaryBB: Box = new Box();
-// the BB of the current ring boundary
-export let ringBoundaryBB: Box = new Box();
-
 /**
- * Create a a menu for the "texture_rotation", "texture_import" and "TS" (scale) parameters.
- * When the values are updated, also reset the "texture_move" parameter and then customize the scene.
- * The "texture_move" parameter has to be reset, because after rotating the texture vertically, 
+ * Create a a menu for the "texture_rotation", "texture_image" and "TS" (scale) parameters.
+ * When the values are updated, also reset the "texture_position" parameter and then customize the scene.
+ * The "texture_position" parameter has to be reset, because after rotating the texture vertically, 
  * the position can be out of the ring boundary with the geometry coming from the server.
- * The same issue exists for the scale, and the "texture_import".
+ * The same issue exists for the scale, and the "texture_image".
  * 
  * @param session 
  * @param textureRotationParameter 
  * @param textureMoveParameter 
  */
-export const createMenu = (session: ISessionApi, textureRotationParameter: IParameterApi<any>, textureScaleParameter: IParameterApi<number>, textureImportParameter: IFileParameterApi, textureMoveParameter: IParameterApi<string>) => {
+export const createMenu = (session: ISessionApi) => {
     const menuDiv = <HTMLDivElement>document.getElementById('menu');
+
+    const textureRotationParameter = session.getParameterByName('texture_rotation')[0];
+    const texturePositionParameter = session.getParameterByName('texture_position')[0];
+    const holePositionParameter = session.getParameterByName('hole_position')[0];
+    const textureScaleParameter = session.getParameterByName('TS')[0];
+    const textureImportParameter = session.getParameterByName('texture_image')[0];
+    const boundaryImportParameter = session.getParameterByName('boundary')[0];
+    const boundaryLayerParameter = session.getParameterByName('boundary_layer')[0];
+    const holeWidthParameter = session.getParameterByName('hole_width')[0];
+    const holeHeightParameter = session.getParameterByName('hole_height')[0];
+
 
     /**
      * ROTATION
      */
-
     const textureRotationLabel = <HTMLLabelElement>document.createElement('label');
     textureRotationLabel.innerText = "Rotation";
     menuDiv.appendChild(textureRotationLabel);
 
-    const textureRotationSelect = document.createElement('select');
-    menuDiv.appendChild(textureRotationSelect);
-
-    for (let i = 0; i < textureRotationParameter.choices!.length; i++) {
-        const rotationOption = document.createElement('option');
-        textureRotationSelect.appendChild(rotationOption);
-
-        rotationOption.setAttribute("value", i + "");
-        rotationOption.setAttribute("name", textureRotationParameter.choices![i]);
-        rotationOption.innerHTML = textureRotationParameter.choices![i];
-        if (textureRotationParameter.value == i) rotationOption.setAttribute("selected", "");
+    const textureRotationInput = <HTMLInputElement>document.createElement("input");
+    textureRotationInput.setAttribute("type", "range");
+    textureRotationInput.setAttribute("min", textureRotationParameter.min !== undefined ? textureRotationParameter.min + "" : textureRotationParameter.min + "");
+    textureRotationInput.setAttribute("max", textureRotationParameter.max !== undefined ? textureRotationParameter.max + "" : textureRotationParameter.max + "");
+    textureRotationInput.setAttribute("value", textureRotationParameter.value + "");
+    if (textureRotationParameter.type === PARAMETER_TYPE.INT) {
+        textureRotationInput.setAttribute("step", "1");
+    } else if (textureRotationParameter.type === PARAMETER_TYPE.EVEN || textureRotationParameter.type === PARAMETER_TYPE.ODD) {
+        textureRotationInput.setAttribute("step", "2");
+    } else {
+        textureRotationInput.setAttribute("step", 1 / Math.pow(10, textureRotationParameter.decimalplaces!) + "");
     }
+    menuDiv.appendChild(textureRotationInput);
 
-    textureRotationSelect.onchange = async () => {
-        textureRotationParameter.value = textureRotationSelect.value;
-        textureMoveParameter.value = "[0,0]";
+    textureRotationInput.onchange = async () => {
+        textureRotationParameter.value = textureRotationInput.value;
+        texturePositionParameter.value = "[0,0]";
         await session.customize();
-    }
+    };
 
     /**
      * SCALE
      */
-
     const textureScaleLabel = <HTMLLabelElement>document.createElement('label');
     textureScaleLabel.innerText = "Scale";
     menuDiv.appendChild(textureScaleLabel);
@@ -96,15 +96,15 @@ export const createMenu = (session: ISessionApi, textureRotationParameter: IPara
 
     textureScaleInput.onchange = async () => {
         textureScaleParameter.value = textureScaleInput.value;
-        textureMoveParameter.value = "[0,0]";
+        texturePositionParameter.value = "[0,0]";
         await session.customize();
     };
 
     /**
-     * IMPORT
+     * IMPORT TEXTURE
      */
     const textureImportLabel = <HTMLLabelElement>document.createElement('label');
-    textureImportLabel.innerText = "Import";
+    textureImportLabel.innerText = "Import Texture";
     menuDiv.appendChild(textureImportLabel);
 
     const textureImportInput = <HTMLInputElement>document.createElement("input") as HTMLInputElement;
@@ -127,11 +127,151 @@ export const createMenu = (session: ISessionApi, textureRotationParameter: IPara
             const blob = new Blob([image], { type: file.type });
 
             textureImportParameter.value = blob;
-            textureMoveParameter.value = "[0,0]";
+            texturePositionParameter.value = "[0,0]";
             await session.customize();
         });
         reader.readAsArrayBuffer(file);
     };
+
+    /**
+     * IMPORT
+     */
+    const boundaryImportLabel = <HTMLLabelElement>document.createElement('label');
+    boundaryImportLabel.innerText = "Import Boundary";
+    menuDiv.appendChild(boundaryImportLabel);
+
+    const boundaryImportInput = <HTMLInputElement>document.createElement("input") as HTMLInputElement;
+    boundaryImportInput.setAttribute("name", "inputElement");
+    boundaryImportInput.setAttribute("id", boundaryImportParameter.id);
+    boundaryImportInput.setAttribute("type", "file");
+    boundaryImportInput.setAttribute("accept", boundaryImportParameter.format!.join(','));
+    boundaryImportInput.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+    menuDiv.appendChild(boundaryImportInput);
+
+    // the callback
+    boundaryImportInput.onchange = () => {
+        // Exit if no files selected
+        if (!boundaryImportInput.files) return;
+
+        let file = boundaryImportInput.files[0];
+        const reader = new FileReader();
+        reader.addEventListener("load", async () => {
+            const image = <ArrayBuffer>reader.result;
+            const blob = new Blob([image], { type: file.type });
+
+            boundaryImportParameter.value = blob;
+            holePositionParameter.value = "[0,0]";
+            await session.customize();
+        });
+        reader.readAsArrayBuffer(file);
+    };
+
+    /**
+     * BOUNDARY LAYER
+     */
+    const boundaryLayerImportLabel = <HTMLLabelElement>document.createElement('label');
+    boundaryLayerImportLabel.innerText = "Boundary Layer";
+    menuDiv.appendChild(boundaryLayerImportLabel);
+
+    const boundaryLayerInput = <HTMLInputElement>document.createElement("input") as HTMLInputElement;
+    boundaryLayerInput.setAttribute("name", "inputElement");
+    boundaryLayerInput.setAttribute("id", boundaryLayerParameter.id);
+    boundaryLayerInput.setAttribute("type", "text");
+    boundaryLayerInput.setAttribute("value", boundaryLayerParameter.value);
+    boundaryLayerInput.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+    menuDiv.appendChild(boundaryLayerInput);
+
+    // the callback
+    boundaryLayerInput.onchange = async () => {
+        boundaryLayerParameter.value = boundaryLayerInput.value;
+        holePositionParameter.value = "[0,0]";
+        await session.customize();
+    };
+
+    /**
+     * HOLE TOGGLE
+     */
+    const holeToggleLabel = <HTMLLabelElement>document.createElement('label');
+    holeToggleLabel.innerText = "Hole Toggle";
+    menuDiv.appendChild(holeToggleLabel);
+
+    const holeToggleInput = <HTMLInputElement>document.createElement("input") as HTMLInputElement;
+    holeToggleInput.setAttribute("name", "inputElement");
+    holeToggleInput.setAttribute("type", "checkbox");
+    holeToggleInput.setAttribute("checked", "true");
+    holeToggleInput.classList.value = "ml-2 mb-2 mt-2 w-4 h-4 text-gray-600 bg-gray-100 rounded border-gray-300 focus:ring-gray-500 dark:focus:ring-gray-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600";
+    const checkBoxDiv = <HTMLDivElement>document.createElement("div")
+    checkBoxDiv.appendChild(holeToggleInput);
+    menuDiv.appendChild(checkBoxDiv)
+
+    // the callback
+    holeToggleInput.onchange = async () => {
+        if (holeToggleInput.checked) {
+            holePositionParameter.value = "[0,0]";
+        } else {
+            holePositionParameter.value = "";
+        }
+        await session.customize();
+    };
+
+    
+    /**
+     * HOLE HEIGHT
+     */
+
+     const holeHeightLabel = <HTMLLabelElement>document.createElement('label');
+     holeHeightLabel.innerText = "Hole Height";
+     menuDiv.appendChild(holeHeightLabel);
+ 
+     const holeHeightInput = <HTMLInputElement>document.createElement("input");
+     holeHeightInput.setAttribute("type", "range");
+     holeHeightInput.setAttribute("min", holeHeightParameter.min !== undefined ? holeHeightParameter.min + "" : holeHeightParameter.min + "");
+     holeHeightInput.setAttribute("max", holeHeightParameter.max !== undefined ? holeHeightParameter.max + "" : holeHeightParameter.max + "");
+     holeHeightInput.setAttribute("value", holeHeightParameter.value + "");
+     if (holeHeightParameter.type === PARAMETER_TYPE.INT) {
+         holeHeightInput.setAttribute("step", "1");
+     } else if (holeHeightParameter.type === PARAMETER_TYPE.EVEN || holeHeightParameter.type === PARAMETER_TYPE.ODD) {
+         holeHeightInput.setAttribute("step", "2");
+     } else {
+         holeHeightInput.setAttribute("step", 1 / Math.pow(10, holeHeightParameter.decimalplaces!) + "");
+     }
+     menuDiv.appendChild(holeHeightInput);
+ 
+     holeHeightInput.onchange = async () => {
+         holeHeightParameter.value = holeHeightInput.value;
+         holePositionParameter.value = "[0,0]";
+         await session.customize();
+     };
+
+     
+    
+    /**
+     * HOLE WIDTH
+     */
+
+     const holeWidthLabel = <HTMLLabelElement>document.createElement('label');
+     holeWidthLabel.innerText = "Hole Width";
+     menuDiv.appendChild(holeWidthLabel);
+ 
+     const holeWidthInput = <HTMLInputElement>document.createElement("input");
+     holeWidthInput.setAttribute("type", "range");
+     holeWidthInput.setAttribute("min", holeWidthParameter.min !== undefined ? holeWidthParameter.min + "" : holeWidthParameter.min + "");
+     holeWidthInput.setAttribute("max", holeWidthParameter.max !== undefined ? holeWidthParameter.max + "" : holeWidthParameter.max + "");
+     holeWidthInput.setAttribute("value", holeWidthParameter.value + "");
+     if (holeWidthParameter.type === PARAMETER_TYPE.INT) {
+         holeWidthInput.setAttribute("step", "1");
+     } else if (holeWidthParameter.type === PARAMETER_TYPE.EVEN || holeWidthParameter.type === PARAMETER_TYPE.ODD) {
+         holeWidthInput.setAttribute("step", "2");
+     } else {
+         holeWidthInput.setAttribute("step", 1 / Math.pow(10, holeWidthParameter.decimalplaces!) + "");
+     }
+     menuDiv.appendChild(holeWidthInput);
+ 
+     holeWidthInput.onchange = async () => {
+         holeWidthParameter.value = holeWidthInput.value;
+         holePositionParameter.value = "[0,0]";
+         await session.customize();
+     };
 
 }
 
@@ -149,6 +289,7 @@ export const setOutputRestrictions = (
     ringViewport: IViewportApi
 ) => {
     ringDisplayOutputNames.forEach((n) => {
+        console.log(n)
         outputs[n].updateCallback = (newNode?: ITreeNode, oldNode?: ITreeNode) => {
             if (newNode) {
                 newNode.excludeViewports.push(textureViewport.id);
@@ -169,79 +310,3 @@ export const setOutputRestrictions = (
         outputs[n].updateCallback!(outputs[n].node);
     });
 };
-
-/**
- * Update the BB of the texture boundary and the ring boundary 
- * according the the data of the outputs "2d_texture_boundary" and "2d_ring_boundary", respectively.
- * 
- * @param outputs 
- */
-export const updateBB = (outputs: { [key: string]: IOutputApi }) => {
-    const textureBoundary: number[][] = outputs["2d_texture_boundary"].content![0]
-        .data;
-    const textureBoundaryBBMin = vec3.fromValues(Infinity, 0, Infinity);
-    const textureBoundaryBBMax = vec3.fromValues(-Infinity, 0, -Infinity);
-    textureBoundary.forEach((p) => {
-        if (p[0] < textureBoundaryBBMin[0]) textureBoundaryBBMin[0] = p[0];
-        if (p[2] < textureBoundaryBBMin[2]) textureBoundaryBBMin[2] = p[2];
-        if (p[0] > textureBoundaryBBMax[0]) textureBoundaryBBMax[0] = p[0];
-        if (p[2] > textureBoundaryBBMax[2]) textureBoundaryBBMax[2] = p[2];
-    });
-    textureBoundaryBB = new Box(textureBoundaryBBMin, textureBoundaryBBMax);
-
-    const ringBoundary: number[][] = outputs["2d_ring_boundary"].content![0].data;
-    const ringBoundaryBBMin = vec3.fromValues(Infinity, 0, Infinity);
-    const ringBoundaryBBMax = vec3.fromValues(-Infinity, 0, -Infinity);
-    ringBoundary.forEach((p) => {
-        if (p[0] < ringBoundaryBBMin[0]) ringBoundaryBBMin[0] = p[0];
-        if (p[2] < ringBoundaryBBMin[2]) ringBoundaryBBMin[2] = p[2];
-        if (p[0] > ringBoundaryBBMax[0]) ringBoundaryBBMax[0] = p[0];
-        if (p[2] > ringBoundaryBBMax[2]) ringBoundaryBBMax[2] = p[2];
-    });
-    ringBoundaryBB = new Box(ringBoundaryBBMin, ringBoundaryBBMax);
-};
-
-/**
- * A callback that is execture on DRAG_MOVE and DRAG_END events.
- * 
- * The current drag matrix is used to create an intermediate bounding box 
- * that is used to evaluate it the texture is still within the ring boundary.
- * 
- * If this is not the case, the matrix is adjusted and the texture node is being updated.
- * 
- * @param e 
- * @returns 
- */
-export const positionAdjustementCallback = (e: IEvent): mat4 => {
-    const dragEvent = <IDragEvent>e;
-
-    const dragTransformation = dragEvent.node.getTransformation('SD_drag_matrix')!;
-    dragTransformation.matrix[13] = 0;
-
-    const draggedTextureBoundaryBB = textureBoundaryBB
-        .clone()
-        .applyMatrix(dragTransformation.matrix);
-
-    let changed = false;
-    if (draggedTextureBoundaryBB.min[0] > ringBoundaryBB.min[0]) {
-        changed = true;
-        dragTransformation.matrix[12] = ringBoundaryBB.min[0] - textureBoundaryBB.min[0];
-    }
-    if (draggedTextureBoundaryBB.max[0] < ringBoundaryBB.max[0]) {
-        changed = true;
-        dragTransformation.matrix[12] = ringBoundaryBB.max[0] - textureBoundaryBB.max[0];
-    }
-    if (draggedTextureBoundaryBB.min[2] > ringBoundaryBB.min[2]) {
-        changed = true;
-        dragTransformation.matrix[14] = ringBoundaryBB.min[2] - textureBoundaryBB.min[2];
-    }
-    if (draggedTextureBoundaryBB.max[2] < ringBoundaryBB.max[2]) {
-        changed = true;
-        dragTransformation.matrix[14] = ringBoundaryBB.max[2] - textureBoundaryBB.max[2];
-    }
-
-    if (changed)
-        dragEvent.node.updateVersion();
-
-    return dragTransformation.matrix;
-}
