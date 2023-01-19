@@ -1,5 +1,5 @@
 import { mat4, vec3 } from "gl-matrix";
-import { Box, IEvent, IOutputApi, IParameterApi, ISessionApi, ITreeNode, IViewportApi, PARAMETER_TYPE } from "@shapediver/viewer";
+import { Box, IEvent, IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ITreeNode, IViewportApi, PARAMETER_TYPE } from "@shapediver/viewer";
 import { IDragEvent } from "@shapediver/viewer.features.interaction";
 
 /** 
@@ -32,27 +32,31 @@ export let textureBoundaryBB: Box = new Box();
 export let ringBoundaryBB: Box = new Box();
 
 /**
- * Create a a menu for the "texture_rotation" and "TS" (scale) parameters.
+ * Create a a menu for the "texture_rotation", "texture_import" and "TS" (scale) parameters.
  * When the values are updated, also reset the "texture_move" parameter and then customize the scene.
  * The "texture_move" parameter has to be reset, because after rotating the texture vertically, 
  * the position can be out of the ring boundary with the geometry coming from the server.
- * The same issue exists for the scale.
+ * The same issue exists for the scale, and the "texture_import".
  * 
  * @param session 
  * @param textureRotationParameter 
  * @param textureMoveParameter 
  */
-export const createMenu = (session: ISessionApi, textureRotationParameter: IParameterApi<any>, textureScaleParameter: IParameterApi<number>, textureMoveParameter: IParameterApi<string>) => {
+export const createMenu = (session: ISessionApi, textureRotationParameter: IParameterApi<any>, textureScaleParameter: IParameterApi<number>, textureImportParameter: IFileParameterApi, textureMoveParameter: IParameterApi<string>) => {
     const menuDiv = <HTMLDivElement>document.getElementById('menu');
+
+    /**
+     * ROTATION
+     */
 
     const textureRotationLabel = <HTMLLabelElement>document.createElement('label');
     textureRotationLabel.innerText = "Rotation";
     menuDiv.appendChild(textureRotationLabel);
-    
+
     const textureRotationSelect = document.createElement('select');
     menuDiv.appendChild(textureRotationSelect);
 
-    for(let i = 0; i < textureRotationParameter.choices!.length; i++) {
+    for (let i = 0; i < textureRotationParameter.choices!.length; i++) {
         const rotationOption = document.createElement('option');
         textureRotationSelect.appendChild(rotationOption);
 
@@ -67,6 +71,10 @@ export const createMenu = (session: ISessionApi, textureRotationParameter: IPara
         textureMoveParameter.value = "[0,0]";
         await session.customize();
     }
+
+    /**
+     * SCALE
+     */
 
     const textureScaleLabel = <HTMLLabelElement>document.createElement('label');
     textureScaleLabel.innerText = "Scale";
@@ -88,8 +96,41 @@ export const createMenu = (session: ISessionApi, textureRotationParameter: IPara
 
     textureScaleInput.onchange = async () => {
         textureScaleParameter.value = textureScaleInput.value;
-        textureMoveParameter.value = "[0,0]";        
+        textureMoveParameter.value = "[0,0]";
         await session.customize();
+    };
+
+    /**
+     * IMPORT
+     */
+    const textureImportLabel = <HTMLLabelElement>document.createElement('label');
+    textureImportLabel.innerText = "Import";
+    menuDiv.appendChild(textureImportLabel);
+
+    const textureImportInput = <HTMLInputElement>document.createElement("input") as HTMLInputElement;
+    textureImportInput.setAttribute("name", "inputElement");
+    textureImportInput.setAttribute("id", textureImportParameter.id);
+    textureImportInput.setAttribute("type", "file");
+    textureImportInput.setAttribute("accept", textureImportParameter.format!.join(','));
+    textureImportInput.classList.value = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-300 dark:focus:ring-gray-500 dark:focus:border-gray-500";
+    menuDiv.appendChild(textureImportInput);
+
+    // the callback
+    textureImportInput.onchange = () => {
+        // Exit if no files selected
+        if (!textureImportInput.files) return;
+
+        let file = textureImportInput.files[0];
+        const reader = new FileReader();
+        reader.addEventListener("load", async () => {
+            const image = <ArrayBuffer>reader.result;
+            const blob = new Blob([image], { type: file.type });
+
+            textureImportParameter.value = blob;
+            textureMoveParameter.value = "[0,0]";
+            await session.customize();
+        });
+        reader.readAsArrayBuffer(file);
     };
 
 }
@@ -184,7 +225,7 @@ export const positionAdjustementCallback = (e: IEvent): mat4 => {
     let changed = false;
     if (draggedTextureBoundaryBB.min[0] > ringBoundaryBB.min[0]) {
         changed = true;
-        dragTransformation.matrix[12] = ringBoundaryBB.min[0]- textureBoundaryBB.min[0];
+        dragTransformation.matrix[12] = ringBoundaryBB.min[0] - textureBoundaryBB.min[0];
     }
     if (draggedTextureBoundaryBB.max[0] < ringBoundaryBB.max[0]) {
         changed = true;

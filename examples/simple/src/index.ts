@@ -7,7 +7,8 @@ import {
     EVENTTYPE_INTERACTION,
     IEvent,
     ORTHOGRAPHIC_CAMERA_DIRECTION,
-    VISIBILITY_MODE
+    VISIBILITY_MODE,
+    IFileParameterApi
 } from "@shapediver/viewer";
 import {
     InteractionEngine,
@@ -65,13 +66,14 @@ import * as SDV from "@shapediver/viewer"
      *  - We read the parameters into variables.
      *  - We store all needed outputs into a dictionary.
      *  - We set the viewport restrictions for the outputs.
-     *  - We create a menu to be able to adjust the texture_rotation and TS (texture scale).
+     *  - We create a menu to be able to adjust the texture_rotation, TS (texture scale), texture_import.
      */
 
     // read out the two parameters that are going to be used in this example
     const textureRotationParameter = session.getParameterByName('texture_rotation')[0];
     const textureMoveParameter = session.getParameterByName('texture_move')[0];
     const textureScaleParameter = session.getParameterByName('TS')[0];
+    const textureImportParameter = session.getParameterByName('texture_import')[0];
 
     // storage of the outputs as defined by Edwin
     // see the list of outputs in the utilities file the variable "outputNames"
@@ -91,8 +93,8 @@ import * as SDV from "@shapediver/viewer"
     // and the ring with the profile in the other
     setOutputRestrictions(outputs, textureViewport, ringViewport);
 
-    // create a menu that makes the adjustment of the texture rotation and texture scale possible
-    createMenu(session, textureRotationParameter, textureScaleParameter, textureMoveParameter)
+    // create a menu that makes the adjustment of the texture rotation, texture scale and texture import possible
+    createMenu(session, textureRotationParameter, textureScaleParameter, <IFileParameterApi>textureImportParameter, textureMoveParameter)
 
     /**
      * INTERACTION SETUP
