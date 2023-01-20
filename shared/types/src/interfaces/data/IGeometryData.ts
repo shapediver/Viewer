@@ -61,6 +61,7 @@ export interface IPrimitiveData extends ITreeNodeData {
     // #region Public Methods (1)
 
     clone(): IPrimitiveData;
+    computeBoundingBox(matrix: mat4): IBox;
 
     // #endregion Public Methods (1)
 }
@@ -68,7 +69,6 @@ export interface IPrimitiveData extends ITreeNodeData {
 export interface IGeometryData extends ITreeNodeData {
     // #region Properties (7)
 
-    readonly matrix: mat4;
     readonly primitive: IPrimitiveData;
 
     boundingBox: IBox;
