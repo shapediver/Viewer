@@ -1,5 +1,6 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix'
+import { Color } from '@shapediver/viewer.shared.types';
 
 import { LIGHT_TYPE } from '../../interface/ILight'
 import { IDirectionalLight } from '../../interface/types/IDirectionalLight';
@@ -19,7 +20,7 @@ export class DirectionalLight extends AbstractLight implements IDirectionalLight
     // #region Constructors (1)
 
     constructor(properties: {
-        color?: string,
+        color?: Color,
         intensity?: number,
         direction?: vec3,
         castShadow?: boolean,

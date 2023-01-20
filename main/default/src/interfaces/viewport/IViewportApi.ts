@@ -9,6 +9,7 @@ import {
   ISDTFOverview,
   ISDTFItemData,
   IGeometryData,
+  Color,
 } from '@shapediver/viewer.shared.types'
 import { IOrthographicCameraApi } from './camera/IOrthographicCameraApi'
 import { IPerspectiveCameraApi } from './camera/IPerspectiveCameraApi'
@@ -131,6 +132,11 @@ export interface IViewportApi {
   ambientOcclusionIntensity: number;
 
   /**
+   * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
+   */
+  automaticColorAdjustment: boolean;
+
+  /**
    * Option to enable / disable the automatic resizing of the viewport to changes of the {@link canvas}. (default: true)
    */
   automaticResizing: boolean;
@@ -155,7 +161,7 @@ export interface IViewportApi {
    * The clear color value of the viewport.
    * Use this to influence the background appearance of the viewport.
    */
-  clearColor: string | number | vec3;
+  clearColor: Color;
 
   /**
    * The environment map used by the viewport.
@@ -178,7 +184,7 @@ export interface IViewportApi {
   /**
    * The color of the grid.
    */
-  gridColor: string | number | vec3;
+  gridColor: Color;
 
   /**
    * Option to enable / disable the grid. (default: true)
@@ -188,7 +194,7 @@ export interface IViewportApi {
   /**
    * The color of the ground plane.
    */
-  groundPlaneColor: string | number | vec3;
+  groundPlaneColor: Color;
 
   /**
    * Option to enable / disable the ground plane. (default: true)
@@ -198,7 +204,7 @@ export interface IViewportApi {
   /**
    * The color of the ground plane shadow.
    */
-  groundPlaneShadowColor: string | number | vec3;
+  groundPlaneShadowColor: Color;
 
   /**
    * Option to enable / disable the ground plane shadow. (default: false)

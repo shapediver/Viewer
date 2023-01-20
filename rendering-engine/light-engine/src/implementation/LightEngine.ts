@@ -77,7 +77,7 @@ export class LightEngine implements ILightEngine {
                 switch (light.type) {
                     case LIGHT_TYPE.DIRECTIONAL:
                         l = new DirectionalLight({
-                            color: this._converter.toColor((<IDirectionalLightPropertiesV3>light.properties).color), 
+                            color: this._converter.toHexColor((<IDirectionalLightPropertiesV3>light.properties).color), 
                             intensity: (<IDirectionalLightPropertiesV3>light.properties).intensity, 
                             direction: this._converter.toVec3((<IDirectionalLightPropertiesV3>light.properties).direction), 
                             castShadow: (<IDirectionalLightPropertiesV3>light.properties).castShadow, 
@@ -88,9 +88,9 @@ export class LightEngine implements ILightEngine {
                         break;
                     case LIGHT_TYPE.HEMISPHERE:
                         l = new HemisphereLight({
-                            color: this._converter.toColor((<IHemisphereLightPropertiesV3>light.properties).skyColor), 
+                            color: this._converter.toHexColor((<IHemisphereLightPropertiesV3>light.properties).skyColor), 
                             intensity: (<IHemisphereLightPropertiesV3>light.properties).intensity, 
-                            groundColor: this._converter.toColor((<IHemisphereLightPropertiesV3>light.properties).groundColor), 
+                            groundColor: this._converter.toHexColor((<IHemisphereLightPropertiesV3>light.properties).groundColor), 
                             name: light.name ? light.name : lightId,
                             order: light.order,
                             id: lightUUID
@@ -98,7 +98,7 @@ export class LightEngine implements ILightEngine {
                         break;
                     case LIGHT_TYPE.POINT:
                         l = new PointLight({
-                            color: this._converter.toColor((<IPointLightPropertiesV3>light.properties).color), 
+                            color: this._converter.toHexColor((<IPointLightPropertiesV3>light.properties).color), 
                             intensity: (<IPointLightPropertiesV3>light.properties).intensity, 
                             position: this._converter.toVec3((<IPointLightPropertiesV3>light.properties).position), 
                             distance: (<IPointLightPropertiesV3>light.properties).distance, 
@@ -110,7 +110,7 @@ export class LightEngine implements ILightEngine {
                         break;
                     case LIGHT_TYPE.SPOT:
                         l = new SpotLight({
-                            color: this._converter.toColor((<ISpotLightPropertiesV3>light.properties).color), 
+                            color: this._converter.toHexColor((<ISpotLightPropertiesV3>light.properties).color), 
                             intensity: (<ISpotLightPropertiesV3>light.properties).intensity, 
                             position: this._converter.toVec3((<ISpotLightPropertiesV3>light.properties).position), 
                             target: this._converter.toVec3((<ISpotLightPropertiesV3>light.properties).target), 
@@ -126,7 +126,7 @@ export class LightEngine implements ILightEngine {
                     case LIGHT_TYPE.AMBIENT:
                     default:
                         l = new AmbientLight({
-                            color: this._converter.toColor((<IAmbientLightPropertiesV3>light.properties).color), 
+                            color: this._converter.toHexColor((<IAmbientLightPropertiesV3>light.properties).color), 
                             intensity: (<IAmbientLightPropertiesV3>light.properties).intensity, 
                             name: light.name ? light.name : lightId,
                             order: light.order,
@@ -250,7 +250,7 @@ export class LightEngine implements ILightEngine {
                 switch (light.type) {
                     case LIGHT_TYPE.DIRECTIONAL:
                         properties = {
-                            color: light.color,
+                            color: this._converter.toHexColor(light.color),
                             intensity: light.intensity,
                             direction: { x: (<DirectionalLight>light).direction[0], y: (<DirectionalLight>light).direction[1], z: (<DirectionalLight>light).direction[2] },
                             castShadow: (<DirectionalLight>light).castShadow,
@@ -260,14 +260,14 @@ export class LightEngine implements ILightEngine {
                         break;
                     case LIGHT_TYPE.HEMISPHERE:
                         properties = {
-                            skyColor: light.color,
+                            skyColor: this._converter.toHexColor(light.color),
                             intensity: light.intensity,
-                            groundColor: (<HemisphereLight>light).groundColor
+                            groundColor: this._converter.toHexColor((<HemisphereLight>light).groundColor)
                         }
                         break;
                     case LIGHT_TYPE.POINT:
                         properties = {
-                            color: light.color,
+                            color: this._converter.toHexColor(light.color),
                             intensity: light.intensity,
                             position: { x: (<PointLight>light).position[0], y: (<PointLight>light).position[1], z: (<PointLight>light).position[2] },
                             distance: (<PointLight>light).distance,
@@ -276,7 +276,7 @@ export class LightEngine implements ILightEngine {
                         break;
                     case LIGHT_TYPE.SPOT:
                         properties = {
-                            color: light.color,
+                            color: this._converter.toHexColor(light.color),
                             intensity: light.intensity,
                             position: { x: (<SpotLight>light).position[0], y: (<SpotLight>light).position[1], z: (<SpotLight>light).position[2] },
                             target: { x: (<SpotLight>light).target[0], y: (<SpotLight>light).target[1], z: (<SpotLight>light).target[2] },
@@ -289,7 +289,7 @@ export class LightEngine implements ILightEngine {
                     case LIGHT_TYPE.AMBIENT:
                     default:
                         properties = {
-                            color: light.color,
+                            color: this._converter.toHexColor(light.color),
                             intensity: light.intensity
                         }
                 }

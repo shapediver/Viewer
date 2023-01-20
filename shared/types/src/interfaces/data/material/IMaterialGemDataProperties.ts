@@ -1,4 +1,5 @@
 import { mat3, mat4, vec3 } from "gl-matrix";
+import { Color } from "../../../types";
 import { IMapData } from "./IMapData";
 import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
 
@@ -7,8 +8,8 @@ export interface IMaterialGemDataProperties extends IMaterialAbstractDataPropert
 
     brightness?: number;
     center?: vec3;
-    colorTransferBegin?: string;
-    colorTransferEnd?: string;
+    colorTransferBegin?: Color;
+    colorTransferEnd?: Color;
     contrast?: number;
     dispersion?: number;
     envMap?: string | string[];
@@ -29,8 +30,8 @@ export interface IMaterialGemData extends IMaterialAbstractData {
 
     brightness?: number;
     center?: vec3;
-    colorTransferBegin?: string;
-    colorTransferEnd?: string;
+    colorTransferBegin?: Color;
+    colorTransferEnd?: Color;
     contrast?: number;
     dispersion?: number;
     envMap?: string | string[];

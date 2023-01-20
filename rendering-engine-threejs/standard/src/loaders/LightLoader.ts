@@ -43,7 +43,7 @@ export class LightLoader implements ILoader {
             }
             const threeAmbientLight = <THREE.AmbientLight>threeLight;
 
-            threeAmbientLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeAmbientLight.color = this._renderingEngine.createThreeJsColor(light.color);
             threeAmbientLight.intensity = light.intensity;
         }
         
@@ -56,7 +56,7 @@ export class LightLoader implements ILoader {
             }
             const threeDirectionalLight = <THREE.DirectionalLight>threeLight;
 
-            threeDirectionalLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeDirectionalLight.color = this._renderingEngine.createThreeJsColor(light.color);
             threeDirectionalLight.intensity = light.intensity;
 
             if(light.useNodeData) {
@@ -73,9 +73,9 @@ export class LightLoader implements ILoader {
             }
             const threeHemisphereLight = <THREE.HemisphereLight>threeLight;
 
-            threeHemisphereLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeHemisphereLight.color = this._renderingEngine.createThreeJsColor(light.color);
             threeHemisphereLight.intensity = light.intensity;
-            threeHemisphereLight.groundColor = new THREE.Color(this._converter.toThreeJsColorInput(light.groundColor));
+            threeHemisphereLight.groundColor = this._renderingEngine.createThreeJsColor(light.groundColor);
         }
         
         if (light instanceof PointLight) {
@@ -86,7 +86,7 @@ export class LightLoader implements ILoader {
             }
             const threePointLight = <THREE.PointLight>threeLight;
 
-            threePointLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threePointLight.color = this._renderingEngine.createThreeJsColor(light.color);
             threePointLight.intensity = light.intensity;
             threePointLight.distance = light.distance;
             threePointLight.decay = light.decay;
@@ -96,7 +96,7 @@ export class LightLoader implements ILoader {
         if (light instanceof SpotLight) {
             if(!threeLight) {
                 threeLight = new THREE.SpotLight(
-                    new THREE.Color(this._converter.toThreeJsColorInput(light.color)), 
+                    this._renderingEngine.createThreeJsColor(light.color), 
                     light.intensity, 
                     light.distance, 
                     light.angle, 
@@ -109,7 +109,7 @@ export class LightLoader implements ILoader {
             }
             const threeSpotLight = <THREE.SpotLight>threeLight;
 
-            threeSpotLight.color = new THREE.Color(this._converter.toThreeJsColorInput(light.color));
+            threeSpotLight.color = this._renderingEngine.createThreeJsColor(light.color);
             threeSpotLight.intensity = light.intensity;
             threeSpotLight.distance = light.distance;
             threeSpotLight.angle = light.angle;

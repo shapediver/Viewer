@@ -41,6 +41,7 @@ import {
   TASK_TYPE,
   IAnimationData,
   IGeometryData,
+  Color,
 } from '@shapediver/viewer.shared.types'
 import {
   AnimationEngine
@@ -58,6 +59,8 @@ import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManage
 import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
 import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
+import { AnimationManager } from './managers/AnimationManager'
+import { SDColor } from './objects/SDColor'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (61)
@@ -89,6 +92,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     busyModeDisplay: BUSY_MODE_DISPLAY,
     spinnerPositioning: SPINNER_POSITIONING
   };
+  private readonly _colorCache: SDColor[] = [];
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
@@ -108,13 +112,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _arRotation: vec3 = vec3.create();
   private _arScale: vec3 = vec3.fromValues(1, 1, 1);
   private _arTranslation: vec3 = vec3.create();
+  private _automaticColorAdjustment: boolean = true;
   private _automaticResizing: boolean = true;
   private _beautyRenderBlendingDuration: number = 1500;
   private _beautyRenderDelay: number = 50;
   private _busy: boolean = false;
   private _busyModeDisplay: BUSY_MODE_DISPLAY = BUSY_MODE_DISPLAY.SPINNER;
   private _clearAlpha: number = 1.0;
-  private _clearColor: string = '#ffffff';
+  private _clearColor: Color = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
   private _enableAR: boolean = true;
@@ -302,6 +307,17 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._arTranslation = value;
   }
 
+  public get automaticColorAdjustment(): boolean {
+    return this._automaticColorAdjustment;
+  }
+
+  public set automaticColorAdjustment(value: boolean) {
+    if(this._automaticColorAdjustment === value) return;
+    this._automaticColorAdjustment = value;
+    this._colorCache.forEach(c => c.colorCorrection(value));
+    this._materialLoader.assignColorCorrection(value);
+  }
+
   public get automaticResizing(): boolean {
     return this._automaticResizing;
   }
@@ -380,16 +396,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._clearAlpha = value;
   }
 
-  public get clearColor(): string {
+  public get clearColor(): Color {
     return this._clearColor;
   }
 
-  public set clearColor(value: string) {
+  public set clearColor(value: Color) {
     this._clearColor = value;
   }
 
   public get closed(): boolean {
     return this._closed;
+  }
+
+  public get colorCache(): SDColor[] {
+    return this._colorCache;
   }
 
   public get continuousRendering(): boolean {
@@ -458,11 +478,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._geometryLoader;
   }
 
-  public get gridColor(): string {
+  public get gridColor(): Color {
     return this._environmentGeometryManager.gridColor;
   }
 
-  public set gridColor(value: string) {
+  public set gridColor(value: Color) {
     this._environmentGeometryManager.gridColor = value;
   }
 
@@ -475,11 +495,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._gridVisibility = value;
   }
 
-  public get groundPlaneColor(): string {
+  public get groundPlaneColor(): Color {
     return this._environmentGeometryManager.groundPlaneColor;
   }
 
-  public set groundPlaneColor(value: string) {
+  public set groundPlaneColor(value: Color) {
     this._environmentGeometryManager.groundPlaneColor = value;
   }
 
@@ -492,11 +512,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._groundPlaneVisibility = value;
   }
 
-  public get groundPlaneShadowColor(): string {
+  public get groundPlaneShadowColor(): Color {
     return this._environmentGeometryManager.groundPlaneShadowColor;
   }
 
-  public set groundPlaneShadowColor(value: string) {
+  public set groundPlaneShadowColor(value: Color) {
     this._environmentGeometryManager.groundPlaneShadowColor = value;
   }
 
@@ -821,7 +841,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           if (!settingsEngine) return;
           this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
           this.clearAlpha = settingsEngine.environment.clearAlpha;
-          this.clearColor = this._converter.toColor(settingsEngine.environment.clearColor);
+          this.clearColor = this._converter.toHexColor(settingsEngine.environment.clearColor);
           this.applySyncSettings(sections);
           resolve();
         })
@@ -861,6 +881,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
 
     return out.overview;
+  }
+
+  public createThreeJsColor(color: Color): THREE.Color {
+    const sdColor = new SDColor(this._converter.toThreeJsColorInput(color), color);
+    sdColor.colorCorrection(this.automaticColorAdjustment);
+    this._colorCache.push(sdColor)
+    return sdColor;
   }
 
   public displayErrorMessage(message: string) {
@@ -1009,14 +1036,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
     settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
     settingsEngine.environment.clearAlpha = this.clearAlpha;
-    settingsEngine.environment.clearColor = this.clearColor;
+    settingsEngine.environment.clearColor = this._converter.toHexColor(this.clearColor);
 
     settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
     settingsEngine.environmentGeometry.groundPlaneShadowVisibility = this.groundPlaneShadowVisibility;
-    settingsEngine.environmentGeometry.gridColor = this.gridColor;
-    settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
-    settingsEngine.environmentGeometry.groundPlaneShadowColor = this.groundPlaneShadowColor;
+    settingsEngine.environmentGeometry.gridColor = this._converter.toHexColor(this.gridColor);
+    settingsEngine.environmentGeometry.groundPlaneColor = this._converter.toHexColor(this.groundPlaneColor);
+    settingsEngine.environmentGeometry.groundPlaneShadowColor = this._converter.toHexColor(this.groundPlaneShadowColor);
 
     settingsEngine.general.pointSize = this.pointSize;
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
@@ -1025,6 +1052,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
     settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
+    settingsEngine.rendering.automaticColorAdjustment = this.automaticColorAdjustment;
     settingsEngine.rendering.lights = this.lights;
     settingsEngine.rendering.outputEncoding = this.outputEncoding;
     settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
@@ -1161,6 +1189,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
       this.lights = this._settingsEngine.rendering.lights;
 
+      this.automaticColorAdjustment = this._settingsEngine.rendering.automaticColorAdjustment;
       this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
       this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
       this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;

@@ -1,5 +1,6 @@
 import { ITreeNode } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix'
+import { Color } from '@shapediver/viewer.shared.types'
 
 import { ILightApi } from './ILightApi'
 import { IAmbientLightApi } from './types/IAmbientLightApi'
@@ -49,7 +50,7 @@ export interface ILightSceneApi {
      * @param properties.name The name of the light.
      */
     addAmbientLight(properties: {
-        color?: string | number | vec3, 
+        color?: Color, 
         intensity?: number, 
         id?: string, 
         name?: string
@@ -68,7 +69,7 @@ export interface ILightSceneApi {
      * @param properties.shadowMapBias The bias of the shadow map. For more info on the shadow bias, see [here](https://digitalrune.github.io/DigitalRune-Documentation/html/3f4d959e-9c98-4a97-8d85-7a73c26145d7.htm).
      */
     addDirectionalLight(properties: {
-        color?: string | number | vec3, 
+        color?: Color, 
         intensity?: number, 
         direction?: vec3, 
         castShadow?: boolean, 
@@ -88,9 +89,9 @@ export interface ILightSceneApi {
      * @param properties.groundColor The ground color of the light.
      */
     addHemisphereLight(properties: {
-        color?: string | number | vec3, 
+        color?: Color, 
         intensity?: number, 
-        groundColor?: string | number | vec3, 
+        groundColor?: Color, 
         id?: string, 
         name?: string
     }): IHemisphereLightApi;
@@ -107,7 +108,7 @@ export interface ILightSceneApi {
      * @param properties.decay The decay of the light.
      */
     addPointLight(properties: {
-        color?: string | number | vec3, 
+        color?: Color, 
         intensity?: number, 
         position?: vec3, 
         distance?: number, 
@@ -131,7 +132,7 @@ export interface ILightSceneApi {
      * @param properties.penumbra The penumbra of the light.
      */
     addSpotLight(properties: {
-        color?: string | number | vec3, 
+        color?: Color, 
         intensity?: number, 
         position?: vec3, 
         target?: vec3, 

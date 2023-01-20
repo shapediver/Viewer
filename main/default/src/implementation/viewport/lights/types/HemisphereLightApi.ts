@@ -5,6 +5,7 @@ import { AbstractLightApi } from "../AbstractLightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 import { IViewportApi } from "../../../../interfaces/viewport/IViewportApi";
+import { Color } from "@shapediver/viewer.shared.types";
 
 export class HemisphereLightApi extends AbstractLightApi implements IHemisphereLightApi {
     // #region Properties (1)
@@ -29,11 +30,11 @@ export class HemisphereLightApi extends AbstractLightApi implements IHemisphereL
 
     // #region Public Accessors (2)
 
-    public get groundColor(): string | number | vec3 {
+    public get groundColor(): Color {
         return this.#light.groundColor;
     }
 
-    public set groundColor(value: string | number | vec3) {      
+    public set groundColor(value: Color) {      
         const scope = 'groundColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'color');

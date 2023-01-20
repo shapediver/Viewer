@@ -1,3 +1,4 @@
+import { Color } from "../../../types";
 import { IMapData } from "./IMapData";
 import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
 
@@ -7,7 +8,7 @@ export interface IMaterialSpecularGlossinessDataProperties extends IMaterialAbst
     envMap?: string | string[];
     glossiness?: number,
     glossinessMap?: IMapData,
-    specular?: string,
+    specular?: Color,
     specularGlossinessMap?: IMapData,
     specularMap?: IMapData,
 
@@ -20,7 +21,7 @@ export interface IMaterialSpecularGlossinessData extends IMaterialAbstractData {
     envMap?: string | string[];
     glossiness: number,
     glossinessMap?: IMapData,
-    specular: string,
+    specular: Color,
     specularGlossinessMap?: IMapData,
     specularMap?: IMapData,
 

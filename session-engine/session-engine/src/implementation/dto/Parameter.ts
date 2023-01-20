@@ -75,7 +75,7 @@ export class Parameter<T> implements IParameter<T> {
 
         if (this.#type === PARAMETER_TYPE.COLOR) {
             (<any>this).convertColor = (color: any): string => {
-                return this.#converter.toColor(color);
+                return this.#converter.toHexColor(color);
             }
         }
 

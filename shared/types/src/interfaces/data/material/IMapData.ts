@@ -1,5 +1,6 @@
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { vec2 } from "gl-matrix";
+import { Color } from "../../../types";
 
 export enum TEXTURE_WRAPPING {
     REPEAT = 10497,
@@ -21,7 +22,7 @@ export interface IMapData extends ITreeNodeData {
     // #region Properties (11)
 
     readonly center: vec2;
-    readonly color?: string;
+    readonly color?: Color;
     readonly flipY: boolean;
     readonly image: HTMLImageElement;
     readonly magFilter: TEXTURE_FILTERING;

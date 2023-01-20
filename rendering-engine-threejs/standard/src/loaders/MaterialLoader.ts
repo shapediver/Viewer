@@ -27,6 +27,7 @@ import { Converter, Logger, LOGGING_TOPIC, ShapeDiverViewerDataProcessingError }
 import { container } from 'tsyringe'
 import { ENVIRONMENT_MAP_TYPE } from './EnvironmentMapLoader'
 import { GemMaterial, GemMaterialParameters } from '../materials/GemMaterial'
+import { SDColor } from '../objects/SDColor'
 
 export enum MATERIAL_TYPE {
     POINT = 'point',
@@ -218,6 +219,42 @@ export class MaterialLoader implements ILoader {
         }
     }
 
+    public assignColorCorrection(value: boolean) {
+        const convertColor = (c: THREE.Color | SDColor | undefined, toggle: boolean): THREE.Color | SDColor | undefined => {
+            if(!c) return;
+
+            if(c instanceof SDColor) {
+                c.colorCorrection(toggle);
+                return c;
+            } else {
+                const sdColor = this._renderingEngine.colorCache.find(color => color.equals(c));
+                if(sdColor) {
+                    sdColor.colorCorrection(toggle);
+                    return sdColor;
+                } else {
+                    // some colors may not have been set by us, but have been set automatically
+                    // in this case we expect the color to be linear either way and therefore omit a color correction
+                    return c;
+                }
+            }
+        }
+
+        for (let m in this._materialCache) {
+            const material: any = this._materialCache[m].material;
+
+            material.color = convertColor(material.color, value);
+            material.specular = convertColor(material.specular, value);
+            material.emissive = convertColor(material.emissive, value);
+            material.colorTransferBegin = convertColor(material.colorTransferBegin, value);
+            material.colorTransferEnd = convertColor(material.colorTransferEnd, value);
+            material.attenuationColor = convertColor(material.attenuationColor, value);
+            material.sheencolor = convertColor(material.sheencolor, value);
+            material.specularColor = convertColor(material.specularColor, value);
+
+            material.needsUpdate = true;
+        }
+    }
+
     public emptyMaterialCache() {
         this._materialCache = {};
     }
@@ -247,9 +284,9 @@ export class MaterialLoader implements ILoader {
 
         // if no MaterialStandardData is provided, we return our default
         if(!materialData) {
-            generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(this._defaultColor));
+            generalProperties.color = this._renderingEngine.createThreeJsColor(this._defaultColor);
             if(materialSettings !== undefined && materialSettings.useVertexColors)
-                generalProperties.color = new THREE.Color('#d3d3d3');
+                generalProperties.color = this._renderingEngine.createThreeJsColor('#d3d3d3');
             generalProperties.side = THREE.DoubleSide;
             if(!(type === MATERIAL_TYPE.POINT || type === MATERIAL_TYPE.LINE)) 
                 (<THREE.MeshPhysicalMaterialParameters>generalProperties).envMap = this._envMap;
@@ -275,16 +312,16 @@ export class MaterialLoader implements ILoader {
         }
 
         if(materialData.color !== undefined)
-            generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(materialData.color));
+            generalProperties.color = this._renderingEngine.createThreeJsColor(materialData.color);
         
         if(materialData.color === undefined && materialData.map !== undefined && materialData.map.color !== undefined)
-            generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(materialData.map.color));
+            generalProperties.color = this._renderingEngine.createThreeJsColor(materialData.map.color);
 
         if(materialData.color === undefined && materialData.map !== undefined && materialData.map.color === undefined && !(materialSettings !== undefined && materialSettings.useVertexColors))
-            generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(this._defaultColor));
+            generalProperties.color = this._renderingEngine.createThreeJsColor(this._defaultColor);
 
         if((materialSettings !== undefined && materialSettings.useVertexColors) && (materialData.color === this._defaultColor || materialData.color === this._defaultColor+'ff' || materialData.color === undefined))
-            generalProperties.color = new THREE.Color('#d3d3d3');
+            generalProperties.color = this._renderingEngine.createThreeJsColor('#d3d3d3');
 
         if(materialData.side !== undefined)
             generalProperties.side = materialData.side === MATERIAL_SIDE.BACK ? THREE.BackSide : materialData.side === MATERIAL_SIDE.FRONT ? THREE.FrontSide : THREE.DoubleSide;
@@ -365,8 +402,8 @@ export class MaterialLoader implements ILoader {
 
         standardProperties.bumpScale = materialData.bumpScale;
 
-        if(materialData.emissiveness !== undefined)
-            standardProperties.emissive = new THREE.Color(this._converter.toThreeJsColorInput(materialData.emissiveness));
+        if(materialData.emissiveness !== undefined) 
+            standardProperties.emissive = this._renderingEngine.createThreeJsColor(materialData.emissiveness);
 
         if (materialData.emissiveMap !== undefined) {
             standardProperties.emissiveMap = this.createTexture(materialData.emissiveMap);
@@ -393,7 +430,7 @@ export class MaterialLoader implements ILoader {
         if (materialData instanceof MaterialSpecularGlossinessData) {
             const specularGlossinessProperties: SpecularGlossinessMaterialParameters = standardProperties;
 
-            specularGlossinessProperties.specular = new THREE.Color(this._converter.toThreeJsColorInput(materialData.specular));
+            specularGlossinessProperties.specular = this._renderingEngine.createThreeJsColor(materialData.specular);
             specularGlossinessProperties.glossiness = materialData.glossiness;
 
             if (materialData.specularGlossinessMap !== undefined) {
@@ -434,11 +471,11 @@ export class MaterialLoader implements ILoader {
             gemProperties.impurityScale = materialData.impurityScale;
 
             if (materialData.colorTransferBegin !== undefined) {
-                gemProperties.colorTransferBegin = new THREE.Color(this._converter.toThreeJsColorInput(materialData.colorTransferBegin));
+                gemProperties.colorTransferBegin = this._renderingEngine.createThreeJsColor(materialData.colorTransferBegin);
             }
 
             if (materialData.colorTransferEnd !== undefined) {
-                gemProperties.colorTransferEnd = new THREE.Color(this._converter.toThreeJsColorInput(materialData.colorTransferEnd));
+                gemProperties.colorTransferEnd = this._renderingEngine.createThreeJsColor(materialData.colorTransferEnd);
             }
 
             gemProperties.center = new THREE.Vector3(materialData.center[0], materialData.center[1], materialData.center[2]);
@@ -527,10 +564,10 @@ export class MaterialLoader implements ILoader {
             }
 
             meshPhysicalProperties.attenuationDistance = materialData.attenuationDistance;
-            meshPhysicalProperties.attenuationColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.attenuationColor));
+            meshPhysicalProperties.attenuationColor = this._renderingEngine.createThreeJsColor(materialData.attenuationColor);
 
             meshPhysicalProperties.sheen = materialData.sheen;
-            meshPhysicalProperties.sheenColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.sheenColor));
+            meshPhysicalProperties.sheenColor = this._renderingEngine.createThreeJsColor(materialData.sheenColor);
             meshPhysicalProperties.sheenRoughness = materialData.sheenRoughness;
 
             if (materialData.sheenColorMap !== undefined) {
@@ -550,7 +587,7 @@ export class MaterialLoader implements ILoader {
                 mapCount++;
             }
 
-            meshPhysicalProperties.specularColor = new THREE.Color(this._converter.toThreeJsColorInput(materialData.specularColor));
+            meshPhysicalProperties.specularColor = this._renderingEngine.createThreeJsColor(materialData.specularColor);
 
             if (materialData.specularColorMap !== undefined) {
                 meshPhysicalProperties.specularColorMap = this.createTexture(materialData.specularColorMap);

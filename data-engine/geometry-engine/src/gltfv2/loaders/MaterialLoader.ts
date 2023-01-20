@@ -70,7 +70,7 @@ export class MaterialLoader {
                     new Promise(async resolve => {
                         const materialData = await this._materialEngine.loadPresetMaterial(materialPreset.materialpreset);
                         materialData.name = material.name;
-                        materialData.color = this._converter.toColor(materialPreset.color);
+                        materialData.color = materialPreset.color;
                         this._loaded[materialId] = materialData;
                         resolve();
                     })
@@ -86,7 +86,7 @@ export class MaterialLoader {
                 specularGlossinessMaterialDataProperties.opacity = 1.0;
 
                 if (pbrSpecularGlossiness.diffuseFactor !== undefined) {
-                    specularGlossinessMaterialDataProperties.color = this._converter.toColor([pbrSpecularGlossiness.diffuseFactor[0] * 255, pbrSpecularGlossiness.diffuseFactor[1] * 255, pbrSpecularGlossiness.diffuseFactor[2] * 255]);
+                    specularGlossinessMaterialDataProperties.color = [pbrSpecularGlossiness.diffuseFactor[0] * 255, pbrSpecularGlossiness.diffuseFactor[1] * 255, pbrSpecularGlossiness.diffuseFactor[2] * 255];
                     specularGlossinessMaterialDataProperties.opacity = pbrSpecularGlossiness.diffuseFactor[3];
                 }
 
@@ -99,7 +99,7 @@ export class MaterialLoader {
                 specularGlossinessMaterialDataProperties.specular = '#ffffff';
 
                 if (pbrSpecularGlossiness.specularFactor !== undefined) {
-                    specularGlossinessMaterialDataProperties.specular = this._converter.toColor([pbrSpecularGlossiness.specularFactor[0] * 255, pbrSpecularGlossiness.specularFactor[1] * 255, pbrSpecularGlossiness.specularFactor[2] * 255]);
+                    specularGlossinessMaterialDataProperties.specular = [pbrSpecularGlossiness.specularFactor[0] * 255, pbrSpecularGlossiness.specularFactor[1] * 255, pbrSpecularGlossiness.specularFactor[2] * 255];
                 }
 
                 if (pbrSpecularGlossiness.specularGlossinessTexture !== undefined) {
@@ -113,7 +113,7 @@ export class MaterialLoader {
 
                 if (material.pbrMetallicRoughness !== undefined) {
                     if (material.pbrMetallicRoughness.baseColorFactor !== undefined) {
-                        unlitMaterialDataProperties.color = this._converter.toColor([material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255]);
+                        unlitMaterialDataProperties.color = [material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255];
                         unlitMaterialDataProperties.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
                     }
                     if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
@@ -126,7 +126,7 @@ export class MaterialLoader {
                 if (material.pbrMetallicRoughness !== undefined) {
                     standardMaterialDataProperties.color = '#ffffff';
                     if (material.pbrMetallicRoughness.baseColorFactor !== undefined) {
-                        standardMaterialDataProperties.color = this._converter.toColor([material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255]);
+                        standardMaterialDataProperties.color = [material.pbrMetallicRoughness.baseColorFactor[0] * 255, material.pbrMetallicRoughness.baseColorFactor[1] * 255, material.pbrMetallicRoughness.baseColorFactor[2] * 255];
                         standardMaterialDataProperties.opacity = material.pbrMetallicRoughness.baseColorFactor[3];
                     }
                     if (material.pbrMetallicRoughness.baseColorTexture !== undefined) {
@@ -171,7 +171,7 @@ export class MaterialLoader {
             }
 
             if (material.emissiveFactor !== undefined) {
-                materialDataProperties.emissiveness = this._converter.toColor([material.emissiveFactor[0] * 255, material.emissiveFactor[1] * 255, material.emissiveFactor[2] * 255]);
+                materialDataProperties.emissiveness = [material.emissiveFactor[0] * 255, material.emissiveFactor[1] * 255, material.emissiveFactor[2] * 255];
             }
             if (material.alphaMode !== undefined) {
                 materialDataProperties.alphaMode = material.alphaMode.toLowerCase() === MATERIAL_ALPHA.MASK ? MATERIAL_ALPHA.MASK : material.alphaMode.toLowerCase() === MATERIAL_ALPHA.BLEND ? MATERIAL_ALPHA.BLEND : MATERIAL_ALPHA.OPAQUE;
@@ -264,7 +264,7 @@ export class MaterialLoader {
                 }
 
                 if (volumeExtension.attenuationColor !== undefined) {
-                    standardMaterialDataProperties.attenuationColor = this._converter.toColor([volumeExtension.attenuationColor[0] * 255, volumeExtension.attenuationColor[1] * 255, volumeExtension.attenuationColor[2] * 255]);
+                    standardMaterialDataProperties.attenuationColor = [volumeExtension.attenuationColor[0] * 255, volumeExtension.attenuationColor[1] * 255, volumeExtension.attenuationColor[2] * 255];
                 }
             }
 
@@ -272,7 +272,7 @@ export class MaterialLoader {
                 const sheenExtension = materialExtensions[GLTF_EXTENSIONS.KHR_MATERIALS_SHEEN];
                 standardMaterialDataProperties.sheen = 1.0;
                 if (sheenExtension.sheenColorFactor !== undefined) {
-                    standardMaterialDataProperties.sheenColor = this._converter.toColor([sheenExtension.sheenColorFactor[0] * 255, sheenExtension.sheenColorFactor[1] * 255, sheenExtension.sheenColorFactor[2] * 255]);
+                    standardMaterialDataProperties.sheenColor = [sheenExtension.sheenColorFactor[0] * 255, sheenExtension.sheenColorFactor[1] * 255, sheenExtension.sheenColorFactor[2] * 255];
                 }
 
                 if (sheenExtension.sheenRoughnessFactor !== undefined) {
@@ -298,7 +298,7 @@ export class MaterialLoader {
                 }
 
                 if (specularExtension.specularColorFactor !== undefined) {
-                    standardMaterialDataProperties.specularColor = this._converter.toColor([specularExtension.specularColorFactor[0] * 255, specularExtension.specularColorFactor[1] * 255, specularExtension.specularColorFactor[2] * 255]);
+                    standardMaterialDataProperties.specularColor = [specularExtension.specularColorFactor[0] * 255, specularExtension.specularColorFactor[1] * 255, specularExtension.specularColorFactor[2] * 255];
                 }
 
                 if (specularExtension.specularColorTexture !== undefined) {
