@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@shapediver/viewer": "*",
+    "@shapediver/viewer.features.interaction": "*",
     "@shapediver/viewer.shared.services": "*",
     "@shapediver/viewer.shared.types": "*",
     "@shapediver/viewer.data-engine.data-engine": "*",

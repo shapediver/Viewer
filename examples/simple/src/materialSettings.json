@@ -1,390 +1,569 @@
 {
     "configurator/100/100_Var1_Grey.gltf": {
-        "Glass Matt 100 Grey": {
-            "ior": 1.3,
-            "thickness": 0.1
-        },
-        "Glass Matt 100 Grey EDGE": {
-            "ior": 1.3,
-            "thickness": 0.1
-        }
+      "Glass Matt 100 Grey": {
+        "ior": 1.5,
+        "thickness": 0.5,
+        "color": "#333"
+      },
+      "Glass Matt 100 Grey EDGE": {
+        "ior": 1.291,
+        "thickness": 0.821,
+        "color": "#222"
+      },
+      "Emission 100 Grey": {
+        "color": "#cc4f16ff"
+      }
     },
     "configurator/100/100_Var1_White.gltf": {
-        "Glass Matt 100 White": {
-            "ior": 1.3,
-            "thickness": 0.1
-        },
-        "Glass Matt 100 White EDGE": {
-            "ior": 1.3,
-            "thickness": 0.1
-        }
+      "Glass Matt 100 White": {
+        "ior": 1.5,
+        "thickness": 0.15,
+        "color": "#efefef"
+      },
+      "Glass Matt 100 White EDGE": {
+        "ior": 1.3,
+        "thickness": 0.1,
+        "color": "#ddd"
+      }
     },
     "configurator/100/100_Var2_Grey.gltf": {
-        "Glass Matt 100 Grey": {
-            "ior": 1.3,
-            "thickness": 0.1
-        },
-        "Glass Matt 100 Grey EDGE": {
-            "ior": 1.3,
-            "thickness": 0.1
-        }
+      "Glass Matt 100 Grey": {
+        "ior": 1.5,
+        "thickness": 0.5,
+        "color": "#333"
+      },
+      "Glass Matt 100 Grey EDGE": {
+        "ior": 1.3,
+        "thickness": 0.1,
+        "color": "#222"
+      }
     },
     "configurator/100/100_Var2_White.gltf": {
-        "Glass Matt 100 White": {
-            "ior": 1.3,
-            "thickness": 0.1
-        },
-        "Glass Matt 100 White EDGE": {
-            "ior": 1.3,
-            "thickness": 0.1
-        }
+      "Glass Matt 100 White": {
+        "ior": 1.5,
+        "thickness": 0.15,
+        "color": "#efefef"
+      },
+      "Glass Matt 100 White EDGE": {
+        "ior": 1.3,
+        "thickness": 0.1,
+        "color": "#ddd"
+      }
     },
     "configurator/100/100_Var3_Grey.gltf": {
-        "Glass Matt 100 Grey": {
-            "ior": 1.3,
-            "thickness": 0.1
-        },
-        "Glass Matt 100 Grey EDGE": {
-            "ior": 1.3,
-            "thickness": 0.1
-        }
+      "Glass Matt 100 Grey": {
+        "ior": 1.5,
+        "thickness": 0.5,
+        "color": "#333"
+      },
+      "Glass Matt 100 Grey EDGE": {
+        "ior": 1.3,
+        "thickness": 0.1,
+        "color": "#222"
+      }
     },
     "configurator/100/100_Var3_White.gltf": {
-        "Glass Matt 100 White": {
-            "ior": 1.3,
-            "thickness": 0.1
-        },
-        "Glass Matt 100 White EDGE": {
-            "ior": 1.3,
-            "thickness": 0.1
-        }
+      "Glass Matt 100 White": {
+        "ior": 1.5,
+        "thickness": 0.15,
+        "color": "#efefef"
+      },
+      "Glass Matt 100 White EDGE": {
+        "ior": 1.3,
+        "thickness": 0.1,
+        "color": "#ddd"
+      }
     },
     "configurator/14/14_Amber1.gltf": {
-        "Tube 14": {
-            "opacity": 1
-        },
-        "Glass Dispersion 14 Amber": {
-            "ior": 1.1,
-            "thickness": 0.1
-        },
-        "GlassBubbles": {
-            "alphaMode": "opaque",
-            "opacity": 1
-        }
+      "Tube 14": {
+        "opacity": 1
+      },
+      "Glass Dispersion 14 Amber": {
+        "ior": 1.3,
+        "thickness": 0.1
+      },
+      "GlassBubbles": {
+        "alphaMode": "opaque",
+        "opacity": 1
+      }
     },
     "configurator/14/14_Clear1.gltf": {
-        "Tube 14": {
-            "opacity": 1
-        },
-        "Glass Dispersion 14 Clear": {
-            "ior": 1.1,
-            "thickness": 0.1
-        },
-        "GlassBubbles": {
-            "alphaMode": "opaque",
-            "opacity": 1
-        }
+      "Tube 14": {
+        "opacity": 1
+      },
+      "Glass Dispersion 14 Clear": {
+        "ior": 1.3,
+        "thickness": 0.1,
+        "color": "#ccc"
+      },
+      "GlassBubbles": {
+        "alphaMode": "opaque",
+        "opacity": 1
+      }
     },
     "configurator/14/14_Grey1.gltf": {
-        "Tube 14": {
-            "opacity": 1
-        },
-        "Glass Dispersion 14 Grey": {
-            "ior": 1.1,
-            "thickness": 0.1
-        },
-        "GlassBubbles": {
-            "alphaMode": "opaque",
-            "opacity": 1
-        }
+      "Tube 14": {
+        "opacity": 1
+      },
+      "Glass Dispersion 14 Grey": {
+        "ior": 1.3,
+        "thickness": 0.1
+      },
+      "GlassBubbles": {
+        "alphaMode": "opaque",
+        "opacity": 1
+      },
+      "Emission 14": {
+        "thickness": 0
+      }
     },
     "configurator/16/16_Grey1_1.gltf": {
-        "Glass 16 Grey1": {
-            "color": "#222",
-            "ior": 2,
-            "thickness": 0.025,
-            "alphaMode": "blend"
-        },
-        "Glass Matt 16 Grey1": {
-            "alphaMode": "opaque"
-        }
+      "Glass 16 Grey1": {
+        "color": "#ccc",
+        "ior": 2.1,
+        "thickness": 0.025,
+        "alphaMode": "blend"
+      },
+      "Glass Matt 16 Grey1": {
+        "alphaMode": "opaque"
+      }
     },
     "configurator/16/16_Grey2_1.gltf": {
-        "Glass 16 Grey2": {
-            "color": "#222",
-            "ior": 2,
-            "thickness": 0.025,
-            "alphaMode": "blend"
-        },
-        "Glass Matt 16 Grey2": {
-            "alphaMode": "opaque"
-        }
+      "Glass 16 Grey2": {
+        "color": "#222",
+        "ior": 2,
+        "thickness": 0.025,
+        "alphaMode": "blend"
+      },
+      "Glass Matt 16 Grey2": {
+        "alphaMode": "opaque"
+      },
+      "Emission 16 Grey2": {
+        "alphaMode": "blend"
+      }
     },
     "configurator/16/16_White1_1.gltf": {
-        "Glass 16 White1": {
-            "color": "#222",
-            "ior": 2,
-            "thickness": 0.025,
-            "alphaMode": "blend"
-        },
-        "Glass Matt 16 White1": {
-            "alphaMode": "opaque"
-        }
+      "Glass 16 White1": {
+        "color": "#222",
+        "ior": 2,
+        "thickness": 0.025,
+        "alphaMode": "blend"
+      },
+      "Glass Matt 16 White1": {
+        "alphaMode": "opaque"
+      }
     },
     "configurator/16/16_White2_1.gltf": {
-        "Glass 16 White2": {
-            "color": "#222",
-            "ior": 2,
-            "thickness": 0.025,
-            "alphaMode": "blend"
-        },
-        "Glass Matt 16 White2": {
-            "alphaMode": "opaque"
-        }
+      "Glass 16 White2": {
+        "color": "#222",
+        "ior": 2,
+        "thickness": 0.025,
+        "alphaMode": "blend"
+      },
+      "Glass Matt 16 White2": {
+        "alphaMode": "opaque"
+      }
     },
     "configurator/28/28_Var2_green.gltf": {
-        "Glass 28": {
-            "alphaMode": "blend",
-            "thickness": 0.01
-        }
+      "Glass 28": {
+        "alphaMode": "blend",
+        "thickness": 0.01
+      }
     },
     "configurator/28/28_Var3_green.gltf": {
-        "Glass 28": {
-            "alphaMode": "blend",
-            "thickness": 0.01
-        }
+      "Glass 28": {
+        "alphaMode": "blend",
+        "thickness": 0.01
+      }
     },
     "configurator/28/bocci_lights_3D_28_clear.gltf": {
-        "Glass": {
-            "alphaMode": "blend",
-            "thickness": 0.01
-        }
+      "Glass": {
+        "alphaMode": "blend",
+        "thickness": 0.01
+      }
     },
     "configurator/28/bocci_lights_3D_28_opaque.gltf": {
-        "Glass": {
-            "alphaMode": "blend",
-            "thickness": 0.01
-        }
+      "Glass": {
+        "alphaMode": "blend",
+        "thickness": 0.01
+      }
     },
     "configurator/38/38_Var1_2_OFF.gltf": {
-        "Glass 38": {
-            "thickness": 0.01
-        }
+      "Glass 38": {
+        "thickness": 0.01
+      }
     },
     "configurator/38/38_Var1_2_ON.gltf": {
-        "Glass 38": {
-            "thickness": 0.01
-        }
+      "Glass 38": {
+        "thickness": 0.01
+      }
     },
     "configurator/38/38_Var2_2_OFF.gltf": {
-        "Glass 38": {
-            "thickness": 0.01
-        }
+      "Glass 38": {
+        "thickness": 0.01
+      }
     },
     "configurator/38/38_Var2_2_ON.gltf": {
-        "Glass 38": {
-            "thickness": 0.01
-        }
+      "Glass 38": {
+        "thickness": 0.01
+      }
     },
     "configurator/38/38_Var3_2_OFF.gltf": {
-        "Glass 38": {
-            "thickness": 0.01
-        }
+      "Glass 38": {
+        "thickness": 0.01
+      }
     },
     "configurator/38/38_Var3_2_ON.gltf": {
-        "Glass 38": {
-            "thickness": 0.01
-        }
+      "Glass 38": {
+        "thickness": 0.01
+      }
     },
     "configurator/38V/38V_Var1_1_OFF.gltf": {
-        "Glass 38V": {
-            "thickness": 0.01
-        }
+      "Glass 38V": {
+        "thickness": 0.01
+      }
     },
     "configurator/38V/38V_Var1_1_ON.gltf": {
-        "Glass 38V": {
-            "thickness": 0.01
-        }
+      "Glass 38V": {
+        "thickness": 0.01
+      }
     },
     "configurator/38V/38V_Var2_1_OFF.gltf": {
-        "Glass 38V": {
-            "thickness": 0.01
-        }
+      "Glass 38V": {
+        "thickness": 0.01
+      }
     },
     "configurator/38V/38V_Var2_1_ON.gltf": {
-        "Glass 38V": {
-            "thickness": 0.01
-        }
+      "Glass 38V": {
+        "thickness": 0.01
+      }
     },
     "configurator/38V/38V_Var3_1_OFF.gltf": {
-        "Glass 38V": {
-            "thickness": 0.01
-        }
+      "Glass 38V": {
+        "thickness": 0.01
+      }
     },
     "configurator/38V/38V_Var3_1_ON.gltf": {
-        "Glass 38V": {
-            "thickness": 0.01
-        }
+      "Glass 38V": {
+        "thickness": 0.01
+      }
     },
     "configurator/57/57_Var1_White.gltf": {
-        "Glass 57 White": {
-            "alphaMode": "opaque"
-        }
+      "Glass 57 White": {
+        "alphaMode": "opaque"
+      }
     },
     "configurator/57/57_Var2_LightMirrored.gltf": {
-        "Glass 57 Light Mirrored": {
-            "alphaMode": "opaque"
-        }
+      "Glass 57 Light Mirrored": {
+        "alphaMode": "opaque"
+      }
     },
     "configurator/57/57_Var3_Grey.gltf": {
-        "Glass 57 Grey": {
-            "alphaMode": "opaque"
-        }
+      "Glass 57 Grey": {
+        "alphaMode": "opaque"
+      }
     },
     "configurator/57/57_Var4_DarkMirrored.gltf": {
-        "Glass 57 DarkMirrored": {
-            "alphaMode": "opaque"
-        }
+      "Glass 57 DarkMirrored": {
+        "alphaMode": "opaque"
+      }
     },
     "configurator/74/74_Var1.gltf": {
-        "Glass 74": {
-            "alphaMode": "opaque",
-            "thickness": 0.01
-        }
+      "Glass 74": {
+        "alphaMode": "opaque",
+        "thickness": 0.01
+      },
+      "Body 74": {
+        "ior": 1
+      },
+      "Black_Plastic": {
+        "ior": 1.15,
+        "thickness": 0
+      }
     },
     "configurator/76/76_Var1.gltf": {
-        "Glass 76 Grid": {
-            "alphaMode": "opaque"
-        },
-        "Glass 76": {
-            "ior": 3,
-            "thickness": 0.005
-        }
+      "Glass 76 Grid": {
+        "alphaMode": "opaque",
+        "color": "#bbb",
+        "opacity": 1
+      },
+      "Glass 76": {
+        "ior": 2,
+        "thickness": 0.005,
+        "color": "#bbb"
+      },
+      "Glass 76 Matt": {
+        "color": "#eee",
+        "ior": 1.61
+      },
+      "76 Wire": {
+        "opacity": 0.762
+      },
+      "Glass 76 Matt Translucent": {
+        "opacity": 1
+      }
     },
     "configurator/76/76_Var2.gltf": {
-        "Glass 76 Grid": {
-            "alphaMode": "opaque"
-        },
-        "Glass 76": {
-            "ior": 3,
-            "thickness": 0.005
-        }
+      "Glass 76 Grid": {
+        "alphaMode": "opaque",
+        "color": "#ccc"
+      },
+      "Glass 76": {
+        "ior": 2.1,
+        "thickness": 0.005,
+        "color": "#bbb"
+      },
+      "Glass 76 Matt Translucent": {
+        "color": "#eee"
+      }
     },
     "configurator/76/76_Var3.gltf": {
-        "Glass 76 Grid": {
-            "alphaMode": "opaque"
-        },
-        "Glass 76": {
-            "ior": 3,
-            "thickness": 0.005
-        }
+      "Glass 76 Grid": {
+        "alphaMode": "opaque",
+        "color": "#ccc",
+        "ior": 1.5,
+        "thickness": 0
+      },
+      "Glass 76": {
+        "ior": 2,
+        "thickness": 0.005,
+        "color": "#bbb"
+      },
+      "Glass 76 Matt Translucent": {
+        "color": "#eee"
+      },
+      "Glass 76 Matt": {
+        "color": "#eee"
+      }
     },
     "configurator/84/84_Var1_2500K_1_OFF.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.0075
-        },
-        "Glass Opaque 2500K 84": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 3,
+        "thickness": 0.0075
+      },
+      "Glass Opaque 2500K 84": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var1_2500K_1_ON.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.0075
-        },
-        "Glass Opaque 2500K 84": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 2.1,
+        "thickness": 0.01,
+        "color": "#bbb"
+      },
+      "Glass Opaque 2500K 84": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var1_3500K_1_OFF.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.0075
-        },
-        "Glass Opaque 3500K 84 2": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 3,
+        "thickness": 0.0075
+      },
+      "Glass Opaque 3500K 84 2": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var1_3500K_1_ON.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.0075
-        },
-        "Glass Opaque 3500K 84 2": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 2.1,
+        "thickness": 0.01,
+        "color": "#ccc"
+      },
+      "Glass Opaque 3500K 84 2": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var2_2500K_1_OFF.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.02
-        },
-        "Glass Opaque 2500K 84": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 3,
+        "thickness": 0.02
+      },
+      "Glass Opaque 2500K 84": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var2_2500K_1_ON.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.02
-        },
-        "Glass Opaque 2500K 84": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 2.1,
+        "thickness": 0.02,
+        "color": "#ccc"
+      },
+      "Glass Opaque 2500K 84": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var2_3500K_1_OFF.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.02
-        },
-        "Glass Opaque 3500K 84 2": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 3,
+        "thickness": 0.02
+      },
+      "Glass Opaque 3500K 84 2": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var2_3500K_1_ON.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.02
-        },
-        "Glass Opaque 3500K 84 2": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 2.1,
+        "thickness": 0.02,
+        "color": "#ccc"
+      },
+      "Glass Opaque 3500K 84 2": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var3_2500K_1_OFF.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.01
-        },
-        "Glass Opaque 2500K 84": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 3,
+        "thickness": 0.01
+      },
+      "Glass Opaque 2500K 84": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var3_2500K_1_ON.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.01
-        },
-        "Glass Opaque 2500K 84": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 2.1,
+        "thickness": 0.02,
+        "color": "#ccc"
+      },
+      "Glass Opaque 2500K 84": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var3_3500K_1_OFF.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.01
-        },
-        "Glass Opaque 3500K 84 2": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 3,
+        "thickness": 0.01
+      },
+      "Glass Opaque 3500K 84 2": {
+        "opacity": 1
+      }
     },
     "configurator/84/84_Var3_3500K_1_ON.gltf": {
-        "Glass Clear 84": {
-            "ior": 3,
-            "thickness": 0.01
-        },
-        "Glass Opaque 3500K 84 2": {
-            "opacity": 1
-        }
+      "Glass Clear 84": {
+        "ior": 2.1,
+        "thickness": 0.02,
+        "color": "#ccc"
+      },
+      "Glass Opaque 3500K 84 2": {
+        "opacity": 1
+      }
+    },
+    "configurator/44/44_Var1_1.gltf": {
+      "Metal_44": {
+        "color": "#ccc"
+      },
+      "Gold_44": {
+        "opacity": 1
+      },
+      "Glass Opaque Fill 44": {
+        "opacity": 1
+      }
+    },
+    "configurator/44/44_Var2_1.gltf": {
+      "Metal_44": {
+        "color": "#ccc"
+      }
+    },
+    "configurator/44/44_Var3_1.gltf": {
+      "Metal_44": {
+        "color": "#ccc"
+      }
+    },
+    "configurator/44/44_Var4_1.gltf": {
+      "Metal_44": {
+        "color": "#ccc"
+      }
+    },
+    "configurator/44/44_Var5_1.gltf": {
+      "Metal_44": {
+        "color": "#ccc"
+      }
+    },
+    "configurator/73/73_Var1_clear.gltf": {
+      "Fabric 73 Clear": {
+        "ior": 1.5,
+        "thickness": 0.1
+      },
+      "Fabric 73 Glass Only": {
+        "opacity": 1
+      },
+      "Emission": {
+        "ior": 1.435
+      }
+    },
+    "configurator/73/73_Var1_grey1.gltf": {
+      "Fabric 73 Grey 1": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var1_grey2.gltf": {
+      "Fabric 73 Grey 2": {
+        "thickness": 0.05
+      }
+    },
+    "configurator/73/73_Var1_grey3.gltf": {
+      "Fabric 73 Grey 3": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var2_clear.gltf": {
+      "Fabric 73 Clear": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var2_grey1.gltf": {
+      "Fabric 73 Grey 1": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var2_grey2.gltf": {
+      "Fabric 73 Grey 1": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var2_grey3.gltf": {
+      "Fabric 73 Grey 1": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var3_clear.gltf": {
+      "Fabric 73 Clear": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var3_grey1.gltf": {
+      "Fabric 73 Grey 1": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var3_grey2.gltf": {
+      "Fabric 73 Grey 2": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/73/73_Var3_grey3.gltf": {
+      "Fabric 73 Grey 3": {
+        "thickness": 0.1
+      }
+    },
+    "configurator/87/87_Var1_2_ON.gltf": {
+      "Glass_87": {
+        "color": "#fff",
+        "ior": 1.5,
+        "thickness": 0,
+        "opacity": 1
+      },
+      "Glass_87_Translucent": {
+        "ior": 1.6,
+        "opacity": 1
+      }
+    },
+    "configurator/87/87_Var4_2_ON.gltf": {
+      "Glass_87": {
+        "ior": 1.5,
+        "thickness": 0.1
+      }
     }
-}
+  }

@@ -8,6 +8,8 @@ module.exports = merge(common, {
   devServer: {
     open: true,
     static: path.resolve(__dirname, 'dist-dev'),
+    port: 3000,
+
   }, 
   module: {
     rules: [

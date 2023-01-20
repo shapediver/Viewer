@@ -10,6 +10,7 @@
     "@types/puppeteer": "^5.4.5",
     "@types/selenium-webdriver": "^4.0.19",
     "aws-sdk": "^2.1121.0",
+    "browser-or-node" : "2.0.0",
     "chargebee-typescript": "^2.8.0",
     "chromedriver": "^106.0.1",
     "chromium": "^3.0.3",
