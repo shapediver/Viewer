@@ -43,6 +43,9 @@ import {
   IGeometryData,
   Color,
 } from '@shapediver/viewer.shared.types'
+import {
+  AnimationEngine
+} from "@shapediver/viewer.rendering-engine.animation-engine"
 
 import { SceneTreeManager } from './managers/SceneTreeManager'
 import { RenderingManager } from './managers/RenderingManager'
@@ -63,7 +66,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (61)
 
   // managers
-  private readonly _animationManager: AnimationManager;
   private readonly _beautyRenderingManager: BeautyRenderingManager;
   // engines
   private readonly _cameraEngine: CameraEngine;
@@ -71,6 +73,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   // viewer essentials
   private readonly _canvas: ICanvas;
   private readonly _canvasEngine: CanvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
+  private readonly _animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
   // utils
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
   private readonly _domEventEngine: DomEventEngine;
@@ -214,7 +217,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._lightEngine = new LightEngine(this);
 
     // creation of the managers (all singleton engines were created already)
-    this._animationManager = new AnimationManager(this);
     this._beautyRenderingManager = new BeautyRenderingManager(this);
     this._cameraManager = new CameraManager(this);
     this._environmentGeometryManager = new EnvironmentGeometryManager(this);
@@ -279,16 +281,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set ambientOcclusionIntensity(value: number) {
     this._ambientOcclusionIntensity = value;
-  }
-
-  public get animationManager(): AnimationManager {
-    return this._animationManager;
-  }
-
-  public get animations(): {
-    [key: string]: IAnimationData
-  } {
-    return this.#animations;
   }
 
   public get arRotation(): vec3 {
@@ -978,18 +970,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
   }
 
-  public gatherAnimations(node: ITreeNode = this._tree.root): AnimationData[] {
-    let out: AnimationData[] = [];
-    for (let i = 0, len = node.data.length; i < len; i++)
-      if (node.data[i] instanceof AnimationData)
-        out.push(<AnimationData>node.data[i])
-
-    for (let i = 0, len = node.children.length; i < len; i++)
-      out = out.concat(this.gatherAnimations(node.children[i]))
-
-    return out;
-  }
-
   public getEnvironmentMapImageUrl() {
     return this._environmentMapLoader.getEnvironmentMapImageUrl(this.environmentMap);
   }
@@ -1084,36 +1064,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.rendering.shadows = this.shadows;
     
   }
-
-  public startGatherAnimations(node: ITreeNode = this._tree.root) {
-    this.#animations = {};
-
-    const animationArray = this.gatherAnimations();
-    const names = animationArray.map(a => a.name);
-    const animationDictionary: {
-      [key: string]: number
-    } = {};
-
-    for(let i = 0; i < animationArray.length; i++) {
-      const animationName = animationArray[i].name;
-      
-      const nameIndices = [];
-      for(let j = 0; j < names.length; j++)
-        if(animationName === names[j])
-          nameIndices.push(j);
-
-      let animationNameAdjusted = animationName;
-      // name adjustement if the name occurs multiple times
-      if(nameIndices.length > 1) {
-        animationNameAdjusted = animationName + '_' + nameIndices.indexOf(i);
-        // even further name adjustement if the name is even then the same after adjustements (probably will never happen)
-        while(names.includes(animationNameAdjusted))
-          animationNameAdjusted += "_0";
-      }
-      
-      this.#animations[animationNameAdjusted] = animationArray[i];
-    }
-  }
   
   public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
     return this._sceneTracingManager.touchToRay(event);
@@ -1127,7 +1077,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     if(this.closed) return;
     this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     this._renderingManager.updateShadowMap();
-    this.startGatherAnimations();
+    this._animationEngine.updateAnimationData();
     this._renderingManager.render();
 
     this._renderingManager.lastRootVersion = this._tree.root.version;

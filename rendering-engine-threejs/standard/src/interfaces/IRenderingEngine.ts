@@ -8,9 +8,6 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 
     ambientOcclusion: boolean;
     ambientOcclusionIntensity: number;
-    animations: {
-        [key: string]: IAnimationData
-    };
     beautyRenderBlendingDuration: number;
     beautyRenderDelay: number;
     clearAlpha: number;

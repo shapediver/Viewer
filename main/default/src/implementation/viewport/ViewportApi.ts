@@ -21,10 +21,12 @@ import { IPerspectiveCameraApi } from "../../interfaces/viewport/camera/IPerspec
 import { ISettingsV3_1 } from "@shapediver/viewer.settings";
 import { build_data } from "@shapediver/viewer.shared.build-data";
 import * as QRCode from "qrcode";
+import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-engine";
 
 export class ViewportApi implements IViewportApi {
     // #region Properties (5)
 
+    readonly #animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
     readonly #renderingEngine: RenderingEngineThreeJs;
     readonly #creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
     readonly #converter: Converter = <Converter>container.resolve(Converter);
@@ -125,7 +127,7 @@ export class ViewportApi implements IViewportApi {
     public get animations(): {
         [key: string]: IAnimationData
     } {
-        return this.#renderingEngine.animations;
+        return this.#animationEngine.animations;
     }
 
     public get arRotation(): vec3 {

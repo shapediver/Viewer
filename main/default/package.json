@@ -57,6 +57,7 @@
     "@shapediver/viewer.data-engine.material-engine": "2.6.5",
     "@shapediver/viewer.data-engine.shared-types": "2.6.5",
     "@shapediver/viewer.main.creation-control-center": "2.6.5",
+    "@shapediver/viewer.rendering-engine.animation-engine": "2.6.5",
     "@shapediver/viewer.rendering-engine-threejs.standard": "2.6.5",
     "@shapediver/viewer.rendering-engine.camera-engine": "2.6.5",
     "@shapediver/viewer.rendering-engine.light-engine": "2.6.5",

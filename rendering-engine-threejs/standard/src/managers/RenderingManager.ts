@@ -19,16 +19,19 @@ import {
 import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
 import { ICameraEvent } from '@shapediver/viewer.shared.types'
-import { BUSY_MODE_DISPLAY, RENDERER_TYPE, SPINNER_POSITIONING } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { BUSY_MODE_DISPLAY, IManager, RENDERER_TYPE, SPINNER_POSITIONING } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
 import { SceneTreeManager } from './SceneTreeManager'
-import { IManager } from '../interfaces/IManager'
 import { ITree, Tree } from '@shapediver/viewer.shared.node-tree'
+import { AnimationFrameEngine } from '@shapediver/viewer.rendering-engine.animation-frame-engine'
+import { AnimationEngine } from '@shapediver/viewer.rendering-engine.animation-engine'
 
 export class RenderingManager implements IManager {
     // #region Properties (20)
 
+    private readonly _animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
+    private readonly _animationFrameEngine: AnimationFrameEngine = <AnimationFrameEngine>container.resolve(AnimationFrameEngine);
     private readonly _converter: Converter = <Converter>container.resolve(Converter);
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
@@ -54,7 +57,6 @@ export class RenderingManager implements IManager {
             width: 0,
             height: 0
         };
-    private _lastTime: number = 0;
     private _maxTextureUnits: number = 0;
     private _minimalRendering: boolean = false;
     private _noWebGL: boolean = false;
@@ -296,8 +298,11 @@ export class RenderingManager implements IManager {
         this._width = width, this._height = height;
     }
 
+    /**
+     * Must only be called once by the RenderingEngine!
+     */
     public start() {
-        this.animate(0);
+        this._animationFrameEngine.addAnimationFrameCallback(this.animate.bind(this))
         this.startAndStopRendering();
     }
 
@@ -309,15 +314,9 @@ export class RenderingManager implements IManager {
 
     // #region Private Methods (10)
 
-    private animate(time: number): void {
+    private animate(time: number, deltaTime: number, runningAnimation: boolean): void {
         // animation loop - part 1: initial discarding
         if (this._renderingEngine.closed || this._noWebGL) return;
-
-        // animation loop - part 2: requesting and timings
-        requestAnimationFrame((time: number) => this.animate(time));
-        TWEEN.update(time);
-        const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
-        this._lastTime = time;
 
         this._renderingEngine.evaluateFlagState();
 
@@ -325,12 +324,11 @@ export class RenderingManager implements IManager {
         if(this._tree.root.version !== this._lastRootVersion) {
             this._renderingEngine.sceneTreeManager.updateSceneTree(this._tree.root, this._renderingEngine.lightEngine);
             this.updateShadowMap();
-            this._renderingEngine.startGatherAnimations();
+            this._animationEngine.updateAnimationData();
             this._lastRootVersion = this._tree.root.version;
             this.render();
         }
 
-        const runningAnimation = this._renderingEngine.animationManager.update(deltaTime);
         if(runningAnimation !== this._runningAnimation) this.render();
         this._runningAnimation = runningAnimation;
         if(this._runningAnimation) this._renderingEngine.sceneTreeManager.updateNodeTransformations();

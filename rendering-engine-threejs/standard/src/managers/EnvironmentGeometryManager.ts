@@ -5,10 +5,10 @@ import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { Converter, EventEngine, EVENTTYPE } from '@shapediver/viewer.shared.services'
 
 import { RenderingEngine } from '..'
-import { IManager } from '../interfaces/IManager'
 import { container } from 'tsyringe'
 import { SDData } from '../objects/SDData'
 import { SDObject } from '../objects/SDObject'
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 export class EnvironmentGeometryManager implements IManager {
     // #region Properties (5)

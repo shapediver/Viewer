@@ -3,13 +3,13 @@ import { SystemInfo } from '@shapediver/viewer.shared.services'
 import { container } from 'tsyringe'
 
 import { RenderingEngine } from '../RenderingEngine'
-import { IManager } from '../interfaces/IManager'
 import { EffectComposer } from '../three/postprocessing/EffectComposer';
 import { RenderPass } from '../three/postprocessing/RenderPass';
 import { SSAARenderPass } from '../three/postprocessing/SSAARenderPass';
 import { ShaderPass } from '../three/postprocessing/ShaderPass';
 import { GammaCorrectionShader } from '../three/shaders/GammaCorrectionShader';
 import { SAOPass } from '../three/postprocessing/SAOPass'
+import { IManager } from '@shapediver/viewer.rendering-engine.rendering-engine';
 
 
 export class BeautyRenderingManager implements IManager {

@@ -31,11 +31,10 @@ import {
 import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, quat, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
-import { ISDObject, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IManager, ISDObject, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { ThreejsData } from '../types/ThreejsData'
 import { RenderingEngine } from '../RenderingEngine'
-import { IManager } from '../interfaces/IManager'
 import { Bone } from 'three'
 import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { SDData, SD_DATA_TYPE } from '../objects/SDData'
