@@ -1,4 +1,5 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
+import { Color } from '@shapediver/viewer.shared.types';
 
 import { LIGHT_TYPE } from '../../interface/ILight'
 import { IAmbientLight } from '../../interface/types/IAmbientLight';
@@ -14,7 +15,7 @@ export class AmbientLight extends AbstractLight implements IAmbientLight {
     // #region Constructors (1)
 
     constructor(properties: {
-        color?: string,
+        color?: Color,
         intensity?: number,
         name?: string,
         order?: number,

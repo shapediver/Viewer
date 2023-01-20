@@ -1,6 +1,7 @@
 import { IRenderingEngine } from '@shapediver/viewer.rendering-engine.rendering-engine';
 import { ITreeNode, TreeNode } from '@shapediver/viewer.shared.node-tree'
 import { vec3 } from 'gl-matrix';
+import { Color } from '@shapediver/viewer.shared.types';
 
 import { ILight } from '../interface/ILight'
 import { ILightScene } from '../interface/ILightScene'
@@ -67,19 +68,19 @@ export class LightScene implements ILightScene {
 
     // #region Public Methods (8)
 
-    public addAmbientLight(properties: {color?: string, intensity?: number, name?: string}): AmbientLight {
+    public addAmbientLight(properties: {color?: Color, intensity?: number, name?: string}): AmbientLight {
         const light = new AmbientLight(properties);
         this.addLight(light);
         return light;
     }
 
-    public addDirectionalLight(properties: {color?: string, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, name?: string}): DirectionalLight {
+    public addDirectionalLight(properties: {color?: Color, intensity?: number, direction?: vec3, castShadow?: boolean, shadowMapResolution?: number, shadowMapBias?: number, name?: string}): DirectionalLight {
         const light = new DirectionalLight(properties);
         this.addLight(light);
         return light;
     }
 
-    public addHemisphereLight(properties: {color?: string, intensity?: number, groundColor?: string, name?: string}): HemisphereLight {
+    public addHemisphereLight(properties: {color?: Color, intensity?: number, groundColor?: Color, name?: string}): HemisphereLight {
         const light = new HemisphereLight(properties);
         this.addLight(light);
         return light;
@@ -95,13 +96,13 @@ export class LightScene implements ILightScene {
         if(this._update) this._update();
     }
 
-    public addPointLight(properties: {color?: string, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string}): PointLight {
+    public addPointLight(properties: {color?: Color, intensity?: number, position?: vec3, distance?: number, decay?: number, name?: string}): PointLight {
         const light = new PointLight(properties);
         this.addLight(light);
         return light;
     }
 
-    public addSpotLight(properties: {color?: string, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string}): SpotLight {
+    public addSpotLight(properties: {color?: Color, intensity?: number, position?: vec3, target?: vec3, distance?: number, decay?: number, angle?: number, penumbra?: number, name?: string}): SpotLight {
         const light = new SpotLight(properties);
         this.addLight(light);
         return light;

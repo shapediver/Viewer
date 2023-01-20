@@ -1,6 +1,6 @@
 import { IRenderingEngine, TEXTURE_ENCODING, TONE_MAPPING } from "@shapediver/viewer.rendering-engine.rendering-engine";
 import { vec3 } from "gl-matrix";
-import { AnimationData, SDTFItemData, ISDTFOverview, ISDTFAttributeVisualizationData, IAnimationData } from "@shapediver/viewer.shared.types";
+import { AnimationData, SDTFItemData, ISDTFOverview, ISDTFAttributeVisualizationData, IAnimationData, Color } from "@shapediver/viewer.shared.types";
 import { TreeNode } from "@shapediver/viewer.shared.node-tree";
 
 export interface IRenderingEngineThreeJS extends IRenderingEngine {
@@ -8,22 +8,19 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 
     ambientOcclusion: boolean;
     ambientOcclusionIntensity: number;
-    animations: {
-        [key: string]: IAnimationData
-    };
     beautyRenderBlendingDuration: number;
     beautyRenderDelay: number;
     clearAlpha: number;
-    clearColor: string | number | vec3;
+    clearColor: Color;
     visualizeAttributes: ((overview: ISDTFOverview, itemData?: SDTFItemData) => ISDTFAttributeVisualizationData) | undefined;
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;
-    gridColor: string | number | vec3; 
+    gridColor: Color; 
     gridVisibility: boolean;
-    groundPlaneColor: string | number | vec3; 
+    groundPlaneColor: Color; 
     groundPlaneVisibility: boolean;
-    groundPlaneShadowColor: string | number | vec3; 
+    groundPlaneShadowColor: Color; 
     groundPlaneShadowVisibility: boolean;
     lights: boolean;
     lightSceneId: string;
@@ -37,6 +34,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     textureEncoding: TEXTURE_ENCODING; 
     toneMapping: TONE_MAPPING; 
     toneMappingExposure: number; 
+    automaticColorAdjustment: boolean;
 
     updateEnvironmentGeometry(): void;
 

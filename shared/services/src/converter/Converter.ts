@@ -17,26 +17,28 @@ export class Converter {
      * @param defColor 
      */
     public toHex8Color(color: any, defColorString: string = '#199b9b'): string {
-        const c = this.toColor(color, defColorString);
+        const c = this.toHexColor(color, defColorString);
         const tColor = new TinyColor(c);
         const cH8 = tColor.toHex8String();
         return cH8.replace('#', '0x');
     }
 
-    public toColorArray(color: string): number[] {
+    public toColorArray(color: any): number[] {
+        if(typeof color !== 'string' || !color.startsWith("#"))
+            color = this.toHexColor(color);
         const tColor = new TinyColor(color);
         const rgb = tColor.toRgb()
         return [rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0];
     }
 
-    public toAlpha(color: string): number {
-        const c = this.toColor(color);
+    public toAlpha(color: any): number {
+        const c = this.toHexColor(color);
         if (c.length <= 8) return 1;
         return parseInt(c.slice(c.length - 2, c.length), 16) / 255;
     }
 
-    public toThreeJsColorInput(color: string): string {
-        const c = this.toColor(color);
+    public toThreeJsColorInput(color: any): string {
+        const c = this.toHexColor(color);
         return c.slice(0, c.length - 2);
     }
 
@@ -173,7 +175,7 @@ export class Converter {
      * @param color 
      * @param defColor 
      */
-    public toColor(color: any, defColorString: string = '#199b9b'): string {
+    public toHexColor(color: any, defColorString: string = '#199b9b'): string {
         if (!color || color === 'default') return defColorString;
 
         if (color.constructor === Float32Array)

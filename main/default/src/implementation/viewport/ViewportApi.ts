@@ -13,7 +13,7 @@ import { GLTFConverter } from "@shapediver/viewer.data-engine.gltf-converter";
 import { ShapeDiverRequestGltfUploadQueryConversion } from "@shapediver/sdk.geometry-api-sdk-v2";
 import { ICameraApi } from "../../interfaces/viewport/camera/ICameraApi";
 import { ILightSceneApi } from "../../interfaces/viewport/lights/ILightSceneApi";
-import { IAnimationData, IGeometryData, ISDTFAttributeVisualizationData, ISDTFItemData, ISDTFOverview } from "@shapediver/viewer.shared.types";
+import { Color, IAnimationData, IGeometryData, ISDTFAttributeVisualizationData, ISDTFItemData, ISDTFOverview } from "@shapediver/viewer.shared.types";
 import { ITreeNode, TreeNode } from "@shapediver/viewer.shared.node-tree";
 import { sceneTree } from "../../main";
 import { IOrthographicCameraApi } from "../../interfaces/viewport/camera/IOrthographicCameraApi";
@@ -21,10 +21,12 @@ import { IPerspectiveCameraApi } from "../../interfaces/viewport/camera/IPerspec
 import { ISettingsV3_1 } from "@shapediver/viewer.settings";
 import { build_data } from "@shapediver/viewer.shared.build-data";
 import * as QRCode from "qrcode";
+import { AnimationEngine } from "@shapediver/viewer.rendering-engine.animation-engine";
 
 export class ViewportApi implements IViewportApi {
     // #region Properties (5)
 
+    readonly #animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
     readonly #renderingEngine: RenderingEngineThreeJs;
     readonly #creationControlCenter: ICreationControlCenter = <ICreationControlCenter>container.resolve(CreationControlCenter);
     readonly #converter: Converter = <Converter>container.resolve(Converter);
@@ -125,7 +127,7 @@ export class ViewportApi implements IViewportApi {
     public get animations(): {
         [key: string]: IAnimationData
     } {
-        return this.#renderingEngine.animations;
+        return this.#animationEngine.animations;
     }
 
     public get arRotation(): vec3 {
@@ -171,6 +173,23 @@ export class ViewportApi implements IViewportApi {
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'vec3');
             this.#renderingEngine.arTranslation = value;
+            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
+            this.update();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
+    public get automaticColorAdjustment(): boolean {
+        return this.#renderingEngine.automaticColorAdjustment;
+    }
+
+    public set automaticColorAdjustment(value: boolean) {
+        const scope = 'automaticColorAdjustment';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
+            this.#renderingEngine.automaticColorAdjustment = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -260,15 +279,15 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
-    public get clearColor(): string | number | vec3 {
+    public get clearColor(): Color {
         return this.#renderingEngine.clearColor;
     }
 
-    public set clearColor(value: string | number | vec3) {
+    public set clearColor(value: Color) {
         const scope = 'clearColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.clearColor = this.#converter.toColor(value);
+            this.#renderingEngine.clearColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -345,15 +364,15 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
-    public get gridColor(): string | number | vec3 {
+    public get gridColor(): Color {
         return this.#renderingEngine.gridColor;
     }
 
-    public set gridColor(value: string | number | vec3) {
+    public set gridColor(value: Color) {
         const scope = 'gridColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.gridColor = this.#converter.toColor(value);
+            this.#renderingEngine.gridColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -379,15 +398,15 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
-    public get groundPlaneColor(): string | number | vec3 {
+    public get groundPlaneColor(): Color {
         return this.#renderingEngine.groundPlaneColor;
     }
 
-    public set groundPlaneColor(value: string | number | vec3) {
+    public set groundPlaneColor(value: Color) {
         const scope = 'groundPlaneColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.groundPlaneColor = this.#converter.toColor(value);
+            this.#renderingEngine.groundPlaneColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {
@@ -413,15 +432,15 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
-    public get groundPlaneShadowColor(): string | number | vec3 {
+    public get groundPlaneShadowColor(): Color {
         return this.#renderingEngine.groundPlaneShadowColor;
     }
 
-    public set groundPlaneShadowColor(value: string | number | vec3) {
+    public set groundPlaneShadowColor(value: Color) {
         const scope = 'groundPlaneShadowColor';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'color');
-            this.#renderingEngine.groundPlaneShadowColor = this.#converter.toColor(value);
+            this.#renderingEngine.groundPlaneShadowColor = value;
             this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
             this.update();
         } catch (e) {

@@ -1,5 +1,6 @@
 import { vec3 } from 'gl-matrix'
 import { LIGHT_TYPE } from '@shapediver/viewer.rendering-engine.light-engine';
+import { Color } from '@shapediver/viewer.shared.types';
 
 /**
  * The api for a light, please see the definitions for [ambient]{@link IAmbientLightApi}, [directional]{@link IDirectionalLightApi}, [hemisphere]{@link IHemisphereLightApi}, [point]{@link IPointLightApi} and [spot]{@link ISpotLightApi} as this is just a shared interface for all of them.
@@ -22,7 +23,7 @@ export interface ILightApi {
   /**
    * The color of the light.
    */
-  color: string | number | vec3;
+  color: Color;
 
   /**
    * The intensity of the light.

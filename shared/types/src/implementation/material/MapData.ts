@@ -1,12 +1,13 @@
 import { vec2 } from "gl-matrix";
 import { AbstractTreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { IMapData, TEXTURE_FILTERING, TEXTURE_WRAPPING } from "../../interfaces/data/material/IMapData";
+import { Color } from "../../types";
 
 export class MapData extends AbstractTreeNodeData implements IMapData {
     // #region Properties (11)
 
     readonly #center: vec2 = vec2.fromValues(0, 0);
-    readonly #color?: string;
+    readonly #color?: Color;
     readonly #flipY: boolean = true;
     readonly #image: HTMLImageElement;
     readonly #magFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE;
@@ -28,7 +29,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       minFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE,
       magFilter: TEXTURE_FILTERING = TEXTURE_FILTERING.NONE,
       center: vec2 = vec2.fromValues(0, 0),
-      color?: string,
+      color?: Color,
       offset: vec2 = vec2.fromValues(0, 0),
       repeat: vec2 = vec2.fromValues(1, 1),
       rotation: number = 0,
@@ -56,7 +57,7 @@ export class MapData extends AbstractTreeNodeData implements IMapData {
       return this.#center;
     }
 
-    public get color(): string | undefined {
+    public get color(): Color | undefined {
       return this.#color;
     }
 

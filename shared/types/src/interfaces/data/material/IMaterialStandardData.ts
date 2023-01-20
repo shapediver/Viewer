@@ -1,10 +1,11 @@
+import { Color } from "../../../types";
 import { IMapData } from "./IMapData";
 import { IMaterialAbstractData, IMaterialAbstractDataProperties } from "./IMaterialAbstractData";
 
 export interface IMaterialStandardDataProperties extends IMaterialAbstractDataProperties {
     // #region Properties (30)
 
-    attenuationColor?: string,
+    attenuationColor?: Color,
     attenuationDistance?: number;
     clearcoat?: number;
     clearcoatMap?: IMapData;
@@ -22,11 +23,11 @@ export interface IMaterialStandardDataProperties extends IMaterialAbstractDataPr
     roughness?: number,
     roughnessMap?: IMapData,
     sheen?: number,
-    sheenColor?: string,
+    sheenColor?: Color,
     sheenColorMap?: IMapData,
     sheenRoughness?: number,
     sheenRoughnessMap?: IMapData,
-    specularColor?: string,
+    specularColor?: Color,
     specularColorMap?: IMapData,
     specularIntensity?: number,
     specularIntensityMap?: IMapData,
@@ -41,7 +42,7 @@ export interface IMaterialStandardDataProperties extends IMaterialAbstractDataPr
 export interface IMaterialStandardData extends IMaterialAbstractData {
     // #region Properties (30)
 
-    attenuationColor: string,
+    attenuationColor: Color,
     attenuationDistance: number;
     clearcoat: number;
     clearcoatMap?: IMapData;
@@ -59,11 +60,11 @@ export interface IMaterialStandardData extends IMaterialAbstractData {
     roughness: number,
     roughnessMap?: IMapData,
     sheen: number,
-    sheenColor: string,
+    sheenColor: Color,
     sheenColorMap?: IMapData,
     sheenRoughness: number,
     sheenRoughnessMap?: IMapData,
-    specularColor: string,
+    specularColor: Color,
     specularColorMap?: IMapData,
     specularIntensity: number,
     specularIntensityMap?: IMapData,

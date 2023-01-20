@@ -2,11 +2,12 @@ import { AbstractMaterialData } from './AbstractMaterialData';
 import { IMaterialStandardData, IMaterialStandardDataProperties } from '../../interfaces/data/material/IMaterialStandardData';
 import { IMapData } from '../../interfaces/data/material/IMapData';
 import { MATERIAL_ALPHA, MATERIAL_SHADING, MATERIAL_SIDE } from '../../interfaces/data/material/IMaterialAbstractData';
+import { Color } from '../../types';
 
 export class MaterialStandardData extends AbstractMaterialData implements IMaterialStandardData {
   // #region Properties (26)
 
-  #attenuationColor: string = '#ffffff';
+  #attenuationColor: Color = '#ffffff';
   #attenuationDistance = Infinity;
   #clearcoat: number = 0;
   #clearcoatMap?: IMapData;
@@ -24,11 +25,11 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
   #roughness = 1.0;
   #roughnessMap?: IMapData;
   #sheen = 0.0;
-  #sheenColor: string = '#ffffff';
+  #sheenColor: Color = '#ffffff';
   #sheenColorMap?: IMapData;
   #sheenRoughness = 1.0;
   #sheenRoughnessMap?: IMapData;
-  #specularColor: string = '#ffffff';
+  #specularColor: Color = '#ffffff';
   #specularColorMap?: IMapData;
   #specularIntensity = 1.0;
   #specularIntensityMap?: IMapData;
@@ -89,11 +90,11 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
 
   // #region Public Accessors (52)
 
-  public get attenuationColor(): string {
+  public get attenuationColor(): Color {
     return this.#attenuationColor;
   }
 
-  public set attenuationColor(value: string) {
+  public set attenuationColor(value: Color) {
     this.#attenuationColor = value;
   }
 
@@ -233,11 +234,11 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
     this.#sheen = value;
   }
 
-  public get sheenColor(): string {
+  public get sheenColor(): Color {
     return this.#sheenColor;
   }
 
-  public set sheenColor(value: string) {
+  public set sheenColor(value: Color) {
     this.#sheenColor = value;
   }
 
@@ -265,11 +266,11 @@ export class MaterialStandardData extends AbstractMaterialData implements IMater
     this.#sheenRoughnessMap = value;
   }
 
-  public get specularColor(): string {
+  public get specularColor(): Color {
     return this.#specularColor;
   }
 
-  public set specularColor(value: string) {
+  public set specularColor(value: Color) {
     this.#specularColor = value;
   }
 

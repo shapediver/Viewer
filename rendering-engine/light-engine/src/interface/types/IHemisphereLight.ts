@@ -1,9 +1,9 @@
-import { vec3 } from 'gl-matrix'
+import { Color } from '@shapediver/viewer.shared.types'
 
 import { ILight } from '../ILight'
 
 export interface IHemisphereLight extends ILight {
-    groundColor: string | number | vec3;
+    groundColor: Color;
 
     clone(): IHemisphereLight;
 }

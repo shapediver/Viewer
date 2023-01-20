@@ -16,6 +16,7 @@ import { container } from "tsyringe";
 import { InputValidator, ShapeDiverViewerError, ShapeDiverBackendError, LOGGING_TOPIC, Logger } from "@shapediver/viewer.shared.services";
 import { ILightSceneApi } from "../../../interfaces/viewport/lights/ILightSceneApi";
 import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
+import { Color } from "@shapediver/viewer.shared.types";
 
 export class LightSceneApi implements ILightSceneApi {
     // #region Properties (15)
@@ -106,7 +107,7 @@ export class LightSceneApi implements ILightSceneApi {
 
     // #region Public Methods (6)
 
-    public addAmbientLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; id?: string | undefined; name?: string | undefined; }): IAmbientLightApi {
+    public addAmbientLight(properties: { color?: Color | undefined; intensity?: number | undefined; id?: string | undefined; name?: string | undefined; }): IAmbientLightApi {
         const scope = 'addAmbientLight';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
@@ -124,7 +125,7 @@ export class LightSceneApi implements ILightSceneApi {
         }
     }
 
-    public addDirectionalLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; direction?: vec3 | undefined; castShadow?: boolean | undefined; shadowMapResolution?: number | undefined; shadowMapBias?: number | undefined; id?: string | undefined; name?: string | undefined; }): IDirectionalLightApi {
+    public addDirectionalLight(properties: { color?: Color | undefined; intensity?: number | undefined; direction?: vec3 | undefined; castShadow?: boolean | undefined; shadowMapResolution?: number | undefined; shadowMapBias?: number | undefined; id?: string | undefined; name?: string | undefined; }): IDirectionalLightApi {
         const scope = 'addDirectionalLight';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
@@ -146,7 +147,7 @@ export class LightSceneApi implements ILightSceneApi {
         }
     }
 
-    public addHemisphereLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; groundColor?: string | number | vec3 | undefined; id?: string | undefined; name?: string | undefined; }): IHemisphereLightApi {
+    public addHemisphereLight(properties: { color?: Color | undefined; intensity?: number | undefined; groundColor?: Color | undefined; id?: string | undefined; name?: string | undefined; }): IHemisphereLightApi {
         const scope = 'addHemisphereLight';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
@@ -165,7 +166,7 @@ export class LightSceneApi implements ILightSceneApi {
         }
     }
 
-    public addPointLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; position?: vec3 | undefined; distance?: number | undefined; decay?: number | undefined; id?: string | undefined; name?: string | undefined; }): IPointLightApi {
+    public addPointLight(properties: { color?: Color | undefined; intensity?: number | undefined; position?: vec3 | undefined; distance?: number | undefined; decay?: number | undefined; id?: string | undefined; name?: string | undefined; }): IPointLightApi {
         const scope = 'addPointLight';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);
@@ -186,7 +187,7 @@ export class LightSceneApi implements ILightSceneApi {
         }
     }
 
-    public addSpotLight(properties: { color?: string | number | vec3 | undefined; intensity?: number | undefined; position?: vec3 | undefined; target?: vec3 | undefined; distance?: number | undefined; decay?: number | undefined; angle?: number | undefined; penumbra?: number | undefined; id?: string | undefined; name?: string | undefined; }): ISpotLightApi {
+    public addSpotLight(properties: { color?: Color | undefined; intensity?: number | undefined; position?: vec3 | undefined; target?: vec3 | undefined; distance?: number | undefined; decay?: number | undefined; angle?: number | undefined; penumbra?: number | undefined; id?: string | undefined; name?: string | undefined; }): ISpotLightApi {
         const scope = 'addSpotLight';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `LightSceneApi.${scope}`, properties, 'object', false);

@@ -31,11 +31,10 @@ import {
 import { AbstractLight, DirectionalLight, LightEngine } from '@shapediver/viewer.rendering-engine.light-engine'
 import { mat4, quat, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
-import { ISDObject, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
+import { IManager, ISDObject, RENDERER_TYPE } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { ThreejsData } from '../types/ThreejsData'
 import { RenderingEngine } from '../RenderingEngine'
-import { IManager } from '../interfaces/IManager'
 import { Bone } from 'three'
 import { AbstractCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 import { SDData, SD_DATA_TYPE } from '../objects/SDData'
@@ -67,7 +66,7 @@ export class SceneTreeManager implements IManager {
     // #region Constructors (1)
 
     constructor(private readonly _renderingEngine: RenderingEngine) {
-        this._scene.background = new THREE.Color('#ffffff');
+        this._scene.background = this._renderingEngine.createThreeJsColor('#ffffff');
     }
 
     // #endregion Constructors (1)
@@ -137,7 +136,9 @@ export class SceneTreeManager implements IManager {
                     skeleton = new THREE.Skeleton(bones, boneInverses)
                 }
 
-                const bb = this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, skeleton);
+                this._renderingEngine.geometryLoader.load(<GeometryData>data, dataChild, skeleton);
+
+                const bb = (<GeometryData>data).primitive.computeBoundingBox(node.worldMatrix)
 
                 // adjust the general BB
                 node.boundingBox.union(bb);
@@ -322,14 +323,6 @@ export class SceneTreeManager implements IManager {
 
         convertedObject.visible = node.visible && !node.excludeViewports.includes(this._renderingEngine.id) && !(node.restrictViewports.length > 0 && !node.restrictViewports.includes(this._renderingEngine.id));
         convertedObject.applyTransformation(node.nodeMatrix);
-
-        // apply matrix to general BB
-        if (!node.boundingBox.isEmpty())
-            node.boundingBox.applyMatrix(node.nodeMatrix);
-
-        // apply matrix to specific BB
-        if (!node.boundingBoxViewport[this._renderingEngine.id].isEmpty())
-            node.boundingBoxViewport[this._renderingEngine.id].applyMatrix(node.nodeMatrix);
     }
 
     public updateSceneTree(root: ITreeNode, lightEngine: LightEngine): void {
@@ -355,9 +348,6 @@ export class SceneTreeManager implements IManager {
 
         for (let i = 0; i < this._boundingBoxSensitiveData.length; i++)
             this._renderingEngine.lightLoader.adjustToBoundingBox(this._boundingBoxSensitiveData[i].data, this._boundingBoxSensitiveData[i].dataChild, this._boundingBox)
-
-        if (!this._boundingBox.isEmpty())
-            this._boundingBox.applyMatrix(root.nodeMatrix);
 
         if (!(this._boundingBox.min[0] === oldBB.min[0] && this._boundingBox.min[1] === oldBB.min[1] && this._boundingBox.min[2] === oldBB.min[2] &&
             this._boundingBox.max[0] === oldBB.max[0] && this._boundingBox.max[1] === oldBB.max[1] && this._boundingBox.max[2] === oldBB.max[2])) {

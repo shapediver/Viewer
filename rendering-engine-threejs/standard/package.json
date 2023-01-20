@@ -39,6 +39,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "@shapediver/viewer.rendering-engine.animation-engine": "2.6.5",
+    "@shapediver/viewer.rendering-engine.animation-frame-engine": "2.6.5",
     "@shapediver/viewer.rendering-engine.camera-engine": "2.6.5",
     "@shapediver/viewer.rendering-engine.canvas-engine": "2.6.5",
     "@shapediver/viewer.rendering-engine.light-engine": "2.6.5",

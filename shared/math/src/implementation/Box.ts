@@ -130,22 +130,20 @@ export class Box implements IBox {
         return point;
     }
 
-    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array): IBox {
+    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array, matrix: mat4): IBox {
         let minX = Infinity, minY = Infinity, minZ = Infinity;
         let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
         for (let i = 0; i < array.length; i += 3) {
-            const x = array[i];
-            const y = array[i + 1];
-            const z = array[i + 2];
+            const v = vec3.transformMat4(vec3.create(), vec3.fromValues(array[i], array[i + 1], array[i + 2]), matrix);
 
-            if (x < minX) minX = x;
-            if (y < minY) minY = y;
-            if (z < minZ) minZ = z;
+            if (v[0] < minX) minX = v[0];
+            if (v[1] < minY) minY = v[1];
+            if (v[2] < minZ) minZ = v[2];
 
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
-            if (z > maxZ) maxZ = z;
+            if (v[0] > maxX) maxX = v[0];
+            if (v[1] > maxY) maxY = v[1];
+            if (v[2] > maxZ) maxZ = v[2];
         }
 
         this.min = vec3.fromValues(minX, minY, minZ);

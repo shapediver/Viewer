@@ -1,4 +1,4 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { mat4, vec3, quat } from 'gl-matrix'
 import { AbstractTreeNodeData, ITreeNode, ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
 import { Box, IBox } from '@shapediver/viewer.shared.math'
 import { IAttributeData, IGeometryData, IPrimitiveData, PRIMITIVE_MODE } from '../../interfaces/data/IGeometryData';
@@ -169,7 +169,10 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
   } = {};
   readonly #mode: PRIMITIVE_MODE = PRIMITIVE_MODE.TRIANGLES;
 
-  #boundingBox: Box = new Box();
+  #boundingBoxes: {
+    matrix: mat4,
+    boundingBox: IBox
+  }[] = [];
   #indices: IAttributeData | null = null;
   #material: IMaterialAbstractData | null = null;
   #standardMaterial: IMaterialAbstractData | null = null;
@@ -205,14 +208,6 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     this.#material = material;
     this.#standardMaterial = material;
     this.#attributeMaterial = attributeMaterial;
-
-    if (this.#attributes['POSITION']) {
-      if (this.#attributes['POSITION'].min.length === 3 && this.#attributes['POSITION'].max.length === 3) {
-        this.#boundingBox = new Box(vec3.fromValues(this.#attributes['POSITION'].min[0], this.#attributes['POSITION'].min[1], this.#attributes['POSITION'].min[2]), vec3.fromValues(this.#attributes['POSITION'].max[0], this.#attributes['POSITION'].max[1], this.#attributes['POSITION'].max[2]));
-      } else {
-        this.#boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array);
-      }
-    }
   }
 
   // #endregion Constructors (1)
@@ -226,7 +221,7 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
   }
 
   public get boundingBox(): IBox {
-    return this.#boundingBox;
+    return this.computeBoundingBox(mat4.create());
   }
 
   public get indices(): IAttributeData | null {
@@ -293,13 +288,52 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
     return new PrimitiveData(attributes, this.#mode, <AttributeData>this.#indices?.clone(), <IMaterialAbstractData>this.#material?.clone(), <IMaterialAbstractData>this.#attributeMaterial?.clone());
   }
 
+  public computeBoundingBox(matrix: mat4): IBox {
+    const res = this.#boundingBoxes.find(b => mat4.equals(matrix, b.matrix));
+    if(res) return res.boundingBox;
+
+    if (this.#attributes['POSITION']) {
+      if (this.#attributes['POSITION'].min.length === 3 && this.#attributes['POSITION'].max.length === 3 && mat4.equals(matrix, mat4.create())) {
+        const boundingBox = new Box(vec3.fromValues(this.#attributes['POSITION'].min[0], this.#attributes['POSITION'].min[1], this.#attributes['POSITION'].min[2]), vec3.fromValues(this.#attributes['POSITION'].max[0], this.#attributes['POSITION'].max[1], this.#attributes['POSITION'].max[2]));
+        this.#boundingBoxes.push({
+          boundingBox,
+          matrix
+        })
+        return boundingBox;
+      } else if(mat4.equals(matrix, mat4.create())) {
+        const boundingBox = new Box();
+        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, matrix);
+        this.#boundingBoxes.push({
+          boundingBox,
+          matrix
+        })
+      } else if(quat.equals(mat4.getRotation(quat.create(), matrix), quat.create())) {
+        const identityBB = this.computeBoundingBox(mat4.create());
+        const boundingBox = identityBB.clone().applyMatrix(matrix);
+        this.#boundingBoxes.push({
+          boundingBox,
+          matrix
+        })
+        return boundingBox;
+      } else {
+        const boundingBox = new Box();
+        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, matrix);
+        this.#boundingBoxes.push({
+          boundingBox,
+          matrix
+        })
+        return boundingBox;
+      }
+    }
+    return new Box();
+  }
+
   // #endregion Public Methods (1)
 }
 
 export class GeometryData extends AbstractTreeNodeData implements IGeometryData {
   // #region Properties (4)
 
-  readonly #matrix: mat4;
   readonly #primitive: IPrimitiveData;
 
   #boundingBox: IBox = new Box();
@@ -316,18 +350,15 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
    * Creates a geometry data object.
    * 
    * @param _primitive the primitive
-   * @param _matrix the matrix to apply
    * @param id the id
    */
   constructor(
     primitive: IPrimitiveData,
-    matrix: mat4 = mat4.create(),
     id?: string,
     morphWeights: number[] = []
   ) {
     super(id);
     this.#primitive = primitive;
-    this.#matrix = matrix;
     this.#boundingBox = this.primitive.boundingBox.clone();
     this.#morphWeights = morphWeights;
   }
@@ -338,10 +369,6 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
 
   public get boundingBox(): IBox {
     return this.#boundingBox;
-  }
-
-  public get matrix(): mat4 {
-    return this.#matrix;
   }
 
   public get primitive(): IPrimitiveData {
@@ -384,7 +411,7 @@ export class GeometryData extends AbstractTreeNodeData implements IGeometryData 
    * Clones the scene graph data.
    */
   public clone(): IGeometryData {
-    return new GeometryData(this.#primitive.clone(), mat4.clone(this.matrix), this.id, this.#morphWeights);
+    return new GeometryData(this.#primitive.clone(), this.id, this.#morphWeights);
   }
 
   public intersect(origin: vec3, direction: vec3): number | null {

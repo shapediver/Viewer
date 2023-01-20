@@ -1,5 +1,5 @@
 import { ITreeNodeData } from '@shapediver/viewer.shared.node-tree'
-import { vec3 } from 'gl-matrix'
+import { Color } from '@shapediver/viewer.shared.types'
 
 export enum LIGHT_TYPE {
   AMBIENT = 'ambient',
@@ -14,7 +14,7 @@ export interface ILight extends ITreeNodeData {
   // #region Properties (5)
 
   id: string;
-  color: string | number | vec3,
+  color: Color,
   intensity: number,
   name?: string
   order?: number

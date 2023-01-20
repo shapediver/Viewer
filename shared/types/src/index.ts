@@ -41,6 +41,7 @@ import { MaterialGemData } from './implementation/material/MaterialGemData'
 import { IMaterialGemData, IMaterialGemDataProperties } from './interfaces/data/material/IMaterialGemDataProperties'
 import { MaterialShadowData } from './implementation/material/MaterialShadowData'
 import { IMaterialShadowData, IMaterialShadowDataProperties } from './interfaces/data/material/IMaterialShadowData'
+import { Color } from './types'
 
 export {
   IMaterialStandardData, MaterialStandardData, IMaterialStandardDataProperties, 
@@ -71,4 +72,8 @@ export {
 export {
   ISDTFOverviewData, SDTFOverviewData, ISDTFOverview, SDTFAttributesData, ISDTFAttributesData, ISDTFAttributeData, SDTFAttributeData, SDTFItemData, ISDTFItemData, ISDTFAttributeVisualizationData,
   SdtfTypeHintName as SDTF_TYPEHINT, SdtfPrimitiveTypeGuard
+}
+
+export {
+  Color
 }

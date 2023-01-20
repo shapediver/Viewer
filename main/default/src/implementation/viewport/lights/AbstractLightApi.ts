@@ -4,6 +4,7 @@ import { ILightApi } from "../../../interfaces/viewport/lights/ILightApi";
 import { InputValidator, Logger, LOGGING_TOPIC, ShapeDiverBackendError, ShapeDiverViewerError } from "@shapediver/viewer.shared.services";
 import { container } from "tsyringe";
 import { IViewportApi } from "../../../interfaces/viewport/IViewportApi";
+import { Color } from "@shapediver/viewer.shared.types";
 
 export abstract class AbstractLightApi implements ILightApi {
     // #region Properties (15)
@@ -28,11 +29,11 @@ export abstract class AbstractLightApi implements ILightApi {
 
     // #region Public Accessors (12)
 
-    public get color(): string | number | vec3 {
+    public get color(): Color {
         return this.#light.color;
     }
 
-    public set color(value: string | number | vec3) {
+    public set color(value: Color) {
         const scope = 'color';
         try {
             this.#inputValidator.validateAndError(LOGGING_TOPIC.LIGHT, `${this.scope}.${scope}`, value, 'color');

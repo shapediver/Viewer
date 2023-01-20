@@ -41,7 +41,11 @@ import {
   TASK_TYPE,
   IAnimationData,
   IGeometryData,
+  Color,
 } from '@shapediver/viewer.shared.types'
+import {
+  AnimationEngine
+} from "@shapediver/viewer.rendering-engine.animation-engine"
 
 import { SceneTreeManager } from './managers/SceneTreeManager'
 import { RenderingManager } from './managers/RenderingManager'
@@ -56,12 +60,12 @@ import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
 import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
 import { AnimationManager } from './managers/AnimationManager'
+import { SDColor } from './objects/SDColor'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
   // #region Properties (61)
 
   // managers
-  private readonly _animationManager: AnimationManager;
   private readonly _beautyRenderingManager: BeautyRenderingManager;
   // engines
   private readonly _cameraEngine: CameraEngine;
@@ -69,6 +73,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   // viewer essentials
   private readonly _canvas: ICanvas;
   private readonly _canvasEngine: CanvasEngine = <CanvasEngine>container.resolve(CanvasEngine);
+  private readonly _animationEngine: AnimationEngine = <AnimationEngine>container.resolve(AnimationEngine);
   // utils
   private readonly _converter: Converter = <Converter>container.resolve(Converter);
   private readonly _domEventEngine: DomEventEngine;
@@ -87,6 +92,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     busyModeDisplay: BUSY_MODE_DISPLAY,
     spinnerPositioning: SPINNER_POSITIONING
   };
+  private readonly _colorCache: SDColor[] = [];
   private readonly _id: string;
   private readonly _lightEngine: LightEngine;
   private readonly _lightLoader: LightLoader;
@@ -106,13 +112,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _arRotation: vec3 = vec3.create();
   private _arScale: vec3 = vec3.fromValues(1, 1, 1);
   private _arTranslation: vec3 = vec3.create();
+  private _automaticColorAdjustment: boolean = true;
   private _automaticResizing: boolean = true;
   private _beautyRenderBlendingDuration: number = 1500;
   private _beautyRenderDelay: number = 50;
   private _busy: boolean = false;
   private _busyModeDisplay: BUSY_MODE_DISPLAY = BUSY_MODE_DISPLAY.SPINNER;
   private _clearAlpha: number = 1.0;
-  private _clearColor: string = '#ffffff';
+  private _clearColor: Color = '#ffffff';
   // viewer global vars
   private _closed: boolean = false;
   private _enableAR: boolean = true;
@@ -210,7 +217,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._lightEngine = new LightEngine(this);
 
     // creation of the managers (all singleton engines were created already)
-    this._animationManager = new AnimationManager(this);
     this._beautyRenderingManager = new BeautyRenderingManager(this);
     this._cameraManager = new CameraManager(this);
     this._environmentGeometryManager = new EnvironmentGeometryManager(this);
@@ -277,16 +283,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._ambientOcclusionIntensity = value;
   }
 
-  public get animationManager(): AnimationManager {
-    return this._animationManager;
-  }
-
-  public get animations(): {
-    [key: string]: IAnimationData
-  } {
-    return this.#animations;
-  }
-
   public get arRotation(): vec3 {
     return this._arRotation;
   }
@@ -309,6 +305,17 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
   public set arTranslation(value: vec3) {
     this._arTranslation = value;
+  }
+
+  public get automaticColorAdjustment(): boolean {
+    return this._automaticColorAdjustment;
+  }
+
+  public set automaticColorAdjustment(value: boolean) {
+    if(this._automaticColorAdjustment === value) return;
+    this._automaticColorAdjustment = value;
+    this._colorCache.forEach(c => c.colorCorrection(value));
+    this._materialLoader.assignColorCorrection(value);
   }
 
   public get automaticResizing(): boolean {
@@ -389,16 +396,20 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._clearAlpha = value;
   }
 
-  public get clearColor(): string {
+  public get clearColor(): Color {
     return this._clearColor;
   }
 
-  public set clearColor(value: string) {
+  public set clearColor(value: Color) {
     this._clearColor = value;
   }
 
   public get closed(): boolean {
     return this._closed;
+  }
+
+  public get colorCache(): SDColor[] {
+    return this._colorCache;
   }
 
   public get continuousRendering(): boolean {
@@ -467,11 +478,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     return this._geometryLoader;
   }
 
-  public get gridColor(): string {
+  public get gridColor(): Color {
     return this._environmentGeometryManager.gridColor;
   }
 
-  public set gridColor(value: string) {
+  public set gridColor(value: Color) {
     this._environmentGeometryManager.gridColor = value;
   }
 
@@ -484,11 +495,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._gridVisibility = value;
   }
 
-  public get groundPlaneColor(): string {
+  public get groundPlaneColor(): Color {
     return this._environmentGeometryManager.groundPlaneColor;
   }
 
-  public set groundPlaneColor(value: string) {
+  public set groundPlaneColor(value: Color) {
     this._environmentGeometryManager.groundPlaneColor = value;
   }
 
@@ -501,11 +512,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._groundPlaneVisibility = value;
   }
 
-  public get groundPlaneShadowColor(): string {
+  public get groundPlaneShadowColor(): Color {
     return this._environmentGeometryManager.groundPlaneShadowColor;
   }
 
-  public set groundPlaneShadowColor(value: string) {
+  public set groundPlaneShadowColor(value: Color) {
     this._environmentGeometryManager.groundPlaneShadowColor = value;
   }
 
@@ -830,7 +841,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
           if (!settingsEngine) return;
           this.environmentMapAsBackground = settingsEngine.environment.mapAsBackground;
           this.clearAlpha = settingsEngine.environment.clearAlpha;
-          this.clearColor = this._converter.toColor(settingsEngine.environment.clearColor);
+          this.clearColor = this._converter.toHexColor(settingsEngine.environment.clearColor);
           this.applySyncSettings(sections);
           resolve();
         })
@@ -870,6 +881,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       out.merge(new SDTFOverviewData(this.createSDTFOverview(node.children[i])));
 
     return out.overview;
+  }
+
+  public createThreeJsColor(color: Color): THREE.Color {
+    const sdColor = new SDColor(this._converter.toThreeJsColorInput(color), color);
+    sdColor.colorCorrection(this.automaticColorAdjustment);
+    this._colorCache.push(sdColor)
+    return sdColor;
   }
 
   public displayErrorMessage(message: string) {
@@ -952,18 +970,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     }
   }
 
-  public gatherAnimations(node: ITreeNode = this._tree.root): AnimationData[] {
-    let out: AnimationData[] = [];
-    for (let i = 0, len = node.data.length; i < len; i++)
-      if (node.data[i] instanceof AnimationData)
-        out.push(<AnimationData>node.data[i])
-
-    for (let i = 0, len = node.children.length; i < len; i++)
-      out = out.concat(this.gatherAnimations(node.children[i]))
-
-    return out;
-  }
-
   public getEnvironmentMapImageUrl() {
     return this._environmentMapLoader.getEnvironmentMapImageUrl(this.environmentMap);
   }
@@ -1030,14 +1036,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.environment.map = Array.isArray(this.environmentMap) ? JSON.stringify(this.environmentMap) : this.environmentMap;
     settingsEngine.environment.mapAsBackground = this.environmentMapAsBackground;
     settingsEngine.environment.clearAlpha = this.clearAlpha;
-    settingsEngine.environment.clearColor = this.clearColor;
+    settingsEngine.environment.clearColor = this._converter.toHexColor(this.clearColor);
 
     settingsEngine.environmentGeometry.gridVisibility = this.gridVisibility;
     settingsEngine.environmentGeometry.groundPlaneVisibility = this.groundPlaneVisibility;
     settingsEngine.environmentGeometry.groundPlaneShadowVisibility = this.groundPlaneShadowVisibility;
-    settingsEngine.environmentGeometry.gridColor = this.gridColor;
-    settingsEngine.environmentGeometry.groundPlaneColor = this.groundPlaneColor;
-    settingsEngine.environmentGeometry.groundPlaneShadowColor = this.groundPlaneShadowColor;
+    settingsEngine.environmentGeometry.gridColor = this._converter.toHexColor(this.gridColor);
+    settingsEngine.environmentGeometry.groundPlaneColor = this._converter.toHexColor(this.groundPlaneColor);
+    settingsEngine.environmentGeometry.groundPlaneShadowColor = this._converter.toHexColor(this.groundPlaneShadowColor);
 
     settingsEngine.general.pointSize = this.pointSize;
     settingsEngine.general.transformation.rotation = { x: this.arRotation[0], y: this.arRotation[1], z: this.arRotation[2] };
@@ -1046,6 +1052,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
     settingsEngine.rendering.ambientOcclusion = this.ambientOcclusion;
     settingsEngine.rendering.ambientOcclusionIntensity = this.ambientOcclusionIntensity;
+    settingsEngine.rendering.automaticColorAdjustment = this.automaticColorAdjustment;
     settingsEngine.rendering.lights = this.lights;
     settingsEngine.rendering.outputEncoding = this.outputEncoding;
     settingsEngine.rendering.physicallyCorrectLights = this.physicallyCorrectLights;
@@ -1056,36 +1063,6 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     settingsEngine.rendering.beautyRenderDelay = this.beautyRenderDelay;
     settingsEngine.rendering.shadows = this.shadows;
     
-  }
-
-  public startGatherAnimations(node: ITreeNode = this._tree.root) {
-    this.#animations = {};
-
-    const animationArray = this.gatherAnimations();
-    const names = animationArray.map(a => a.name);
-    const animationDictionary: {
-      [key: string]: number
-    } = {};
-
-    for(let i = 0; i < animationArray.length; i++) {
-      const animationName = animationArray[i].name;
-      
-      const nameIndices = [];
-      for(let j = 0; j < names.length; j++)
-        if(animationName === names[j])
-          nameIndices.push(j);
-
-      let animationNameAdjusted = animationName;
-      // name adjustement if the name occurs multiple times
-      if(nameIndices.length > 1) {
-        animationNameAdjusted = animationName + '_' + nameIndices.indexOf(i);
-        // even further name adjustement if the name is even then the same after adjustements (probably will never happen)
-        while(names.includes(animationNameAdjusted))
-          animationNameAdjusted += "_0";
-      }
-      
-      this.#animations[animationNameAdjusted] = animationArray[i];
-    }
   }
   
   public touchToRay(event: Touch): { origin: vec3, direction: vec3 } {
@@ -1100,7 +1077,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     if(this.closed) return;
     this._sceneTreeManager.updateSceneTree(this._tree.root, <LightEngine>this._lightEngine);
     this._renderingManager.updateShadowMap();
-    this.startGatherAnimations();
+    this._animationEngine.updateAnimationData();
     this._renderingManager.render();
 
     this._renderingManager.lastRootVersion = this._tree.root.version;
@@ -1212,6 +1189,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
       this.ambientOcclusion = this._settingsEngine.rendering.ambientOcclusion;
       this.lights = this._settingsEngine.rendering.lights;
 
+      this.automaticColorAdjustment = this._settingsEngine.rendering.automaticColorAdjustment;
       this.textureEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.textureEncoding;
       this.outputEncoding = <TEXTURE_ENCODING>this._settingsEngine.rendering.outputEncoding;
       this.physicallyCorrectLights = this._settingsEngine.rendering.physicallyCorrectLights;

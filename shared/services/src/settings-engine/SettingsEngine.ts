@@ -1,4 +1,4 @@
-import { convert, validate, DefaultsV3_2 as Defaults, ISettingsV3_2 as ISettings } from '@shapediver/viewer.settings';
+import { convert, validate, DefaultsV3_3 as Defaults, ISettingsV3_3 as ISettings, versions } from '@shapediver/viewer.settings';
 import { container, singleton } from 'tsyringe'
 
 import { EventEngine } from '../event-engine/EventEngine'
@@ -20,7 +20,7 @@ export class SettingsEngine {
     private readonly _eventEngine: EventEngine = <EventEngine>container.resolve(EventEngine);
     private readonly _logger: Logger = <Logger>container.resolve(Logger);
     private readonly _settings: ISettings = Defaults();
-    private _settings_version: '1.0' | '2.0' | '3.0' | '3.1' | '3.2' = '3.2';
+    private _settings_version: versions = '3.3';
 
     // #endregion Properties (8)
 
@@ -96,42 +96,24 @@ export class SettingsEngine {
 
     public loadSettings(json: any) {
         if (JSON.stringify(json) !== JSON.stringify({})) {
-            try { 
-                validate(json, '1.0');             
-                this._settings_version = '1.0';       
-                (<any>this._settings) = convert(json, '3.2');
-                this.cleanSettings(this._settings);
-                return;
-            } catch (e) {}
-            
-            try { 
-                validate(json, '2.0');             
-                this._settings_version = '2.0';       
-                (<any>this._settings) = convert(json, '3.2');
-                this.cleanSettings(this._settings);
-                return;
-            } catch (e) {}
+
+            const prevVersions = ['1.0', '2.0', '3.0', '3.1', '3.2'];
+            for(let i = 0; i < prevVersions.length; i++) {
+                const v = prevVersions[i];
+
+                try { 
+                    validate(json, v as versions);             
+                    this._settings_version = v as versions;       
+                    (<any>this._settings) = convert(json, '3.3');
+                    this.cleanSettings(this._settings);
+                    return;
+                } catch (e) {}
+            }
 
             try { 
-                validate(json, '3.0');             
-                this._settings_version = '3.0';       
-                (<any>this._settings) = convert(json, '3.2');
-                this.cleanSettings(this._settings);
-                return;
-            } catch (e) {}
-
-            try { 
-                validate(json, '3.1');             
-                this._settings_version = '3.1';       
-                (<any>this._settings) = convert(json, '3.2');
-                this.cleanSettings(this._settings);
-                return;
-            } catch (e) {}
-
-            try { 
-                validate(json, '3.2');             
-                this._settings_version = '3.2';       
-                (<any>this._settings) = convert(json, '3.2');
+                validate(json, '3.3');             
+                this._settings_version = '3.3';       
+                (<any>this._settings) = convert(json, '3.3');
                 this.cleanSettings(this._settings);
                 return;
             } catch (e) {
@@ -139,14 +121,14 @@ export class SettingsEngine {
                 throw this._logger.handleError(LOGGING_TOPIC.SETTINGS, `SettingsEngine.loadSettings`, error);
             }
         } else {
-            this._settings_version = '3.2';       
+            this._settings_version = '3.3';       
             (<any>this._settings) = Defaults();
             return;
         }
     }
 
     public reset() {
-        this._settings_version = '3.2';       
+        this._settings_version = '3.3';       
         (<any>this._settings) = Defaults();
     }
 

@@ -1,6 +1,7 @@
 import { vec2, vec3 } from "gl-matrix";
 import { ITreeNodeData } from "@shapediver/viewer.shared.node-tree";
 import { IBox } from "@shapediver/viewer.shared.math";
+import { Color } from "../../types";
 
 export interface IAnchorDataImage {
     // #region Properties (6)
@@ -22,7 +23,7 @@ export interface IAnchorDataImage {
 export interface IAnchorDataText {
     // #region Properties (5)
 
-    color: string | number | vec3,
+    color: Color,
     hidden?: boolean,
     position?: {
         horizontal?: string,

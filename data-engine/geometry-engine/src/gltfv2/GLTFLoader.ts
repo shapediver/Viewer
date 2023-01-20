@@ -15,7 +15,8 @@ import {
   AnimationData,
   IAnimationTrack,
   AttributeData,
-  BoneData
+  BoneData,
+  Color
 } from '@shapediver/viewer.shared.types'
 import { OrthographicCamera, PerspectiveCamera } from '@shapediver/viewer.rendering-engine.camera-engine'
 import {
@@ -305,9 +306,9 @@ export class GLTFLoader {
         const lightDef = this._content.extensions[GLTF_EXTENSIONS.KHR_LIGHTS_PUNCTUAL].lights[lightId];
         const lightNode = new TreeNode(lightDef.name || 'light_' + lightId);
 
-        let color = '#ffffffff';
+        let color: Color = '#ffffffff';
         if (lightDef.color !== undefined)
-            color = this._converter.toColor([lightDef.color[0] * 255, lightDef.color[1] * 255, lightDef.color[2] * 255]);
+            color = [lightDef.color[0] * 255, lightDef.color[1] * 255, lightDef.color[2] * 255];
 
         const range = lightDef.range !== undefined ? lightDef.range : 0;
 
