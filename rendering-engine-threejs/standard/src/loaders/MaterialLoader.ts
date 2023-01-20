@@ -270,6 +270,7 @@ export class MaterialLoader implements ILoader {
         } else if(!generalProperties.transparent) {
             generalProperties.transparent = false;
         }
+        generalProperties.depthWrite = !generalProperties.transparent
 
         if(materialData.color !== undefined)
             generalProperties.color = new THREE.Color(this._converter.toThreeJsColorInput(materialData.color));
@@ -610,6 +611,9 @@ export class MaterialLoader implements ILoader {
             return this._materialCache[incomingData.id + '_' + incomingData.version + '_' + type].material;
 
         let {properties, mapCount} = this.getMaterialProperties(materialData, type, materialSettings);
+
+
+        console.log(materialData?.name, properties)
         this.maxMapCount = Math.max(this.maxMapCount, mapCount);
 
         let material: THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.MeshBasicMaterial | THREE.MeshPhysicalMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.ShadowMaterial;
