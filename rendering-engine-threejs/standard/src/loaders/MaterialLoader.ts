@@ -510,9 +510,6 @@ export class MaterialLoader implements ILoader {
             meshPhysicalProperties.ior = materialData.ior;
 
             meshPhysicalProperties.transmission = materialData.transmission;
-            if (meshPhysicalProperties.transmission > 0) {
-                meshPhysicalProperties.opacity = 1;
-            }
 
             if (materialData.transmissionMap !== undefined) {
                 meshPhysicalProperties.transmissionMap = this.createTexture(materialData.transmissionMap);
