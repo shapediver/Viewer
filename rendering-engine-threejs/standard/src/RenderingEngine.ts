@@ -59,7 +59,6 @@ import { EnvironmentGeometryManager } from './managers/EnvironmentGeometryManage
 import { SceneTracingManager } from './managers/SceneTracingManager'
 import { CameraManager } from './managers/CameraManager'
 import { IRenderingEngineThreeJS } from './interfaces/IRenderingEngine'
-import { AnimationManager } from './managers/AnimationManager'
 import { SDColor } from './objects/SDColor'
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
