@@ -613,7 +613,6 @@ export class MaterialLoader implements ILoader {
         let {properties, mapCount} = this.getMaterialProperties(materialData, type, materialSettings);
 
 
-        console.log(materialData?.name, properties)
         this.maxMapCount = Math.max(this.maxMapCount, mapCount);
 
         let material: THREE.PointsMaterial | THREE.LineBasicMaterial | THREE.MeshBasicMaterial | THREE.MeshPhysicalMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.ShadowMaterial;

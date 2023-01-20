@@ -1,7 +1,8 @@
-import { addListener, createSession, createViewport, EVENTTYPE, ITreeNode, MaterialStandardData, CustomData, MATERIAL_ALPHA, VISIBILITY_MODE, GeometryData } from '@shapediver/viewer';
-import { InteractionEngine, DragManager, InteractionData, IDragEvent, CameraPlaneConstraint } from '@shapediver/viewer.features.interaction';
-import { IPendantsLayout, IPendant } from './pendantsGH_parametersDefinition'
+import { sceneTree, addListener, createSession, createViewport, EVENTTYPE, ITreeNode, MaterialStandardData, CustomData, MATERIAL_ALPHA, VISIBILITY_MODE, GeometryData, ThreejsData } from '@shapediver/viewer';
+import { InteractionEngine, DragManager, InteractionData, IDragEvent, CameraPlaneConstraint, PlaneConstraint, LineConstraint } from '@shapediver/viewer.features.interaction';
+import { IPendantsLayout, IPendant, Line } from './pendantsGH_parametersDefinition'
 import { mat4, vec3 } from 'gl-matrix';
+import * as THREE from "three";
 
 type MaterialSettings = {
     [key: string]: {
@@ -76,25 +77,24 @@ let instructionsEndpoints: {
     })
     const pendants = await createSession({
         ticket:
-            '6859299b3063a6aac2ec0acc03f5455111d75e34812c6a5ba1b937c6d8dc7d4e66d5ccc525da55027b4560c363286725fd79c5c5809edbb538586f1b65fe2cb149b98d59528c932232f371266acab42566975623bcc4d0325a26827dfcf67234374b56e97cbbe4-d1acafc06915a1bab8a7921ad45b5694',
+            '3bbafc9d7ce17df9503fee3368be2da7dcc47e761556351961fe37d28fddc1d71b341d75e5ff2c00997c7f33a26156b968336194237336320b5e03c89db413f459af9562a30b5c6b40555d4ce2a32f81116324b2b1177449623d171c0e23f6a7a29afb80b763bb-d35b791228e2af7a789e214969fec1ee',
         modelViewUrl: 'https://sdr7euc1.eu-central-1.shapediver.com',
         id: 'pendants',
     });
 
-    pendants.getParameterByName("lamps_GLTF_server")[0].value = 'https://bocci.sfo3.digitaloceanspaces.com/';
     // NOTE GUSTAVS: this is the label of the lamps from the code snippet you sent me without the ".gltf"
-    const lampNames = ["configurator/100/100_Var1_White", "configurator/100/100_Var1_Grey"]
-    pendants.getParameterByName("lamps_GLTF_names")[0].value = JSON.stringify(lampNames);
-    pendants.getParameterByName("lamps_scale")[0].value = 1000;
-    // NOTE GUSTAVS: until the issue with the glTF positioning of the lamps is fixed, keep this at 0 to see the movement better.
-    pendants.getParameterByName("lamps_radius")[0].value = 0;
+    const lampNames: string[] = []
+
+    pendants.getParameterByName("coaxialCable_type")[0].value = 0;
+    pendants.getParameterByName("aircraftCable_type")[0].value = 0;
+    pendants.getParameterByName("import_template")[0].value = "";
     await pendants.customize();
 
     // NOTE GUSTAVS - PENDANT INFO: Here I load the pendantsLayout_JSON initially into pendantsLayoutJSON.
     const pendantsLayoutExport = await pendants.getExportByName('pendantsLayout_JSON')[0].request();
     const fetchRepsonse = await fetch(pendantsLayoutExport.content![0].href);
     let pendantsLayoutJSON: IPendantsLayout = await fetchRepsonse.json();
-
+    pendants.getParameterByName('pendantsLayout_JSON')[0].value = new Blob([JSON.stringify(pendantsLayoutJSON)], { type: "application/json" });
 
 
     const interactionEngine = new InteractionEngine(viewport);
@@ -106,18 +106,20 @@ let instructionsEndpoints: {
     const cameraPlaneConstraint = new CameraPlaneConstraint();
     dragManager.addDragConstraint(cameraPlaneConstraint);
 
-    const callback = (newNode?: ITreeNode, oldNode?: ITreeNode) => {
+    const callback = async (newNode?: ITreeNode, oldNode?: ITreeNode) => {
         if (!newNode) return;
-        newNode.children.forEach((subNode, indexGroup) =>
+        newNode.children.forEach((subNode, indexGroup) => {
             subNode.children.forEach((pendant, indexLamp) => {
                 // NOTE GUSTAVS - PENDANT INFO: Here is where I add the data of the JSON to the pendant geometry objects.
                 const pendantInfo = pendantsLayoutJSON.pendants.find(p => p.address.content === indexGroup && p.address.transformation === indexLamp)!;
+
                 pendant.addData(new CustomData(pendantInfo));
                 pendant.addData(new InteractionData({ drag: true }));
 
                 // NOTE GUSTAVS - MATERIAL UPDATE: Here I update the materials with the settings that are stored in the JSON file.
                 updateMaterial(pendant, lampNames[indexGroup] + '.gltf');
             })
+        }
         );
         viewport.update();
     };
@@ -132,7 +134,52 @@ let instructionsEndpoints: {
     // NOTE GUSTAVS: By setting the visibilityMode to MANUAL, you can control when the scene is shown. This avoids showing inbetween states where the scene is not fully loaded.
     viewport.show = true;
 
+    const positionRestriction = (e: IDragEvent) => {
+        const dragEvent = e as IDragEvent;
+        const node = dragEvent.node;
+
+        // NOTE GUSTAVS - PENDANT INFO: Here I get the previously stored data from the node.
+        const pendantCustomData: IPendant = (node.data.find(d => d instanceof CustomData)! as CustomData).data as IPendant;
+        const lineData = pendantCustomData.data as Line;
+
+        const dragTransformation = dragEvent.node.getTransformation("SD_drag_matrix")!;
+
+        // get the current position (p) and the line (l1, l2) in world space
+        const p = mat4.getTranslation(vec3.create(), node.worldMatrix);
+        const l1 = vec3.fromValues(lineData[0][0], lineData[0][1], lineData[0][2] + pendants.getParameterByName("room_height")[0].value);
+        const l2 = vec3.fromValues(lineData[1][0], lineData[1][1], lineData[1][2] + pendants.getParameterByName("room_height")[0].value);
+
+        // restrict the values
+        p[0] = l1[0];
+        p[1] = l1[1];
+        p[2] = Math.max(Math.min(p[2], l1[2]), l2[2]);
+        
+        // reset the translation of the drag matrix before calculating the world matrix for the inverse
+        // to avoid inversion of the translation
+        dragTransformation.matrix[12] = 0;
+        dragTransformation.matrix[13] = 0;
+        dragTransformation.matrix[14] = 0;
+
+        // move the adjusted position from world to object space
+        const d = vec3.transformMat4(vec3.create(), p, mat4.invert(mat4.create(), node.worldMatrix))
+
+        // set this as the translation part of the matrix
+        dragTransformation.matrix[12] = d[0];
+        dragTransformation.matrix[13] = d[1];
+        dragTransformation.matrix[14] = d[2];
+
+        dragEvent.node.updateVersion();
+
+        return dragTransformation.matrix;
+    }
+    
+
+    addListener(EVENTTYPE.INTERACTION.DRAG_MOVE, async (e) => {
+        positionRestriction(e as IDragEvent);
+    });
+
     addListener(EVENTTYPE.INTERACTION.DRAG_END, async (e) => {
+        positionRestriction(e as IDragEvent);
         const dragEvent = e as IDragEvent;
         const node = dragEvent.node;
 
@@ -156,13 +203,7 @@ let instructionsEndpoints: {
         }
 
         // NOTE GUSTAVS: not only do we need to adjust the instructions_endPoints_JSON, we also need to load the pendantsLayout_JSON again.
-        pendants.getParameterByName('instructions_endPoints_JSON')[0].value = instructionsEndpoints;
-        pendants.getParameterByName('pendantsLayout_JSON')[0].value = new Blob([JSON.stringify(pendantsLayoutJSON)], { type: "application/json" });
+        pendants.getParameterByName('instructions_endPoints_JSON')[0].value = JSON.stringify(instructionsEndpoints);
         await pendants.customize();
-
-        // NOTE GUSTAVS - PENDANT INFO: Whenever the scene has been updated, you have to request the export to get the new data.
-        const pendantsLayoutExport = await pendants.getExportByName('pendantsLayout_JSON')[0].request();
-        const fetchRepsonse = await fetch(pendantsLayoutExport.content![0].href);
-        pendantsLayoutJSON = await fetchRepsonse.json();
     });
 })();
