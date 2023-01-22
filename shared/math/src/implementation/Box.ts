@@ -1,4 +1,4 @@
-import { mat4, vec3 } from 'gl-matrix'
+import { mat4, vec3, vec4 } from 'gl-matrix'
 import { Sphere } from '..';
 import { IBox } from '../interfaces/IBox';
 import { ISphere } from '../interfaces/ISphere';
@@ -130,24 +130,22 @@ export class Box implements IBox {
         return point;
     }
 
-    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array, matrix: mat4): IBox {
-        let minX = Infinity, minY = Infinity, minZ = Infinity;
-        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-
-        for (let i = 0; i < array.length; i += 3) {
-            const v = vec3.transformMat4(vec3.create(), vec3.fromValues(array[i], array[i + 1], array[i + 2]), matrix);
-
-            if (v[0] < minX) minX = v[0];
-            if (v[1] < minY) minY = v[1];
-            if (v[2] < minZ) minZ = v[2];
-
-            if (v[0] > maxX) maxX = v[0];
-            if (v[1] > maxY) maxY = v[1];
-            if (v[2] > maxZ) maxZ = v[2];
+    public setFromAttributeArray(array: Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array | Float32Array, stride?: number, bytes?: number, matrix: mat4 = mat4.create()): IBox {
+        let transformedArray = [];
+        const length = (Math.floor(array.length / 3) * 3);
+        const byteStride = (stride && stride !== bytes) ? stride : 3;
+        for (let i = 0; i < length; i += byteStride) {
+            let point = vec4.transformMat4(vec4.create(), vec4.fromValues(array[i], array[i + 1], array[i + 2], 1), matrix);
+            transformedArray.push([point[0] / point[3], point[1] / point[3], point[2] / point[3]]);
         }
+        let x_coords = transformedArray.map(p => p[0]);
+        let y_coords = transformedArray.map(p => p[1]);
+        let z_coords = transformedArray.map(p => p[2]);
 
-        this.min = vec3.fromValues(minX, minY, minZ);
-        this.max = vec3.fromValues(maxX, maxY, maxZ);
+
+        this.min = vec3.fromValues(Math.min(...x_coords), Math.min(...y_coords), Math.min(...z_coords));
+        this.max = vec3.fromValues(Math.max(...x_coords), Math.max(...y_coords), Math.max(...z_coords));
+        
         return this;
     }
 

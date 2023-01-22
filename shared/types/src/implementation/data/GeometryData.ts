@@ -297,30 +297,30 @@ export class PrimitiveData extends AbstractTreeNodeData implements IPrimitiveDat
         const boundingBox = new Box(vec3.fromValues(this.#attributes['POSITION'].min[0], this.#attributes['POSITION'].min[1], this.#attributes['POSITION'].min[2]), vec3.fromValues(this.#attributes['POSITION'].max[0], this.#attributes['POSITION'].max[1], this.#attributes['POSITION'].max[2]));
         this.#boundingBoxes.push({
           boundingBox,
-          matrix
+          matrix: mat4.clone(matrix)
         })
         return boundingBox;
       } else if(mat4.equals(matrix, mat4.create())) {
         const boundingBox = new Box();
-        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, matrix);
+        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, this.#attributes['POSITION'].byteStride, this.#attributes['POSITION'].itemBytes, matrix);
         this.#boundingBoxes.push({
           boundingBox,
-          matrix
+          matrix: mat4.clone(matrix)
         })
       } else if(quat.equals(mat4.getRotation(quat.create(), matrix), quat.create())) {
         const identityBB = this.computeBoundingBox(mat4.create());
         const boundingBox = identityBB.clone().applyMatrix(matrix);
         this.#boundingBoxes.push({
           boundingBox,
-          matrix
+          matrix: mat4.clone(matrix)
         })
         return boundingBox;
       } else {
         const boundingBox = new Box();
-        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, matrix);
+        boundingBox.setFromAttributeArray(this.#attributes['POSITION'].array, this.#attributes['POSITION'].byteStride, this.#attributes['POSITION'].itemBytes, matrix);
         this.#boundingBoxes.push({
           boundingBox,
-          matrix
+          matrix: mat4.clone(matrix)
         })
         return boundingBox;
       }
