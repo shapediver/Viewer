@@ -429,7 +429,7 @@ export class CreationControlCenter implements ICreationControlCenter {
 
       session.settingsEngine.settings.build_version = build_data.build_version;
       session.settingsEngine.settings.build_date = build_data.build_date;
-      session.settingsEngine.settings.settings_version = '3.2';
+      session.settingsEngine.settings.settings_version = '3.3'; 
 
       let renderingEngine;
       if(viewportId && this.renderingEngines[viewportId]) {
