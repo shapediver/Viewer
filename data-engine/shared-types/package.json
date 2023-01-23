@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.data-engine.shared-types",
-  "version": "2.7.0",
+  "version": "2.7.1",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,8 +39,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.shared.services": "2.7.0",
-    "@shapediver/viewer.shared.types": "2.7.0",
+    "@shapediver/viewer.shared.services": "2.7.1",
+    "@shapediver/viewer.shared.types": "2.7.1",
     "axios": "^0.21.1",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
