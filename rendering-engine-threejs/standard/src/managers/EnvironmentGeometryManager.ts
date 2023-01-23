@@ -102,18 +102,12 @@ export class EnvironmentGeometryManager implements IManager {
         (<THREE.ShadowMaterial>this._groundPlaneShadow.material).needsUpdate = true;
     } 
 
-    public changeSceneExtents(bb: IBox) {
-        if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
-
-        this._initialized = true;
-        let sceneExtents = vec3.distance(bb.min, bb.max);
-
-        /**
-         * https://shapediver.atlassian.net/browse/SS-2961 evaluate this magic
-         * 
-         * magic begin
-         */
-
+    /**
+     * Creates the grid extents and divisios with the specified scene extents.
+     * 
+     * https://shapediver.atlassian.net/browse/SS-2961 evaluate this magic.
+     */
+    private evaluateGridMeasurements(sceneExtents: number) {
         let divisions = 0.1;
         let gridExtents = 1.0;
         if (sceneExtents > 1) {
@@ -134,9 +128,15 @@ export class EnvironmentGeometryManager implements IManager {
             divisions = firstDigit * 10;
         }
 
-        /**
-         * magic end
-         */
+        return { divisions, gridExtents }
+    }
+
+    public changeSceneExtents(bb: IBox) {
+        if (((bb.min[0] === 0 && bb.min[1] === 0 && bb.min[2] === 0) && (bb.max[0] === 0 && bb.max[1] === 0 && bb.max[2] === 0)) || bb.isEmpty()) return;
+
+        this._initialized = true;
+        let sceneExtents = vec3.distance(bb.min, bb.max);
+        const { divisions, gridExtents } = this.evaluateGridMeasurements(sceneExtents);
 
         this._gridObject.remove(this._grid);
         this._grid = new THREE.GridHelper(2 * gridExtents, divisions);
@@ -212,6 +212,11 @@ export class EnvironmentGeometryManager implements IManager {
         } else {
             let eps = 0.005;
             let bs = bb.boundingSphere;
+
+            let sceneExtents = vec3.distance(bb.min, bb.max);
+            const { divisions, gridExtents } = this.evaluateGridMeasurements(sceneExtents);
+            this._groundPlaneShadow.geometry = new THREE.PlaneGeometry(2 * gridExtents, 2 * gridExtents, 2, 2);
+
             if(this._grid) this._grid.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
             if(this._groundPlane) this._groundPlane.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
             if(this._groundPlaneShadow) this._groundPlaneShadow.position.set(bs.center[0], bs.center[1], bb.min[2] - eps);
