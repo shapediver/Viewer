@@ -1,4 +1,5 @@
 import { IFileParameterApi, IOutputApi, IParameterApi, ISessionApi, ITreeNode, IViewportApi, PARAMETER_TYPE } from "@shapediver/viewer";
+import { guessMimeTypeFromFilename } from "./mimeTypes";
 
 /** 
  * The outputs that were provided me by Edwin that should exist in this model.
@@ -156,8 +157,9 @@ export const createMenu = (session: ISessionApi) => {
         let file = boundaryImportInput.files[0];
         const reader = new FileReader();
         reader.addEventListener("load", async () => {
-            const image = <ArrayBuffer>reader.result;
-            const blob = new Blob([image], { type: file.type });
+            const result = <ArrayBuffer>reader.result;
+            const type = file.type || guessMimeTypeFromFilename(file.name)[0];
+            const blob = new Blob([result], { type });
 
             boundaryImportParameter.value = blob;
             holePositionParameter.value = "[0,0]";
@@ -214,64 +216,64 @@ export const createMenu = (session: ISessionApi) => {
         await session.customize();
     };
 
-    
+
     /**
      * HOLE HEIGHT
      */
 
-     const holeHeightLabel = <HTMLLabelElement>document.createElement('label');
-     holeHeightLabel.innerText = "Hole Height";
-     menuDiv.appendChild(holeHeightLabel);
- 
-     const holeHeightInput = <HTMLInputElement>document.createElement("input");
-     holeHeightInput.setAttribute("type", "range");
-     holeHeightInput.setAttribute("min", holeHeightParameter.min !== undefined ? holeHeightParameter.min + "" : holeHeightParameter.min + "");
-     holeHeightInput.setAttribute("max", holeHeightParameter.max !== undefined ? holeHeightParameter.max + "" : holeHeightParameter.max + "");
-     holeHeightInput.setAttribute("value", holeHeightParameter.value + "");
-     if (holeHeightParameter.type === PARAMETER_TYPE.INT) {
-         holeHeightInput.setAttribute("step", "1");
-     } else if (holeHeightParameter.type === PARAMETER_TYPE.EVEN || holeHeightParameter.type === PARAMETER_TYPE.ODD) {
-         holeHeightInput.setAttribute("step", "2");
-     } else {
-         holeHeightInput.setAttribute("step", 1 / Math.pow(10, holeHeightParameter.decimalplaces!) + "");
-     }
-     menuDiv.appendChild(holeHeightInput);
- 
-     holeHeightInput.onchange = async () => {
-         holeHeightParameter.value = holeHeightInput.value;
-         holePositionParameter.value = "[0,0]";
-         await session.customize();
-     };
+    const holeHeightLabel = <HTMLLabelElement>document.createElement('label');
+    holeHeightLabel.innerText = "Hole Height";
+    menuDiv.appendChild(holeHeightLabel);
 
-     
-    
+    const holeHeightInput = <HTMLInputElement>document.createElement("input");
+    holeHeightInput.setAttribute("type", "range");
+    holeHeightInput.setAttribute("min", holeHeightParameter.min !== undefined ? holeHeightParameter.min + "" : holeHeightParameter.min + "");
+    holeHeightInput.setAttribute("max", holeHeightParameter.max !== undefined ? holeHeightParameter.max + "" : holeHeightParameter.max + "");
+    holeHeightInput.setAttribute("value", holeHeightParameter.value + "");
+    if (holeHeightParameter.type === PARAMETER_TYPE.INT) {
+        holeHeightInput.setAttribute("step", "1");
+    } else if (holeHeightParameter.type === PARAMETER_TYPE.EVEN || holeHeightParameter.type === PARAMETER_TYPE.ODD) {
+        holeHeightInput.setAttribute("step", "2");
+    } else {
+        holeHeightInput.setAttribute("step", 1 / Math.pow(10, holeHeightParameter.decimalplaces!) + "");
+    }
+    menuDiv.appendChild(holeHeightInput);
+
+    holeHeightInput.onchange = async () => {
+        holeHeightParameter.value = holeHeightInput.value;
+        holePositionParameter.value = "[0,0]";
+        await session.customize();
+    };
+
+
+
     /**
      * HOLE WIDTH
      */
 
-     const holeWidthLabel = <HTMLLabelElement>document.createElement('label');
-     holeWidthLabel.innerText = "Hole Width";
-     menuDiv.appendChild(holeWidthLabel);
- 
-     const holeWidthInput = <HTMLInputElement>document.createElement("input");
-     holeWidthInput.setAttribute("type", "range");
-     holeWidthInput.setAttribute("min", holeWidthParameter.min !== undefined ? holeWidthParameter.min + "" : holeWidthParameter.min + "");
-     holeWidthInput.setAttribute("max", holeWidthParameter.max !== undefined ? holeWidthParameter.max + "" : holeWidthParameter.max + "");
-     holeWidthInput.setAttribute("value", holeWidthParameter.value + "");
-     if (holeWidthParameter.type === PARAMETER_TYPE.INT) {
-         holeWidthInput.setAttribute("step", "1");
-     } else if (holeWidthParameter.type === PARAMETER_TYPE.EVEN || holeWidthParameter.type === PARAMETER_TYPE.ODD) {
-         holeWidthInput.setAttribute("step", "2");
-     } else {
-         holeWidthInput.setAttribute("step", 1 / Math.pow(10, holeWidthParameter.decimalplaces!) + "");
-     }
-     menuDiv.appendChild(holeWidthInput);
- 
-     holeWidthInput.onchange = async () => {
-         holeWidthParameter.value = holeWidthInput.value;
-         holePositionParameter.value = "[0,0]";
-         await session.customize();
-     };
+    const holeWidthLabel = <HTMLLabelElement>document.createElement('label');
+    holeWidthLabel.innerText = "Hole Width";
+    menuDiv.appendChild(holeWidthLabel);
+
+    const holeWidthInput = <HTMLInputElement>document.createElement("input");
+    holeWidthInput.setAttribute("type", "range");
+    holeWidthInput.setAttribute("min", holeWidthParameter.min !== undefined ? holeWidthParameter.min + "" : holeWidthParameter.min + "");
+    holeWidthInput.setAttribute("max", holeWidthParameter.max !== undefined ? holeWidthParameter.max + "" : holeWidthParameter.max + "");
+    holeWidthInput.setAttribute("value", holeWidthParameter.value + "");
+    if (holeWidthParameter.type === PARAMETER_TYPE.INT) {
+        holeWidthInput.setAttribute("step", "1");
+    } else if (holeWidthParameter.type === PARAMETER_TYPE.EVEN || holeWidthParameter.type === PARAMETER_TYPE.ODD) {
+        holeWidthInput.setAttribute("step", "2");
+    } else {
+        holeWidthInput.setAttribute("step", 1 / Math.pow(10, holeWidthParameter.decimalplaces!) + "");
+    }
+    menuDiv.appendChild(holeWidthInput);
+
+    holeWidthInput.onchange = async () => {
+        holeWidthParameter.value = holeWidthInput.value;
+        holePositionParameter.value = "[0,0]";
+        await session.customize();
+    };
 
 }
 
