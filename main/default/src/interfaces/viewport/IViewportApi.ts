@@ -182,6 +182,12 @@ export interface IViewportApi {
   environmentMapResolution: string;
 
   /**
+   * Option to set the environment map for unlit materials. (default: false)
+   * For unlit materials, which use the three.js MeshBasicMaterial, per default we don't set the environment map to keep the colors as realistic as possible.
+   */
+   environmentMapForUnlitMaterials: boolean;
+
+  /**
    * The color of the grid.
    */
   gridColor: Color;

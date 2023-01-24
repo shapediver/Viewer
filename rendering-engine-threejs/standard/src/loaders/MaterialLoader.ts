@@ -177,6 +177,8 @@ export class MaterialLoader implements ILoader {
                     (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
                 ) continue;
 
+                if(this._materialCache[m].materialData instanceof MaterialUnlitData && this._renderingEngine.environmentMapForUnlitMaterials === false) return;
+
                 material.envMap = e;
                 material.needsUpdate = true;
                 for(let d in material.defines) {
@@ -185,6 +187,34 @@ export class MaterialLoader implements ILoader {
                 }
                 if(material.defines)
                     material.defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
+            }
+        }
+    }
+
+    
+    public assignEnvironmentMapForUnlitMaterials(toggle: boolean) {
+        for(let m in this._materialCache) {
+            if(this._materialCache[m].material instanceof THREE.MeshBasicMaterial) {
+                const material: THREE.MeshBasicMaterial = <THREE.MeshBasicMaterial>this._materialCache[m].material;
+                if (this._materialCache[m].materialData && 
+                    this._materialCache[m].materialData instanceof MaterialUnlitData &&
+                    (<MaterialUnlitData>this._materialCache[m].materialData).envMap !== undefined
+                ) continue;
+
+                if(toggle) {
+                    material.envMap = this._envMap;
+                    material.needsUpdate = true;
+                    for(let d in material.defines) {
+                        if(d.startsWith('ENVMAP_TYPE_'))
+                            delete material.defines[d];
+                    }
+                    if(material.defines)
+                        material.defines['ENVMAP_TYPE_'+this._envMapType.toUpperCase()] = '';
+
+                } else {
+                    material.envMap = null;
+                    material.needsUpdate = true;
+                }
             }
         }
     }
@@ -688,6 +718,8 @@ export class MaterialLoader implements ILoader {
                 const envMapInput = (<MaterialStandardData | MaterialGemData | MaterialSpecularGlossinessData | MaterialUnlitData>materialData).envMap;
                 if (envMapInput !== undefined) {
                     this._renderingEngine.environmentMapLoader.loadEnvMap(envMapInput).then(envMapResult => {
+                        if(material instanceof THREE.MeshBasicMaterial && this._renderingEngine.environmentMapForUnlitMaterials === false) return;
+
                         (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap = envMapResult.map;
 
                         const envMapType = (<THREE.MeshBasicMaterial | SpecularGlossinessMaterial | GemMaterial | THREE.MeshPhysicalMaterial>material).envMap instanceof THREE.CubeTexture ? ENVIRONMENT_MAP_TYPE.LDR : ENVIRONMENT_MAP_TYPE.HDR

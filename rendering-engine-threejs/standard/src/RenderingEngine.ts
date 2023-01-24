@@ -125,6 +125,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   private _environmentMap: string | string[] = 'null';
   private _environmentMapAsBackground: boolean = false;
   private _environmentMapResolution: string = '1024';
+  private _environmentMapForUnlitMaterials: boolean = false;
   private _gridVisibility: boolean = true;
   private _groundPlaneVisibility: boolean = true;
   private _groundPlaneShadowVisibility: boolean = false;
@@ -467,6 +468,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
   public set environmentMapResolution(value: string) {
     this._environmentMapResolution = value;
     this._environmentMapLoader.load(this.environmentMap);
+  }
+
+  public get environmentMapForUnlitMaterials(): boolean {
+    return this._environmentMapForUnlitMaterials;
+  }
+
+  public set environmentMapForUnlitMaterials(value: boolean) {
+    this._environmentMapForUnlitMaterials = value;
+    this._materialLoader.assignEnvironmentMapForUnlitMaterials(value);
   }
 
   public get eventEngine(): EventEngine {

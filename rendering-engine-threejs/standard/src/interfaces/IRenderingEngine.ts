@@ -16,6 +16,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
     environmentMap: string | string[];
     environmentMapAsBackground: boolean;
     environmentMapResolution: string;
+    environmentMapForUnlitMaterials: boolean;
     gridColor: Color; 
     gridVisibility: boolean;
     groundPlaneColor: Color; 

@@ -364,6 +364,23 @@ export class ViewportApi implements IViewportApi {
         }
     }
 
+    public get environmentMapForUnlitMaterials(): boolean {
+        return this.#renderingEngine.environmentMapForUnlitMaterials;
+    }
+
+    public set environmentMapForUnlitMaterials(value: boolean) {
+        const scope = 'environmentMapForUnlitMaterials';
+        try {
+            this.#inputValidator.validateAndError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, value, 'boolean');
+            this.#renderingEngine.environmentMapForUnlitMaterials = value;
+            this.#logger.debug(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}: ${scope} was set to: ${value}`);
+            this.update();
+        } catch (e) {
+            if (e instanceof ShapeDiverViewerError || e instanceof ShapeDiverBackendError) throw e;
+            throw this.#logger.handleError(LOGGING_TOPIC.VIEWPORT, `ViewportApi.${scope}`, e);
+        }
+    }
+
     public get gridColor(): Color {
         return this.#renderingEngine.gridColor;
     }
