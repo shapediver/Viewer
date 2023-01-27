@@ -1,4 +1,3 @@
-import { IMapData, MapData } from "@shapediver/viewer";
 import * as THREE from "three"
 
 let mergeShader: THREE.ShaderMaterial;
