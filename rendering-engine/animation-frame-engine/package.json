@@ -1,6 +1,6 @@
 {
   "name": "@shapediver/viewer.rendering-engine.animation-frame-engine",
-  "version": "2.7.2",
+  "version": "2.7.3",
   "description": "",
   "keywords": [],
   "author": "Michael Oppitz <michael@shapediver.com>",
@@ -39,8 +39,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@shapediver/viewer.rendering-engine.animation-engine": "2.7.2",
-    "@shapediver/viewer.shared.services": "2.7.2",
+    "@shapediver/viewer.rendering-engine.animation-engine": "2.7.3",
+    "@shapediver/viewer.shared.services": "2.7.3",
     "@tweenjs/tween.js": "^18.6.4",
     "gl-matrix": "3.3.0",
     "tsyringe": "^4.5.0"
