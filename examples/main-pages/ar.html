@@ -69,15 +69,21 @@
         if (!fallbackUrl.startsWith("http"))
             fallbackUrl = "https://" + fallbackUrl;
 
-        if (!sceneId || !backend)
+        if (!sceneId || !backend) {
             window.location.assign(fallbackUrl);
+        }
 
         new Promise(resolve => {
             existsArSession(backend + "/api/v2/ar-scene/" + sceneId, resolve)
         }).then((result) => {
             let file = backend + "/api/v2/ar-scene/" + sceneId;
 
-            if (/Android|iPhone/i.test(navigator.userAgent) && result === true) {
+            if (
+                (
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                    /iPad Simulator|iPhone Simulator|iPod Simulator|iPad|iPhone|iPod/i.test(navigator.platform) ||
+                    (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+                ) && result === true) {
 
                 if (isIOS()) {
                     file += "/usdz";
