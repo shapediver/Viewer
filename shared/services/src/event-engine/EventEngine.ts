@@ -76,9 +76,12 @@ export class EventEngine {
     public emitEvent(type: string | MainEventTypes, event: IEvent): void {
         const typeString: string = this.convertTypeToString(type);
 
-        if (this._eventListeners[typeString] && this._eventListeners[typeString].length !== 0) 
-            for (let i = 0; i < this._eventListeners[typeString]!.length; i++)
-                this._eventListeners[typeString]![i].cb(event);
+        if (this._eventListeners[typeString] && this._eventListeners[typeString].length !== 0) {
+            const cbs = this._eventListeners[typeString]!.map(el => el.cb)
+            for (let i = 0; i < cbs.length; i++) {
+                cbs[i](event);
+            }
+        }
 
         if(typeString.includes('.')) 
             this.emitEvent(typeString.substr(0, typeString.indexOf('.')), event);

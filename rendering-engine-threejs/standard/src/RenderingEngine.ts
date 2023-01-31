@@ -22,6 +22,7 @@ import {
   DomEventEngine,
   EventEngine,
   EVENTTYPE,
+  EVENTTYPE_VIEWPORT,
   Logger,
   LOGGING_TOPIC,
   SettingsEngine,
@@ -42,6 +43,7 @@ import {
   IAnimationData,
   IGeometryData,
   Color,
+  IViewportEvent,
 } from '@shapediver/viewer.shared.types'
 import {
   AnimationEngine
@@ -1090,6 +1092,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
     this._renderingManager.render();
 
     this._renderingManager.lastRootVersion = this._tree.root.version;
+
+    this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this.id })
   }
 
   public updateEnvironmentGeometry(): void {

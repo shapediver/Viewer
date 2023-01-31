@@ -10,6 +10,7 @@ import {
   Converter,
   EventEngine,
   EVENTTYPE,
+  EVENTTYPE_VIEWPORT,
   Logger,
   LOGGING_TOPIC,
   ShapeDiverViewerWebGLError,
@@ -18,7 +19,7 @@ import {
 } from '@shapediver/viewer.shared.services'
 import { mat4, vec3 } from 'gl-matrix'
 import { container } from 'tsyringe'
-import { ICameraEvent } from '@shapediver/viewer.shared.types'
+import { ICameraEvent, IViewportEvent } from '@shapediver/viewer.shared.types'
 import { BUSY_MODE_DISPLAY, IManager, RENDERER_TYPE, SPINNER_POSITIONING } from '@shapediver/viewer.rendering-engine.rendering-engine'
 
 import { RenderingEngine } from '../RenderingEngine'
@@ -327,6 +328,7 @@ export class RenderingManager implements IManager {
             this._animationEngine.updateAnimationData();
             this._lastRootVersion = this._tree.root.version;
             this.render();
+            this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, <IViewportEvent>{ viewportId: this._renderingEngine.id })
         }
 
         if(runningAnimation !== this._runningAnimation) this.render();

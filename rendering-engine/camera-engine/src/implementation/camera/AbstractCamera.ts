@@ -290,9 +290,13 @@ export abstract class AbstractCamera extends AbstractTreeNodeData implements ICa
 
     protected assignViewerInternal(viewportId: string, canvas: HTMLCanvasElement) {
         this._viewportId = viewportId;
-        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, (e: IEvent) => {
-            if (this.#autoAdjust === true)
-                this.zoomTo();
+        this._eventEngine.addListener(EVENTTYPE.SESSION.SESSION_CUSTOMIZED, async (e: IEvent) => {
+            if (this.#autoAdjust === true) {
+                const innerListenerToken = this._eventEngine.addListener(EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, async (e: IEvent) => {
+                    this.zoomTo();
+                    this._eventEngine.removeListener(innerListenerToken)
+                })
+            }
         });
         const revert = () => {
             if (this.#revertAtMouseUp === true)
